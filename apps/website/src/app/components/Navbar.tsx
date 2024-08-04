@@ -23,7 +23,11 @@ export function Navbar() {
       </div>
       <NavigationLinks />
       <div className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
-        <button className="py-[15px] px-[48px] bg-white"><a href="https://app.afk-community" target='_blank'>Log in</a></button>
+        <button className="py-[15px] px-[48px] bg-white">
+          <a href="https://app.afk-community" target="_blank">
+            Log in
+          </a>
+        </button>
       </div>
       <button
         className="flex desktop:hidden"
