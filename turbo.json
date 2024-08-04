@@ -1,0 +1,83 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
+  "globalEnv": [
+    "EXPO_PUBLIC_NETWORK",
+    "EXPO_PUBLIC_PROVIDER_URL",
+    "EXPO_PUBLIC_BACKEND_URL",
+    "EXPO_PUBLIC_WC_ID",
+    "ACCOUNT_ADDRESS",
+    "ACCOUNT_PRIVATE_KEY",
+    "PROVIDER_URL",
+    "NETWORK_NAME",
+    "PINATA_API_KEY",
+    "PINATA_SECRET_API_KEY",
+    "IPFS_GATEWAY"
+  ],
+  "pipeline": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "build/**"
+      ],
+      "env": [
+        "DB_URL_MONGODB",
+        "PINATA_API_KEY",
+        "PINATA_API_SECRET_KEY",
+        "PINATA_JWT",
+        "LAUCHING_FACTORY",
+        "PINATA_GATEWAY_KEY",
+        "NEXT_PUBLIC_APP_URL"
+      ]
+    },
+    "run": {
+      "env": [
+        "DB_URL_MONGODB",
+        "PINATA_API_KEY",
+        "PINATA_API_SECRET_KEY",
+        "PINATA_JWT",
+        "LAUCHING_FACTORY",
+        "PINATA_GATEWAY_KEY",
+        "NEXT_PUBLIC_PINATA_JWT",
+        "APP_URL",
+        "NEXT_PUBLIC_WALLET_CONNECT_ID"
+      ]
+    },
+    "deploy": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "db:migrate:deploy": {},
+    "db:seed": {},
+    "db:generate": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "generate": {
+      "dependsOn": [
+        "^generate"
+      ]
+    },
+    "dev": {
+      "dependsOn": [
+        "^db:generate"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

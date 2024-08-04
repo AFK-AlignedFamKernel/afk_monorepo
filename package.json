@@ -1,0 +1,41 @@
+{
+  "name": "afk_monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "prisma": {
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "build:website":"cd apps/website && pnpm run build",
+    "dev:website":"cd apps/website && pnpm run dev",
+    "build:mobile":"cd apps/mobile && pnpm run build",
+    "dev:mobile":"cd apps/mobile && pnpm run start",
+    "dev": "turbo run dev",
+    "web":"turbo run dev --filter=website",
+    "mobile":"turbo run start --filter=mobile",
+    "extension":"turbo run dev --filter=extensions",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rimraf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:migrate:deploy": "turbo run db:migrate:deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:push": "turbo run db:push",
+    "db:seed": "turbo run db:seed",
+    "generate": "turbo run generate",
+    "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/"
+  },
+  "dependencies": {
+    "prettier": "^2.8.8",
+    "turbo": "^1.13.2",
+    "@babel/core": "^7.20.0",
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "packageManager": "pnpm@8.15.9"
+}

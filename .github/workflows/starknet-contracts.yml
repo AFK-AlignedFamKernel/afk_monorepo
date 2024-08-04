@@ -1,0 +1,36 @@
+name: Starknet Contracts
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: software-mansion/setup-scarb@v1
+      - name: Scarb version
+        run: scarb --version
+        working-directory: onchain
+      - name: Check cairo format
+        run: scarb fmt --check
+        working-directory: onchain
+      - name: Build cairo programs
+        run: scarb build
+        working-directory: onchain
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: software-mansion/setup-scarb@v1
+      - name: Scarb version
+        run: scarb --version
+        working-directory: onchain
+      - uses: actions/checkout@v3
+      - uses: foundry-rs/setup-snfoundry@v3
+        with:
+          starknet-foundry-version: '0.25.0'
+      - name: Run cairo tests
+        run: snforge test
+        working-directory: onchain

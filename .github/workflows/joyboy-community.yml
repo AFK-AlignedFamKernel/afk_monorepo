@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "JoyboyCommunity/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "JoyboyCommunity/**"
+
+jobs:
+  check-app:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./JoyboyCommunity
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+          cache: "yarn"
+          cache-dependency-path: ./JoyboyCommunity/yarn.lock
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Prettier Format Check
+        run: yarn format:check
+
+      - name: ESLint Check
+        run: yarn lint
+
+      - name: TypeScript Check
+        run: yarn ts:check
