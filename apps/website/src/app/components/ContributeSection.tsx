@@ -26,7 +26,7 @@ export function ContributeSection() {
           AlIgnedFamKernel is available on iOS, Web and Android. It’s free and open source.
         </p>
         <a
-          href="https://github.com/keep-starknet-strange/AlIgnedFamKernel"
+          href="https://github.com/AFK-AlignedFamKernel/afk_monorepo"
           target="_blank"
           className="py-[15px] desktop:px-[42px] px-[24px] bg-white rounded-[5px] flex gap-x-[10px] items-center text-black"
         >

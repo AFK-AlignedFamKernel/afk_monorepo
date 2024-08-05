@@ -33,15 +33,15 @@ export function HeroSection() {
         </p>
         <div className="flex desktop:flex-row flex-col items-center gap-y-4 gap-x-6 text-[18px] leading-[21px]">
           <button className="desktop:py-5 text-sm desktop:text-base py-3 px-4 bg-black w-[200px] border-white border-[1px] border-solid desktop:border-none">
-            <a href="https://app.afk-community" target="_blank">
+            <a href="https://afk-community.xyz" target="_blank">
               Sign up
             </a>
           </button>
-          <button className="desktop:py-5 text-sm text-black desktop:text-base py-3 px-4 bg-white w-[200px]">
-            <a href="https://app.afk-community" target="_blank">
+          {/* <button className="desktop:py-5 text-sm text-black desktop:text-base py-3 px-4 bg-white w-[200px]">
+            <a href="https://afk-community.xyz" target="_blank">
               Download App
             </a>
-          </button>
+          </button> */}
         </div>
       </motion.div>
       <motion.img
