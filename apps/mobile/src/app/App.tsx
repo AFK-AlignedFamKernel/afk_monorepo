@@ -91,7 +91,7 @@ export default function App() {
   if (!appIsReady) return null;
 
   return (
-    <View style={{flex: 1}} onLayout={onLayoutRootView}>
+    <View style={{flex: 1, flexDirection:"row"}} onLayout={onLayoutRootView}>
       <Router />
     </View>
   );

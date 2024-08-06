@@ -26,6 +26,8 @@ import { ThemedStyleSheet } from '../styles';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { retrievePublicKey } from '../utils/storage';
 import Sidebar from '../components/Layout/sidebar';
+import { Defi } from '../screens/Defi';
+import { Games } from '../screens/Games';
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createNativeStackNavigator<AuthStackParams>();
@@ -164,6 +166,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="CreateChannel" component={CreateChannel} />
       <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
       <MainStack.Screen name="CreateForm" component={CreateForm} />
+      <MainStack.Screen name="Defi" component={Defi} />
+      <MainStack.Screen name="Games" component={Games} />
     </MainStack.Navigator>
   );
 };
@@ -220,6 +224,7 @@ export const Router: React.FC = () => {
     <NavigationContainer
     // linking={linking}
     >
+      <Sidebar></Sidebar>
       <RootNavigator />
     </NavigationContainer>
   );

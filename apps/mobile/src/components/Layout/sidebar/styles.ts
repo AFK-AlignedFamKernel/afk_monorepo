@@ -3,10 +3,11 @@ import { Spacing, ThemedStyleSheet } from "../../../styles";
 export default ThemedStyleSheet((theme) => ({
     container: {},
     sidebar: {
-        width: 250,
+        width: 350,
         height: '100%',
         backgroundColor: theme.colors.background,
-        padding: 20
+        padding: 20,
+        gap:1
     },
     sidebarText: {
         fontSize: 18
@@ -14,12 +15,22 @@ export default ThemedStyleSheet((theme) => ({
     title: {
         fontWeight: 'bold',
         marginBottom: 16,
-        color:theme.colors.text
+        color: theme.colors.text
     },
     item: {
-        paddingVertical: 8,
-        color:theme.colors.text
-
+        display: 'flex',
+        width:"100%",
+        height:100,
+        backgroundColor: theme.colors.background,
+        // flex
+        // flex: 1,
+        flexDirection: "row",
+        // paddingVertical: 8,
+        color: theme.colors.text,
+    },
+    textItem: {
+        backgroundColor: theme.colors.background,
+        color: theme.colors.text,
     },
     outsideContainer: {
         position: 'absolute',
