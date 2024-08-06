@@ -13,7 +13,7 @@ export const RootScreenContainer: React.FC<ViewProps> = ({ style, children, ...p
   return (
     <View style={[styles.container, style]} {...props}>
       <View style={styles.content}>
-        {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
+        {shouldShowSidebar && <Sidebar></Sidebar>}
         {children}</View>
     </View>
   );
