@@ -28,6 +28,8 @@ export type MainStackParams = {
   ChannelsFeed: undefined;
   ChannelDetail: {postId: string; post?: NDKEvent};
   CreateForm: undefined;
+  Defi: undefined;
+  Games:undefined
 };
 
 export type HomeBottomStackParams = {
@@ -140,5 +142,16 @@ export type ChannelsFeedScreenProps = CompositeScreenProps<
 
 export type CreateFormScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'CreateForm'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+
+export type DefiScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Defi'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type GameSreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Games'>,
   NativeStackScreenProps<RootStackParams>
 >;
