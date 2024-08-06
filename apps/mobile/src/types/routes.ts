@@ -29,7 +29,7 @@ export type MainStackParams = {
   ChannelDetail: {postId: string; post?: NDKEvent};
   CreateForm: undefined;
   Defi: undefined;
-  Games:undefined
+  Games:undefined,
 };
 
 export type HomeBottomStackParams = {
@@ -38,6 +38,8 @@ export type HomeBottomStackParams = {
   Notifications: undefined;
   Tips: undefined;
   Search: undefined;
+  Games:undefined,
+
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
@@ -91,6 +93,12 @@ export type SearchScreenProps = CompositeScreenProps<
   NativeStackScreenProps<HomeBottomStackParams, 'Search'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+export type GamesScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<HomeBottomStackParams, 'Games'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
 
 // export type CreateChannelScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<HomeBottomStackParams, 'CreateChannel'>,

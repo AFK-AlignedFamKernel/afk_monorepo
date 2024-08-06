@@ -7,10 +7,12 @@ export default ThemedStyleSheet((theme) => ({
         height: '100%',
         backgroundColor: theme.colors.background,
         padding: 20,
-        gap:1
+        gap:1,
+        borderRight:"1"
     },
     sidebarText: {
-        fontSize: 18
+        fontSize: 18,
+        color: theme.colors.text
     },
     title: {
         fontWeight: 'bold',

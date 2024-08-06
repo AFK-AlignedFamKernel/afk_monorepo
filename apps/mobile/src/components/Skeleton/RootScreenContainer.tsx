@@ -9,7 +9,7 @@ export const RootScreenContainer: React.FC<ViewProps> = ({ style, children, ...p
   const styles = useStyles(stylesheet);
   const isWeb = Platform.OS === 'web';
   const windowWidth = Dimensions.get('window').width;
-  const shouldShowSidebar = isWeb && windowWidth >= 768;
+  const shouldShowSidebar = isWeb && windowWidth >= 1024;
   return (
     <View style={[styles.container, style]} {...props}>
       <View style={styles.content}>
