@@ -35,6 +35,11 @@ const Sidebar = () => {
         navigation.navigate("Games");
     };
 
+    const handleHomeScreen = () => {
+        navigation.navigate("Home");
+    };
+
+
     return (
         <View style={styles.sidebar}>
             <Text style={styles.sidebarText}>AFK</Text>
@@ -61,6 +66,20 @@ const Sidebar = () => {
 
             </Pressable> */}
 
+            <Pressable
+                onPress={handleHomeScreen}
+                style={styles.item}>
+                <Icon
+                    name="HomeIcon"
+                    size={24}
+                    style={{ backgroundColor: theme.theme.colors.background }}
+                />
+                <Text style={styles.textItem}>
+                    Home
+                </Text>
+
+            </Pressable>
+
 
             <Pressable
                 onPress={handleGameScreen}
@@ -68,7 +87,7 @@ const Sidebar = () => {
                 <Icon
                     name="GameIcon"
                     size={24}
-                    style={{backgroundColor:theme.theme.colors.background}}
+                    style={{ backgroundColor: theme.theme.colors.background }}
                 />
                 <Text style={styles.textItem}>
                     Gamefi

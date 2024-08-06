@@ -34,7 +34,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">
           <a href="https://x.com/AFK_AlignedFamK" target="_blank">
-            <img src="/assets/twitterIcon.svg" alt="AFK Algined Fam Community Twitter / X" />
+            <img src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X" />
           </a>
 
           {/* <a

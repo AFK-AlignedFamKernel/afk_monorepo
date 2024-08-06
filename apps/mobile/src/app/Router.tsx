@@ -88,8 +88,8 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
-        name="Search"
-        component={Search as any}
+        name="Games"
+        component={Games as any}
         // initialParams={{ publicKey }}
         options={{
           tabBarActiveTintColor: 'white',
@@ -97,7 +97,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarIcon: ({ focused }) => (
             <View style={styles.tabBarIcon}>
               <Icon
-                name="SearchIcon"
+                name="GameIcon"
                 size={24}
                 color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
               />

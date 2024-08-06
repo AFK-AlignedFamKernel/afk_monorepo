@@ -4,7 +4,6 @@ import {useQueryClient} from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import {useState} from 'react';
 import {Pressable, View} from 'react-native';
-
 import {UserPlusIcon} from '../../../assets/icons';
 import {Button, IconButton, Menu, Text} from '../../../components';
 import {useContacts, useEditContacts, useProfile, useStyles, useTheme} from '../../../hooks';
