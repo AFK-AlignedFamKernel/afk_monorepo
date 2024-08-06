@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { Dimensions, Platform, StyleSheet, View } from 'react-native';
-
 import { Icon } from '../components';
 import { useStyles, useTheme } from '../hooks';
 import { CreateAccount } from '../screens/Auth/CreateAccount';
@@ -217,14 +216,10 @@ const RootNavigator: React.FC = () => {
 export const Router: React.FC = () => {
   const isWeb = Platform.OS === 'web';
   const windowWidth = Dimensions.get('window').width;
-  const shouldShowSidebar = isWeb && windowWidth >= 768;
-  const styles = useStyles(stylesheet);
-
   return (
     <NavigationContainer
     // linking={linking}
     >
-      <Sidebar></Sidebar>
       <RootNavigator />
     </NavigationContainer>
   );
