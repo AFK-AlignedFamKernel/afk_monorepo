@@ -216,10 +216,13 @@ const RootNavigator: React.FC = () => {
 export const Router: React.FC = () => {
   const isWeb = Platform.OS === 'web';
   const windowWidth = Dimensions.get('window').width;
+  const shouldShowSidebar = isWeb && windowWidth >= 1024;
   return (
     <NavigationContainer
     // linking={linking}
     >
+      {shouldShowSidebar && <Sidebar></Sidebar>}
+      
       <RootNavigator />
     </NavigationContainer>
   );
