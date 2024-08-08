@@ -1,13 +1,11 @@
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import NDK, {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {createContext, useContext, useEffect, useState} from 'react';
 import { useAuth } from '../store/auth';
 import {AFK_RELAYS} from "../utils/relay"
 export type NostrContextType = {
   ndk: NDK;
 };
-
 export const NostrContext = createContext<NostrContextType | null>(null);
-
 export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const privateKey = useAuth((state) => state.privateKey);
 
