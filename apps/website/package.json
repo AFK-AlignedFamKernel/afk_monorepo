@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "build": "next build",
+    "build": "pnpm run build:nostr_sdk && next build",
+    "build:nostr_sdk": "cd ../.. && pnpm run build:nostr_sdk",
     "lint": "next lint",
     "lint:fix":"next lint --fix",
     "prettier:fix":"pnpm prettier --write 'src/**/*.tsx'",

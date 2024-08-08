@@ -4,6 +4,21 @@
       "PNPM_VERSION": "8.15.9",
       "installCommand": "pnpm install"
 
-    }
+    },
+    "builds": [
+      {
+        "src": "apps/website/package.json",
+        "use": "@vercel/static-build",
+        "config": {
+          "distDir": "build"
+        }
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/apps/website/$1"
+      }
+    ]
   }
   

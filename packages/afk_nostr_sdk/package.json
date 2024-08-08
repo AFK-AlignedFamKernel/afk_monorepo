@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "install": "pnpm install .",
+    "build": "tsc",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier -c \"src/**/*.{ts,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
