@@ -1,10 +1,10 @@
-import {About} from './components/About';
-import {ContributeSection} from './components/ContributeSection';
-import {DescriptionSection} from './components/DescriptionSection';
-import {DownloadSection} from './components/DownloadSection';
-import {Faq} from './components/Faq';
+import {About} from './components/landing/About';
+import {ContributeSection} from './components/landing/ContributeSection';
+import {DescriptionSection} from './components/landing/DescriptionSection';
+import {DownloadSection} from './components/landing/DownloadSection';
+import {Faq} from './components/landing/Faq';
 import {Footer} from './components/Footer';
-import {HeroSection} from './components/HeroSection';
+import {HeroSection} from './components/landing/HeroSection';
 import {Navbar} from './components/Navbar';
 
 export default function App() {

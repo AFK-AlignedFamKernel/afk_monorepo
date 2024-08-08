@@ -1,6 +1,5 @@
 import NDK, {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 import {createContext, useContext, useEffect, useState} from 'react';
-
 import { useAuth } from '../store/auth';
 import {AFK_RELAYS} from "../utils/relay"
 export type NostrContextType = {

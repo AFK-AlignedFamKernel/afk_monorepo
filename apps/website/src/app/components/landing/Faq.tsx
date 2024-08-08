@@ -1,6 +1,6 @@
 'use client';
 
-import {FaqBar} from './FaqBar';
+import {FaqBar} from '../FaqBar';
 
 export function Faq() {
   return (
