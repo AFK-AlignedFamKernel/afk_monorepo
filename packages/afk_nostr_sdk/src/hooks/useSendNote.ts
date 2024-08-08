@@ -1,8 +1,6 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
-import { useNostrContext } from '../context/NostrContext';
-
-// import {useNostrContext} from '../context/NostrContext';
+import {useNostrContext} from '../context/NostrContext';
 
 export const useSendNote = () => {
   const {ndk} = useNostrContext();
