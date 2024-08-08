@@ -2,11 +2,6 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../context/NostrContext';
 
-<<<<<<<< HEAD:packages/afk_nostr_sdk/src/hooks/useEditContacts.ts
-========
-import {useNostrContext} from '../context/NostrContext';
-
->>>>>>>> main:packages/afk_nostr_sdk/hooks/useEditContacts.ts
 import {useAuth} from '../store/auth';
 
 export const useEditContacts = () => {

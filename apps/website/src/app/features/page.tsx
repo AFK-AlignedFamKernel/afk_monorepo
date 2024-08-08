@@ -1,6 +1,6 @@
-import {ContributeSection} from '../components/landing/ContributeSection';
-import {DescriptionFeatures} from '../components/features/DescriptionFeatures';
 import {Footer} from '../components/Footer';
+import {ContributeSection} from '../components/landing/ContributeSection';
+import {DescriptionFeatures} from '../components/landing/features/DescriptionFeatures';
 import {Navbar} from '../components/Navbar';
 
 export default function Features() {

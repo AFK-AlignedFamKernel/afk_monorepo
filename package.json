@@ -14,6 +14,7 @@
     "dev:website":"cd apps/website && pnpm run dev",
     "build:mobile":"cd apps/mobile && pnpm run build",
     "dev:mobile":"cd apps/mobile && pnpm run start",
+    "build:nostr_sdk":"cd packages/afk_nostr_sdk && pnpm run build",
     "dev": "turbo run dev",
     "web":"turbo run dev --filter=website",
     "mobile":"turbo run start --filter=mobile",
