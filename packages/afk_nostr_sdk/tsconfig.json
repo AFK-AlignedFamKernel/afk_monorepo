@@ -1,24 +1,20 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "strictNullChecks": true,
-    "noUnusedLocals": false,
-    "noFallthroughCasesInSwitch": true,
-    "useUnknownInCatchVariables": false,
-    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "module": "ES6",
+    "moduleResolution": "node",
     "outDir": "./dist",
+    "jsx": "react",  // Add this line for React projects
   },
   "exclude": ["node_modules", "dist", "babel.config.js", "metro.config.js", "jest.config.js"],
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "next-env.d.ts",]
 }
