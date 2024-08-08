@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "build": "pnpm run build:nostr_sdk && next build",
+    "build:app": "pnpm run build:nostr_sdk && next build",
+    "build": "next build",
     "build:nostr_sdk": "cd ../.. && pnpm run build:nostr_sdk",
     "lint": "next lint",
     "lint:fix":"next lint --fix",
@@ -22,9 +23,11 @@
     "qs": "^6.12.3",
     "starknet": "6.9.0",
     "zod": "^3.23.8",
+    "@tanstack/react-query": "^5.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "afk_nostr_sdk":"workspace:*",
     "@nostr-dev-kit/ndk": "^2.8.2"
-
   },
   "devDependencies": {
     "@types/node": "^20",
