@@ -1,8 +1,6 @@
 'use client';
-
-import {NostrProvider} from 'afk_nostr_sdk/context/NostrContext';
-import {TanstackProvider} from 'afk_nostr_sdk/context/TanstackProvider';
-
+import {TanstackProvider} from 'afk_nostr_sdk';
+import {NostrProvider} from 'afk_nostr_sdk';
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
     <NostrProvider>

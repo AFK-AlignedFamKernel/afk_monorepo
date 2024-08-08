@@ -1,7 +1,8 @@
 {
   "name": "afk_nostr_sdk",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -20,7 +21,28 @@
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2"
   },
+  "peerDependencies": {
+    "@nostr-dev-kit/ndk": "^2.8.2",
+    "@tanstack/react-query": "^5.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.2"
+  },
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "browser": "./dist/index.global.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "devDependencies": {
+    "@nostr-dev-kit/ndk": "^2.8.2",
+    "@tanstack/react-query": "^5.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.2",
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@types/react": "^18.3.1",
@@ -36,6 +58,7 @@
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
     "typescript": "~5.3.3"
   },
   "private": true

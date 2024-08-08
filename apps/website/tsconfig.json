@@ -27,7 +27,8 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"]
     },
     "noEmit": true
   },

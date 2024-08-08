@@ -2,6 +2,7 @@
   "name": "website",
   "version": "0.1.0",
   "private": true,
+  
   "scripts": {
     "dev": "next dev",
     "start": "next start",
@@ -11,7 +12,8 @@
     "lint": "next lint",
     "lint:fix":"next lint --fix",
     "prettier:fix":"pnpm prettier --write 'src/**/*.tsx'",
-    "prettier:fix:ts":"pnpm prettier --write 'src/**/*.ts'"
+    "prettier:fix:ts":"pnpm prettier --write 'src/**/*.ts'",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@avnu/avnu-sdk": "^2.0.0",
@@ -27,8 +29,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2",
-    "afk_nostr_sdk":"workspace:*",
-    "@nostr-dev-kit/ndk": "^2.8.2"
+    "@nostr-dev-kit/ndk": "^2.8.2",
+    "afk_nostr_sdk":"workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20",

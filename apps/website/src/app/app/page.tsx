@@ -1,21 +1,16 @@
 'use client';
 
-// import { NDKEvent } from 'afk_nostr_sdk';
 import {NDKEvent, NDKFilter, NDKKind} from '@nostr-dev-kit/ndk';
-import {useNostrContext} from 'afk_nostr_sdk/context/NostrContext';
-import {useSearchNotes} from 'afk_nostr_sdk/hooks';
+import {useNostrContext, useSearchNotes} from 'afk_nostr_sdk';
 import {useEffect} from 'react';
 import {useState} from 'react';
 
 import {Footer} from '../components/Footer';
 import {Navbar} from '../components/Navbar';
-
 export default function AppHomepage() {
   const nostr = useNostrContext();
-
   const [events, setEvents] = useState<NDKEvent[]>([]);
   const [isInitDone, setIsInitDone] = useState<boolean>(false);
-
   useEffect(() => {
     if (!isInitDone) {
       fetch();
