@@ -26,6 +26,7 @@
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
+    "@types/react-query": "^1.2.9",
     "@uniswap/eslint-config": "^1.2.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
