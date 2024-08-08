@@ -1,19 +1,21 @@
+// useSearchUsers.ts
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
-
 import {useNostrContext} from '../../context/NostrContext';
 
-export type UseRepostsOptions = {
+export type UseSearch = {
   authors?: string[];
   search?: string;
+  kind?: NDKKind;
+  kinds?: NDKKind[];
 };
 
-export const useReposts = (options?: UseRepostsOptions) => {
+export const useSearch = (options?: UseSearch) => {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({
     initialPageParam: 0,
-    queryKey: ['reposts', options?.authors, options?.search, ndk],
+    queryKey: ['search', options?.authors, options?.search, options?.kind, options?.kinds, ndk],
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
 
@@ -23,16 +25,21 @@ export const useReposts = (options?: UseRepostsOptions) => {
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
-      const reposts = await ndk.fetchEvents({
-        kinds: [NDKKind.Repost],
+      console.log('search query', options?.search);
+      const notes = await ndk.fetchEvents({
+        kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors,
         search: options?.search,
+        // content: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
       });
 
-      return [...reposts];
+      return [notes];
+      // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
     placeholderData: {pages: [], pageParams: []},
   });
 };
+
+export default useSearch;

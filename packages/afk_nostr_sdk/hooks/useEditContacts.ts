@@ -1,8 +1,9 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
-import {useAuth} from '../../store/auth';
+import {useNostrContext} from '../context/NostrContext';
+
+import {useAuth} from '../store/auth';
 
 export const useEditContacts = () => {
   const {ndk} = useNostrContext();

@@ -19,10 +19,11 @@
     "next": "^14.2.3",
     "nostr-tools": "^2.7.0",
     "qs": "^6.12.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "starknet": "6.9.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "afk_nostr_sdk":"workspace:*",
+    "@nostr-dev-kit/ndk": "^2.8.2"
+
   },
   "devDependencies": {
     "@types/node": "^20",

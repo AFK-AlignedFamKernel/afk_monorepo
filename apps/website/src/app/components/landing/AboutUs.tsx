@@ -1,7 +1,7 @@
 import {motion} from 'framer-motion';
 
-import {Footer} from './Footer';
-import {Navbar} from './Navbar';
+import {Footer} from '../Footer';
+import {Navbar} from '../Navbar';
 
 const AboutUs: React.FC = () => {
   return (
