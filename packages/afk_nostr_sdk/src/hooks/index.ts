@@ -12,3 +12,4 @@ export {useSendNote} from './useSendNote';
 export {useSearchUsers} from './search/useSearchUsers';
 export {useSearch} from './search/useSearch';
 export {useSearchNotes} from './useSearchNotes';
+export {useAllProfiles} from './useAllProfiles';

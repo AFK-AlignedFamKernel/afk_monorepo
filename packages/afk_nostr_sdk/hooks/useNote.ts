@@ -1,12 +1,6 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useQuery} from '@tanstack/react-query';
-
-<<<<<<<< HEAD:packages/afk_nostr_sdk/src/hooks/useNote.ts
-========
-// import {useNostrContext} from '../../context/NostrContext';
->>>>>>>> main:packages/afk_nostr_sdk/hooks/useNote.ts
 import {useNostrContext} from '../context/NostrContext';
-
 import {useAuth} from '../store/auth';
 export type UseNoteOptions = {
   noteId: string;

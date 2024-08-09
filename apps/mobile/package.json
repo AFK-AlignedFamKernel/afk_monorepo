@@ -79,7 +79,9 @@
     "react-native-web": "~0.19.6",
     "starknet": "6.9.0",
     "starknetkit": "^1.1.9",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "afk_nostr_sdk":"workspace:*"
+
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -7,13 +7,15 @@ import {Header} from '../../components';
 import {BubbleUser} from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
 import {useStyles, useTheme} from '../../hooks';
-import {useAllProfiles} from '../../hooks/nostr/useAllProfiles';
-import {useSearchNotes} from '../../hooks/nostr/useSearchNotes';
 import {ChannelComponent} from '../../modules/ChannelCard';
 import {PostCard} from '../../modules/PostCard';
 import {SearchScreenProps} from '../../types';
 import {SelectedTab} from '../../types/tab';
 import stylesheet from './styles';
+// import {useRootNotes, useSearchNotes, } from "afk_nostr_sdk/hooks"
+import { useAllProfiles } from '../../hooks/nostr/useAllProfiles';
+import { useSearchNotes } from '../../hooks/nostr/useSearchNotes';
+// import { useSearchNotes } from 'afk_nostr_sdk/hooks';
 
 export const Search: React.FC<SearchScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
