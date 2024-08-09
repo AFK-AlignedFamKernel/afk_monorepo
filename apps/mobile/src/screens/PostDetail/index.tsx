@@ -3,11 +3,12 @@ import {useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, Header, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useNote, useReplyNotes, useSendNote, useStyles} from '../../hooks';
+import { useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Post} from '../../modules/Post';
 import {PostDetailScreenProps} from '../../types';
 import stylesheet from './styles';
+import {useNote, useReplyNotes, useSendNote,} from 'afk_nostr_sdk';
 
 export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route}) => {
   const {postId, post} = route.params;

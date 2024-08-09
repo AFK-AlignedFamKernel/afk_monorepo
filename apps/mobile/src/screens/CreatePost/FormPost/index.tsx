@@ -6,13 +6,16 @@ import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-nat
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {GalleryIcon, SendIconContained} from '../../../assets/icons';
-import {useSendNote, useStyles, useTheme} from '../../../hooks';
+import {useStyles, useTheme} from '../../../hooks';
+import { useSendNote } from 'afk_nostr_sdk';
+
 import {useFileUpload} from '../../../hooks/api';
 import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {SelectedTab} from '../../../types/tab';
 import {getImageRatio} from '../../../utils/helpers';
 import stylesheet from './styles';
+// import {useSendNote} from "afk_nostr_sdk/hooks"
 
 export const FormCreatePost: React.FC = () => {
   const {theme} = useTheme();

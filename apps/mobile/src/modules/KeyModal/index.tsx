@@ -4,7 +4,8 @@ import {forwardRef, useEffect, useState} from 'react';
 
 import {Modalize, Text} from '../../components';
 import {TokenSymbol} from '../../constants/tokens';
-import {useProfile, useStyles, useWaitConnection} from '../../hooks';
+import {useStyles, useWaitConnection} from '../../hooks';
+import {useProfile} from "afk_nostr_sdk"
 import {useDataKeys} from '../../hooks/keys/useDataKeys';
 import {useInstantiateKeys} from '../../hooks/keys/useInstantiateKeys';
 import {useTransactionModal} from '../../hooks/modals';

@@ -7,13 +7,12 @@ import {Header} from '../../components';
 import {BubbleUser} from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
 import {useStyles, useTheme} from '../../hooks';
-import {useAllProfiles} from '../../hooks/nostr/useAllProfiles';
-import {useSearchNotes} from '../../hooks/nostr/useSearchNotes';
 import {ChannelComponent} from '../../modules/ChannelCard';
 import {PostCard} from '../../modules/PostCard';
 import {SearchScreenProps} from '../../types';
 import {SelectedTab} from '../../types/tab';
 import stylesheet from './styles';
+import { useSearchNotes , useAllProfiles} from 'afk_nostr_sdk'
 
 export const Search: React.FC<SearchScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -82,7 +81,7 @@ export const Search: React.FC<SearchScreenProps> = ({navigation}) => {
           horizontal
           showsHorizontalScrollIndicator={false}
         >
-          {profilesSearch.map((item, i) => {
+          {profilesSearch.map((item: NDKEvent, i:number) => {
             console.log('item profile', item);
             console.log('search', search);
             if (search && search?.length > 0 && item?.content?.includes(search)) {

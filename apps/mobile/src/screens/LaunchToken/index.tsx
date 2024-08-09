@@ -12,7 +12,9 @@ import { useProfile, useStyles, useTheme } from '../../hooks';
 import { useFileUpload } from '../../hooks/api';
 import { useToast } from '../../hooks/modals';
 import { useCreateChannel } from '../../hooks/nostr/channel/useCreateChannel';
-import { useAuth } from '../../store/auth';
+// import { useAuth } from '../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import { CreateChannelScreenProps, MainStackNavigationProps } from '../../types';
 import { AFK_RELAYS } from '../../utils/relay';
 import { ChannelHead } from './Head';

@@ -3,8 +3,7 @@ import { FlatList, Image, Pressable, RefreshControl, ScrollView, View } from 're
 import { AddPostIcon } from '../../assets/icons';
 import { Header } from '../../components';
 import { BubbleUser } from '../../components/BubbleUser';
-import { useRootNotes, useStyles, useTheme } from '../../hooks';
-import { useAllProfiles } from '../../hooks/nostr/useAllProfiles';
+import { useStyles, useTheme } from '../../hooks';
 import { PostCard } from '../../modules/PostCard';
 import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
@@ -12,7 +11,7 @@ import { useState } from 'react';
 import SearchComponent from '../../components/search';
 import { ChannelComponent } from '../../modules/ChannelCard';
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useSearchNotes } from '../../hooks/nostr/useSearchNotes';
+import {useSearchNotes, useRootNotes, useAllProfiles} from "afk_nostr_sdk"
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();

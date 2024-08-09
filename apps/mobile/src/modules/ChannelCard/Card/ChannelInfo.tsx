@@ -15,20 +15,23 @@ import Animated, {
 import {LikeFillIcon, LikeIcon} from '../../../assets/icons';
 import {Avatar, Text} from '../../../components';
 import {
-  useProfile,
-  useReact,
-  useReactions,
-  useReplyNotes,
   useStyles,
   useTheme,
 } from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-import {useAuth} from '../../../store/auth';
+// import {useAuth} from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import {MainStackNavigationProps} from '../../../types';
 import {IChannelsMetadata} from '../../../types/channels';
 import {shortenPubkey} from '../../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../../utils/timestamp';
 import stylesheet from './styles';
+import {useProfile,
+  useReact,
+  useReactions,
+  useReplyNotes,
+} from "afk_nostr_sdk"
 
 export type PostProps = {
   asComment?: boolean;
