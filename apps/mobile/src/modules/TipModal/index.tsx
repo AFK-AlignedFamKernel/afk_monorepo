@@ -9,7 +9,9 @@ import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {DEFAULT_TIMELOCK, Entrypoint} from '../../constants/misc';
 import {TOKENS, TokenSymbol} from '../../constants/tokens';
-import {useProfile, useStyles, useWaitConnection} from '../../hooks';
+import { useStyles, useWaitConnection} from '../../hooks';
+import {useProfile} from "afk_nostr_sdk"
+
 import {useTransactionModal} from '../../hooks/modals';
 import {useDialog} from '../../hooks/modals/useDialog';
 import {useTransaction} from '../../hooks/modals/useTransaction';

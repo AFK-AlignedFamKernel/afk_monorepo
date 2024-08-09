@@ -10,8 +10,8 @@ export const AFK_RELAYS =
     : [
       // 'wss://nostr.joyboy.community',
       // 'ws://nostr-relay-nestjs-production.up.railway.app',
-      'wss://nostr-relay-nestjs-production.up.railway.app',
-      // 'ws://localhost:8080', // comment if you don't run a relayer in localhost
+      // 'wss://nostr-relay-nestjs-production.up.railway.app',
+      'ws://localhost:8080', // comment if you don't run a relayer in localhost
     ];
 
 // export const AFK_RELAYS = [

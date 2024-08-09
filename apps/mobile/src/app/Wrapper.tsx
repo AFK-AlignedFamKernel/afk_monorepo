@@ -13,9 +13,9 @@ import { TransactionModalProvider } from '../context/TransactionModal';
 import { WalletModalProvider } from '../context/WalletModal';
 import App from './App';
 import { StarknetProvider } from './StarknetProvider';
-import { NostrProvider } from '../context/NostrContext';
-// import { NostrProvider } from 'afk_nostr_sdk/context/NostrContext';
-
+// import { NostrProvider } from '../context/NostrContext';
+import {TanstackProvider} from 'afk_nostr_sdk';
+import {NostrProvider} from 'afk_nostr_sdk';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
@@ -39,26 +39,29 @@ export const Wrapper: React.FC = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <NostrProvider>
-          {/* <NostrProvider> */}
+          <TanstackProvider>
 
-            <QueryClientProvider client={queryClient}>
-              <SafeAreaProvider>
-                <RootScreenContainer>
-                  <PortalizeProvider>
-                    <DialogProvider>
-                      <StarknetProvider>
-                        <ModalProviders>
-                          <App />
-                        </ModalProviders>
-                      </StarknetProvider>
-                    </DialogProvider>
-                  </PortalizeProvider>
-                </RootScreenContainer>
-              </SafeAreaProvider>
-            </QueryClientProvider>
-          </NostrProvider>
+            {/* <NostrProvider> */}
 
-        {/* </NostrProvider> */}
+            {/* <QueryClientProvider client={queryClient}> */}
+            <SafeAreaProvider>
+              <RootScreenContainer>
+                <PortalizeProvider>
+                  <DialogProvider>
+                    <StarknetProvider>
+                      <ModalProviders>
+                        <App />
+                      </ModalProviders>
+                    </StarknetProvider>
+                  </DialogProvider>
+                </PortalizeProvider>
+              </RootScreenContainer>
+            </SafeAreaProvider>
+            {/* </QueryClientProvider> */}
+            {/* </NostrProvider> */}
+          </TanstackProvider>
+
+        </NostrProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

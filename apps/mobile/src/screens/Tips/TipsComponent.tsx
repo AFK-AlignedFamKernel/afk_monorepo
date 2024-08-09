@@ -11,7 +11,8 @@ import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {Entrypoint} from '../../constants/misc';
 import {ETH, STRK} from '../../constants/tokens';
-import {useNostrContext} from '../../context/NostrContext';
+// import {useNostrContext} from '../../context/NostrContext';
+import {useNostrContext} from "afk_nostr_sdk"
 import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
 import {useClaim, useEstimateClaim} from '../../hooks/api';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';

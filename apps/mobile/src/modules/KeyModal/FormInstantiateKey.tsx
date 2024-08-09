@@ -10,8 +10,10 @@ import { ESCROW_ADDRESSES, KEYS_ADDRESS } from '../../constants/contracts';
 import { CHAIN_ID } from '../../constants/env';
 import { DEFAULT_TIMELOCK, Entrypoint } from '../../constants/misc';
 import { TOKENS, TokenSymbol } from '../../constants/tokens';
-import { useProfile, useStyles, useWaitConnection } from '../../hooks';
+import {  useStyles, useWaitConnection } from '../../hooks';
 import { useDataKeys } from '../../hooks/keys/useDataKeys';
+import {useProfile,
+} from "afk_nostr_sdk"
 import { useInstantiateKeys } from '../../hooks/keys/useInstantiateKeys';
 import { useTransactionModal } from '../../hooks/modals';
 import { useDialog } from '../../hooks/modals/useDialog';

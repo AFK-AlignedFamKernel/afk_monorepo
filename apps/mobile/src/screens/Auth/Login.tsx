@@ -7,7 +7,9 @@ import {Button, Input, TextButton} from '../../components';
 import {useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
-import {useAuth} from '../../store/auth';
+// import {useAuth} from '../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import {AuthLoginScreenProps} from '../../types';
 import {getPublicKeyFromSecret} from '../../utils/keypair';
 import {

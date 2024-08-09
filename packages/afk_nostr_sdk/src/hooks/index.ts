@@ -13,3 +13,7 @@ export {useSearchUsers} from './search/useSearchUsers';
 export {useSearch} from './search/useSearch';
 export {useSearchNotes} from './useSearchNotes';
 export {useAllProfiles} from './useAllProfiles';
+export {useCreateChannel} from './channel/useCreateChannel';
+export {useChannels} from './channel/useChannels';
+export {useSendMessageChannel} from './channel/useSendMessageChannel';
+export {useMessagesChannels} from './channel/useMessagesChannels';

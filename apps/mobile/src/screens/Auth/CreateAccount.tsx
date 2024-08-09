@@ -5,13 +5,13 @@ import {Platform} from 'react-native';
 
 import {LockIcon} from '../../assets/icons';
 import {Button, Input, TextButton} from '../../components';
-import {useNostrContext} from '../../context/NostrContext';
 import {useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../types';
 import {generateRandomKeypair} from '../../utils/keypair';
 import {storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
+import { useNostrContext } from 'afk_nostr_sdk';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();

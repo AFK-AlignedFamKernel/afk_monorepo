@@ -15,19 +15,22 @@ import Animated, {
 import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../../assets/icons';
 import {Avatar, IconButton, Menu, Text} from '../../../components';
 import {
-  useProfile,
-  useReact,
-  useReactions,
-  useReplyNotes,
   useStyles,
   useTheme,
 } from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-import {useAuth} from '../../../store/auth';
+// import {useAuth} from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import {MainStackNavigationProps} from '../../../types';
 import {getImageRatio, shortenPubkey} from '../../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../../utils/timestamp';
 import stylesheet from './styles';
+import {useProfile,
+  useReact,
+  useReactions,
+  useReplyNotes,
+} from "afk_nostr_sdk/hooks"
 
 export type CardProps = {
   asComment?: boolean;

@@ -20,13 +20,15 @@ import { PostDetail } from '../screens/PostDetail';
 import { Profile } from '../screens/Profile';
 import { Search } from '../screens/Search';
 import { Tips } from '../screens/Tips';
-import { useAuth } from '../store/auth';
+// import { useAuth } from '../store/auth';
+// import { useAuth } from '../store/auth';
 import { ThemedStyleSheet } from '../styles';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { retrievePublicKey } from '../utils/storage';
 import Sidebar from '../components/Layout/sidebar';
 import { Defi } from '../screens/Defi';
 import { Games } from '../screens/Games';
+import { useAuth } from 'afk_nostr_sdk';
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createNativeStackNavigator<AuthStackParams>();

@@ -14,15 +14,21 @@ import {
 
 import {CommentIcon} from '../../../assets/icons';
 import {IconButton, Menu, Text} from '../../../components';
-import {useProfile, useReact, useReactions, useStyles, useTheme} from '../../../hooks';
+import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-import {useMessagesChannels} from '../../../hooks/nostr/channel/useMessagesChannel';
-import {useAuth} from '../../../store/auth';
+// import {useAuth} from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import {MainStackNavigationProps} from '../../../types';
 import {IChannelsMetadata} from '../../../types/channels';
 import {ChannelInfo} from './ChannelInfo';
 import stylesheet from './styles';
-
+import {useProfile,
+  useReact,
+  useReactions,
+  useReplyNotes,
+  useMessagesChannels
+} from "afk_nostr_sdk"
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;

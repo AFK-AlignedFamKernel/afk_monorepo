@@ -7,11 +7,14 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { CopyIconStack } from '../../../assets/icons';
 import { Button, SquareInput, Text } from '../../../components';
-import { useProfile, useStyles, useTheme } from '../../../hooks';
+import {  useStyles, useTheme } from '../../../hooks';
+import { useProfile } from 'afk_nostr_sdk';
 import { useFileUpload } from '../../../hooks/api';
 import { useToast } from '../../../hooks/modals';
 import { useCreateChannel } from '../../../hooks/nostr/channel/useCreateChannel';
-import { useAuth } from '../../../store/auth';
+// import { useAuth } from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import { AFK_RELAYS } from '../../../utils/relay';
 import { ChannelHead } from '../Head';
 import stylesheet from './styles';

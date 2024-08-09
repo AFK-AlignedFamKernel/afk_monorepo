@@ -6,12 +6,15 @@ import {useState} from 'react';
 import {Pressable, View} from 'react-native';
 import {UserPlusIcon} from '../../../assets/icons';
 import {Button, IconButton, Menu, Text} from '../../../components';
-import {useContacts, useEditContacts, useProfile, useStyles, useTheme} from '../../../hooks';
+import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal, useToast} from '../../../hooks/modals';
-import {useAuth} from '../../../store/auth';
+// import {useAuth} from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import {ProfileScreenProps} from '../../../types';
 import {ProfileHead} from '../Head';
 import stylesheet from './styles';
+import {useContacts, useEditContacts, useProfile,} from "afk_nostr_sdk"
 
 export type ProfileInfoProps = {
   publicKey: string;

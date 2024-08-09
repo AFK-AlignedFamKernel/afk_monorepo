@@ -3,8 +3,7 @@ import {FlatList, RefreshControl, View} from 'react-native';
 
 import {BubbleUser} from '../../components/BubbleUser';
 import {useRootNotes, useStyles, useTheme} from '../../hooks';
-import {useChannels} from '../../hooks/nostr/channel/useChannels';
-import {useAllProfiles} from '../../hooks/nostr/useAllProfiles';
+import {useAllProfiles, useChannels} from "afk_nostr_sdk"
 import {ChannelComponent} from '../../modules/ChannelCard';
 import {MainStackNavigationProps} from '../../types';
 import stylesheet from './styles';

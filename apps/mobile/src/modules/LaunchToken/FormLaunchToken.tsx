@@ -5,10 +5,13 @@ import { useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button, SquareInput, Text } from '../../components';
-import { useProfile, useStyles, useWaitConnection } from '../../hooks';
+import { useStyles, useWaitConnection } from '../../hooks';
+import {useProfile} from "afk_nostr_sdk"
 import { useToast, useWalletModal } from '../../hooks/modals';
 import stylesheet from '../../screens/CreateChannel/styles';
-import { useAuth } from '../../store/auth';
+// import { useAuth } from '../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
+
 import { MainStackNavigationProps } from '../../types';
 import { DeployTokenFormValues, useDeployTokenUnruggable } from '../../hooks/unruggable/useDeploy';
 import { useAccount } from '@starknet-react/core';

@@ -1,11 +1,11 @@
 import { FlatList, RefreshControl, View } from 'react-native';
 
-import { useRootNotes, useStyles } from '../../hooks';
+import { useStyles } from '../../hooks';
 import { PostCard } from '../../modules/PostCard';
 import { ProfileScreenProps } from '../../types';
 import { ProfileInfo } from './Info';
 import stylesheet from './styles';
-// import {useRootNotes} from "afk_nostr_sdk/hooks"
+import {useRootNotes} from "afk_nostr_sdk"
 
 export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   const { publicKey } = route.params ?? {};

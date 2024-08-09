@@ -5,7 +5,8 @@ import { useStyles, useTheme } from '../../../hooks';
 import { Icon } from '../../Icon';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from '../../../types';
-import { useAuth } from '../../../store/auth';
+// import { useAuth } from '../../../store/auth';
+import { useAuth } from 'afk_nostr_sdk';
 
 const Sidebar = () => {
     const styles = useStyles(stylesheet);
