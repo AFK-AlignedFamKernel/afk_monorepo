@@ -12,8 +12,8 @@ dependencies = [
 
 [[package]]
 name = "openzeppelin"
-version = "0.14.0"
-source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.14.0#f091c4f51ddeb10297db984acae965328c5a4e5b"
+version = "0.13.0"
+source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.13.0#978b4e75209da355667d8954d2450e32bd71fe49"
 
 [[package]]
 name = "pragma_lib"

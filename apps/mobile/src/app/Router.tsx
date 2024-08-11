@@ -155,7 +155,6 @@ const AuthNavigator: React.FC = () => {
 const MainNavigator: React.FC = () => {
   return (
     <MainStack.Navigator screenOptions={{ headerShown: false }}
-
     >
       <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
       <MainStack.Screen name="Profile" component={Profile} />
@@ -224,7 +223,7 @@ export const Router: React.FC = () => {
     // linking={linking}
     >
       {shouldShowSidebar && <Sidebar></Sidebar>}
-      
+
       <RootNavigator />
     </NavigationContainer>
   );

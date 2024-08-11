@@ -21,3 +21,10 @@ export enum EventKey {
 export const DEFAULT_TIMELOCK = 7 * 24 * 60 * 60 * 1_000; // 7 days
 
 export const WEB_MAX_WIDTH = 520;
+
+
+
+export enum EventKeyForKeysMarketplace {
+  CreateKeys = '0x10847dcd18ec5858348344447324265bf28e3f8c5fa6f6863f5210845821914',
+}
+

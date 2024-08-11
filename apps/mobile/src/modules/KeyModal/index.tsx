@@ -38,16 +38,13 @@ export type KeyModalProps = {
 export const KeyModal = forwardRef<Modalize, KeyModalProps>(
   ({event, hide: hideKeyModal, showSuccess, hideSuccess, starknetAddress, action}, ref) => {
     const styles = useStyles(stylesheet);
-
     const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
     const [amount, setAmount] = useState<string>('');
-
     const {data: profile} = useProfile({publicKey: event?.pubkey});
     const [myKey, setMyKey] = useState<KeysUser | undefined>();
     const [keySelected, setKeySelected] = useState<KeysUser | undefined>();
     const [isCanInstantiateKey, setCanInstantiateKey] = useState<boolean | undefined>(false);
     const [isNeedToLoad, setIsNeedToLoad] = useState<boolean | undefined>(false);
-
     const account = useAccount();
     const walletModal = useWalletModal();
     const sendTransaction = useTransaction();
@@ -57,20 +54,17 @@ export const KeyModal = forwardRef<Modalize, KeyModalProps>(
     const {getAllKeys, getKeyByAddress} = useDataKeys();
     const {showDialog, hideDialog} = useDialog();
     const isActive = !!amount && !!token;
-
     useEffect(() => {
       const getKeyByUserConnected = async () => {
         if (!account?.address) return;
         const myOwnKey = await getKeyByAddress(account?.address);
-        console.log('myOwnKey', myOwnKey);
+        // console.log('myOwnKey', myOwnKey);
         setMyKey(myOwnKey);
       };
 
       const getKeyOfParams = async () => {
         if (!starknetAddress) return;
         const key = await getKeyByAddress(starknetAddress);
-        console.log('key', key);
-
         setKeySelected(key);
       };
 

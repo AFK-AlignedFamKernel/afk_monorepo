@@ -1,7 +1,9 @@
-import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
-import {AccountInterface, constants, Contract, ProviderInterface, RpcProvider} from 'starknet';
+import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
+import { AccountInterface, constants, Contract, ProviderInterface, RpcProvider } from 'starknet';
 
-import {KEYS_ADDRESS} from '../../constants/contracts';
+import { KEYS_ADDRESS } from '../../constants/contracts';
+import { useQuery } from '@tanstack/react-query';
+import { CHAIN_ID } from '../../constants/env';
 /** @TODO determine paymaster master specs to send the TX */
 export const prepareAndConnectContract = async (
   provider: ProviderInterface,
@@ -12,7 +14,7 @@ export const prepareAndConnectContract = async (
   console.log('contractAddress', contractAddress);
   // console.log("provider",await provider.getChainId())
 
-  const {abi: testAbi} = await provider.getClassAt(contractAddress);
+  const { abi: testAbi } = await provider.getClassAt(contractAddress);
   if (testAbi === undefined) {
     throw new Error('no abi.');
   }
@@ -35,6 +37,22 @@ export const useDataKeys = () => {
   // const provider = rpcProvider?.provider ?? new RpcProvider({ nodeUrl:  'http://127.0.0.1:5050'  });
   // const provider = rpcProvider?.provider ?? new RpcProvider();
   const provider = new RpcProvider();
+
+
+  const queryDataKeys = () => {
+    return useQuery({
+      queryKey: ['get_all_keys', CHAIN_ID],
+      queryFn:async () => {
+
+        const keys= await getAllKeys()
+        return keys
+      },
+      placeholderData:[]
+
+
+    })
+
+  }
 
   /** Indexer with Key contract event */
   const getAllKeys = async (account?: AccountInterface, contractAddress?: string) => {
@@ -107,5 +125,5 @@ export const useDataKeys = () => {
     }
   };
 
-  return {getAllKeys, getMySharesOfUser, getKeyByAddress};
+  return { getAllKeys, getMySharesOfUser, getKeyByAddress, queryDataKeys};
 };

@@ -15,9 +15,12 @@ pub trait IKeysMarketplace<TContractState> {
     fn instantiate_keys(
         ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
     );
+    // fn instantiate_keys_with_nostr(
+    //     ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
+    // );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn sell_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
-    fn get_default_token(self: @TContractState,) -> TokenQuoteBuyKeys;
+    fn get_default_token(self: @TContractState) -> TokenQuoteBuyKeys;
     fn get_price_of_supply_key(
         self: @TContractState, address_user: ContractAddress, amount: u256, is_decreased: bool
     ) -> u256;
@@ -249,15 +252,15 @@ mod KeysMarketplace {
         // }
 
         fn buy_keys(ref self: ContractState, address_user: ContractAddress, amount: u256) {
-            let caller = get_caller_address();
+            // let caller = get_caller_address();
             let old_keys = self.keys_of_users.read(address_user);
             assert!(!old_keys.owner.is_zero(), "key not found");
-            let initial_key_price = self.initial_key_price.read();
+            // let initial_key_price = self.initial_key_price.read();
             assert!(amount <= MAX_STEPS_LOOP, "max step loop");
 
             // TODO erc20 token transfer
-            let key_token_address = old_keys.token_address;
-            let total_supply = old_keys.total_supply;
+            // let key_token_address = old_keys.token_address;
+            // let total_supply = old_keys.total_supply;
             let token_quote = old_keys.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
@@ -346,7 +349,7 @@ mod KeysMarketplace {
         fn sell_keys(ref self: ContractState, address_user: ContractAddress, amount: u256) {
             let old_keys = self.keys_of_users.read(address_user);
             assert!(!old_keys.owner.is_zero(), "key not found");
-            let initial_key_price = self.initial_key_price.read();
+            // let initial_key_price = self.initial_key_price.read();
             assert!(amount <= MAX_STEPS_LOOP, "max step loop");
 
             // let caller = get_caller_address();
@@ -362,7 +365,7 @@ mod KeysMarketplace {
 
             // TODO erc20 token transfer
             let token = old_keys.token_quote.clone();
-            let key_token_address = old_keys.token_address;
+            // let key_token_address = old_keys.token_address;
             let total_supply = old_keys.total_supply;
             let token_quote = old_keys.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
@@ -419,7 +422,7 @@ mod KeysMarketplace {
             self.shares_by_users.write((get_caller_address(), address_user.clone()), share_user.clone());
             self.keys_of_users.write(address_user.clone(), key.clone());
 
-            let contract_balance= erc20.balance_of(get_contract_address());
+            // let contract_balance= erc20.balance_of(get_contract_address());
 
             // Transfer to Liquidity, Creator and Protocol
             // println!("contract_balance {}", contract_balance);
@@ -456,9 +459,9 @@ mod KeysMarketplace {
             assert!(amount <= MAX_STEPS_LOOP, "max step loop");
             let key = self.keys_of_users.read(address_user);
             let mut total_supply = key.total_supply.clone();
-            let mut actual_supply = total_supply;
+            // let mut actual_supply = total_supply;
             // let mut final_supply = total_supply;
-            let mut final_supply = total_supply + amount;
+            // let mut final_supply = total_supply + amount;
             // if is_decreased {
             //     final_supply = total_supply - amount;
             // } else {
@@ -467,8 +470,8 @@ mod KeysMarketplace {
 
             let mut actual_supply = total_supply;
             let final_supply = total_supply + amount;
-            let mut price = key.price.clone();
-            let mut total_price = price.clone();
+            // let mut price = key.price.clone();
+            // let mut total_price = price.clone();
             let mut initial_key_price = key.initial_key_price.clone();
             let step_increase_linear = key.token_quote.step_increase_linear.clone();
 
@@ -572,5 +575,183 @@ mod KeysMarketplace {
         }
 
        
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use core::array::SpanTrait;
+    use core::traits::Into;
+    use afk::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    // use afk::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
+    use super::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
+    use afk::types::keys_types::{
+        MINTER_ROLE, ADMIN_ROLE, KeysBonding, TokenQuoteBuyKeys, BondingType
+    };
+    use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
+    use openzeppelin::utils::serde::SerializedAppend;
+
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
+        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
+        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp
+    };
+    // const INITIAL_KEY_PRICE:u256=1/100;
+
+    use starknet::{
+        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
+        get_block_timestamp, get_contract_address
+    };
+
+    // const INITIAL_KEY_PRICE:u256=1/100;
+    const INITIAL_KEY_PRICE: u256 = 1;
+    const STEP_LINEAR_INCREASE: u256 = 1;
+
+    fn request_fixture() -> (ContractAddress, IERC20Dispatcher, IKeysMarketplaceDispatcher) {
+        // println!("request_fixture");
+        let erc20_class = declare_erc20();
+        let keys_class = declare_marketplace();
+        request_fixture_custom_classes(erc20_class, keys_class)
+    }
+
+    fn request_fixture_custom_classes(
+        erc20_class: ContractClass, escrow_class: ContractClass
+    ) -> (ContractAddress, IERC20Dispatcher, IKeysMarketplaceDispatcher) {
+        let sender_address: ContractAddress = 123.try_into().unwrap();
+        let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
+        let token_address = erc20.contract_address.clone();
+        let keys = deploy_marketplace(
+            escrow_class,
+            sender_address,
+            token_address.clone(),
+            INITIAL_KEY_PRICE,
+            STEP_LINEAR_INCREASE
+        );
+        (sender_address, erc20, keys)
+    }
+
+    fn declare_marketplace() -> ContractClass {
+        declare("KeysMarketplace").unwrap()
+    }
+
+    fn declare_erc20() -> ContractClass {
+        declare("ERC20").unwrap()
+    }
+
+    fn deploy_marketplace(
+        class: ContractClass,
+        admin: ContractAddress,
+        token_address: ContractAddress,
+        initial_key_price: u256,
+        step_increase_linear: u256
+    ) -> IKeysMarketplaceDispatcher {
+        // println!("deploy marketplace");
+        let mut calldata = array![admin.into()];
+        calldata.append_serde(initial_key_price);
+        calldata.append_serde(token_address);
+        calldata.append_serde(step_increase_linear);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        IKeysMarketplaceDispatcher { contract_address }
+    }
+
+    fn deploy_erc20(
+        class: ContractClass,
+        name: felt252,
+        symbol: felt252,
+        initial_supply: u256,
+        recipient: ContractAddress
+    ) -> IERC20Dispatcher {
+        let mut calldata = array![];
+
+        name.serialize(ref calldata);
+        symbol.serialize(ref calldata);
+        (2 * initial_supply).serialize(ref calldata);
+        recipient.serialize(ref calldata);
+        18_u8.serialize(ref calldata);
+
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+
+        IERC20Dispatcher { contract_address }
+    }
+    #[test]
+    fn keys_buys_approve() {
+        let (sender_address, erc20, keys) = request_fixture();
+        let amount_approve = 10000_u256;
+        let amount = 10_u256;
+        cheat_caller_address_global(sender_address);
+        erc20.approve(keys.contract_address, amount_approve + amount_approve);
+
+        // stop_cheat_caller_address_global();
+
+        let key_address = keys.contract_address;
+        let erc20_address = erc20.contract_address;
+        // Call a view function of the contract
+
+        // Check default token used
+        start_cheat_caller_address(key_address, sender_address);
+        let default_token = keys.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+
+        // Instantiate keys
+        // println!("instantiate keys");
+        keys.instantiate_keys();
+        // println!("get all_keys");
+
+        let mut all_keys = keys.get_all_keys();
+        // assert(all_keys[0].owner==sender_address, 'no init keys array');
+        // println!("all_keys {:?}", all_keys);
+        let amount_key_buy = 1_u256;
+
+        let amount_to_paid = keys.get_price_of_supply_key(sender_address, amount_key_buy,
+            false, //    1,
+            // BondingType::Basic, default_token.clone()
+            );
+
+        erc20.approve(keys.contract_address, amount_to_paid);
+
+
+        keys.buy_keys(sender_address, amount_key_buy);
+
+        stop_cheat_caller_address(key_address);
+        // Instantite buyer
+        // let buyer: ContractAddress = 456.try_into().unwrap();
+        // // cheat_caller_address_global(buyer);
+        // // println!("transfer erc20 to buyer");
+        // let allowance = erc20.allowance(buyer, keys.contract_address);
+
+        // start_cheat_caller_address(erc20_address, sender_address);
+
+        // erc20.transfer(buyer, amount);
+        // stop_cheat_caller_address_global();
+
+        // stop_cheat_caller_address(erc20_address);
+
+        // // Buyer call to buy keys
+
+        // let amount_key_buy = 1_u256;
+        // // println!("buyer approve erc20 to key");
+        // cheat_caller_address_global(buyer);
+        // start_cheat_caller_address(erc20_address, buyer);
+
+        // let amount_to_paid = keys.get_price_of_supply_key(sender_address, amount_key_buy,
+        //     false, //    1,
+        //     // BondingType::Basic, default_token.clone()
+        //     );
+        // erc20.approve(keys.contract_address, amount_approve + amount_approve);
+
+        // // println!("amount_to_paid {}", amount_to_paid);
+        // erc20.approve(key_address, amount_to_paid);
+        // // erc20.approve(key_address, 10000 + 10000);
+
+        // let allowance = erc20.allowance(buyer, keys.contract_address);
+        // // println!("allowance {}", allowance);
+
+        // start_cheat_caller_address(keys.contract_address, buyer);
+        // start_cheat_caller_address(key_address, buyer);
+
+        // // println!("buy one keys");
+        // keys.buy_keys(sender_address, amount_key_buy);
     }
 }
