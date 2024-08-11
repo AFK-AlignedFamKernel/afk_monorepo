@@ -59,15 +59,10 @@ export const useDataKeys = () => {
     console.log('get contract');
     const addressContract = contractAddress ?? KEYS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const contract = await prepareAndConnectContract(provider, addressContract, account);
-
     // if (!account) return;
-
-    console.log('get key all keys');
-
+    // console.log('get key all keys');
     const all_keys = await contract.get_all_keys();
-
-    console.log('allkeys', all_keys);
-
+    // console.log('allkeys', all_keys);
     return all_keys;
   };
 
@@ -83,15 +78,11 @@ export const useDataKeys = () => {
         contractAddress ?? KEYS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         account,
       );
-      console.log('contract', contract);
-
-      console.log('account connected', account?.address);
-      console.log('share of address_user', address_user);
-
+      // console.log('contract', contract);
+      // console.log('account connected', account?.address);
+      // console.log('share of address_user', address_user);
       const share_user: any = await contract.get_share_key_of_user(account?.address, address_user);
-
-      console.log('share_user', share_user);
-
+      // console.log('share_user', share_user);
       return share_user;
     } catch (e) {
       console.log('Error get my shares of user', e);

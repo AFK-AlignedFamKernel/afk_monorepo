@@ -27,15 +27,16 @@ export const ACCOUNT_TEST_PROFILE = {
 
 };
 
-
 export const ESCROW_ADDRESS = {
     // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
     [constants.StarknetChainId.SN_SEPOLIA]: "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
 }
 
-
-
 export const KEYS_ADDRESS = {
+    [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
+}
+
+export const NAMESPACE_ADDRESS = {
     [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 }
 export const ERROR_MESSAGES = {

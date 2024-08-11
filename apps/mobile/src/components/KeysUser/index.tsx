@@ -52,19 +52,22 @@ export const KeyUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profi
     }
   };
   const sellKeys = async () => {
+    if (!amount) return;
+
     await onConnect()
     if (!account || !account?.account) return;
 
     if (!keyUser?.owner) return;
 
     if (!keyUser?.token_quote) return;
-    if (!amount) return;
 
     handleSellKeys(account?.account, keyUser?.owner, Number(amount), keyUser?.token_quote, undefined)
 
   }
 
   const buyKeys = async () => {
+    if (!amount) return;
+
     await onConnect()
 
     if (!account || !account?.account) return;
@@ -72,7 +75,6 @@ export const KeyUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profi
     if (!keyUser?.owner) return;
 
     if (!keyUser?.token_quote) return;
-    if (!amount) return;
     handleBuyKeys(account?.account, keyUser?.owner, keyUser?.token_quote, Number(amount),)
   }
   const navigation = useNavigation<MainStackNavigationProps>();

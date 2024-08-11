@@ -2,8 +2,8 @@ import {useNavigation} from '@react-navigation/native';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {BubbleUser} from '../../components/BubbleUser';
-import {useRootNotes, useStyles, useTheme} from '../../hooks';
-import {useAllProfiles, useChannels} from "afk_nostr_sdk"
+import {useStyles, useTheme} from '../../hooks';
+import {useAllProfiles, useChannels, useRootNotes} from "afk_nostr_sdk"
 import {ChannelComponent} from '../../modules/ChannelCard';
 import {MainStackNavigationProps} from '../../types';
 import stylesheet from './styles';

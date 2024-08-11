@@ -5,7 +5,7 @@ import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
-    color:theme?.colors?.text,
+    color:theme.colors.text,
     padding:3,
   },
   header: {
@@ -62,4 +62,7 @@ export default ThemedStyleSheet((theme) => ({
     right: Spacing.pagePadding,
     bottom: '110%',
   },
+  text:{
+    color: theme.colors.text,
+  }
 }));

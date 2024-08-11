@@ -18,10 +18,9 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount()
-
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataKeys = useQueryAllKeys()
-  console.log("queryDataKeys", queryDataKeys)
+  // console.log("queryDataKeys", queryDataKeys)
   // const keys = useKeysEvents()
   // console.log("keys", keys)
   // const { ndk } = useNostrContext();
@@ -32,29 +31,8 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
   const { publicKey } = useAuth()
 
   return (
-    <View>
+    <View style={styles.container}>
       {queryDataKeys?.isLoading && <ActivityIndicator></ActivityIndicator>}
-      {/* <Menu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        handle={
-          <IconButton
-            icon="MoreVerticalIcon"
-            size={20}
-            // style={styles.iconButton}
-            onPress={() => setMenuOpen(true)}
-          />
-        }
-      >
-        <Menu.Item
-          label="Your Key"
-          //  icon="ShareIcon"
-          onPress={() => {
-            showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
-            setMenuOpen(false);
-          }}
-        ></Menu.Item>
-      </Menu> */}
 
       {isButtonInstantiateEnable &&
         <Button
@@ -62,11 +40,9 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
             showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
             // setMenuOpen(false);
           }}>
-          <Text>Instantite key</Text>
+          <Text>Instantiate key</Text>
         </Button>
       }
-
-
 
       <FlatList
         contentContainerStyle={styles.flatListContent}
@@ -75,15 +51,20 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
         keyExtractor={(item) => item.owner}
         renderItem={({ item }) => {
           return (
-            <View style={styles.tip}>
-              <View style={styles.tokenInfo}>
-                <KeyUser keyUser={item}></KeyUser>
-              </View>
-              <Divider direction="horizontal" />
-            </View>
+            <>
+              <KeyUser keyUser={item}></KeyUser>
+              {/* <View style={styles.tip}>
+                <View style={styles.tokenInfo}>
+                </View>
+                <Divider direction="horizontal" />
+              </View> */}
+            </>
+
           );
         }}
         refreshControl={<RefreshControl refreshing={queryDataKeys.isFetching} onRefresh={queryDataKeys.refetch} />}
+        // onEndReached={() => queryDataKeys.fetchNextPage()}
+
       />
 
       {/* <FlatList

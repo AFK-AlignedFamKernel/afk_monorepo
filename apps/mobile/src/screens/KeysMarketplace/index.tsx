@@ -44,8 +44,8 @@ export const KeysMarketplace: React.FC<KeysMarketplaceSreenProps> = () => {
   return (
     <View style={styles.container}>
       <Header showLogo />
-      <Text>Key pass for Starknet user</Text>
-      <Text> Buy or sell the keys of content creator to get perks and rewards from them.</Text>
+      <Text style={styles.text}>Key pass for Starknet user</Text>
+      <Text  style={{...styles.text, marginBottom:1}}> Buy or sell the keys of content creator to get perks and rewards from them.</Text>
       <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
       {/* {selectedTab == SelectedTab.TIPS ? (
         <TipsComponent></TipsComponent>

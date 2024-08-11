@@ -1,8 +1,42 @@
+// pub use social::request;
+
 use afk::types::keys_types::{
     KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, StoredName, BuyKeys, SellKeys,
     CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys, BondingType, get_linear_price,
 };
 use starknet::ContractAddress;
+// use social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+// use afk::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+
+type NostrPublicKey = u256;
+
+
+#[derive(Clone, Debug, Drop, Serde)]
+pub struct LinkedNostrAddress {
+    pub starknet_address: ContractAddress
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+struct LinkedWalletProfileDefault {
+    nostr_address: NostrPublicKey,
+    starknet_address: ContractAddress,
+// Add NIP-05 and stats profil after. Gonna write a proposal for it
+}
+
+// TODO fix the Content format for Nostr PublicKey as felt252 to send the same as the Nostr content
+impl LinkedStarknetAddressEncodeImpl of Encode<LinkedNostrAddress> {
+    fn encode(self: @LinkedNostrAddress) -> @ByteArray {
+        let recipient_address_user_felt: felt252 = self
+            .starknet_address
+            .clone()
+            .try_into()
+            .unwrap();
+
+        @format!("key to {:?}", recipient_address_user_felt)
+    }
+}
+
 
 #[starknet::interface]
 pub trait IKeysMarketplace<TContractState> {
@@ -15,9 +49,12 @@ pub trait IKeysMarketplace<TContractState> {
     fn instantiate_keys(
         ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
     );
-    // fn instantiate_keys_with_nostr(
-    //     ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
-    // );
+    fn instantiate_keys_with_nostr(
+        ref self: TContractState, 
+        request_nostr: SocialRequest<LinkedNostrAddress>
+        
+        // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
+    );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn sell_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn get_default_token(self: @TContractState) -> TokenQuoteBuyKeys;
@@ -36,7 +73,9 @@ mod KeysMarketplace {
     use core::num::traits::Zero;
     use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::social::namespace::{INamespaceDispatcher, INamespaceDispatcherTrait};
+    use super::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 
+    use super::{LinkedNostrAddress};
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::{
@@ -213,6 +252,7 @@ mod KeysMarketplace {
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
                 initial_key_price: token_to_use.initial_key_price,
+                nostr_public_key:0
             };
 
             let share_user = SharesKeys {
@@ -247,6 +287,73 @@ mod KeysMarketplace {
                 );
         }
 
+        fn instantiate_keys_with_nostr(
+        ref self: ContractState,
+        request_nostr: SocialRequest<LinkedNostrAddress>
+        // token_quote: TokenQuoteBuyKeys,
+            // bonding_type: BondingType, 
+            ) {
+                let caller = get_caller_address();
+                let keys = self.keys_of_users.read(caller);
+                assert!(keys.owner.is_zero(), "key already created");
+                let initial_key_price = self.initial_key_price.read();
+    
+                let mut token_to_use = self.default_token.read();
+                // Todo function with custom init token
+                // if self.is_custom_token_enable.read() {
+                //     token_to_use = token_quote;
+                // }
+                // let bond_type = BondingType::Degens(10);
+                let bond_type = BondingType::Linear;
+                request_nostr.verify().expect('can\'t verify signature');
+                // @TODO Deploy an ERC404
+                // Option for liquidity providing and Trading
+                let key = Keys {
+                    owner: caller,
+                    token_address: caller, // CREATE 404
+                    price: initial_key_price,
+                    total_supply: 1,
+                    // Todo price by pricetype after fix Enum instantiate
+                    bonding_curve_type: Option::Some(bond_type),
+                    // bonding_curve_type: BondingType,
+                    created_at: get_block_timestamp(),
+                    token_quote: token_to_use.clone(),
+                    initial_key_price: token_to_use.initial_key_price,
+                    nostr_public_key:request_nostr.public_key,
+                };
+    
+                let share_user = SharesKeys {
+                    owner: get_caller_address(),
+                    key_address: get_caller_address(),
+                    amount_owned: 1,
+                    amount_buy: 1,
+                    amount_sell: 0,
+                    created_at: get_block_timestamp(),
+                    total_paid: 0
+                };
+                self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
+                self.keys_of_users.write(get_caller_address(), key.clone());
+    
+                let total_key = self.total_keys.read();
+                if total_key == 0 {
+                    self.total_keys.write(1);
+                    self.array_keys_of_users.write(0, key);
+                } else {
+                    self.total_keys.write(total_key + 1);
+                    self.array_keys_of_users.write(total_key, key);
+                }
+    
+                self
+                    .emit(
+                        CreateKeys {
+                            caller: get_caller_address(),
+                            key_user: get_caller_address(),
+                            amount: 1,
+                            price: 1,
+                        }
+                    );
+            }
+
         // fn liquidity_token() {
 
         // }
@@ -276,6 +383,7 @@ mod KeysMarketplace {
                 initial_key_price: token_quote.initial_key_price,
                 total_supply: old_keys.total_supply,
                 bonding_curve_type: old_keys.bonding_curve_type,
+                nostr_public_key: old_keys.nostr_public_key,
             };
             // Todo price by pricetype after fix Enum instantiate
             // Refactorize and opti
@@ -309,7 +417,7 @@ mod KeysMarketplace {
                 share_user.amount_buy += amount;
             }
             key.price = total_price;
-            key.total_supply += amount;
+            key.total_supply = key.total_supply + amount;
             self.shares_by_users.write((get_caller_address(), address_user), share_user.clone());
 
             self.keys_of_users.write(address_user, key.clone());
@@ -359,8 +467,8 @@ mod KeysMarketplace {
             // Verify Amount owned
             assert!(old_share.amount_owned >= amount, "share too low");
             assert!(old_keys.total_supply >= amount, "above supply");
-
-            // assert!(old_keys.total_supply == 1 && old_keys.owner == caller, "cant sell owner key");
+            // assert!(old_keys.total_supply == 1, "only key owner");
+            assert!(old_keys.total_supply == 1 && old_keys.owner == caller, "cant sell owner key");
             // assert!(old_keys.total_supply - amount == 0 && old_keys.owner == caller, "cant sell owner key");
 
             // TODO erc20 token transfer
@@ -386,6 +494,8 @@ mod KeysMarketplace {
                 initial_key_price: token_quote.initial_key_price,
                 total_supply: old_keys.total_supply,
                 bonding_curve_type: old_keys.bonding_curve_type,
+                nostr_public_key: old_keys.nostr_public_key,
+
             };
             // Todo price by pricetype after fix Enum instantiate
             // Refactorize and opti
@@ -680,8 +790,8 @@ mod tests {
         let amount_approve = 10000_u256;
         let amount = 10_u256;
         cheat_caller_address_global(sender_address);
-        erc20.approve(keys.contract_address, amount_approve + amount_approve);
-
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        erc20.approve(keys.contract_address, amount_approve);
         // stop_cheat_caller_address_global();
 
         let key_address = keys.contract_address;

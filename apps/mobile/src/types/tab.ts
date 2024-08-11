@@ -86,6 +86,16 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
   },
+  {
+    title: '?',
+    screen: '?',
+    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+  },
+  {
+    title: '?!',
+    screen: '?!',
+    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+  },
   // {
   //   title: 'Channel',
   //   screen: 'CreateChannel',

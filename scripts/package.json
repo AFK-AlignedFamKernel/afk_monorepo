@@ -1,11 +1,14 @@
 {
-  "name": "joy_prototype",
+  "name": "afk_prototype",
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
     "build": "tsc",
     "test": "mocha",
     "start": "ts-node src/index.ts",
+    "deploy:escrow": "ts-node ./deploy/escrow.ts",
+    "deploy:key": "ts-node ./deploy/key.ts",
+    "deploy:namespace": "ts-node ./deploy/namespace.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"
@@ -16,7 +19,7 @@
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "express": "^4.17.1",
-    "joy_prototype": "link:",
+    "afk_prototype":"link:",
     "nodemon": "^3.1.1",
     "nostr-tools": "^2.5.2",
     "path": "^0.12.7",

@@ -283,9 +283,12 @@ mod tests {
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
         // just for testing, do not use for anything else
-        let recipient_public_key =
-            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        // let recipient_public_key =
+        //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
+        let recipient_public_key =
+        0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        
         let sender_address: ContractAddress = 123.try_into().unwrap();
 
         let namespace = deploy_namespace(namespace_class);
@@ -308,8 +311,10 @@ mod tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: Signature {
-                r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
-                s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
+                r:0x8ffbabf63d0fd526dffb8c04d04a216bb03743fae22826a2b42005d478c48360_u256,
+                s:0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0caf_u256,
+                // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
+                // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             }
         };
 
@@ -364,16 +369,16 @@ mod tests {
     #[test]
     #[should_panic(expected: 'can\'t verify signature')]
     fn link_incorrect_signature() {
-        let (request, _, sender_address, namespace, _) = request_fixture();
+        let (_, _, sender_address, namespace, fail_request_linked_wallet_to_caller) = request_fixture();
         stop_cheat_caller_address_global();
         start_cheat_caller_address(namespace.contract_address, sender_address);
 
         let request_test_failed_sig = SocialRequest {
             sig: Signature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
+                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
+                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
             },
-            ..request,
+            ..fail_request_linked_wallet_to_caller,
         };
         namespace.linked_nostr_default_account(request_test_failed_sig);
     }

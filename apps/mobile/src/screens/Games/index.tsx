@@ -3,13 +3,14 @@ import { KeyboardAvoidingView, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import { useStyles } from '../../hooks';
+import { useStyles, useTheme } from '../../hooks';
 import { GameSreenProps } from '../../types';
 import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
 import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
+  const theme = useTheme()
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.VIEW_KEYS_MARKETPLACE);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -34,11 +35,13 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
           addScreenNavigation={false}
         ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          <Text>Moarr features coming soon</Text>
+          <Text style={styles.text}>Moarr features coming soon</Text>
           {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE &&
             <>
-              <Text>Key pass for Starknet user</Text>
-              <Text> Buy or sell the keys of content creator to get perks and rewards from them.</Text>
+              <View style={{ paddingVertical: 5, borderRadius: 5, borderColor: theme.theme?.colors?.shadow }}>
+                <Text style={styles.text}>Key pass for Starknet user</Text>
+                <Text style={styles.text}> Buy or sell the keys of content creator to get perks and rewards from them.</Text>
+              </View>
               <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
             </>
           }
