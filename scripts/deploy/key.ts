@@ -2,11 +2,12 @@ import {
     provider,
 } from "../utils/starknet";
 
-import { Account, byteArray, cairo, constants, uint256 } from "starknet";
+import { Account, constants } from "starknet";
 import { KEYS_ADDRESS, TOKENS_ADDRESS} from "../constants";
 import dotenv from "dotenv";
 import {  createKeysMarketplace } from "../utils/keys"
-import { createToken, prepareAndConnectContract, transferToken } from "../utils/token";
+import { prepareAndConnectContract } from "../utils/contract";
+
 dotenv.config();
 
 export const deployKeys = async () => {

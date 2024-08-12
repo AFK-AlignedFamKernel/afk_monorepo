@@ -34,13 +34,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
     let KeysClassHash = process.env.KEY_CLASS_HASH as string;
 
-    // const compiledCasm = json.parse(
-    //   fs.readFileSync(PATH_KEY_MARKETPLACE_COMPILED).toString("ascii")
-    // );
-    // const compiledSierraAAaccount = json.parse(
-    //   fs.readFileSync(PATH_KEY_MARKETPLACE).toString("ascii")
-    // );
-
     const compiledCasm = json.parse(
       fs.readFileSync(PATH_KEY_MARKETPLACE_COMPILED).toString("ascii")
     );
@@ -89,16 +82,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
 
         console.log("KeysClassHash", KeysClassHash);
 
-        // const deployResponse = await account0.declareAndDeploy({
-        //   contract: compiledSierraAAaccount,
-        //   casm: compiledSierraAAaccount,
-        //   constructorCalldata: [account0?.address,
-        //     token_address,
-        //   // uint256.bnToUint256(BigInt("0x"+initial_key_price))
-        //   uint256.bnToUint256(BigInt(initial_key_price))
-        //   ],
-
-        // });
       } catch (e) {
         console.log("Error declare key marketplace", e)
         return;
@@ -106,9 +89,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
       }
 
     }
-
-
-    // const { classHash, contract_address, transaction_hash } = deployResponse.deploy;
     let total_amount_float = initial_key_price ?? 0.01;
 
     let decimals = 18;
@@ -147,17 +127,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
         ],
       });
 
-
-    // const { transaction_hash, contract_address } =
-    //   await account0.deployContract({
-    //     classHash: KeysClassHash,
-    //     constructorCalldata: [account0?.address,
-    //       token_address,
-    //       // uint256.bnToUint256(BigInt("0x"+initial_key_price))
-    //       uint256.bnToUint256(BigInt(initial_key_price))
-    //     ],
-    //   });
-
     console.log("transaction_hash", transaction_hash);
     console.log("contract_address", contract_address);
     let tx = await account0?.waitForTransaction(transaction_hash);
@@ -169,7 +138,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
       contract_address
     );
 
-    // const contract = new Contract(compiledSierraAAaccount, contract_address, account0)
     return {
       contract_address,
       tx,

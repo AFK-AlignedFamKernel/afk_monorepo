@@ -1,15 +1,12 @@
 import {
     provider,
 } from "../utils/starknet";
-
-import { Account, byteArray, cairo, constants, uint256 } from "starknet";
-import { ESCROW_ADDRESS, KEYS_ADDRESS, TOKENS_ADDRESS } from "../constants";
+import { Account, constants } from "starknet";
+import { ESCROW_ADDRESS, } from "../constants";
 import dotenv from "dotenv";
-import { createKeysMarketplace } from "../utils/keys"
-import { createToken, prepareAndConnectContract, transferToken } from "../utils/token";
-import { createEscrowAccount } from "utils/escrow";
+import { createEscrowAccount } from "../utils/escrow";
+import { prepareAndConnectContract } from "../utils/contract";
 dotenv.config();
-
 
 export const deployEscrow = async () => {
     let escrow_address: string | undefined = ESCROW_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as any // change default address

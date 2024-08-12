@@ -5,15 +5,12 @@ import {
 import { Account, constants } from "starknet";
 import { NAMESPACE_ADDRESS } from "../constants";
 import dotenv from "dotenv";
-import {  prepareAndConnectContract } from "../utils/token";
+import { prepareAndConnectContract } from "../utils/contract";
 import { createNamespace } from "../utils/namespace";
 dotenv.config();
-
 export const deployNamespace = async () => {
     console.log("deploy namespace")
-
     let namespace_address: string | undefined = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] // change default address
-
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
