@@ -21,22 +21,22 @@ pub struct TokenQuoteBuyKeys {
 
 
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, //  PartialEq
-   )]
-   pub enum TokenType {
-       ERC20,
-       ERC404,
-   }
-   
+ Drop, starknet::Store, //  PartialEq
+)]
+pub enum TokenType {
+    ERC20,
+    ERC404,
+}
+
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,
     pub token_address: ContractAddress,
-    pub symbol:felt252,
-    pub name:felt252,
+    pub symbol: felt252,
+    pub name: felt252,
     pub total_supply: u256,
-    pub token_type:Option<TokenType>,
+    pub token_type: Option<TokenType>,
     pub created_at: u64,
 }
 
@@ -63,7 +63,7 @@ pub struct TokenLaunchFair {
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyKeys,
-    pub final_time:u64,
+    pub final_time: u64,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]

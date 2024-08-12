@@ -30,7 +30,7 @@ pub struct Keys {
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyKeys,
-    pub nostr_public_key:u256
+    pub nostr_public_key: u256
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]

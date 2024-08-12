@@ -59,19 +59,19 @@ pub trait INamespace<TContractState> {
     fn linked_nostr_default_account(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>
     );
-    // // External call protocol
-    // fn protocol_linked_nostr_default_account(
-    //     ref self: TContractState,
-    //     nostr_public_key: NostrPublicKey,
-    //     starknet_address: ContractAddress
-    // );
+// // External call protocol
+// fn protocol_linked_nostr_default_account(
+//     ref self: TContractState,
+//     nostr_public_key: NostrPublicKey,
+//     starknet_address: ContractAddress
+// );
 }
 
 #[starknet::contract]
 pub mod Namespace {
-    use core::num::traits::Zero;
     use afk::bip340;
     use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
@@ -184,17 +184,17 @@ pub mod Namespace {
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_public_key)
         }
-        
 
-        fn get_sn_to_nostr_default(self:@ContractState, starknet_address:ContractAddress) -> NostrPublicKey {
+
+        fn get_sn_to_nostr_default(
+            self: @ContractState, starknet_address: ContractAddress
+        ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
-
         }
 
 
         // Create list getter
 
-      
         // User request with a Nostr event
 
         fn linked_nostr_default_account(
@@ -214,33 +214,31 @@ pub mod Namespace {
                     }
                 );
         }
-
-        // Protocol request with OPERATOR_ROLE
-        // Call by Deposit Escrow at this stage in claim or deposit functions
-        // fn protocol_linked_nostr_default_account(
-        //     ref self: ContractState,
-        //     nostr_public_key: NostrPublicKey,
-        //     starknet_address: ContractAddress
-        // ) {
-        //     self.accesscontrol.assert_only_role(OPERATOR_ROLE);
-        //     self.nostr_to_sn.write(nostr_public_key, starknet_address);
-        //     self
-        //         .emit(
-        //             LinkedDefaultStarknetAddressEvent {
-        //                 nostr_address: nostr_public_key, starknet_address,
-        //             }
-        //         );
-        // }
+    // Protocol request with OPERATOR_ROLE
+    // Call by Deposit Escrow at this stage in claim or deposit functions
+    // fn protocol_linked_nostr_default_account(
+    //     ref self: ContractState,
+    //     nostr_public_key: NostrPublicKey,
+    //     starknet_address: ContractAddress
+    // ) {
+    //     self.accesscontrol.assert_only_role(OPERATOR_ROLE);
+    //     self.nostr_to_sn.write(nostr_public_key, starknet_address);
+    //     self
+    //         .emit(
+    //             LinkedDefaultStarknetAddressEvent {
+    //                 nostr_address: nostr_public_key, starknet_address,
+    //             }
+    //         );
+    // }
 
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
-
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
         Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
@@ -287,8 +285,8 @@ mod tests {
         //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
         let recipient_public_key =
-        0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
-        
+            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+
         let sender_address: ContractAddress = 123.try_into().unwrap();
 
         let namespace = deploy_namespace(namespace_class);
@@ -311,10 +309,10 @@ mod tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: Signature {
-                r:0x8ffbabf63d0fd526dffb8c04d04a216bb03743fae22826a2b42005d478c48360_u256,
-                s:0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0caf_u256,
-                // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
-                // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
+                r: 0x8ffbabf63d0fd526dffb8c04d04a216bb03743fae22826a2b42005d478c48360_u256,
+                s: 0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0caf_u256,
+            // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
+            // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             }
         };
 
@@ -369,7 +367,8 @@ mod tests {
     #[test]
     #[should_panic(expected: 'can\'t verify signature')]
     fn link_incorrect_signature() {
-        let (_, _, sender_address, namespace, fail_request_linked_wallet_to_caller) = request_fixture();
+        let (_, _, sender_address, namespace, fail_request_linked_wallet_to_caller) =
+            request_fixture();
         stop_cheat_caller_address_global();
         start_cheat_caller_address(namespace.contract_address, sender_address);
 

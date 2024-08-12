@@ -1,6 +1,6 @@
+use afk::sha256::sha256;
 use core::ecdsa::check_ecdsa_signature;
 use core::integer::{u32_wide_mul, u8_wide_mul, BoundedInt};
-use afk::sha256::sha256;
 
 use starknet::SyscallResultTrait;
 use starknet::account::Call;

@@ -25,13 +25,13 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod SocialAccount {
-    use core::num::traits::Zero;
     use afk::bip340;
     use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_VERSION, QUERY_OFFSET, execute_calls,
         is_valid_stark_signature
     };
+    use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
     use super::ISRC6;
@@ -155,9 +155,9 @@ pub mod SocialAccount {
 
 #[cfg(test)]
 mod tests {
+    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
         Event, EventAssertions, cheat_transaction_hash_global, cheat_signature_global,

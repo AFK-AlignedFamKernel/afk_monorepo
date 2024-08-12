@@ -1,7 +1,7 @@
 use afk::types::launchpad_types::{
     KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken,
-    CreateToken, LaunchUpdated, TokenQuoteBuyKeys, TokenLaunch, SharesKeys, BondingType, get_linear_price,
-    Token, CreateLaunch
+    CreateToken, LaunchUpdated, TokenQuoteBuyKeys, TokenLaunch, SharesKeys, BondingType,
+    get_linear_price, Token, CreateLaunch
 };
 use starknet::ContractAddress;
 
@@ -17,19 +17,12 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: LaunchpadMarketplace::BondingType,
     );
     fn create_token(
-        ref self: TContractState, 
-        symbol:felt252,
-        ticker:felt252,
-        initial_supply:u256
-        // token_quote: TokenQuoteBuyKeys, 
-        // bonding_type: LaunchpadMarketplace::BondingType,
+        ref self: TContractState, symbol: felt252, ticker: felt252, initial_supply: u256
+    // token_quote: TokenQuoteBuyKeys, 
+    // bonding_type: LaunchpadMarketplace::BondingType,
     );
-    fn launch_token(
-        ref self: TContractState, 
-        symbol:felt252,
-        ticker:felt252,
-        // token_quote: TokenQuoteBuyKeys, 
-        // bonding_type: LaunchpadMarketplace::BondingType,
+    fn launch_token(ref self: TContractState, symbol: felt252, ticker: felt252,// token_quote: TokenQuoteBuyKeys, 
+    // bonding_type: LaunchpadMarketplace::BondingType,
     );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn sell_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
@@ -46,8 +39,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 mod LaunchpadMarketplace {
-    use core::num::traits::Zero;
     use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::num::traits::Zero;
 
 
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
@@ -57,9 +50,8 @@ mod LaunchpadMarketplace {
         contract_address_const, get_block_timestamp, get_contract_address,
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, TokenQuoteBuyKeys, TokenLaunch, SharesKeys,
-        KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType,
-        Token,
+        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, TokenQuoteBuyKeys, TokenLaunch,
+        SharesKeys, KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType, Token,
         CreateLaunch
     };
     const MAX_STEPS_LOOP: u256 = 100;
@@ -268,11 +260,9 @@ mod LaunchpadMarketplace {
         }
 
         // Create keys for an user
-        fn create_token(ref self: ContractState,
-            symbol:felt252,
-            ticker:felt252,
-            initial_supply:u256,
-             // token_quote: TokenQuoteBuyKeys,
+        fn create_token(
+            ref self: ContractState, symbol: felt252, ticker: felt252, initial_supply: u256,
+        // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
             let caller = get_caller_address();
@@ -337,10 +327,7 @@ mod LaunchpadMarketplace {
 
 
         // Create keys for an user
-        fn launch_token(ref self: ContractState,
-            symbol:felt252,
-            ticker:felt252,
-             // token_quote: TokenQuoteBuyKeys,
+        fn launch_token(ref self: ContractState, symbol: felt252, ticker: felt252,// token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
             let caller = get_caller_address();
@@ -550,7 +537,7 @@ mod LaunchpadMarketplace {
             let mut total_price = self.get_price_of_supply_key(address_user, amount, true);
             // println!("total price {}", total_price);
 
-            total_price-=key.initial_key_price.clone();
+            total_price -= key.initial_key_price.clone();
 
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let amount_creator_fee = total_price * creator_fee_percent / BPS;
@@ -574,17 +561,18 @@ mod LaunchpadMarketplace {
             }
             key.price = total_price;
             // key.total_supply -= amount;
-            key.total_supply=key.total_supply-amount;
-            self.shares_by_users.write((get_caller_address(), address_user.clone()), share_user.clone());
+            key.total_supply = key.total_supply - amount;
+            self
+                .shares_by_users
+                .write((get_caller_address(), address_user.clone()), share_user.clone());
             self.keys_of_users.write(address_user.clone(), key.clone());
 
-            let contract_balance= erc20.balance_of(get_contract_address());
+            let contract_balance = erc20.balance_of(get_contract_address());
 
             // Transfer to Liquidity, Creator and Protocol
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-       
 
             erc20.transfer(key.owner, amount_creator_fee);
 
@@ -592,7 +580,6 @@ mod LaunchpadMarketplace {
             // println!("transfer protocol fee {}", amount_protocol_fee.clone());
 
             // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
-
 
             self
                 .emit(
@@ -730,7 +717,5 @@ mod LaunchpadMarketplace {
             let total_price = amount * (start_price + end_price) / 2;
             total_price
         }
-
-       
     }
 }

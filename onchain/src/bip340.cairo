@@ -1,3 +1,4 @@
+use afk::utils::{shl, shr, compute_sha256_byte_array};
 //! bip340 implementation
 
 use core::byte_array::ByteArrayTrait;
@@ -8,8 +9,6 @@ use core::result::ResultTrait;
 use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
-
-use afk::utils::{shl, shr, compute_sha256_byte_array};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
 
 const TWO_POW_32: u128 = 0x100000000;
