@@ -18,14 +18,15 @@ export const deployKeys = async () => {
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
+    const TOKEN_QUOTE_ADDRESS= TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
     let key_marketplace;
 
     if (process.env.IS_DEPLOY_CONTRACT == "true") {
       console.log('try deploy key marketplace')
         let keysContract = await createKeysMarketplace(
-            TOKENS_ADDRESS.SEPOLIA.BIG_TOKEN,
-            // 0.01
-            1,
+            TOKEN_QUOTE_ADDRESS,
+            0.01,
+            // 1,
             0.01
             
 

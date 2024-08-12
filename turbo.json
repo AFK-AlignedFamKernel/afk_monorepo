@@ -42,7 +42,7 @@
         "PINATA_API_KEY",
         "PINATA_API_SECRET_KEY",
         "PINATA_JWT",
-        "LAUCHING_FACTORY",
+        "LAUNCHING_FACTORY",
         "PINATA_GATEWAY_KEY",
         "NEXT_PUBLIC_PINATA_JWT",
         "APP_URL",

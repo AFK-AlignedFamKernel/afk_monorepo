@@ -61,7 +61,8 @@ export const KeyCardUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, p
 
     if (!keyUser?.token_quote) return;
 
-    handleSellKeys(account?.account, keyUser?.owner, Number(amount), keyUser?.token_quote, undefined)
+    // handleSellKeys(account?.account, keyUser?.owner, Number(amount), keyUser?.token_quote, undefined)
+    handleSellKeys(account?.account, feltToAddress(BigInt(keyUser?.owner)), Number(amount), keyUser?.token_quote, undefined)
 
   }
 
@@ -75,7 +76,8 @@ export const KeyCardUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, p
     if (!keyUser?.owner) return;
 
     if (!keyUser?.token_quote) return;
-    handleBuyKeys(account?.account, keyUser?.owner, keyUser?.token_quote, Number(amount),)
+    // handleBuyKeys(account?.account, keyUser?.owner, keyUser?.token_quote, Number(amount),)
+    handleBuyKeys(account?.account, feltToAddress(BigInt(keyUser?.owner)),  Number(amount), keyUser?.token_quote,)
   }
   const navigation = useNavigation<MainStackNavigationProps>();
   // const handleNavigateToProfile = () => {

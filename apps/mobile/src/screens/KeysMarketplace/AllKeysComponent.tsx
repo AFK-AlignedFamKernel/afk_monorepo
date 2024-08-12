@@ -48,8 +48,10 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
         contentContainerStyle={styles.flatListContent}
         data={queryDataKeys.data ?? []}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyExtractor={(item) => item.owner}
+        // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
+        keyExtractor={(item, i) => i.toString()}
         renderItem={({ item }) => {
+          // console.log("key item", item)
           return (
             <>
               <KeyCardUser keyUser={item}></KeyCardUser>
@@ -63,7 +65,7 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
           );
         }}
         refreshControl={<RefreshControl refreshing={queryDataKeys.isFetching} onRefresh={queryDataKeys.refetch} />}
-        // onEndReached={() => queryDataKeys.fetchNextPage()}
+      // onEndReached={() => queryDataKeys.fetchNextPage()}
 
       />
 

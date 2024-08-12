@@ -240,8 +240,8 @@ mod KeysMarketplace {
             // @TODO Deploy an ERC404
             // Option for liquidity providing and Trading
             let key = Keys {
-                owner: caller,
-                token_address: caller, // CREATE 404
+                owner: get_caller_address(),
+                token_address: get_caller_address(), // CREATE 404
                 price: initial_key_price,
                 total_supply: 1_u256,
                 // Todo price by pricetype after fix Enum instantiate
@@ -256,22 +256,23 @@ mod KeysMarketplace {
             let share_user = SharesKeys {
                 owner: get_caller_address(),
                 key_address: get_caller_address(),
+                created_at: get_block_timestamp(),
                 amount_owned: 1_u256,
                 amount_buy: 1_u256,
+                total_paid: 0_u256,
                 amount_sell: 0_u256,
-                created_at: get_block_timestamp(),
-                total_paid: 0_u256
             };
+
             self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
             self.keys_of_users.write(get_caller_address(), key.clone());
 
             let total_key = self.total_keys.read();
             if total_key == 0 {
                 self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key);
+                self.array_keys_of_users.write(0, key.clone());
             } else {
                 self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key);
+                self.array_keys_of_users.write(total_key, key.clone());
             }
 
             self
@@ -286,7 +287,8 @@ mod KeysMarketplace {
         }
 
         fn instantiate_keys_with_nostr(
-            ref self: ContractState, request_nostr: SocialRequest<LinkedNostrAddress>
+            ref self: ContractState, 
+            request_nostr: SocialRequest<LinkedNostrAddress>
         // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
@@ -306,8 +308,10 @@ mod KeysMarketplace {
             // @TODO Deploy an ERC404
             // Option for liquidity providing and Trading
             let key = Keys {
-                owner: caller,
-                token_address: caller, // CREATE 404
+                owner: get_caller_address(),
+                token_address: get_caller_address(), // CREATE 404
+                // owner: caller,
+                // token_address: caller, // CREATE 404
                 price: initial_key_price,
                 total_supply: 1_u256,
                 // Todo price by pricetype after fix Enum instantiate
@@ -334,10 +338,10 @@ mod KeysMarketplace {
             let total_key = self.total_keys.read();
             if total_key == 0 {
                 self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key);
+                self.array_keys_of_users.write(0, key.clone());
             } else {
                 self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key);
+                self.array_keys_of_users.write(total_key, key.clone());
             }
 
             self
@@ -350,10 +354,6 @@ mod KeysMarketplace {
                     }
                 );
         }
-
-        // fn liquidity_token() {
-
-        // }
 
         fn buy_keys(ref self: ContractState, address_user: ContractAddress, amount: u256) {
             // let caller = get_caller_address();

@@ -310,7 +310,7 @@ mod tests {
             content: linked_wallet.clone(),
             sig: Signature {
                 r: 0x8ffbabf63d0fd526dffb8c04d04a216bb03743fae22826a2b42005d478c48360_u256,
-                s: 0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0caf_u256,
+                s: 0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0fab_u256,
             // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             }

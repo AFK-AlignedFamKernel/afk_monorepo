@@ -15,15 +15,15 @@ export const useBuyKeys = () => {
   const rpcProvider = useProvider();
   const chainId = chain?.chain?.id;
   // console.log("chainId", chainId)
-  // const provider = rpcProvider?.provider ?? new RpcProvider({ nodeUrl:  process.env.STARKNET_RPC_ENDPOINT  });
+  // const provider = rpcProvider?.provider ?? new RpcProvider({ nodeUrl:  process.env.EXPO_PUBLIC_PROVIDER_URL  });
   // const provider = rpcProvider?.provider ?? new RpcProvider();
-  const provider = new RpcProvider();
+  const provider = new RpcProvider({nodeUrl:process.env.EXPO_PUBLIC_PROVIDER_URL});
 
   const handleBuyKeys = async (
     account: AccountInterface,
     user_address: string,
-    tokenQuote: TokenQuoteBuyKeys,
     amount: number,
+    tokenQuote: TokenQuoteBuyKeys,
     contractAddress?: string,
   ) => {
     if (!account) return;
@@ -39,7 +39,8 @@ export const useBuyKeys = () => {
     );
     console.log('read key_contract');
 
-    const key_contract = await prepareAndConnectContract(provider, addressContract, account);
+    const key_contract = await prepareAndConnectContract(provider, addressContract);
+    // const key_contract = await prepareAndConnectContract(provider, addressContract, account);
 
     console.log('convert float');
     console.log('amount', amount);
@@ -58,7 +59,8 @@ export const useBuyKeys = () => {
 
     let amountToPaid;
     try {
-      amountToPaid = await key_contract.get_price_of_supply_key(user_address, amount, false);
+      /** @TODO fix CORS issue */
+      amountToPaid = await key_contract.get_price_of_supply_key(user_address, amountUint256, false);
     } catch (error) {
       console.log('Error get amount to paid', error);
     }

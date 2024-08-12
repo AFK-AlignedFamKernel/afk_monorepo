@@ -127,6 +127,9 @@ export const FormInstantiateKey = ({
           profile?.displayName ??
           profile?.name ??
           event?.pubkey,
+        children:(<>
+        <Text>Your key is instantiate!</Text>
+        </>),
         hide: hideSuccess,
       });
     } else {
@@ -190,6 +193,10 @@ export const FormInstantiateKey = ({
 
         </View>
       </View>
+
+      {account?.address &&
+      <Text>Connect: {account?.address}</Text>
+      }
 
       <View style={styles.pickerContainer}>
         {(myKey && BigInt(myKey?.owner) == BigInt(0)) ||
