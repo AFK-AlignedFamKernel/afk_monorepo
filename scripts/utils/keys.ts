@@ -53,7 +53,7 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
 
     if (process.env.REDECLARE_CONTRACT == "true") {
       try {
-        console.log("try declare account");
+        console.log("try declare key marketplace");
         // const declareResponse = await account0.declare({
         //   contract: compiledSierraAAaccount,
         //   casm: compiledCasm,

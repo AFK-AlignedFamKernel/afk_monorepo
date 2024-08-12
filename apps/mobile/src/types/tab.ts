@@ -9,6 +9,8 @@ export enum SelectedTab {
   LAUNCH_TOKEN,
   LAUNCH_TOKEN_UNRUGGABLE,
   VIEW_KEYS_MARKETPLACE,
+  LAUNCH_TOKEN_PUMP,
+
 }
 
 export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -94,7 +96,7 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: '?!',
     screen: '?!',
-    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+    tab: SelectedTab.LAUNCH_TOKEN_PUMP,
   },
   // {
   //   title: 'Channel',

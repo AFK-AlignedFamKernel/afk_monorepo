@@ -91,7 +91,7 @@ const Sidebar = () => {
                     style={{ backgroundColor: theme.theme.colors.background }}
                 />
                 <Text style={styles.textItem}>
-                    Gamefi
+                    ?
                 </Text>
 
             </Pressable>

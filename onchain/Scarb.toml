@@ -24,3 +24,4 @@ sort-module-level-items = true
 [[target.starknet-contract]]
 casm = true
 sierra = true
+allowed-libfuncs-list.name = "experimental"

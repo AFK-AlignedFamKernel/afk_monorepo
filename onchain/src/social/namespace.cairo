@@ -59,12 +59,12 @@ pub trait INamespace<TContractState> {
     fn linked_nostr_default_account(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>
     );
-    // External call protocol
-    fn protocol_linked_nostr_default_account(
-        ref self: TContractState,
-        nostr_public_key: NostrPublicKey,
-        starknet_address: ContractAddress
-    );
+    // // External call protocol
+    // fn protocol_linked_nostr_default_account(
+    //     ref self: TContractState,
+    //     nostr_public_key: NostrPublicKey,
+    //     starknet_address: ContractAddress
+    // );
 }
 
 #[starknet::contract]
@@ -217,20 +217,20 @@ pub mod Namespace {
 
         // Protocol request with OPERATOR_ROLE
         // Call by Deposit Escrow at this stage in claim or deposit functions
-        fn protocol_linked_nostr_default_account(
-            ref self: ContractState,
-            nostr_public_key: NostrPublicKey,
-            starknet_address: ContractAddress
-        ) {
-            self.accesscontrol.assert_only_role(OPERATOR_ROLE);
-            self.nostr_to_sn.write(nostr_public_key, starknet_address);
-            self
-                .emit(
-                    LinkedDefaultStarknetAddressEvent {
-                        nostr_address: nostr_public_key, starknet_address,
-                    }
-                );
-        }
+        // fn protocol_linked_nostr_default_account(
+        //     ref self: ContractState,
+        //     nostr_public_key: NostrPublicKey,
+        //     starknet_address: ContractAddress
+        // ) {
+        //     self.accesscontrol.assert_only_role(OPERATOR_ROLE);
+        //     self.nostr_to_sn.write(nostr_public_key, starknet_address);
+        //     self
+        //         .emit(
+        //             LinkedDefaultStarknetAddressEvent {
+        //                 nostr_address: nostr_public_key, starknet_address,
+        //             }
+        //         );
+        // }
 
     }
 }

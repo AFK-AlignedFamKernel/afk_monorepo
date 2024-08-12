@@ -29,7 +29,7 @@ export type StoryProps = {
   keyUser?: KeysUser
 };
 
-export const KeyUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profileProps, event }) => {
+export const KeyCardUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profileProps, event }) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const account = useAccount()
 
@@ -123,14 +123,17 @@ export const KeyUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profi
           Supply: {Number(keyUser?.total_supply) / 10 ** 18}
         </Text>
         <Text>
+          Supply: {Number(keyUser?.total_supply)}
+        </Text>
+        <Text>
           Price: {Number(keyUser?.price) / 10 ** 18}
         </Text>
 
-        {keyUser?.created_at &&
+        {/* {keyUser?.created_at &&
           <Text>
             Created at {Number(keyUser?.created_at) / 10 ** 18}
           </Text>
-        }
+        } */}
 
       </View>
 
@@ -147,10 +150,18 @@ export const KeyUser: React.FC<StoryProps> = ({ keyUser, imageProps, name, profi
           </Text>
         </View>}
 
-      <Input value={amount ? String(amount) : "0"} onChangeText={(e) => {
-        if (e && Number(e)) {
-          setAmount(Number(e))
-        }
+      <Input 
+      
+      keyboardType='numeric'
+      value={amount ? String(amount) : "0"} onChangeText={(e) => {
+        setAmount(Number(e))
+        // if (e && Number(e) ) {
+        //   setAmount(Number(e))
+        // }
+
+        // if (e ) {
+        //   setAmount(Number(0))
+        // }
       }} placeholder="Amount" />
       <View style={{ display: "flex", flex: 1, flexDirection: "row", gap: 3 }}>
 

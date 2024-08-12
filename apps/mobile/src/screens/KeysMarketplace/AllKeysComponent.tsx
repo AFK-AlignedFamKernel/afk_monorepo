@@ -4,7 +4,7 @@ import { Button, Divider, IconButton, Menu } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import stylesheet from './styles';
 import { useQueryAllKeys } from '../../hooks/keys/useQueryAllKeys';
-import { KeyUser } from '../../components/KeysUser';
+import { KeyCardUser } from '../../components/KeyCardUser';
 import { useKeyModal } from '../../hooks/modals/useKeyModal';
 import { KeyModalAction } from '../../modules/KeyModal';
 import { useAccount } from '@starknet-react/core';
@@ -52,7 +52,7 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
         renderItem={({ item }) => {
           return (
             <>
-              <KeyUser keyUser={item}></KeyUser>
+              <KeyCardUser keyUser={item}></KeyCardUser>
               {/* <View style={styles.tip}>
                 <View style={styles.tokenInfo}>
                 </View>

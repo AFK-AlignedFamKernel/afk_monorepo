@@ -33,7 +33,7 @@ impl LinkedStarknetAddressEncodeImpl of Encode<LinkedNostrAddress> {
             .try_into()
             .unwrap();
 
-        @format!("key to {:?}", recipient_address_user_felt)
+        @format!("create_key of {:?}", recipient_address_user_felt)
     }
 }
 
@@ -183,7 +183,7 @@ mod KeysMarketplace {
         self.step_increase_linear.write(step_increase_linear);
         self.total_keys.write(0);
         self.protocol_fee_percent.write(MID_FEE);
-        self.creator_fee_percent.write(MIN_FEE_CREATOR);
+        self.creator_fee_percent.write(MAX_FEE_CREATOR);
     }
 
 
@@ -245,7 +245,7 @@ mod KeysMarketplace {
                 owner: caller,
                 token_address: caller, // CREATE 404
                 price: initial_key_price,
-                total_supply: 1,
+                total_supply: 1_u256,
                 // Todo price by pricetype after fix Enum instantiate
                 bonding_curve_type: Option::Some(bond_type),
                 // bonding_curve_type: BondingType,
@@ -258,11 +258,11 @@ mod KeysMarketplace {
             let share_user = SharesKeys {
                 owner: get_caller_address(),
                 key_address: get_caller_address(),
-                amount_owned: 1,
-                amount_buy: 1,
-                amount_sell: 0,
+                amount_owned: 1_u256,
+                amount_buy: 1_u256,
+                amount_sell: 0_u256,
                 created_at: get_block_timestamp(),
-                total_paid: 0
+                total_paid: 0_u256
             };
             self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
             self.keys_of_users.write(get_caller_address(), key.clone());
@@ -312,7 +312,7 @@ mod KeysMarketplace {
                     owner: caller,
                     token_address: caller, // CREATE 404
                     price: initial_key_price,
-                    total_supply: 1,
+                    total_supply: 1_u256,
                     // Todo price by pricetype after fix Enum instantiate
                     bonding_curve_type: Option::Some(bond_type),
                     // bonding_curve_type: BondingType,
@@ -391,9 +391,14 @@ mod KeysMarketplace {
             // println!("total price {}", total_price);
 
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let amount_creator_fee = total_price * creator_fee_percent / BPS;
+            // println!("total amount_protocol_fee {}", amount_protocol_fee);
+            
+            // let amount_creator_fee = total_price * creator_fee_percent / BPS;
+            let amount_creator_fee = (total_price - amount_protocol_fee) * creator_fee_percent / BPS ;
+            // println!("amount_creator_fee {}", amount_creator_fee);
 
             let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
+            // println!("remain_liquidity {}", remain_liquidity);
 
             let mut old_share = self.shares_by_users.read((get_caller_address(), address_user));
 
@@ -416,30 +421,33 @@ mod KeysMarketplace {
                 share_user.amount_owned += amount;
                 share_user.amount_buy += amount;
             }
-            key.price = total_price;
-            key.total_supply = key.total_supply + amount;
-            self.shares_by_users.write((get_caller_address(), address_user), share_user.clone());
-
-            self.keys_of_users.write(address_user, key.clone());
-
+       
             // println!("caller {:?}", get_caller_address());
 
             // // Transfer to Liquidity, Creator and Protocol
 
             // println!("transfer protocol fee {}", amount_protocol_fee.clone());
 
-            // // TODO uncomment after allowance check script
+            // // // TODO uncomment after allowance check script
             erc20
                 .transfer_from(
                     get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
                 );
 
+            // println!("get caller address {:?}", get_caller_address());
             // println!("transfer liquidity {}", remain_liquidity.clone());
             // println!("transfer total price {}", total_price.clone());
             erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
 
             // println!("amount_creator_fee fee {}", amount_creator_fee.clone());
             erc20.transfer_from(get_caller_address(), key.owner, amount_creator_fee);
+
+            key.price = total_price;
+            key.total_supply = key.total_supply + amount;
+            // key.total_supply += amount;
+            self.shares_by_users.write((get_caller_address(), address_user), share_user.clone());
+
+            self.keys_of_users.write(address_user, key.clone());
 
             self
                 .emit(
@@ -468,7 +476,7 @@ mod KeysMarketplace {
             assert!(old_share.amount_owned >= amount, "share too low");
             assert!(old_keys.total_supply >= amount, "above supply");
             // assert!(old_keys.total_supply == 1, "only key owner");
-            assert!(old_keys.total_supply == 1 && old_keys.owner == caller, "cant sell owner key");
+            assert!(old_keys.total_supply == 1 && old_keys.owner == get_caller_address(), "can't sell owner key");
             // assert!(old_keys.total_supply - amount == 0 && old_keys.owner == caller, "cant sell owner key");
 
             // TODO erc20 token transfer
@@ -507,7 +515,7 @@ mod KeysMarketplace {
             total_price-=key.initial_key_price.clone();
 
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let amount_creator_fee = total_price * creator_fee_percent / BPS;
+            let amount_creator_fee = (total_price-amount_protocol_fee) * creator_fee_percent / BPS;
             let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
 
             if old_share.owner.is_zero() {
@@ -526,11 +534,6 @@ mod KeysMarketplace {
                 share_user.amount_owned -= amount;
                 share_user.amount_sell += amount;
             }
-            key.price = total_price;
-            // key.total_supply -= amount;
-            key.total_supply=key.total_supply-amount;
-            self.shares_by_users.write((get_caller_address(), address_user.clone()), share_user.clone());
-            self.keys_of_users.write(address_user.clone(), key.clone());
 
             // let contract_balance= erc20.balance_of(get_contract_address());
 
@@ -538,14 +541,19 @@ mod KeysMarketplace {
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-       
 
             erc20.transfer(key.owner, amount_creator_fee);
 
             erc20.transfer(get_caller_address(), remain_liquidity);
             // println!("transfer protocol fee {}", amount_protocol_fee.clone());
+            erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
-            // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            key.price = total_price;
+            key.total_supply=key.total_supply-amount;
+            // key.total_supply -= amount;
+            self.shares_by_users.write((get_caller_address(), address_user.clone()), share_user.clone());
+            self.keys_of_users.write(address_user.clone(), key.clone());
+
             self
                 .emit(
                     SellKeys {
@@ -571,15 +579,14 @@ mod KeysMarketplace {
             let mut total_supply = key.total_supply.clone();
             // let mut actual_supply = total_supply;
             // let mut final_supply = total_supply;
-            // let mut final_supply = total_supply + amount;
-            // if is_decreased {
-            //     final_supply = total_supply - amount;
-            // } else {
-            //     final_supply = total_supply + amount;
-            // }
-
+            let mut final_supply = total_supply + amount;
+            if is_decreased {
+                final_supply = total_supply - amount;
+            } else {
+                final_supply = total_supply + amount;
+            }
             let mut actual_supply = total_supply;
-            let final_supply = total_supply + amount;
+            // let final_supply = total_supply + amount;
             // let mut price = key.price.clone();
             // let mut total_price = price.clone();
             let mut initial_key_price = key.initial_key_price.clone();
@@ -592,14 +599,11 @@ mod KeysMarketplace {
                     match x {
                         BondingType::Linear => {
                             // println!("Linear curve {:?}", x);
-
                             let start_price = initial_key_price
                                 + (step_increase_linear * actual_supply);
                             let end_price = initial_key_price
                                 + (step_increase_linear * final_supply);
                             let total_price = amount * (start_price + end_price) / 2;
-                            // println!("start_price {}", start_price.clone());
-                            // println!("end_price {}", end_price.clone());
                             // println!("total_price {}", total_price.clone());
                             total_price
                         },
@@ -613,10 +617,6 @@ mod KeysMarketplace {
                             let end_price = initial_key_price
                                 + (step_increase_linear * final_supply);
                             let total_price = amount * (start_price + end_price) / 2;
-
-                            // println!("start_price {}", start_price.clone());
-                            // println!("end_price {}", end_price.clone());
-                            // println!("total_price {}", total_price.clone());
                             total_price
                         },
                     }
@@ -624,10 +624,7 @@ mod KeysMarketplace {
                 Option::None => {
                     let start_price = initial_key_price + (step_increase_linear * actual_supply);
                     let end_price = initial_key_price + (step_increase_linear * final_supply);
-                    // println!("start_price {}", start_price.clone());
-                    // println!("end_price {}", end_price.clone());
                     let total_price = amount * (start_price + end_price) / 2;
-                    // println!("total_price {}", total_price.clone());
                     total_price
                 }
             }
@@ -789,8 +786,11 @@ mod tests {
         let (sender_address, erc20, keys) = request_fixture();
         let amount_approve = 10000_u256;
         let amount = 10_u256;
+        let amount_key_buy = 1_u256;
+
         cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
+        // start_cheat_caller_address(key_address, sender_address);
         erc20.approve(keys.contract_address, amount_approve);
         // stop_cheat_caller_address_global();
 
@@ -799,12 +799,12 @@ mod tests {
         // Call a view function of the contract
 
         // Check default token used
-        start_cheat_caller_address(key_address, sender_address);
         let default_token = keys.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
         assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
 
         // Instantiate keys
+        // start_cheat_caller_address(key_address, sender_address);
         // println!("instantiate keys");
         keys.instantiate_keys();
         // println!("get all_keys");
@@ -812,19 +812,34 @@ mod tests {
         let mut all_keys = keys.get_all_keys();
         // assert(all_keys[0].owner==sender_address, 'no init keys array');
         // println!("all_keys {:?}", all_keys);
-        let amount_key_buy = 1_u256;
 
-        let amount_to_paid = keys.get_price_of_supply_key(sender_address, amount_key_buy,
+        let amount_to_paid = keys.get_price_of_supply_key(sender_address, 
+            amount_key_buy,
             false, //    1,
             // BondingType::Basic, default_token.clone()
             );
+            println!("amount_to_paid {:?}", amount_to_paid);
 
+        // erc20.approve(keys.contract_address, amount_to_paid*2);
+
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        // erc20.approve(keys.contract_address, amount_approve);
         erc20.approve(keys.contract_address, amount_to_paid);
 
 
+        let allowance = erc20.allowance(sender_address, keys.contract_address);
+        println!("allowance {}", allowance);
+        stop_cheat_caller_address(erc20.contract_address);
+
+
+        start_cheat_caller_address(keys.contract_address, sender_address);
         keys.buy_keys(sender_address, amount_key_buy);
 
-        stop_cheat_caller_address(key_address);
+        // stop_cheat_caller_address(key_address);
+
+
+        // let mut all_keys = keys.get_all_keys();
+        // assert(all_keys[0].owner==sender_address, 'no init keys array');
         // Instantite buyer
         // let buyer: ContractAddress = 456.try_into().unwrap();
         // // cheat_caller_address_global(buyer);
