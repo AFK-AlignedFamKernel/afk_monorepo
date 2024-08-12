@@ -3,13 +3,11 @@ import { useAccount } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import { View } from 'react-native';
-import { CallData, constants, uint256 } from 'starknet';
+import { CallData, constants } from 'starknet';
 
-import { Button, Input, Text } from '../../components';
-import { ESCROW_ADDRESSES, KEYS_ADDRESS } from '../../constants/contracts';
-import { CHAIN_ID } from '../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../constants/tokens';
+import { Button, Text } from '../../components';
+import { KEYS_ADDRESS } from '../../constants/contracts';
+import {  TokenSymbol } from '../../constants/tokens';
 import { useStyles, useWaitConnection } from '../../hooks';
 import { useDataKeys } from '../../hooks/keys/useDataKeys';
 import {
@@ -64,24 +62,24 @@ export const FormInstantiateKey = ({
   const { showDialog, hideDialog } = useDialog();
   const isActive = !!amount && !!token;
 
-  // useEffect(() => {
-  //   const getKeyByUserConnected = async () => {
-  //     if (!account?.address) return;
-  //     const myOwnKey = await getKeyByAddress(account?.address);
-  //     console.log('myOwnKey', myOwnKey);
-  //     setMyKey(myOwnKey);
-  //   };
+  useEffect(() => {
+    const getKeyByUserConnected = async () => {
+      if (!account?.address) return;
+      const myOwnKey = await getKeyByAddress(account?.address);
+      console.log('myOwnKey', myOwnKey);
+      setMyKey(myOwnKey);
+    };
 
-  //   const getKeyOfParams = async () => {
-  //     if (!starknetAddress) return;
-  //     const key = await getKeyByAddress(starknetAddress);
-  //     console.log('key', key);
-  //     setKeySelected(key);
-  //   };
+    const getKeyOfParams = async () => {
+      if (!starknetAddress) return;
+      const key = await getKeyByAddress(starknetAddress);
+      // console.log('key', key);
+      setKeySelected(key);
+    };
 
-  //   getKeyOfParams();
-  //   getKeyByUserConnected();
-  // }, [account?.address, starknetAddress]);
+    getKeyOfParams();
+    getKeyByUserConnected();
+  }, [account?.address, starknetAddress]);
 
   const onConnect = async () => {
     if (!account.address) {
@@ -190,18 +188,6 @@ export const FormInstantiateKey = ({
             Instantiate your key
           </Text>
 
-        </View>
-
-        <View style={styles.recipient}>
-          <Text fontSize={16} weight="regular">
-            to
-          </Text>
-          <Text numberOfLines={1} ellipsizeMode="middle" fontSize={16} weight="medium">
-            {(profile?.nip05 && `@${profile.nip05}`) ??
-              profile?.displayName ??
-              profile?.name ??
-              event?.pubkey}
-          </Text>
         </View>
       </View>
 

@@ -6,7 +6,8 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.xsmall,
     borderRadius: 8,
     gap: Spacing.xsmall,
-    overflowWrap:"break-word"
+    overflowWrap:"break-word",
+    width:300,
   },
   imageContainer: {
     // position: 'relative',

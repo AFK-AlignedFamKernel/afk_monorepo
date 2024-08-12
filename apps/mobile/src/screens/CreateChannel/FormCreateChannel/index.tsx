@@ -146,7 +146,6 @@ export const FormCreateChannel: React.FC<IFormCreateChannel> = ({ showBackButton
         tags: values.tags,
         channel_name: values.channelName,
         content: JSON.stringify(content),
-        // image,
         // banner,
         // nip05: values.username || undefined,
         // displayName: values.displayName || undefined,
@@ -209,7 +208,7 @@ export const FormCreateChannel: React.FC<IFormCreateChannel> = ({ showBackButton
               value={values.displayName}
               error={errors.displayName}
             />
-
+{/* 
             <SquareInput
               readOnly
               editable={false}
@@ -220,7 +219,7 @@ export const FormCreateChannel: React.FC<IFormCreateChannel> = ({ showBackButton
                 </TouchableOpacity>
               }
               inputStyle={styles.publicKeyInput}
-            />
+            /> */}
 
             <SquareInput
               placeholder="About the channel"

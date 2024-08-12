@@ -45,4 +45,9 @@ export default ThemedStyleSheet((theme) => ({
   buttonIndicator: {
     marginRight: Spacing.xsmall,
   },
+  createPostButton: {
+    position: 'absolute',
+    bottom: Spacing.large,
+    right: Spacing.pagePadding,
+  },
 }));

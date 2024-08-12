@@ -1,18 +1,20 @@
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
-import {View} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-import {Header} from '../../components';
+import { Header } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import {useStyles} from '../../hooks';
-import {MainStackNavigationProps} from '../../types';
-import {SelectedTab, TABS_LIST} from '../../types/tab';
-import {ChannelsFeedComponent} from '../ChannelsFeed/ChannelsFeedComponent';
+import { useStyles, useTheme } from '../../hooks';
+import { MainStackNavigationProps } from '../../types';
+import { SelectedTab, TABS_LIST } from '../../types/tab';
+import { ChannelsFeedComponent } from '../ChannelsFeed/ChannelsFeedComponent';
 import stylesheet from './styles';
-import {TipsComponent} from './TipsComponent';
+import { TipsComponent } from './TipsComponent';
+import { AddPostIcon } from '../../assets/icons';
 
 export const Tips: React.FC = () => {
   const styles = useStyles(stylesheet);
+  const theme = useTheme()
   const navigation = useNavigation<MainStackNavigationProps>();
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.TIPS);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -40,6 +42,16 @@ export const Tips: React.FC = () => {
       ) : (
         <></>
       )}
+
+
+      <Pressable
+        style={styles.createPostButton}
+        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+      >
+        <AddPostIcon width={72} height={72}
+          color={theme.theme.colors.primary}
+        />
+      </Pressable>
     </View>
   );
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import stylesheet from './styles';
 import { useStyles, useTheme } from '../../../hooks';
-import { Icon } from '../../Icon';
+import { Icon } from '../../../components/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from '../../../types';
 // import { useAuth } from '../../../store/auth';
@@ -10,36 +10,24 @@ import { useAuth } from 'afk_nostr_sdk';
 
 const Sidebar = () => {
     const styles = useStyles(stylesheet);
-
     const publicKey = useAuth((state) => state.publicKey);
-
-
     const navigation = useNavigation<MainStackNavigationProps>()
     const handleNavigateProfile = () => {
         navigation.navigate("Profile", { publicKey: publicKey });
     };
-
-
     const theme = useTheme()
-
-
     // const handleNavigateHome = () => {
     //     navigation.navigate("Home");
     // };
-
-
     const handleDefiScreen = () => {
         navigation.navigate("Defi");
     };
-
     const handleGameScreen = () => {
         navigation.navigate("Games");
     };
-
     const handleHomeScreen = () => {
         navigation.navigate("Home");
     };
-
 
     return (
         <View style={styles.sidebar}>

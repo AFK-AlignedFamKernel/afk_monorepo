@@ -3,7 +3,7 @@ import { Dimensions, Platform, View, ViewProps } from 'react-native';
 import { WEB_MAX_WIDTH } from '../../constants/misc';
 import { useStyles } from '../../hooks';
 import { ThemedStyleSheet } from '../../styles';
-import Sidebar from '../Layout/sidebar';
+import Sidebar from '../../modules/Layout/sidebar';
 
 export const RootScreenContainer: React.FC<ViewProps> = ({ style, children, ...props }) => {
   const styles = useStyles(stylesheet);

@@ -25,7 +25,7 @@ import { Tips } from '../screens/Tips';
 import { ThemedStyleSheet } from '../styles';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { retrievePublicKey } from '../utils/storage';
-import Sidebar from '../components/Layout/sidebar';
+import Sidebar from '../modules/Layout/sidebar';
 import { Defi } from '../screens/Defi';
 import { Games } from '../screens/Games';
 import { useAuth } from 'afk_nostr_sdk';

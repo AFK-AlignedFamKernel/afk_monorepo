@@ -2,7 +2,7 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    backgroundColor: theme.colors.surface,
+    // backgroundColor: theme.colors.surface,
     border:5,
     shadowRadius:5,
     shadowColor:theme.colors.surface,
