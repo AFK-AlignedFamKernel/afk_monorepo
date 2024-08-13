@@ -28,7 +28,6 @@ pub enum TokenType {
     ERC404,
 }
 
-
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,

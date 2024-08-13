@@ -59,7 +59,7 @@ pub trait IKeysMarketplace<TContractState> {
     fn get_price_of_supply_key(
         self: @TContractState, address_user: ContractAddress, amount: u256, is_decreased: bool
     ) -> u256;
-    fn get_key_of_user(self: @TContractState, key_user: ContractAddress,) -> Keys;
+    fn get_key_of_user(self: @TContractState, key_user: ContractAddress) -> Keys;
     fn get_share_key_of_user(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesKeys;
@@ -86,9 +86,9 @@ mod KeysMarketplace {
     use super::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
     const MAX_STEPS_LOOP: u256 = 100;
 
-    const MIN_FEE: u256 = 10; //0.1%
-    const MAX_FEE: u256 = 1000; //10%
-    const MID_FEE: u256 = 100; //1%
+    const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
+    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
+    const MID_FEE_PROTOCOL: u256 = 100; //1%
 
     const MIN_FEE_CREATOR: u256 = 100; //1%
     const MID_FEE_CREATOR: u256 = 1000; //10%
@@ -180,7 +180,7 @@ mod KeysMarketplace {
         // self.creator_fee_percent.write(MAX_FEE_CREATOR);
         self.step_increase_linear.write(step_increase_linear);
         self.total_keys.write(0);
-        self.protocol_fee_percent.write(MID_FEE);
+        self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MAX_FEE_CREATOR);
     }
 
@@ -196,8 +196,8 @@ mod KeysMarketplace {
         }
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
-            assert(protocol_fee_percent < MAX_FEE, 'protocol_fee_too_high');
-            assert(protocol_fee_percent > MIN_FEE, 'protocol_fee_too_low');
+            assert(protocol_fee_percent < MAX_FEE_PROTOCOL, 'protocol_fee_too_high');
+            assert(protocol_fee_percent > MIN_FEE_PROTOCOL, 'protocol_fee_too_low');
 
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_percent.write(protocol_fee_percent);
@@ -218,14 +218,13 @@ mod KeysMarketplace {
             self.creator_fee_percent.write(creator_fee_percent);
         }
 
-        // User
-
         // Create keys for an user
         fn instantiate_keys(ref self: ContractState, // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
-            let caller = get_caller_address();
-            let keys = self.keys_of_users.read(caller);
+            // let caller = get_caller_address();
+            let keys = self.keys_of_users.read(get_caller_address());
+            // let keys = self.keys_of_users.read(caller.clone());
             assert!(keys.owner.is_zero(), "key already created");
             let initial_key_price = self.initial_key_price.read();
 
@@ -241,8 +240,9 @@ mod KeysMarketplace {
             // Option for liquidity providing and Trading
             let key = Keys {
                 owner: get_caller_address(),
-                token_address: get_caller_address(), // CREATE 404
+                token_address: get_caller_address(),
                 price: initial_key_price,
+                // total_supply: 1,
                 total_supply: 1_u256,
                 // Todo price by pricetype after fix Enum instantiate
                 bonding_curve_type: Option::Some(bond_type),
@@ -250,29 +250,28 @@ mod KeysMarketplace {
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
                 initial_key_price: token_to_use.initial_key_price,
-                nostr_public_key: 0
+                nostr_public_key: 0_u256
             };
 
             let share_user = SharesKeys {
                 owner: get_caller_address(),
                 key_address: get_caller_address(),
+                amount_owned: 1,
+                amount_buy: 1,
+                amount_sell: 0,
                 created_at: get_block_timestamp(),
-                amount_owned: 1_u256,
-                amount_buy: 1_u256,
-                total_paid: 0_u256,
-                amount_sell: 0_u256,
+                total_paid: 0
             };
-
             self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
             self.keys_of_users.write(get_caller_address(), key.clone());
 
             let total_key = self.total_keys.read();
             if total_key == 0 {
                 self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key.clone());
+                self.array_keys_of_users.write(0, key);
             } else {
                 self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key.clone());
+                self.array_keys_of_users.write(total_key, key);
             }
 
             self
@@ -287,14 +286,15 @@ mod KeysMarketplace {
         }
 
         fn instantiate_keys_with_nostr(
-            ref self: ContractState, 
-            request_nostr: SocialRequest<LinkedNostrAddress>
+            ref self: ContractState, request_nostr: SocialRequest<LinkedNostrAddress>
         // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
             let caller = get_caller_address();
             let keys = self.keys_of_users.read(caller);
             assert!(keys.owner.is_zero(), "key already created");
+            request_nostr.verify().expect('can\'t verify signature');
+
             let initial_key_price = self.initial_key_price.read();
 
             let mut token_to_use = self.default_token.read();
@@ -304,14 +304,11 @@ mod KeysMarketplace {
             // }
             // let bond_type = BondingType::Degens(10);
             let bond_type = BondingType::Linear;
-            request_nostr.verify().expect('can\'t verify signature');
             // @TODO Deploy an ERC404
             // Option for liquidity providing and Trading
             let key = Keys {
                 owner: get_caller_address(),
                 token_address: get_caller_address(), // CREATE 404
-                // owner: caller,
-                // token_address: caller, // CREATE 404
                 price: initial_key_price,
                 total_supply: 1_u256,
                 // Todo price by pricetype after fix Enum instantiate
@@ -356,12 +353,10 @@ mod KeysMarketplace {
         }
 
         fn buy_keys(ref self: ContractState, address_user: ContractAddress, amount: u256) {
-            // let caller = get_caller_address();
             let old_keys = self.keys_of_users.read(address_user);
             assert!(!old_keys.owner.is_zero(), "key not found");
             // let initial_key_price = self.initial_key_price.read();
             assert!(amount <= MAX_STEPS_LOOP, "max step loop");
-
             // TODO erc20 token transfer
             // let key_token_address = old_keys.token_address;
             // let total_supply = old_keys.total_supply;
@@ -513,7 +508,7 @@ mod KeysMarketplace {
             let mut total_price = self.get_price_of_supply_key(address_user, amount, true);
             // println!("total price {}", total_price);
 
-            total_price -= key.initial_key_price.clone();
+            // total_price -= key.initial_key_price.clone();
 
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let amount_creator_fee = (total_price - amount_protocol_fee)
@@ -635,7 +630,7 @@ mod KeysMarketplace {
             }
         }
 
-        fn get_key_of_user(self: @ContractState, key_user: ContractAddress,) -> Keys {
+        fn get_key_of_user(self: @ContractState, key_user: ContractAddress) -> Keys {
             self.keys_of_users.read(key_user)
         }
 
@@ -784,23 +779,32 @@ mod tests {
 
         IERC20Dispatcher { contract_address }
     }
-    #[test]
-    fn keys_buys_approve() {
-        let (sender_address, erc20, keys) = request_fixture();
-        let amount_approve = 10000_u256;
-        let amount = 10_u256;
-        let amount_key_buy = 1_u256;
 
+    // #[test]
+    // fn test_instantiate_keys() {
+    //     let (sender_address, erc20, keys) = request_fixture();
+    //     let default_token = keys.get_default_token();
+    //     assert(default_token.token_address == erc20.contract_address, 'no default token');
+    //     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+    //     // println!("instantiate keys");
+    //     start_cheat_caller_address(keys.contract_address, sender_address);
+    //     keys.instantiate_keys();
+    //     let mut key_user = keys.get_key_of_user(sender_address);
+    //     println!("test key_user.owner {:?}", key_user.owner);
+    //     println!("test sender_address {:?}", sender_address);
+    //     assert(key_user.owner == sender_address, 'not same owner');
+    //     // assert(key_user.token_quote == erc20.contract_address, 'not same token');
+    // }
+
+    #[test]
+    fn keys_end_to_end() {
+        let (sender_address, erc20, keys) = request_fixture();
+        let amount_key_buy = 1_u256;
         cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // start_cheat_caller_address(key_address, sender_address);
-        erc20.approve(keys.contract_address, amount_approve);
-        // stop_cheat_caller_address_global();
-
-        let key_address = keys.contract_address;
-        let erc20_address = erc20.contract_address;
+        erc20.approve(keys.contract_address, amount_key_buy);
         // Call a view function of the contract
-
         // Check default token used
         let default_token = keys.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
@@ -808,19 +812,26 @@ mod tests {
 
         // Instantiate keys
         // start_cheat_caller_address(key_address, sender_address);
+        stop_cheat_caller_address(erc20.contract_address);
+
         // println!("instantiate keys");
+        start_cheat_caller_address(keys.contract_address, sender_address);
+
         keys.instantiate_keys();
         // println!("get all_keys");
 
-        let mut all_keys = keys.get_all_keys();
-        // assert(all_keys[0].owner==sender_address, 'no init keys array');
+        // let mut all_keys = keys.get_all_keys();
+        let mut key_user = keys.get_key_of_user(sender_address);
+        println!("test key_user.owner {:?}", key_user.owner);
+        println!("test sender_address {:?}", sender_address);
+        assert(key_user.owner == sender_address, 'not same owner');
         // println!("all_keys {:?}", all_keys);
-
+        // println!("all_keys {:?}", all_keys);
         let amount_to_paid = keys
             .get_price_of_supply_key(sender_address, amount_key_buy, false, //    1,
             // BondingType::Basic, default_token.clone()
             );
-        println!("amount_to_paid {:?}", amount_to_paid);
+        println!("test amount_to_paid {:?}", amount_to_paid);
 
         // erc20.approve(keys.contract_address, amount_to_paid*2);
 
@@ -829,52 +840,37 @@ mod tests {
         erc20.approve(keys.contract_address, amount_to_paid);
 
         let allowance = erc20.allowance(sender_address, keys.contract_address);
-        println!("allowance {}", allowance);
+        println!("test allowance {}", allowance);
         stop_cheat_caller_address(erc20.contract_address);
 
         start_cheat_caller_address(keys.contract_address, sender_address);
         keys.buy_keys(sender_address, amount_key_buy);
-    // stop_cheat_caller_address(key_address);
 
-    // let mut all_keys = keys.get_all_keys();
-    // assert(all_keys[0].owner==sender_address, 'no init keys array');
-    // Instantite buyer
-    // let buyer: ContractAddress = 456.try_into().unwrap();
-    // // cheat_caller_address_global(buyer);
-    // // println!("transfer erc20 to buyer");
-    // let allowance = erc20.allowance(buyer, keys.contract_address);
+        let mut key_user = keys.get_key_of_user(sender_address);
+        println!("test key_user total supply {:?}", key_user.total_supply);
 
-    // start_cheat_caller_address(erc20_address, sender_address);
+        // Buy others key
+        stop_cheat_caller_address(keys.contract_address);
 
-    // erc20.transfer(buyer, amount);
-    // stop_cheat_caller_address_global();
+        let amount_key_buy = 3_u256;
 
-    // stop_cheat_caller_address(erc20_address);
+        // println!("all_keys {:?}", all_keys);
+        let amount_to_paid = keys
+            .get_price_of_supply_key(sender_address, amount_key_buy, false, //    1,
+            // BondingType::Basic, default_token.clone()
+            );
+        start_cheat_caller_address(erc20.contract_address, sender_address);
 
-    // // Buyer call to buy keys
+        erc20.approve(keys.contract_address, amount_to_paid);
 
-    // let amount_key_buy = 1_u256;
-    // // println!("buyer approve erc20 to key");
-    // cheat_caller_address_global(buyer);
-    // start_cheat_caller_address(erc20_address, buyer);
+        let allowance = erc20.allowance(sender_address, keys.contract_address);
+        println!("test allowance {}", allowance);
+        stop_cheat_caller_address(erc20.contract_address);
 
-    // let amount_to_paid = keys.get_price_of_supply_key(sender_address, amount_key_buy,
-    //     false, //    1,
-    //     // BondingType::Basic, default_token.clone()
-    //     );
-    // erc20.approve(keys.contract_address, amount_approve + amount_approve);
+        start_cheat_caller_address(keys.contract_address, sender_address);
+        keys.buy_keys(sender_address, amount_key_buy);
+        let mut key_user = keys.get_key_of_user(sender_address);
 
-    // // println!("amount_to_paid {}", amount_to_paid);
-    // erc20.approve(key_address, amount_to_paid);
-    // // erc20.approve(key_address, 10000 + 10000);
-
-    // let allowance = erc20.allowance(buyer, keys.contract_address);
-    // // println!("allowance {}", allowance);
-
-    // start_cheat_caller_address(keys.contract_address, buyer);
-    // start_cheat_caller_address(key_address, buyer);
-
-    // // println!("buy one keys");
-    // keys.buy_keys(sender_address, amount_key_buy);
+        println!("test key_user total supply {:?}", key_user.total_supply);
     }
 }

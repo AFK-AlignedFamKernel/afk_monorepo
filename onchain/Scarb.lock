@@ -6,7 +6,6 @@ name = "afk"
 version = "0.1.0"
 dependencies = [
  "openzeppelin",
- "pragma_lib",
  "snforge_std",
 ]
 
@@ -14,11 +13,6 @@ dependencies = [
 name = "openzeppelin"
 version = "0.13.0"
 source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.13.0#978b4e75209da355667d8954d2450e32bd71fe49"
-
-[[package]]
-name = "pragma_lib"
-version = "1.0.0"
-source = "git+https://github.com/astraly-labs/pragma-lib#fe9a46743254182ac331da488ccfc05e0185cdd0"
 
 [[package]]
 name = "snforge_std"

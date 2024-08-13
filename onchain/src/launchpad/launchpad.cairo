@@ -21,7 +21,10 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // token_quote: TokenQuoteBuyKeys, 
     // bonding_type: LaunchpadMarketplace::BondingType,
     );
-    fn launch_token(ref self: TContractState, symbol: felt252, ticker: felt252,// token_quote: TokenQuoteBuyKeys, 
+    fn launch_token(
+        ref self: TContractState,
+        symbol: felt252,
+        ticker: felt252, // token_quote: TokenQuoteBuyKeys, 
     // bonding_type: LaunchpadMarketplace::BondingType,
     );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
@@ -50,22 +53,22 @@ mod LaunchpadMarketplace {
         contract_address_const, get_block_timestamp, get_contract_address,
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, TokenQuoteBuyKeys, TokenLaunch,
-        SharesKeys, KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType, Token,
-        CreateLaunch
+        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesKeys, KeysBonding,
+        KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType, Token, TokenLaunch,
+        TokenQuoteBuyKeys, CreateLaunch
     };
     const MAX_STEPS_LOOP: u256 = 100;
+    const PAY_TO_LAUNCH: u256 = 1;
 
-    const MIN_FEE: u256 = 10; //0.1%
-    const MAX_FEE: u256 = 1000; //10%
-    const MID_FEE: u256 = 100; //1%
+    const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
+    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
+    const MID_FEE_PROTOCOL: u256 = 100; //1%
 
     const MIN_FEE_CREATOR: u256 = 100; //1%
     const MID_FEE_CREATOR: u256 = 1000; //10%
     const MAX_FEE_CREATOR: u256 = 5000; //50%
 
     const BPS: u256 = 10_000; // 100% = 10_000 bps
-
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -83,6 +86,7 @@ mod LaunchpadMarketplace {
     #[storage]
     struct Storage {
         names: LegacyMap::<ContractAddress, felt252>,
+        token_created: LegacyMap::<ContractAddress, Token>,
         keys_of_users: LegacyMap::<ContractAddress, TokenLaunch>,
         shares_by_users: LegacyMap::<(ContractAddress, ContractAddress), SharesKeys>,
         bonding_type: LegacyMap::<ContractAddress, BondingType>,
@@ -151,11 +155,9 @@ mod LaunchpadMarketplace {
         self.initial_key_price.write(init_token.initial_key_price);
 
         self.protocol_fee_destination.write(admin);
-        // self.protocol_fee_percent.write(MAX_FEE);
-        // self.creator_fee_percent.write(MAX_FEE_CREATOR);
         self.step_increase_linear.write(step_increase_linear);
         self.total_keys.write(0);
-        self.protocol_fee_percent.write(MID_FEE);
+        self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
     }
 
@@ -171,8 +173,8 @@ mod LaunchpadMarketplace {
         }
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
-            assert(protocol_fee_percent < MAX_FEE, 'protocol_fee_too_high');
-            assert(protocol_fee_percent > MIN_FEE, 'protocol_fee_too_low');
+            assert(protocol_fee_percent < MAX_FEE_PROTOCOL, 'protocol_fee_too_high');
+            assert(protocol_fee_percent > MIN_FEE_PROTOCOL, 'protocol_fee_too_low');
 
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_percent.write(protocol_fee_percent);
@@ -185,7 +187,6 @@ mod LaunchpadMarketplace {
             self.protocol_fee_destination.write(protocol_fee_destination);
         }
 
-
         fn set_creator_fee_percent(ref self: ContractState, creator_fee_percent: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             assert(creator_fee_percent < MAX_FEE_CREATOR, 'creator_fee_too_high');
@@ -193,75 +194,10 @@ mod LaunchpadMarketplace {
             self.creator_fee_percent.write(creator_fee_percent);
         }
 
-        // User
-
-        // Create keys for an user
-        fn instantiate_keys(ref self: ContractState, // token_quote: TokenQuoteBuyKeys,
-        // bonding_type: BondingType, 
-        ) {
-            let caller = get_caller_address();
-            let keys = self.keys_of_users.read(caller);
-            assert!(keys.owner.is_zero(), "key already created");
-            let initial_key_price = self.initial_key_price.read();
-
-            let mut token_to_use = self.default_token.read();
-            // Todo function with custom init token
-            // if self.is_custom_token_enable.read() {
-            //     token_to_use = token_quote;
-            // }
-            // let bond_type = BondingType::Degens(10);
-            let bond_type = BondingType::Linear;
-
-            // @TODO Deploy an ERC404
-            // Option for liquidity providing and Trading
-            let key = TokenLaunch {
-                owner: caller,
-                token_address: caller, // CREATE 404
-                price: initial_key_price,
-                total_supply: 1,
-                // Todo price by pricetype after fix Enum instantiate
-                bonding_curve_type: Option::Some(bond_type),
-                // bonding_curve_type: BondingType,
-                created_at: get_block_timestamp(),
-                token_quote: token_to_use.clone(),
-                initial_key_price: token_to_use.initial_key_price,
-            };
-
-            let share_user = SharesKeys {
-                owner: get_caller_address(),
-                key_address: get_caller_address(),
-                amount_owned: 1,
-                amount_buy: 1,
-                amount_sell: 0,
-                created_at: get_block_timestamp(),
-                total_paid: 0
-            };
-            self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
-            self.keys_of_users.write(get_caller_address(), key.clone());
-
-            let total_key = self.total_keys.read();
-            if total_key == 0 {
-                self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key);
-            } else {
-                self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key);
-            }
-
-            self
-                .emit(
-                    CreateToken {
-                        caller: get_caller_address(),
-                        key_user: get_caller_address(),
-                        amount: 1,
-                        price: 1,
-                    }
-                );
-        }
 
         // Create keys for an user
         fn create_token(
-            ref self: ContractState, symbol: felt252, ticker: felt252, initial_supply: u256,
+            ref self: ContractState, symbol: felt252, name: felt252, initial_supply: u256,
         // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
@@ -279,6 +215,17 @@ mod LaunchpadMarketplace {
             let bond_type = BondingType::Linear;
 
             // @TODO Deploy an ERC404
+
+            let token = Token {
+                token_address: token_address,
+                owner: caller,
+                symbol,
+                price: initial_key_price,
+                total_supply: initial_supply,
+                bonding_curve_type: Option::Some(bond_type),
+                created_at: get_block_timestamp(),
+                token_type: None,
+            };
             // Option for liquidity providing and Trading
             let key = TokenLaunch {
                 owner: caller,
@@ -327,7 +274,10 @@ mod LaunchpadMarketplace {
 
 
         // Create keys for an user
-        fn launch_token(ref self: ContractState, symbol: felt252, ticker: felt252,// token_quote: TokenQuoteBuyKeys,
+        fn launch_token(
+            ref self: ContractState,
+            symbol: felt252,
+            ticker: felt252, // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType, 
         ) {
             let caller = get_caller_address();

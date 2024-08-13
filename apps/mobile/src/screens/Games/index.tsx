@@ -40,7 +40,8 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
             <>
               <View style={{ paddingVertical: 5, borderRadius: 5, borderColor: theme.theme?.colors?.shadow }}>
                 <Text style={styles.text}>Key pass for Starknet user</Text>
-                <Text style={styles.text}> Buy or sell the keys of content creator to get perks and rewards from them.</Text>
+                <Text style={styles.text}> Send the force and tip your friends and favorite content creator.</Text>
+                <Text style={styles.text}> Buy or sell the keys to get perks and rewards from them, linked to Nostr & Starknet.</Text>
               </View>
               <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
             </>
