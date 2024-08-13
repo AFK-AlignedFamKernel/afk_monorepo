@@ -3,16 +3,15 @@ import { useAccount } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import { View } from 'react-native';
-import { CallData, constants, uint256 } from 'starknet';
+import { CallData, constants } from 'starknet';
 
-import { Button, Input, Text } from '../../components';
-import { ESCROW_ADDRESSES, KEYS_ADDRESS } from '../../constants/contracts';
-import { CHAIN_ID } from '../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../constants/tokens';
-import {  useStyles, useWaitConnection } from '../../hooks';
+import { Button, Text } from '../../components';
+import { KEYS_ADDRESS } from '../../constants/contracts';
+import {  TokenSymbol } from '../../constants/tokens';
+import { useStyles, useWaitConnection } from '../../hooks';
 import { useDataKeys } from '../../hooks/keys/useDataKeys';
-import {useProfile,
+import {
+  useProfile,
 } from "afk_nostr_sdk"
 import { useInstantiateKeys } from '../../hooks/keys/useInstantiateKeys';
 import { useTransactionModal } from '../../hooks/modals';
@@ -74,7 +73,7 @@ export const FormInstantiateKey = ({
     const getKeyOfParams = async () => {
       if (!starknetAddress) return;
       const key = await getKeyByAddress(starknetAddress);
-      console.log('key', key);
+      // console.log('key', key);
       setKeySelected(key);
     };
 
@@ -99,53 +98,24 @@ export const FormInstantiateKey = ({
       calldata: CallData.compile({}),
     };
     if (!account || !account?.account) return;
-    const tx = await account?.account?.execute([call], undefined, {});
-    console.log('tx hash', tx?.transaction_hash);
-    if (tx?.transaction_hash) {
-      const wait_tx = await account?.account?.waitForTransaction(tx?.transaction_hash);
-      // await handleInstantiateKeys(account?.account);
-    }
 
-  };
-
-  const onTipPress = async () => {
-    if (!account.address) {
-      walletModal.show();
-
-      const result = await waitConnection();
-      if (!result) return;
-    }
-
-    const amountUint256 = uint256.bnToUint256(
-      Math.ceil(Number(amount) * 10 ** TOKENS[token][CHAIN_ID].decimals),
-    );
-
-    const approveCallData = CallData.compile([
-      ESCROW_ADDRESSES[CHAIN_ID], // Contract address
-      amountUint256, // Amount
-    ]);
-
-    const depositCallData = CallData.compile([
-      amountUint256, // Amount
-      TOKENS[token][CHAIN_ID].address, // Token address
-      uint256.bnToUint256(`0x${event?.pubkey}`), // Recipient nostr pubkey
-      DEFAULT_TIMELOCK, // timelock
-    ]);
 
     const receipt = await sendTransaction({
       calls: [
-        {
-          contractAddress: TOKENS[token][CHAIN_ID].address,
-          entrypoint: Entrypoint.APPROVE,
-          calldata: approveCallData,
-        },
-        {
-          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-          entrypoint: Entrypoint.DEPOSIT,
-          calldata: depositCallData,
-        },
+        call
+        // {
+        //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+        //   entrypoint: Entrypoint.DEPOSIT,
+        //   calldata: depositCallData,
+        // },
       ],
     });
+    // const tx = await account?.account?.execute([call], undefined, {});
+    // console.log('tx hash', tx?.transaction_hash);
+    // if (tx?.transaction_hash) {
+    //   const wait_tx = await account?.account?.waitForTransaction(tx?.transaction_hash);
+    //   // await handleInstantiateKeys(account?.account);
+    // }
 
     if (receipt?.isSuccess()) {
       hideTransactionModal();
@@ -157,6 +127,9 @@ export const FormInstantiateKey = ({
           profile?.displayName ??
           profile?.name ??
           event?.pubkey,
+        children:(<>
+        <Text>Your key is instantiate!</Text>
+        </>),
         hide: hideSuccess,
       });
     } else {
@@ -171,6 +144,7 @@ export const FormInstantiateKey = ({
         buttons: [{ type: 'secondary', label: 'Close', onPress: () => hideDialog() }],
       });
     }
+
   };
 
   return (
@@ -178,8 +152,6 @@ export const FormInstantiateKey = ({
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardContent}>
-            {/* <Avatar size={48} source={require('../../assets/afk-logo.png')} /> */}
-
             <View style={styles.cardInfo}>
               <Text
                 fontSize={15}
@@ -216,32 +188,15 @@ export const FormInstantiateKey = ({
       <View style={styles.sending}>
         <View style={styles.sendingText}>
           <Text color="textSecondary" fontSize={16} weight="medium">
-            Sending
+            Instantiate your key
           </Text>
 
-          {amount.length > 0 && token.length > 0 ? (
-            <Text color="primary" fontSize={16} weight="bold">
-              {amount} {token}
-            </Text>
-          ) : (
-            <Text color="primary" fontSize={16} weight="bold">
-              ...
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.recipient}>
-          <Text fontSize={16} weight="regular">
-            to
-          </Text>
-          <Text numberOfLines={1} ellipsizeMode="middle" fontSize={16} weight="medium">
-            {(profile?.nip05 && `@${profile.nip05}`) ??
-              profile?.displayName ??
-              profile?.name ??
-              event?.pubkey}
-          </Text>
         </View>
       </View>
+
+      {account?.address &&
+      <Text>Connect: {account?.address}</Text>
+      }
 
       <View style={styles.pickerContainer}>
         {(myKey && BigInt(myKey?.owner) == BigInt(0)) ||
@@ -257,8 +212,6 @@ export const FormInstantiateKey = ({
             <Text> {feltToAddress(BigInt(keySelected?.owner))}</Text>
           </View>
         )}
-
-        <Input value={amount} onChangeText={setAmount} placeholder="Amount" />
       </View>
 
       <View style={styles.submitButton}>

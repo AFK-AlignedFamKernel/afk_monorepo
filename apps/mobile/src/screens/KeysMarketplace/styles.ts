@@ -2,8 +2,10 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
+    position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
+    color:theme.colors.text,
   },
 
   flatListContent: {
@@ -42,12 +44,13 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
   },
 
+  text: {
+    color: theme.colors.text,
+    fontSize:12,
+    backgroundColor:theme.colors.background
+  },
+
   buttonIndicator: {
     marginRight: Spacing.xsmall,
-  },
-  createPostButton: {
-    position: 'absolute',
-    bottom: Spacing.large,
-    right: Spacing.pagePadding,
   },
 }));

@@ -17,8 +17,8 @@ export const useSellKeys = () => {
     account: AccountInterface,
     user_address: string,
     amount: number,
-    contractAddress?: string,
     tokenQuote?: TokenQuoteBuyKeys,
+    contractAddress?: string,
   ) => {
     if (!account) return;
     const addressContract = KEYS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];

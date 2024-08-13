@@ -1,3 +1,4 @@
+use afk::utils::{shl, shr};
 use core::array::ArrayTrait;
 use core::byte_array::ByteArrayTrait;
 use core::cmp::min;
@@ -8,8 +9,6 @@ use core::to_byte_array::FormatAsByteArray;
 //! bech32 encoding implementation
 
 use core::traits::{Into, TryInto};
-
-use afk::utils::{shl, shr};
 
 //! bech32 encoding implementation
 //! Spec: https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki

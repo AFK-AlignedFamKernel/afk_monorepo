@@ -1,8 +1,8 @@
+use afk::bip340;
+use afk::utils::{compute_sha256_byte_array};
 use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
-use afk::bip340;
-use afk::utils::{compute_sha256_byte_array};
 
 const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;

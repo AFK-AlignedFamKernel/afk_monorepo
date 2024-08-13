@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, View, Text} from 'react-native';
+import { KeyboardAvoidingView, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import { useStyles } from '../../hooks';
-import {  GameSreenProps } from '../../types';
-import { SelectedTab, TABS_FORM_CREATE } from '../../types/tab';
+import { useStyles, useTheme } from '../../hooks';
+import { GameSreenProps } from '../../types';
+import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
+import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
+  const theme = useTheme()
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CREATE_NOTE);
-
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.VIEW_KEYS_MARKETPLACE);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -26,17 +27,25 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
           Cancel
         </TextButton>
       </SafeAreaView>
-
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        {/* <TabSelector
+        <TabSelector
           activeTab={selectedTab}
           handleActiveTab={handleTabSelected}
-          buttons={TABS_FORM_CREATE}
+          buttons={TABS_MENU}
           addScreenNavigation={false}
-        ></TabSelector> */}
+        ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          <Text>Coming soon</Text>
-     
+          <Text style={styles.text}>Moarr features coming soon</Text>
+          {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE &&
+            <>
+              <View style={{ paddingVertical: 5, borderRadius: 5, borderColor: theme.theme?.colors?.shadow }}>
+                <Text style={styles.text}>Key pass for Starknet user</Text>
+                <Text style={styles.text}> Send the force and tip your friends and favorite content creator.</Text>
+                <Text style={styles.text}> Buy or sell the keys to get perks and rewards from them, linked to Nostr & Starknet.</Text>
+              </View>
+              <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
+            </>
+          }
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>

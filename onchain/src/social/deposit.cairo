@@ -58,14 +58,16 @@ pub trait IDepositEscrow<TContractState> {
     fn cancel(ref self: TContractState, deposit_id: DepositId);
     fn claim(ref self: TContractState, request: SocialRequest<Claim>, gas_amount: u256);
     fn get_starknet_address(self: @TContractState, nostr_pubkey: NostrPublicKey) -> ContractAddress;
-    fn get_nostr_address(self: @TContractState, starknet_address: ContractAddress) -> NostrPublicKey;
+    fn get_nostr_address(
+        self: @TContractState, starknet_address: ContractAddress
+    ) -> NostrPublicKey;
 }
 
 #[starknet::contract]
 pub mod DepositEscrow {
-    use core::num::traits::Zero;
     use afk::bip340;
     use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::{
         get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
@@ -169,11 +171,15 @@ pub mod DepositEscrow {
             self.deposits.read(deposit_id)
         }
 
-        fn get_nostr_address(self: @ContractState, starknet_address: ContractAddress) -> NostrPublicKey {
+        fn get_nostr_address(
+            self: @ContractState, starknet_address: ContractAddress
+        ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
 
-        fn get_starknet_address(self: @ContractState, nostr_pubkey: NostrPublicKey) -> ContractAddress {
+        fn get_starknet_address(
+            self: @ContractState, nostr_pubkey: NostrPublicKey
+        ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_pubkey)
         }
 
@@ -298,11 +304,10 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
+    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::option::OptionTrait;
     use core::traits::Into;
-
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
         Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,

@@ -2,7 +2,12 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    backgroundColor: theme.colors.background,
+    // backgroundColor: theme.colors.surface,
+    border:5,
+    shadowRadius:5,
+    shadowColor:theme.colors.surface,
+    shadowOpacity:0.5,
+    shadowOffset: {width: -2, height: 4},
   },
 
   repost: {

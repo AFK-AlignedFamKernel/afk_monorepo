@@ -4,9 +4,9 @@ import {useEffect, useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useNote, useReplyNotes, useStyles, useTheme} from '../../hooks';
+import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
-import {useSendMessageChannel, useMessagesChannels} from 'afk_nostr_sdk'
+import {useSendMessageChannel, useMessagesChannels, useNote, useReplyNotes,} from 'afk_nostr_sdk'
 import {IChannelsMetadata} from '../../types/channels';
 import {ChannelInfo} from '../ChannelCard/Card/ChannelInfo';
 import {Post} from '../Post';

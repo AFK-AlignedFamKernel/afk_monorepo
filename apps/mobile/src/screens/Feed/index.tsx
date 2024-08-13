@@ -11,7 +11,7 @@ import { useState } from 'react';
 import SearchComponent from '../../components/search';
 import { ChannelComponent } from '../../modules/ChannelCard';
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import {useSearchNotes, useRootNotes, useAllProfiles} from "afk_nostr_sdk"
+import { useSearchNotes, useRootNotes, useAllProfiles } from "afk_nostr_sdk"
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -71,6 +71,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             horizontal
             data={profiles.data?.pages.flat()}
             showsHorizontalScrollIndicator={false}
+            onEndReached={() => profiles.fetchNextPage()}
+            refreshControl={
+              <RefreshControl refreshing={profiles.isFetching} onRefresh={() => profiles.refetch()} />
+            }
             // data={stories}
             ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
             renderItem={({ item }) => (

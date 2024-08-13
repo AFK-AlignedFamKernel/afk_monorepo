@@ -1,7 +1,7 @@
 import {getChecksumAddress} from 'starknet';
 
 import {CHAIN_ID} from '../constants/env';
-import {EventKey} from '../constants/misc';
+import {EventKey, EventKeyForKeysMarketplace} from '../constants/misc';
 import {TOKEN_ADDRESSES} from '../constants/tokens';
 
 export type ContractEvent = {
@@ -45,6 +45,24 @@ export const parseClaimEvent = (event: ContractEvent) => {
       amount: event.data[0],
       starknetRecipient: event.keys[5],
       depositId: Number(event.keys[1]),
+    };
+  }
+
+  return undefined;
+};
+
+
+
+export const parseCreatedKeyEvent = (event: ContractEvent) => {
+  if (event.keys[0] === EventKeyForKeysMarketplace.CreateKeys) {
+    return {
+      event,
+      caller: event.keys[1],
+      key_user: event.keys[2],
+      // token: TOKEN_ADDRESSES[CHAIN_ID][getChecksumAddress(event.data[1])],
+      // amount: event.data[0],
+      // starknetRecipient: event.keys[5],
+      // depositId: Number(event.keys[1]),
     };
   }
 

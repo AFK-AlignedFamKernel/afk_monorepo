@@ -30,6 +30,7 @@ export type MainStackParams = {
   CreateForm: undefined;
   Defi: undefined;
   Games:undefined,
+  KeysMarketplace:undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -163,3 +164,10 @@ export type GameSreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Games'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+
+export type KeysMarketplaceSreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'KeysMarketplace'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+

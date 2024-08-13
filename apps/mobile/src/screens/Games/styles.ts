@@ -5,8 +5,9 @@ import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
+    color:theme.colors.text,
+    padding:3,
   },
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -19,10 +20,10 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.small,
     paddingHorizontal: Spacing.xsmall,
   },
-
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    color: theme.colors.text,
   },
   form: {
     flex: 1,
@@ -61,4 +62,7 @@ export default ThemedStyleSheet((theme) => ({
     right: Spacing.pagePadding,
     bottom: '110%',
   },
+  text:{
+    color: theme.colors.text,
+  }
 }));

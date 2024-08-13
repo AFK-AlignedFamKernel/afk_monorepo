@@ -27,15 +27,16 @@ export const ACCOUNT_TEST_PROFILE = {
 
 };
 
-
 export const ESCROW_ADDRESS = {
     // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
     [constants.StarknetChainId.SN_SEPOLIA]: "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
 }
 
-
-
 export const KEYS_ADDRESS = {
+    [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
+}
+
+export const NAMESPACE_ADDRESS = {
     [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 }
 export const ERROR_MESSAGES = {
@@ -63,6 +64,11 @@ export const TOKENS_ADDRESS = {
         TEST: "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
         BIG_TOKEN: "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
 
+    },
+    [constants.StarknetChainId.SN_SEPOLIA]:{
+        ETH: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        USDC: "0x02f37c3e00e75ee4135b32bb60c37e0599af264076376a618f138d2f9929ac74",
     },
     DEVNET: {
         ETH: "0x49D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7",
