@@ -7,8 +7,6 @@ import { useStyles, useTheme } from '../../hooks';
 import { GameSreenProps } from '../../types';
 import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
-import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
-import EmbedWebsite from '../../components/Embed';
 import { SlinksMap } from './SlinksMap';
 
 export const Slink: React.FC<GameSreenProps> = ({ navigation }) => {

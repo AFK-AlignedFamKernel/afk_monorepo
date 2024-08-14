@@ -23,6 +23,10 @@ export default ThemedStyleSheet((theme) => ({
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    color:theme.colors.text,
+  },
+  text: {
+    color:theme.colors.text,
   },
   form: {
     flex: 1,

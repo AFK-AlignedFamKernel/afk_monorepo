@@ -27,7 +27,7 @@ export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) =
             <TouchableOpacity onPress={() =>
                 navigation?.openDrawer()
             } style={styles.burgerIcon}>
-                <Icon name="SunIcon" size={25} />
+                <Icon name="MenuIcon" size={25} />
             </TouchableOpacity>
         </View>
     );

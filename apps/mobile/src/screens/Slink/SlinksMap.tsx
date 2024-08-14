@@ -1,25 +1,23 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, View, Text, FlatList, RefreshControl } from 'react-native';
+import { KeyboardAvoidingView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextButton } from '../../components';
-import TabSelector from '../../components/TabSelector';
+import { Divider } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
-import { GameSreenProps } from '../../types';
-import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
-import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
-import EmbedWebsite from '../../components/Embed';
 import EmbedCard from '../../components/Embed';
-
 
 export const ECOSYSTEM_INTEGRATION = {
   raize: {
+    title:"Raize",
     uri: "https://www.raize.club",
     twitter: "",
+    description:"Prediction Market"
   },
   ekubo: {
     uri: "https://app.ekubo.org/",
+    title:"Ekubo",
     twitter: "",
+    description:"DEX on Starknet"
+
   },
 }
 export const SlinksMap: React.FC = () => {
@@ -28,42 +26,25 @@ export const SlinksMap: React.FC = () => {
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.content}>
-
       <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
         <FlatList
-          // contentContainerStyle={styles.stories}
-          // horizontal
           data={Object.values(ECOSYSTEM_INTEGRATION)}
           showsHorizontalScrollIndicator={false}
           // data={stories}
-          // ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
+          ItemSeparatorComponent={() => <Divider />}
           renderItem={({ item }) => {
-            console.log("item", item)
+            // console.log("item", item)
             return (
-              // <EmbedWebsite uri={item[0]}></EmbedWebsite>
               <EmbedCard
                 key={item?.uri} uri={item.uri}
+                title={item?.title}
+              description={item?.description}
               >
               </EmbedCard>
-              // <EmbedWebsite ></EmbedWebsite>
-
-              // <BubbleUser
-              //   // name={item.name}
-              //   // image={item.img}
-              //   event={item}
-              // />
+           
             )
           }}
         />
-
-        {/* {Object.fromEntries(ECOSYSTEM_INTEGRATION).map()} */}
-        {/* {Object.entries(ECOSYSTEM_INTEGRATION).map((e) => {
-            return(
-              <EmbedWebsite uri={e?.[0]}></EmbedWebsite>
-            )
-          })} */}
-
-        {/* <EmbedWebsite uri={"https://www.raize.club"}></EmbedWebsite> */}
 
       </SafeAreaView>
     </KeyboardAvoidingView>

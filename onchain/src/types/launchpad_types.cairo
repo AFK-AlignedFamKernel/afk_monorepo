@@ -140,49 +140,9 @@ pub struct CreateLaunch {
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct KeysUpdated {
+pub struct LaunchUpdated {
     #[key]
     user: ContractAddress,
     supply: u256,
     price: u256
-}
-
-
-pub trait KeysBonding {
-    fn get_price(self: Keys, supply: u256) -> u256;
-}
-
-
-pub fn get_current_price(key: @Keys, supply: u256, amount_to_buy: u256) -> u256 {
-    let total_cost = 0;
-    total_cost
-}
-
-
-pub fn get_linear_price( // key: @Keys, 
-key: Keys, supply: u256, //  amount_to_buy: u256
-) -> u256 {
-    let step_increase_linear = key.token_quote.step_increase_linear.clone();
-    let initial_key_price = key.token_quote.initial_key_price.clone();
-    let price_for_this_key = initial_key_price + (supply * step_increase_linear);
-    price_for_this_key
-}
-
-
-pub impl KeysBondingImpl of KeysBonding {
-    fn get_price(self: Keys, supply: u256) -> u256 {
-        match self.bonding_curve_type {
-            Option::Some(x) => {
-                match x {
-                    BondingType::Linear => { get_linear_price(self, supply) },
-                    // BondingType::Scoring => { 0 },
-                    // BondingType::Exponential => { 0 },
-                    // BondingType::Limited => { 0 },
-
-                    _ => { get_linear_price(self, supply) },
-                }
-            },
-            Option::None => { get_linear_price(self, supply) }
-        }
-    }
 }

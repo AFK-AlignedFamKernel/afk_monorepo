@@ -1,9 +1,11 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
+import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer';
 import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
+  DrawerStack: DrawerScreenProps<MainStackParams>;
   AuthStack: NavigatorScreenParams<AuthStackParams>;
 };
 
@@ -18,7 +20,7 @@ export type AuthStackParams = {
 };
 
 export type MainStackParams = {
-  Home: NavigatorScreenParams<HomeBottomStackParams>;
+  // Home: NavigatorScreenParams<HomeBottomStackParams>;
   CreatePost: undefined;
   Profile: {publicKey: string};
   PostDetail: {postId: string; post?: NDKEvent};
@@ -32,6 +34,9 @@ export type MainStackParams = {
   Games:undefined,
   KeysMarketplace:undefined;
   Slinks:undefined;
+  Tips: undefined;
+  Home: undefined;
+  Feed: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -89,7 +94,7 @@ export type NotificationsScreenProps = CompositeScreenProps<
 >;
 
 export type TipsScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<HomeBottomStackParams, 'Tips'>,
+  NativeStackScreenProps<HomeBottomStackParams | MainStackParams, 'Tips'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
@@ -98,10 +103,10 @@ export type SearchScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-export type GamesScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<HomeBottomStackParams, 'Games'>,
-  NativeStackScreenProps<RootStackParams>
->;
+// export type GamesScreenProps = CompositeScreenProps<
+//   NativeStackScreenProps<HomeBottomStackParams, 'Games'>,
+//   NativeStackScreenProps<RootStackParams>
+// >;
 
 
 // export type CreateChannelScreenProps = CompositeScreenProps<
@@ -164,7 +169,7 @@ export type DefiScreenProps = CompositeScreenProps<
 >;
 
 export type GameSreenProps = CompositeScreenProps<
-  NativeStackScreenProps<MainStackParams, 'Games'>,
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Games'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
@@ -177,3 +182,15 @@ export type SlinkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Slinks'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+
+// export type TipsMainScreenProps = CompositeScreenProps<
+//   NativeStackScreenProps<MainStackParams, 'Tips'>,
+//   NativeStackScreenProps<RootStackParams>
+// >;
+
+
+// Drawer desktop stack
+
+export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
+

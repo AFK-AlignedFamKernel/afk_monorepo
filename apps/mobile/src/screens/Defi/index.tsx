@@ -35,7 +35,8 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
           addScreenNavigation={false}
         ></TabSelector> */}
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          <Text>Coming soon</Text>
+          <Text style={styles.text}>DeFi, Ramp and more soon</Text>
+          <Text style={styles.text}>Stay tuned for the AFK Fi</Text>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>
