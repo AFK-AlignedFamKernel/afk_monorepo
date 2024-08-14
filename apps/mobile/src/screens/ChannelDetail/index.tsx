@@ -13,12 +13,14 @@ export const ChannelDetail: React.FC<ChannelDetailScreenProps> = ({navigation, r
 
   return (
     <View style={styles.container}>
-      <Header
+      {/* <Header
         showLogo={false}
-        left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack} />}
-        /* right={<IconButton icon="MoreHorizontalIcon" size={24} />} */
+        left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack}
+        />}
+        right={<IconButton icon="MoreHorizontalIcon" size={24} ></IconButton>}
+       
         title="Channel"
-      />
+      /> */}
       <ChannelDetailComponent route={route} navigation={navigation}></ChannelDetailComponent>
     </View>
   );

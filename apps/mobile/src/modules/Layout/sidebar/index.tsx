@@ -7,11 +7,19 @@ import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from '../../../types';
 // import { useAuth } from '../../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
+import { DrawerNavigationHelpers } from '@react-navigation/drawer/lib/typescript/src/types';
 
-const Sidebar = () => {
+interface SidebarInterface {
+    // navigation:MainStackNavigationProps | DrawerNavigationHelpers
+    navigation:any
+}
+const Sidebar = (
+    {navigation}:SidebarInterface
+
+) => {
     const styles = useStyles(stylesheet);
     const publicKey = useAuth((state) => state.publicKey);
-    const navigation = useNavigation<MainStackNavigationProps>()
+    // const navigation = useNavigation<MainStackNavigationProps>()
     const handleNavigateProfile = () => {
         navigation.navigate("Profile", { publicKey: publicKey });
     };
@@ -19,7 +27,7 @@ const Sidebar = () => {
     // const handleNavigateHome = () => {
     //     navigation.navigate("Home");
     // };
-    const handleDefiScreen = () => {
+    const  handleDefiScreen = () => {
         navigation.navigate("Defi");
     };
     const handleGameScreen = () => {

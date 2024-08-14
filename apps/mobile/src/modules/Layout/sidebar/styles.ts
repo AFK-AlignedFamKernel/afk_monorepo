@@ -3,7 +3,7 @@ import { Spacing, ThemedStyleSheet } from "../../../styles";
 export default ThemedStyleSheet((theme) => ({
     container: {},
     sidebar: {
-        width: 350,
+        width: "100%",
         height: '100%',
         backgroundColor: theme.colors.background,
         padding: 20,

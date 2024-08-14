@@ -10,6 +10,8 @@ export enum SelectedTab {
   LAUNCH_TOKEN_UNRUGGABLE,
   VIEW_KEYS_MARKETPLACE,
   LAUNCH_TOKEN_PUMP,
+  SLINK,
+
 
 }
 
@@ -83,6 +85,11 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
 
 
 export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Slink',
+    screen: 'Slink',
+    tab: SelectedTab.SLINK,
+  },
   {
     title: 'Keys',
     screen: 'KeysMarketplace',

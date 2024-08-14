@@ -198,7 +198,7 @@ export const Whatever: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Header showLogo />
+      {/* <Header showLogo /> */}
       <TabSelector activeTab={selectedTab} handleActiveTab={handleTabSelected} buttons={TABS} />
       {selectedTab == SelectedTab.TIPS ? (
         <TipsComponent></TipsComponent>
