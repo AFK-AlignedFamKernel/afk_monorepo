@@ -6,7 +6,8 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     color:theme.colors.text,
-    // padding:3,
+    backgroundColor: theme.colors.background,
+    
   },
   header: {
     flexDirection: 'row',
@@ -23,7 +24,8 @@ export default ThemedStyleSheet((theme) => ({
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    color: theme.colors.text,
+    margin:Spacing.pagePadding
+    // color: theme.colors.text,
   },
   form: {
     flex: 1,

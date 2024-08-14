@@ -55,13 +55,13 @@ const EmbedCard = ({ uri, title, twitter, description, img }: EmbedWebsiteInterf
                 flex:1,
                 flexDirection:"row"
             }}>
-                <Button onPress={handleGoTo} >Go</Button>
+                {/* <Button onPress={handleGoTo} >Go</Button> */}
                 <Button onPress={handleOpen}>Open</Button>
             </View>
 
 
             {isOpen &&
-                <View style={{ height: 300 }}>
+                <View style={{ height: 350 }}>
                     <EmbedWebsite uri={uri}></EmbedWebsite>
                 </View>
             }

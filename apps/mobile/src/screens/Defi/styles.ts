@@ -5,6 +5,9 @@ import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.text,
+
   },
 
   header: {
@@ -19,11 +22,11 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.small,
     paddingHorizontal: Spacing.xsmall,
   },
-
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
     color:theme.colors.text,
+    margin:Spacing.pagePadding
   },
   text: {
     color:theme.colors.text,

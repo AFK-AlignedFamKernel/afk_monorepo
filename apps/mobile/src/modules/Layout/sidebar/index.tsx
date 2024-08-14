@@ -35,7 +35,7 @@ const Sidebar = (
         navigation.navigate("Games");
     };
     const handleHomeScreen = () => {
-        navigation.navigate("Home");
+        navigation.navigate("Feed");
     };
 
     const handleTipsScreen = () => {
@@ -84,7 +84,7 @@ const Sidebar = (
                     style={{ backgroundColor: theme.theme.colors.background }}
                 />
                 <Text style={styles.textItem}>
-                    Home
+                    Feed
                 </Text>
 
             </Pressable>

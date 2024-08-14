@@ -6,6 +6,11 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
+    padding:Spacing.medium,
+    marginHorizontal: Spacing.medium,
+    marginBottom:Spacing.normal,
+    borderRadius: 16,
+    borderBottomColor: theme.colors.divider,
   },
   content: {
     width: '100%',
