@@ -15,7 +15,7 @@ export type StoryProps = {
   profileProps?: NDKUserProfile;
 };
 
-export const BubbleUser: React.FC<StoryProps> = ({imageProps, name, profileProps, event}) => {
+export const BubbleLive: React.FC<StoryProps> = ({imageProps, name, profileProps, event}) => {
   const {data: profile} = useProfile({publicKey: event?.pubkey});
   const navigation = useNavigation<MainStackNavigationProps>();
   const handleNavigateToProfile = () => {
@@ -41,7 +41,7 @@ export const BubbleUser: React.FC<StoryProps> = ({imageProps, name, profileProps
         </View>
 
         <Text weight="medium" fontSize={13} style={styles.name}>
-          {profile?.name ?? profile?.nip05 ?? profile?.displayName ?? 'Anon'}
+          {profile?.name ?? profile?.nip05 ?? profile?.displayName ?? 'Anon AFK'}
         </Text>
       </Pressable>
     </View>

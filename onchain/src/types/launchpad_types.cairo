@@ -35,6 +35,7 @@ pub struct Token {
     pub symbol: felt252,
     pub name: felt252,
     pub total_supply: u256,
+    pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
 }
@@ -43,12 +44,16 @@ pub struct Token {
 pub struct TokenLaunch {
     pub owner: ContractAddress,
     pub token_address: ContractAddress,
-    pub price: u256,
     pub initial_key_price: u256,
+    pub price: u256,
+    pub available_supply: u256,
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyKeys
+    pub token_quote: TokenQuoteBuyKeys,
+    pub liquidity_raised: u256,
+    pub token_holded:u256,
+    pub is_liquidity_launch:bool
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -124,9 +129,9 @@ pub struct CreateToken {
     #[key]
     pub caller: ContractAddress,
     #[key]
-    pub key_user: ContractAddress,
-    pub amount: u256,
-    pub price: u256,
+    pub token_address: ContractAddress,
+    pub total_supply: u256,
+    pub initial_supply: u256
 }
 
 #[derive(Drop, starknet::Event)]
@@ -134,7 +139,7 @@ pub struct CreateLaunch {
     #[key]
     pub caller: ContractAddress,
     #[key]
-    pub key_user: ContractAddress,
+    pub token_address: ContractAddress,
     pub amount: u256,
     pub price: u256,
 }

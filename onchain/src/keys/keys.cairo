@@ -1,16 +1,12 @@
 // use social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 // use afk::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
-// pub use social::request;
-
 use afk::types::keys_types::{
     KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, StoredName, BuyKeys, SellKeys,
     CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys, BondingType, get_linear_price,
 };
 use starknet::ContractAddress;
-
 type NostrPublicKey = u256;
-
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct LinkedNostrAddress {
@@ -46,8 +42,8 @@ pub trait IKeysMarketplace<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress
     );
-    fn instantiate_keys(
-        ref self: TContractState, // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
+    fn instantiate_keys(ref self: TContractState,// token_quote: TokenQuoteBuyKeys,
+    // bonding_type: KeysMarketplace::BondingType,
     );
     fn instantiate_keys_with_nostr(
         ref self: TContractState, request_nostr: SocialRequest<LinkedNostrAddress>
@@ -176,14 +172,11 @@ mod KeysMarketplace {
         self.initial_key_price.write(init_token.initial_key_price);
 
         self.protocol_fee_destination.write(admin);
-        // self.protocol_fee_percent.write(MAX_FEE);
-        // self.creator_fee_percent.write(MAX_FEE_CREATOR);
         self.step_increase_linear.write(step_increase_linear);
         self.total_keys.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MAX_FEE_CREATOR);
     }
-
 
     // Public functions inside an impl block
     #[abi(embed_v0)]
@@ -217,6 +210,9 @@ mod KeysMarketplace {
             assert(creator_fee_percent > MIN_FEE_CREATOR, 'creator_fee_too_low');
             self.creator_fee_percent.write(creator_fee_percent);
         }
+
+
+        // User functions
 
         // Create keys for an user
         fn instantiate_keys(ref self: ContractState, // token_quote: TokenQuoteBuyKeys,
