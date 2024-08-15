@@ -35,6 +35,7 @@ pub struct Token {
     pub symbol: felt252,
     pub name: felt252,
     pub total_supply: u256,
+    pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
 }
@@ -43,12 +44,16 @@ pub struct Token {
 pub struct TokenLaunch {
     pub owner: ContractAddress,
     pub token_address: ContractAddress,
-    pub price: u256,
     pub initial_key_price: u256,
+    pub price: u256,
+    pub available_supply: u256,
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyKeys
+    pub token_quote: TokenQuoteBuyKeys,
+    pub liquidity_raised: u256,
+    pub token_holded:u256,
+    pub is_liquidity_launch:bool
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -124,9 +129,9 @@ pub struct CreateToken {
     #[key]
     pub caller: ContractAddress,
     #[key]
-    pub key_user: ContractAddress,
-    pub amount: u256,
-    pub price: u256,
+    pub token_address: ContractAddress,
+    pub total_supply: u256,
+    pub initial_supply: u256
 }
 
 #[derive(Drop, starknet::Event)]
@@ -134,55 +139,15 @@ pub struct CreateLaunch {
     #[key]
     pub caller: ContractAddress,
     #[key]
-    pub key_user: ContractAddress,
+    pub token_address: ContractAddress,
     pub amount: u256,
     pub price: u256,
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct KeysUpdated {
+pub struct LaunchUpdated {
     #[key]
     user: ContractAddress,
     supply: u256,
     price: u256
-}
-
-
-pub trait KeysBonding {
-    fn get_price(self: Keys, supply: u256) -> u256;
-}
-
-
-pub fn get_current_price(key: @Keys, supply: u256, amount_to_buy: u256) -> u256 {
-    let total_cost = 0;
-    total_cost
-}
-
-
-pub fn get_linear_price( // key: @Keys, 
-key: Keys, supply: u256, //  amount_to_buy: u256
-) -> u256 {
-    let step_increase_linear = key.token_quote.step_increase_linear.clone();
-    let initial_key_price = key.token_quote.initial_key_price.clone();
-    let price_for_this_key = initial_key_price + (supply * step_increase_linear);
-    price_for_this_key
-}
-
-
-pub impl KeysBondingImpl of KeysBonding {
-    fn get_price(self: Keys, supply: u256) -> u256 {
-        match self.bonding_curve_type {
-            Option::Some(x) => {
-                match x {
-                    BondingType::Linear => { get_linear_price(self, supply) },
-                    // BondingType::Scoring => { 0 },
-                    // BondingType::Exponential => { 0 },
-                    // BondingType::Limited => { 0 },
-
-                    _ => { get_linear_price(self, supply) },
-                }
-            },
-            Option::None => { get_linear_price(self, supply) }
-        }
-    }
 }

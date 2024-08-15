@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+// import {StyleSheet} from 'react-native';
 
 import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
@@ -6,15 +6,16 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     color:theme.colors.text,
-    padding:3,
+    backgroundColor: theme.colors.background,
+    
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.surface,
     paddingHorizontal: Spacing.pagePadding,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.colors.divider,
+    // borderBottomWidth: StyleSheet.hairlineWidth,
+    // borderBottomColor: theme.colors.divider,
   },
   cancelButton: {
     paddingVertical: Spacing.small,
@@ -23,7 +24,8 @@ export default ThemedStyleSheet((theme) => ({
   content: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    color: theme.colors.text,
+    margin:Spacing.pagePadding
+    // color: theme.colors.text,
   },
   form: {
     flex: 1,

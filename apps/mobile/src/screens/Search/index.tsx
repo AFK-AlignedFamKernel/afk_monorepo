@@ -65,7 +65,7 @@ export const Search: React.FC<SearchScreenProps> = ({navigation}) => {
         resizeMode="cover"
       />
 
-      <Header />
+      {/* <Header /> */}
       {/* <TabSelector activeTab={selectedTab} handleActiveTab={handleTabSelected} buttons={TABS_LIST_SEARCH} addScreenNavigation={false} /> */}
       <SearchComponent setSearchQuery={setSearch} searchQuery={search}></SearchComponent>
 

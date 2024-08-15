@@ -3,15 +3,16 @@ import { KeyboardAvoidingView, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import { useStyles } from '../../hooks';
-import { DefiScreenProps } from '../../types';
-import { SelectedTab, TABS_FORM_CREATE } from '../../types/tab';
+import { useStyles, useTheme } from '../../hooks';
+import { GameSreenProps } from '../../types';
+import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
+import { SlinksMap } from './SlinksMap';
 
-export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
+export const Slink: React.FC<GameSreenProps> = ({ navigation }) => {
+  const theme = useTheme()
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CREATE_NOTE);
-
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.VIEW_KEYS_MARKETPLACE);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -26,17 +27,15 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
           Cancel
         </TextButton>
       </SafeAreaView>
-
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        {/* <TabSelector
+        <TabSelector
           activeTab={selectedTab}
           handleActiveTab={handleTabSelected}
-          buttons={TABS_FORM_CREATE}
+          buttons={TABS_MENU}
           addScreenNavigation={false}
-        ></TabSelector> */}
+        ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          <Text style={styles.text}>DeFi, Ramp and more soon</Text>
-          <Text style={styles.text}>Stay tuned for the AFK Fi</Text>
+          <SlinksMap />
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>

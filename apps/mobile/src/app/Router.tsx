@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
-import { Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Dimensions, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon } from '../components';
 import { useStyles, useTheme } from '../hooks';
 import { CreateAccount } from '../screens/Auth/CreateAccount';
@@ -20,8 +20,6 @@ import { PostDetail } from '../screens/PostDetail';
 import { Profile } from '../screens/Profile';
 import { Search } from '../screens/Search';
 import { Tips } from '../screens/Tips';
-// import { useAuth } from '../store/auth';
-// import { useAuth } from '../store/auth';
 import { ThemedStyleSheet } from '../styles';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { retrievePublicKey } from '../utils/storage';
@@ -29,7 +27,10 @@ import Sidebar from '../modules/Layout/sidebar';
 import { Defi } from '../screens/Defi';
 import { Games } from '../screens/Games';
 import { useAuth } from 'afk_nostr_sdk';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { Navbar } from '../components/Navbar';
 
+const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createNativeStackNavigator<AuthStackParams>();
 const MainStack = createNativeStackNavigator<MainStackParams>();
@@ -153,24 +154,79 @@ const AuthNavigator: React.FC = () => {
 };
 
 const MainNavigator: React.FC = () => {
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024
+  }, [dimensions]); // Adjust based on your breakpoint for desktop
+
+  const theme = useTheme()
+
   return (
-    <MainStack.Navigator screenOptions={{ headerShown: false }}
+    <DrawerStack.Navigator
+      // screenOptions={{ headerShown: false }}
+      // initialRouteName="Home"
+      drawerContent={(props) => <Sidebar
+        navigation={props?.navigation}
+      ></Sidebar>}
+      screenOptions={({ navigation }) => ({
+        // headerShown:false,
+        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
+        headerStyle: {
+          backgroundColor: theme.theme.colors.background
+        },
+        drawerType: isDesktop ? "permanent" : "front",
+        // drawerType:"permanent",
+        headerTintColor: theme.theme.colors.text,
+        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background,  // Make sure overlay settings are correct
+        // swipeEdgeWidth: 0
+        // drawerStyle: {
+        //   width: 240, // Adjust width or other styling as necessary
+        // }
+      })}
     >
-      <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
-      <MainStack.Screen name="Profile" component={Profile} />
-      <MainStack.Screen name="EditProfile" component={EditProfile} />
-      <MainStack.Screen name="CreatePost" component={CreatePost} />
-      <MainStack.Screen name="PostDetail" component={PostDetail} />
-      <MainStack.Screen name="ChannelDetail" component={ChannelDetail} />
-      <MainStack.Screen name="Search" component={Search} />
-      <MainStack.Screen name="CreateChannel" component={CreateChannel} />
-      <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
-      <MainStack.Screen name="CreateForm" component={CreateForm} />
-      <MainStack.Screen name="Defi" component={Defi} />
-      <MainStack.Screen name="Games" component={Games} />
-    </MainStack.Navigator>
+      {!isDesktop ?
+        <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
+        :
+        <DrawerStack.Screen name="Feed" component={Feed} />
+
+      }
+      <DrawerStack.Screen name="Profile" component={Profile} />
+      <DrawerStack.Screen name="EditProfile" component={EditProfile} />
+      <DrawerStack.Screen name="CreatePost" component={CreatePost} />
+      <DrawerStack.Screen name="PostDetail" component={PostDetail} />
+      <DrawerStack.Screen name="ChannelDetail" component={ChannelDetail} />
+      <DrawerStack.Screen name="Search" component={Search} />
+      <DrawerStack.Screen name="CreateChannel" component={CreateChannel} />
+      <DrawerStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
+      <DrawerStack.Screen name="CreateForm" component={CreateForm} />
+      <DrawerStack.Screen name="Defi" component={Defi} />
+      <DrawerStack.Screen name="Games" component={Games} />
+      <DrawerStack.Screen name="Tips" component={Tips} />
+    </DrawerStack.Navigator>
   );
 };
+
+// const MainNavigator: React.FC = () => {
+//   const dimensions = useWindowDimensions();
+//   const isDesktop = dimensions.width >= 768; // Adjust based on your breakpoint for desktop
+//   return (
+//     <MainStack.Navigator screenOptions={{ headerShown: false }}
+//     >
+//       <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
+//       <MainStack.Screen name="Profile" component={Profile} />
+//       <MainStack.Screen name="EditProfile" component={EditProfile} />
+//       <MainStack.Screen name="CreatePost" component={CreatePost} />
+//       <MainStack.Screen name="PostDetail" component={PostDetail} />
+//       <MainStack.Screen name="ChannelDetail" component={ChannelDetail} />
+//       <MainStack.Screen name="Search" component={Search} />
+//       <MainStack.Screen name="CreateChannel" component={CreateChannel} />
+//       <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
+//       <MainStack.Screen name="CreateForm" component={CreateForm} />
+//       <MainStack.Screen name="Defi" component={Defi} />
+//       <MainStack.Screen name="Games" component={Games} />
+//     </MainStack.Navigator>
+//   );
+// };
 
 const linking = {
   prefixes: [
@@ -222,7 +278,7 @@ export const Router: React.FC = () => {
     <NavigationContainer
     // linking={linking}
     >
-      {shouldShowSidebar && <Sidebar></Sidebar>}
+      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
 
       <RootNavigator />
     </NavigationContainer>

@@ -90,6 +90,10 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) =>
       >
         Import Account
       </Button>
+
+      <Button
+        onPress={() => navigation.goBack()}
+      >Back</Button>
     </Auth>
   );
 };

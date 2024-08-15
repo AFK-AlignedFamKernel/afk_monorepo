@@ -18,7 +18,7 @@ export const ChannelsFeed: React.FC<ChannelsFeedScreenProps> = ({navigation}) =>
         source={require('../../assets/feed-background-afk.png')}
         resizeMode="cover"
       />
-      <Header />
+      {/* <Header /> */}
 
       <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
         Back

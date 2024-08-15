@@ -96,6 +96,10 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
       </Button>
 
       <TextButton onPress={handleImportKey}>Import account</TextButton>
+
+      <Button
+        onPress={() => navigation.goBack()}
+      >Back</Button>
     </Auth>
   );
 };

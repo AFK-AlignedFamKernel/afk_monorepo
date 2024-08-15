@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import stylesheet from './styles';
 import { useStyles, useTheme } from '../../../hooks';
 import { Icon } from '../../../components/Icon';
 import { useNavigation } from '@react-navigation/native';
-import { MainStackNavigationProps } from '../../../types';
+import { DrawerStackNavigationProps, MainStackNavigationProps } from '../../../types';
 // import { useAuth } from '../../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
+import { DrawerNavigationHelpers } from '@react-navigation/drawer/lib/typescript/src/types';
 
-const Sidebar = () => {
+interface SidebarInterface {
+    // navigation:MainStackNavigationProps | DrawerNavigationHelpers
+    navigation:any
+}
+const Sidebar = (
+    {navigation}:SidebarInterface
+
+) => {
     const styles = useStyles(stylesheet);
     const publicKey = useAuth((state) => state.publicKey);
-    const navigation = useNavigation<MainStackNavigationProps>()
+    // const navigation = useNavigation<MainStackNavigationProps>()
+    // const navigation = useNavigation<DrawerStackNavigationProps>()
     const handleNavigateProfile = () => {
         navigation.navigate("Profile", { publicKey: publicKey });
     };
@@ -19,15 +28,26 @@ const Sidebar = () => {
     // const handleNavigateHome = () => {
     //     navigation.navigate("Home");
     // };
-    const handleDefiScreen = () => {
+    const  handleDefiScreen = () => {
         navigation.navigate("Defi");
     };
     const handleGameScreen = () => {
         navigation.navigate("Games");
     };
     const handleHomeScreen = () => {
-        navigation.navigate("Home");
+        navigation.navigate("Feed");
     };
+
+    const handleTipsScreen = () => {
+        navigation.navigate("Tips");
+    };
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('drawerClose', () => {
+      // Code to handle drawer closing
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
     return (
         <View style={styles.sidebar}>
@@ -64,7 +84,21 @@ const Sidebar = () => {
                     style={{ backgroundColor: theme.theme.colors.background }}
                 />
                 <Text style={styles.textItem}>
-                    Home
+                    Feed
+                </Text>
+
+            </Pressable>
+
+            <Pressable
+                onPress={handleTipsScreen}
+                style={styles.item}>
+                <Icon
+                    name="CoinIcon"
+                    size={24}
+                    style={{ backgroundColor: theme.theme.colors.background }}
+                />
+                <Text style={styles.textItem}>
+                    Tips
                 </Text>
 
             </Pressable>

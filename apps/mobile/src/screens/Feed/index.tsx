@@ -35,7 +35,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         resizeMode="cover"
       />
 
-      <Header />
+      {/* <Header /> */}
 
       {/* <View
         style={{
