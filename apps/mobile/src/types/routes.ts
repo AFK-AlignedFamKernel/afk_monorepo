@@ -37,6 +37,8 @@ export type MainStackParams = {
   Tips: undefined;
   Home: undefined;
   Feed: undefined;
+  Settings:undefined;
+
 };
 
 export type HomeBottomStackParams = {
@@ -48,6 +50,8 @@ export type HomeBottomStackParams = {
   Games:undefined,
   Defi: undefined;
   Home: undefined;
+  Settings:undefined;
+  Profile:{publicKey:string};
 
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -180,6 +184,12 @@ export type KeysMarketplaceSreenProps = CompositeScreenProps<
 
 export type SlinkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Slinks'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+
+export type SettingsScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Settings'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

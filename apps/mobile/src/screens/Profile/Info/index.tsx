@@ -76,7 +76,9 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
     await Clipboard.setStringAsync(userPublicKey);
     showToast({type: 'info', title: 'Public key copied to the clipboard'});
   };
-
+  const handleSettings = () => {
+    navigation.navigate("Settings")
+  }
   return (
     <View>
       <ProfileHead
@@ -94,6 +96,13 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
               >
                 Edit profile
               </Button>
+
+              <IconButton
+              icon="SettingsIcon"
+              size={20}
+              // style={styles.backButton}
+              onPress={handleSettings}
+            />
 
               <Menu
                 open={menuOpen}

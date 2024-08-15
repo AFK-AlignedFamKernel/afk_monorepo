@@ -1,12 +1,13 @@
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
-import {Image, ImageSourcePropType, Pressable, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import { Image, ImageSourcePropType, Pressable, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {SettingsIcon, UploadIcon} from '../../../assets/icons';
-import {Avatar, IconButton, Menu, Text} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
-import stylesheet, {AVATAR_SIZE} from './styles';
+import { SettingsIcon, UploadIcon } from '../../../assets/icons';
+import { Avatar, IconButton, Menu, Text } from '../../../components';
+import { useStyles, useTheme } from '../../../hooks';
+import stylesheet, { AVATAR_SIZE } from './styles';
+import { MainStackNavigationProps } from '../../../types';
 
 export type ProfileHeadProps = {
   profilePhoto?: ImageSourcePropType;
@@ -27,16 +28,19 @@ export const ProfileHead: React.FC<ProfileHeadProps> = ({
   showSettingsButton,
   buttons,
 }) => {
-  const {theme, toggleTheme} = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const styles = useStyles(stylesheet);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<MainStackNavigationProps>();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const goToSettings = () => {
-    setMenuOpen(menuOpen == true ? false : true);
-    // navigation.navigate('Settings');
-  };
+  // const goToSettings = () => {
+  //   setMenuOpen(menuOpen == true ? false : true);
+  //   // navigation.navigate('Settings');
+  // };
+  // const handleSettings = () => {
+  //   navigation.navigate("Settings")
+  // }
 
   return (
     <View style={styles.container}>
@@ -57,10 +61,16 @@ export const ProfileHead: React.FC<ProfileHeadProps> = ({
               />
             )}
 
-            {showSettingsButton && (
+
+            {/* {showSettingsButton && (
               <Menu
                 open={menuOpen}
-                onClose={() => setMenuOpen(false)}
+                onClose={() => {
+                  handleSettings()
+                  // setMenuOpen(false)
+                }
+
+                }
                 handle={
                   <Pressable style={styles.settingsButton} onPress={goToSettings}>
                     <SettingsIcon width={20} height={20} color={theme.colors.text} />
@@ -76,7 +86,33 @@ export const ProfileHead: React.FC<ProfileHeadProps> = ({
                   onPress={toggleTheme}
                 />
               </Menu>
-            )}
+            )} */}
+
+            {/* {showSettingsButton && (
+              <Menu
+                open={menuOpen}
+                onClose={() => {
+                  handleSettings() 
+                  // setMenuOpen(false)
+                }
+
+                }
+                handle={
+                  <Pressable style={styles.settingsButton} onPress={goToSettings}>
+                    <SettingsIcon width={20} height={20} color={theme.colors.text} />
+                    <Text weight="semiBold" fontSize={14} style={styles.settingsButtonText}>
+                      Settings
+                    </Text>
+                  </Pressable>
+                }
+              >
+                <Menu.Item
+                  label="Switch theme"
+                  icon={theme.dark ? 'SunIcon' : 'MoonIcon'}
+                  onPress={toggleTheme}
+                />
+              </Menu>
+            )} */}
 
             {onCoverPhotoUpload && (
               <Pressable style={styles.coverUploadIcon} onPress={onCoverPhotoUpload}>

@@ -13,9 +13,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from '../../assets/icons';
-import { Avatar, IconButton, Menu, Text } from '../../components';
+import { Avatar, Icon, IconButton, Menu, Text } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
-import {useProfile,  useReact, useReactions, useReplyNotes, } from "afk_nostr_sdk"
+import { useProfile, useReact, useReactions, useReplyNotes, } from "afk_nostr_sdk"
 import { useTipModal } from '../../hooks/modals';
 // import { useAuth } from '../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
@@ -78,7 +78,12 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
     const imageTag = event.tags.find((tag) => tag[0] === 'image');
     if (!imageTag) return;
 
-    const dimensions = imageTag[2].split('x').map(Number);
+    let dimensions = [200, 2500]
+    if (imageTag[2]) {
+      // const dimensions = imageTag[2].split('x').map(Number);
+      dimensions = imageTag[2].split('x').map(Number);
+
+    }
     return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
@@ -235,6 +240,30 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
               </Text>
             </View>
           </Pressable>
+
+          <Pressable
+            style={styles.seeMore}
+            onPress={() => {
+              if (!event) return;
+
+              showTipModal(event);
+              setMenuOpen(false);
+            }}
+          >
+
+            <Icon name='CoinIcon'></Icon>
+          </Pressable>
+          {/* 
+          <Menu.Item
+            label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
+            icon="CoinIcon"
+            onPress={() => {
+              if (!event) return;
+
+              showTipModal(event);
+              setMenuOpen(false);
+            }}
+          /> */}
 
           <Menu
             open={menuOpen}

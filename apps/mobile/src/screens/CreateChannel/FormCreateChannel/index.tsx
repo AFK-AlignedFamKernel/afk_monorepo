@@ -17,9 +17,9 @@ import {
 // import { useAuth } from '../../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
 
-import { AFK_RELAYS } from '../../../utils/relay';
 import { ChannelHead } from '../Head';
 import stylesheet from './styles';
+import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
