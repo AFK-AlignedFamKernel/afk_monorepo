@@ -52,8 +52,8 @@ pub struct TokenLaunch {
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyKeys,
     pub liquidity_raised: u256,
-    pub token_holded:u256,
-    pub is_liquidity_launch:bool
+    pub token_holded: u256,
+    pub is_liquidity_launch: bool
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]

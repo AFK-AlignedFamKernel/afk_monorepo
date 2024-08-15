@@ -1,8 +1,7 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
 
-import {TipModal} from '../modules/TipModal';
-
+import {TipModalStarknet} from '../modules/TipModal/starknet';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
 
 export type TipModalContextType = {
@@ -13,10 +12,10 @@ export type TipModalContextType = {
   hideSuccess: () => void;
 };
 
-export const TipModalContext = createContext<TipModalContextType | null>(null);
+export const TipModalStarknetContext = createContext<TipModalContextType | null>(null);
 
-export const TipModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
-  const tipModalRef = useRef<TipModal>(null);
+export const TipModalStarknetProvider: React.FC<React.PropsWithChildren> = ({children}) => {
+  const tipModalRef = useRef<TipModalStarknet>(null);
 
   const [event, setEvent] = useState<NDKEvent | undefined>();
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
@@ -45,10 +44,10 @@ export const TipModalProvider: React.FC<React.PropsWithChildren> = ({children}) 
   );
 
   return (
-    <TipModalContext.Provider value={context}>
+    <TipModalStarknetContext.Provider value={context}>
       {children}
 
-      <TipModal
+      <TipModalStarknet
         event={event}
         show={show}
         hide={hide}
@@ -58,6 +57,6 @@ export const TipModalProvider: React.FC<React.PropsWithChildren> = ({children}) 
       />
 
       {successModal && <TipSuccessModal {...successModal} />}
-    </TipModalContext.Provider>
+    </TipModalStarknetContext.Provider>
   );
 };

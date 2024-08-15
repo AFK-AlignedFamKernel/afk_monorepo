@@ -18,7 +18,8 @@ export const Setttings: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
   const { relays, setRelays } = useSettingsStore()
   const { publicKey } = useAuth()
-  const RELAYS_USED = relays ?? AFK_RELAYS
+  // const RELAYS_USED = relays ?? AFK_RELAYS
+  const RELAYS_USED = relays
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -81,9 +82,9 @@ export const Setttings: React.FC<SettingsScreenProps> = ({ navigation }) => {
 
         <Text style={styles.title}>AFK: All relays used</Text>
 
-        {RELAYS_USED?.map((r) => {
+        {RELAYS_USED?.map((r, i) => {
           return (
-            <Text style={styles.text}>
+            <Text  key={i} style={styles.text}>
               Relay: {r}
             </Text>
           )

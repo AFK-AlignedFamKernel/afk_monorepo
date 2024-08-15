@@ -1,11 +1,10 @@
-import {Dimensions, Platform} from 'react-native';
+import {Platform} from 'react-native';
 
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modal: {
     paddingBottom: Spacing.xxlarge,
-    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%",
   },
 
   header: {

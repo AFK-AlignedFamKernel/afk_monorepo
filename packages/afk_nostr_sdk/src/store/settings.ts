@@ -11,11 +11,18 @@ type Action = {
   setRelays: (relays:string[]) => void;
 };
 
-export const settingsStore = createStore<State & Action>((set, get) => ({
-  relays: undefined as unknown as string[],
+const getDefaultValue = () => {
+  return {
+    relays:AFK_RELAYS
+  }
+}
+export const settingsStore = createStore<State & Action>( (set, get) => ({
+  // relays: undefined as unknown as string[],
+  relays: getDefaultValue().relays,
   setRelays: (relays) => {
     set({relays});
   },
 }));
+
 
 export const useSettingsStore = createBoundedUseStore(settingsStore);

@@ -14,8 +14,9 @@ import { WalletModalProvider } from '../context/WalletModal';
 import App from './App';
 import { StarknetProvider } from './StarknetProvider';
 // import { NostrProvider } from '../context/NostrContext';
-import {TanstackProvider} from 'afk_nostr_sdk';
-import {NostrProvider} from 'afk_nostr_sdk';
+import { TanstackProvider } from 'afk_nostr_sdk';
+import { NostrProvider } from 'afk_nostr_sdk';
+import { TipModalStarknetProvider } from '../context/TipModalStarknet';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
@@ -26,7 +27,9 @@ const ModalProviders = ({ children }: { children: React.ReactNode }) => {
       <WalletModalProvider>
         <TransactionModalProvider>
           <TipModalProvider>
-            <KeyModalProvider>{children}</KeyModalProvider>
+            <TipModalStarknetProvider>
+              <KeyModalProvider>{children}</KeyModalProvider>
+            </TipModalStarknetProvider>
           </TipModalProvider>
         </TransactionModalProvider>
       </WalletModalProvider>

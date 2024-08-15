@@ -42,7 +42,7 @@ pub trait IKeysMarketplace<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress
     );
-    fn instantiate_keys(ref self: TContractState,// token_quote: TokenQuoteBuyKeys,
+    fn instantiate_keys(ref self: TContractState, // token_quote: TokenQuoteBuyKeys,
     // bonding_type: KeysMarketplace::BondingType,
     );
     fn instantiate_keys_with_nostr(

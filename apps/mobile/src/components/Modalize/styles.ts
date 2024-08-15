@@ -1,10 +1,14 @@
-import {Platform} from 'react-native';
+import {Dimensions, Platform} from 'react-native';
 
 import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modal: {
     backgroundColor: theme.colors.surface,
+    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%",
+    // flex: 1, 
+    // justifyContent: 'center', 
+    // alignItems: 'center' 
   },
 
   header: {
