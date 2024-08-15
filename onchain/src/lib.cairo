@@ -12,7 +12,7 @@ pub mod types {
 // #[cfg(test)]
 // pub mod tests {
 //     pub mod keys;
-//     pub mod launchpad;
+//     pub mod launchpad_tests;
 // }
 
 

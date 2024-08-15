@@ -578,9 +578,8 @@ mod KeysMarketplace {
             let mut final_supply = total_supply + amount;
             if is_decreased {
                 final_supply = total_supply - amount;
-            } else {
-                final_supply = total_supply + amount;
             }
+
             let mut actual_supply = total_supply;
             // let final_supply = total_supply + amount;
             // let mut price = key.price.clone();
@@ -594,19 +593,37 @@ mod KeysMarketplace {
                 Option::Some(x) => {
                     match x {
                         BondingType::Linear => {
-                            // println!("Linear curve {:?}", x);
-                            let start_price = initial_key_price
-                                + (step_increase_linear * actual_supply);
-                            let end_price = initial_key_price
-                                + (step_increase_linear * final_supply);
-                            let total_price = amount * (start_price + end_price) / 2;
-                            // println!("total_price {}", total_price.clone());
-                            total_price
-                        },
-                        // BondingType::Scoring => { 0 },
-                        // BondingType::Exponential => { 0 },
-                        // BondingType::Limited => { 0 },
 
+                            if !is_decreased {
+                                let start_price = initial_key_price
+                                    + (step_increase_linear * actual_supply);
+                                println!("start_price {:?}", start_price);
+                                let end_price = initial_key_price
+                                    + (step_increase_linear * final_supply);
+                                println!("end_price{:?}", end_price);
+
+                                // let total_price = amount * (start_price + end_price) / 2;
+                                let total_price = (final_supply - actual_supply)
+                                    * (start_price + end_price)
+                                    / 2;
+                                total_price
+                            } else {
+                                let start_price = initial_key_price
+                                    + (step_increase_linear * final_supply);
+                                println!("start_price {:?}", start_price);
+                                let end_price = initial_key_price
+                                    + (step_increase_linear * actual_supply);
+                                println!("end_price{:?}", end_price);
+
+                                // let total_price = amount * (start_price + end_price) / 2;
+                                let total_price = (actual_supply - final_supply)
+                                    * (start_price + end_price)
+                                    / 2;
+
+                                // println!("total_price {}", total_price.clone());
+                                total_price
+                            }
+                        },
                         _ => {
                             let start_price = initial_key_price
                                 + (step_increase_linear * actual_supply);
