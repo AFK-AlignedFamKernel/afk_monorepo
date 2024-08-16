@@ -57,17 +57,10 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
-        renderItem={({ item }) => {
+        renderItem={({ item , index}) => {
           // console.log("key item", item)
           return (
-            <>
-              <TokenLaunchCard launch={item}></TokenLaunchCard>
-              {/* <View style={styles.tip}>
-                <View style={styles.tokenInfo}>
-                </View>
-                <Divider direction="horizontal" />
-              </View> */}
-            </>
+              <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>
 
           );
         }}

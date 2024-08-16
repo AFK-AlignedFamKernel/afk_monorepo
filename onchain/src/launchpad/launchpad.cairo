@@ -38,6 +38,9 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn buy_coin(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn buy_coin_by_quote_amount(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, amount: u256);
+
+    fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
+
     fn get_default_token(self: @TContractState,) -> TokenQuoteBuyKeys;
     fn get_price_of_supply_key(
         self: @TContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool
@@ -45,6 +48,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn get_coin_amount_by_quote_amount(
         self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
     ) -> u256;
+
+    fn get_quote_paid_by_amount_coin(
+        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+    ) -> u256;
+    
     fn get_key_of_user(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
     fn get_share_key_of_user(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
@@ -187,6 +195,8 @@ mod LaunchpadMarketplace {
         self.protocol_fee_destination.write(admin);
         self.step_increase_linear.write(step_increase_linear);
         self.total_keys.write(0);
+        self.total_token.write(0);
+        self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
     }
@@ -302,8 +312,9 @@ mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             // Update Launch pool with new values
 
-            let mut total_price = self.get_price_of_supply_key(coin_address, amount, false);
-            // println!("total_price {:?}", total_price);
+            // let mut total_price = self.get_price_of_supply_key(coin_address, amount, false);
+            let mut total_price = self._get_quote_paid_by_amount_coin(coin_address, amount, false);
+            println!("total_price {:?}", total_price);
 
             let old_price = pool_coin.price.clone();
             // println!("total price cal {:?}", total_price);
@@ -330,20 +341,20 @@ mod LaunchpadMarketplace {
 
             // TODO Fixed
 
-            if allowance >= amount
-            //  && balance_contract < amount 
-            {
-                println!("allowance ok {:?}", allowance);
-                memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
-            }
-            else if balance_contract >= amount {
-                let balance_contract = memecoin.balance_of(get_contract_address());
-                println!("buy amount balance_contract {:?}", balance_contract);
-                // TODO FIX
-                println!("transfer direct amount {:?}", amount);
-                memecoin.transfer(get_caller_address(), amount);
-            // memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
-            }
+            // if allowance >= amount
+            // //  && balance_contract < amount 
+            // {
+            //     println!("allowance ok {:?}", allowance);
+            //     memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
+            // }
+            // else if balance_contract >= amount {
+            //     let balance_contract = memecoin.balance_of(get_contract_address());
+            //     println!("buy amount balance_contract {:?}", balance_contract);
+            //     // TODO FIX
+            //     println!("transfer direct amount {:?}", amount);
+            //     memecoin.transfer(get_caller_address(), amount);
+            // // memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
+            // }
 
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
 
@@ -436,12 +447,12 @@ mod LaunchpadMarketplace {
             // 20% go the liquidity
             // 80% bought by others
             if pool_coin.liquidity_raised >= threshold {
-                // println!("mc threshold reached");
+                println!("mc threshold reached");
                 self._add_liquidity(coin_address);
             }
 
             if mc >= threshold_mc {
-                // println!("mc threshold reached");
+                println!("mc threshold reached");
                 self._add_liquidity(coin_address);
             }
 
@@ -474,26 +485,15 @@ mod LaunchpadMarketplace {
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let mut amount = self._get_coin_amount_by_quote_amount(coin_address, quote_amount, false);
-
-            let mut total_price = self.get_price_of_supply_key(coin_address, amount, false);
-            // println!("total_price {:?}", total_price);
-
+            println!("quote_amount {:?}", amount);
+            let mut total_price = quote_amount.clone();
+            println!("total_price {:?}", total_price);
             let old_price = pool_coin.price.clone();
-            // println!("total price cal {:?}", total_price);
             let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            // println!("amount_protocol_fee cal {:?}", amount_protocol_fee);
-
-            // let amount_creator_fee = total_price * creator_fee_percent / BPS;
             let mut remain_liquidity = total_price - amount_protocol_fee;
-            // println!("remain_liquidity cal {:?}", remain_liquidity);
-
             // Pay with quote token
-            // println!("amount_protocol_fee {:?}", amount_protocol_fee);
-
             let threshold_liquidity = self.threshold_liquidity.read();
-
             // Transfer quote & coin
-
             // TOdo fix issue price
             if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
                 // println!(
@@ -503,7 +503,6 @@ mod LaunchpadMarketplace {
 
                 total_price = threshold_liquidity - old_launch.liquidity_raised.clone();
                 // println!("total_price {:?}", total_price);
-
                 amount_protocol_fee = total_price * protocol_fee_percent / BPS;
                 remain_liquidity = total_price - amount_protocol_fee;
 
@@ -525,33 +524,14 @@ mod LaunchpadMarketplace {
                 // println!("remain_liquidity {:?}", remain_liquidity);
                 erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
             }
-
             // Sent coin
             // println!("amount transfer to buyer {:?}", amount);
 
-            let balance_contract = memecoin.balance_of(get_contract_address());
-            // println!("buy amount balance_contract {:?}", balance_contract);
+            // let balance_contract = memecoin.balance_of(get_contract_address());
+            // // println!("buy amount balance_contract {:?}", balance_contract);
 
-            let allowance = memecoin.allowance(pool_coin.owner.clone(), get_contract_address());
+            // let allowance = memecoin.allowance(pool_coin.owner.clone(), get_contract_address());
             // println!("amount allowance {:?}", allowance);
-
-            // TODO Fixed
-
-            if allowance >= amount && balance_contract < amount {
-                println!("allowance ok {:?}", allowance);
-                memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
-            }
-
-            if balance_contract < amount {
-                memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
-            } else if balance_contract >= amount {
-                let balance_contract = memecoin.balance_of(get_contract_address());
-                // println!("buy amount balance_contract {:?}", balance_contract);
-                // TODO FIX
-                // println!("transfer direct amount {:?}", amount);
-                memecoin.transfer(get_caller_address(), amount);
-            // memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
-            }
 
             // Update share and key stats
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
@@ -598,12 +578,12 @@ mod LaunchpadMarketplace {
             // 20% go the liquidity
             // 80% bought by others
             if pool_coin.liquidity_raised >= threshold {
-                // println!("mc threshold reached");
+                println!("mc threshold reached");
                 self._add_liquidity(coin_address);
             }
 
             if mc >= threshold_mc {
-                // println!("mc threshold reached");
+                println!("mc >= threshold_mc");
                 self._add_liquidity(coin_address);
             }
 
@@ -720,6 +700,12 @@ mod LaunchpadMarketplace {
                 );
         }
 
+        fn claim_coin_buy(ref self: ContractState, coin_address: ContractAddress, amount: u256) {
+
+        }
+
+        
+
         fn get_default_token(self: @ContractState) -> TokenQuoteBuyKeys {
             self.default_token.read()
         }
@@ -734,6 +720,12 @@ mod LaunchpadMarketplace {
             self: @ContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
         ) -> u256 {
             self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
+        }
+
+        fn get_quote_paid_by_amount_coin(
+            self: @ContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+        ) -> u256 {
+            self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
 
         fn get_key_of_user(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
@@ -780,9 +772,11 @@ mod LaunchpadMarketplace {
             Serde::serialize(@18, ref calldata);
 
             let (token_address, _) = deploy_syscall(
-                self.coin_class_hash.read(), contract_address_salt, calldata.span(), false
-            )
-                .unwrap();
+                self.coin_class_hash.read(), 
+                contract_address_salt,
+                calldata.span(), 
+                false
+            ).unwrap();
             // .unwrap_syscall();
             // println!("token address {:?}", token_address);
 
@@ -893,6 +887,17 @@ mod LaunchpadMarketplace {
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount_needed);
             self.launched_coins.write(coin_address, launch_token_pump.clone());
 
+
+            let total_launch = self.total_launch.read();
+            if total_launch == 0 {
+                self.total_launch.write(1);
+                self.array_launched_coins.write(0, launch_token_pump);
+            } else {
+                self.total_launch.write(total_launch + 1);
+                self.array_launched_coins.write(total_launch, launch_token_pump);
+            }
+
+
             self
                 .emit(
                     CreateLaunch {
@@ -912,123 +917,61 @@ mod LaunchpadMarketplace {
             return initial_price + (slope * supply);
         }
 
+        // Get amount of token received by token quote IN
         fn _get_coin_amount_by_quote_amount(
             self: @ContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
-
         ) -> u256  {
 
             let pool_coin= self.launched_coins.read(coin_address);
-
-            let mut coin_amount=0;
-            let slope= pool_coin.slope;
-            let mut a = slope/2;
-            let initial_price=pool_coin.initial_key_price.clone();
-            let mut current_supply=pool_coin.token_holded.clone();
-
-            let sold_supply=current_supply.clone();
-            let mut b=initial_price+slope* sold_supply-slope/2;
-            // let c = -quote_amount;
-            let c = quote_amount;
-
-
-            // Solving the quadratic equation: ax^2 + bx + c = 0
-            // x = (-b ± sqrt(b^2 - 4ac)) / 2a
-
-            // TODO how do negative number
-
-            let discriminant=(b*b) + (4*a*c);
-            assert!(discriminant > 0, "no real root");
-            let sqrt_discriminant= sqrt(discriminant);
-
-            // TODO B need to be negative
-
-            let n1= (b + sqrt_discriminant) / (2*a);
-            let n2= (b - sqrt_discriminant) / (2*a);
-
-            // let n1= (-b + sqrt_discriminant) / (2*a);
-            // let n2= (-b - sqrt_discriminant) / (2*a);
-
-
-            if n1 > n2 {
-                n1
-            } else {
-                n1
-            }
-
-
-            // let total_supply=pool_coin.total_supply.clone();
-
-            // let mut current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
-
-            // let mut amount= quote_amount.clone();
-
-            // println!("amount {:?}",amount);
-            // println!("current_price {:?}",amount);
-            // println!("total_supply {:?}",total_supply);
-            // println!("slope {:?}",slope);
-            // println!("current_supply {:?}",current_supply);
-
-            // while amount >= current_price && current_supply < total_supply / LIQUIDITY_RATIO {
-
-            //     amount-=current_price;
-            //     coin_amount+=1;
-            //     current_supply+=1;
-            //     current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
-            // };
-
-
-            // coin_amount
-            
+            let total_supply=pool_coin.total_supply.clone();
+            let current_supply = pool_coin.token_holded.clone();
+            let mut current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
+            // println!("current_price {:?}", current_price);
+            let k = current_supply * pool_coin.liquidity_raised;
+            // println!("k {:?}", k);
+            // let q_out = total_supply -  (k /  (quote_amount));
+            let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+            let q_out = (total_supply - liquidity_ratio) -  (k /  (quote_amount));
+            // println!("q_out {:?}", q_out);
+            q_out
         }
 
-        // fn _get_coin_amount_by_quote_amount(
-        //     self: @ContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+        // Get amount of quote to IN to buy an amount of coin
+        fn _get_quote_paid_by_amount_coin(
+            self: @ContractState, coin_address: ContractAddress, amount_to_buy: u256, is_decreased: bool
+        ) -> u256  {
 
-        // ) -> u256  {
+            let pool_coin= self.launched_coins.read(coin_address);
+            let current_supply = pool_coin.token_holded.clone();
+            let total_supply=pool_coin.total_supply.clone();
+            let threshold_liquidity = self.threshold_liquidity.read().clone();
+            let mut current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
+            // println!("current_price {:?}", current_price);
+            let k = current_supply * pool_coin.liquidity_raised;
+            // println!("k {:?}", k);
 
+            let k_max = total_supply * threshold_liquidity;
+            // println!("k_max {:?}", k_max);
 
-        //     let mut coin_amount=0;
-        //     let pool_coin= self.launched_coins.read(coin_address);
+            // let q_in = total_supply -  (k /  (quote_amount));
+            let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+            // println!("liquidity_ratio {:?}", liquidity_ratio);
+            // let q_in = (k /  (quote_amount)) - (total_supply - liquidity_ratio);
+            let q_in = (k /  (total_supply - amount_to_buy)) - (k_max / total_supply);
+            println!("q_in {:?}", q_in);
+            q_in
+        }
 
-
-        //     let mut current_supply=pool_coin.token_holded.clone();
-        //     let total_supply=pool_coin.total_supply.clone();
-
-        //     let mut current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
-
-        //     let mut amount= quote_amount.clone();
-
-        //     println!("amount {:?}",amount);
-        //     println!("current_price {:?}",amount);
-        //     println!("total_supply {:?}",total_supply);
-        //     println!("slope {:?}",slope);
-        //     println!("current_supply {:?}",current_supply);
-
-        //     while amount >= current_price && current_supply < total_supply / LIQUIDITY_RATIO {
-
-        //         amount-=current_price;
-        //         coin_amount+=1;
-        //         current_supply+=1;
-        //         current_price= self._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
-        //     };
-
-
-        //     coin_amount
-            
-        // }
 
         fn _calculate_pricing(ref self: ContractState, liquidity_available:u256)  -> (u256, u256) {
 
             let threshold_liquidity = self.threshold_liquidity.read();
             let slope= (2 *threshold_liquidity ) / (liquidity_available * (liquidity_available-1));
             // println!("slope {:?}", slope);
-
             let initial_price= (2* threshold_liquidity / liquidity_available) - slope *  (liquidity_available -1) / 2;
             // println!("initial_price {:?}", initial_price);
             (slope, initial_price)
         }
-
-      
 
         fn _get_price_of_supply_key(
             self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool

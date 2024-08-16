@@ -2,7 +2,7 @@ import {
     provider,
 } from "../utils/starknet";
 import { Account, cairo, constants } from "starknet";
-import { ESCROW_ADDRESS, TOKENS_ADDRESS, } from "../constants";
+import { CLASS_HASH, ESCROW_ADDRESS, TOKENS_ADDRESS, } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
@@ -23,12 +23,13 @@ export const deployLaunchpad = async () => {
     const step_increase_linear=cairo.uint256(1);
     const threshold_liquidity=cairo.uint256(1000);
     const threshold_marketcap=cairo.uint256(5000);
+    const TOKEN_CLASS_HASH= CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA]
     if (process.env.IS_DEPLOY_CONTRACT == "true") {
         let launchpadContract = await createLaunchpad(
             TOKEN_QUOTE_ADDRESS,
             initial_key_price,
             step_increase_linear,
-            cairo.felt("salt"),
+            TOKEN_CLASS_HASH,
             threshold_liquidity,
             threshold_marketcap,
 

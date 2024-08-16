@@ -10,6 +10,7 @@
     "deploy:key": "ts-node ./deploy/key.ts",
     "deploy:namespace": "ts-node ./deploy/namespace.ts",
     "deploy:launchpad": "ts-node ./deploy/launchpad.ts",
+    "deploy:token": "ts-node ./deploy/token.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"

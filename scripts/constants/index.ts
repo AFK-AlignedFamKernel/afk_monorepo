@@ -77,3 +77,12 @@ export const TOKENS_ADDRESS = {
         STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     },
 };
+
+
+
+export const CLASS_HASH = {
+    TOKEN: {
+        [constants.StarknetChainId.SN_SEPOLIA]:"0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a"
+    }
+
+}

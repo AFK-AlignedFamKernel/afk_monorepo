@@ -38,7 +38,7 @@ export const FormLaunchToken: React.FC = () => {
   const navigation = useNavigation<MainStackNavigationProps>();
   const account = useAccount()
   const waitConnection = useWaitConnection()
-  const { deployToken } = useCreateToken()
+  const { deployToken, deployTokenAndLaunch } = useCreateToken()
 
   const [type, setType] = useState(TypeCreate.CREATE)
   if (profile.isLoading) return null;
@@ -52,6 +52,7 @@ export const FormLaunchToken: React.FC = () => {
   };
 
   const onSubmitPress = (type: TypeCreate) => {
+    setType(type)
     formikRef.current?.handleSubmit();
   };
 
@@ -80,7 +81,16 @@ export const FormLaunchToken: React.FC = () => {
         contract_address_salt: values.contract_address_salt
       };
       if (!account || !account?.account) return;
-      let tx = await deployToken(account?.account, data);
+      console.log("test deploy")
+
+      let tx;
+      if(type == TypeCreate.CREATE) {
+        tx = await deployToken(account?.account, data);
+
+      } else {
+        tx = await deployTokenAndLaunch(account?.account, data);
+
+      }
 
       if (tx) {
         showToast({ type: 'success', title: 'Token launch created successfully' });
