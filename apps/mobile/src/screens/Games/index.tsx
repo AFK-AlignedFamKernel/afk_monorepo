@@ -55,8 +55,8 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
 
           {selectedTab == SelectedTab.LAUNCHPAD_VIEW &&
           <View>
-
-            <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
+            <Text>Coming soon</Text>
+            {/* <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent> */}
           </View>
           
           }
