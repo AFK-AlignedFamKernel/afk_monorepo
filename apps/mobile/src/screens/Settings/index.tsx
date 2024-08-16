@@ -12,7 +12,7 @@ import { HeaderScreen } from '../../components/HeaderScreen';
 import { useAuth, useSettingsStore } from 'afk_nostr_sdk';
 import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
 
-export const Setttings: React.FC<SettingsScreenProps> = ({ navigation }) => {
+export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const { showToast } = useToast();
   const { theme, toggleTheme } = useTheme();

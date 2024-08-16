@@ -14,8 +14,8 @@ export const useQueryAllLaunch = () => {
     queryKey: ['get_all_launch', CHAIN_ID],
     queryFn:async () => {
 
-      const launchs= await getAllLaunch()
-      return launchs
+      const launches= await getAllLaunch()
+      return launches
     },
     placeholderData:[]
   })

@@ -904,7 +904,7 @@ mod LaunchpadMarketplace {
                 );
         }
 
-        // TODO add liquidity to Ekubo, Jediswap and others exhanges enabled
+        // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
         fn _add_liquidity(ref self: ContractState, coin_address: ContractAddress) {}
 
         // Function to calculate the price for the next token to be minted

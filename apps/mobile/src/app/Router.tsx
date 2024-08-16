@@ -29,7 +29,7 @@ import { Games } from '../screens/Games';
 import { useAuth } from 'afk_nostr_sdk';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Navbar } from '../components/Navbar';
-import { Setttings } from '../screens/Settings';
+import { Settings } from '../screens/Settings';
 
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
@@ -203,7 +203,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Defi" component={Defi} />
       <DrawerStack.Screen name="Games" component={Games} />
       <DrawerStack.Screen name="Tips" component={Tips} />
-      <DrawerStack.Screen name="Settings" component={Setttings} />
+      <DrawerStack.Screen name="Settings" component={Settings} />
     </DrawerStack.Navigator>
   );
 };
