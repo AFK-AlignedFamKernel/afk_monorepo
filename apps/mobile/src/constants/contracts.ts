@@ -33,3 +33,13 @@ export const UNRUGGABLE_FACTORY_ADDRESS = {
 
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
+
+export const NAMESPACE_ADDRESS = {
+  [constants.StarknetChainId.SN_SEPOLIA]:"0x6e8ecfa6872bd27a7517077069b401a494687e66e2a98d37311eee1d96f1b57",
+  [constants.StarknetChainId.SN_MAIN]:""
+}
+
+export const LAUNCHPAD_ADDRESS =  {
+  [constants.StarknetChainId.SN_SEPOLIA]:"0x517110eac4a6e8a50a0966b386a3b19f1facf96a8adb393594a52edf6e9fcc7",
+  [constants.StarknetChainId.SN_MAIN]:"",
+}

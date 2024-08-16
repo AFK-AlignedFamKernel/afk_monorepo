@@ -3,7 +3,7 @@ import Svg, { G, Path, Rect, SvgProps } from 'react-native-svg';
 export const AddPostIcon: React.FC<SvgProps> = (props) => (
   <Svg viewBox="0 0 72 72" fill="none" {...props}>
     <Path
-      fill="#EC796B"
+      fill="currentColor"
       d="M30 3.464a12 12 0 0 1 12 0l19.177 11.072a12 12 0 0 1 6 10.392v22.144a12 12 0 0 1-6 10.392L42 68.536a12 12 0 0 1-12 0L10.823 57.464a12 12 0 0 1-6-10.392V24.928a12 12 0 0 1 6-10.392L30 3.464Z"
     />
     <Path

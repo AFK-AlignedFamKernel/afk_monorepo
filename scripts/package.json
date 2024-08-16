@@ -9,6 +9,7 @@
     "deploy:escrow": "ts-node ./deploy/escrow.ts",
     "deploy:key": "ts-node ./deploy/key.ts",
     "deploy:namespace": "ts-node ./deploy/namespace.ts",
+    "deploy:launchpad": "ts-node ./deploy/launchpad.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"

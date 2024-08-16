@@ -9,8 +9,10 @@ pub mod types {
     pub mod keys_types;
     pub mod launchpad_types;
 }
-// pub mod tests {
-//     pub mod keys;
-// }
+#[cfg(test)]
+pub mod tests {
+    pub mod keys_tests;
+    pub mod launchpad_tests;
+}
 
 

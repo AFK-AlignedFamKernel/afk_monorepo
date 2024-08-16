@@ -2,22 +2,24 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import NDK, {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 import { useAuth } from '../store/auth';
 import {AFK_RELAYS} from "../utils/relay"
+import { useSettingsStore } from '../store';
 export type NostrContextType = {
   ndk: NDK;
 };
 export const NostrContext = createContext<NostrContextType | null>(null);
 export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const privateKey = useAuth((state) => state.privateKey);
+  const relays = useSettingsStore((state) => state.relays);
 
   const [ndk, setNdk] = useState<NDK>(
     new NDK({
-      explicitRelayUrls: AFK_RELAYS,
+      explicitRelayUrls: relays ?? AFK_RELAYS,
     }),
   );
 
   useEffect(() => {
     const newNdk = new NDK({
-      explicitRelayUrls: AFK_RELAYS,
+      explicitRelayUrls: relays ?? AFK_RELAYS,
       signer: privateKey ? new NDKPrivateKeySigner(privateKey) : undefined,
     });
 

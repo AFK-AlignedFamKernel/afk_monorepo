@@ -11,6 +11,7 @@ export enum SelectedTab {
   VIEW_KEYS_MARKETPLACE,
   LAUNCH_TOKEN_PUMP,
   SLINK,
+  LAUNCHPAD_VIEW
 
 
 }
@@ -94,6 +95,11 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'Keys',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+  },
+  {
+    title: 'Pump',
+    screen: 'Launchpad',
+    tab: SelectedTab.LAUNCHPAD_VIEW,
   },
   {
     title: '?',

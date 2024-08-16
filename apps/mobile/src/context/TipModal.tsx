@@ -2,6 +2,7 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
 
 import {TipModal} from '../modules/TipModal';
+
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
 
 export type TipModalContextType = {

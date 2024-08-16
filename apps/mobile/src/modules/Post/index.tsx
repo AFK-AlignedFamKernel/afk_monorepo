@@ -13,9 +13,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from '../../assets/icons';
-import { Avatar, IconButton, Menu, Text } from '../../components';
+import { Avatar, Icon, IconButton, Menu, Text } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
-import {useProfile,  useReact, useReactions, useReplyNotes, } from "afk_nostr_sdk"
+import { useProfile, useReact, useReactions, useReplyNotes, } from "afk_nostr_sdk"
 import { useTipModal } from '../../hooks/modals';
 // import { useAuth } from '../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
@@ -38,6 +38,7 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
+  const [dimensionsMedia, setMediaDimensions] = useState([250,300])
   const { publicKey } = useAuth();
   const { show: showTipModal } = useTipModal();
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
@@ -77,8 +78,12 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
 
     const imageTag = event.tags.find((tag) => tag[0] === 'image');
     if (!imageTag) return;
-
-    const dimensions = imageTag[2].split('x').map(Number);
+    /** @TODO finish good dimensions with correct ratio and base on the Platform */
+    let dimensions = [250, 300]
+    if (imageTag[2]) {
+      dimensions = imageTag[2].split('x').map(Number)
+      setMediaDimensions(dimensions)
+    }
     return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
@@ -215,7 +220,11 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
               source={postSource}
               style={[
                 styles.contentImage,
-                { aspectRatio: getImageRatio(postSource.width, postSource.height) },
+                {
+                  // width:dimensionsMedia[0],
+                  height:dimensionsMedia[1],
+                  aspectRatio: getImageRatio(postSource.width, postSource.height)
+                },
               ]}
             />
           )}
@@ -226,15 +235,70 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
 
       {!asComment && (
         <View style={styles.footer}>
-          <Pressable onPress={handleNavigateToPostDetails}>
-            <View style={styles.footerComments}>
-              <CommentIcon height={20} color={theme.colors.textSecondary} />
+          <View style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "baseline",
+            gap: 10,
+          }}>
+            <Pressable onPress={handleNavigateToPostDetails}>
+              <View style={styles.footerComments}>
+                <CommentIcon height={20} color={theme.colors.textSecondary} />
 
-              <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                {comments.data?.pages.flat().length} comments
-              </Text>
-            </View>
-          </Pressable>
+                <Text color="textSecondary" fontSize={11} lineHeight={16}>
+                  {comments.data?.pages.flat().length} comments
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              style={{ marginHorizontal: 3 }}
+              onPress={() => {
+                if (!event) return;
+                showTipModal(event);
+              }}
+            >
+              <Icon name='CoinIcon'
+                size={20}
+                title='Tip'
+                onPress={() => {
+                  if (!event) return;
+
+                  showTipModal(event);
+                }}
+              />
+
+            </Pressable>
+          </View>
+
+
+
+
+          {/* <Pressable
+            // style={styles.seeMore}
+            onPress={() => {
+              if (!event) return;
+
+              showTipModal(event);
+            }}
+          >
+
+            <Icon name='CoinIcon'
+              size={24}
+              title='Tip'
+            />
+          </Pressable> */}
+          {/* 
+          <Menu.Item
+            label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
+            icon="CoinIcon"
+            onPress={() => {
+              if (!event) return;
+
+              showTipModal(event);
+              setMenuOpen(false);
+            }}
+          /> */}
 
           <Menu
             open={menuOpen}
@@ -243,7 +307,7 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
               <IconButton icon="MoreHorizontalIcon" size={20} onPress={() => setMenuOpen(true)} />
             }
           >
-            {/* <Menu.Item label="Share" icon="ShareIcon" /> */}
+            <Menu.Item label="Share" icon="ShareIcon" />
             <Menu.Item
               label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
               icon="CoinIcon"

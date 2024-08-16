@@ -52,8 +52,9 @@ pub struct TokenLaunch {
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyKeys,
     pub liquidity_raised: u256,
-    pub token_holded:u256,
-    pub is_liquidity_launch:bool
+    pub token_holded: u256,
+    pub is_liquidity_launch: bool,
+    pub slope:u256
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -109,7 +110,9 @@ pub struct BuyToken {
     pub amount: u256,
     pub price: u256,
     pub protocol_fee: u256,
-    pub creator_fee: u256
+    pub creator_fee: u256,
+    pub timestamp: u64,
+    pub last_price: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -121,7 +124,9 @@ pub struct SellToken {
     pub amount: u256,
     pub price: u256,
     pub protocol_fee: u256,
-    pub creator_fee: u256
+    pub creator_fee: u256,
+    pub timestamp: u64,
+    pub last_price: u256,
 }
 
 #[derive(Drop, starknet::Event)]
