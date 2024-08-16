@@ -20,8 +20,8 @@ export const useCreateToken = () => {
             entrypoint: 'create_token',
             calldata: CallData.compile({
                 owner: data?.recipient ?? account?.address,
-                name: data.name ?? "LFG",
                 symbol: data.symbol ?? "LFG",
+                name: data.name ?? "LFG",
                 initialSupply: cairo.uint256(data?.initialSupply ?? 100),
                 contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT
             }),

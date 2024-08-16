@@ -47,7 +47,7 @@ export const FormLaunchToken: React.FC = () => {
     symbol: 'MY_MAN',
     // ticker: '',
     initialSupply: 100_000_000,
-    contract_address_salt: "",
+    contract_address_salt: undefined,
     recipient: account?.address
   };
 
