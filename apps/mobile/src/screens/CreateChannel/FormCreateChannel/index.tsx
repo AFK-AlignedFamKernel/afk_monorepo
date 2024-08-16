@@ -12,7 +12,8 @@ import { useFileUpload } from '../../../hooks/api';
 import { useToast } from '../../../hooks/modals';
 import {
   useCreateChannel,
-  useProfile
+  useProfile,
+  useSettingsStore
 } from "afk_nostr_sdk"
 // import { useAuth } from '../../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
@@ -62,6 +63,7 @@ export const FormCreateChannel: React.FC<IFormCreateChannel> = ({ showBackButton
   const createChannel = useCreateChannel();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const {relays } = useSettingsStore()
 
   if (profile.isLoading) return null;
 
@@ -106,7 +108,7 @@ export const FormCreateChannel: React.FC<IFormCreateChannel> = ({ showBackButton
     github: profile.data?.github?.toString() ?? '',
     twitter: profile.data?.twitter?.toString() ?? '',
     tags: [],
-    relays: AFK_RELAYS,
+    relays: relays ?? AFK_RELAYS,
   };
 
   const onSubmitPress = () => {

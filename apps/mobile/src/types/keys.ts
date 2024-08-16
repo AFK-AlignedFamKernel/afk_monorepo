@@ -10,6 +10,35 @@ export interface KeysUser {
   token_quote: TokenQuoteBuyKeys;
 }
 
+export interface TokenLaunchInterface {
+  owner: string;
+  token_address: string;
+  price: Uint256;
+  initial_key_price: Uint256;
+  available_supply: Uint256;
+  bonding_curve_type?: BondingType;
+  total_supply: Uint256;
+  created_at: Uint256;
+  liquidity_raised: Uint256;
+  token_holded: Uint256;
+  is_liquidity_launch: boolean;
+  slope: Uint256;
+  token_quote: TokenQuoteBuyKeys;
+}
+
+export interface Token {
+  owner: string;
+  token_address: string;
+  price: Uint256;
+  symbol: string;
+  name: string;
+  total_supply: Uint256;
+  initial_supply: Uint256;
+  created_at: Uint256;
+  slope: Uint256;
+  token_quote: TokenQuoteBuyKeys;
+}
+
 export interface TokenQuoteBuyKeys {
   token_address: string;
   price: Uint256;

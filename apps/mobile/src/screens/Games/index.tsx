@@ -9,6 +9,7 @@ import { SelectedTab, TABS_MENU } from '../../types/tab';
 import stylesheet from './styles';
 import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 import { SlinksMap } from '../Slink/SlinksMap';
+import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme()
@@ -50,6 +51,14 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
               </View>
               <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
             </>
+          }
+
+          {selectedTab == SelectedTab.LAUNCHPAD_VIEW &&
+          <View>
+
+            <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
+          </View>
+          
           }
         </SafeAreaView>
       </KeyboardAvoidingView>

@@ -23,7 +23,7 @@ const UsernameInputLeft = (
 );
 
 type FormValues = DeployTokenFormValues;
-export const FormLaunchToken: React.FC = () => {
+export const FormLaunchTokenUnruggable: React.FC = () => {
   const formikRef = useRef<FormikProps<FormValues>>(null);
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);

@@ -8,16 +8,14 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { CopyIconStack } from '../../../assets/icons';
 import { Button, SquareInput, Text } from '../../../components';
 import {  useStyles, useTheme } from '../../../hooks';
-import { useProfile } from 'afk_nostr_sdk';
+import { useCreateChannel, useProfile, useSettingsStore } from 'afk_nostr_sdk';
 import { useFileUpload } from '../../../hooks/api';
 import { useToast } from '../../../hooks/modals';
-import { useCreateChannel } from '../../../hooks/nostr/channel/useCreateChannel';
 // import { useAuth } from '../../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
-
-import { AFK_RELAYS } from '../../../utils/relay';
 import { ChannelHead } from '../Head';
 import stylesheet from './styles';
+import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -55,6 +53,7 @@ export const FormCreateChannel: React.FC = () => {
   const createChannel = useCreateChannel();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const {relays } = useSettingsStore()
 
   if (profile.isLoading) return null;
 
@@ -99,7 +98,7 @@ export const FormCreateChannel: React.FC = () => {
     github: profile.data?.github?.toString() ?? '',
     twitter: profile.data?.twitter?.toString() ?? '',
     tags: [],
-    relays: AFK_RELAYS,
+    relays: relays ?? AFK_RELAYS,
   };
 
   const onSubmitPress = () => {

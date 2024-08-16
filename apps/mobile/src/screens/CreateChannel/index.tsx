@@ -9,7 +9,7 @@ import {ScrollView, TouchableOpacity, View} from 'react-native';
 import {CopyIconStack} from '../../assets/icons';
 import {Button, SquareInput, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
-import {useProfile,
+import {useProfile, useSettingsStore,
 } from "afk_nostr_sdk"
 import {useFileUpload} from '../../hooks/api';
 import {useToast} from '../../hooks/modals';
@@ -55,6 +55,7 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
   const fileUpload = useFileUpload();
   const createChannel = useCreateChannel();
   const queryClient = useQueryClient();
+  const {relays } = useSettingsStore()
   const {showToast} = useToast();
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -101,7 +102,7 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
     github: profile.data?.github?.toString() ?? '',
     twitter: profile.data?.twitter?.toString() ?? '',
     tags: [],
-    relays: AFK_RELAYS,
+    relays:relays ??  AFK_RELAYS,
   };
 
   const onSubmitPress = () => {

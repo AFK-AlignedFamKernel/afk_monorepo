@@ -5,12 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
 import { useStyles } from '../../hooks';
-import { FormLaunchToken } from '../../modules/LaunchToken/FormLaunchToken';
 import { CreateFormScreenProps } from '../../types';
 import { SelectedTab, TABS_FORM_CREATE } from '../../types/tab';
 import { FormCreateChannel } from '../CreateChannel/FormCreateChannel';
 import { FormCreatePost } from '../CreatePost/FormPost';
 import stylesheet from './styles';
+import { FormLaunchTokenUnruggable } from '../../modules/LaunchTokenUnruggable/FormLaunchTokenUnruggable';
 
 export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
@@ -46,7 +46,7 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
               showBackButton={false}
             ></FormCreateChannel>
           ) : (
-            selectedTab == SelectedTab.LAUNCH_TOKEN && <FormLaunchToken></FormLaunchToken>
+            selectedTab == SelectedTab.LAUNCH_TOKEN && <FormLaunchTokenUnruggable></FormLaunchTokenUnruggable>
           )}
         </SafeAreaView>
       </KeyboardAvoidingView>

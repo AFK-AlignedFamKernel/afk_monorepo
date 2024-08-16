@@ -8,17 +8,16 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { CopyIconStack } from '../../assets/icons';
 import { Button, SquareInput, Text } from '../../components';
-import { useProfile, useStyles, useTheme } from '../../hooks';
+import {  useStyles, useTheme } from '../../hooks';
 import { useFileUpload } from '../../hooks/api';
 import { useToast } from '../../hooks/modals';
-import { useCreateChannel } from '../../hooks/nostr/channel/useCreateChannel';
 // import { useAuth } from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
+import { useAuth, useCreateChannel, useProfile, useSettingsStore } from 'afk_nostr_sdk';
 
 import { CreateChannelScreenProps, MainStackNavigationProps } from '../../types';
-import { AFK_RELAYS } from '../../utils/relay';
 import { ChannelHead } from './Head';
 import stylesheet from './styles';
+import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -46,6 +45,8 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
 
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
+
+  const {relays} = useSettingsStore()
 
   const [profilePhoto, setProfilePhoto] = useState<ImagePicker.ImagePickerAsset | undefined>();
   const [coverPhoto, setCoverPhoto] = useState<ImagePicker.ImagePickerAsset | undefined>();
@@ -101,7 +102,7 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
     github: profile.data?.github?.toString() ?? '',
     twitter: profile.data?.twitter?.toString() ?? '',
     tags: [],
-    relays: AFK_RELAYS,
+    relays: relays ?? AFK_RELAYS,
   };
 
   const onSubmitPress = () => {
