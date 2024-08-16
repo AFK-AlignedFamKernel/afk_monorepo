@@ -106,13 +106,12 @@ pub struct BuyToken {
     #[key]
     pub caller: ContractAddress,
     #[key]
-    pub key_user: ContractAddress,
+    pub token_address: ContractAddress,
     pub amount: u256,
     pub price: u256,
     pub protocol_fee: u256,
-    pub creator_fee: u256,
-    pub timestamp: u64,
     pub last_price: u256,
+    pub timestamp: u64,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -135,8 +134,10 @@ pub struct CreateToken {
     pub caller: ContractAddress,
     #[key]
     pub token_address: ContractAddress,
+    pub symbol: felt252,
+    pub name: felt252,
+    pub initial_supply: u256,
     pub total_supply: u256,
-    pub initial_supply: u256
 }
 
 #[derive(Drop, starknet::Event)]

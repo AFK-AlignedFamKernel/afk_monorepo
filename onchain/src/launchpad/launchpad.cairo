@@ -460,13 +460,13 @@ mod LaunchpadMarketplace {
                 .emit(
                     BuyToken {
                         caller: get_caller_address(),
-                        key_user: coin_address,
+                        token_address: coin_address,
                         amount: amount,
                         price: total_price,
                         protocol_fee: amount_protocol_fee,
-                        creator_fee: 0,
-                        timestamp: get_block_timestamp(),
+                        // creator_fee: 0,
                         last_price: old_price,
+                        timestamp: get_block_timestamp(),
                     }
                 );
         }
@@ -591,13 +591,13 @@ mod LaunchpadMarketplace {
                 .emit(
                     BuyToken {
                         caller: get_caller_address(),
-                        key_user: coin_address,
+                        token_address: coin_address,
                         amount: amount,
                         price: total_price,
                         protocol_fee: amount_protocol_fee,
-                        creator_fee: 0,
-                        timestamp: get_block_timestamp(),
+                        // creator_fee: 0,
                         last_price: old_price,
+                        timestamp: get_block_timestamp(),
                     }
                 );
         }
@@ -798,8 +798,10 @@ mod LaunchpadMarketplace {
                     CreateToken {
                         caller: get_caller_address(),
                         token_address: token_address,
+                        symbol:symbol,
+                        name:name,
+                        initial_supply,
                         total_supply: initial_supply.clone(),
-                        initial_supply
                     }
                 );
             token_address
