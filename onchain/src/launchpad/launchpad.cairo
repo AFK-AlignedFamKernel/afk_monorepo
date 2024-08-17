@@ -671,7 +671,7 @@ mod LaunchpadMarketplace {
         }
 
         fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
-            let max_key_id = self.total_keys.read() + 1;
+            let max_key_id = self.total_launch.read() + 1;
             let mut keys: Array<TokenLaunch> = ArrayTrait::new();
             let mut i = 0; //Since the stream id starts from 0
             loop {

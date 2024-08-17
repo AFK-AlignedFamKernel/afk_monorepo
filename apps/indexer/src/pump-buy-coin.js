@@ -1,10 +1,5 @@
-export const FACTORY_ADDRESS = '0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc'
-export const STARTING_BLOCK = 615556
-export const LAUNCHPAD_ADDRESS = {
-    SEPOLIA:"0x74acb6752abb734a7b3388567429217988e02409d9bf43c5586dc2c4f8baf40",
-}
 import { hash, uint256 } from "https://esm.run/starknet@5.14";
-import { formatUnits } from "https://esm.run/viem@1.4";
+import { STARTING_BLOCK, LAUNCHPAD_ADDRESS} from "./constants";
 
 const filter = {
   header: {
@@ -21,7 +16,7 @@ const filter = {
 
 export const config = {
   streamUrl: 'https://sepolia.starknet.a5a.ch',
-  startingBlock: 100_000,
+  startingBlock: STARTING_BLOCK,
   network: 'starknet',
   finality: 'DATA_STATUS_ACCEPTED',
   filter,
@@ -36,7 +31,6 @@ export const config = {
 
 export default function DecodeBuyToken({ header, events }) {
   const { blockNumber, blockHash, timestamp } = header
-  console.log("header",header)
 
   return (events ?? []).map(({ event, transaction }) => {
     if (!event.data) return
@@ -44,7 +38,7 @@ export default function DecodeBuyToken({ header, events }) {
     const transactionHash = transaction.meta.hash
 
 
-    console.log("event data", event?.data)
+    // console.log("event data", event?.data)
     // return {
     //   transactionHash,
     //   block_hash: blockHash,
@@ -55,12 +49,16 @@ export default function DecodeBuyToken({ header, events }) {
     //   from_address: fromAddress,
     // }
 
-    const [caller, token_address,
-      amount_low, amount_high,
-      price_low, price_high,
-      protocol_fee_low, protocol_fee_high,
-      
-      initial_supply_low, initial_supply_high, 
+    const [caller, 
+      token_address,
+      amount_low,
+       amount_high,
+      price_low, 
+      price_high,
+      protocol_fee_low, 
+      protocol_fee_high,
+      initial_supply_low, 
+      initial_supply_high, 
       // total_supply_low, total_supply_high,
     
     ] = event.data;

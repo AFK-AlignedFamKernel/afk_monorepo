@@ -14,7 +14,8 @@
     "NETWORK_NAME",
     "PINATA_API_KEY",
     "PINATA_SECRET_API_KEY",
-    "IPFS_GATEWAY"
+    "IPFS_GATEWAY",
+    "INDEXER_DATABASE_URL"
   ],
   "pipeline": {
     "build": {
