@@ -8,7 +8,27 @@ pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 pub const BURNER_ROLE: felt252 = selector!("BURNER_ROLE");
 pub const OPERATOR: felt252 = selector!("OPERATOR");
 
+#[derive(Drop, Copy, Serde, Hash)]
+pub enum SupportedExchanges {
+    Jediswap,
+    // Ekubo,
+    // Starkdefi,
+}
+
+#[derive(Serde, Copy, // Clone,
+    Drop, starknet::Store, //  PartialEq
+   )]
+   pub enum BondingType {
+       Linear,
+       Trapezoidal,
+       Scoring, // Nostr data with Appchain connected to a Relayer
+       Exponential,
+       Limited
+   }
+
+
 // Storage
+
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct TokenQuoteBuyKeys {
@@ -83,17 +103,8 @@ pub struct SharesKeys {
     pub total_paid: u256,
 }
 
-#[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, //  PartialEq
-)]
-pub enum BondingType {
-    Linear,
-    Scoring, // Nostr data with Appchain connected to a Relayer
-    Exponential,
-    Limited
-}
 
-// Event
+// Events
 
 #[derive(Drop, starknet::Event)]
 pub struct StoredName {
@@ -169,9 +180,27 @@ pub struct SetJediwapNFTRouterV2 {
     pub address_jediswap_nft_router_v2:ContractAddress,
 }
 
-#[derive(Drop, Copy, Serde, Hash)]
-pub enum SupportedExchanges {
-    Jediswap,
-    // Ekubo,
-    // Starkdefi,
+#[derive(Drop, starknet::Event)]
+pub struct LiquidityCreated {
+    #[key]
+    pub id:u256,
+    #[key]
+    pub pool:ContractAddress,
+    #[key]
+    pub asset: ContractAddress,
+    #[key]
+    pub quote_token_address:ContractAddress,
+    // pub token_id:u256,
+    pub owner:ContractAddress
 }
+
+#[derive(Drop, starknet::Event)]
+pub struct TokenClaimed {
+    #[key]
+    pub token_address:ContractAddress,
+    #[key]
+    pub owner: ContractAddress,
+    pub amount:u256,
+    pub timestmap:u64
+}
+

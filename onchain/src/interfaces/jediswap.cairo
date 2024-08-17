@@ -6,7 +6,7 @@ use starknet::{
 
 
 #[starknet::interface]
-trait IJediswapV1<TState> {// ************************************
+pub trait IJediswapV1<TState> {// ************************************
 // * snake_case
 // ************************************
 
@@ -14,7 +14,7 @@ trait IJediswapV1<TState> {// ************************************
 
 
 #[starknet::interface]
-trait IJediswapFactoryV2<TState> {
+pub trait IJediswapFactoryV2<TState> {
     // ************************************
     // * snake_case
     // ************************************
@@ -33,14 +33,14 @@ trait IJediswapFactoryV2<TState> {
 }
 
 #[starknet::interface]
-trait IJediswapRouterV2<TState> {// ************************************
+pub trait IJediswapRouterV2<TState> {// ************************************
 // * snake_case
 // ************************************
 
 }
 
 #[starknet::interface]
-trait IJediswapNFTRouterV2<TState> {
+pub trait IJediswapNFTRouterV2<TState> {
     // ************************************
     // * snake_case
     // ************************************
@@ -60,5 +60,6 @@ trait IJediswapNFTRouterV2<TState> {
     fn get_position(
         self: @TState, token_id: u256, token_b: ContractAddress, fee: u32
     ) -> ContractAddress;
+    fn factory(self: @TState) -> ContractAddress;
 }
 

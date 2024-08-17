@@ -18,8 +18,6 @@ mod launchpad_tests {
     };
     use starknet::syscalls::deploy_syscall;
 
-    // const INITIAL_KEY_PRICE:u256=1/100;
-
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         get_block_timestamp, get_contract_address, ClassHash
@@ -199,14 +197,14 @@ mod launchpad_tests {
         token_address: ContractAddress,
         sender_address: ContractAddress,
     ) {
-        let amount_to_paid = launchpad
-            .get_price_of_supply_key(token_address, amount_key_buy, false, //    1,
-            );
-        println!("test amount_to_paid erc20 {:?}", amount_to_paid);
+        // let amount_to_paid = launchpad
+        //     .get_price_of_supply_key(token_address, amount_key_buy, false, //    1,
+        //     );
+        // println!("test amount_to_paid erc20 {:?}", amount_to_paid);
 
         start_cheat_caller_address(erc20.contract_address, sender_address);
 
-        erc20.approve(launchpad.contract_address, amount_to_paid);
+        // erc20.approve(launchpad.contract_address, amount_to_paid);
 
         let allowance = erc20.allowance(sender_address, launchpad.contract_address);
         println!("test allowance erc20 {}", allowance);
@@ -218,7 +216,9 @@ mod launchpad_tests {
         let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
         println!("test allowance meme coin{}", allowance);
 
-        launchpad.buy_coin(token_address, amount_key_buy);
+
+        let amount_to_receive=true;
+        // launchpad.buy_coin_by_quote_amount(token_address, amount_key_buy, amount_to_receive);
     }
 
     fn run_buy_by_amount(
@@ -450,7 +450,6 @@ mod launchpad_tests {
 
     }
 
-
     #[test]
     fn launchpad_integration() {
         println!("launchpad_integration");
@@ -472,8 +471,7 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
             );
-        println!("test token_address {:?}", token_address);
-
+        // println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         start_cheat_caller_address(memecoin.contract_address, sender_address);
 
@@ -486,8 +484,12 @@ mod launchpad_tests {
 
         let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
         println!("test allowance meme coin{}", allowance);
-        memecoin.transfer(launchpad.contract_address, total_supply);
+        // memecoin.transfer(launchpad.contract_address, total_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
 
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.launch_token(token_address);
         let amount_first_buy = 10_u256;
 
         let res = run_buy_by_amount(
