@@ -13,7 +13,7 @@ export const deployLaunchpad = async () => {
 
     let launchpad;
 
-    let launchpad_address: string | undefined = ESCROW_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as any // change default address
+    let launchpad_address: string | undefined;
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
@@ -44,7 +44,7 @@ export const deployLaunchpad = async () => {
             threshold_marketcap,
 
         );
-        console.log("escrow address", launchpadContract?.contract_address)
+        console.log("launchpadContract address", launchpadContract?.contract_address)
         if (launchpadContract?.contract_address) {
             launchpad_address = launchpadContract?.contract_address
             launchpad = await prepareAndConnectContract(launchpad_address ?? launchpadContract?.contract_address, account)
