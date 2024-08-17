@@ -40,6 +40,7 @@ export const NAMESPACE_ADDRESS = {
 }
 
 export const LAUNCHPAD_ADDRESS =  {
-  [constants.StarknetChainId.SN_SEPOLIA]:"0x517110eac4a6e8a50a0966b386a3b19f1facf96a8adb393594a52edf6e9fcc7",
+  // [constants.StarknetChainId.SN_SEPOLIA]:"0x517110eac4a6e8a50a0966b386a3b19f1facf96a8adb393594a52edf6e9fcc7",
+  [constants.StarknetChainId.SN_SEPOLIA]:"0x74acb6752abb734a7b3388567429217988e02409d9bf43c5586dc2c4f8baf40",
   [constants.StarknetChainId.SN_MAIN]:"",
 }

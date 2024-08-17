@@ -28,6 +28,7 @@ export const deployEscrow = async () => {
 
     }
 
+    /** TODO script to save constants address */
 
     return {
         escrow, escrow_address

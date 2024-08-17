@@ -66,9 +66,8 @@ export const useBuyCoinByQuoteAmount = () => {
       entrypoint: 'approve',
       calldata: CallData.compile({
         address: addressContract,
-        amount: amountToPaid ? cairo.uint256(amountToPaid) : cairo.uint256(1),
+        amount: amount,
       }),
-      // calldata: [buyKeysParams.user_address, buyKeysParams.amount]
     };
 
     const buyKeysCall = {
@@ -78,10 +77,8 @@ export const useBuyCoinByQuoteAmount = () => {
         user_address: buyKeysParams.user_address,
         quote_amount: buyKeysParams.amount,
       }),
-      // calldata: [buyKeysParams.user_address, buyKeysParams.amount]
     };
 
-    console.log('CabuyKeysCallll', buyKeysCall);
 
     const tx = await account?.execute([approveCall, buyKeysCall], undefined, {});
     console.log('tx hash', tx.transaction_hash);

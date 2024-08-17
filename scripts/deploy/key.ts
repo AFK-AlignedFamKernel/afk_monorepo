@@ -46,6 +46,7 @@ export const deployKeys = async () => {
             account
         );
     }
+    /** TODO script to save constants address */
 
     return {
         key_marketplace, keys_address

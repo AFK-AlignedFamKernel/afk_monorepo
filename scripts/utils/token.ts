@@ -22,15 +22,15 @@ dotenv.config();
 const STARKNET_URL = process.env.RPC_ENDPOINT || "http://127.0.0.1:5050";
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../onchain/target/dev/joyboy_ERC20Upgradeable.contract_class.json"
+  "../../onchain/target/dev/afk_ERC20.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/target/dev/joyboy_ERC20Upgradeable.compiled_contract_class.json"
+  "../../onchain/target/dev/afk_ERC20.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createToken = async () => {
+export const createToken = async (total_supply?:number, name?:string, symbol?:string,) => {
   try {
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
@@ -54,11 +54,23 @@ export const createToken = async () => {
     });
     console.log("declareIfNot", declareIfNot);
 
+    if(declareIfNot?.transaction_hash) {
+      console.log("Declare deploy", declareIfNot?.transaction_hash);
+      await provider.waitForTransaction(declareIfNot?.transaction_hash);
+      const contractClassHash = declareIfNot.class_hash;
+      console.log("Todo contractClassHash", contractClassHash);
+    }
+
+
+
     const contractConstructor: Calldata = CallData.compile({
-      symbol: byteArray.byteArrayFromString("JOY"),
-      name: byteArray.byteArrayFromString("JOYBOY"),
-      total_supply: cairo.uint256(10000),
+      symbol: cairo.felt(symbol ?? "AFK BRO"),
+      name: cairo.felt(name ?? "AFK FAM"),
+      // symbol: byteArray.byteArrayFromString(symbol ?? "AFK BRO"),
+      // name: byteArray.byteArrayFromString(name ?? "AFK FAM"),
+      total_supply: cairo.uint256(total_supply ?? 10000),
       recipient: account0?.address,
+      decimals:18,
     });
 
     let ERC20_HASH =

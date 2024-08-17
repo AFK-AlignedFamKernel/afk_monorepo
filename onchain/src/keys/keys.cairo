@@ -593,7 +593,6 @@ mod KeysMarketplace {
                 Option::Some(x) => {
                     match x {
                         BondingType::Linear => {
-
                             if !is_decreased {
                                 let start_price = initial_key_price
                                     + (step_increase_linear * actual_supply);

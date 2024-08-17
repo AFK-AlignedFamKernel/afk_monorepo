@@ -77,3 +77,23 @@ export const TOKENS_ADDRESS = {
         STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     },
 };
+
+
+
+export const CLASS_HASH = {
+    TOKEN: {
+        [constants.StarknetChainId.SN_SEPOLIA]:"0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a"
+    }
+
+}
+
+export const JEDISWAP_V2_NFT_ROUTER = {
+    [constants.StarknetChainId.SN_SEPOLIA]:"0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399",
+    [constants.StarknetChainId.SN_MAIN]:"",
+}
+
+
+export const JEDISWAP_V2_FACTORY = {
+    [constants.StarknetChainId.SN_SEPOLIA]:"0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
+    [constants.StarknetChainId.SN_MAIN]:"",
+}
