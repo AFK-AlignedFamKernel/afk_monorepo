@@ -24,7 +24,7 @@ git submodule add https://github.com/kkrt-labs/kakarot-rpc lib/kakarot-rpc
 
 git submodule add https://github.com/kkrt-labs/kakarot-lib solidity_contracts/lib/kakarot-lib
 
-git submodule add https://github.com/kkrt-labs/kakarot-lib solidity_contracts/lib/forge-std
+git submodule add https://github.com/foundry-rs/forge-std solidity_contracts/lib/forge-std
 
 pnpm i .  && cp .env.example .env
 ```
