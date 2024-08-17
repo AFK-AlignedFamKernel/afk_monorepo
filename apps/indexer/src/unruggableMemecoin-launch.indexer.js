@@ -1,5 +1,5 @@
-import { Block, hash, shortString } from './deps.ts'
-import { FACTORY_ADDRESS, STARTING_BLOCK } from './constants.ts'
+import { Block, hash, shortString } from './deps.js'
+import { FACTORY_ADDRESS, STARTING_BLOCK } from './constants.js'
 
 const filter = {
   header: {
@@ -27,8 +27,8 @@ export const config = {
   },
 }
 
-export default function DecodeUnruggableMemecoinLaunch({ header, events }: Block) {
-  const { blockNumber, blockHash, timestamp } = header!
+export default function DecodeUnruggableMemecoinLaunch({ header, events }) {
+  const { blockNumber, blockHash, timestamp } = header
 
   return (events ?? []).map(({ event, transaction }) => {
     if (!event.data) return

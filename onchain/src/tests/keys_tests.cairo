@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod keys_tests {
     use afk::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
     use afk::types::keys_types::{
         MINTER_ROLE, ADMIN_ROLE, KeysBonding, TokenQuoteBuyKeys, BondingType
     };
@@ -20,7 +21,6 @@ mod keys_tests {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         get_block_timestamp, get_contract_address
     };
-    use afk::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
 
     // const INITIAL_KEY_PRICE:u256=1/100;
     const INITIAL_KEY_PRICE: u256 = 1;

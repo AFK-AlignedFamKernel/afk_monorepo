@@ -1,47 +1,61 @@
 import { Block, hash, uint256 } from './deps.js'
-import { FACTORY_ADDRESS, LAUNCHPAD_ADDRESS, STARTING_BLOCK } from './constants.js'
+import { FACTORY_ADDRESS, STARTING_BLOCK } from './constants.js'
 
 export const config = {
   filter: {
     header: { weak: true },
     events: [
       {
-        fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
-        keys: [hash.getSelectorFromName('CreateLaunch')],
+        fromAddress: FACTORY_ADDRESS,
+        keys: [hash.getSelectorFromName('MemecoinLaunched')],
         includeReceipt: false,
       },
     ],
   },
-  streamUrl: 'https://sepolia.starknet.a5a.ch',
+  streamUrl: 'https://mainnet.starknet.a5a.ch',
   startingBlock: STARTING_BLOCK,
   network: 'starknet',
   finality: 'DATA_STATUS_ACCEPTED',
   sinkType: 'postgres',
   sinkOptions: {
     connectionString: '',
-    tableName: 'token_launch',
+    tableName: 'unrugmeme_transfers',
   },
 }
 
+export function factory({ header, events }) {
+  const launchEvents = (events ?? []).map(({ event }) => {
+    const memecoin_address = event.data?.[0]
+    return {
+      fromAddress: memecoin_address,
+      keys: [hash.getSelectorFromName('Transfer')],
+      includeReceipt: false,
+    }
+  })
 
-export default function DecodeTokenLaunch({ header, events }: Block) {
-  const { blockNumber, blockHash, timestamp } = header!
+  return {
+    filter: {
+      header: { weak: true },
+      events: launchEvents,
+    },
+  }
+}
+
+export default function DecodeUnruggableMemecoinLaunch({ header, events }) {
+  const { blockNumber, blockHash, timestamp } = header
 
   return (events ?? []).map(({ event, transaction }) => {
     if (!event.data || !event.keys) return
-
-    const [caller, token_address, amount, price] = event.data
-
 
     const transactionHash = transaction.meta.hash
     const transferId = `${transactionHash}_${event.index ?? 0}`
     const fromAddress = event.keys[1]
     const toAddress = event.keys[2]
-    // const caller = uint256.uint256ToBN({ low: event.data[0], high: event.data[1] })
-    // const amount = uint256.uint256ToBN({ low: event.data[0], high: event.data[1] })
+    const amount = uint256.uint256ToBN({ low: event.data[0], high: event.data[1] })
+    const memecoin_address = event.fromAddress
 
     return {
-      network: 'starknet-sepolia',
+      network: 'starknet-mainnet',
       block_hash: blockHash,
       block_number: Number(blockNumber),
       block_timestamp: timestamp,
@@ -49,7 +63,7 @@ export default function DecodeTokenLaunch({ header, events }: Block) {
       transfer_id: transferId,
       from_address: fromAddress,
       to_address: toAddress,
-      memecoin_address: token_address,
+      memecoin_address: memecoin_address,
       amount: amount.toString(10),
       created_at: new Date().toISOString(),
     }

@@ -194,13 +194,13 @@ pub fn is_valid_stark_signature(
     }
 }
 
-pub fn sqrt(y:u256) -> u256 {
-    let mut z = (y+1)/2;
-    let mut x=y;
+pub fn sqrt(y: u256) -> u256 {
+    let mut z = (y + 1) / 2;
+    let mut x = y;
 
     while z < x {
-        x=z;
-        z=(y/z+z)/2;
+        x = z;
+        z = (y / z + z) / 2;
     };
 
     x

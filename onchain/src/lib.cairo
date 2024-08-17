@@ -15,4 +15,3 @@ pub mod tests {
     pub mod launchpad_tests;
 }
 
-
