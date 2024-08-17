@@ -59,19 +59,19 @@ export default function DecodeBuyToken({ header, events }) {
     }
 
     // const [caller, token_address,
-    //   amount_low, amount_hight,
-    //   price_low, price_hight,
-    //   protocol_fee_low, protocol_fee_hight,
+    //   amount_low, amount_high,
+    //   price_low, price_high,
+    //   protocol_fee_low, protocol_fee_high,
       
     //   initial_supply_low, initial_supply_high, 
     //   // total_supply_low, total_supply_high,
     
     // ] = event.data;
-    // const amount = uint256.uint256ToBN({ low: amount_low, high: amount_hight }).toString()
+    // const amount = uint256.uint256ToBN({ low: amount_low, high: amount_high }).toString()
     // const initial_supply = uint256.uint256ToBN({ low: initial_supply_low, high: initial_supply_high }).toString()
     // // const total_supply = uint256.uint256ToBN({ low: total_supply_low, high: total_supply_high }).toString()
-    // const price = uint256.uint256ToBN({ low: price_low, high: price_hight }).toString()
-    // const protocol_fee = uint256.uint256ToBN({ low: protocol_fee_low, high: protocol_fee_hight }).toString()
+    // const price = uint256.uint256ToBN({ low: price_low, high: price_higt }).toString()
+    // const protocol_fee = uint256.uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high }).toString()
 
     // return {
     //   network: 'starknet-sepolia',

@@ -102,7 +102,7 @@ mod LaunchpadMarketplace {
     const LIQUIDITY_RATIO: u256 = 5;
     const PAY_TO_LAUNCH: u256 = 1; // amount in the coin used
     
-    const LIQUIDITY_PERCETANGE: u256 = 2000; //20%
+    const LIQUIDITY_PERCENTAGE: u256 = 2000; //20%
 
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
@@ -909,7 +909,7 @@ mod LaunchpadMarketplace {
                 pool = factory.create_pool(token_a,token_b, fee);
                 pool= nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
                 // TODO Increase liquidity with router if exist
-                // Approve token asset and quote to be transfered
+                // Approve token asset and quote to be transferred
                 let token_asset = IERC20Dispatcher {contract_address:token_a};
                 let token_quote = IERC20Dispatcher {contract_address:token_b};
                 token_asset.approve(nft_router_address, amount_coin_liq);
