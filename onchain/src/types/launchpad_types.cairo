@@ -158,3 +158,20 @@ pub struct LaunchUpdated {
     supply: u256,
     price: u256
 }
+
+#[derive(Drop, starknet::Event)]
+pub struct SetJediwapV2Factory {
+    pub address_jediswap_factory_v2:ContractAddress,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct SetJediwapNFTRouterV2 {
+    pub address_jediswap_nft_router_v2:ContractAddress,
+}
+
+#[derive(Drop, Copy, Serde, Hash)]
+pub enum SupportedExchanges {
+    Jediswap,
+    // Ekubo,
+    // Starkdefi,
+}

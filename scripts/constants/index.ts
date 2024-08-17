@@ -86,3 +86,14 @@ export const CLASS_HASH = {
     }
 
 }
+
+export const JEDISWAP_V2_NFT_ROUTER = {
+    [constants.StarknetChainId.SN_SEPOLIA]:"0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399",
+    [constants.StarknetChainId.SN_MAIN]:"",
+}
+
+
+export const JEDISWAP_V2_FACTORY = {
+    [constants.StarknetChainId.SN_SEPOLIA]:"0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
+    [constants.StarknetChainId.SN_MAIN]:"",
+}

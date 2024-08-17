@@ -1,6 +1,8 @@
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-    TokenQuoteBuyKeys, TokenLaunch, SharesKeys, BondingType, Token, CreateLaunch
+    TokenQuoteBuyKeys, TokenLaunch, SharesKeys, BondingType, Token, CreateLaunch,
+    SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges
+
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
@@ -17,7 +19,9 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress
     );
-
+    fn set_address_jediswap_factory_v2(ref self:TContractState, address_jediswap_factory_v2:ContractAddress);
+    fn set_address_jediswap_nft_router_v2(ref self:TContractState, address_jediswap_nft_router_v2:ContractAddress);
+    fn set_exchanges_address(ref self:TContractState,  exchanges: Span<(SupportedExchanges, ContractAddress)>);
     fn create_token(
         ref self: TContractState,
         recipient: ContractAddress,
@@ -76,7 +80,9 @@ mod LaunchpadMarketplace {
     };
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesKeys, MINTER_ROLE,
-        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyKeys, CreateLaunch
+        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyKeys, CreateLaunch,
+    SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges
+
     };
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -110,13 +116,15 @@ mod LaunchpadMarketplace {
 
     #[storage]
     struct Storage {
+        // Admin & others contract
         coin_class_hash: ClassHash,
         quote_tokens: LegacyMap::<ContractAddress, bool>,
+        exchange_configs: LegacyMap<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
-        threshold_liquidity: u256,
-        threshold_market_cap: u256,
-        liquidity_raised_amount_in_dollar: u256,
-        names: LegacyMap::<ContractAddress, felt252>,
+        protocol_fee_destination: ContractAddress,
+        address_jediswap_factory_v2:ContractAddress,
+        address_jediswap_nft_router_v2:ContractAddress,
+        // User states
         token_created: LegacyMap::<ContractAddress, Token>,
         launched_coins: LegacyMap::<ContractAddress, TokenLaunch>,
         pumped_coins: LegacyMap::<ContractAddress, TokenLaunch>,
@@ -125,19 +133,25 @@ mod LaunchpadMarketplace {
         array_launched_coins: LegacyMap::<u64, TokenLaunch>,
         tokens_created: LegacyMap::<u64, Token>,
         launch_created: LegacyMap::<u64, TokenLaunch>,
+
+        // Parameters
         is_tokens_buy_enable: LegacyMap::<ContractAddress, TokenQuoteBuyKeys>,
         default_token: TokenQuoteBuyKeys,
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
         dollar_price_percentage: u256,
         initial_key_price: u256,
+        threshold_liquidity: u256,
+        threshold_market_cap: u256,
+        liquidity_raised_amount_in_dollar: u256,
+
         protocol_fee_percent: u256,
         creator_fee_percent: u256,
         is_fees_protocol: bool,
         step_increase_linear: u256,
-        is_custom_key_enable: bool,
+
+        is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
-        protocol_fee_destination: ContractAddress,
         total_keys: u64,
         total_token: u64,
         total_launch: u64,
@@ -157,6 +171,8 @@ mod LaunchpadMarketplace {
         CreateToken: CreateToken,
         LaunchUpdated: LaunchUpdated,
         CreateLaunch: CreateLaunch,
+        SetJediwapV2Factory: SetJediwapV2Factory,
+        SetJediwapNFTRouterV2: SetJediwapNFTRouterV2,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -187,7 +203,7 @@ mod LaunchpadMarketplace {
             is_enable: true,
             step_increase_linear
         };
-        self.is_custom_key_enable.write(false);
+        self.is_custom_launch_enable.write(false);
         self.is_custom_token_enable.write(false);
         self.default_token.write(init_token.clone());
         self.initial_key_price.write(init_token.initial_key_price);
@@ -250,6 +266,36 @@ mod LaunchpadMarketplace {
             self.dollar_price_percentage.write(bps);
         }
 
+        // Jediwswap factory address
+        fn set_address_jediswap_factory_v2(ref self:ContractState, address_jediswap_factory_v2:ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // self.ownable.assert_only_owner();
+            self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
+            self.emit(SetJediwapV2Factory{ address_jediswap_factory_v2:address_jediswap_factory_v2});
+        }
+
+        fn set_address_jediswap_nft_router_v2(ref self:ContractState, address_jediswap_nft_router_v2:ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
+            self.emit(SetJediwapNFTRouterV2{ address_jediswap_nft_router_v2:address_jediswap_nft_router_v2});
+
+        }
+
+        fn set_exchanges_address(ref self:ContractState, exchanges:Span<(SupportedExchanges, ContractAddress)>) {
+
+            let mut dex= exchanges;
+            // Add Exchanges configurations
+            loop {
+                match dex.pop_front() {
+                    Option::Some((exchange, address)) => self
+                        .exchange_configs
+                        .write(*exchange, *address),
+                    Option::None => { break; }
+                }
+            };
+        }
+
+        
 
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);

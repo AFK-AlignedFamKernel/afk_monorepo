@@ -34,6 +34,7 @@ export const deployToken = async () => {
     } else {
 
     }
+    /** TODO script to save constants address */
 
 
     return {

@@ -35,6 +35,7 @@ export const deployNamespace = async () => {
             account
         );
     }
+    /** TODO script to save constants address */
 
     return {
         namespaceContract, namespace_address
