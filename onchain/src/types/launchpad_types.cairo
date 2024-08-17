@@ -201,6 +201,6 @@ pub struct TokenClaimed {
     #[key]
     pub owner: ContractAddress,
     pub amount:u256,
-    pub timestmap:u64
+    pub timestamp:u64
 }
 
