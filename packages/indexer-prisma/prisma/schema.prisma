@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("INDEXER_DATABASE_URL")
+}
+
+model buy_token {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String    @id
+  owner_address    String?
+  last_price       String?
+  initial_supply   String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
+
+model token_deploy {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String    @id
+  owner_address    String?
+  name             String?
+  symbol           String?
+  initial_supply   String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
+
+model token_launch {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String    @id
+  quote_token      String?
+  exchange_name    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
+
+model unrugmeme_deploy {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String    @id
+  owner_address    String?
+  name             String?
+  symbol           String?
+  initial_supply   String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
+
+model unrugmeme_launch {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String    @id
+  quote_token      String?
+  exchange_name    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
+
+model unrugmeme_transfers {
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  transfer_id      String    @id
+  from_address     String?
+  to_address       String?
+  memecoin_address String?
+  amount           String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+}
