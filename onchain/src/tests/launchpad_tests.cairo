@@ -216,9 +216,8 @@ mod launchpad_tests {
         let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
         println!("test allowance meme coin{}", allowance);
 
-
-        let amount_to_receive=true;
-        // launchpad.buy_coin_by_quote_amount(token_address, amount_key_buy, amount_to_receive);
+        let amount_to_receive = true;
+    // launchpad.buy_coin_by_quote_amount(token_address, amount_key_buy, amount_to_receive);
     }
 
     fn run_buy_by_amount(

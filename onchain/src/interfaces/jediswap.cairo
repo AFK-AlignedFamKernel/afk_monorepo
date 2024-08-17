@@ -1,12 +1,9 @@
 use afk::types::jediswap_types::{MintParams, IncreaseLiquidityParams};
-use starknet::{
-    ContractAddress, get_caller_address, contract_address_const,
-    ClassHash
-};
+use starknet::{ContractAddress, get_caller_address, contract_address_const, ClassHash};
 
 
 #[starknet::interface]
-pub trait IJediswapV1<TState> {// ************************************
+pub trait IJediswapV1<TState> { // ************************************
 // * snake_case
 // ************************************
 
@@ -33,7 +30,7 @@ pub trait IJediswapFactoryV2<TState> {
 }
 
 #[starknet::interface]
-pub trait IJediswapRouterV2<TState> {// ************************************
+pub trait IJediswapRouterV2<TState> { // ************************************
 // * snake_case
 // ************************************
 

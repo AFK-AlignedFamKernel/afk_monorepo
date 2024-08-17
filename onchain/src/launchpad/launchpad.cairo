@@ -1,11 +1,8 @@
+use afk::types::jediswap_types::{MintParams};
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyKeys, TokenLaunch, SharesKeys, BondingType, Token, CreateLaunch,
     SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated
-
-};
-use afk::types::jediswap_types:: {
-    MintParams
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
@@ -22,9 +19,15 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress
     );
-    fn set_address_jediswap_factory_v2(ref self:TContractState, address_jediswap_factory_v2:ContractAddress);
-    fn set_address_jediswap_nft_router_v2(ref self:TContractState, address_jediswap_nft_router_v2:ContractAddress);
-    fn set_exchanges_address(ref self:TContractState,  exchanges: Span<(SupportedExchanges, ContractAddress)>);
+    fn set_address_jediswap_factory_v2(
+        ref self: TContractState, address_jediswap_factory_v2: ContractAddress
+    );
+    fn set_address_jediswap_nft_router_v2(
+        ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
+    );
+    fn set_exchanges_address(
+        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+    );
     fn create_token(
         ref self: TContractState,
         recipient: ContractAddress,
@@ -52,7 +55,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn get_default_token(self: @TContractState,) -> TokenQuoteBuyKeys;
     fn get_amount_by_type_of_coin_or_quote(
-        self: @TContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool, is_quote_amount:bool
+        self: @TContractState,
+        coin_address: ContractAddress,
+        amount: u256,
+        is_decreased: bool,
+        is_quote_amount: bool
     ) -> u256;
     fn get_coin_amount_by_quote_amount(
         self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
@@ -72,6 +79,10 @@ pub trait ILaunchpadMarketplace<TContractState> {
 #[starknet::contract]
 mod LaunchpadMarketplace {
     use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::interfaces::jediswap::{
+        IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
+        IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+    };
     use afk::utils::{sqrt};
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
@@ -84,16 +95,7 @@ mod LaunchpadMarketplace {
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesKeys, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyKeys, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated
-    };
-    use afk::interfaces::jediswap::{
-        IJediswapFactoryV2,
-        IJediswapFactoryV2Dispatcher,
-        IJediswapFactoryV2DispatcherTrait,
-        IJediswapNFTRouterV2,
-        IJediswapNFTRouterV2Dispatcher,
-        IJediswapNFTRouterV2DispatcherTrait,
+        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams, LiquidityCreated
     };
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -101,7 +103,7 @@ mod LaunchpadMarketplace {
     const MAX_STEPS_LOOP: u256 = 100;
     const LIQUIDITY_RATIO: u256 = 5;
     const PAY_TO_LAUNCH: u256 = 1; // amount in the coin used
-    
+
     const LIQUIDITY_PERCENTAGE: u256 = 2000; //20%
 
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
@@ -135,8 +137,8 @@ mod LaunchpadMarketplace {
         exchange_configs: LegacyMap<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
-        address_jediswap_factory_v2:ContractAddress,
-        address_jediswap_nft_router_v2:ContractAddress,
+        address_jediswap_factory_v2: ContractAddress,
+        address_jediswap_nft_router_v2: ContractAddress,
         // User states
         token_created: LegacyMap::<ContractAddress, Token>,
         launched_coins: LegacyMap::<ContractAddress, TokenLaunch>,
@@ -146,7 +148,6 @@ mod LaunchpadMarketplace {
         array_launched_coins: LegacyMap::<u64, TokenLaunch>,
         tokens_created: LegacyMap::<u64, Token>,
         launch_created: LegacyMap::<u64, TokenLaunch>,
-
         // Parameters
         is_tokens_buy_enable: LegacyMap::<ContractAddress, TokenQuoteBuyKeys>,
         default_token: TokenQuoteBuyKeys,
@@ -157,12 +158,10 @@ mod LaunchpadMarketplace {
         threshold_liquidity: u256,
         threshold_market_cap: u256,
         liquidity_raised_amount_in_dollar: u256,
-
         protocol_fee_percent: u256,
         creator_fee_percent: u256,
         is_fees_protocol: bool,
         step_increase_linear: u256,
-
         is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
         total_keys: u64,
@@ -186,7 +185,7 @@ mod LaunchpadMarketplace {
         CreateLaunch: CreateLaunch,
         SetJediwapV2Factory: SetJediwapV2Factory,
         SetJediwapNFTRouterV2: SetJediwapNFTRouterV2,
-        LiquidityCreated:LiquidityCreated,
+        LiquidityCreated: LiquidityCreated,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -281,23 +280,35 @@ mod LaunchpadMarketplace {
         }
 
         // Jediwswap factory address
-        fn set_address_jediswap_factory_v2(ref self:ContractState, address_jediswap_factory_v2:ContractAddress) {
+        fn set_address_jediswap_factory_v2(
+            ref self: ContractState, address_jediswap_factory_v2: ContractAddress
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             // self.ownable.assert_only_owner();
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
-            self.emit(SetJediwapV2Factory{ address_jediswap_factory_v2:address_jediswap_factory_v2});
+            self
+                .emit(
+                    SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
+                );
         }
 
-        fn set_address_jediswap_nft_router_v2(ref self:ContractState, address_jediswap_nft_router_v2:ContractAddress) {
+        fn set_address_jediswap_nft_router_v2(
+            ref self: ContractState, address_jediswap_nft_router_v2: ContractAddress
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
-            self.emit(SetJediwapNFTRouterV2{ address_jediswap_nft_router_v2:address_jediswap_nft_router_v2});
-
+            self
+                .emit(
+                    SetJediwapNFTRouterV2 {
+                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
+                    }
+                );
         }
 
-        fn set_exchanges_address(ref self:ContractState, exchanges:Span<(SupportedExchanges, ContractAddress)>) {
-
-            let mut dex= exchanges;
+        fn set_exchanges_address(
+            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+        ) {
+            let mut dex = exchanges;
             // Add Exchanges configurations
             loop {
                 match dex.pop_front() {
@@ -309,7 +320,6 @@ mod LaunchpadMarketplace {
             };
         }
 
-        
 
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -380,7 +390,6 @@ mod LaunchpadMarketplace {
             // let mut total_price = self._get_quote_paid_by_amount_coin(coin_address, amount, false);
             // println!("total_price {:?}", total_price);
 
-
             let mut total_price = quote_amount.clone();
             println!("total_price {:?}", total_price);
             let old_price = pool_coin.price.clone();
@@ -420,9 +429,10 @@ mod LaunchpadMarketplace {
                 erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
             }
 
-            let mut amount= self._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
+            let mut amount = self
+                ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
             // let mut amount = self
-                // ._get_coin_amount_by_quote_amount(coin_address, total_price, false);
+            // ._get_coin_amount_by_quote_amount(coin_address, total_price, false);
             println!("quote_amount {:?}", quote_amount);
             println!("amount to buy {:?}", amount);
             println!("total_price {:?}", total_price);
@@ -478,7 +488,6 @@ mod LaunchpadMarketplace {
             // // memecoin.transfer_from(pool_coin.owner.clone(), get_caller_address(), amount);
             // }
 
-        
             // Check if liquidity threshold raise
             let threshold = self.threshold_liquidity.read();
             let threshold_mc = self.threshold_market_cap.read();
@@ -500,11 +509,9 @@ mod LaunchpadMarketplace {
                 self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
-                
             // Update state
             self.shares_by_users.write((get_caller_address(), coin_address), share_user.clone());
             self.launched_coins.write(coin_address, pool_coin.clone());
-
 
             self
                 .emit(
@@ -586,16 +593,10 @@ mod LaunchpadMarketplace {
             // println!("transfer protocol fee {}", amount_protocol_fee.clone());
             erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
-
-
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
             // let memecoin = IERC20Dispatcher { contract_address: coin_address };
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount);
-
-      
-
-
 
             // pool_update.price = total_price;
             // key.total_supply -= amount;
@@ -629,9 +630,16 @@ mod LaunchpadMarketplace {
         }
         // The function calculates the amiunt of quote_token you need to buy a coin in the pool
         fn get_amount_by_type_of_coin_or_quote(
-            self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool, is_quote_amount:bool
+            self: @ContractState,
+            coin_address: ContractAddress,
+            amount: u256,
+            is_decreased: bool,
+            is_quote_amount: bool
         ) -> u256 {
-            self._get_amount_by_type_of_coin_or_quote(coin_address, amount, is_decreased, is_quote_amount)
+            self
+                ._get_amount_by_type_of_coin_or_quote(
+                    coin_address, amount, is_decreased, is_quote_amount
+                )
         }
 
         fn get_coin_amount_by_quote_amount(
@@ -796,8 +804,6 @@ mod LaunchpadMarketplace {
 
             // println!("caller {:?}", caller);
 
-
-
             // TODO 
             // Check if allowance or balance is ok
 
@@ -838,29 +844,31 @@ mod LaunchpadMarketplace {
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
         // TODO Increased liquidity if pool already exist
-        fn _add_liquidity(ref self: ContractState, coin_address: ContractAddress, exchange:SupportedExchanges) {
+        fn _add_liquidity(
+            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges
+        ) {
             match exchange {
-              SupportedExchanges::Jediswap => {
-                  self._add_liquidity_jediswap(coin_address)
-              }
+                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) }
             }
-          }
-  
+        }
+
         // TODO add liquidity or increase
         // Better params of Mint
         fn _add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
             let mut factory_address = self.address_jediswap_factory_v2.read();
-            let nft_router_address =  self.address_jediswap_nft_router_v2.read();
-          
+            let nft_router_address = self.address_jediswap_nft_router_v2.read();
+
             if nft_router_address.is_zero() {
                 return;
             }
-            let nft_router = IJediswapNFTRouterV2Dispatcher {contract_address:nft_router_address};
+            let nft_router = IJediswapNFTRouterV2Dispatcher {
+                contract_address: nft_router_address
+            };
 
-            let facto_address =  nft_router.factory();
+            let facto_address = nft_router.factory();
 
             if !facto_address.is_zero() {
-                factory_address=facto_address.clone();
+                factory_address = facto_address.clone();
             }
 
             if factory_address.is_zero() {
@@ -868,88 +876,89 @@ mod LaunchpadMarketplace {
             }
             // let jediswap_address = self.exchange_configs.read(SupportedExchanges::Jediswap);
             // 
-            let fee:u32 = 10_000;
-            let factory = IJediswapFactoryV2Dispatcher {contract_address:factory_address};
+            let fee: u32 = 10_000;
+            let factory = IJediswapFactoryV2Dispatcher { contract_address: factory_address };
             let launch = self.launched_coins.read(coin_address);
             let token_a = launch.token_address.clone();
-            let asset_token_address=launch.token_address.clone();
-            let quote_token_address=launch.token_quote.token_address.clone();
-            let token_b= launch.token_quote.token_address.clone();
+            let asset_token_address = launch.token_address.clone();
+            let quote_token_address = launch.token_quote.token_address.clone();
+            let token_b = launch.token_quote.token_address.clone();
             // TODO tokens check 
             // assert!(token_a != token_b, "same token");
             // Look if pool already exist 
             // Init and Create pool if not exist 
-            let mut pool:ContractAddress = factory.get_pool(token_a, token_b, fee);
-            let sqrt_price_X96=0; // TODO change sqrt_price_X96
+            let mut pool: ContractAddress = factory.get_pool(token_a, token_b, fee);
+            let sqrt_price_X96 = 0; // TODO change sqrt_price_X96
 
             // TODO check if pool exist 
             // Pool need to be create
             // Better params for Liquidity launching
-            let token_asset = IERC20Dispatcher {contract_address:token_a};
+            let token_asset = IERC20Dispatcher { contract_address: token_a };
 
             // TODO
             // Used total supply if coin is minted
             // let total_supply_now = token_asset.total_supply().clone();
             let total_supply = launch.total_supply.clone();
-            let liquidity_raised=  launch.liquidity_raised.clone();
+            let liquidity_raised = launch.liquidity_raised.clone();
             // let total_supply = launch.total_supply.clone();
-            
-            let amount_coin_liq= total_supply / LIQUIDITY_RATIO;
-            let amount0_desired=0;
-            let amount1_desired=0;
-            let amount0_min=amount_coin_liq;
-            let amount1_min=liquidity_raised;
-            let tick_lower:i32=0;
-            let tick_upper:i32=0;
-            let deadline:u64= get_block_timestamp();
+
+            let amount_coin_liq = total_supply / LIQUIDITY_RATIO;
+            let amount0_desired = 0;
+            let amount1_desired = 0;
+            let amount0_min = amount_coin_liq;
+            let amount1_min = liquidity_raised;
+            let tick_lower: i32 = 0;
+            let tick_upper: i32 = 0;
+            let deadline: u64 = get_block_timestamp();
 
             // @TODO check mint params 
 
             if pool.into() == 0_felt252 {
-                pool = factory.create_pool(token_a,token_b, fee);
-                pool= nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
+                pool = factory.create_pool(token_a, token_b, fee);
+                pool = nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
                 // TODO Increase liquidity with router if exist
                 // Approve token asset and quote to be transferred
-                let token_asset = IERC20Dispatcher {contract_address:token_a};
-                let token_quote = IERC20Dispatcher {contract_address:token_b};
+                let token_asset = IERC20Dispatcher { contract_address: token_a };
+                let token_quote = IERC20Dispatcher { contract_address: token_b };
                 token_asset.approve(nft_router_address, amount_coin_liq);
                 token_quote.approve(nft_router_address, launch.liquidity_raised);
                 // TODO verify Mint params 
                 // Test snforge in Sepolia
                 let mint_params = MintParams {
-                    token0:token_a,
-                    token1:token_b,
-                    fee:fee,
-                    tick_lower:tick_lower,
-                    tick_upper:tick_upper,
-                    amount0_desired:amount0_desired,
-                    amount1_desired:amount1_desired,
-                    amount0_min:amount0_min,
-                    amount1_min:amount1_min,
-                    recipient:launch.owner, // TODO add 
-                    deadline:deadline,
+                    token0: token_a,
+                    token1: token_b,
+                    fee: fee,
+                    tick_lower: tick_lower,
+                    tick_upper: tick_upper,
+                    amount0_desired: amount0_desired,
+                    amount1_desired: amount1_desired,
+                    amount0_min: amount0_min,
+                    amount1_min: amount1_min,
+                    recipient: launch.owner, // TODO add 
+                    deadline: deadline,
                 };
 
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
 
                 // TODO Locked LP token
 
-                self.emit( LiquidityCreated {
-                    id:token_id,
-                    pool:pool,
-                    quote_token_address:quote_token_address,
-                    // token_id:token_id,
-                    owner:launch.owner,
-                    asset:asset_token_address,
-                });
-                
-            } else {
-                // TODO 
-                // Increase liquidity of this pool.
+                self
+                    .emit(
+                        LiquidityCreated {
+                            id: token_id,
+                            pool: pool,
+                            quote_token_address: quote_token_address,
+                            // token_id:token_id,
+                            owner: launch.owner,
+                            asset: asset_token_address,
+                        }
+                    );
+            } else {// TODO 
+            // Increase liquidity of this pool.
             }
         }
 
-      
+
         // Function to calculate the price for the next token to be minted
         fn _get_linear_price(
             self: @ContractState, initial_price: u256, slope: u256, supply: u256
@@ -1008,11 +1017,10 @@ mod LaunchpadMarketplace {
             q_in
         }
 
-        
+
         fn _trapezoidal_rule(
             self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool
-           )  ->u256{
-
+        ) -> u256 {
             let pool = self.launched_coins.read(coin_address);
             let mut total_supply = pool.token_holded.clone();
             let mut final_supply = total_supply + amount;
@@ -1028,36 +1036,28 @@ mod LaunchpadMarketplace {
                 // println!("initial_key_price {:?}", initial_key_price);
                 // println!("step_increase_linear {:?}", step_increase_linear);
                 // println!("final_supply {:?}", final_supply);
-                let start_price = initial_key_price
-                    + (step_increase_linear * actual_supply);
+                let start_price = initial_key_price + (step_increase_linear * actual_supply);
                 // println!("start_price {:?}", start_price);
-                let end_price = initial_key_price
-                    + (step_increase_linear * final_supply);
+                let end_price = initial_key_price + (step_increase_linear * final_supply);
                 // let end_price = initial_key_price
                 // + (step_increase_linear * final_supply -1);
                 // println!("end_price{:?}", end_price);
 
                 // let total_price = amount * (start_price + end_price) / 2;
-                let total_price = (final_supply - actual_supply)
-                    * (start_price + end_price)
-                    / 2;
+                let total_price = (final_supply - actual_supply) * (start_price + end_price) / 2;
                 total_price
             } else {
                 // println!("initial_key_price {:?}", initial_key_price);
                 // println!("step_increase_linear {:?}", step_increase_linear);
                 // println!("final_supply {:?}", final_supply);
 
-                let start_price = initial_key_price
-                    + (step_increase_linear * final_supply);
+                let start_price = initial_key_price + (step_increase_linear * final_supply);
                 // println!("start_price {:?}", start_price);
-                let end_price = initial_key_price
-                    + (step_increase_linear * actual_supply);
+                let end_price = initial_key_price + (step_increase_linear * actual_supply);
                 // println!("end_price{:?}", end_price);
 
                 // let total_price = amount * (start_price + end_price) / 2;
-                let total_price = (actual_supply - final_supply)
-                    * (start_price + end_price)
-                    / 2;
+                let total_price = (actual_supply - final_supply) * (start_price + end_price) / 2;
 
                 // println!("total_price {}", total_price.clone());
                 total_price
@@ -1084,8 +1084,11 @@ mod LaunchpadMarketplace {
         // is_quote_amount: true if quote amount and get token receive | false if ift's amount to get and calculate quote amount to buy
         // fn _get_price_of_supply_key(
         fn _get_amount_by_type_of_coin_or_quote(
-            self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool,
-            is_quote_amount:bool,
+            self: @ContractState,
+            coin_address: ContractAddress,
+            amount: u256,
+            is_decreased: bool,
+            is_quote_amount: bool,
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address);
             let mut total_supply = pool.token_holded.clone();
@@ -1105,8 +1108,7 @@ mod LaunchpadMarketplace {
                         BondingType::Linear => {
                             if is_quote_amount == true {
                                 self._get_coin_amount_by_quote_amount(coin_address, amount, false)
-                            } 
-                            else {
+                            } else {
                                 self._get_quote_paid_by_amount_coin(coin_address, amount, false)
                             }
                         },
