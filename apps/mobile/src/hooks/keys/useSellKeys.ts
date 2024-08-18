@@ -1,7 +1,8 @@
 import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
 import {AccountInterface, CallData, constants, RpcProvider, uint256} from 'starknet';
 
-import {KEYS_ADDRESS} from '../../constants/contracts';
+// import {KEYS_ADDRESS} from '../../constants/contracts';
+import {KEYS_ADDRESS} from "common"
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {formatFloatToUint256} from '../../utils/format';
 

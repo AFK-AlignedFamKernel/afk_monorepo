@@ -1,9 +1,10 @@
 import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
 import {AccountInterface, cairo, CallData, constants, RpcProvider, uint256} from 'starknet';
-import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
+// import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {feltToAddress, formatFloatToUint256} from '../../utils/format';
 import {prepareAndConnectContract} from './useDataCoins';
+import {LAUNCHPAD_ADDRESS} from "common"
 
 export const useBuyCoin = () => {
   const chain = useNetwork();

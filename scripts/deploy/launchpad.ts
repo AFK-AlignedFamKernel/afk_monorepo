@@ -1,11 +1,14 @@
 import {
     provider,
 } from "../utils/starknet";
-import { Account, cairo, constants } from "starknet";
-import { CLASS_HASH, ESCROW_ADDRESS, JEDISWAP_V2_FACTORY, JEDISWAP_V2_NFT_ROUTER, TOKENS_ADDRESS, } from "../constants";
+import { Account, cairo, constants, uint256 } from "starknet";
+// import { CLASS_HASH, ESCROW_ADDRESS, JEDISWAP_V2_FACTORY, JEDISWAP_V2_NFT_ROUTER, TOKENS_ADDRESS, } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
+import { LAUNCHPAD_ADDRESS } from "common";
+import { CLASS_HASH, ESCROW_ADDRESS, JEDISWAP_V2_FACTORY, JEDISWAP_V2_NFT_ROUTER, TOKENS_ADDRESS, } from "common";
+
 dotenv.config();
 
 export const deployLaunchpad = async () => {
@@ -20,7 +23,7 @@ export const deployLaunchpad = async () => {
 
     const chainId = await provider.getChainId()
     // const TOKEN_QUOTE_ADDRESS= TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
-    const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].BIG_TOKEN;
+    const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
 
     let JEDISWAP_ADDRESS_NFT = JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_SEPOLIA];
     let JEDISWAP_FACTORY_ADDRESS = JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_SEPOLIA];
@@ -31,8 +34,13 @@ export const deployLaunchpad = async () => {
     }
     const initial_key_price = cairo.uint256(1);
     const step_increase_linear = cairo.uint256(1);
-    const threshold_liquidity = cairo.uint256(1000);
+    const threshold_liquidity = cairo.uint256(10);
     const threshold_marketcap = cairo.uint256(5000);
+    // const initial_key_price = uint256.bnToUint256(BigInt(1/10_000));
+    // const step_increase_linear = uint256.bnToUint256(BigInt(1/100));
+    // const threshold_liquidity = cairo.uint256(100);
+    // const threshold_marketcap = cairo.uint256(50000);
+
     const TOKEN_CLASS_HASH = CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA]
     if (process.env.IS_DEPLOY_CONTRACT == "true") {
         let launchpadContract = await createLaunchpad(

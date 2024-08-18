@@ -11,6 +11,7 @@ import { FormCreateChannel } from '../CreateChannel/FormCreateChannel';
 import { FormCreatePost } from '../CreatePost/FormPost';
 import stylesheet from './styles';
 import { FormLaunchTokenUnruggable } from '../../modules/LaunchTokenUnruggable/FormLaunchTokenUnruggable';
+import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 
 export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
@@ -46,7 +47,13 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
               showBackButton={false}
             ></FormCreateChannel>
           ) : (
-            selectedTab == SelectedTab.LAUNCH_TOKEN && <FormLaunchTokenUnruggable></FormLaunchTokenUnruggable>
+            selectedTab == SelectedTab.LAUNCH_TOKEN &&
+            <>
+              <FormLaunchToken></FormLaunchToken>
+              {/* <FormLaunchTokenUnruggable></FormLaunchTokenUnruggable> */}
+            </>
+
+
           )}
         </SafeAreaView>
       </KeyboardAvoidingView>

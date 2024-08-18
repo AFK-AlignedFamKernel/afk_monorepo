@@ -1,7 +1,8 @@
 import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
 import { AccountInterface, constants, Contract, ProviderInterface, RpcProvider } from 'starknet';
 
-import { KEYS_ADDRESS, LAUNCHPAD_ADDRESS } from '../../constants/contracts';
+import {LAUNCHPAD_ADDRESS} from "common"
+
 import { useQuery } from '@tanstack/react-query';
 import { CHAIN_ID } from '../../constants/env';
 /** @TODO determine paymaster master specs to send the TX */

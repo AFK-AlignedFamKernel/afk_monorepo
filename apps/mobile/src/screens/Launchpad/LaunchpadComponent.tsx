@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View, Text } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, View, Text, Platform, Dimensions } from 'react-native';
 import { Button, Divider, IconButton, Menu } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import stylesheet from './styles';
@@ -13,6 +13,7 @@ import { TokenLaunchCard } from '../../components/TokenLaunchCard';
 import { useQueryAllCoins } from '../../hooks/launchpad/useQueryAllCoins';
 import { useQueryAllLaunch } from '../../hooks/launchpad/useQueryAllLaunch';
 import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
+import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
 
 
 interface AllKeysComponentInterface {
@@ -24,15 +25,13 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
   const account = useAccount()
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataLaunch = useQueryAllLaunch()
-  // console.log("queryDataLaunch", queryDataLaunch)
-  // const keys = useKeysEvents()
-  // console.log("keys", keys)
-  // const { ndk } = useNostrContext();
-  // const navigation = useNavigation<MainStackNavigationProps>();
   const { show: showKeyModal } = useKeyModal();
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const { data: launchs } = useGetTokenLaunch()
+  // console.log("Launchs", launchs)
   const { publicKey } = useAuth()
+  const width = Dimensions.get("window").width
+  const isDesktop = width >= 1024
 
   return (
     <View style={styles.container}>
@@ -48,7 +47,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         </Button>
       }
       {menuOpen &&
-      <FormLaunchToken></FormLaunchToken>
+        <FormLaunchToken></FormLaunchToken>
       }
 
       <FlatList
@@ -57,11 +56,13 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
-        renderItem={({ item , index}) => {
+        numColumns={isDesktop ? 3 : 1}
+        renderItem={({ item, index }) => {
           // console.log("key item", item)
           return (
+            <>
               <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>
-
+            </>
           );
         }}
         refreshControl={<RefreshControl refreshing={queryDataLaunch.isFetching} onRefresh={queryDataLaunch.refetch} />}

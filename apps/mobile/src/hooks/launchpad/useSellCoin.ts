@@ -1,9 +1,8 @@
 import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
 import {AccountInterface, CallData, constants, RpcProvider, uint256} from 'starknet';
-
-import {KEYS_ADDRESS, LAUNCHPAD_ADDRESS} from '../../constants/contracts';
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {formatFloatToUint256} from '../../utils/format';
+import {LAUNCHPAD_ADDRESS} from "common"
 
 export const useSellCoin = () => {
   const account = useAccount();
@@ -22,7 +21,7 @@ export const useSellCoin = () => {
   ) => {
     if (!account) return;
     const addressContract = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
-    console.log('addressContract', addressContract);
+    // console.log('addressContract', addressContract);
     // let launchpad_contract = await prepareAndConnectContract(
     //     provider,
     //     addressContract,

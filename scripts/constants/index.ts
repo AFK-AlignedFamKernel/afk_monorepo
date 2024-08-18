@@ -65,7 +65,7 @@ export const TOKENS_ADDRESS = {
         BIG_TOKEN: "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
 
     },
-    [constants.StarknetChainId.SN_SEPOLIA]:{
+    [constants.StarknetChainId.SN_SEPOLIA]: {
         ETH: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
         STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
         USDC: "0x02f37c3e00e75ee4135b32bb60c37e0599af264076376a618f138d2f9929ac74",
@@ -82,18 +82,25 @@ export const TOKENS_ADDRESS = {
 
 export const CLASS_HASH = {
     TOKEN: {
-        [constants.StarknetChainId.SN_SEPOLIA]:"0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a"
+        [constants.StarknetChainId.SN_SEPOLIA]: "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a"
     }
 
 }
 
 export const JEDISWAP_V2_NFT_ROUTER = {
-    [constants.StarknetChainId.SN_SEPOLIA]:"0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399",
-    [constants.StarknetChainId.SN_MAIN]:"",
+    [constants.StarknetChainId.SN_SEPOLIA]: "0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399",
+    [constants.StarknetChainId.SN_MAIN]: "",
 }
 
 
 export const JEDISWAP_V2_FACTORY = {
-    [constants.StarknetChainId.SN_SEPOLIA]:"0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
-    [constants.StarknetChainId.SN_MAIN]:"",
+    [constants.StarknetChainId.SN_SEPOLIA]: "0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
+    [constants.StarknetChainId.SN_MAIN]: "",
+}
+
+export const LAUNCHPAD_ADDRESS = {
+    [constants.StarknetChainId.SN_MAIN]: "",
+    // [constants.StarknetChainId.SN_SEPOLIA]:"0x5cf19613d54ae5e7c229c87cc26322f2ff6c473d2183723010676b8337c0af3",
+    [constants.StarknetChainId.SN_SEPOLIA]: "0x19084523bd7307c2169ee32a336be3f9d9eb6bf24197156cb6fc7a42feb7a5"
+
 }

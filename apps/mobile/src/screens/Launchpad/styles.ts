@@ -11,6 +11,7 @@ export default ThemedStyleSheet((theme) => ({
   flatListContent: {
     paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
+    gap:3
   },
 
   separator: {

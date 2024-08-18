@@ -1,6 +1,6 @@
-CREATE SEQUENCE token_launch_id_seq;
 
 create table token_launch(
+    id SERIAL PRIMARY KEY  DEFAULT nextval('token_launch_id_seq'),
     network text,
     block_hash text,
     block_number bigint,
@@ -10,14 +10,11 @@ create table token_launch(
     quote_token text,
     exchange_name text,
     created_at timestamp default current_timestamp,
-    total_supply text,
-    current_supply text,
-    liquidity_raised text,
-    price text,
     _cursor bigint
 );
 
 create table token_deploy(
+    id SERIAL PRIMARY KEY DEFAULT nextval('token_deploy_id_seq'),
     network text,
     block_hash text,
     block_number bigint,
@@ -35,6 +32,7 @@ create table token_deploy(
 
 
 create table buy_token(
+    id SERIAL PRIMARY KEY DEFAULT nextval('buy_token_id_seq'),
     network text,
     block_hash text,
     block_number bigint,
@@ -43,15 +41,11 @@ create table buy_token(
     memecoin_address text,
     owner_address text,
     last_price text,
+    price text,
     quote_amount text,
     coin_received text,
     initial_supply text,
     created_at timestamp default current_timestamp,
-    total_supply text,
-    current_supply text,
-    liquidity_raised text,
-    price text,
-    amount text,
     _cursor bigint
 );
 

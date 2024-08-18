@@ -123,6 +123,7 @@ pub struct BuyToken {
     pub protocol_fee: u256,
     pub last_price: u256,
     pub timestamp: u64,
+    pub quote_amount: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -157,8 +158,13 @@ pub struct CreateLaunch {
     pub caller: ContractAddress,
     #[key]
     pub token_address: ContractAddress,
+    #[key]
+    pub quote_token_address: ContractAddress,
     pub amount: u256,
     pub price: u256,
+    pub total_supply: u256,
+    pub slope: u256,
+    pub threshold_liquidity: u256,
 }
 
 #[derive(Drop, starknet::Event)]
