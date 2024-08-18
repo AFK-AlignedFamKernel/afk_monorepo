@@ -7,46 +7,60 @@ datasource db {
   url      = env("INDEXER_DATABASE_URL")
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model buy_token {
+  id               Int       @default(autoincrement())
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
   transaction_hash String?
-  memecoin_address String    @id
+  memecoin_address String?
   owner_address    String?
   last_price       String?
+  price            String?
+  quote_amount     String?
+  coin_received    String?
   initial_supply   String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
+
+  @@ignore
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model token_deploy {
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
   transaction_hash String?
-  memecoin_address String    @id
+  memecoin_address String?
   owner_address    String?
   name             String?
   symbol           String?
   initial_supply   String?
+  total_supply     String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
+
+  @@ignore
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model token_launch {
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
   transaction_hash String?
-  memecoin_address String    @id
+  memecoin_address String?
   quote_token      String?
   exchange_name    String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
+
+  @@ignore
 }
 
 model unrugmeme_deploy {

@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native';
 import { Spacing, ThemedStyleSheet } from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -7,7 +8,9 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap:"break-word",
-    width:300,
+    width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
+    // width:"100%"
+    // width:300,
   },
   imageContainer: {
     // position: 'relative',

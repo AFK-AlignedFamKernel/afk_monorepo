@@ -1,5 +1,5 @@
+import { UNRUGGABLE_FACTORY_ADDRESS } from "common";
 import { AccountInterface, CallData, Calldata, cairo, constants } from "starknet"
-import { UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 
 export type DeployTokenFormValues = {
     name: string | undefined;
@@ -11,9 +11,9 @@ export type DeployTokenFormValues = {
 export const useDeployTokenUnruggable = () => {
 
     const deployTokenUnruggable = async (account: AccountInterface, data: DeployTokenFormValues) => {
-        const CONTRACT_ADDRESS_SALT_DEFAULT = data?.contract_address_salt ?? await account?.getChainId() == constants.StarknetChainId.SN_MAIN ?
-            "0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6" :
-            "0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6"
+        // const CONTRACT_ADDRESS_SALT_DEFAULT = data?.contract_address_salt ?? await account?.getChainId() == constants.StarknetChainId.SN_MAIN ?
+        //     "0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6" :
+        //     "0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6"
         const deployCall = {
             contractAddress: UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_MAIN],
             entrypoint: 'create_memecoin',
@@ -22,7 +22,7 @@ export const useDeployTokenUnruggable = () => {
                 name: data.name ?? "LFG",
                 symbol: data.symbol ?? "LFG",
                 initialSupply: cairo.uint256(data?.initialSupply ?? 100),
-                contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT
+                contract_address_salt:new Date().getTime()
             }),
         };
 

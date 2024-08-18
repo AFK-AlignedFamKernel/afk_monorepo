@@ -8,6 +8,7 @@ const Router = express.Router()
 Router.get('/', async (req, res) => {
     try {
         const deploys = await prisma.token_deploy.findMany({})
+        console.log("deploys",deploys)
         res.status(HTTPStatus.OK).json({
             data: deploys
         })
@@ -15,6 +16,7 @@ Router.get('/', async (req, res) => {
         res.status(HTTPStatus.InternalServerError).send(error)
     }
 })
+
 
 Router.get('/:token', async (req, res) => {
     try {

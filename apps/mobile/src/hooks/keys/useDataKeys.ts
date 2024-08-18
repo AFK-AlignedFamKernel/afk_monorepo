@@ -1,7 +1,6 @@
 import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
 import { AccountInterface, constants, Contract, ProviderInterface, RpcProvider } from 'starknet';
-
-import { KEYS_ADDRESS } from '../../constants/contracts';
+import {KEYS_ADDRESS} from "common"
 import { useQuery } from '@tanstack/react-query';
 import { CHAIN_ID } from '../../constants/env';
 /** @TODO determine paymaster master specs to send the TX */
@@ -11,7 +10,7 @@ export const prepareAndConnectContract = async (
   account?: AccountInterface,
 ) => {
   // read abi of Test contract
-  console.log('contractAddress', contractAddress);
+  // console.log('contractAddress', contractAddress);
   // console.log("provider",await provider.getChainId())
 
   const { abi: testAbi } = await provider.getClassAt(contractAddress);
@@ -19,7 +18,7 @@ export const prepareAndConnectContract = async (
     throw new Error('no abi.');
   }
   const contract = new Contract(testAbi, contractAddress, provider);
-  console.log('contract', contract);
+  // console.log('contract', contract);
 
   // Connect account with the contract
   if (account) {

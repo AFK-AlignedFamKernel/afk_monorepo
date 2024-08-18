@@ -261,11 +261,11 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
               <Icon name='CoinIcon'
                 size={20}
                 title='Tip'
-                onPress={() => {
-                  if (!event) return;
+                // onPress={() => {
+                //   if (!event) return;
 
-                  showTipModal(event);
-                }}
+                //   showTipModal(event);
+                // }}
               />
 
             </Pressable>

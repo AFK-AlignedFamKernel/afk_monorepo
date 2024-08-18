@@ -82,7 +82,8 @@
     "react-native-webview": "^13.10.5",
     "starknet": "6.9.0",
     "starknetkit": "^1.1.9",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "common":"workspace:*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

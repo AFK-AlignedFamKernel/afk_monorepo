@@ -1,7 +1,8 @@
 import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
 import { AccountInterface, constants, Contract, ProviderInterface, RpcProvider } from 'starknet';
 
-import { KEYS_ADDRESS } from '../../constants/contracts';
+// import { KEYS_ADDRESS } from '../../constants/contracts';
+
 import { useQuery } from '@tanstack/react-query';
 import { CHAIN_ID } from '../../constants/env';
 import { prepareAndConnectContract, useDataKeys } from './useDataKeys';

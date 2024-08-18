@@ -20,6 +20,8 @@ import stylesheet from './styles';
 import { useStyles, useWaitConnection } from '../../hooks';
 import { useWalletModal } from '../../hooks/modals';
 import { Input } from '../Input';
+import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -42,8 +44,10 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
   const [amount, setAmount] = useState<number | undefined>()
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT)
 
-  const { handleSellKeys } = useSellKeys()
-  const { handleBuyKeys } = useBuyKeys()
+  const { handleSellCoins } = useSellCoin()
+  // const { handleBuyKeys } = useBuyKeys()
+  const { handleBuyCoins } = useBuyCoinByQuoteAmount()
+
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
 
@@ -66,7 +70,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
     if (!launch?.token_quote) return;
 
     // handleSellKeys(account?.account, launch?.owner, Number(amount), launch?.token_quote, undefined)
-    handleSellKeys(account?.account, feltToAddress(BigInt(launch?.owner)), Number(amount), launch?.token_quote, undefined)
+    handleSellCoins(account?.account, feltToAddress(BigInt(launch?.token_address)), Number(amount), launch?.token_quote, undefined)
 
   }
 
@@ -80,8 +84,10 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
     if (!launch?.owner) return;
 
     if (!launch?.token_quote) return;
+
+    console.log("launch", launch)
     // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
-    handleBuyKeys(account?.account, feltToAddress(BigInt(launch?.owner)),  Number(amount), launch?.token_quote,)
+    handleBuyCoins(account?.account, feltToAddress(BigInt(launch?.token_address)), Number(amount), launch?.token_quote,)
   }
   const navigation = useNavigation<MainStackNavigationProps>();
   // const handleNavigateToProfile = () => {
@@ -103,12 +109,20 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
     <View style={styles.container}>
       <View>
 
+        {launch?.token_address &&
+          <Text>
+            Coin address: {feltToAddress(BigInt(launch.token_address))}
+
+          </Text>
+        }
+
         {launch?.owner &&
           <Text>
             Owner: {feltToAddress(BigInt(launch.owner))}
 
           </Text>
         }
+
         {/*         
       <View style={styles.imageContainer}>
         <Image
@@ -125,14 +139,19 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
         {profile?.name ?? profile?.nip05 ?? profile?.displayName ?? 'Anon AFK'}
       </Text>
       </View> */}
-        <Text>
+        {/* <Text>
           Supply: {Number(launch?.total_supply) / 10 ** 18}
         </Text>
+
         <Text>
-          Supply: {Number(launch?.total_supply)}
+          Price: {Number(launch?.price)}
+        </Text> */}
+
+        <Text>
+          Supply: {Number(launch?.total_supply) / 10 **18}
         </Text>
         <Text>
-          Price: {Number(launch?.price) / 10 ** 18}
+          Price: {Number(launch?.price)}
         </Text>
 
         {/* {launch?.created_at &&
@@ -145,7 +164,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
 
       {launch?.token_quote &&
         <View
-          style={styles.imageContainer}
+          // style={styles.imageContainer}
         >
           <Text>Token quote</Text>
           <Text>
@@ -156,19 +175,20 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps,
           </Text>
         </View>}
 
-      <Input 
-      
-      keyboardType='numeric'
-      value={amount ? String(amount) : "0"} onChangeText={(e) => {
-        setAmount(Number(e))
-        // if (e && Number(e) ) {
-        //   setAmount(Number(e))
-        // }
+      <Input
 
-        // if (e ) {
-        //   setAmount(Number(0))
-        // }
-      }} placeholder="Amount" />
+        keyboardType='numeric'
+        // value={amount ? String(amount) : "0"} 
+        onChangeText={(e) => {
+          setAmount(Number(e))
+          // if (e && Number(e) ) {
+          //   setAmount(Number(e))
+          // }
+
+          // if (e ) {
+          //   setAmount(Number(0))
+          // }
+        }} placeholder="Amount" />
       <View style={{ display: "flex", flex: 1, flexDirection: "row", gap: 3 }}>
 
         <Button onPress={buyCoin} style={{ backgroundColor: "green" }} >

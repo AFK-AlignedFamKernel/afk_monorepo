@@ -24,12 +24,12 @@ export const config = {
   filter,
   // sinkType: 'console',
   // sinkOptions: {
-  //   connectionString: '',
+  //   connectionString: "",
   // },
   sinkType: 'postgres',
   sinkOptions: {
     connectionString: '',
-    tableName: 'token_deploy',
+    tableName: 'token_launch',
   },
 }
 
@@ -42,7 +42,8 @@ export default function DecodeTokenLaunchDeploy({ header, events }) {
     const transactionHash = transaction.meta.hash
     console.log("event data", event?.data)
 
-    const [owner, token_address, name, symbol, initial_supply_low, initial_supply_high, total_supply_low, total_supply_high] = event.data
+    const [owner, token_address, ] = event.keys
+    const [name, symbol, initial_supply_low, initial_supply_high, total_supply_low, total_supply_high] = event.data
     console.log("owner", owner)
     console.log("token_address", token_address)
     console.log("name", name)

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View, Text } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, View, Text, Dimensions } from 'react-native';
 import { Button, Divider, IconButton, Menu } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import stylesheet from './styles';
@@ -20,15 +20,11 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
   const account = useAccount()
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataKeys = useQueryAllKeys()
-  // console.log("queryDataKeys", queryDataKeys)
-  // const keys = useKeysEvents()
-  // console.log("keys", keys)
-  // const { ndk } = useNostrContext();
-  // const navigation = useNavigation<MainStackNavigationProps>();
   const { show: showKeyModal } = useKeyModal();
   const [menuOpen, setMenuOpen] = useState(false);
-
   const { publicKey } = useAuth()
+  const width = Dimensions.get("window").width
+  const isDesktop = width >= 1024
 
   return (
     <View style={styles.container}>
@@ -50,6 +46,8 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
+        numColumns={isDesktop ? 3 : 1} 
+
         renderItem={({ item }) => {
           // console.log("key item", item)
           return (

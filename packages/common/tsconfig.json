@@ -22,13 +22,8 @@
     "isolatedModules": true,
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
-    "jsx": "react-native",
     "module": "ES6",
-    "paths": {
-      "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"],
-      "common": ["../../packages/common/src"]
-    },
   },
-  "exclude": ["node_modules", "dist", "babel.config.js", "metro.config.js", "jest.config.js"],
+  "exclude": ["node_modules", "dist"],
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
 }

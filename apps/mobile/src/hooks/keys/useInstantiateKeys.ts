@@ -1,7 +1,8 @@
 import {useAccount, useNetwork} from '@starknet-react/core';
 import {AccountInterface, CallData, constants} from 'starknet';
 
-import {KEYS_ADDRESS} from '../../constants/contracts';
+// import {KEYS_ADDRESS} from '../../constants/contracts';
+import {KEYS_ADDRESS} from "common"
 
 export const useInstantiateKeys = () => {
   const chain = useNetwork();

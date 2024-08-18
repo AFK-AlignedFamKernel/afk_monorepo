@@ -31,11 +31,14 @@ mod launchpad_tests {
 
     // const INITIAL_KEY_PRICE:u256=1/100;
     const INITIAL_SUPPLY_DEFAULT: u256 = 100_000_000;
-    const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
+    const INITIAL_KEY_PRICE: u256 = 1;
     const STEP_LINEAR_INCREASE: u256 = 1;
+    const THRESHOLD_LIQUIDITY: u256 = 10;
+    const THRESHOLD_MARKET_CAP: u256 = 500;
+    // const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
     // const THRESHOLD_LIQUIDITY: u256 = 10;
-    const THRESHOLD_LIQUIDITY: u256 = 10_000;
-    const THRESHOLD_MARKET_CAP: u256 = 50_000;
+    // const THRESHOLD_LIQUIDITY: u256 = 10_000;
+
     const RATIO_SUPPLY_LAUNCH: u256 = 5;
     const LIQUIDITY_SUPPLY: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
     const BUYABLE: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
@@ -189,37 +192,6 @@ mod launchpad_tests {
         IERC20Dispatcher { contract_address }
     }
 
-    fn run_buy(
-        launchpad: ILaunchpadMarketplaceDispatcher,
-        erc20: IERC20Dispatcher,
-        memecoin: IERC20Dispatcher,
-        amount_key_buy: u256,
-        token_address: ContractAddress,
-        sender_address: ContractAddress,
-    ) {
-        // let amount_to_paid = launchpad
-        //     .get_price_of_supply_key(token_address, amount_key_buy, false, //    1,
-        //     );
-        // println!("test amount_to_paid erc20 {:?}", amount_to_paid);
-
-        start_cheat_caller_address(erc20.contract_address, sender_address);
-
-        // erc20.approve(launchpad.contract_address, amount_to_paid);
-
-        let allowance = erc20.allowance(sender_address, launchpad.contract_address);
-        println!("test allowance erc20 {}", allowance);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin",);
-
-        let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
-        println!("test allowance meme coin{}", allowance);
-
-        let amount_to_receive = true;
-    // launchpad.buy_coin_by_quote_amount(token_address, amount_key_buy, amount_to_receive);
-    }
-
     fn run_buy_by_amount(
         launchpad: ILaunchpadMarketplaceDispatcher,
         erc20: IERC20Dispatcher,
@@ -236,8 +208,6 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("buy coin",);
-        let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
-        println!("test allowance meme coin{}", allowance);
         launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
     }
 
@@ -279,30 +249,29 @@ mod launchpad_tests {
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
-        let amount_first_buy = 10_u256;
+        let amount_first_buy = 1_u256;
 
-        // //  First buy with 10 quote token
+        // //  First buy with 1 quote token
         let res = run_buy_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
-        let mut total_amount_buy = amount_first_buy;
 
-        // //  First buy with 10 quote token
-        let res = run_sell_by_amount(
+        // // // Sell token bought
+        let res_sell = run_sell_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        //  Buy with 10 quote base
+        // //  First buy with 1 quote token
         let res = run_buy_by_amount(
-            launchpad, erc20, memecoin, total_amount_buy, token_address, sender_address,
+            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        //  Final buy
+        // Total buy THRESHOLD
         let res = run_buy_by_amount(
             launchpad,
             erc20,
             memecoin,
-            THRESHOLD_LIQUIDITY - total_amount_buy,
+            THRESHOLD_LIQUIDITY - amount_first_buy,
             token_address,
             sender_address,
         );
@@ -403,56 +372,78 @@ mod launchpad_tests {
         let res = run_buy_by_amount(
             launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
-    //  20 buy
-
-    // let amount_second_buy = 20_u256;
-
-    // let res = run_buy_by_amount(
-    //     launchpad,
-    //     erc20,
-    //     memecoin,
-    //     THRESHOLD_LIQUIDITY - total_amount_buy,
-    //     token_address,
-    //     sender_address,
-    // );
-    // let mut total_amount_buy = amount_second_buy;
-
-    // //  Final buy
-
-    // let res = run_buy_by_amount(
-    //     launchpad,
-    //     erc20,
-    //     memecoin,
-    //     THRESHOLD_LIQUIDITY - total_amount_buy,
-    //     token_address,
-    //     sender_address,
-    // );
-
-    // let token_address_2 = launchpad
-    // .create_and_launch_token(
-    //     // owner: OWNER(),
-    //     symbol: SYMBOL(),
-    //     name: NAME(),
-    //     initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //     contract_address_salt: 'salt2'.try_into().unwrap()
-    // );
-    // let memecoin = IERC20Dispatcher { contract_address: token_address_2 };
-
-    //            //  All buy
-    // let res = run_buy_by_amount(
-    //     launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY , token_address, sender_address,
-    // );
-    // //  Final buy
-    // let res = run_buy_with_amount(
-    //     launchpad, erc20, memecoin, INITIAL_SUPPLY_DEFAULT - LIQUIDITY_SUPPLY, token_address, sender_address,
-    // );
-
     }
 
     #[test]
     fn launchpad_integration() {
         println!("launchpad_integration");
 
+        let (sender_address, erc20, launchpad) = request_fixture();
+        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = launchpad
+            .create_token(
+                recipient: OWNER(),
+                // owner: OWNER(),
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+        // println!("test token_address {:?}", token_address);
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        start_cheat_caller_address(memecoin.contract_address, sender_address);
+
+        let balance_contract = memecoin.balance_of(launchpad.contract_address);
+        println!("test balance_contract {:?}", balance_contract);
+
+        let total_supply = memecoin.total_supply();
+        // println!(" memecoin total_supply {:?}", total_supply);
+        memecoin.approve(launchpad.contract_address, total_supply);
+
+        // let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
+        // println!("test allowance meme coin{}", allowance);
+        memecoin.transfer(launchpad.contract_address, total_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.launch_token(token_address);
+        let amount_first_buy = 9_u256;
+
+        let res = run_buy_by_amount(
+            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+        );
+        let mut total_amount_buy = amount_first_buy;
+        let mut amount_second = 1_u256;
+        let res = run_buy_by_amount(
+            launchpad, erc20, memecoin, amount_second, token_address, sender_address,
+        );
+    // // //  First buy with 10 quote token
+    // let res = run_sell_by_amount(
+    //     launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+    // );
+
+    // //  Final buy
+    // let res = run_buy_by_amount(
+    //     launchpad,
+    //     erc20,
+    //     memecoin,
+    //     THRESHOLD_LIQUIDITY - total_amount_buy,
+    //     token_address,
+    //     sender_address,
+    // );
+    }
+
+
+    #[test]
+    fn launchpad_buy_more_then_liquidity_threshold() {
+        println!("launchpad_buy_more_then_liquidity_threshold");
         let (sender_address, erc20, launchpad) = request_fixture();
         cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
@@ -489,26 +480,31 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         launchpad.launch_token(token_address);
-        let amount_first_buy = 10_u256;
+        let amount_first_buy = 9_u256;
 
         let res = run_buy_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
         let mut total_amount_buy = amount_first_buy;
 
-        // //  First buy with 10 quote token
-        let res = run_sell_by_amount(
-            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
-        );
+        let mut amount_second = 2_u256;
 
-        //  Final buy
         let res = run_buy_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            THRESHOLD_LIQUIDITY - total_amount_buy,
-            token_address,
-            sender_address,
+            launchpad, erc20, memecoin, amount_second, token_address, sender_address,
         );
+    // // //  First buy with 10 quote token
+    // let res = run_sell_by_amount(
+    //     launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+    // );
+
+    // //  Final buy
+    // let res = run_buy_by_amount(
+    //     launchpad,
+    //     erc20,
+    //     memecoin,
+    //     THRESHOLD_LIQUIDITY - total_amount_buy,
+    //     token_address,
+    //     sender_address,
+    // );
     }
 }

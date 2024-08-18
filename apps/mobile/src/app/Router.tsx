@@ -180,9 +180,9 @@ const MainNavigator: React.FC = () => {
         headerTintColor: theme.theme.colors.text,
         overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background,  // Make sure overlay settings are correct
         // swipeEdgeWidth: 0
-        // drawerStyle: {
-        //   width: 240, // Adjust width or other styling as necessary
-        // }
+        drawerStyle: {
+          width: 200, // Adjust width or other styling as necessary
+        }
       })}
     >
       {!isDesktop ?

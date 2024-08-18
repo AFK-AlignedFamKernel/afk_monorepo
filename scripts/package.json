@@ -26,7 +26,8 @@
     "nostr-tools": "^2.5.2",
     "path": "^0.12.7",
     "starknet": "^6.6.6",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "common":"workspace:*"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",

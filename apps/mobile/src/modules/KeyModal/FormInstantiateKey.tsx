@@ -201,7 +201,7 @@ export const FormInstantiateKey = ({
       <View style={styles.pickerContainer}>
         {(myKey && BigInt(myKey?.owner) == BigInt(0)) ||
           (!myKey && <Button onPress={onInstantiateKeys}>Instantiate key</Button>)}
-        {myKey && (
+        {/* {myKey && (
           <View>
             <Text> {feltToAddress(BigInt(myKey?.owner))}</Text>
           </View>
@@ -211,7 +211,7 @@ export const FormInstantiateKey = ({
           <View>
             <Text> {feltToAddress(BigInt(keySelected?.owner))}</Text>
           </View>
-        )}
+        )} */}
       </View>
 
       <View style={styles.submitButton}>
