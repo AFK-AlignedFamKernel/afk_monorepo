@@ -41,6 +41,15 @@ export type MainStackParams = {
   Settings:undefined;
   Launchpad:undefined;
   LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys:undefined;
+  Auth:NavigatorScreenParams<AuthStackParams>
+
 
 };
 
@@ -57,8 +66,15 @@ export type HomeBottomStackParams = {
   Profile:{publicKey:string};
   Launchpad:undefined;
   LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
-
-
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys:undefined;
+  Auth:NavigatorScreenParams<AuthStackParams>;
+  Main:NavigatorScreenParams<MainStackParams>;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
@@ -69,20 +85,20 @@ export type RootStackScreenProps = NativeStackScreenProps<RootStackParams>;
 
 // Auth
 export type AuthLoginScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'Login'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'Login'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthCreateAccountScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'CreateAccount'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'CreateAccount'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthSaveKeysScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'SaveKeys'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'SaveKeys'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
 export type AuthImportKeysScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'ImportKeys'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'ImportKeys'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

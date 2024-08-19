@@ -17,6 +17,7 @@ import { StarknetProvider } from './StarknetProvider';
 import { TanstackProvider } from 'afk_nostr_sdk';
 import { NostrProvider } from 'afk_nostr_sdk';
 import { TipModalStarknetProvider } from '../context/TipModalStarknet';
+import { TokenCreateModalProvider } from '../context/TokenCreateModal';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
@@ -28,7 +29,9 @@ const ModalProviders = ({ children }: { children: React.ReactNode }) => {
         <TransactionModalProvider>
           <TipModalProvider>
             <TipModalStarknetProvider>
-              <KeyModalProvider>{children}</KeyModalProvider>
+              <TokenCreateModalProvider>
+                <KeyModalProvider>{children}</KeyModalProvider>
+              </TokenCreateModalProvider>
             </TipModalStarknetProvider>
           </TipModalProvider>
         </TransactionModalProvider>

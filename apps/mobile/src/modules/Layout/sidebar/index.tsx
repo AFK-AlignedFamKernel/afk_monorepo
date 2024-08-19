@@ -6,29 +6,34 @@ import { Icon } from '../../../components/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerStackNavigationProps, MainStackNavigationProps } from '../../../types';
 // import { useAuth } from '../../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
+import { useAuth, useNostrContext } from 'afk_nostr_sdk';
 import { DrawerNavigationHelpers } from '@react-navigation/drawer/lib/typescript/src/types';
 
 interface SidebarInterface {
     // navigation:MainStackNavigationProps | DrawerNavigationHelpers
-    navigation:any
+    navigation: any
 }
 const Sidebar = (
-    {navigation}:SidebarInterface
+    { navigation }: SidebarInterface
 
 ) => {
     const styles = useStyles(stylesheet);
     const publicKey = useAuth((state) => state.publicKey);
+    const ndk = useNostrContext()
     // const navigation = useNavigation<MainStackNavigationProps>()
     // const navigation = useNavigation<DrawerStackNavigationProps>()
     const handleNavigateProfile = () => {
         navigation.navigate("Profile", { publicKey: publicKey });
     };
+
+    const handleAuth = () => {
+        navigation.navigate("Auth");
+    };
     const theme = useTheme()
     // const handleNavigateHome = () => {
     //     navigation.navigate("Home");
     // };
-    const  handleDefiScreen = () => {
+    const handleDefiScreen = () => {
         navigation.navigate("Defi");
     };
     const handleGameScreen = () => {
@@ -41,13 +46,13 @@ const Sidebar = (
     const handleTipsScreen = () => {
         navigation.navigate("Tips");
     };
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('drawerClose', () => {
-      // Code to handle drawer closing
-    });
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('drawerClose', () => {
+            // Code to handle drawer closing
+        });
 
-    return unsubscribe;
-  }, [navigation]);
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <View style={styles.sidebar}>
@@ -103,7 +108,6 @@ const Sidebar = (
 
             </Pressable>
 
-
             <Pressable
                 onPress={handleGameScreen}
                 style={styles.item}>
@@ -118,7 +122,6 @@ const Sidebar = (
 
             </Pressable>
 
-
             <Pressable
                 onPress={handleDefiScreen}
                 style={styles.item}>
@@ -129,25 +132,37 @@ const Sidebar = (
                 <Text style={styles.textItem}>
                     Onramp & DeFI
                 </Text>
-
             </Pressable>
 
+            {publicKey &&
+                <Pressable
+                    onPress={handleNavigateProfile}
+                    style={styles.item}>
+                    <Icon
+                        name="UserIcon"
+                        size={24}
+                    />
+                    <Text style={styles.textItem}>
+                        Profile
 
-            <Pressable
-                onPress={handleNavigateProfile}
-                style={styles.item}>
-                <Icon
-                    name="UserIcon"
-                    size={24}
-                />
-                <Text style={styles.textItem}>
-                    Profile
+                    </Text>
+                </Pressable>
+            }
 
-                </Text>
-
-            </Pressable>
-
-
+            {!publicKey && !ndk?.ndk?.signer &&
+                <Pressable
+                    onPress={handleAuth}
+                    style={styles.item}
+                >
+                    <Icon
+                        name="UserIcon"
+                        size={24}
+                    />
+                    <Text style={styles.textItem}>
+                        Login
+                    </Text>
+                </Pressable>
+            }
 
         </View>
     );

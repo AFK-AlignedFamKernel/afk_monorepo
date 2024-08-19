@@ -15,6 +15,7 @@ import { useQueryAllLaunch } from '../../hooks/launchpad/useQueryAllLaunch';
 import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
 import { useDimensions } from '../../hooks/useWindowDimensions';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 
 
 interface AllKeysComponentInterface {
@@ -27,9 +28,11 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataLaunch = useQueryAllLaunch()
   const { show: showKeyModal } = useKeyModal();
+  const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: launchs } = useGetTokenLaunch()
   // console.log("Launchs", launchs)
+
   const { publicKey } = useAuth()
   // const width = Dimensions.get("window").width
   // const isDesktop = width >= 1024
@@ -45,7 +48,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         <Button
           onPress={() => {
             // showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
-            setMenuOpen(!menuOpen);
+            showModal()
+            // setMenuOpen(!menuOpen);
           }}>
           <Text>Create token</Text>
         </Button>

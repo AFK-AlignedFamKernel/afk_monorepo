@@ -111,25 +111,48 @@ const HomeBottomTabNavigator: React.FC = () => {
         }}
       />
 
-      <HomeBottomTabsStack.Screen
-        name="UserProfile"
-        component={Profile as any}
-        initialParams={{ publicKey }}
-        options={{
-          tabBarActiveTintColor: 'white',
-          tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="UserIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
-        }}
-      />
+      {publicKey &&
+        <HomeBottomTabsStack.Screen
+          name="UserProfile"
+          component={Profile as any}
+          initialParams={{ publicKey }}
+          options={{
+            tabBarActiveTintColor: 'white',
+            tabBarInactiveTintColor: 'grey',
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.tabBarIcon}>
+                <Icon
+                  name="UserIcon"
+                  size={24}
+                  color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
+                />
+                {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
+              </View>
+            ),
+          }}
+        />
+      }
+
+      {!publicKey &&
+        <HomeBottomTabsStack.Screen
+          name="Login"
+          component={Login as any}
+          options={{
+            tabBarActiveTintColor: 'white',
+            tabBarInactiveTintColor: 'grey',
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.tabBarIcon}>
+                <Icon
+                  name="UserIcon"
+                  size={24}
+                  color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
+                />
+                {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
+              </View>
+            ),
+          }}
+        />
+      }
     </HomeBottomTabsStack.Navigator>
   );
 };
@@ -205,6 +228,9 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Tips" component={Tips} />
       <DrawerStack.Screen name="Settings" component={Settings} />
       <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />
+      <DrawerStack.Screen name="Auth" component={AuthNavigator} />
+      <DrawerStack.Screen name="Login" component={Login} />
+
     </DrawerStack.Navigator>
   );
 };
@@ -264,6 +290,7 @@ const RootNavigator: React.FC = () => {
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {/* <RootStack.Screen name="MainStack" component={MainNavigator} /> */}
       {publicKey ? (
         <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (

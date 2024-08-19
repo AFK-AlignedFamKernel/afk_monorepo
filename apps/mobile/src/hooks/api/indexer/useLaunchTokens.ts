@@ -13,7 +13,7 @@ export const useGetTokenLaunch = () => {
     queryKey: ['token_launch'],
     queryFn: async () => {
       const res = await ApiIndexerInstance.get('/deploy-launch');
-      console.log("res get launch",res)
+      // console.log("res get launch",res)
       return res
     },
   });

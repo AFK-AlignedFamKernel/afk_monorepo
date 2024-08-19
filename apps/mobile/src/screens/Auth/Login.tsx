@@ -10,13 +10,14 @@ import {Auth} from '../../modules/Auth';
 // import {useAuth} from '../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
 
-import {AuthLoginScreenProps} from '../../types';
+import {AuthLoginScreenProps, MainStackNavigationProps, MainStackParams} from '../../types';
 import {getPublicKeyFromSecret} from '../../utils/keypair';
 import {
   retrieveAndDecryptPrivateKey,
   retrievePassword,
   retrievePublicKey,
 } from '../../utils/storage';
+import { useNavigation } from '@react-navigation/native';
 
 export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -26,6 +27,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
+
+  const navigationMain = useNavigation<MainStackNavigationProps>()
 
   useEffect(() => {
     (async () => {
@@ -60,6 +63,11 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
     }
 
     setAuth(publicKey, privateKeyHex);
+
+
+    if(publicKey && privateKeyHex ) {
+      navigationMain.navigate("Feed");
+    }
   };
 
   const handleCreateAccount = () => {
