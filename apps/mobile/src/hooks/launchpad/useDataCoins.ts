@@ -119,24 +119,41 @@ export const useDataCoins = () => {
     }
   };
 
-  const getCoinByAddress = async (
-    address_user: string,
+  const getCoinLaunchByAddress = async (
+    coin_address: string,
     account?: AccountInterface,
     contractAddress?: string,
   ) => {
     try {
-      // if (!account?.address) return;
       const contract = await prepareAndConnectContract(
         provider,
         contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         account,
       );
-      const share_user: any = await contract.get_key_of_user(address_user);
+      const share_user: any = await contract.get_coin_launch(coin_address);
       return share_user;
     } catch (e) {
-      console.log('Error get my key of user', e);
+      console.log('Error get coin launch', e);
     }
   };
 
-  return { getAllCoins, getMySharesOfUser, getCoinByAddress, queryDataCoins, queryDataLaunch, getAllLaunch};
+  const getCoinByAddress = async (
+    coin_address: string,
+    account?: AccountInterface,
+    contractAddress?: string,
+  ) => {
+    try {
+      const contract = await prepareAndConnectContract(
+        provider,
+        contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        account,
+      );
+      const share_user: any = await contract.get_coin_launch(coin_address);
+      return share_user;
+    } catch (e) {
+      console.log('Error get coin launch', e);
+    }
+  };
+
+  return { getAllCoins, getMySharesOfUser, getCoinByAddress, queryDataCoins, queryDataLaunch, getAllLaunch, getCoinLaunchByAddress};
 };

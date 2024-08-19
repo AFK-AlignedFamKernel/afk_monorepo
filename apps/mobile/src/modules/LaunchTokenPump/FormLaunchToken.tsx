@@ -15,6 +15,8 @@ import { useAuth } from 'afk_nostr_sdk';
 import { MainStackNavigationProps } from '../../types';
 import { useAccount } from '@starknet-react/core';
 import { useCreateToken, DeployTokenFormValues } from '../../hooks/launchpad/useCreateToken';
+import { TipSuccessModalProps } from '../TipSuccessModal';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -27,15 +29,23 @@ enum TypeCreate {
   CREATE,
   CREATE_AND_LAUNCH
 }
+export type FormTokenCreatedProps = {
+  event?: NDKEvent;
+  starknetAddress?: string;
+  hide?: () => void;
+  showSuccess?: (props: TipSuccessModalProps) => void;
+  hideSuccess?: () => void;
+};
+
+
 type FormValues = DeployTokenFormValues;
-export const FormLaunchToken: React.FC = () => {
+export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
   const formikRef = useRef<FormikProps<FormValues>>(null);
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
   const profile = useProfile({ publicKey });
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const navigation = useNavigation<MainStackNavigationProps>();
   const account = useAccount()
   const waitConnection = useWaitConnection()
   const { deployToken, deployTokenAndLaunch } = useCreateToken()
@@ -58,7 +68,6 @@ export const FormLaunchToken: React.FC = () => {
 
   const validateForm = (values: FormValues) => {
     const errors = {} as Partial<FormValues>;
-
     // TODO: Do validation
 
     return errors;
@@ -144,14 +153,10 @@ export const FormLaunchToken: React.FC = () => {
 
             <Button
               onPress={() => onSubmitPress(TypeCreate.CREATE)}
-            // onPress={() => onSubmitPress}
             >Create coin</Button>
 
             <Button
-              // onPress={onSubmitPress}
               onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}
-
-            // onPress={() => onSubmitPress}
             >Create & Launch coin</Button>
 
             <View style={styles.gap} />

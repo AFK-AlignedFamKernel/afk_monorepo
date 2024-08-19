@@ -1,6 +1,8 @@
 export const RELAYS_PROD = ['wss://relay.n057r.club', 'wss://relay.nostr.net', "wss://relay.primal.net", "wss://relay.nostr.band", "wss://purplepag.es"];
 export const RELAYS_TEST= ['wss://relay.n057r.club', 'wss://relay.nostr.net'];
 
+export const RELAY_AFK_PRODUCTION= "wss://nostr-relay-nestjs-production.up.railway.app"
+
 export const AFK_RELAYS =
   process.env.EXPO_NODE_ENV == 'production' || process.env.NODE_ENV == 'production'
     ? [

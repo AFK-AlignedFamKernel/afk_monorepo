@@ -2,6 +2,7 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
 import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer';
 import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
+import { TokenLaunchInterface } from './keys';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
@@ -39,6 +40,16 @@ export type MainStackParams = {
   Feed: undefined;
   Settings:undefined;
   Launchpad:undefined;
+  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys:undefined;
+  Auth:NavigatorScreenParams<AuthStackParams>
+
 
 };
 
@@ -54,7 +65,16 @@ export type HomeBottomStackParams = {
   Settings:undefined;
   Profile:{publicKey:string};
   Launchpad:undefined;
-
+  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys:undefined;
+  Auth:NavigatorScreenParams<AuthStackParams>;
+  Main:NavigatorScreenParams<MainStackParams>;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
@@ -65,20 +85,20 @@ export type RootStackScreenProps = NativeStackScreenProps<RootStackParams>;
 
 // Auth
 export type AuthLoginScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'Login'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'Login'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthCreateAccountScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'CreateAccount'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'CreateAccount'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthSaveKeysScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'SaveKeys'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'SaveKeys'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
 export type AuthImportKeysScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams, 'ImportKeys'>,
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'ImportKeys'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
@@ -200,6 +220,12 @@ export type LaunchpadScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Launchpad'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+export type LaunchDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'LaunchDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
 
 // export type TipsMainScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<MainStackParams, 'Tips'>,

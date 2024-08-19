@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View, Text, Platform, Dimensions } from 'react-native';
 import { Button, Divider, IconButton, Menu } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import stylesheet from './styles';
 import { useQueryAllKeys } from '../../hooks/keys/useQueryAllKeys';
 import { KeyCardUser } from '../../components/KeyCardUser';
@@ -14,6 +14,8 @@ import { useQueryAllCoins } from '../../hooks/launchpad/useQueryAllCoins';
 import { useQueryAllLaunch } from '../../hooks/launchpad/useQueryAllLaunch';
 import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
+import { useDimensions } from '../../hooks/useWindowDimensions';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 
 
 interface AllKeysComponentInterface {
@@ -26,13 +28,18 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataLaunch = useQueryAllLaunch()
   const { show: showKeyModal } = useKeyModal();
+  const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: launchs } = useGetTokenLaunch()
   // console.log("Launchs", launchs)
-  const { publicKey } = useAuth()
-  const width = Dimensions.get("window").width
-  const isDesktop = width >= 1024
 
+  const { publicKey } = useAuth()
+  // const width = Dimensions.get("window").width
+  // const isDesktop = width >= 1024
+  const {width} = useWindowDimensions()
+  console.log("width",width)
+  const isDesktop = width>= 1024 ? true : false
+  console.log("isDesktop",isDesktop)
   return (
     <View style={styles.container}>
       {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
@@ -41,7 +48,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         <Button
           onPress={() => {
             // showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
-            setMenuOpen(!menuOpen);
+            showModal()
+            // setMenuOpen(!menuOpen);
           }}>
           <Text>Create token</Text>
         </Button>
@@ -60,9 +68,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         renderItem={({ item, index }) => {
           // console.log("key item", item)
           return (
-            <>
               <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>
-            </>
           );
         }}
         refreshControl={<RefreshControl refreshing={queryDataLaunch.isFetching} onRefresh={queryDataLaunch.refetch} />}

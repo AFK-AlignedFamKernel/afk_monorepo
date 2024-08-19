@@ -6,7 +6,7 @@ import { Account, cairo, constants, uint256 } from "starknet";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
-import { LAUNCHPAD_ADDRESS } from "common";
+import { formatFloatToUint256, LAUNCHPAD_ADDRESS } from "common";
 import { CLASS_HASH, ESCROW_ADDRESS, JEDISWAP_V2_FACTORY, JEDISWAP_V2_NFT_ROUTER, TOKENS_ADDRESS, } from "common";
 
 dotenv.config();
@@ -28,14 +28,17 @@ export const deployLaunchpad = async () => {
     let JEDISWAP_ADDRESS_NFT = JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_SEPOLIA];
     let JEDISWAP_FACTORY_ADDRESS = JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_SEPOLIA];
 
-    if (chainId == constants.StarknetChainId.SN_SEPOLIA) {
+    if (chainId == constants.StarknetChainId.SN_MAIN) {
         JEDISWAP_ADDRESS_NFT = JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_MAIN]
         JEDISWAP_FACTORY_ADDRESS = JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_MAIN]
     }
     const initial_key_price = cairo.uint256(1);
     const step_increase_linear = cairo.uint256(1);
-    const threshold_liquidity = cairo.uint256(10);
-    const threshold_marketcap = cairo.uint256(5000);
+    const threshold_liquidity_nb = 10;
+    const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb)
+    const threshold_marketcap_nb = 5000;
+    const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
+    // const threshold_marketcap = cairo.uint256(5000);
     // const initial_key_price = uint256.bnToUint256(BigInt(1/10_000));
     // const step_increase_linear = uint256.bnToUint256(BigInt(1/100));
     // const threshold_liquidity = cairo.uint256(100);
