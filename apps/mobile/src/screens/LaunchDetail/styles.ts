@@ -47,7 +47,6 @@ export default ThemedStyleSheet((theme) => ({
   text: {
     color: theme.colors.text,
     fontSize:12,
-    backgroundColor:theme.colors.background
   },
 
   buttonIndicator: {

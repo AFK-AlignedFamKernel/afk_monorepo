@@ -36,7 +36,7 @@ enum AmountType {
   QUOTE_AMOUNT,
   COIN_AMOUNT_TO_BUY
 }
-export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({ launch, imageProps, name, profileProps, event, isViewDetailDisabled }) => {
+export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({ launch, imageProps, name, profileProps, event, isViewDetailDisabled }) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const account = useAccount()
 

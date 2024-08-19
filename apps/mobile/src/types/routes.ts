@@ -2,6 +2,7 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
 import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer';
 import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
+import { TokenLaunchInterface } from './keys';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
@@ -39,6 +40,7 @@ export type MainStackParams = {
   Feed: undefined;
   Settings:undefined;
   Launchpad:undefined;
+  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
 
 };
 
@@ -54,6 +56,8 @@ export type HomeBottomStackParams = {
   Settings:undefined;
   Profile:{publicKey:string};
   Launchpad:undefined;
+  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+
 
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -200,6 +204,12 @@ export type LaunchpadScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Launchpad'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+export type LaunchDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'LaunchDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
 
 // export type TipsMainScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<MainStackParams, 'Tips'>,

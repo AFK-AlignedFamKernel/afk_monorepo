@@ -30,6 +30,7 @@ import { useAuth } from 'afk_nostr_sdk';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Navbar } from '../components/Navbar';
 import { Settings } from '../screens/Settings';
+import { LaunchDetail } from '../screens/LaunchDetail';
 
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
@@ -189,7 +190,6 @@ const MainNavigator: React.FC = () => {
         <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
         :
         <DrawerStack.Screen name="Feed" component={Feed} />
-
       }
       <DrawerStack.Screen name="Profile" component={Profile} />
       <DrawerStack.Screen name="EditProfile" component={EditProfile} />
@@ -204,6 +204,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Games" component={Games} />
       <DrawerStack.Screen name="Tips" component={Tips} />
       <DrawerStack.Screen name="Settings" component={Settings} />
+      <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />
     </DrawerStack.Navigator>
   );
 };

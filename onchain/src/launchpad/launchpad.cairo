@@ -53,7 +53,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
     ) -> u256;
 
-    fn get_key_of_user(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
+    fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
     fn get_share_key_of_user(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesKeys;
@@ -676,39 +676,8 @@ mod LaunchpadMarketplace {
             self.threshold_liquidity.read()
         }
 
-        // The function calculates the amiunt of quote_token you need to buy a coin in the pool
-        fn get_amount_by_type_of_coin_or_quote(
-            self: @ContractState,
-            coin_address: ContractAddress,
-            amount: u256,
-            is_decreased: bool,
-            is_quote_amount: bool
-        ) -> u256 {
-            self
-                ._get_amount_by_type_of_coin_or_quote(
-                    coin_address, amount, is_decreased, is_quote_amount
-                )
-        }
 
-        fn get_coin_amount_by_quote_amount(
-            self: @ContractState,
-            coin_address: ContractAddress,
-            quote_amount: u256,
-            is_decreased: bool
-        ) -> u256 {
-            self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
-        }
-
-        fn get_quote_paid_by_amount_coin(
-            self: @ContractState,
-            coin_address: ContractAddress,
-            quote_amount: u256,
-            is_decreased: bool
-        ) -> u256 {
-            self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
-        }
-
-        fn get_key_of_user(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
+        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
             self.launched_coins.read(key_user)
         }
 
@@ -747,6 +716,39 @@ mod LaunchpadMarketplace {
                 i += 1;
             }
         }
+
+        // The function calculates the amiunt of quote_token you need to buy a coin in the pool
+        fn get_amount_by_type_of_coin_or_quote(
+            self: @ContractState,
+            coin_address: ContractAddress,
+            amount: u256,
+            is_decreased: bool,
+            is_quote_amount: bool
+        ) -> u256 {
+            self
+                ._get_amount_by_type_of_coin_or_quote(
+                    coin_address, amount, is_decreased, is_quote_amount
+                )
+        }
+
+        fn get_coin_amount_by_quote_amount(
+            self: @ContractState,
+            coin_address: ContractAddress,
+            quote_amount: u256,
+            is_decreased: bool
+        ) -> u256 {
+            self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
+        }
+
+        fn get_quote_paid_by_amount_coin(
+            self: @ContractState,
+            coin_address: ContractAddress,
+            quote_amount: u256,
+            is_decreased: bool
+        ) -> u256 {
+            self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
+        }
+
     }
 
     // // Could be a group of functions about a same topic

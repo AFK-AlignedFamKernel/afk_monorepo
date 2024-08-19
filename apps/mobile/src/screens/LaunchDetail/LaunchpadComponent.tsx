@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View, Text, Platform, Dimensions } from 'react-native';
 import { Button, Divider, IconButton, Menu } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
@@ -35,8 +35,13 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
   // const isDesktop = width >= 1024
   const {width} = useWindowDimensions()
   console.log("width",width)
-  const isDesktop = width>= 1024 ? true : false
-  console.log("isDesktop",isDesktop)
+  // const isDesktop = width>= 1024 ? true : false
+  // console.log("isDesktop",isDesktop)
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024
+  }, [dimensions]); // Adjust based on your breakpoint for desktop
   return (
     <View style={styles.container}>
       {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
