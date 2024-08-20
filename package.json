@@ -15,6 +15,7 @@
     "build:mobile":"cd apps/mobile && pnpm run build",
     "dev:mobile":"cd apps/mobile && pnpm run start",
     "build:nostr_sdk":"cd packages/afk_nostr_sdk && pnpm run build",
+    "build:indexer-prisma":"cd packages/indexer-prisma && pnpm pull && pnpm generate",
     "dev": "turbo run dev",
     "web":"turbo run dev --filter=website",
     "mobile":"turbo run start --filter=mobile",
