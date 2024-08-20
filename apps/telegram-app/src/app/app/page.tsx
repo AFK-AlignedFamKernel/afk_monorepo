@@ -24,7 +24,7 @@ export default function AppHomepage() {
     const events_package = await nostr?.ndk?.fetchEvents(filter);
     // console.log("events_package", events_package)
     setEvents([
-      ...events_package,
+      // ...events_package,
       // [...eventsSearch?.data?.pages]
     ]);
   };

@@ -37,7 +37,10 @@
         "PINATA_JWT",
         "LAUNCHING_FACTORY",
         "PINATA_GATEWAY_KEY",
-        "NEXT_PUBLIC_APP_URL"
+        "NEXT_PUBLIC_APP_URL",
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_WEB_APP",
+        "INDEXER_DATABASE_URL"
       ]
     },
     "run": {

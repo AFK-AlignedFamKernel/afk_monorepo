@@ -6,6 +6,7 @@ import {createPortal} from 'react-dom';
 
 import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
+import { ToggleTheme } from './ToggleTheme';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
@@ -22,6 +23,7 @@ export function Navbar() {
         </Link>
       </div>
       <NavigationLinks />
+      {/* <ToggleTheme></ToggleTheme> */}
       <div className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
         <button className="py-[15px] px-[48px] bg-white">
           <a href="https://afk-community.xyz" target="_blank">

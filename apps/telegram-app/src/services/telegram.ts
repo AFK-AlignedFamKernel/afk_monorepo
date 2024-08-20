@@ -2,6 +2,65 @@
 import { Telegraf } from 'telegraf'
 import { message } from 'telegraf/filters'
 
+import dotenv from "dotenv";
+dotenv.config()
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+const WEB_APP_URL = process.env.TELEGRAM_WEB_APP ?? "https://tg.afk-community.xyz"; // Replace with your web app's URL
+
+
+/**
+ * Listens to process stop events and performs a graceful bot stop
+ *
+ * @param bot Telegraf bot instance
+ *
+ */
+function enableGracefulStop(bot) {
+    // Enable graceful stop
+    process.once('SIGINT', () => bot.stop('SIGINT'))
+    process.once('SIGTERM', () => bot.stop('SIGTERM'))
+}
+
+/**
+ * Receives data from the mini app and sends a simple message using answerWebAppQuery
+ * @see https://core.telegram.org/bots/api#answerwebappquery
+ *
+ * We will use InlineQueryResult to create our message
+ * @see https://core.telegram.org/bots/api#inlinequeryresult
+ */
+export const handleMessageRequest = async (bot, request, response) => {
+    try {
+        // Read data from the request body received by the mini app
+        const {queryId, message} = request.body
+
+
+        // We are creating InlineQueryResultArticle
+        // See https://core.telegram.org/bots/api#inlinequeryresultarticle
+        const article = {
+            type: 'article',
+            id: queryId,
+            title: 'Message from the mini app',
+            input_message_content: {
+                message_text: `MiniApp: ${message}`
+            }
+        }
+
+        // Use queryId and data to send a message to the bot chat
+        await bot.answerWebAppQuery(queryId, article)
+
+        // End the request with a success code
+        await response.status(200).json({
+            message: 'success!'
+        })
+
+    } catch (e) {
+        const errorJson = JSON.stringify(e)
+        console.log(`handleMessageRequest error ${errorJson}`)
+
+        await response.status(500).json({
+            error: errorJson
+        })
+    }
+}
 
 /**
  * Creates and launches Telegram bot, and assigns all the required listeners
@@ -143,56 +202,62 @@ function listenToQueries(bot) {
         await ctx.answerInlineQuery(result)
     })
 }
-/**
- * Listens to process stop events and performs a graceful bot stop
- *
- * @param bot Telegraf bot instance
- *
- */
-function enableGracefulStop(bot) {
-    // Enable graceful stop
-    process.once('SIGINT', () => bot.stop('SIGINT'))
-    process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
+
+
+export async function sendWebAppButton(chatId) {
+  const url = `${TELEGRAM_API_URL}/sendMessage`;
+  console.log("web app url",WEB_APP_URL)
+  const body = {
+    chat_id: chatId,
+    text: 'Click the button below to open the web app:',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: 'Open Web App',
+            web_app: {
+              url: WEB_APP_URL,
+            },
+          },
+        ],
+      ],
+    },
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error sending web app button: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  console.log(result);
 }
 
-/**
- * Receives data from the mini app and sends a simple message using answerWebAppQuery
- * @see https://core.telegram.org/bots/api#answerwebappquery
- *
- * We will use InlineQueryResult to create our message
- * @see https://core.telegram.org/bots/api#inlinequeryresult
- */
-export const handleMessageRequest = async (bot, request, response) => {
-    try {
-        // Read data from the request body received by the mini app
-        const {queryId, message} = request.body
-
-
-        // We are creating InlineQueryResultArticle
-        // See https://core.telegram.org/bots/api#inlinequeryresultarticle
-        const article = {
-            type: 'article',
-            id: queryId,
-            title: 'Message from the mini app',
-            input_message_content: {
-                message_text: `MiniApp: ${message}`
-            }
-        }
-
-        // Use queryId and data to send a message to the bot chat
-        await bot.answerWebAppQuery(queryId, article)
-
-        // End the request with a success code
-        await response.status(200).json({
-            message: 'success!'
-        })
-
-    } catch (e) {
-        const errorJson = JSON.stringify(e)
-        console.log(`handleMessageRequest error ${errorJson}`)
-
-        await response.status(500).json({
-            error: errorJson
-        })
+// Function to send a message to a chat
+export async function sendMessage(chatId, text) {
+    const url = `${TELEGRAM_API_URL}/sendMessage`;
+    const body = {
+      chat_id: chatId,
+      text: text,
+    };
+  
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  
+    if (!response.ok) {
+      console.error(`Error sending message: ${response.statusText}`);
     }
-}
+  }

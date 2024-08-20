@@ -1,10 +1,33 @@
 import express from 'express'
 import { HTTPStatus } from '../utils/http';
-import { sendMessage, sendWebAppButton } from '../services/telegram-app';
+import { launchBot, sendMessage, sendWebAppButton } from '../services/telegram-app';
 import dotenv from "dotenv"
 import { TELEGRAM_API_URL, WEBHOOK_DOMAIN } from '../utils/constants';
 dotenv.config();
 const Router = express.Router()
+
+Router.post('/launch-bot', async (req, res) => {
+  try {
+    console.log("gm")
+
+    launchBot(process.env.TELEGRAM_BOT_TOKEN)
+
+  } catch (error) {
+    res.status(HTTPStatus.InternalServerError).send(error)
+  }
+})
+
+Router.get('/launch-bot', async (req, res) => {
+  try {
+    console.log("gm")
+
+    launchBot(process.env.TELEGRAM_BOT_TOKEN)
+
+  } catch (error) {
+    res.status(HTTPStatus.InternalServerError).send(error)
+  }
+})
+
 
 Router.get('/', async (req, res) => {
   try {
