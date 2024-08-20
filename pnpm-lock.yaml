@@ -69,6 +69,9 @@ importers:
       telegraf:
         specifier: ^4.16.3
         version: 4.16.3
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -88,9 +91,6 @@ importers:
       tsx:
         specifier: ^4.7.3
         version: 4.17.0
-      typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
 
   apps/mobile:
     dependencies:
