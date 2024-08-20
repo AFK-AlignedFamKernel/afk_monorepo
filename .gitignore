@@ -20,3 +20,5 @@ Cargo.lock
 node_modules/
 
 .turbo
+
+.env

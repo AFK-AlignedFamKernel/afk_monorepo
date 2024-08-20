@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",  // Output directory for compiled JS files
     "module": "CommonJS",  // Use CommonJS for Node.js compatibility
-    "target": "ESNext",
+    "target": "ES6",
     "lib": ["dom", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

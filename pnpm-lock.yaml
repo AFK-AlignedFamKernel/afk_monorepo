@@ -597,6 +597,15 @@ importers:
       prisma:
         specifier: ^5.18.0
         version: 5.18.0
+      starknet:
+        specifier: ^6.6.6
+        version: 6.9.0
+      tsup:
+        specifier: ^8.0.2
+        version: 8.2.4(jiti@1.21.6)(postcss@8.4.41)(tsx@4.17.0)(typescript@5.3.3)(yaml@2.5.0)
+      typescript:
+        specifier: ~5.3.3
+        version: 5.3.3
 
 packages:
 

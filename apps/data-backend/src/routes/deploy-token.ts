@@ -1,5 +1,7 @@
 import express from 'express'
-import prisma from 'indexer-prisma';
+// import prisma from 'indexer-prisma';
+const { prisma } = require("indexer-prisma");
+
 import { HTTPStatus } from '../utils/http';
 import { isValidStarknetAddress } from '../utils/starknet';
 

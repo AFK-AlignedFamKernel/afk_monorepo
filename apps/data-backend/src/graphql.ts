@@ -1,5 +1,6 @@
 import { ApolloServer, gql } from 'apollo-server';
-import prisma from 'indexer-prisma';
+// import prisma from 'indexer-prisma';
+const { prisma } = require("indexer-prisma");
 import { MutationBuyToken, TypeBuyToken } from './schema/indexer/buy_token';
 // Define your resolvers
 const resolvers = {

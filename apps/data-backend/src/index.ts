@@ -25,7 +25,12 @@ app.use('/telegram-app', router)
 
 app.listen(port, () => {
   console.log(`🚀 Backend server running at http://localhost:${port}`);
-  launchBot(process.env.TELEGRAM_BOT_TOKEN)
+  try {
+    launchBot(process.env.TELEGRAM_BOT_TOKEN)
+
+  }catch(e) {
+
+  }
   // sendWebAppButton(process.env.TG_ADMIN_CHAT_ID)
 });
 

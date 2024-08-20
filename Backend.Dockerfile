@@ -4,6 +4,25 @@ FROM node:18-alpine AS base
 # Set the working directory inside the container
 WORKDIR /app
 
+# Add an argument for the Telegram bot token
+ARG TELEGRAM_BOT_TOKEN
+
+# Set the environment variable
+ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+
+# Add an argument for th Indexer postgres url
+ARG INDEXER_DATABASE_URL
+
+# Set the environment variable
+ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL}
+
+
+# Add an argument for Telegram webapp
+ARG TELEGRAM_WEB_APP
+
+# Set the environment variable
+ENV TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
+
 # Copy root-level package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
@@ -19,6 +38,9 @@ COPY . .
 # Build the common package first
 RUN pnpm --filter common build
 
+# Build the indexer-prisma package
+RUN pnpm --filter indexer-prisma build
+
 # Build the data-backend package
 RUN pnpm --filter data-backend build
 
@@ -30,7 +52,8 @@ WORKDIR /app
 
 # Copy the node_modules and built files from the base stage
 COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/packages/common/dist ./packages/common/dist
+COPY --from=base /app/packages/common ./packages/common
+COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run

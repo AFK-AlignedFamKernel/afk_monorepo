@@ -17,22 +17,27 @@ import { message } from 'telegraf/filters'
  *
  */
 export function launchBot(token) {
-    // Create a bot using the token received from @BotFather(https://t.me/BotFather)
-    const bot = new Telegraf(token)
+    try {
+        // Create a bot using the token received from @BotFather(https://t.me/BotFather)
+        const bot = new Telegraf(token)
 
-    // Assign bot listeners
-    listenToCommands(bot)
-    listenToMessages(bot)
-    listenToQueries(bot)
-    listenToMiniAppData(bot)
+        // Assign bot listeners
+        listenToCommands(bot)
+        listenToMessages(bot)
+        listenToQueries(bot)
+        listenToMiniAppData(bot)
 
-    // Launch the bot
-    bot.launch().then(() => console.log('bot launched'))
+        // Launch the bot
+        bot.launch().then(() => console.log('bot launched'))
 
-    // Handle stop events
-    enableGracefulStop(bot)
+        // Handle stop events
+        enableGracefulStop(bot)
 
-    return bot
+        return bot
+    } catch (e) {
+        console.log("launchBot error", e)
+    }
+
 }
 
 /**
