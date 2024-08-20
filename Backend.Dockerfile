@@ -38,6 +38,8 @@ COPY . .
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
+# Build the data-backend package
+RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
 FROM node:18-alpine AS production
@@ -49,6 +51,7 @@ WORKDIR /app
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
+COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
 COPY apps/data-backend/package.json ./
@@ -60,4 +63,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Command to start the application
-CMD ["node", "apps/data-backend/src/index.ts"]
+CMD ["node", "apps/data-backend/dist/index.js"]
