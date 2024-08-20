@@ -1,6 +1,6 @@
 ## Mobile
 
-Joyboy Mobile folder in React-native with Expo.
+AFK Mobile folder in React-native with Expo.
 Pick a good first issue with the mobile labels, and let's contribute and keep building cool things in Open-source.
 
 ### Test
@@ -35,9 +35,9 @@ WIP:
 - DM with private message: NIP-17
 - Public chat: NIP-28
  
-[UI/UX proposal for video discussions](https://github.com/keep-starknet-strange/joyboy/discussions/48#discussion-6683225)
+[UI/UX proposal for video discussions](https://github.com/AFK-AlignedFamKernel/afk_monorepo/discussions/24)
 
-[UI video discussions](https://t.me/JoyboyStarknet/206/397)
+[UI video discussions](https://t.me/afk_aligned_fam_kernel)
 
 
 Home page: 

@@ -51,8 +51,6 @@ export const parseClaimEvent = (event: ContractEvent) => {
   return undefined;
 };
 
-
-
 export const parseCreatedKeyEvent = (event: ContractEvent) => {
   if (event.keys[0] === EventKeyForKeysMarketplace.CreateKeys) {
     return {

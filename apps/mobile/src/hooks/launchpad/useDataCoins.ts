@@ -1,10 +1,9 @@
-import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
-import { AccountInterface, constants, Contract, ProviderInterface, RpcProvider } from 'starknet';
+import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
+import {useQuery} from '@tanstack/react-query';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, constants, Contract, ProviderInterface, RpcProvider} from 'starknet';
 
-import {LAUNCHPAD_ADDRESS} from "common"
-
-import { useQuery } from '@tanstack/react-query';
-import { CHAIN_ID } from '../../constants/env';
+import {CHAIN_ID} from '../../constants/env';
 /** @TODO determine paymaster master specs to send the TX */
 export const prepareAndConnectContract = async (
   provider: ProviderInterface,
@@ -15,7 +14,7 @@ export const prepareAndConnectContract = async (
   console.log('contractAddress', contractAddress);
   // console.log("provider",await provider.getChainId())
 
-  const { abi: testAbi } = await provider.getClassAt(contractAddress);
+  const {abi: testAbi} = await provider.getClassAt(contractAddress);
   if (testAbi === undefined) {
     throw new Error('no abi.');
   }
@@ -39,42 +38,33 @@ export const useDataCoins = () => {
   // const provider = rpcProvider?.provider ?? new RpcProvider();
   const provider = new RpcProvider();
 
-
-  const queryDataCoins = () => {
+  const useQueryDataCoins = () => {
     return useQuery({
       queryKey: ['get_all_coins', CHAIN_ID],
-      queryFn:async () => {
-
-        const keys= await getAllCoins()
-        return keys
+      queryFn: async () => {
+        const keys = await getAllCoins();
+        return keys;
       },
-      placeholderData:[]
+      placeholderData: [],
+    });
+  };
 
-
-    })
-
-  }
-
-  const queryDataLaunch = () => {
+  const useQueryDataLaunch = () => {
     return useQuery({
       queryKey: ['get_all_launched_coins', CHAIN_ID],
-      queryFn:async () => {
-
-        const keys= await getAllCoins()
-        return keys
+      queryFn: async () => {
+        const keys = await getAllCoins();
+        return keys;
       },
-      placeholderData:[]
-
-
-    })
-
-  }
-
+      placeholderData: [],
+    });
+  };
 
   /** Indexer with Key contract event */
   const getAllCoins = async (account?: AccountInterface, contractAddress?: string) => {
     console.log('getAllCoins');
-    const addressContract = contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract =
+      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const contract = await prepareAndConnectContract(provider, addressContract, account);
     // if (!account) return;
     // console.log('get key all keys');
@@ -83,10 +73,11 @@ export const useDataCoins = () => {
     return all_keys;
   };
 
-   /** Indexer with Key contract event */
-   const getAllLaunch = async (account?: AccountInterface, contractAddress?: string) => {
+  /** Indexer with Key contract event */
+  const getAllLaunch = async (account?: AccountInterface, contractAddress?: string) => {
     console.log('getAllLaunch');
-    const addressContract = contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract =
+      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const contract = await prepareAndConnectContract(provider, addressContract, account);
     // if (!account) return;
     // console.log('get key all keys');
@@ -94,7 +85,6 @@ export const useDataCoins = () => {
     console.log('all_launch', all_launch);
     return all_launch;
   };
-
 
   const getMySharesOfUser = async (
     address_user: string,
@@ -155,5 +145,13 @@ export const useDataCoins = () => {
     }
   };
 
-  return { getAllCoins, getMySharesOfUser, getCoinByAddress, queryDataCoins, queryDataLaunch, getAllLaunch, getCoinLaunchByAddress};
+  return {
+    getAllCoins,
+    getMySharesOfUser,
+    getCoinByAddress,
+    useQueryDataCoins,
+    useQueryDataLaunch,
+    getAllLaunch,
+    getCoinLaunchByAddress,
+  };
 };

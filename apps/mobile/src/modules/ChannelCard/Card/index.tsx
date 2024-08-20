@@ -1,6 +1,9 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+// import {useAuth} from '../../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
+import {useMessagesChannels, useProfile, useReact, useReactions} from 'afk_nostr_sdk';
 import {useEffect, useMemo, useState} from 'react';
 import {Pressable, View} from 'react-native';
 import {
@@ -16,19 +19,10 @@ import {CommentIcon} from '../../../assets/icons';
 import {IconButton, Menu, Text} from '../../../components';
 import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-// import {useAuth} from '../../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {MainStackNavigationProps} from '../../../types';
 import {IChannelsMetadata} from '../../../types/channels';
 import {ChannelInfo} from './ChannelInfo';
 import stylesheet from './styles';
-import {useProfile,
-  useReact,
-  useReactions,
-  useReplyNotes,
-  useMessagesChannels
-} from "afk_nostr_sdk"
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;

@@ -1,8 +1,7 @@
-import {useAccount, useNetwork} from '@starknet-react/core';
-import {AccountInterface, CallData, constants} from 'starknet';
-
+import {useNetwork} from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
-import {LAUNCHPAD_ADDRESS} from "common"
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, CallData, constants} from 'starknet';
 
 export const useInstantiateKeys = () => {
   const chain = useNetwork();
@@ -11,7 +10,8 @@ export const useInstantiateKeys = () => {
   const handleInstantiateKeys = async (account: AccountInterface, addressContract?: string) => {
     if (!account) return;
 
-    const contractAddress = addressContract ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const contractAddress =
+      addressContract ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
 
     const call = {
       contractAddress,

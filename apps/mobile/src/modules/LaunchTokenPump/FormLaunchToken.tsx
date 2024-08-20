@@ -1,22 +1,19 @@
-import { useNavigation } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
-import { Formik, FormikProps } from 'formik';
-import { useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
-
-import { Button, SquareInput, Text } from '../../components';
-import { useStyles, useWaitConnection } from '../../hooks';
-import { useProfile } from "afk_nostr_sdk"
-import { useToast, useWalletModal } from '../../hooks/modals';
-import stylesheet from '../../screens/CreateChannel/styles';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useAccount} from '@starknet-react/core';
+import {useQueryClient} from '@tanstack/react-query';
+import {useProfile} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
+import {useAuth} from 'afk_nostr_sdk';
+import {Formik, FormikProps} from 'formik';
+import {useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 
-import { MainStackNavigationProps } from '../../types';
-import { useAccount } from '@starknet-react/core';
-import { useCreateToken, DeployTokenFormValues } from '../../hooks/launchpad/useCreateToken';
-import { TipSuccessModalProps } from '../TipSuccessModal';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+import {Button, SquareInput, Text} from '../../components';
+import {useStyles, useWaitConnection} from '../../hooks';
+import {DeployTokenFormValues, useCreateToken} from '../../hooks/launchpad/useCreateToken';
+import {useToast, useWalletModal} from '../../hooks/modals';
+import stylesheet from '../../screens/CreateChannel/styles';
+import {TipSuccessModalProps} from '../TipSuccessModal';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -27,7 +24,7 @@ const UsernameInputLeft = (
 enum TypeCreate {
   LAUNCH,
   CREATE,
-  CREATE_AND_LAUNCH
+  CREATE_AND_LAUNCH,
 }
 export type FormTokenCreatedProps = {
   event?: NDKEvent;
@@ -37,32 +34,31 @@ export type FormTokenCreatedProps = {
   hideSuccess?: () => void;
 };
 
-
 type FormValues = DeployTokenFormValues;
 export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
   const formikRef = useRef<FormikProps<FormValues>>(null);
+  const walletModal = useWalletModal();
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
-  const profile = useProfile({ publicKey });
+  const profile = useProfile({publicKey});
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const account = useAccount()
-  const waitConnection = useWaitConnection()
-  const { deployToken, deployTokenAndLaunch } = useCreateToken()
+  const {showToast} = useToast();
+  const account = useAccount();
+  const waitConnection = useWaitConnection();
+  const {deployToken, deployTokenAndLaunch} = useCreateToken();
 
-  const [type, setType] = useState(TypeCreate.CREATE)
-  if (profile.isLoading) return null;
+  const [type, setType] = useState(TypeCreate.CREATE);
   const initialFormValues: FormValues = {
     name: 'My Man',
     symbol: 'MY_MAN',
     // ticker: '',
     initialSupply: 100_000_000,
     contract_address_salt: undefined,
-    recipient: account?.address
+    recipient: account?.address,
   };
 
   const onSubmitPress = (type: TypeCreate) => {
-    setType(type)
+    setType(type);
     formikRef.current?.handleSubmit();
   };
 
@@ -75,7 +71,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
 
   const onFormSubmit = async (values: FormValues) => {
     try {
-      console.log("onFormSubmit deploy")
+      console.log('onFormSubmit deploy');
       if (!account.address) {
         walletModal.show();
         const result = await waitConnection();
@@ -87,31 +83,27 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         name: values.name,
         symbol: values.symbol,
         initialSupply: values?.initialSupply,
-        contract_address_salt: values.contract_address_salt
+        contract_address_salt: values.contract_address_salt,
       };
       if (!account || !account?.account) return;
-      console.log("test deploy")
+      console.log('test deploy');
 
       let tx;
-      if(type == TypeCreate.CREATE) {
+      if (type == TypeCreate.CREATE) {
         tx = await deployToken(account?.account, data);
-
       } else {
         tx = await deployTokenAndLaunch(account?.account, data);
-
       }
 
       if (tx) {
-        showToast({ type: 'success', title: 'Token launch created successfully' });
-
+        showToast({type: 'success', title: 'Token launch created successfully'});
       }
     } catch (error) {
-      showToast({ type: 'error', title: 'Failed to create token and launch' });
+      showToast({type: 'error', title: 'Failed to create token and launch'});
     }
   };
 
-  const walletModal = useWalletModal();
-
+  if (profile.isLoading) return null;
 
   return (
     <ScrollView automaticallyAdjustKeyboardInsets style={styles.container}>
@@ -123,8 +115,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         onSubmit={onFormSubmit}
         validate={validateForm}
       >
-
-        {({ handleChange, handleBlur, values, errors }) => (
+        {({handleChange, handleBlur, values, errors}) => (
           <View style={styles.form}>
             <SquareInput
               placeholder="Token name"
@@ -151,13 +142,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
               error={errors.initialSupply?.toString()}
             />
 
-            <Button
-              onPress={() => onSubmitPress(TypeCreate.CREATE)}
-            >Create coin</Button>
+            <Button onPress={() => onSubmitPress(TypeCreate.CREATE)}>Create coin</Button>
 
-            <Button
-              onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}
-            >Create & Launch coin</Button>
+            <Button onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
+              Create & Launch coin
+            </Button>
 
             <View style={styles.gap} />
           </View>

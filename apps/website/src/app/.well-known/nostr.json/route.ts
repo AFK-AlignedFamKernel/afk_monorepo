@@ -1,7 +1,7 @@
 import {NextResponse, NextRequest} from 'next/server';
 
 const nostr_keys = {
-  joyboy: {
+  afk: {
     pubkey: 'npub1nq5ckz62p4vxwu08lpx8ggu5k5qn6d7pdtcfyj7hae3wc6j30fwseex2rq',
   },
   testnet: {

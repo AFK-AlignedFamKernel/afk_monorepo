@@ -1,6 +1,9 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+// import {useAuth} from '../../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
+import {useProfile, useReact, useReactions, useReplyNotes} from 'afk_nostr_sdk';
 import {useEffect, useMemo, useState} from 'react';
 import {Pressable, View} from 'react-native';
 import Animated, {
@@ -14,24 +17,13 @@ import Animated, {
 
 import {LikeFillIcon, LikeIcon} from '../../../assets/icons';
 import {Avatar, Text} from '../../../components';
-import {
-  useStyles,
-  useTheme,
-} from '../../../hooks';
+import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-// import {useAuth} from '../../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {MainStackNavigationProps} from '../../../types';
 import {IChannelsMetadata} from '../../../types/channels';
 import {shortenPubkey} from '../../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../../utils/timestamp';
 import stylesheet from './styles';
-import {useProfile,
-  useReact,
-  useReactions,
-  useReplyNotes,
-} from "afk_nostr_sdk"
 
 export type PostProps = {
   asComment?: boolean;
@@ -164,41 +156,38 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
               </Text>
             )}
           </Pressable>
-
-     
         </View>
         <View>
-        <View style={styles.infoDetails}>
-        <Text color="textLight" fontSize={11} lineHeight={16}>
-            Created {getElapsedTimeStringFull((event?.created_at ?? Date.now()) * 1000)}
-          </Text>
-          {profile?.image && (
-            <Avatar
-              size={30}
-              source={
-                profile?.image ? {uri: profile?.image} : require('../../../assets/afk-logo.png')
-              }
-            />
-          )}
+          <View style={styles.infoDetails}>
+            <Text color="textLight" fontSize={11} lineHeight={16}>
+              Created {getElapsedTimeStringFull((event?.created_at ?? Date.now()) * 1000)}
+            </Text>
+            {profile?.image && (
+              <Avatar
+                size={30}
+                source={
+                  profile?.image ? {uri: profile?.image} : require('../../../assets/afk-logo.png')
+                }
+              />
+            )}
 
-          {(profile?.nip05 || profile?.name) && (
-            <>
-              <Text
-                color="textLight"
-                fontSize={11}
-                lineHeight={16}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                By @{profile?.nip05 ?? profile.name}
-              </Text>
+            {(profile?.nip05 || profile?.name) && (
+              <>
+                <Text
+                  color="textLight"
+                  fontSize={11}
+                  lineHeight={16}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  By @{profile?.nip05 ?? profile.name}
+                </Text>
 
-              {/* <View style={styles.infoDetailsDivider} /> */}
-            </>
-          )}
+                {/* <View style={styles.infoDetailsDivider} /> */}
+              </>
+            )}
+          </View>
         </View>
-      </View>
-
 
         <Pressable onPress={toggleLike}>
           <View style={styles.infoLikes}>
@@ -219,7 +208,6 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
         </Pressable>
       </View>
 
-   
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
           <Text color="textStrong" fontSize={13} lineHeight={20}>

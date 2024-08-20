@@ -1,5 +1,9 @@
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+import {useProfile, useSettingsStore} from 'afk_nostr_sdk';
+// import {useAuth} from '../../store/auth';
+import {useAuth, useCreateChannel} from 'afk_nostr_sdk';
+import {AFK_RELAYS} from 'afk_nostr_sdk/src/utils/relay';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import {Formik, FormikProps} from 'formik';
@@ -9,16 +13,11 @@ import {ScrollView, TouchableOpacity, View} from 'react-native';
 import {CopyIconStack} from '../../assets/icons';
 import {Button, SquareInput, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
-import {useProfile, useSettingsStore,
-} from "afk_nostr_sdk"
 import {useFileUpload} from '../../hooks/api';
 import {useToast} from '../../hooks/modals';
-// import {useAuth} from '../../store/auth';
-import { useAuth, useCreateChannel } from 'afk_nostr_sdk';
 import {CreateChannelScreenProps, MainStackNavigationProps} from '../../types';
 import {ChannelHead} from './Head';
 import stylesheet from './styles';
-import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -55,7 +54,7 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
   const fileUpload = useFileUpload();
   const createChannel = useCreateChannel();
   const queryClient = useQueryClient();
-  const {relays } = useSettingsStore()
+  const {relays} = useSettingsStore();
   const {showToast} = useToast();
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -102,7 +101,7 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
     github: profile.data?.github?.toString() ?? '',
     twitter: profile.data?.twitter?.toString() ?? '',
     tags: [],
-    relays:relays ??  AFK_RELAYS,
+    relays: relays ?? AFK_RELAYS,
   };
 
   const onSubmitPress = () => {

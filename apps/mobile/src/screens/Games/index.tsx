@@ -1,20 +1,23 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextButton } from '../../components';
-import TabSelector from '../../components/TabSelector';
-import { useStyles, useTheme } from '../../hooks';
-import { GameSreenProps } from '../../types';
-import { SelectedTab, TABS_MENU } from '../../types/tab';
-import stylesheet from './styles';
-import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
-import { SlinksMap } from '../Slink/SlinksMap';
-import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
+import {useState} from 'react';
+import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
-  const theme = useTheme()
+import {TextButton} from '../../components';
+import TabSelector from '../../components/TabSelector';
+import {useStyles, useTheme} from '../../hooks';
+import {GameSreenProps} from '../../types';
+import {SelectedTab, TABS_MENU} from '../../types/tab';
+import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
+import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
+import {SlinksMap} from '../Slink/SlinksMap';
+import stylesheet from './styles';
+
+export const Games: React.FC<GameSreenProps> = ({navigation}) => {
+  const theme = useTheme();
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LAUNCHPAD_VIEW);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.LAUNCHPAD_VIEW,
+  );
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -38,33 +41,43 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
           <ScrollView>
             <Text style={styles.text}>More features coming soon</Text>
-            {selectedTab == SelectedTab.SLINK &&
+            {selectedTab == SelectedTab.SLINK && (
               <>
                 <SlinksMap></SlinksMap>
               </>
-            }
+            )}
 
-            {selectedTab == SelectedTab.LAUNCHPAD_VIEW &&
+            {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
               <View>
                 <Text>Coming soon</Text>
                 <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
               </View>
+            )}
 
-            }
-
-            {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE &&
+            {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE && (
               <>
-                <View style={{ paddingVertical: 5, borderRadius: 5, borderColor: theme.theme?.colors?.shadow }}>
+                <View
+                  style={{
+                    paddingVertical: 5,
+                    borderRadius: 5,
+                    borderColor: theme.theme?.colors?.shadow,
+                  }}
+                >
                   <Text style={styles.text}>Key pass for Starknet user</Text>
-                  <Text style={styles.text}> Send the force and tip your friends and favorite content creator.</Text>
-                  <Text style={styles.text}> Buy or sell the keys to get perks and rewards from them, linked to Nostr & Starknet.</Text>
+                  <Text style={styles.text}>
+                    {' '}
+                    Send the force and tip your friends and favorite content creator.
+                  </Text>
+                  <Text style={styles.text}>
+                    {' '}
+                    Buy or sell the keys to get perks and rewards from them, linked to Nostr &
+                    Starknet.
+                  </Text>
                 </View>
                 <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
               </>
-            }
-
+            )}
           </ScrollView>
-
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>

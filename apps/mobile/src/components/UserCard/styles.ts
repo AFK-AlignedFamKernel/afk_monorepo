@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+
 import {Spacing} from '../../styles';
 
 export default StyleSheet.create({
@@ -17,13 +18,13 @@ export default StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius:15
+    borderRadius: 15,
   },
   image: {
     position: 'absolute',
     width: 35,
     height: 35,
-    borderRadius:15
+    borderRadius: 15,
   },
 
   name: {

@@ -1,12 +1,12 @@
 import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
+import {useProfile} from 'afk_nostr_sdk';
 import {Image, ImageSourcePropType, Pressable, View} from 'react-native';
 
 // import {useProfile} from '../../hooks';
 import {MainStackNavigationProps} from '../../types';
 import {Text} from '../Text';
 import styles from './styles';
-import {useProfile} from "afk_nostr_sdk"
 
 export type StoryProps = {
   imageProps?: ImageSourcePropType;

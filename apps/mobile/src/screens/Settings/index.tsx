@@ -1,37 +1,38 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useAuth, useSettingsStore} from 'afk_nostr_sdk';
+import {Text, View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { Button, Divider, Header, Icon, IconButton, Input, KeyboardFixedView } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import { useToast } from '../../hooks/modals';
-import { SettingsScreenProps } from '../../types';
+import {Button, Divider, Icon, IconButton} from '../../components';
+import {HeaderScreen} from '../../components/HeaderScreen';
+import {PrivateKeyImport} from '../../components/PrivateKeyImport';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import {SettingsScreenProps} from '../../types';
 import stylesheet from './styles';
-import { HeaderScreen } from '../../components/HeaderScreen';
-import { useAuth, useSettingsStore } from 'afk_nostr_sdk';
-import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
-import { PrivateKeyImport } from '../../components/PrivateKeyImport';
-import { ScrollView } from 'react-native-gesture-handler';
 
-export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
+export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
-  const { showToast } = useToast();
-  const { theme, toggleTheme } = useTheme();
-  const { relays, setRelays } = useSettingsStore()
-  const { publicKey, isExtension } = useAuth()
+  const {showToast} = useToast();
+  const {theme, toggleTheme} = useTheme();
+  const {relays, setRelays} = useSettingsStore();
+  const {publicKey, isExtension} = useAuth();
   // const RELAYS_USED = relays ?? AFK_RELAYS
-  const RELAYS_USED = relays
+  const RELAYS_USED = relays;
   return (
     <View style={styles.container}>
       <HeaderScreen
         showLogo={false}
-        left={<IconButton icon="ChevronLeftIcon" size={24} onPress={
-          () => {
-            navigation.navigate("Profile", { publicKey })
-            // navigation.goBack
-          }
-        } />}
+        left={
+          <IconButton
+            icon="ChevronLeftIcon"
+            size={24}
+            onPress={() => {
+              navigation.navigate('Profile', {publicKey});
+              // navigation.goBack
+            }}
+          />
+        }
         // right={<IconButton icon="MoreHorizontalIcon" size={24} />}
         title="Settings"
       />
@@ -47,22 +48,17 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
         />
       </Pressable> */}
 
-      <Button
-        onPress={toggleTheme}
-      >
+      <Button onPress={toggleTheme}>
         <Icon
           name={theme.dark ? 'SunIcon' : 'MoonIcon'}
           size={24}
-          title='Switch theme'
+          title="Switch theme"
           onPress={toggleTheme}
         />
-        <Text>
-          Switch theme
-        </Text>
+        <Text>Switch theme</Text>
       </Button>
 
       <Divider />
-
 
       <SafeAreaView edges={['top', 'left', 'right']}>
         <View style={styles.coverButtons}>
@@ -72,20 +68,14 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
               size={20}
               style={styles.backButton}
               onPress={() => {
-                navigation.navigate("Profile", { publicKey })
+                navigation.navigate('Profile', {publicKey});
               }}
             />
-
           </View>
         </View>
       </SafeAreaView>
 
-
-
-      {!isExtension &&
-        <PrivateKeyImport />
-      }
-
+      {!isExtension && <PrivateKeyImport />}
 
       <ScrollView style={styles.relaysSettings}>
         <Text style={styles.title}>AFK: All relays used</Text>
@@ -95,14 +85,10 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
             <Text key={i} style={styles.text}>
               Relay: {r}
             </Text>
-          )
+          );
         })}
       </ScrollView>
       <Divider />
-
-
-
-
     </View>
   );
 };

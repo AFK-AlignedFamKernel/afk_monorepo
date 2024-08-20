@@ -6,9 +6,9 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
-    padding:Spacing.medium,
+    padding: Spacing.medium,
     marginHorizontal: Spacing.medium,
-    marginBottom:Spacing.normal,
+    marginBottom: Spacing.normal,
     borderRadius: 16,
     borderBottomColor: theme.colors.divider,
   },
@@ -35,11 +35,10 @@ export default ThemedStyleSheet((theme) => ({
 
   title: {
     flex: 1,
-    color:theme.colors.text,
-
+    color: theme.colors.text,
   },
-  text:{
-    color:theme.colors.text
+  text: {
+    color: theme.colors.text,
   },
 
   buttons: {

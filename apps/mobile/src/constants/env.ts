@@ -17,5 +17,3 @@ if (!Object.keys(constants.NetworkName).includes(NETWORK_NAME)) {
 if (!PROVIDER_URL) throw new Error('Missing PROVIDER_URL env variable');
 if (!BACKEND_URL) throw new Error('Missing BACKEND_URL env variable');
 if (!WALLET_CONNECT_ID) throw new Error('Missing WALLET_CONNECT_ID env variable');
-
-

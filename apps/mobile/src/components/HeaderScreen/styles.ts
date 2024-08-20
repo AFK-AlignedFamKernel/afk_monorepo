@@ -3,8 +3,7 @@ import {StyleSheet} from 'react-native';
 import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  container: {
-  },
+  container: {},
   content: {
     width: '100%',
     flexDirection: 'row',

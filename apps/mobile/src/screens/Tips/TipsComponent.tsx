@@ -2,6 +2,8 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount, useProvider} from '@starknet-react/core';
 import {Fraction} from '@uniswap/sdk-core';
+// import {useNostrContext} from '../../context/NostrContext';
+import {useNostrContext} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {ActivityIndicator, FlatList, RefreshControl, View} from 'react-native';
 import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
@@ -11,8 +13,6 @@ import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {Entrypoint} from '../../constants/misc';
 import {ETH, STRK} from '../../constants/tokens';
-// import {useNostrContext} from '../../context/NostrContext';
-import {useNostrContext} from "afk_nostr_sdk"
 import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
 import {useClaim, useEstimateClaim} from '../../hooks/api';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';

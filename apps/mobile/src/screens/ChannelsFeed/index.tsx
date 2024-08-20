@@ -1,7 +1,7 @@
 import {Image, Pressable, View} from 'react-native';
 
 import {AddPostIcon} from '../../assets/icons';
-import {Header, TextButton} from '../../components';
+import {TextButton} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {ChannelsFeedScreenProps} from '../../types';
 import {ChannelsFeedComponent} from './ChannelsFeedComponent';

@@ -1,18 +1,21 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, View, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextButton } from '../../components';
-import TabSelector from '../../components/TabSelector';
-import { useStyles, useTheme } from '../../hooks';
-import { GameSreenProps } from '../../types';
-import { SelectedTab, TABS_MENU } from '../../types/tab';
-import stylesheet from './styles';
-import { SlinksMap } from './SlinksMap';
+import {useState} from 'react';
+import {KeyboardAvoidingView, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-export const Slink: React.FC<GameSreenProps> = ({ navigation }) => {
-  const theme = useTheme()
+import {TextButton} from '../../components';
+import TabSelector from '../../components/TabSelector';
+import {useStyles, useTheme} from '../../hooks';
+import {GameSreenProps} from '../../types';
+import {SelectedTab, TABS_MENU} from '../../types/tab';
+import {SlinksMap} from './SlinksMap';
+import stylesheet from './styles';
+
+export const Slink: React.FC<GameSreenProps> = ({navigation}) => {
+  const theme = useTheme();
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.VIEW_KEYS_MARKETPLACE);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.VIEW_KEYS_MARKETPLACE,
+  );
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {

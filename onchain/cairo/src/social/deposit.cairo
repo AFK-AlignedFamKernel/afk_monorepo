@@ -465,7 +465,7 @@ mod tests {
         let (request, recipient_nostr_key, sender_address, erc20, escrow) = request_fixture();
 
         let recipient_address: ContractAddress = 678.try_into().unwrap();
-        let joyboy_address: ContractAddress = 159.try_into().unwrap();
+        let afk_address: ContractAddress = 159.try_into().unwrap();
         let amount = 100_u256;
         let gas_amount = 1_u256;
 
@@ -496,9 +496,9 @@ mod tests {
 
         let sender_balance_after_deposit = erc20.balance_of(sender_address);
 
-        start_cheat_caller_address(escrow.contract_address, joyboy_address);
+        start_cheat_caller_address(escrow.contract_address, afk_address);
 
-        let joyboy_balance_before_claim = erc20.balance_of(joyboy_address);
+        let afk_balance_before_claim = erc20.balance_of(afk_address);
 
         // Sender check
         assert!(
@@ -506,7 +506,7 @@ mod tests {
             "sender deposit amount not send"
         );
 
-        // Joyboy account claim user for recipient with gas fees paid by the claim deposit
+        // AFK account claim user for recipient with gas fees paid by the claim deposit
         let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
         let recipient_balance_before_claim = erc20.balance_of(recipient_address);
         escrow.claim(request_gas_amount, gas_amount);
@@ -519,11 +519,11 @@ mod tests {
             "recipient after claim != (amount - gas)"
         );
 
-        // Check gas amount receive by Joyboy account
-        let joyboy_balance_after_claim = erc20.balance_of(joyboy_address);
-        assert!(joyboy_balance_before_claim == 0, "joy balance before claim != 0");
+        // Check gas amount receive by AFK account
+        let afk_balance_after_claim = erc20.balance_of(afk_address);
+        assert!(afk_balance_before_claim == 0, "afk balance before claim != 0");
         assert!(
-            joyboy_balance_after_claim == gas_amount, "joyboy balance not equal gas amount received"
+            afk_balance_after_claim == gas_amount, "afk balance not equal gas amount received"
         );
 
         // Escrow balance

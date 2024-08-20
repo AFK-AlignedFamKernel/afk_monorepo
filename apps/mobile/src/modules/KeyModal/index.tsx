@@ -1,11 +1,11 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useAccount} from '@starknet-react/core';
+import {useProfile} from 'afk_nostr_sdk';
 import {forwardRef, useEffect, useState} from 'react';
 
 import {Modalize, Text} from '../../components';
 import {TokenSymbol} from '../../constants/tokens';
 import {useStyles, useWaitConnection} from '../../hooks';
-import {useProfile} from "afk_nostr_sdk"
 import {useDataKeys} from '../../hooks/keys/useDataKeys';
 import {useInstantiateKeys} from '../../hooks/keys/useInstantiateKeys';
 import {useTransactionModal} from '../../hooks/modals';

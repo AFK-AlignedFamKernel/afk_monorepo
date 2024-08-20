@@ -1,6 +1,9 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+// import {useAuth} from '../../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
+import {useProfile, useReact, useReactions, useReplyNotes} from 'afk_nostr_sdk/hooks';
 import {useMemo, useState} from 'react';
 import {Image, Pressable, View} from 'react-native';
 import Animated, {
@@ -14,23 +17,12 @@ import Animated, {
 
 import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../../assets/icons';
 import {Avatar, IconButton, Menu, Text} from '../../../components';
-import {
-  useStyles,
-  useTheme,
-} from '../../../hooks';
+import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
-// import {useAuth} from '../../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {MainStackNavigationProps} from '../../../types';
 import {getImageRatio, shortenPubkey} from '../../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../../utils/timestamp';
 import stylesheet from './styles';
-import {useProfile,
-  useReact,
-  useReactions,
-  useReplyNotes,
-} from "afk_nostr_sdk/hooks"
 
 export type CardProps = {
   asComment?: boolean;
@@ -131,9 +123,7 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
           <Pressable onPress={() => handleProfilePress(event?.pubkey)}>
             <Avatar
               size={asComment ? 40 : 50}
-              source={
-                profile?.image ? {uri: profile.image} : require('../../assets/afk-logo.png')
-              }
+              source={profile?.image ? {uri: profile.image} : require('../../assets/afk-logo.png')}
             />
           </Pressable>
 

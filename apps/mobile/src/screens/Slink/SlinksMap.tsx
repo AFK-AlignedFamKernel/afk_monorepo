@@ -1,27 +1,27 @@
-import { KeyboardAvoidingView, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Divider } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import stylesheet from './styles';
+import {FlatList, KeyboardAvoidingView} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+import {Divider} from '../../components';
 import EmbedCard from '../../components/Embed';
+import {useStyles, useTheme} from '../../hooks';
+import stylesheet from './styles';
 
 export const ECOSYSTEM_INTEGRATION = {
   raize: {
-    title:"Raize",
-    uri: "https://www.raize.club",
-    twitter: "",
-    description:"Prediction Market"
+    title: 'Raize',
+    uri: 'https://www.raize.club',
+    twitter: '',
+    description: 'Prediction Market',
   },
   ekubo: {
-    uri: "https://app.ekubo.org/",
-    title:"Ekubo",
-    twitter: "",
-    description:"DEX on Starknet"
-
+    uri: 'https://app.ekubo.org/',
+    title: 'Ekubo',
+    twitter: '',
+    description: 'DEX on Starknet',
   },
-}
+};
 export const SlinksMap: React.FC = () => {
-  const theme = useTheme()
+  const theme = useTheme();
   const styles = useStyles(stylesheet);
 
   return (
@@ -32,20 +32,18 @@ export const SlinksMap: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           // data={stories}
           ItemSeparatorComponent={() => <Divider />}
-          renderItem={({ item }) => {
+          renderItem={({item}) => {
             // console.log("item", item)
             return (
               <EmbedCard
-                key={item?.uri} uri={item.uri}
+                key={item?.uri}
+                uri={item.uri}
                 title={item?.title}
-              description={item?.description}
-              >
-              </EmbedCard>
-           
-            )
+                description={item?.description}
+              ></EmbedCard>
+            );
           }}
         />
-
       </SafeAreaView>
     </KeyboardAvoidingView>
   );

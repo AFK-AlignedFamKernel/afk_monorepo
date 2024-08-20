@@ -1,11 +1,9 @@
-import { Dimensions, Platform, View, ViewProps } from 'react-native';
+import {Dimensions, Platform, View, ViewProps} from 'react-native';
 
-import { WEB_MAX_WIDTH } from '../../constants/misc';
-import { useStyles } from '../../hooks';
-import { ThemedStyleSheet } from '../../styles';
-import Sidebar from '../../modules/Layout/sidebar';
+import {useStyles} from '../../hooks';
+import {ThemedStyleSheet} from '../../styles';
 
-export const RootScreenContainer: React.FC<ViewProps> = ({ style, children, ...props }) => {
+export const RootScreenContainer: React.FC<ViewProps> = ({style, children, ...props}) => {
   const styles = useStyles(stylesheet);
   const isWeb = Platform.OS === 'web';
   const windowWidth = Dimensions.get('window').width;
@@ -14,7 +12,8 @@ export const RootScreenContainer: React.FC<ViewProps> = ({ style, children, ...p
     <View style={[styles.container, style]} {...props}>
       <View style={styles.content}>
         {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
-        {children}</View>
+        {children}
+      </View>
     </View>
   );
 };
@@ -23,15 +22,14 @@ const stylesheet = ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    flexDirection: "row",
+    flexDirection: 'row',
     width: '100%',
-
   },
   content: {
     flex: 1,
     width: '100%',
     maxWidth: '100%',
-    flexDirection: "row",
+    flexDirection: 'row',
     // width: '100%',
   },
 }));

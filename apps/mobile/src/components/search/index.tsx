@@ -1,15 +1,15 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { ThemedStyleSheet } from '../../styles';
+import {TextInput, View} from 'react-native';
+import Svg, {Path} from 'react-native-svg';
+
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
-import { useStyles } from '../../hooks';
 
 interface ISearchComponent {
   searchQuery?: string;
   setSearchQuery: (search: string) => void;
 }
-const SearchComponent = ({ searchQuery, setSearchQuery }: ISearchComponent) => {
+const SearchComponent = ({searchQuery, setSearchQuery}: ISearchComponent) => {
   // const [searchQuery, setSearchQuery] = useState('');
   const styles = useStyles(stylesheet);
 

@@ -28,7 +28,9 @@
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "generate": "turbo run generate",
-    "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/"
+    "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/",
+    "contributors:add": "all-contributors add",
+    "contributors:generate": "all-contributors generate"
   },
   "dependencies": {
     "prettier": "^2.8.8",

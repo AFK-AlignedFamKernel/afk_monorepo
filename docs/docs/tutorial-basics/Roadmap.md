@@ -10,7 +10,7 @@ sidebar_position: 1
 
  **2 - Starknet account contract implementation, controlled by Nostr keypair**
 
- **3 - Joyboy landing page**
+ **3 - AFK landing page**
 
  **4 - SocialPay feature to send and receive tips through Nostr signed messages**
 

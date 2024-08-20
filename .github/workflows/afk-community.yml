@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "JoyboyCommunity/**"
+      - "apps/mobile/**"
   pull_request:
     branches:
       - main
     paths:
-      - "JoyboyCommunity/**"
+      - "apps/mobile/**"
 
 jobs:
   check-app:
@@ -18,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./JoyboyCommunity
+        working-directory: ./apps/mobile
 
     steps:
       - name: Checkout Code
@@ -28,17 +28,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "20.x"
-          cache: "yarn"
-          cache-dependency-path: ./JoyboyCommunity/yarn.lock
+          cache: "pnpm"
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Prettier Format Check
-        run: yarn format:check
+        run: pnpm format:check
 
       - name: ESLint Check
-        run: yarn lint
+        run: pnpm lint
 
       - name: TypeScript Check
-        run: yarn ts:check
+        run: pnpm ts:check

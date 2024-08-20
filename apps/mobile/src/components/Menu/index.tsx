@@ -81,7 +81,6 @@ const Menu: React.FC<MenuProps> & MenuSubComponents = ({handle, open, onClose, c
         left: X,
       };
     }
-    
   }, [width, animation]);
 
   return (

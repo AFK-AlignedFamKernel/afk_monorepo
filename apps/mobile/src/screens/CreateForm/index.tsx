@@ -1,19 +1,18 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from 'react';
+import {KeyboardAvoidingView, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
+import {TextButton} from '../../components';
 import TabSelector from '../../components/TabSelector';
-import { useStyles } from '../../hooks';
-import { CreateFormScreenProps } from '../../types';
-import { SelectedTab, TABS_FORM_CREATE } from '../../types/tab';
-import { FormCreateChannel } from '../CreateChannel/FormCreateChannel';
-import { FormCreatePost } from '../CreatePost/FormPost';
+import {useStyles} from '../../hooks';
+import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
+import {CreateFormScreenProps} from '../../types';
+import {SelectedTab, TABS_FORM_CREATE} from '../../types/tab';
+import {FormCreateChannel} from '../CreateChannel/FormCreateChannel';
+import {FormCreatePost} from '../CreatePost/FormPost';
 import stylesheet from './styles';
-import { FormLaunchTokenUnruggable } from '../../modules/LaunchTokenUnruggable/FormLaunchTokenUnruggable';
-import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 
-export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
+export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CREATE_NOTE);
 
@@ -43,17 +42,14 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({ navigation }) => {
           {selectedTab == SelectedTab.CREATE_NOTE ? (
             <FormCreatePost></FormCreatePost>
           ) : selectedTab == SelectedTab.CREATE_CHANNEL ? (
-            <FormCreateChannel
-              showBackButton={false}
-            ></FormCreateChannel>
+            <FormCreateChannel showBackButton={false}></FormCreateChannel>
           ) : (
-            selectedTab == SelectedTab.LAUNCH_TOKEN &&
-            <>
-              <FormLaunchToken></FormLaunchToken>
-              {/* <FormLaunchTokenUnruggable></FormLaunchTokenUnruggable> */}
-            </>
-
-
+            selectedTab == SelectedTab.LAUNCH_TOKEN && (
+              <>
+                <FormLaunchToken></FormLaunchToken>
+                {/* <FormLaunchTokenUnruggable></FormLaunchTokenUnruggable> */}
+              </>
+            )
           )}
         </SafeAreaView>
       </KeyboardAvoidingView>
