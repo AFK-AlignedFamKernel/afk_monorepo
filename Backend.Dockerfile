@@ -30,13 +30,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install -g pnpm
 
 # Install all dependencies for the workspace, including common and data-backend
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install . --no-frozen-lockfile
 
 # Copy the entire repository into the Docker container
 COPY . .
-
-# Build the common package first
-RUN pnpm --filter common build
 
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
