@@ -1,12 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 
-type Props = { setToggle: any; toggle: boolean };
+type Props = {setToggle: any; toggle: boolean};
 
-export function MobileNavBar({ setToggle, toggle }: Props) {
+export function MobileNavBar({setToggle, toggle}: Props) {
   const parentAnimationVariants = {
     init: {
       scale: 0,
@@ -52,8 +52,9 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
           <ul className="flex w-[90%] flex-col gap-8 text-left">
             <li className="">Servers</li>
             <li className="">
-                <Link href="/features">Features </Link>
-              Features</li>
+              <Link href="/features">Features </Link>
+              Features
+            </li>
             {/* <li className="">Ecosystem</li> */}
             {/* <li className="">Developers</li> */}
             <li>
