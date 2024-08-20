@@ -21,7 +21,6 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     borderRadius:10,
     padding:Spacing.medium,
-    height:"100%"
 
   },
   coverButtons: {

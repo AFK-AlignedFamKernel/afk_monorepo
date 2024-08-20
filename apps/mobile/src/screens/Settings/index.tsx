@@ -11,13 +11,15 @@ import stylesheet from './styles';
 import { HeaderScreen } from '../../components/HeaderScreen';
 import { useAuth, useSettingsStore } from 'afk_nostr_sdk';
 import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
+import { PrivateKeyImport } from '../../components/PrivateKeyImport';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const { showToast } = useToast();
   const { theme, toggleTheme } = useTheme();
   const { relays, setRelays } = useSettingsStore()
-  const { publicKey } = useAuth()
+  const { publicKey, isExtension } = useAuth()
   // const RELAYS_USED = relays ?? AFK_RELAYS
   const RELAYS_USED = relays
   return (
@@ -78,19 +80,27 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
         </View>
       </SafeAreaView>
 
-      <View style={styles.relaysSettings}>
 
+
+      {!isExtension &&
+        <PrivateKeyImport />
+      }
+
+
+      <ScrollView style={styles.relaysSettings}>
         <Text style={styles.title}>AFK: All relays used</Text>
 
         {RELAYS_USED?.map((r, i) => {
           return (
-            <Text  key={i} style={styles.text}>
+            <Text key={i} style={styles.text}>
               Relay: {r}
             </Text>
           )
         })}
-      </View>
+      </ScrollView>
       <Divider />
+
+
 
 
     </View>
