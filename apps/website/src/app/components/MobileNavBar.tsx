@@ -1,6 +1,7 @@
 'use client';
 
 import {motion} from 'framer-motion';
+import Link from 'next/link';
 import {useEffect} from 'react';
 
 type Props = {setToggle: any; toggle: boolean};
@@ -50,9 +51,12 @@ export function MobileNavBar({setToggle, toggle}: Props) {
         >
           <ul className="flex w-[90%] flex-col gap-8 text-left">
             <li className="">Servers</li>
-            <li className="">Features</li>
-            <li className="">Ecosystem</li>
-            <li className="">Developers</li>
+            <li className="">
+              <Link href="/features">Features </Link>
+              Features
+            </li>
+            {/* <li className="">Ecosystem</li> */}
+            {/* <li className="">Developers</li> */}
             <li>
               <button className="py-[12px] w-[145px] bg-[#8DAEF1]">
                 {' '}

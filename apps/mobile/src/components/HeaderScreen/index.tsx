@@ -1,10 +1,9 @@
-import { Image, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {Image, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { useStyles, useTheme } from '../../hooks';
-import { Text } from '../Text';
+import {useStyles, useTheme} from '../../hooks';
+import {Text} from '../Text';
 import stylesheet from './styles';
-import { AFKIcon } from '../../assets/icons';
 
 export type HeaderProps = {
   showLogo?: boolean;
@@ -13,8 +12,8 @@ export type HeaderProps = {
   title?: string;
 };
 
-export const HeaderScreen: React.FC<HeaderProps> = ({ showLogo = true, left, right, title }) => {
-  const { theme } = useTheme();
+export const HeaderScreen: React.FC<HeaderProps> = ({showLogo = true, left, right, title}) => {
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
   return (
@@ -24,10 +23,7 @@ export const HeaderScreen: React.FC<HeaderProps> = ({ showLogo = true, left, rig
 
         {showLogo && (
           <View style={styles.logoContainer}>
-            <Image
-              style={styles.logo}
-              source={require('../../assets/pepe-logo.png')}
-            />
+            <Image style={styles.logo} source={require('../../assets/pepe-logo.png')} />
             {/* <AFKIcon color={theme.colors.text} width={96} height={16} /> */}
           </View>
         )}

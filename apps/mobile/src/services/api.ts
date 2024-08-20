@@ -18,4 +18,3 @@ export const ApiIndexerInstance = axios.create({
     // 'Access-Control-Allow-Origin':'*'
   },
 });
-

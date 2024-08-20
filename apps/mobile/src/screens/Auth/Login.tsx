@@ -1,3 +1,5 @@
+import {useNavigation} from '@react-navigation/native';
+import {useAuth, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useState} from 'react';
 import {Platform} from 'react-native';
@@ -7,17 +9,13 @@ import {Button, Input, TextButton} from '../../components';
 import {useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
-// import {useAuth} from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
-import {AuthLoginScreenProps, MainStackNavigationProps, MainStackParams} from '../../types';
+import {AuthLoginScreenProps, MainStackNavigationProps} from '../../types';
 import {getPublicKeyFromSecret} from '../../utils/keypair';
 import {
   retrieveAndDecryptPrivateKey,
   retrievePassword,
   retrievePublicKey,
 } from '../../utils/storage';
-import { useNavigation } from '@react-navigation/native';
 
 export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -27,8 +25,9 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
+  const {getPublicKey} = useNip07Extension();
 
-  const navigationMain = useNavigation<MainStackNavigationProps>()
+  const navigationMain = useNavigation<MainStackNavigationProps>();
 
   useEffect(() => {
     (async () => {
@@ -64,9 +63,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
     setAuth(publicKey, privateKeyHex);
 
-
-    if(publicKey && privateKeyHex ) {
-      navigationMain.navigate("Feed");
+    if (publicKey && privateKeyHex) {
+      navigationMain.navigate('Feed');
     }
   };
 
@@ -108,6 +106,25 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
     });
   };
 
+  const handleExtensionConnect = () => {
+    showDialog({
+      title: 'WARNING',
+      description: 'Used your Nostr extension.',
+      buttons: [
+        {
+          type: 'primary',
+          label: 'Continue',
+          onPress: () => {
+            getPublicKey();
+            // navigation.navigate('ImportKeys');
+            // hideDialog();
+          },
+        },
+        {type: 'default', label: 'Cancel', onPress: hideDialog},
+      ],
+    });
+  };
+
   return (
     <Auth title="Login">
       <Input
@@ -124,6 +141,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
       <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
 
       <TextButton onPress={handleImportAccount}>Import Account</TextButton>
+      <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
     </Auth>
   );
 };

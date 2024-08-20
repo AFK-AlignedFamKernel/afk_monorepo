@@ -22,6 +22,7 @@ export interface Transfer {
     token:string | ByteArray,
     token_address:string,
     joyboy:NostrProfile,
+    afk?:NostrProfile,
     recipient:NostrProfile,
     recipient_address:string
     // let transfer = Transfer {

@@ -1,51 +1,55 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useAccount } from '@starknet-react/core';
-import React, { forwardRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { CallData, uint256 } from 'starknet';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useAccount} from '@starknet-react/core';
+import {useProfile} from 'afk_nostr_sdk';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {CallData, uint256} from 'starknet';
 
-import { Avatar, Button, Input, Modalize, Picker, Text } from '../../../components';
-import { ESCROW_ADDRESSES } from '../../../constants/contracts';
-import { CHAIN_ID } from '../../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../../constants/tokens';
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useProfile } from "afk_nostr_sdk"
-
-import { useTransactionModal } from '../../../hooks/modals';
-import { useDialog } from '../../../hooks/modals/useDialog';
-import { useTransaction } from '../../../hooks/modals/useTransaction';
-import { useWalletModal } from '../../../hooks/modals/useWalletModal';
-import { TipSuccessModalProps } from '../../TipSuccessModal';
+import {Avatar, Button, Input, Modalize, Picker, Text} from '../../../components';
+import {ESCROW_ADDRESSES} from '../../../constants/contracts';
+import {CHAIN_ID} from '../../../constants/env';
+import {DEFAULT_TIMELOCK, Entrypoint} from '../../../constants/misc';
+import {TOKENS, TokenSymbol} from '../../../constants/tokens';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {useTransactionModal} from '../../../hooks/modals';
+import {useDialog} from '../../../hooks/modals/useDialog';
+import {useTransaction} from '../../../hooks/modals/useTransaction';
+import {useWalletModal} from '../../../hooks/modals/useWalletModal';
+import {TipSuccessModalProps} from '../../TipSuccessModal';
 import stylesheet from './styles';
 
 export type TipModalStarknet = Modalize;
 
 export type FormTipModalStarknetProps = {
   event?: NDKEvent;
-  ref?: any
+  ref?: any;
   show: (event: NDKEvent) => void;
   hide: () => void;
   showSuccess: (props: TipSuccessModalProps) => void;
   hideSuccess: () => void;
 };
 
-export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = (
-  { event, hide: hideTipModal, showSuccess, hideSuccess, ref }: FormTipModalStarknetProps,) => {
+export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
+  event,
+  hide: hideTipModal,
+  showSuccess,
+  hideSuccess,
+  ref,
+}: FormTipModalStarknetProps) => {
   const styles = useStyles(stylesheet);
 
   const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
   const [amount, setAmount] = useState<string>('');
 
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
 
   const account = useAccount();
   const walletModal = useWalletModal();
   const sendTransaction = useTransaction();
-  const { hide: hideTransactionModal } = useTransactionModal();
+  const {hide: hideTransactionModal} = useTransactionModal();
   const waitConnection = useWaitConnection();
 
-  const { showDialog, hideDialog } = useDialog();
+  const {showDialog, hideDialog} = useDialog();
 
   const isActive = !!amount && !!token;
 
@@ -110,7 +114,7 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = (
       showDialog({
         title: 'Failed to send the tip',
         description,
-        buttons: [{ type: 'secondary', label: 'Close', onPress: () => hideDialog() }],
+        buttons: [{type: 'secondary', label: 'Close', onPress: () => hideDialog()}],
       });
     }
   };
@@ -118,7 +122,6 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = (
   return (
     <View>
       <View style={styles.card}>
-
         <View style={styles.cardHeader}>
           <View style={styles.cardContent}>
             <Avatar size={48} source={require('../../../assets/afk-logo.png')} />
@@ -222,5 +225,5 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = (
       </Text>
     </View>
   );
-}
-  // FormTipStarknet.displayName = 'FormTipStarknet';
+};
+// FormTipStarknet.displayName = 'FormTipStarknet';

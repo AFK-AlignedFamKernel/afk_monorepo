@@ -44,12 +44,12 @@ snforge test
 
 **MOBILE**
 
-The Joyboy Mobile app is built with React-native.
+The AFK Mobile app is built with React-native.
 
 Pick an issue with the labels "mobile" to start work on React-native and contribute!
 
 ```bash
-cd Joyboycommunity
+cd apps/mobile
 npm i
 npm start 
 ```

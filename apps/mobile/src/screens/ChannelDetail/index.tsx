@@ -1,6 +1,5 @@
 import {View} from 'react-native';
 
-import {Header, IconButton} from '../../components';
 import {useStyles} from '../../hooks';
 import {ChannelDetailComponent} from '../../modules/ChannelDetailPage';
 import {ChannelDetailScreenProps} from '../../types';

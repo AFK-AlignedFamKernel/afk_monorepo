@@ -9,7 +9,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   logo: {
     position: 'absolute',
-    top: -(LOGO_SIZE -50),
+    top: -(LOGO_SIZE - 50),
     left: '50%',
     width: LOGO_SIZE,
     height: LOGO_SIZE,

@@ -1,15 +1,16 @@
-import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
+import {useNetwork} from '@starknet-react/core';
+import {LAUNCHPAD_ADDRESS} from 'common';
 import {AccountInterface, cairo, CallData, constants, RpcProvider, uint256} from 'starknet';
+
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {feltToAddress, formatFloatToUint256} from '../../utils/format';
 import {prepareAndConnectContract} from './useDataCoins';
-import {LAUNCHPAD_ADDRESS} from "common"
 
 export const useBuyCoin = () => {
   const chain = useNetwork();
   const chainId = chain?.chain?.id;
-  const provider = new RpcProvider({nodeUrl:process.env.EXPO_PUBLIC_PROVIDER_URL});
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
   const handleBuyCoins = async (
     account: AccountInterface,
     user_address: string,
@@ -19,7 +20,8 @@ export const useBuyCoin = () => {
   ) => {
     if (!account) return;
 
-    const addressContract = contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract =
+      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     console.log('addressContract', addressContract);
     console.log('read asset');
     const asset = await prepareAndConnectContract(
@@ -51,7 +53,11 @@ export const useBuyCoin = () => {
     let amountToPaid;
     try {
       /** @TODO fix CORS issue */
-      amountToPaid = await launchpad_contract.get_price_of_supply_key(user_address, amountUint256, false);
+      amountToPaid = await launchpad_contract.get_price_of_supply_key(
+        user_address,
+        amountUint256,
+        false,
+      );
     } catch (error) {
       console.log('Error get amount to paid', error);
     }

@@ -22,11 +22,11 @@ dotenv.config();
 const STARKNET_URL = process.env.RPC_ENDPOINT || "http://127.0.0.1:5050";
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../onchain/target/dev/afk_ERC20.contract_class.json"
+  "../../onchain/cairo/target/dev/afk_ERC20.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/target/dev/afk_ERC20.compiled_contract_class.json"
+  "../../onchain/cairo/target/dev/afk_ERC20.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */

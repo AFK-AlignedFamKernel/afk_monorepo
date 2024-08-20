@@ -1,20 +1,20 @@
 import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useQueryClient} from '@tanstack/react-query';
+// import {useAuth} from '../../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
+import {useContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import {useState} from 'react';
 import {Pressable, View} from 'react-native';
+
 import {UserPlusIcon} from '../../../assets/icons';
 import {Button, IconButton, Menu, Text} from '../../../components';
 import {useStyles, useTheme} from '../../../hooks';
 import {useTipModal, useToast} from '../../../hooks/modals';
-// import {useAuth} from '../../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {ProfileScreenProps} from '../../../types';
 import {ProfileHead} from '../Head';
 import stylesheet from './styles';
-import {useContacts, useEditContacts, useProfile,} from "afk_nostr_sdk"
 
 export type ProfileInfoProps = {
   publicKey: string;
@@ -77,8 +77,8 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
     showToast({type: 'info', title: 'Public key copied to the clipboard'});
   };
   const handleSettings = () => {
-    navigation.navigate("Settings")
-  }
+    navigation.navigate('Settings');
+  };
   return (
     <View>
       <ProfileHead
@@ -98,11 +98,11 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
               </Button>
 
               <IconButton
-              icon="SettingsIcon"
-              size={20}
-              // style={styles.backButton}
-              onPress={handleSettings}
-            />
+                icon="SettingsIcon"
+                size={20}
+                // style={styles.backButton}
+                onPress={handleSettings}
+              />
 
               <Menu
                 open={menuOpen}

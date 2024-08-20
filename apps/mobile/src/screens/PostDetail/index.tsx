@@ -1,40 +1,40 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import {useQueryClient} from '@tanstack/react-query';
+import {useNote, useReplyNotes, useSendNote} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {FlatList, RefreshControl, View} from 'react-native';
 
-import { Divider, Header, IconButton, Input, KeyboardFixedView } from '../../components';
-import { useStyles } from '../../hooks';
-import { useToast } from '../../hooks/modals';
-import { Post } from '../../modules/Post';
-import { PostDetailScreenProps } from '../../types';
+import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
+import {useStyles} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import {Post} from '../../modules/Post';
+import {PostDetailScreenProps} from '../../types';
 import stylesheet from './styles';
-import { useNote, useReplyNotes, useSendNote, } from 'afk_nostr_sdk';
 
-export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route }) => {
-  const { postId, post } = route.params;
+export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route}) => {
+  const {postId, post} = route.params;
 
   const styles = useStyles(stylesheet);
 
   const [comment, setComment] = useState('');
 
   const sendNote = useSendNote();
-  const { data: note = post } = useNote({ noteId: postId });
-  const comments = useReplyNotes({ noteId: note?.id });
+  const {data: note = post} = useNote({noteId: postId});
+  const comments = useReplyNotes({noteId: note?.id});
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
+  const {showToast} = useToast();
 
   const handleSendComment = async () => {
     if (!comment || comment?.trim().length == 0) {
-      showToast({ type: 'error', title: 'Please write your comment' });
+      showToast({type: 'error', title: 'Please write your comment'});
       return;
     }
 
     sendNote.mutate(
-      { content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']] },
+      {content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']]},
       {
         onSuccess() {
-          showToast({ type: 'success', title: 'Comment sent successfully' });
-          queryClient.invalidateQueries({ queryKey: ['replyNotes', note?.id] });
+          showToast({type: 'success', title: 'Comment sent successfully'});
+          queryClient.invalidateQueries({queryKey: ['replyNotes', note?.id]});
           setComment('');
         },
         onError() {
@@ -73,7 +73,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route 
             </>
           }
           ItemSeparatorComponent={() => <Divider />}
-          renderItem={({ item }) => (
+          renderItem={({item}) => (
             <View style={styles.comment}>
               <Post asComment event={item} />
             </View>
@@ -85,7 +85,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route 
         />
       </View>
 
-      <KeyboardFixedView containerProps={{ style: styles.commentInputContainer }}>
+      <KeyboardFixedView containerProps={{style: styles.commentInputContainer}}>
         <Divider />
 
         <View style={styles.commentInputContent}>

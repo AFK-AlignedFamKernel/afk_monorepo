@@ -1,15 +1,14 @@
 import { ApolloServer, gql } from 'apollo-server';
-import prisma from 'indexer-prisma';
+// import prisma from 'indexer-prisma';
+const { prisma } = require("indexer-prisma");
 import { MutationBuyToken, TypeBuyToken } from './schema/indexer/buy_token';
-
-
 // Define your resolvers
 const resolvers = {
   Query: {
     buyTokens: () => prisma.buy_token.findMany(),
-    buyToken: (_parent, args) => prisma.buy_token.findUnique({
-      where: { memecoin_address: args.memecoin_address },
-    }),
+    // buyToken: (_parent, args) => prisma.buy_token.findUnique({
+    //   // where: { memecoin_address: args.memecoin_address },
+    // }),
   },
   // Mutation: {
   //   createBuyToken: (_parent, args) => prisma.buy_token.create({

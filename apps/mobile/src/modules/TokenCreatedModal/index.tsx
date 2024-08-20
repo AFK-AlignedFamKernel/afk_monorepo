@@ -1,22 +1,17 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useAccount} from '@starknet-react/core';
-import {forwardRef, useEffect, useState} from 'react';
+import {useProfile} from 'afk_nostr_sdk';
+import {forwardRef, useState} from 'react';
 
 import {Modalize, Text} from '../../components';
 import {TokenSymbol} from '../../constants/tokens';
-import {useStyles, useWaitConnection} from '../../hooks';
-import {useProfile} from "afk_nostr_sdk"
-import {useDataKeys} from '../../hooks/keys/useDataKeys';
-import {useInstantiateKeys} from '../../hooks/keys/useInstantiateKeys';
-import {useTransactionModal} from '../../hooks/modals';
+import {useStyles} from '../../hooks';
 import {useDialog} from '../../hooks/modals/useDialog';
-import {useTransaction} from '../../hooks/modals/useTransaction';
 import {useWalletModal} from '../../hooks/modals/useWalletModal';
 import {KeysUser} from '../../types/keys';
+import {FormLaunchToken} from '../LaunchTokenPump/FormLaunchToken';
 import {TipSuccessModalProps} from '../TipSuccessModal';
-import {FormInstantiateKey} from './FormInstantiateKey';
 import stylesheet from './styles';
-import { FormLaunchToken } from '../LaunchTokenPump/FormLaunchToken';
 
 export type KeyModal = Modalize;
 
@@ -47,7 +42,6 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
     const walletModal = useWalletModal();
     const {showDialog, hideDialog} = useDialog();
     const isActive = !!amount && !!token;
-
 
     return (
       <Modalize
@@ -88,7 +82,7 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
           align="center"
           style={styles.comment}
         >
-         Launch & pump the coins!
+          Launch & pump the coins!
         </Text>
       </Modalize>
     );

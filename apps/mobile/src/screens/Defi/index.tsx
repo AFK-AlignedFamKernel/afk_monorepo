@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, View, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextButton } from '../../components';
-import TabSelector from '../../components/TabSelector';
-import { useStyles } from '../../hooks';
-import { DefiScreenProps } from '../../types';
-import { SelectedTab, TABS_FORM_CREATE } from '../../types/tab';
+import {useState} from 'react';
+import {KeyboardAvoidingView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+import {TextButton} from '../../components';
+import {useStyles} from '../../hooks';
+import {DefiScreenProps} from '../../types';
+import {SelectedTab} from '../../types/tab';
 import stylesheet from './styles';
 
-export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
+export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CREATE_NOTE);
 

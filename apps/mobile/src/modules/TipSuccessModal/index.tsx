@@ -1,8 +1,8 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import {Image, View} from 'react-native';
 
-import { Button, Modal, Text } from '../../components';
-import { useStyles } from '../../hooks';
+import {Button, Modal, Text} from '../../components';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 
 export type TipSuccessModalProps = {
@@ -10,10 +10,16 @@ export type TipSuccessModalProps = {
   symbol?: string;
   amount?: number;
   hide: () => void;
-  children?: React.ReactNode
+  children?: React.ReactNode;
 };
 
-export const TipSuccessModal: React.FC<TipSuccessModalProps> = ({ user, symbol, amount, hide, children }) => {
+export const TipSuccessModal: React.FC<TipSuccessModalProps> = ({
+  user,
+  symbol,
+  amount,
+  hide,
+  children,
+}) => {
   const styles = useStyles(stylesheet);
 
   return (
@@ -30,11 +36,8 @@ export const TipSuccessModal: React.FC<TipSuccessModalProps> = ({ user, symbol, 
       </View>
 
       <View style={styles.content}>
-
-        {children &&
-          children
-        }
-        {amount && symbol &&
+        {children && children}
+        {amount && symbol && (
           <>
             <Text
               color="text"
@@ -50,7 +53,7 @@ export const TipSuccessModal: React.FC<TipSuccessModalProps> = ({ user, symbol, 
               {amount} {symbol}
             </Text>
           </>
-        }
+        )}
 
         <Text color="textSecondary" weight="medium" fontSize={15} lineHeight={24}>
           Keep spreading love

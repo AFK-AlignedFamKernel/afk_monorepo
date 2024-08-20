@@ -1,8 +1,9 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
 import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer';
+import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
-import { TokenLaunchInterface } from './keys';
+
+import {TokenLaunchInterface} from './keys';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
@@ -32,25 +33,23 @@ export type MainStackParams = {
   ChannelDetail: {postId: string; post?: NDKEvent};
   CreateForm: undefined;
   Defi: undefined;
-  Games:undefined,
-  KeysMarketplace:undefined;
-  Slinks:undefined;
+  Games: undefined;
+  KeysMarketplace: undefined;
+  Slinks: undefined;
   Tips: undefined;
   Home: undefined;
   Feed: undefined;
-  Settings:undefined;
-  Launchpad:undefined;
-  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+  Settings: undefined;
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
     privateKey: string;
     publicKey: string;
   };
-  ImportKeys:undefined;
-  Auth:NavigatorScreenParams<AuthStackParams>
-
-
+  ImportKeys: undefined;
+  Auth: NavigatorScreenParams<AuthStackParams>;
 };
 
 export type HomeBottomStackParams = {
@@ -59,22 +58,22 @@ export type HomeBottomStackParams = {
   Notifications: undefined;
   Tips: undefined;
   Search: undefined;
-  Games:undefined,
+  Games: undefined;
   Defi: undefined;
   Home: undefined;
-  Settings:undefined;
-  Profile:{publicKey:string};
-  Launchpad:undefined;
-  LaunchDetail: {coinAddress:string, launch?:TokenLaunchInterface};
+  Settings: undefined;
+  Profile: {publicKey: string};
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
     privateKey: string;
     publicKey: string;
   };
-  ImportKeys:undefined;
-  Auth:NavigatorScreenParams<AuthStackParams>;
-  Main:NavigatorScreenParams<MainStackParams>;
+  ImportKeys: undefined;
+  Auth: NavigatorScreenParams<AuthStackParams>;
+  Main: NavigatorScreenParams<MainStackParams>;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
@@ -89,7 +88,10 @@ export type AuthLoginScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthCreateAccountScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'CreateAccount'>,
+  NativeStackScreenProps<
+    AuthStackParams | HomeBottomStackParams | MainStackParams,
+    'CreateAccount'
+  >,
   NativeStackScreenProps<RootStackParams>
 >;
 export type AuthSaveKeysScreenProps = CompositeScreenProps<
@@ -133,7 +135,6 @@ export type SearchScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<HomeBottomStackParams, 'Games'>,
 //   NativeStackScreenProps<RootStackParams>
 // >;
-
 
 // export type CreateChannelScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<HomeBottomStackParams, 'CreateChannel'>,
@@ -188,7 +189,6 @@ export type CreateFormScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 export type DefiScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Defi'>,
   NativeStackScreenProps<RootStackParams>
@@ -209,12 +209,10 @@ export type SlinkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 export type SettingsScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Settings'>,
   NativeStackScreenProps<RootStackParams>
 >;
-
 
 export type LaunchpadScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Launchpad'>,
@@ -226,14 +224,11 @@ export type LaunchDetailScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 // export type TipsMainScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<MainStackParams, 'Tips'>,
 //   NativeStackScreenProps<RootStackParams>
 // >;
 
-
 // Drawer desktop stack
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
-

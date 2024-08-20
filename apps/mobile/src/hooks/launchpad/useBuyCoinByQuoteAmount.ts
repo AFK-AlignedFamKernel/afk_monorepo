@@ -1,7 +1,7 @@
-import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
-import {AccountInterface, cairo, CallData, constants, RpcProvider, uint256} from 'starknet';
+import {useNetwork} from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
-import {LAUNCHPAD_ADDRESS} from "common"
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {feltToAddress, formatFloatToUint256} from '../../utils/format';
@@ -10,7 +10,7 @@ import {prepareAndConnectContract} from './useDataCoins';
 export const useBuyCoinByQuoteAmount = () => {
   const chain = useNetwork();
   const chainId = chain?.chain?.id;
-  const provider = new RpcProvider({nodeUrl:process.env.EXPO_PUBLIC_PROVIDER_URL});
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
   const handleBuyCoins = async (
     account: AccountInterface,
     coin_address: string,
@@ -20,7 +20,8 @@ export const useBuyCoinByQuoteAmount = () => {
   ) => {
     if (!account) return;
 
-    const addressContract = contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract =
+      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     console.log('addressContract', addressContract);
     console.log('read asset');
     const asset = await prepareAndConnectContract(
@@ -35,12 +36,12 @@ export const useBuyCoinByQuoteAmount = () => {
     // const launchpad_contract = await prepareAndConnectContract(provider, addressContract, account);
 
     console.log('amount', amount);
-    let amountUint256 = formatFloatToUint256(amount);
+    const amountUint256 = formatFloatToUint256(amount);
     console.log('amountuint256', amountUint256);
     // amountUint256 = uint256.bnToUint256(BigInt('0x' + amount*10**18));
     // console.log('amountuint256', amountUint256);
     const buyCoinParams = {
-      coin_address:coin_address, // token address
+      coin_address, // token address
       amount: amountUint256,
     };
     console.log('buyCoinParams', buyCoinParams);
@@ -54,21 +55,16 @@ export const useBuyCoinByQuoteAmount = () => {
       }),
     };
 
-
     const buyCoinCall = {
       contractAddress: addressContract,
       entrypoint: 'buy_coin_by_quote_amount',
       calldata: CallData.compile({
         coin_address: buyCoinParams.coin_address,
-        quote_amount:amountUint256
+        quote_amount: amountUint256,
       }),
     };
 
-
-    const tx = await account?.execute([
-      approveCall, 
-      buyCoinCall
-    ], undefined, {});
+    const tx = await account?.execute([approveCall, buyCoinCall], undefined, {});
     console.log('tx hash', tx.transaction_hash);
     const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
   };

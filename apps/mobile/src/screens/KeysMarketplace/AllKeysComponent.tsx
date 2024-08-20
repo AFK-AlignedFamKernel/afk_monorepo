@@ -1,44 +1,47 @@
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View, Text, Dimensions } from 'react-native';
-import { Button, Divider, IconButton, Menu } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import stylesheet from './styles';
-import { useQueryAllKeys } from '../../hooks/keys/useQueryAllKeys';
-import { KeyCardUser } from '../../components/KeyCardUser';
-import { useKeyModal } from '../../hooks/modals/useKeyModal';
-import { KeyModalAction } from '../../modules/KeyModal';
-import { useAccount } from '@starknet-react/core';
-import { useAuth } from 'afk_nostr_sdk';
+import {useAccount} from '@starknet-react/core';
+import {useAuth} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {ActivityIndicator, Dimensions, FlatList, RefreshControl, Text, View} from 'react-native';
 
+import {Button} from '../../components';
+import {KeyCardUser} from '../../components/KeyCardUser';
+import {useStyles, useTheme} from '../../hooks';
+import {useQueryAllKeys} from '../../hooks/keys/useQueryAllKeys';
+import {useKeyModal} from '../../hooks/modals/useKeyModal';
+import {KeyModalAction} from '../../modules/KeyModal';
+import stylesheet from './styles';
 
 interface AllKeysComponentInterface {
-  isButtonInstantiateEnable?: boolean
+  isButtonInstantiateEnable?: boolean;
 }
-export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButtonInstantiateEnable }) => {
-  const { theme } = useTheme();
+export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({
+  isButtonInstantiateEnable,
+}) => {
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const account = useAccount()
+  const account = useAccount();
   const [loading, setLoading] = useState<false | number>(false);
-  const queryDataKeys = useQueryAllKeys()
-  const { show: showKeyModal } = useKeyModal();
+  const queryDataKeys = useQueryAllKeys();
+  const {show: showKeyModal} = useKeyModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { publicKey } = useAuth()
-  const width = Dimensions.get("window").width
-  const isDesktop = width >= 1024
+  const {publicKey} = useAuth();
+  const width = Dimensions.get('window').width;
+  const isDesktop = width >= 1024;
 
   return (
     <View style={styles.container}>
       {queryDataKeys?.isLoading && <ActivityIndicator></ActivityIndicator>}
 
-      {isButtonInstantiateEnable &&
+      {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
             showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
             // setMenuOpen(false);
-          }}>
+          }}
+        >
           <Text>Instantiate key</Text>
         </Button>
-      }
+      )}
 
       <FlatList
         contentContainerStyle={styles.flatListContent}
@@ -46,9 +49,8 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
-        numColumns={isDesktop ? 3 : 1} 
-
-        renderItem={({ item }) => {
+        numColumns={isDesktop ? 3 : 1}
+        renderItem={({item}) => {
           // console.log("key item", item)
           return (
             <>
@@ -59,12 +61,12 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({ isButton
                 <Divider direction="horizontal" />
               </View> */}
             </>
-
           );
         }}
-        refreshControl={<RefreshControl refreshing={queryDataKeys.isFetching} onRefresh={queryDataKeys.refetch} />}
-      // onEndReached={() => queryDataKeys.fetchNextPage()}
-
+        refreshControl={
+          <RefreshControl refreshing={queryDataKeys.isFetching} onRefresh={queryDataKeys.refetch} />
+        }
+        // onEndReached={() => queryDataKeys.fetchNextPage()}
       />
 
       {/* <FlatList

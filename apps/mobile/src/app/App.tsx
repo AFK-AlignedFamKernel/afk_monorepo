@@ -6,7 +6,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import {CHAIN_ID} from '../constants/env';
 import {useTips} from '../hooks';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
@@ -91,7 +90,7 @@ export default function App() {
   if (!appIsReady) return null;
 
   return (
-    <View style={{flex: 1, flexDirection:"row"}} onLayout={onLayoutRootView}>
+    <View style={{flex: 1, flexDirection: 'row'}} onLayout={onLayoutRootView}>
       <Router />
     </View>
   );

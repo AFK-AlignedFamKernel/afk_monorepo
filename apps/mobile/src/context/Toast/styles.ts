@@ -1,8 +1,11 @@
 import {StyleSheet} from 'react-native';
 
-import {Spacing} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
-export default StyleSheet.create({
+// export default StyleSheet.create({
+export default ThemedStyleSheet((theme) => ({
+
+  // export default StyleSheet.create({
   container: {
     position: 'absolute',
     top: 0,
@@ -15,4 +18,4 @@ export default StyleSheet.create({
     paddingHorizontal: Spacing.pagePadding,
     gap: Spacing.xsmall,
   },
-});
+}));

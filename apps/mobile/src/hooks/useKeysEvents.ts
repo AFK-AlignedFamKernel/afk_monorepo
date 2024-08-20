@@ -1,12 +1,11 @@
 import {useQuery} from '@tanstack/react-query';
-import {uint256} from 'starknet';
-
-import {ESCROW_ADDRESSES, KEYS_ADDRESS} from '../constants/contracts';
-import {CHAIN_ID} from '../constants/env';
-import {EventKey, EventKeyForKeysMarketplace} from '../constants/misc';
 // import {useAuth} from '../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-import { parseCreatedKeyEvent} from '../utils/events';
+import {useAuth} from 'afk_nostr_sdk';
+
+import {KEYS_ADDRESS} from '../constants/contracts';
+import {CHAIN_ID} from '../constants/env';
+import {EventKeyForKeysMarketplace} from '../constants/misc';
+import {parseCreatedKeyEvent} from '../utils/events';
 import {useRpcProvider} from './useRpcProvider';
 
 export const useKeysEvents = () => {
@@ -36,7 +35,7 @@ export const useKeysEvents = () => {
           chunk_size: 1000,
           continuation_token: continuationToken,
         });
-        console.log("keys created",keysCreated)
+        console.log('keys created', keysCreated);
         if (keysCreated.continuation_token) {
           const next = await getKeyEvents(keysCreated.continuation_token);
           return [...keysCreated.events, ...next];

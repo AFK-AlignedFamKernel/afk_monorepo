@@ -24,7 +24,7 @@ export default ThemedStyleSheet((theme) => ({
     bottom: Spacing.large,
     right: Spacing.pagePadding,
     // backgroundColor:theme.colors.primary,
-    color:theme.colors.primary
+    color: theme.colors.primary,
   },
 
   stories: {

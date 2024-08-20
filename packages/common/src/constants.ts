@@ -12,7 +12,7 @@ export const ACCOUNT_TEST_PROFILE = {
             "0x65d17b5c8fca3da3c45a4b7a97007331d51860e6843094fa98040b3962b741b",
     },
     bob: {
-        name: "joyboy.xyz",
+        name: "afk.xyz",
         pubkey: "",
         strkKey: "",
         /** FIRST TEST */

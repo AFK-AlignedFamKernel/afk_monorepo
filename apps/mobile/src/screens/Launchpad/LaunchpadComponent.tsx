@@ -1,62 +1,58 @@
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View, Text, Platform, Dimensions } from 'react-native';
-import { Button, Divider, IconButton, Menu } from '../../components';
-import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
-import stylesheet from './styles';
-import { useQueryAllKeys } from '../../hooks/keys/useQueryAllKeys';
-import { KeyCardUser } from '../../components/KeyCardUser';
-import { useKeyModal } from '../../hooks/modals/useKeyModal';
-import { KeyModalAction } from '../../modules/KeyModal';
-import { useAccount } from '@starknet-react/core';
-import { useAuth } from 'afk_nostr_sdk';
-import { TokenLaunchCard } from '../../components/TokenLaunchCard';
-import { useQueryAllCoins } from '../../hooks/launchpad/useQueryAllCoins';
-import { useQueryAllLaunch } from '../../hooks/launchpad/useQueryAllLaunch';
-import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
-import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
-import { useDimensions } from '../../hooks/useWindowDimensions';
-import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
+import {useAccount} from '@starknet-react/core';
+import {useAuth} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
 
+import {Button} from '../../components';
+import {TokenLaunchCard} from '../../components/TokenLaunchCard';
+import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
+import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
+import {useQueryAllLaunch} from '../../hooks/launchpad/useQueryAllLaunch';
+import {useKeyModal} from '../../hooks/modals/useKeyModal';
+import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
+import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
+import stylesheet from './styles';
 
 interface AllKeysComponentInterface {
-  isButtonInstantiateEnable?: boolean
+  isButtonInstantiateEnable?: boolean;
 }
-export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButtonInstantiateEnable }) => {
-  const { theme } = useTheme();
+export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
+  isButtonInstantiateEnable,
+}) => {
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const account = useAccount()
+  const account = useAccount();
   const [loading, setLoading] = useState<false | number>(false);
-  const queryDataLaunch = useQueryAllLaunch()
-  const { show: showKeyModal } = useKeyModal();
-  const { show: showModal } = useTokenCreatedModal();
+  const queryDataLaunch = useQueryAllLaunch();
+  const {show: showKeyModal} = useKeyModal();
+  const {show: showModal} = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { data: launchs } = useGetTokenLaunch()
+  const {data: launchs} = useGetTokenLaunch();
   // console.log("Launchs", launchs)
 
-  const { publicKey } = useAuth()
+  const {publicKey} = useAuth();
   // const width = Dimensions.get("window").width
   // const isDesktop = width >= 1024
-  const {width} = useWindowDimensions()
-  console.log("width",width)
-  const isDesktop = width>= 1024 ? true : false
-  console.log("isDesktop",isDesktop)
+  const {width} = useWindowDimensions();
+  console.log('width', width);
+  const isDesktop = width >= 1024 ? true : false;
+  console.log('isDesktop', isDesktop);
   return (
     <View style={styles.container}>
       {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
 
-      {isButtonInstantiateEnable &&
+      {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
             // showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
-            showModal()
+            showModal();
             // setMenuOpen(!menuOpen);
-          }}>
+          }}
+        >
           <Text>Create token</Text>
         </Button>
-      }
-      {menuOpen &&
-        <FormLaunchToken></FormLaunchToken>
-      }
+      )}
+      {menuOpen && <FormLaunchToken></FormLaunchToken>}
 
       <FlatList
         contentContainerStyle={styles.flatListContent}
@@ -65,15 +61,17 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({ isButt
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
         numColumns={isDesktop ? 3 : 1}
-        renderItem={({ item, index }) => {
+        renderItem={({item, index}) => {
           // console.log("key item", item)
-          return (
-              <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>
-          );
+          return <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>;
         }}
-        refreshControl={<RefreshControl refreshing={queryDataLaunch.isFetching} onRefresh={queryDataLaunch.refetch} />}
-      // onEndReached={() => queryDataLaunch.fetchNextPage()}
-
+        refreshControl={
+          <RefreshControl
+            refreshing={queryDataLaunch.isFetching}
+            onRefresh={queryDataLaunch.refetch}
+          />
+        }
+        // onEndReached={() => queryDataLaunch.fetchNextPage()}
       />
 
       {/* <FlatList

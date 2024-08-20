@@ -1,3 +1,5 @@
+// import {useAuth} from '../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import {TouchableOpacity, View} from 'react-native';
 
@@ -7,9 +9,6 @@ import {Button, Input, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
-// import {useAuth} from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {AuthSaveKeysScreenProps} from '../../types';
 import stylesheet from './styles';
 

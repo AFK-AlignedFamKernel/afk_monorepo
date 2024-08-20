@@ -4,50 +4,29 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    padding:Spacing.pagePadding,
+    padding: Spacing.pagePadding,
     color: theme.colors.text,
-
+    gap:3
   },
   content: {
     flex: 1,
     color: theme.colors.text,
-    padding:Spacing.medium,
-
+    padding: Spacing.medium,
   },
 
-  relaysSettings: {
-    flex: 1,
-    color: theme.colors.text,
-    backgroundColor: theme.colors.surface,
-    borderRadius:10,
-    padding:Spacing.medium,
-    height:"100%"
-
-  },
-  coverButtons: {
-    // position: 'relative',
-    width: '100%',
-    height: '100%',
-  },
 
   backButton: {
     position: 'absolute',
     top: Spacing.pagePadding,
     left: Spacing.pagePadding,
   },
-  themeButton: {
-    // flex: 1,
-    // flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    justifyItems:"baseline"
-  },
-  title:{
+
+  title: {
     color: theme.colors.text,
-    fontSize:24,
-    marginBottom:4
+    fontSize: 24,
+    marginBottom: 4,
   },
-  text:{
+  text: {
     color: theme.colors.text,
   },
   buttons: {

@@ -3,7 +3,7 @@
 - Claiming a task
 
   - Comment on the task you would like to take, include the estimated delivery timeline (start date and estimated completion date), describe how you would approach this task and a include brief summary of relevant skills.
-  - Join the Telegram group for updates and discussions. https://t.me/JoyboyStarknet
+  - Join the Telegram group for updates and discussions. https://t.me/afk_aligned_fam_kernel
 
 - Task Assignment
 
@@ -23,7 +23,7 @@
 ### Setup
 
 - Clone the repository
-- Navigate to the JoyboyCommunity directory. `cd JoyboyCommunity`
+- Navigate to the AFK Mobile directory. `cd apps/mobile`
 - Install the dependencies using yarn `yarn install`
 - Start the development server `yarn start`
 - Open the app in your browser / device / emulator.

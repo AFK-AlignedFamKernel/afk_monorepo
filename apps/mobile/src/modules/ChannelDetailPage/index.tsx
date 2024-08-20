@@ -1,12 +1,12 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
+import {useMessagesChannels, useNote, useReplyNotes, useSendMessageChannel} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
-import {useSendMessageChannel, useMessagesChannels, useNote, useReplyNotes,} from 'afk_nostr_sdk'
 import {IChannelsMetadata} from '../../types/channels';
 import {ChannelInfo} from '../ChannelCard/Card/ChannelInfo';
 import {Post} from '../Post';

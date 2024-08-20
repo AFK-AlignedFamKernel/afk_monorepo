@@ -1,13 +1,13 @@
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { Image, ImageSourcePropType, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {useState} from 'react';
+import {Image, ImageSourcePropType, Pressable, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { SettingsIcon, UploadIcon } from '../../../assets/icons';
-import { Avatar, IconButton, Menu, Text } from '../../../components';
-import { useStyles, useTheme } from '../../../hooks';
-import stylesheet, { AVATAR_SIZE } from './styles';
-import { MainStackNavigationProps } from '../../../types';
+import {UploadIcon} from '../../../assets/icons';
+import {Avatar, IconButton} from '../../../components';
+import {useStyles, useTheme} from '../../../hooks';
+import {MainStackNavigationProps} from '../../../types';
+import stylesheet, {AVATAR_SIZE} from './styles';
 
 export type ProfileHeadProps = {
   profilePhoto?: ImageSourcePropType;
@@ -28,7 +28,7 @@ export const ProfileHead: React.FC<ProfileHeadProps> = ({
   showSettingsButton,
   buttons,
 }) => {
-  const { theme, toggleTheme } = useTheme();
+  const {theme, toggleTheme} = useTheme();
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -60,7 +60,6 @@ export const ProfileHead: React.FC<ProfileHeadProps> = ({
                 onPress={navigation.goBack}
               />
             )}
-
 
             {/* {showSettingsButton && (
               <Menu

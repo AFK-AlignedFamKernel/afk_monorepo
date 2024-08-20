@@ -16,11 +16,11 @@ dotenv.config();
 
 const PATH_KEY_MARKETPLACE = path.resolve(
   __dirname,
-  "../../onchain/target/dev/afk_KeysMarketplace.contract_class.json"
+  "../../onchain/cairo/target/dev/afk_KeysMarketplace.contract_class.json"
 );
 const PATH_KEY_MARKETPLACE_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/target/dev/afk_KeysMarketplace.compiled_contract_class.json"
+  "../../onchain/cairo/target/dev/afk_KeysMarketplace.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */

@@ -3,7 +3,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "Joyboy",
+  title: "AFK Aligned Fam Kernel",
   tagline:
     "Decentralized social built with Nostr and powered by Starknet Account Abstraction",
   favicon: "img/favicon.ico",
@@ -16,8 +16,8 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "keep-starknet-strange", // Usually your GitHub org/user name.
-  projectName: "joyboy", // Usually your repo name.
+  organizationName: "AFK-AlignedFamK", // Usually your GitHub org/user name.
+  projectName: "afk_monorepo", // Usually your repo name.
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -39,14 +39,14 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/keep-starknet-strange/joyboy/blob/main/docs/",
+            "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/keep-starknet-strange/joyboy/blob/main/docs/",
+            "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -57,12 +57,12 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: "img/joyboy.png",
+    image: "img/afkMascot.png",
     navbar: {
-      title: "Joyboy",
+      title: "AFK",
       logo: {
-        alt: "Joyboy Logo",
-        src: "img/joyboy.png",
+        alt: "AFK Logo",
+        src: "img/afkMascot.png",
       },
       items: [
         {
@@ -73,7 +73,7 @@ const config: Config = {
         },
 
         {
-          href: "https://github.com/keep-starknet-strange/joyboy",
+          href: "https://github.com/AFK-AlignedFamKernel/afk_monorepo",
           label: "GitHub",
           position: "right",
         },
@@ -96,11 +96,11 @@ const config: Config = {
           items: [
             {
               label: "Telegram",
-              href: "https://t.me/JoyboyStarknet/1",
+              href: "https://t.me/afk_aligned_fam_kernel",
             },
             {
               label: "Twitter",
-              href: "https://twitter.com/JoyboyStarknet",
+              href: "https://twitter.com/AFK_AlignedFamK",
             },
           ],
         },
@@ -113,12 +113,12 @@ const config: Config = {
             },
             {
               label: "GitHub",
-              href: "https://github.com/keep-starknet-strange/joyboy",
+              href: "https://github.com/AFK-AlignedFamK",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Joyboy. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} AFK Aligned Fam Kernel. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

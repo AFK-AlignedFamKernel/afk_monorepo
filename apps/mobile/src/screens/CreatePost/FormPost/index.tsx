@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+import {useSendNote} from 'afk_nostr_sdk';
 import * as ImagePicker from 'expo-image-picker';
 import {useState} from 'react';
 import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-native';
@@ -7,8 +8,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {GalleryIcon, SendIconContained} from '../../../assets/icons';
 import {useStyles, useTheme} from '../../../hooks';
-import { useSendNote } from 'afk_nostr_sdk';
-
 import {useFileUpload} from '../../../hooks/api';
 import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';

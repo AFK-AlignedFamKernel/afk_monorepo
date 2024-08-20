@@ -1,5 +1,4 @@
-import { Dimensions } from 'react-native';
-import { Spacing, ThemedStyleSheet } from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     // alignItems: 'center',
@@ -7,7 +6,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.xsmall,
     borderRadius: 8,
     gap: Spacing.xsmall,
-    overflowWrap:"break-word",
+    overflowWrap: 'break-word',
     // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
     // width:"100%"
     // width:300,
@@ -17,17 +16,16 @@ export default ThemedStyleSheet((theme) => ({
     // display: 'flex',
     // alignItems: 'center',
     // justifyContent: 'center',
-    borderRadius: 15
+    borderRadius: 15,
   },
-  text:{
-  },
+  text: {},
   image: {
     position: 'absolute',
     width: 35,
     height: 35,
-    borderRadius: 15
+    borderRadius: 15,
   },
   name: {
     paddingTop: Spacing.xxsmall,
   },
-}))
+}));

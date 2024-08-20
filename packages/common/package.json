@@ -19,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "tsup": "^8.0.2",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "starknet": "^6.6.6"

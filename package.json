@@ -15,6 +15,10 @@
     "build:mobile":"cd apps/mobile && pnpm run build",
     "dev:mobile":"cd apps/mobile && pnpm run start",
     "build:nostr_sdk":"cd packages/afk_nostr_sdk && pnpm run build",
+    "build:indexer-prisma":"cd packages/indexer-prisma && pnpm pull && pnpm generate",
+    "build:backend":"cd apps/data-backend && pnpm run build",
+    "build:backend:all":"pnpm run build:indexer-prisma && cd apps/data-backend && pnpm run build",
+    "run:backend":"cd apps/data-backend && pnpm run start:prod",
     "dev": "turbo run dev",
     "web":"turbo run dev --filter=website",
     "mobile":"turbo run start --filter=mobile",
@@ -27,13 +31,23 @@
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "generate": "turbo run generate",
-    "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/"
+    "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/",
+    "contributors:add": "all-contributors add",
+    "contributors:generate": "all-contributors generate"
   },
   "dependencies": {
     "prettier": "^2.8.8",
     "turbo": "^1.13.2",
     "@babel/core": "^7.20.0",
-    "@babel/plugin-proposal-export-namespace-from": "^7.18.9"
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "tsup": "^8.0.2",
+    "prisma":"5.18.0",
+    "@prisma/client": "^5.18.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.18.0",
+    "tsup": "^8.0.2",
+    "typescript": "~5.3.3"
   },
   "engines": {
     "node": ">=14.0.0"

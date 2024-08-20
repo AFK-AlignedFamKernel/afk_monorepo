@@ -1,14 +1,13 @@
 import React from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
-import { WebView } from 'react-native-webview';
+import {Dimensions, StyleSheet} from 'react-native';
+import {WebView} from 'react-native-webview';
 
 // const tweetId = '20'; // Example Tweet ID
 
-
 interface TwitterCardInterface {
-  tweetId?:string;
+  tweetId?: string;
 }
-const TwitterCard = ({tweetId}:TwitterCardInterface) => {
+const TwitterCard = ({tweetId}: TwitterCardInterface) => {
   const tweetHtml = `
     <html>
     <head>
@@ -26,7 +25,7 @@ const TwitterCard = ({tweetId}:TwitterCardInterface) => {
     <WebView
       originWhitelist={['*']}
       style={styles.container}
-      source={{ html: tweetHtml }}
+      source={{html: tweetHtml}}
       automaticallyAdjustContentInsets={false}
     />
   );

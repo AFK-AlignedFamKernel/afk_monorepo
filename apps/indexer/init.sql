@@ -1,58 +1,57 @@
-CREATE SEQUENCE token_launch_id_seq;
-
 create table token_launch(
+    memecoin_address text unique,
+    id serial primary key,
     network text,
     block_hash text,
     block_number bigint,
     block_timestamp timestamp,
     transaction_hash text,
-    memecoin_address text,
     quote_token text,
     exchange_name text,
     created_at timestamp default current_timestamp,
     total_supply text,
     current_supply text,
     liquidity_raised text,
-    price text,
-    _cursor bigint
+    price text
 );
 
 create table token_deploy(
+    memecoin_address text unique,
+    id serial primary key, 
     network text,
     block_hash text,
     block_number bigint,
     block_timestamp timestamp,
     transaction_hash text,
-    memecoin_address text,
     owner_address text,
     name text,
     symbol text,
     initial_supply text,
     total_supply text,
-    created_at timestamp default current_timestamp,
-    _cursor bigint
+    created_at timestamp default current_timestamp
 );
 
 
-create table buy_token(
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text,
-    memecoin_address text,
-    owner_address text,
-    last_price text,
-    quote_amount text,
-    coin_received text,
-    initial_supply text,
-    created_at timestamp default current_timestamp,
-    total_supply text,
-    current_supply text,
-    liquidity_raised text,
-    price text,
-    amount text,
-    _cursor bigint
+CREATE TABLE buy_token (
+    id SERIAL PRIMARY KEY UNIQUE,  -- `serial` automatically creates a unique sequence with primary key
+    transfer_id text unique,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT,
+    memecoin_address TEXT,
+    owner_address TEXT,
+    last_price TEXT,
+    quote_amount TEXT,
+    coin_received TEXT,
+    initial_supply TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_supply TEXT,
+    current_supply TEXT,
+    liquidity_raised TEXT,
+    price TEXT,
+    amount TEXT
 );
 
 create table unrugmeme_transfers(

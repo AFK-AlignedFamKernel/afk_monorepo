@@ -5,7 +5,6 @@ import {useState} from 'react';
 import {View} from 'react-native';
 import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
 
-import {Header} from '../../components';
 import TabSelector from '../../components/TabSelector';
 import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';

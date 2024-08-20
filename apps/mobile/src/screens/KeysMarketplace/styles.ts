@@ -5,13 +5,13 @@ export default ThemedStyleSheet((theme) => ({
     position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
-    color:theme.colors.text,
+    color: theme.colors.text,
   },
 
   flatListContent: {
     paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
-    gap:3
+    gap: 3,
   },
 
   separator: {
@@ -47,8 +47,8 @@ export default ThemedStyleSheet((theme) => ({
 
   text: {
     color: theme.colors.text,
-    fontSize:12,
-    backgroundColor:theme.colors.background
+    fontSize: 12,
+    backgroundColor: theme.colors.background,
   },
 
   buttonIndicator: {

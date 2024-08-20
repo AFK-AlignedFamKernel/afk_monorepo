@@ -1,4 +1,5 @@
 import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {useNostrContext} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';
@@ -11,7 +12,6 @@ import {Auth} from '../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../types';
 import {generateRandomKeypair} from '../../utils/keypair';
 import {storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
-import { useNostrContext } from 'afk_nostr_sdk';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -97,9 +97,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
       <TextButton onPress={handleImportKey}>Import account</TextButton>
 
-      <Button
-        onPress={() => navigation.goBack()}
-      >Back</Button>
+      <Button onPress={() => navigation.goBack()}>Back</Button>
     </Auth>
   );
 };

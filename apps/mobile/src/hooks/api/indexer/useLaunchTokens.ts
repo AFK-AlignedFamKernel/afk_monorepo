@@ -1,8 +1,6 @@
-import {NostrEvent} from '@nostr-dev-kit/ndk';
+import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
-import {useApiMutation} from '../useApiMutation';
-import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useGetTokenLaunch = () => {
   return useQuery({
@@ -14,7 +12,7 @@ export const useGetTokenLaunch = () => {
     queryFn: async () => {
       const res = await ApiIndexerInstance.get('/deploy-launch');
       // console.log("res get launch",res)
-      return res
+      return res;
     },
   });
 };

@@ -5,10 +5,13 @@ import createBoundedUseStore from './createBoundedUseStore';
 type State = {
   publicKey: string;
   privateKey: string;
+  isExtension?: boolean;
 };
 
 type Action = {
   setAuth: (publicKey: string, privateKey: string) => void;
+  setPublicKey: (publicKey: string) => void;
+  setIsExtensionConnect: (isExtension: boolean) => void;
 };
 
 export const authStore = createStore<State & Action>((set, get) => ({
@@ -19,6 +22,12 @@ export const authStore = createStore<State & Action>((set, get) => ({
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
+  },
+  setPublicKey: (publicKey) => {
+    set({publicKey});
+  },
+  setIsExtensionConnect: (isExtension) => {
+    set({isExtension});
   },
 }));
 

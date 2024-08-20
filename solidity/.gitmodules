@@ -1,9 +1,0 @@
-[submodule "solidity/lib/kakarot-rpc"]
-	path = solidity/lib/kakarot-rpc
-	url = https://github.com/kkrt-labs/kakarot-rpc
-[submodule "solidity_contracts/lib/forge-std"]
-	path = solidity_contracts/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
-[submodule "solidity_contracts/lib/kakarot-lib"]
-	path = solidity_contracts/lib/kakarot-lib
-	url = https://github.com/kkrt-labs/kakarot-lib

@@ -1,10 +1,10 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
+import {Modalize} from 'react-native-modalize';
 
-import { KeyModalAction} from '../modules/KeyModal';
+import {KeyModalAction} from '../modules/KeyModal';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
-import { TokenCreateModal } from '../modules/TokenCreatedModal';
-import { Modalize } from 'react-native-modalize';
+import {TokenCreateModal} from '../modules/TokenCreatedModal';
 
 export type TokenCreateModal = Modalize;
 
@@ -26,11 +26,14 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
   const [action, setAction] = useState<KeyModalAction | undefined>();
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
-  const show = useCallback((event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => {
-    setEvent(event);
-    setStarknetAddress(starknetAddress);
-    tokenModalRef.current?.open();
-  }, []);
+  const show = useCallback(
+    (event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => {
+      setEvent(event);
+      setStarknetAddress(starknetAddress);
+      tokenModalRef.current?.open();
+    },
+    [],
+  );
 
   const hide = useCallback(() => {
     tokenModalRef.current?.close();

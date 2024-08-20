@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Architecture
 
-Joyboy **SocialPay** architecture 
+AFK **SocialPay** architecture 
 
 - Alice sends tokens to Bob
 

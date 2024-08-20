@@ -1,7 +1,7 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
-import {useNostrContext} from '../../context/NostrContext';
 
+import {useNostrContext} from '../../context/NostrContext';
 
 export const useSendPrivateMessage = () => {
   const {ndk} = useNostrContext();

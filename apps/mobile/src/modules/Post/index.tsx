@@ -1,8 +1,11 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useQueryClient} from '@tanstack/react-query';
+import {useProfile, useReact, useReactions, useReplyNotes} from 'afk_nostr_sdk';
+// import { useAuth } from '../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
+import {useMemo, useState} from 'react';
+import {Image, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -12,17 +15,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from '../../assets/icons';
-import { Avatar, Icon, IconButton, Menu, Text } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import { useProfile, useReact, useReactions, useReplyNotes, } from "afk_nostr_sdk"
-import { useTipModal } from '../../hooks/modals';
-// import { useAuth } from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
-import { MainStackNavigationProps } from '../../types';
-import { getImageRatio, shortenPubkey } from '../../utils/helpers';
-import { getElapsedTimeStringFull } from '../../utils/timestamp';
+import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
+import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {useTipModal} from '../../hooks/modals';
+import {MainStackNavigationProps} from '../../types';
+import {getImageRatio, shortenPubkey} from '../../utils/helpers';
+import {getElapsedTimeStringFull} from '../../utils/timestamp';
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -30,21 +29,21 @@ export type PostProps = {
   event?: NDKEvent;
 };
 
-export const Post: React.FC<PostProps> = ({ asComment, event }) => {
+export const Post: React.FC<PostProps> = ({asComment, event}) => {
   const repostedEvent = undefined;
 
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [dimensionsMedia, setMediaDimensions] = useState([250,300])
-  const { publicKey } = useAuth();
-  const { show: showTipModal } = useTipModal();
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
-  const reactions = useReactions({ noteId: event?.id });
-  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
-  const comments = useReplyNotes({ noteId: event?.id });
+  const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
+  const {publicKey} = useAuth();
+  const {show: showTipModal} = useTipModal();
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
+  const reactions = useReactions({noteId: event?.id});
+  const userReaction = useReactions({authors: [publicKey], noteId: event?.id});
+  const comments = useReplyNotes({noteId: event?.id});
   const react = useReact();
   const queryClient = useQueryClient();
 
@@ -79,41 +78,41 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
     const imageTag = event.tags.find((tag) => tag[0] === 'image');
     if (!imageTag) return;
     /** @TODO finish good dimensions with correct ratio and base on the Platform */
-    let dimensions = [250, 300]
+    let dimensions = [250, 300];
     if (imageTag[2]) {
-      dimensions = imageTag[2].split('x').map(Number)
-      setMediaDimensions(dimensions)
+      dimensions = imageTag[2].split('x').map(Number);
+      setMediaDimensions(dimensions);
     }
-    return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
+    return {uri: imageTag[1], width: dimensions[0], height: dimensions[1]};
   }, [event?.tags]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{scale: scale.value}],
   }));
 
   const handleProfilePress = (userId?: string) => {
     if (userId) {
-      navigation.navigate('Profile', { publicKey: userId });
+      navigation.navigate('Profile', {publicKey: userId});
     }
   };
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    navigation.navigate('PostDetail', { postId: event?.id, post: event });
+    navigation.navigate('PostDetail', {postId: event?.id, post: event});
   };
 
   const toggleLike = async () => {
     if (!event?.id) return;
 
     await react.mutateAsync(
-      { event, type: isLiked ? 'dislike' : 'like' },
+      {event, type: isLiked ? 'dislike' : 'like'},
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
+          queryClient.invalidateQueries({queryKey: ['reactions', event?.id]});
 
           scale.value = withSequence(
-            withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }), // Scale up
-            withSpring(1, { damping: 6, stiffness: 200 }), // Bounce back
+            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}), // Scale up
+            withSpring(1, {damping: 6, stiffness: 200}), // Bounce back
           );
         },
       },
@@ -122,8 +121,6 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
 
   const content = event?.content || '';
   const truncatedContent = content.length > 200 ? `${content.slice(0, 200)}...` : content;
-
-
 
   return (
     <View style={styles.container}>
@@ -140,7 +137,7 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
             <Avatar
               size={asComment ? 40 : 50}
               source={
-                profile?.image ? { uri: profile.image } : require('../../assets/degen-logo.png')
+                profile?.image ? {uri: profile.image} : require('../../assets/degen-logo.png')
               }
             />
           </Pressable>
@@ -222,8 +219,8 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
                 styles.contentImage,
                 {
                   // width:dimensionsMedia[0],
-                  height:dimensionsMedia[1],
-                  aspectRatio: getImageRatio(postSource.width, postSource.height)
+                  height: dimensionsMedia[1],
+                  aspectRatio: getImageRatio(postSource.width, postSource.height),
                 },
               ]}
             />
@@ -235,12 +232,14 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
 
       {!asComment && (
         <View style={styles.footer}>
-          <View style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "baseline",
-            gap: 10,
-          }}>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              gap: 10,
+            }}
+          >
             <Pressable onPress={handleNavigateToPostDetails}>
               <View style={styles.footerComments}>
                 <CommentIcon height={20} color={theme.colors.textSecondary} />
@@ -252,27 +251,24 @@ export const Post: React.FC<PostProps> = ({ asComment, event }) => {
             </Pressable>
 
             <Pressable
-              style={{ marginHorizontal: 3 }}
+              style={{marginHorizontal: 3}}
               onPress={() => {
                 if (!event) return;
                 showTipModal(event);
               }}
             >
-              <Icon name='CoinIcon'
+              <Icon
+                name="CoinIcon"
                 size={20}
-                title='Tip'
+                title="Tip"
                 // onPress={() => {
                 //   if (!event) return;
 
                 //   showTipModal(event);
                 // }}
               />
-
             </Pressable>
           </View>
-
-
-
 
           {/* <Pressable
             // style={styles.seeMore}

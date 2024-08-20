@@ -11,12 +11,10 @@ export enum SelectedTab {
   VIEW_KEYS_MARKETPLACE,
   LAUNCH_TOKEN_PUMP,
   SLINK,
-  LAUNCHPAD_VIEW
-
-
+  LAUNCHPAD_VIEW,
 }
 
-export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -35,7 +33,7 @@ export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'Feed',
@@ -59,7 +57,7 @@ export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'PostCreate',
@@ -84,9 +82,7 @@ export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-
-export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] = [
-
+export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Pump',
     screen: 'Launchpad',
@@ -96,7 +92,8 @@ export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] =
     title: 'Keys',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
-  }, {
+  },
+  {
     title: 'Slink',
     screen: 'Slink',
     tab: SelectedTab.SLINK,

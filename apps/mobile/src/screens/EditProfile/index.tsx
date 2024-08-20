@@ -1,4 +1,7 @@
 import {useQueryClient} from '@tanstack/react-query';
+import {useEditProfile, useProfile} from 'afk_nostr_sdk';
+// import {useAuth} from '../../store/auth';
+import {useAuth} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import {Formik, FormikProps} from 'formik';
@@ -8,12 +11,8 @@ import {ScrollView, TouchableOpacity, View} from 'react-native';
 import {CopyIconStack} from '../../assets/icons';
 import {Button, SquareInput, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
-import {useEditProfile, useProfile} from "afk_nostr_sdk"
 import {useFileUpload} from '../../hooks/api';
 import {useToast} from '../../hooks/modals';
-// import {useAuth} from '../../store/auth';
-import { useAuth } from 'afk_nostr_sdk';
-
 import {EditProfileScreenProps} from '../../types';
 import {ProfileHead} from '../Profile/Head';
 import stylesheet from './styles';
