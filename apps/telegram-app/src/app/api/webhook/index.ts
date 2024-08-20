@@ -2,7 +2,6 @@ import { launchBot, sendMessage, sendWebAppButton } from '@/services/telegram';
 import { NextApiRequest, NextApiResponse } from 'next';
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Request body:', req.body);
-  await launchBot(process.env.TELEGRAM_BOT_TOKEN)
 
   if (req.method === 'POST') {
     // Parse the request body (ensure it's JSON)
