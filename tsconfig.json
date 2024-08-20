@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+      "types": ["node"],
       "rootDir": ".",
       "target": "ESNext",
       "lib": ["dom", "dom.iterable", "esnext"],
