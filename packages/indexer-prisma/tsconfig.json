@@ -1,5 +1,4 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "outDir": "./dist",  // Output directory for compiled JS files
     "module": "CommonJS",  // Use CommonJS for Node.js compatibility
