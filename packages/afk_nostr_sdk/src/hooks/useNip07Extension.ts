@@ -1,6 +1,5 @@
 import {useNostrContext} from '../context/NostrContext';
 import {useAuth} from '../store';
-
 export type UseRootProfilesOptions = {
   authors?: string[];
   search?: string;
@@ -9,12 +8,10 @@ export type UseRootProfilesOptions = {
 export const useNip07Extension = (options?: UseRootProfilesOptions) => {
   const {ndk, nip07Signer} = useNostrContext();
   const {setAuth, setPublicKey, setIsExtensionConnect} = useAuth();
-
   const getPublicKey = async () => {
     if (typeof window != 'undefined') {
       const pubkey = await window.nostr.getPublicKey();
       const created_at = new Date().getTime();
-
       nip07Signer?.user().then(async (user) => {
         if (user.npub) {
           console.log('Permission granted to read their public key:', user.npub);
@@ -28,7 +25,6 @@ export const useNip07Extension = (options?: UseRootProfilesOptions) => {
       // }
     }
   };
-
   return {
     getPublicKey,
   };
