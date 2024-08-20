@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
+    "types": [
+      "node"
+    ],
     "target": "ESNext",
     "module": "CommonJS",
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "moduleResolution": "Node",
     "allowJs": true,
     "useUnknownInCatchVariables": false,
@@ -14,10 +20,26 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["node_modules", "dist"],
-  "include": [ "src/**/*.graphql", "src/**/*", "src/**/*.ts", "/src/**/*.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "include": [
+    "src/**/*.graphql",
+    "src/**/*",
+    "src/**/*.ts",
+    "/src/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
   "paths": {
-    "indexer-prisma": ["packages/indexer-prisma/src"],
-    "common": ["packages/common/src"]
+    "indexer-prisma": [
+      "packages/indexer-prisma/src"
+    ],
+    "common": [
+      "packages/common/src"
+    ]
   },
 }
