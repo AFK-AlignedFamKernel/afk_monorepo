@@ -18,3 +18,4 @@ export {useChannels} from './channel/useChannels';
 export {useSendMessageChannel} from './channel/useSendMessageChannel';
 export {useMessagesChannels} from './channel/useMessagesChannels';
 export {useNip07Extension} from './useNip07Extension';
+export {useGetPublicGroup} from './group/public/useGetPublicGroup';

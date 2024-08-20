@@ -11,16 +11,15 @@
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "ts-node dist/index.js",
     "start:node": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "pnpm install --no-frozen-lockfile"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "apollo-server": "^3.13.0",
-    "common": "workspace:*",
     "cors": "^2.8.5",
-    "data-backend": "link:",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-graphql": "^0.12.0",
