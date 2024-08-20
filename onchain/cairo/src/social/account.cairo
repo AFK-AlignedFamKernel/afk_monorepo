@@ -26,7 +26,7 @@ pub trait ISRC6<TState> {
 #[starknet::contract(account)]
 pub mod SocialAccount {
     use afk::bip340;
-    use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_VERSION, QUERY_OFFSET, execute_calls,
         is_valid_stark_signature
@@ -155,7 +155,7 @@ pub mod SocialAccount {
 
 #[cfg(test)]
 mod tests {
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{

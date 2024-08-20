@@ -66,7 +66,7 @@ pub trait IDepositEscrow<TContractState> {
 #[starknet::contract]
 pub mod DepositEscrow {
     use afk::bip340;
-    use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::{
@@ -304,7 +304,7 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::option::OptionTrait;
     use core::traits::Into;

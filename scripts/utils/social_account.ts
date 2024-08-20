@@ -9,11 +9,11 @@ import path from "path";
 dotenv.config();
 const PATH_SOCIAL_ACCOUNT = path.resolve(
   __dirname,
-  "../../onchain/target/dev/joyboy_SocialAccount.contract_class.json"
+  "../../onchain/cairo/target/dev/afk_SocialAccount.contract_class.json"
 );
 const PATH_SOCIAL_ACCOUNT_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/target/dev/joyboy_SocialAccount.compiled_contract_class.json"
+  "../../onchain/cairo/target/dev/afk_SocialAccount.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */

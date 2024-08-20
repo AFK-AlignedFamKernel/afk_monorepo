@@ -64,7 +64,7 @@ pub trait IKeysMarketplace<TContractState> {
 
 #[starknet::contract]
 mod KeysMarketplace {
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::social::namespace::{INamespaceDispatcher, INamespaceDispatcherTrait};
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};

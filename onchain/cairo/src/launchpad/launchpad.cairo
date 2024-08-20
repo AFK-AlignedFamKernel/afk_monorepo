@@ -86,7 +86,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 mod LaunchpadMarketplace {
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,

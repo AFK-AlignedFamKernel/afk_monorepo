@@ -70,7 +70,7 @@ pub trait INamespace<TContractState> {
 #[starknet::contract]
 pub mod Namespace {
     use afk::bip340;
-    use afk::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
@@ -236,7 +236,7 @@ pub mod Namespace {
 
 #[cfg(test)]
 mod tests {
-    use afk::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{

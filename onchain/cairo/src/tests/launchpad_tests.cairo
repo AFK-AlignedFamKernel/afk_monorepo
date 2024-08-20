@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod launchpad_tests {
-    use afk::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait
     };

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod keys_tests {
-    use afk::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
     use afk::types::keys_types::{
         MINTER_ROLE, ADMIN_ROLE, KeysBonding, TokenQuoteBuyKeys, BondingType
