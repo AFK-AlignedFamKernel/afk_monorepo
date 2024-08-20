@@ -38,8 +38,6 @@ COPY . .
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
-# Build the data-backend package
-RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
 FROM node:18-alpine AS production
@@ -63,4 +61,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Command to start the application
-CMD ["node", "apps/data-backend/dist/index.js"]
+CMD ["node", "apps/data-backend/src/index.ts"]
