@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "build:index": "tsc",
+    "build:all": "pnpm run build:indexer-prisma && tsc",
     "start": "ts-node src/index.ts",
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "ts-node dist/index.js",
