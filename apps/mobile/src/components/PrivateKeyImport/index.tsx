@@ -15,6 +15,7 @@ import {
 import {Input} from '../Input';
 import {Text} from '../Text';
 import styles from './styles';
+import { Button } from '../Button';
 
 export const PrivateKeyImport: React.FC = () => {
   const {publicKey, isExtension, privateKey, setAuth} = useAuth();
@@ -67,9 +68,9 @@ export const PrivateKeyImport: React.FC = () => {
         placeholder="Password"
       />
 
-      <Pressable onPress={handlePassword}>
+      <Button onPress={handlePassword}>
         <Text>Enter password</Text>
-      </Pressable>
+      </Button>
 
       {isPasswordOk && (
         <>

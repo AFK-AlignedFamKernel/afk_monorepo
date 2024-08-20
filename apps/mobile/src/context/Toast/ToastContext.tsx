@@ -5,7 +5,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {ToastProps} from '../../components/Toast';
 import {AnimatedToast} from './AnimatedToast';
-import styles from './styles';
+import stylesheet from './styles';
+import { useStyles } from '../../hooks';
 
 export type ToastConfig = ToastProps & {
   key: string;
@@ -20,8 +21,8 @@ export type ToastContextType = {
 export const ToastContext = createContext<ToastContextType | null>(null);
 
 export const ToastProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
+  const styles = useStyles(stylesheet)
   const [toasts, setToasts] = useState<ToastConfig[]>([]);
-
   const hideToast = useCallback((key: string) => {
     setToasts((prev) => prev.filter((t) => t.key !== key));
   }, []);

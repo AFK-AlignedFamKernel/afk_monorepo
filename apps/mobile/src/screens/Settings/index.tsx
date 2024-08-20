@@ -1,24 +1,21 @@
-import {useAuth, useSettingsStore} from 'afk_nostr_sdk';
-import {Text, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useAuth, useSettingsStore } from 'afk_nostr_sdk';
+import { Text, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {Button, Divider, Icon, IconButton} from '../../components';
-import {HeaderScreen} from '../../components/HeaderScreen';
-import {PrivateKeyImport} from '../../components/PrivateKeyImport';
-import {useStyles, useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {SettingsScreenProps} from '../../types';
+import { Button, Divider, Icon, IconButton } from '../../components';
+import { HeaderScreen } from '../../components/HeaderScreen';
+import { PrivateKeyImport } from '../../components/PrivateKeyImport';
+import { useStyles, useTheme } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { SettingsScreenProps } from '../../types';
 import stylesheet from './styles';
+import { RelaysConfig } from '../../components/RelaysConfig';
 
-export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
+export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
-  const {theme, toggleTheme} = useTheme();
-  const {relays, setRelays} = useSettingsStore();
-  const {publicKey, isExtension} = useAuth();
-  // const RELAYS_USED = relays ?? AFK_RELAYS
-  const RELAYS_USED = relays;
+  const { theme, toggleTheme } = useTheme();
+  const { publicKey, isExtension } = useAuth();
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -28,7 +25,7 @@ export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
             icon="ChevronLeftIcon"
             size={24}
             onPress={() => {
-              navigation.navigate('Profile', {publicKey});
+              navigation.navigate('Profile', { publicKey });
               // navigation.goBack
             }}
           />
@@ -48,7 +45,10 @@ export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
         />
       </Pressable> */}
 
-      <Button onPress={toggleTheme}>
+      <Button
+        onPress={toggleTheme}
+        style={{ width: "auto" }}
+      >
         <Icon
           name={theme.dark ? 'SunIcon' : 'MoonIcon'}
           size={24}
@@ -60,34 +60,11 @@ export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
 
       <Divider />
 
-      <SafeAreaView edges={['top', 'left', 'right']}>
-        <View style={styles.coverButtons}>
-          <View style={styles.buttons}>
-            <IconButton
-              icon="ChevronLeftIcon"
-              size={20}
-              style={styles.backButton}
-              onPress={() => {
-                navigation.navigate('Profile', {publicKey});
-              }}
-            />
-          </View>
-        </View>
-      </SafeAreaView>
-
       {!isExtension && <PrivateKeyImport />}
+      <Divider />
 
-      <ScrollView style={styles.relaysSettings}>
-        <Text style={styles.title}>AFK: All relays used</Text>
+      <RelaysConfig></RelaysConfig>
 
-        {RELAYS_USED?.map((r, i) => {
-          return (
-            <Text key={i} style={styles.text}>
-              Relay: {r}
-            </Text>
-          );
-        })}
-      </ScrollView>
       <Divider />
     </View>
   );
