@@ -9,7 +9,7 @@ export const useNip07Extension = (options?: UseRootProfilesOptions) => {
   const {ndk, nip07Signer} = useNostrContext();
   const {setAuth, setPublicKey, setIsExtensionConnect} = useAuth();
   const getPublicKey = async () => {
-    if (typeof window != 'undefined') {
+    if (typeof window !== 'undefined') {
       const pubkey = await window.nostr.getPublicKey();
       const created_at = new Date().getTime();
       nip07Signer?.user().then(async (user) => {
