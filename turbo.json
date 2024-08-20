@@ -15,7 +15,10 @@
     "PINATA_API_KEY",
     "PINATA_SECRET_API_KEY",
     "IPFS_GATEWAY",
-    "INDEXER_DATABASE_URL"
+    "INDEXER_DATABASE_URL",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_WEB_APP",
+    "TG_ADMIN_CHAT_ID"
   ],
   "pipeline": {
     "build": {

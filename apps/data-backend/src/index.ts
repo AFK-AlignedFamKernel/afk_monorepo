@@ -2,8 +2,8 @@ import express from "express";
 import {server} from "./graphql"
 import dotenv from "dotenv";
 import router from "./router";
-// import cors from "cors";
 import helmet from "helmet"
+import { sendWebAppButton } from "./services/telegram-app";
 const cors = require("cors")
 dotenv.config();
 const app = express();
@@ -21,9 +21,11 @@ app.use(express.json())
 // Start the Backend
 const port = process.env.PORT || 5050;
 app.use('/', router)
+app.use('/telegram-app', router)
 
 app.listen(port, () => {
   console.log(`🚀 Backend server running at http://localhost:${port}`);
+  // sendWebAppButton(process.env.TG_ADMIN_CHAT_ID)
 });
 
 // Start the server GraphQL
