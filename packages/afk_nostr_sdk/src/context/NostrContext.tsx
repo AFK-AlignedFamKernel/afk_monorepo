@@ -1,14 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import NDK, { NDKNip07Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-import { useAuth } from '../store/auth';
-import { AFK_RELAYS } from "../utils/relay"
-import { useSettingsStore } from '../store';
+import NDK, {NDKNip07Signer, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import React, {createContext, useContext, useEffect, useState} from 'react';
+
+import {useSettingsStore} from '../store';
+import {useAuth} from '../store/auth';
+import {AFK_RELAYS} from '../utils/relay';
 export type NostrContextType = {
   ndk: NDK;
-  nip07Signer?:NDKNip07Signer
+  nip07Signer?: NDKNip07Signer;
 };
 export const NostrContext = createContext<NostrContextType | null>(null);
-export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const privateKey = useAuth((state) => state.privateKey);
   const publicKey = useAuth((state) => state.publicKey);
   const isExtension = useAuth((state) => state.isExtension);
@@ -30,7 +31,11 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) =
   useEffect(() => {
     const newNdk = new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
-      signer: privateKey ? new NDKPrivateKeySigner(privateKey) : isExtension ?  nip07Signer : undefined
+      signer: privateKey
+        ? new NDKPrivateKeySigner(privateKey)
+        : isExtension
+        ? nip07Signer
+        : undefined,
     });
 
     newNdk.connect().then(() => {
@@ -38,7 +43,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     });
   }, [privateKey, isExtension]);
 
-  return <NostrContext.Provider value={{ ndk , nip07Signer}}>{children}</NostrContext.Provider>;
+  return <NostrContext.Provider value={{ndk, nip07Signer}}>{children}</NostrContext.Provider>;
 };
 
 export const useNostrContext = () => {

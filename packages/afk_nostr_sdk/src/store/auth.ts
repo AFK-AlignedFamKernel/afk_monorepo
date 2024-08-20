@@ -5,7 +5,7 @@ import createBoundedUseStore from './createBoundedUseStore';
 type State = {
   publicKey: string;
   privateKey: string;
-  isExtension?:boolean;
+  isExtension?: boolean;
 };
 
 type Action = {
@@ -27,7 +27,7 @@ export const authStore = createStore<State & Action>((set, get) => ({
     set({publicKey});
   },
   setIsExtensionConnect: (isExtension) => {
-    set({isExtension:isExtension});
+    set({isExtension});
   },
 }));
 

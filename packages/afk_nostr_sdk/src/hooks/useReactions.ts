@@ -1,5 +1,6 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useQuery} from '@tanstack/react-query';
+
 import {useNostrContext} from '../context/NostrContext';
 
 export type UseReactionsOptions = {

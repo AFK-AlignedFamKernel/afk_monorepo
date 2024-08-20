@@ -1,4 +1,5 @@
 import {useQuery} from '@tanstack/react-query';
+
 import {useNostrContext} from '../context/NostrContext';
 export type UseProfileOptions = {
   publicKey?: string;
