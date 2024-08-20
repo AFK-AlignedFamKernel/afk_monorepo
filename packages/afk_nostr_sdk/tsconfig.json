@@ -15,7 +15,8 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "declaration": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
