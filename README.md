@@ -1,9 +1,14 @@
 <div align="center">
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img src="resources/branding/afk-logo.png" alt="afk_aligned_fam_kernel logo" height="300"/>
 
-[![Starknet Test Workflow Status](https://github.com/keep-starknet-strange/joyboy/actions/workflows/starknet-contracts.yml/badge.svg)](https://github.com/keep-starknet-strange/joyboy/actions/workflows/starknet-contracts.yml)
+[![Starknet Test Workflow Status](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml/badge.svg)](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml)
 
-[![Exploration_Team](https://img.shields.io/badge/Exploration_Team-29296E.svg?&style=for-the-badge&logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJhIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODEgMTgxIj48ZGVmcz48c3R5bGU+LmJ7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48cGF0aCBjbGFzcz0iYiIgZD0iTTE3Ni43Niw4OC4xOGwtMzYtMzcuNDNjLTEuMzMtMS40OC0zLjQxLTIuMDQtNS4zMS0xLjQybC0xMC42MiwyLjk4LTEyLjk1LDMuNjNoLjc4YzUuMTQtNC41Nyw5LjktOS41NSwxNC4yNS0xNC44OSwxLjY4LTEuNjgsMS44MS0yLjcyLDAtNC4yN0w5Mi40NSwuNzZxLTEuOTQtMS4wNC00LjAxLC4xM2MtMTIuMDQsMTIuNDMtMjMuODMsMjQuNzQtMzYsMzcuNjktMS4yLDEuNDUtMS41LDMuNDQtLjc4LDUuMThsNC4yNywxNi41OGMwLDIuNzIsMS40Miw1LjU3LDIuMDcsOC4yOS00LjczLTUuNjEtOS43NC0xMC45Ny0xNS4wMi0xNi4wNi0xLjY4LTEuODEtMi41OS0xLjgxLTQuNCwwTDQuMzksODguMDVjLTEuNjgsMi4zMy0xLjgxLDIuMzMsMCw0LjUzbDM1Ljg3LDM3LjNjMS4zNiwxLjUzLDMuNSwyLjEsNS40NCwxLjQybDExLjQtMy4xMSwxMi45NS0zLjYzdi45MWMtNS4yOSw0LjE3LTEwLjIyLDguNzYtMTQuNzYsMTMuNzNxLTMuNjMsMi45OC0uNzgsNS4zMWwzMy40MSwzNC44NGMyLjIsMi4yLDIuOTgsMi4yLDUuMTgsMGwzNS40OC0zNy4xN2MxLjU5LTEuMzgsMi4xNi0zLjYsMS40Mi01LjU3LTEuNjgtNi4wOS0zLjI0LTEyLjMtNC43OS0xOC4zOS0uNzQtMi4yNy0xLjIyLTQuNjItMS40Mi02Ljk5LDQuMyw1LjkzLDkuMDcsMTEuNTIsMTQuMjUsMTYuNzEsMS42OCwxLjY4LDIuNzIsMS42OCw0LjQsMGwzNC4zMi0zNS43NHExLjU1LTEuODEsMC00LjAxWm0tNzIuMjYsMTUuMTVjLTMuMTEtLjc4LTYuMDktMS41NS05LjE5LTIuNTktMS43OC0uMzQtMy42MSwuMy00Ljc5LDEuNjhsLTEyLjk1LDEzLjg2Yy0uNzYsLjg1LTEuNDUsMS43Ni0yLjA3LDIuNzJoLS42NWMxLjMtNS4zMSwyLjcyLTEwLjYyLDQuMDEtMTUuOGwxLjY4LTYuNzNjLjg0LTIuMTgsLjE1LTQuNjUtMS42OC02LjA5bC0xMi45NS0xNC4xMmMtLjY0LS40NS0xLjE0LTEuMDgtMS40Mi0xLjgxbDE5LjA0LDUuMTgsMi41OSwuNzhjMi4wNCwuNzYsNC4zMywuMTQsNS43LTEuNTVsMTIuOTUtMTQuMzhzLjc4LTEuMDQsMS42OC0xLjE3Yy0xLjgxLDYuNi0yLjk4LDE0LjEyLTUuNDQsMjAuNDYtMS4wOCwyLjk2LS4wOCw2LjI4LDIuNDYsOC4xNiw0LjI3LDQuMTQsOC4yOSw4LjU1LDEyLjk1LDEyLjk1LDAsMCwxLjMsLjkxLDEuNDIsMi4wN2wtMTMuMzQtMy42M1oiLz48L3N2Zz4=)](https://github.com/keep-starknet-strange)
 
 [![Built with React Native](https://img.shields.io/badge/Built%20with-React%20Native-%2361DAFB?style=for-the-badge&logo=react)](https://reactnative.dev/)
 
@@ -171,6 +176,16 @@ Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
 - [Smart Vaults - Bitcoin multi-custody signature orchestration - website](https://www.smartvaults.io/)
 - [Smart Vaults - Bitcoin multi-custody signature orchestration - repo](https://github.com/smartvaults/smartvaults)
 
+## Fork
+
+We build into the Joyboy repo here from the Exploration team:
+
+[![Exploration team repo](https://github.com/keep-starknet-strange/joyboy)]
+
+AFK Aligned Fam Kernel is born from this open source project.
+
+Now we keep building and move forward!
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -181,37 +196,18 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AbdelStark"><img src="https://avatars.githubusercontent.com/u/45264458?v=4?s=100" width="100px;" alt="Abdel @ StarkWare "/><br /><sub><b>Abdel @ StarkWare </b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=AbdelStark" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/maciejka"><img src="https://avatars.githubusercontent.com/u/190855?v=4?s=100" width="100px;" alt="Maciej Kamiński @ StarkWare"/><br /><sub><b>Maciej Kamiński @ StarkWare</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=maciejka" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MSghais"><img src="https://avatars.githubusercontent.com/u/59928086?v=4?s=100" width="100px;" alt="MSG"/><br /><sub><b>MSG</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=MSghais" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kateberryd"><img src="https://avatars.githubusercontent.com/u/35270183?v=4?s=100" width="100px;" alt="Catherine Jonathan"/><br /><sub><b>Catherine Jonathan</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=kateberryd" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ayushtom"><img src="https://avatars.githubusercontent.com/u/41674634?v=4?s=100" width="100px;" alt="Ayush Tomar"/><br /><sub><b>Ayush Tomar</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=ayushtom" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="http://mubarak23.github.io/"><img src="https://avatars.githubusercontent.com/u/7858376?v=4?s=100" width="100px;" alt="Mubarak Muhammad Aminu"/><br /><sub><b>Mubarak Muhammad Aminu</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=mubarak23" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://ugureren.net/"><img src="https://avatars.githubusercontent.com/u/86152092?v=4?s=100" width="100px;" alt="Uğur Eren"/><br /><sub><b>Uğur Eren</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=ugur-eren" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Oshioke-Salaki"><img src="https://avatars.githubusercontent.com/u/105825121?v=4?s=100" width="100px;" alt="Oshioke Salaki"/><br /><sub><b>Oshioke Salaki</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=Oshioke-Salaki" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bhavyagosai"><img src="https://avatars.githubusercontent.com/u/64588227?v=4?s=100" width="100px;" alt="Bhavya Gosai"/><br /><sub><b>Bhavya Gosai</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=bhavyagosai" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/BlackStarkGoku"><img src="https://avatars.githubusercontent.com/u/165695008?v=4?s=100" width="100px;" alt="BlackStarkGoku"/><br /><sub><b>BlackStarkGoku</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=BlackStarkGoku" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Israelrex9"><img src="https://avatars.githubusercontent.com/u/46507005?v=4?s=100" width="100px;" alt="IsraelRex"/><br /><sub><b>IsraelRex</b></sub></a><br /><a href="#design-Israelrex9" title="Design">🎨</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/EjembiEmmanuel"><img src="https://avatars.githubusercontent.com/u/83036156?v=4?s=100" width="100px;" alt="Emmaunuel Ejembi"/><br /><sub><b>Emmaunuel Ejembi</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=EjembiEmmanuel" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ayoazeez26"><img src="https://avatars.githubusercontent.com/u/44169294?v=4?s=100" width="100px;" alt="Abdulhakeem Abdulazeez Ayodeji"/><br /><sub><b>Abdulhakeem Abdulazeez Ayodeji</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=Ayoazeez26" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/josephchimebuka"><img src="https://avatars.githubusercontent.com/u/87217051?v=4?s=100" width="100px;" alt="Joseph Chimebuka"/><br /><sub><b>Joseph Chimebuka</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=josephchimebuka" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/omahs"><img src="https://avatars.githubusercontent.com/u/73983677?v=4?s=100" width="100px;" alt="omahs"/><br /><sub><b>omahs</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=omahs" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Calebux"><img src="https://avatars.githubusercontent.com/u/119738245?v=4?s=100" width="100px;" alt="Caleb "/><br /><sub><b>Caleb </b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=Calebux" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://developer.mozilla.org/"><img src="https://avatars.githubusercontent.com/u/89651828?v=4?s=100" width="100px;" alt="Ben Ickah"/><br /><sub><b>Ben Ickah</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=benbaruka" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://soetandev.netlify.app/"><img src="https://avatars.githubusercontent.com/u/17912134?v=4?s=100" width="100px;" alt="Emmanuel Soetan"/><br /><sub><b>Emmanuel Soetan</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=Shoetan" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/princeibs"><img src="https://avatars.githubusercontent.com/u/64266194?v=4?s=100" width="100px;" alt="princeibs"/><br /><sub><b>princeibs</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=princeibs" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/goofylfg"><img src="https://avatars.githubusercontent.com/u/165781272?v=4?s=100" width="100px;" alt="goofylfg"/><br /><sub><b>goofylfg</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=goofylfg" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lfgtwo"><img src="https://avatars.githubusercontent.com/u/171595475?v=4?s=100" width="100px;" alt="lfg2"/><br /><sub><b>lfg2</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=lfgtwo" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/devcollinss"><img src="https://avatars.githubusercontent.com/u/90073781?v=4?s=100" width="100px;" alt="Collins Ikechukwu (devcollins)"/><br /><sub><b>Collins Ikechukwu (devcollins)</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=devcollinss" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/petersssong"><img src="https://avatars.githubusercontent.com/u/171840752?v=4?s=100" width="100px;" alt="petersssong"/><br /><sub><b>petersssong</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/joyboy/commits?author=petersssong" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MSghais"><img src="https://avatars.githubusercontent.com/u/59928086?v=4?s=100" width="100px;" alt="MSG"/><br /><sub><b>MSG</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=MSghais" title="Documentation">📖</a></td>
     </tr>
   </tbody>
+  <tfoot>
+    <tr>
+      <td align="center" size="13px" colspan="7">
+        <img src="https://raw.githubusercontent.com/all-contributors/all-contributors-cli/1b8533af435da9854653492b1327a23a4dbd0a10/assets/logo-small.svg">
+          <a href="https://all-contributors.js.org/docs/en/bot/usage">Add your contributions</a>
+        </img>
+      </td>
+    </tr>
+  </tfoot>
 </table>
 
 <!-- markdownlint-restore -->
