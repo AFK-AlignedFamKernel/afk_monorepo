@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "types": [
-      "node"
-    ],
     "target": "ESNext",
     "module": "CommonJS",
     "lib": [
