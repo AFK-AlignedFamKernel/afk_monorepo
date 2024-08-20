@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@telegraf/types": "^7.1.0",
     "apollo-server": "^3.13.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -35,8 +36,8 @@
     "@types/node": "^20.16.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "tsup": "^8.0.2",
     "tsx": "^4.7.3",
-    "typescript": "^5.5.4",
-    "tsup": "^8.0.2"
+    "typescript": "^5.5.4"
   }
 }
