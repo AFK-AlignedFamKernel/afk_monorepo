@@ -5,6 +5,7 @@
       "dom",
       "esnext",
     ],
+    "module": "CommonJS",
     "moduleResolution": "Node",
     "allowJs": true,
     "useUnknownInCatchVariables": false,
