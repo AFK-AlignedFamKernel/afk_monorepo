@@ -9,6 +9,10 @@ pub mod types {
     pub mod jediswap_types;
     pub mod keys_types;
     pub mod launchpad_types;
+    pub mod tap_types;
+}
+pub mod quests {
+    pub mod tap;
 }
 
 pub mod examples {
@@ -20,7 +24,6 @@ pub mod tokens {
     pub mod erc20_mintable;
     pub mod erc20;
 }
-
 
 #[cfg(test)]
 pub mod tests {

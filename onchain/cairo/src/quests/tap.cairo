@@ -1,3 +1,6 @@
+use starknet::{
+    ContractAddress, ClassHash
+};
 use afk::types::tap_types::{
     TapUserStats,
     TapDailyEvent
@@ -5,14 +8,14 @@ use afk::types::tap_types::{
 
 #[starknet::interface]
 pub trait ITapsQuests<T> {
-    fn get_tap_user_stats(self: @T) -> TapUserStats;
+    fn get_tap_user_stats(self: @T , user:ContractAddress) -> TapUserStats;
     fn handle_tap_daily(ref self: T);
 }
 
 #[starknet::contract]
 mod TapQuests {
 
-    const DAILY_TIMESTAMP_SECONDS:u256=60*60*24;
+    const DAILY_TIMESTAMP_SECONDS:u64=60*60*24;
     use super::{
         TapUserStats,
         TapDailyEvent
@@ -54,12 +57,12 @@ mod TapQuests {
                 self.tap_by_users.write(caller, tap);
                 self
                 .emit(
-                    TapDailyEvent { owner: caller, last_tap:timestamp, total_tap:total }
+                    TapDailyEvent { owner: caller, last_tap:timestamp, total_tap:1 }
                 );
             } else {
-                let tap = tap_old.clone();
+                let mut tap = tap_old.clone();
                 let last_tap = tap.last_tap; 
-                assert!(timestamp-last_tap < DAILY_TIMESTAMP_SECONDS, "too early")
+                assert!(timestamp-last_tap < DAILY_TIMESTAMP_SECONDS, "too early");
                 tap.last_tap= timestamp;
 
                 let total=tap_old.total_tap+1;
