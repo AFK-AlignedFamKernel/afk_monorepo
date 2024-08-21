@@ -6,14 +6,13 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     padding: Spacing.pagePadding,
     color: theme.colors.text,
-    gap:3
+    gap: 3,
   },
   content: {
     flex: 1,
     color: theme.colors.text,
     padding: Spacing.medium,
   },
-
 
   backButton: {
     position: 'absolute',

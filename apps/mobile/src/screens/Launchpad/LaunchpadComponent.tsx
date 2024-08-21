@@ -6,7 +6,6 @@ import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-nat
 import {Button} from '../../components';
 import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
 import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
 import {useQueryAllLaunch} from '../../hooks/launchpad/useQueryAllLaunch';
 import {useKeyModal} from '../../hooks/modals/useKeyModal';
 import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';

@@ -34,7 +34,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast()
+  const {showToast} = useToast();
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -120,18 +120,13 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
     );
   };
 
+  const handleRepost = async () => {
+    showToast({title: 'Repost coming soon', type: 'info'});
+  };
 
-  const handleRepost = async() => {
-
-    showToast({title:"Repost coming soon", type:"info"})
-
-  }
-
-  const handleBookmarkList = async() => {
-
-    showToast({title:"Bookmark and List coming soon", type:"info"})
-
-  }
+  const handleBookmarkList = async () => {
+    showToast({title: 'Bookmark and List coming soon', type: 'info'});
+  };
 
   const content = event?.content || '';
   const truncatedContent = content.length > 200 ? `${content.slice(0, 200)}...` : content;
@@ -271,39 +266,27 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
                 showTipModal(event);
               }}
             >
-              <Icon
-                name="CoinIcon"
-                size={20}
-                title="Tip"
-              />
+              <Icon name="CoinIcon" size={20} title="Tip" />
             </Pressable>
 
             <Pressable
               style={{marginHorizontal: 3}}
               onPress={() => {
                 if (!event) return;
-                handleRepost()
+                handleRepost();
               }}
             >
-              <Icon
-                name="RepostIcon"
-                size={20}
-                title="Repost"
-              />
+              <Icon name="RepostIcon" size={20} title="Repost" />
             </Pressable>
 
             <Pressable
               style={{marginHorizontal: 3}}
               onPress={() => {
                 if (!event) return;
-                handleBookmarkList()
+                handleBookmarkList();
               }}
             >
-              <Icon
-                name="BookmarkIcon"
-                size={20}
-                title="Bookmark"
-              />
+              <Icon name="BookmarkIcon" size={20} title="Bookmark" />
             </Pressable>
           </View>
 

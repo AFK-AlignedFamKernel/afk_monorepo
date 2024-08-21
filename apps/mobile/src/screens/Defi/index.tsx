@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextButton } from '../../components';
-import { useStyles } from '../../hooks';
-import { DefiScreenProps } from '../../types';
-import { SelectedTab, TABS_DEFI } from '../../types/tab';
-import stylesheet from './styles';
-import TabSelector from '../../components/TabSelector';
+import {useState} from 'react';
+import {KeyboardAvoidingView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
+import {TextButton} from '../../components';
+import TabSelector from '../../components/TabSelector';
+import {useStyles} from '../../hooks';
+import {DefiScreenProps} from '../../types';
+import {SelectedTab, TABS_DEFI} from '../../types/tab';
+import stylesheet from './styles';
+
+export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.BTC_FI_VAULT);
 
@@ -38,18 +39,17 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
           <Text style={styles.text}>DeFi, Ramp and more soon</Text>
           <Text style={styles.text}>Stay tuned for the AFK Fi</Text>
 
-          {selectedTab == SelectedTab.BTC_FI_VAULT &&
+          {selectedTab == SelectedTab.BTC_FI_VAULT && (
             <View>
-              <Text  style={styles.text}>Vault coming soon</Text>
+              <Text style={styles.text}>Vault coming soon</Text>
             </View>
-          }
+          )}
 
-          {selectedTab == SelectedTab.BTC_BRIDGE &&
+          {selectedTab == SelectedTab.BTC_BRIDGE && (
             <View>
-              <Text  style={styles.text}>Brdige coming soon</Text>
+              <Text style={styles.text}>Brdige coming soon</Text>
             </View>
-          }
-
+          )}
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>

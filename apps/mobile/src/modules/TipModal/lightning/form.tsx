@@ -1,21 +1,12 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useAccount } from '@starknet-react/core';
-import { useProfile } from 'afk_nostr_sdk';
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import { CallData, uint256 } from 'starknet';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useProfile} from 'afk_nostr_sdk';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
-import { Avatar, Button, Input, Modalize, Picker, Text } from '../../../components';
-import { ESCROW_ADDRESSES } from '../../../constants/contracts';
-import { CHAIN_ID } from '../../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../../constants/tokens';
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useToast, useTransactionModal } from '../../../hooks/modals';
-import { useDialog } from '../../../hooks/modals/useDialog';
-import { useTransaction } from '../../../hooks/modals/useTransaction';
-import { useWalletModal } from '../../../hooks/modals/useWalletModal';
-import { TipSuccessModalProps } from '../../TipSuccessModal';
+import {Avatar, Button, Input, Modalize, Text} from '../../../components';
+import {useStyles} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
+import {TipSuccessModalProps} from '../../TipSuccessModal';
 import stylesheet from './styles';
 
 export type TipModalLightning = Modalize;
@@ -39,17 +30,16 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const styles = useStyles(stylesheet);
 
   const [amount, setAmount] = useState<string>('');
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
-  const { showToast } = useToast()
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
+  const {showToast} = useToast();
   const isActive = !!amount;
 
   const onTipPress = () => {
-    showToast({ title: "ZAP coming soon", type: "info" })
-  }
+    showToast({title: 'ZAP coming soon', type: 'info'});
+  };
 
   return (
     <View>
-
       <Text>ZAP Coming soon</Text>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -101,15 +91,10 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
         </Text>
 
         <Input value={amount} onChangeText={setAmount} placeholder="Amount" />
-
       </View>
 
-
       <View style={styles.submitButton}>
-        <Button variant="secondary" disabled={!isActive}
-          onPress={onTipPress}
-
-        >
+        <Button variant="secondary" disabled={!isActive} onPress={onTipPress}>
           Tip
         </Button>
       </View>

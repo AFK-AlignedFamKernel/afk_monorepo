@@ -1,20 +1,19 @@
-import { Spacing, ThemedStyleSheet } from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     marginHorizontal: 10,
-    alignItems:"center"
+    alignItems: 'center',
   },
   relayItem: {
-    flex:1,
-    flexDirection:"row",
-    gap:3,
-    alignItems:"center"
+    flex: 1,
+    flexDirection: 'row',
+    gap: 3,
+    alignItems: 'center',
   },
   relayText: {
-    width:"100%"
+    width: '100%',
   },
-  relayButton: {
-  },
+  relayButton: {},
   title: {
     color: theme.colors.text,
     fontSize: 24,
@@ -37,7 +36,7 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 15,
   },
   button: {
-    marginVertical: 5 
+    marginVertical: 5,
   },
 
   name: {

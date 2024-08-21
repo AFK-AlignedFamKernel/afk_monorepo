@@ -6,7 +6,7 @@ import {AddPostIcon} from '../../assets/icons';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {MainStackNavigationProps} from '../../types';
-import {SelectedTab, TABS_LIST, TABS_TIP_LIST} from '../../types/tab';
+import {SelectedTab, TABS_TIP_LIST} from '../../types/tab';
 import {ChannelsFeedComponent} from '../ChannelsFeed/ChannelsFeedComponent';
 import stylesheet from './styles';
 import {TipsComponent} from './TipsComponent';

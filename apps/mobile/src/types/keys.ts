@@ -23,9 +23,8 @@ export interface TokenLaunchInterface {
   token_holded: Uint256;
   is_liquidity_launch: boolean;
   token_quote: TokenQuoteBuyKeys;
-  threshold_liquidity?: Uint256,
-  slope?: Uint256,
-
+  threshold_liquidity?: Uint256;
+  slope?: Uint256;
 }
 
 export interface Token {

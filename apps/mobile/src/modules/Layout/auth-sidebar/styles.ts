@@ -2,7 +2,7 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    marginVertical:10,
+    marginVertical: 10,
     color: theme.colors.text,
   },
   sidebar: {
