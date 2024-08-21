@@ -1,45 +1,48 @@
 create table token_launch(
-    memecoin_address text unique,
-    id serial primary key,
+    memecoin_address text,
     network text,
     block_hash text,
     block_number bigint,
     block_timestamp timestamp,
-    transaction_hash text,
+    transaction_hash text primary key,
     quote_token text,
     exchange_name text,
     created_at timestamp default current_timestamp,
     total_supply text,
     current_supply text,
     liquidity_raised text,
-    price text
+    price text,
+    _cursor bigint
+
 );
 
 create table token_deploy(
-    memecoin_address text unique,
-    id serial primary key, 
+    memecoin_address text,
     network text,
     block_hash text,
     block_number bigint,
     block_timestamp timestamp,
-    transaction_hash text,
+    transaction_hash text primary key,
+
     owner_address text,
     name text,
     symbol text,
     initial_supply text,
     total_supply text,
-    created_at timestamp default current_timestamp
+    created_at timestamp default current_timestamp,
+    _cursor bigint
+
 );
 
 
 CREATE TABLE buy_token (
-    id SERIAL PRIMARY KEY UNIQUE,  -- `serial` automatically creates a unique sequence with primary key
-    transfer_id text unique,
+    transfer_id text,
     network TEXT,
     block_hash TEXT,
     block_number BIGINT,
     block_timestamp TIMESTAMP,
-    transaction_hash TEXT,
+    transaction_hash text primary key,
+
     memecoin_address TEXT,
     owner_address TEXT,
     last_price TEXT,
@@ -51,7 +54,9 @@ CREATE TABLE buy_token (
     current_supply TEXT,
     liquidity_raised TEXT,
     price TEXT,
-    amount TEXT
+    amount TEXT,
+    _cursor bigint
+
 );
 
 create table unrugmeme_transfers(

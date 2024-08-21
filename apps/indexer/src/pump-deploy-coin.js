@@ -38,7 +38,7 @@ export default function DecodeTokenDeploy({ header, events }) {
     if (!event.data) return
 
     const transactionHash = transaction.meta.hash
-
+    const txMeta = transaction.meta
 
     const [caller, 
       token_address, 

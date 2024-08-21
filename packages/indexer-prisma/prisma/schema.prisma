@@ -8,29 +8,28 @@ datasource db {
 }
 
 model token_deploy {
-  memecoin_address String?   @unique
-  id               Int       @id @default(autoincrement())
+  memecoin_address String?
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
+  transaction_hash String    @id
   owner_address    String?
   name             String?
   symbol           String?
   initial_supply   String?
   total_supply     String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
 }
 
 model token_launch {
-  memecoin_address String?   @unique
-  id               Int       @id @default(autoincrement())
+  memecoin_address String?
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
+  transaction_hash String    @id
   quote_token      String?
   exchange_name    String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
@@ -38,16 +37,16 @@ model token_launch {
   current_supply   String?
   liquidity_raised String?
   price            String?
+  cursor           BigInt?   @map("_cursor")
 }
 
 model buy_token {
-  id               Int       @id @default(autoincrement())
-  transfer_id      String?   @unique
+  transfer_id      String?
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
+  transaction_hash String    @id
   memecoin_address String?
   owner_address    String?
   last_price       String?
@@ -60,6 +59,7 @@ model buy_token {
   liquidity_raised String?
   price            String?
   amount           String?
+  cursor           BigInt?   @map("_cursor")
 }
 
 model unrugmeme_deploy {

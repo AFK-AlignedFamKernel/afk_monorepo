@@ -1,8 +1,8 @@
 import express from 'express'
 
-import deploy from './routes/deploy-token'
-import deployLaunch from './routes/deploy-launch'
-import buyCoin from './routes/buy-coin'
+import deploy from './routes/indexer/deploy-token'
+import deployLaunch from './routes/indexer/deploy-launch'
+import buyCoin from './routes/indexer/buy-coin'
 import telegramApp from './routes/telegram-app'
 
 const Router = express.Router()
