@@ -27,9 +27,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {show: showKeyModal} = useKeyModal();
   const {show: showModal} = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  const {data: launchs} = useGetTokenLaunch();
-  // console.log("Launchs", launchs)
-
+  // const {data: launches} = useGetTokenLaunch();
   const {publicKey} = useAuth();
   // const width = Dimensions.get("window").width
   // const isDesktop = width >= 1024

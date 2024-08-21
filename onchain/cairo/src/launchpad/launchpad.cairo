@@ -704,15 +704,15 @@ mod LaunchpadMarketplace {
 
         fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
             let max_key_id = self.total_launch.read() + 1;
-            let mut launchs: Array<TokenLaunch> = ArrayTrait::new();
+            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
             let mut i = 0; //Since the stream id starts from 0
             loop {
                 if i >= max_key_id {}
                 let pool = self.array_launched_coins.read(i);
                 if pool.owner.is_zero() {
-                    break launchs.span();
+                    break launches.span();
                 }
-                launchs.append(pool);
+                launches.append(pool);
                 i += 1;
             }
         }

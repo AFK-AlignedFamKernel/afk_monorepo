@@ -3,14 +3,15 @@ use starknet::{
     contract_address_const, get_block_timestamp, get_contract_address, ClassHash
 };
 
+use afk::types::identity_types:: {
+
+};
 #[starknet::interface]
-pub trait IFactoryAfkId<T> {
-    fn get_afk_id(self: @T, user:ContractAddress) -> AfkIdentiyState;
-    fn create_afk_identity(ref self: T);
+pub trait IAfkId<T> {
 }
 
 #[starknet::contract]
-mod FactoryAfkIdentity {
+mod AfkIdentity {
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
@@ -28,14 +29,7 @@ mod FactoryAfkIdentity {
     }
 
     #[abi(embed_v0)]
-    impl FactoryIdImpl of super::IFactoryAfkId<ContractState> {
+    impl FactoryIdImpl of super::IAfkId<ContractState> {
       
-      fn create_afk_identity(ref self:ContractState) {
-
-      }
-
-      fn get_afk_id(self:@ContractState, user:ContractAddress) {
-
-      }
     }
 }
