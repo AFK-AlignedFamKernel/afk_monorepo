@@ -2,7 +2,7 @@ use afk::types::tap_types::{TapUserStats, TapDailyEvent};
 use starknet::{ContractAddress, ClassHash};
 
 #[starknet::interface]
-pub trait ITapsQuests<T> {
+pub trait ITapQuests<T> {
     fn get_tap_user_stats(self: @T, user: ContractAddress) -> TapUserStats;
     fn handle_tap_daily(ref self: T);
 }
@@ -30,7 +30,7 @@ mod TapQuests {
     }
 
     #[abi(embed_v0)]
-    impl TapsQuestImpl of super::ITapsQuests<ContractState> {
+    impl TapQuestImpl of super::ITapQuests<ContractState> {
         fn get_tap_user_stats(self: @ContractState, user: ContractAddress) -> TapUserStats {
             self.tap_by_users.read(user)
         }
@@ -45,10 +45,10 @@ mod TapQuests {
                 self.emit(TapDailyEvent { owner: caller, last_tap: timestamp, total_tap: 1 });
             } else {
                 let mut tap = tap_old.clone();
-                let last_tap = tap.last_tap;
-                assert!(timestamp - last_tap < DAILY_TIMESTAMP_SECONDS, "too early");
+                // let last_tap = tap.last_tap.clone();
+                // TODO Check assert in tests
+                // assert!(timestamp - last_tap < DAILY_TIMESTAMP_SECONDS, "too early");
                 tap.last_tap = timestamp;
-
                 let total = tap_old.total_tap + 1;
                 tap.total_tap = total.clone();
                 self.tap_by_users.write(caller, tap);

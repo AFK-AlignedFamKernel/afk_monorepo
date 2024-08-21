@@ -38,5 +38,6 @@ pub mod tests {
     pub mod identity_tests;
     pub mod keys_tests;
     pub mod launchpad_tests;
+    pub mod tap_tests;
 }
 
