@@ -24,7 +24,7 @@ ARG TELEGRAM_WEB_APP
 ENV TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
 
 # Copy root-level package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml ./
 
 # Install pnpm globally
 RUN npm install -g pnpm
