@@ -1,3 +1,6 @@
+### Setup a local relayer to test it with Docker
+docker run -p 8080:8080 scsibug/nostr-rs-relay
+
 ### Set up a basic Nostr relay using an existing TypeScript implementation
 
 ## use NOSTR RELAY NESTJS
@@ -23,5 +26,3 @@
 - npm run migration:run
 
 
-### Setup a local relayer to test it with Docker
-docker run -p 8080:8080 scsibug/nostr-rs-relay

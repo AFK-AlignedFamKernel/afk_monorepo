@@ -1,3 +1,5 @@
+
+
 export enum SelectedTab {
   TIPS,
   MESSAGES,
@@ -12,6 +14,8 @@ export enum SelectedTab {
   LAUNCH_TOKEN_PUMP,
   SLINK,
   LAUNCHPAD_VIEW,
+  BTC_BRIDGE,
+  BTC_FI_VAULT,
 }
 
 export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -124,4 +128,20 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   //   tab: SelectedTab.MESSAGES
 
   // },
+];
+
+
+
+
+export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'BTC Fi',
+    screen: 'BTCVault',
+    tab: SelectedTab.BTC_FI_VAULT,
+  },
+  {
+    title: 'BTC Bridge',
+    screen: 'BTCBridge',
+    tab: SelectedTab.BTC_BRIDGE,
+  },
 ];
