@@ -1,15 +1,15 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     // alignItems: 'center',
-    // backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.surface,
     padding: Spacing.xsmall,
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap: 'break-word',
     // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
     // width:"100%"
-    // width:300,
+    width: 300,
   },
   imageContainer: {
     // position: 'relative',

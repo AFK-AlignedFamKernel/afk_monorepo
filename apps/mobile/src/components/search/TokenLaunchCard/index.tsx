@@ -6,18 +6,18 @@ import {useProfile} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {ImageSourcePropType, View} from 'react-native';
 
-import {useStyles, useWaitConnection} from '../../hooks';
-import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
-import {useWalletModal} from '../../hooks/modals';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useWalletModal} from '../../../hooks/modals';
 // import {useProfile} from '../../hooks';
-import {MainStackNavigationProps} from '../../types';
-import {TokenLaunchInterface} from '../../types/keys';
-import {feltToAddress} from '../../utils/format';
-import {decimalsScale} from '../../utils/helpers';
-import {Button} from '../Button';
-import {Input} from '../Input';
-import {Text} from '../Text';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {decimalsScale} from '../../../utils/helpers';
+import {Button} from '../../Button';
+import {Input} from '../../Input';
+import {Text} from '../../Text';
 import stylesheet from './styles';
 
 export type LaunchCoinProps = {
@@ -33,7 +33,7 @@ enum AmountType {
   QUOTE_AMOUNT,
   COIN_AMOUNT_TO_BUY,
 }
-export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
+export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   launch,
   imageProps,
   name,
@@ -160,6 +160,18 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             Created at {Number(launch?.created_at) / 10 ** 18}
           </Text>
         } */}
+      </View>
+
+      <View>
+        {launch?.threshold_liquidity && (
+          <Text>Threshold liquidity: {Number(launch?.threshold_liquidity)}</Text>
+        )}
+
+        {launch?.liquidity_raised && <Text>Raised: {Number(launch?.liquidity_raised)}</Text>}
+
+        {launch?.is_liquidity_launch && (
+          <Text>Is launched in DEX: {Number(launch?.is_liquidity_launch)}</Text>
+        )}
       </View>
 
       {launch?.token_quote && (

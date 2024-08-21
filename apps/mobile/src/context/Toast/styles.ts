@@ -1,10 +1,7 @@
-import {StyleSheet} from 'react-native';
-
 import {Spacing, ThemedStyleSheet} from '../../styles';
 
 // export default StyleSheet.create({
 export default ThemedStyleSheet((theme) => ({
-
   // export default StyleSheet.create({
   container: {
     position: 'absolute',

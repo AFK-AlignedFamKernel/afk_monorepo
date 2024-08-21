@@ -1,57 +1,58 @@
-import { useSettingsStore } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { View } from 'react-native';
-import { useToast } from '../../hooks/modals';
-import { Input } from '../Input';
-import { Text } from '../Text';
-import { useStyles } from '../../hooks';
-import { Button } from '../Button';
-import { AFK_RELAYS } from 'afk_nostr_sdk/src/utils/relay';
+import {useSettingsStore} from 'afk_nostr_sdk';
+import {AFK_RELAYS} from 'afk_nostr_sdk/src/utils/relay';
+import {useState} from 'react';
+import {View} from 'react-native';
+
+import {useStyles} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {Text} from '../Text';
 import stylesheet from './styles';
 
 export const RelaysConfig: React.FC = () => {
-  const { showToast } = useToast();
-  const styles = useStyles(stylesheet)
-  const { relays, setRelays } = useSettingsStore();
+  const {showToast} = useToast();
+  const styles = useStyles(stylesheet);
+  const {relays, setRelays} = useSettingsStore();
   const RELAYS_USED = relays;
   const AFK_DEFAULT_RELAYS = AFK_RELAYS;
-  const [relaysUpdated, setRelaysUpdated] = useState<string[]>(relays)
-  const [openUpdateMenu, setOpenUpdateMenu] = useState<boolean>(false)
-  const [relayToAdd, setRelayToAdd] = useState<string | undefined>()
+  const [relaysUpdated, setRelaysUpdated] = useState<string[]>(relays);
+  const [openUpdateMenu, setOpenUpdateMenu] = useState<boolean>(false);
+  const [relayToAdd, setRelayToAdd] = useState<string | undefined>();
 
   const removeRelay = (relay: string) => {
-    const newRelays = relaysUpdated.filter((r) => r != relay)
-    console.log("newRelays")
-    setRelaysUpdated(newRelays)
-  }
+    const newRelays = relaysUpdated.filter((r) => r != relay);
+    console.log('newRelays');
+    setRelaysUpdated(newRelays);
+  };
 
   const addRelay = (relay?: string) => {
     if (!relay) {
-      showToast({ type: "error", title: 'Add a relay' });
+      showToast({type: 'error', title: 'Add a relay'});
       return;
     }
-    if (!relay?.includes("wss://")) {
-      showToast({ type: "error", title: 'add wss://' });
+    if (!relay?.includes('wss://')) {
+      showToast({type: 'error', title: 'add wss://'});
       return;
     }
-    const newRelays = [...relaysUpdated, relay]
+    const newRelays = [...relaysUpdated, relay];
     /** @TODO add verify validity of the relayer */
 
-    setRelaysUpdated(newRelays)
-  }
+    setRelaysUpdated(newRelays);
+  };
 
   const updateRelayToUsed = () => {
-    setRelays(relaysUpdated)
-  }
+    setRelays(relaysUpdated);
+  };
 
   const resetDefault = () => {
-    setRelays(AFK_DEFAULT_RELAYS)
-    setRelaysUpdated(AFK_DEFAULT_RELAYS)
-  }
+    setRelays(AFK_DEFAULT_RELAYS);
+    setRelaysUpdated(AFK_DEFAULT_RELAYS);
+  };
 
   const handleOpenMenu = () => {
-    setOpenUpdateMenu(!openUpdateMenu)
-  }
+    setOpenUpdateMenu(!openUpdateMenu);
+  };
 
   return (
     <View style={styles.container}>
@@ -60,36 +61,29 @@ export const RelaysConfig: React.FC = () => {
         {RELAYS_USED?.map((r, i) => {
           return (
             <View style={styles.relayItem} key={i}>
-              <Text style={styles.text}>
-                Relay: {r}
-              </Text>
+              <Text style={styles.text}>Relay: {r}</Text>
             </View>
           );
         })}
       </View>
       <View>
         <Text>You can setup your relays</Text>
-        <Button
-          style={{ width: "auto" }}
-          onPress={handleOpenMenu}
-        >
+        <Button style={{width: 'auto'}} onPress={handleOpenMenu}>
           <Text>Open menu</Text>
         </Button>
       </View>
 
-      {openUpdateMenu &&
+      {openUpdateMenu && (
         <View>
           {relaysUpdated?.map((r, i) => {
             return (
               <View style={styles.relayItem} key={i}>
-                <Text style={styles.text}>
-                  Relay: {r}
-                </Text>
+                <Text style={styles.text}>Relay: {r}</Text>
 
                 <Button
                   style={{
-                    width: "auto",
-                    marginHorizontal: 5
+                    width: 'auto',
+                    marginHorizontal: 5,
                   }}
                   onPress={() => removeRelay(r)}
                 >
@@ -109,21 +103,15 @@ export const RelaysConfig: React.FC = () => {
             placeholder="Relay"
           />
 
-          <Button
-            style={styles.button}
-            onPress={updateRelayToUsed}>
+          <Button style={styles.button} onPress={updateRelayToUsed}>
             <Text>Update my relay</Text>
           </Button>
 
-          <Button
-            style={styles.button}
-            onPress={resetDefault}
-          >
+          <Button style={styles.button} onPress={resetDefault}>
             <Text>Reuse default AFK relay</Text>
           </Button>
         </View>
-      }
-
+      )}
     </View>
   );
 };

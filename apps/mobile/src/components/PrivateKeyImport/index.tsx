@@ -2,7 +2,7 @@ import {useTheme} from '@react-navigation/native';
 import {useAuth} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import {useState} from 'react';
-import {Pressable, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 
 import {CopyIconStack, LockIcon} from '../../assets/icons';
 import {useToast} from '../../hooks/modals';
@@ -12,10 +12,10 @@ import {
   retrievePassword,
   retrievePublicKey,
 } from '../../utils/storage';
+import {Button} from '../Button';
 import {Input} from '../Input';
 import {Text} from '../Text';
 import styles from './styles';
-import { Button } from '../Button';
 
 export const PrivateKeyImport: React.FC = () => {
   const {publicKey, isExtension, privateKey, setAuth} = useAuth();

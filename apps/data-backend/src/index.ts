@@ -27,7 +27,6 @@ app.listen(port, () => {
   console.log(`🚀 Backend server running at http://localhost:${port}`);
   try {
     launchBot(process.env.TELEGRAM_BOT_TOKEN)
-
   }catch(e) {
 
   }

@@ -6,7 +6,7 @@ import {AddPostIcon} from '../../assets/icons';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {MainStackNavigationProps} from '../../types';
-import {SelectedTab, TABS_LIST} from '../../types/tab';
+import {SelectedTab, TABS_TIP_LIST} from '../../types/tab';
 import {ChannelsFeedComponent} from '../ChannelsFeed/ChannelsFeedComponent';
 import stylesheet from './styles';
 import {TipsComponent} from './TipsComponent';
@@ -29,7 +29,7 @@ export const Tips: React.FC = () => {
       <TabSelector
         activeTab={selectedTab}
         handleActiveTab={handleTabSelected}
-        buttons={TABS_LIST}
+        buttons={TABS_TIP_LIST}
         addScreenNavigation={false}
       />
       {selectedTab == SelectedTab.TIPS ? (
@@ -41,7 +41,6 @@ export const Tips: React.FC = () => {
       ) : (
         <></>
       )}
-
       <Pressable
         style={styles.createPostButton}
         onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}

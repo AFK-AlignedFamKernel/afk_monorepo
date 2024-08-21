@@ -50,6 +50,7 @@ export type MainStackParams = {
   };
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
+  PrivateGroupDetails: {postId: string; post?: NDKEvent};
 };
 
 export type HomeBottomStackParams = {
@@ -74,6 +75,9 @@ export type HomeBottomStackParams = {
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
   Main: NavigatorScreenParams<MainStackParams>;
+  PrivateGroupDetails: {postId: string; post?: NDKEvent};
+
+  // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
@@ -221,6 +225,11 @@ export type LaunchpadScreenProps = CompositeScreenProps<
 
 export type LaunchDetailScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'LaunchDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type PrivateGroupScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'PrivateGroupDetails'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

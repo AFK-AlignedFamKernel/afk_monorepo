@@ -3,7 +3,7 @@ import {useNostrContext} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
 
-import {TokenLaunchDetail} from '../../components/TokenLaunchDetail';
+import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import {useStyles, useTheme} from '../../hooks';
 import {useDataCoins} from '../../hooks/launchpad/useDataCoins';
 import {LaunchDetailScreenProps} from '../../types';

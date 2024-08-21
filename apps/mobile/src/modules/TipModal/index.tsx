@@ -5,6 +5,7 @@ import {Pressable, View} from 'react-native';
 import {Modalize, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {TipSuccessModalProps} from '../TipSuccessModal';
+import {FormLightningZap} from './lightning/form';
 import {FormTipStarknet} from './starknet/form';
 import stylesheet from './styles';
 
@@ -48,6 +49,7 @@ export const TipModal = forwardRef<Modalize, TipModalProps>(
           }}
         >
           <Pressable
+            onPress={() => setTipType(TipTypeMode.STARKNET)}
             style={{
               padding: 3,
               borderRadius: 10,
@@ -58,13 +60,14 @@ export const TipModal = forwardRef<Modalize, TipModalProps>(
             <Text style={{color: theme.theme.colors.text}}>Starknet tip</Text>
           </Pressable>
           <Pressable
+            onPress={() => setTipType(TipTypeMode.ZAP)}
             style={{
               padding: 3,
               borderRadius: 10,
               backgroundColor: tipType == TipTypeMode.ZAP ? theme.theme.colors.primary : '',
             }}
           >
-            <Text style={{color: theme.theme.colors.text}}>Zap coming soon</Text>
+            <Text style={{color: theme.theme.colors.text}}>Zap</Text>
           </Pressable>
         </View>
         {tipType == TipTypeMode.STARKNET && (
@@ -76,6 +79,17 @@ export const TipModal = forwardRef<Modalize, TipModalProps>(
             hideSuccess={hideSuccess}
             ref={ref}
           ></FormTipStarknet>
+        )}
+
+        {tipType == TipTypeMode.ZAP && (
+          <FormLightningZap
+            event={event}
+            show={show}
+            hide={hide}
+            showSuccess={showSuccess}
+            hideSuccess={hideSuccess}
+            ref={ref}
+          ></FormLightningZap>
         )}
       </Modalize>
     );

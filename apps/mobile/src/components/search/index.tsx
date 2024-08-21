@@ -1,3 +1,4 @@
+import {NDKKind} from '@nostr-dev-kit/ndk';
 import React from 'react';
 import {TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
@@ -8,6 +9,10 @@ import stylesheet from './styles';
 interface ISearchComponent {
   searchQuery?: string;
   setSearchQuery: (search: string) => void;
+  kinds?: NDKKind[];
+  setKinds?: (kinds: NDKKind[]) => void;
+  isOpenFilter?: boolean;
+  setIsOpenFilter?: (isOpen: boolean) => void;
 }
 const SearchComponent = ({searchQuery, setSearchQuery}: ISearchComponent) => {
   // const [searchQuery, setSearchQuery] = useState('');

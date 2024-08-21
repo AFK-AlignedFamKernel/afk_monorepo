@@ -18,12 +18,25 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const profiles = useAllProfiles();
   const [search, setSearch] = useState<string | undefined>(undefined);
   // const notes = useRootNotes();
+  const [isAllKinds, setIsAllKinds] = useState(false);
+  const [isFilterOpen, setISFilterOpen] = useState(false);
+  const [isOpenProfile, setIsOpenProfile] = useState(false);
+  const [kinds, setKinds] = useState<NDKKind[]>([
+    NDKKind.Text,
+    NDKKind.ChannelCreation,
+    NDKKind.GroupChat,
+    NDKKind.ChannelMessage,
+    NDKKind.Metadata,
+  ]);
   const notes = useSearchNotes({
     // search: search,
-    kinds: [NDKKind.Text, NDKKind.ChannelCreation, NDKKind.GroupChat, NDKKind.ChannelMessage],
+    kinds,
   });
 
-  const profilesSearch = profiles?.data?.pages?.flat() ?? [];
+  const profilesSearch =
+    profiles?.data?.pages?.flat().map((item) => {
+      item?.content?.includes(search) && search && search?.length > 0;
+    }) ?? [];
 
   return (
     <View style={styles.container}>
@@ -79,13 +92,16 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
             }
             // data={stories}
             ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({item}) => (
-              <BubbleUser
-                // name={item.name}
-                // image={item.img}
-                event={item}
-              />
-            )}
+            renderItem={({item}) => {
+              if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
+              return (
+                <BubbleUser
+                  // name={item.name}
+                  // image={item.img}
+                  event={item}
+                />
+              );
+            }}
           />
         }
         contentContainerStyle={styles.flatListContent}
