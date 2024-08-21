@@ -62,6 +62,7 @@ function listenToCommands(bot) {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "Start Mini App", web_app: { url: process.env.TELEGRAM_WEB_APP } }],
+                        [{ text: "Start AFK", web_app: { url: process.env.TELEGRAM_MOBILE_APP } }],
                     ]
                 }
             })

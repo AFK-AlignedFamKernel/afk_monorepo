@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
 
 import {Button} from '../../components';
-import {TokenLaunchCard} from '../../components/TokenLaunchCard';
+import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
 import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
 import {useQueryAllLaunch} from '../../hooks/launchpad/useQueryAllLaunch';

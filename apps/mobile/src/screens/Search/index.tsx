@@ -20,10 +20,15 @@ export const Search: React.FC<SearchScreenProps> = ({navigation}) => {
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [kindSelected, setKindSelected] = useState<NDKKind | undefined>(NDKKind.Text);
   const [kindsArray, setKindsSelected] = useState<NDKKind[]>([]);
-  // const notes = useSearchNotes({ search: search, kinds: [NDKKind.Text, NDKKind.ChannelCreation, NDKKind.GroupChat, NDKKind.ChannelMessage] });
+ 
+  const [isAllKinds, setIsAllKinds] = useState(false);
+  const [isFilterOpen, setISFilterOpen] = useState(false);
+  const [isOpenProfile, setIsOpenProfile] = useState(false);
+  
+  const [kinds, setKinds] = useState<NDKKind[]>([NDKKind.Text, NDKKind.ChannelCreation, NDKKind.GroupChat, NDKKind.ChannelMessage])
   const notes = useSearchNotes({
     // search: search,
-    kinds: [NDKKind.Text, NDKKind.ChannelCreation, NDKKind.GroupChat, NDKKind.ChannelMessage],
+    kinds: kinds,
   });
 
   // const profiles = useAllProfiles({

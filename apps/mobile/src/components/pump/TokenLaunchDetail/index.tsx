@@ -1,23 +1,23 @@
-import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useAccount} from '@starknet-react/core';
-import {Fraction} from '@uniswap/sdk-core';
-import {useProfile} from 'afk_nostr_sdk';
-import {useState} from 'react';
-import {ImageSourcePropType, View} from 'react-native';
+import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useAccount } from '@starknet-react/core';
+import { Fraction } from '@uniswap/sdk-core';
+import { useProfile } from 'afk_nostr_sdk';
+import { useState } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
 
-import {useStyles, useWaitConnection} from '../../hooks';
-import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
-import {useWalletModal} from '../../hooks/modals';
+import { useStyles, useWaitConnection } from '../../../hooks';
+import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
+import { useWalletModal } from '../../../hooks/modals';
 // import {useProfile} from '../../hooks';
-import {MainStackNavigationProps} from '../../types';
-import {TokenLaunchInterface} from '../../types/keys';
-import {feltToAddress} from '../../utils/format';
-import {decimalsScale} from '../../utils/helpers';
-import {Button} from '../Button';
-import {Input} from '../Input';
-import {Text} from '../Text';
+import { MainStackNavigationProps } from '../../../types';
+import { TokenLaunchInterface } from '../../../types/keys';
+import { feltToAddress } from '../../../utils/format';
+import { decimalsScale } from '../../../utils/helpers';
+import { Button } from '../../Button';
+import { Input } from '../../Input';
+import { Text } from '../../Text';
 import stylesheet from './styles';
 
 export type LaunchCoinProps = {
@@ -41,7 +41,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   event,
   isViewDetailDisabled,
 }) => {
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const account = useAccount();
 
   const styles = useStyles(stylesheet);
@@ -49,9 +49,9 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   const [amount, setAmount] = useState<number | undefined>();
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT);
 
-  const {handleSellCoins} = useSellCoin();
+  const { handleSellCoins } = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
+  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
 
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
@@ -162,6 +162,25 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         } */}
       </View>
 
+      <View>
+
+        {launch?.threshold_liquidity &&
+          <Text>Threshold liquidity: {Number(launch?.threshold_liquidity)}</Text>
+
+        }
+
+        {launch?.liquidity_raised &&
+          <Text>Raised: {Number(launch?.liquidity_raised)}</Text>
+        }
+
+        {launch?.is_liquidity_launch &&
+          <Text>Is launched in DEX: {Number(launch?.is_liquidity_launch)}</Text>
+        }
+
+
+      </View>
+
+
       {launch?.token_quote && (
         <View
         // style={styles.imageContainer}
@@ -187,12 +206,12 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         }}
         placeholder="Amount"
       />
-      <View style={{display: 'flex', flex: 1, flexDirection: 'row', gap: 3}}>
-        <Button onPress={buyCoin} style={{backgroundColor: 'green'}}>
+      <View style={{ display: 'flex', flex: 1, flexDirection: 'row', gap: 3 }}>
+        <Button onPress={buyCoin} style={{ backgroundColor: 'green' }}>
           <Text>Buy</Text>
         </Button>
 
-        <Button onPress={sellKeys} style={{backgroundColor: 'red'}}>
+        <Button onPress={sellKeys} style={{ backgroundColor: 'red' }}>
           Sell
         </Button>
       </View>

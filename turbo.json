@@ -18,7 +18,8 @@
     "INDEXER_DATABASE_URL",
     "TELEGRAM_BOT_TOKEN",
     "TELEGRAM_WEB_APP",
-    "TG_ADMIN_CHAT_ID"
+    "TG_ADMIN_CHAT_ID",
+    "TELEGRAM_MOBILE_APP"
   ],
   "pipeline": {
     "build": {
@@ -40,7 +41,8 @@
         "NEXT_PUBLIC_APP_URL",
         "TELEGRAM_BOT_TOKEN",
         "TELEGRAM_WEB_APP",
-        "INDEXER_DATABASE_URL"
+        "INDEXER_DATABASE_URL",
+        "TELEGRAM_MOBILE_APP"
       ]
     },
     "run": {

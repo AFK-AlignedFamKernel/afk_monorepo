@@ -40,13 +40,13 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
 
           {selectedTab == SelectedTab.BTC_FI_VAULT &&
             <View>
-              <Text  style={styles.text}>>Vault coming soon</Text>
+              <Text  style={styles.text}>Vault coming soon</Text>
             </View>
           }
 
           {selectedTab == SelectedTab.BTC_BRIDGE &&
             <View>
-              <Text  style={styles.text}>>Brdige coming soon</Text>
+              <Text  style={styles.text}>Brdige coming soon</Text>
             </View>
           }
 

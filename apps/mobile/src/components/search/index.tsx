@@ -4,10 +4,15 @@ import Svg, {Path} from 'react-native-svg';
 
 import {useStyles} from '../../hooks';
 import stylesheet from './styles';
+import { NDKKind } from '@nostr-dev-kit/ndk';
 
 interface ISearchComponent {
   searchQuery?: string;
   setSearchQuery: (search: string) => void;
+  kinds?:NDKKind[];
+  setKinds?:(kinds:NDKKind[]) => void;
+  isOpenFilter?:boolean;
+  setIsOpenFilter?:(isOpen:boolean)=> void;
 }
 const SearchComponent = ({searchQuery, setSearchQuery}: ISearchComponent) => {
   // const [searchQuery, setSearchQuery] = useState('');
