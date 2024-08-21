@@ -52,7 +52,6 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   return (
     <View style={styles.sidebar}>
       <Text style={styles.sidebarText}>AFK</Text>
-      <Text style={styles.title}>Features coming soon</Text>
       {/* 
             <Text style={[styles.item]}>
                 Launchpad

@@ -1,14 +1,14 @@
 #[starknet::contract]
 mod DualVmToken {
-    use starknet::ContractAddress;
     use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+    use starknet::ContractAddress;
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
     #[abi(embed_v0)]
     impl ERC20Impl = ERC20Component::ERC20Impl<ContractState>;
     #[abi(embed_v0)]
     impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
-  
+
     #[abi(embed_v0)]
     impl ERC20CamelOnlyImpl = ERC20Component::ERC20CamelOnlyImpl<ContractState>;
 
@@ -34,15 +34,10 @@ mod DualVmToken {
     }
 
     #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        fixed_supply: u256,
-        recipient: ContractAddress
-    ) {
-        let name:ByteArray = "MyToken";
-        let symbol:ByteArray = "MTK";
+    fn constructor(ref self: ContractState, fixed_supply: u256, recipient: ContractAddress) {
+        let name: ByteArray = "MyToken";
+        let symbol: ByteArray = "MTK";
         self.erc20.initializer(name, symbol);
         self.erc20._mint(recipient, fixed_supply);
     }
-
 }

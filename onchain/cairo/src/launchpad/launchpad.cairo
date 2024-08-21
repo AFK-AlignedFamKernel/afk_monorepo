@@ -86,11 +86,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 mod LaunchpadMarketplace {
-    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{sqrt};
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
@@ -748,7 +748,6 @@ mod LaunchpadMarketplace {
         ) -> u256 {
             self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
-
     }
 
     // // Could be a group of functions about a same topic

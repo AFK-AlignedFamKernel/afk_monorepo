@@ -1,15 +1,16 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  container: {},
+  container: {
+    marginVertical:10,
+    color: theme.colors.text,
+  },
   sidebar: {
     width: '100%',
     height: '100%',
     backgroundColor: theme.colors.background,
-    padding: 20,
+    padding: 10,
     gap: 1,
-    color: theme.colors.text,
-
     // borderRight:"1"
   },
   sidebarText: {

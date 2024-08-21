@@ -522,9 +522,7 @@ mod tests {
         // Check gas amount receive by AFK account
         let afk_balance_after_claim = erc20.balance_of(afk_address);
         assert!(afk_balance_before_claim == 0, "afk balance before claim != 0");
-        assert!(
-            afk_balance_after_claim == gas_amount, "afk balance not equal gas amount received"
-        );
+        assert!(afk_balance_after_claim == gas_amount, "afk balance not equal gas amount received");
 
         // Escrow balance
         assert!(escrow_balance_before_claim == amount, "escrow before claim != amount deposit");
