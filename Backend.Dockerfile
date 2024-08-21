@@ -30,7 +30,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm install -g pnpm
 
 # Install all dependencies for the workspace, including common and data-backend
-RUN pnpm install
+RUN pnpm install --force
 
 # Copy the entire repository into the Docker container
 COPY . .
