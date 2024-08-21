@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "types": [ "node" ],
+    "typeRoots": [ "../node_modules/@types" ],
     "lib": [
       "dom",
-      "esnext"
+      "esnext",
     ],
     "moduleResolution": "Node",
     "allowJs": true,
