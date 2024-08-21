@@ -178,12 +178,12 @@ const AuthNavigator: React.FC = () => {
   if (publicKey === undefined) return null;
 
   return (
-    <AuthStack.Navigator 
+    <AuthStack.Navigator
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({ navigation }) => ({
         // headerShown:false,
         // header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
-        headerShown:false,
+        headerShown: false,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
@@ -283,14 +283,36 @@ const MainNavigator: React.FC = () => {
 
 const linking = {
   prefixes: [
-    // "home","search", "profile/:publicKey", "details/:id"
+    "home", "search",
+    "profile/:publicKey",
+    "details/:id"
     /* your linking prefixes */
   ],
   config: {
     screens: {
       Home: 'home',
+      MainStack: 'app',
       Menu: 'menu',
       Search: 'search',
+      AuthStack: 'auth',
+      Feed: 'feed',
+      ImportKeys: 'import-keys',
+      KeysMarketplace: 'keys-marketplace',
+      CreateChannel: 'create-channel',
+      CreateForm: 'create-form',
+      EditProfile: 'edit-profile',
+      Launchpad: 'launchpad',
+      LaunchToken: 'launch-token',
+      Games: 'games',
+      Defi: 'defi',
+      Settings: 'settings',
+      Tips: 'Tips',
+      ChannelDetail: {
+        path: 'channel/:publicKey', // Example of a path with a parameter
+        parse: {
+          id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
+        },
+      },
       Details: {
         path: 'profile/:publicKey', // Example of a path with a parameter
         parse: {
@@ -298,10 +320,15 @@ const linking = {
         },
       },
       Profile: {
-        path: 'details/:id', // Example of a path with a parameter
+        path: 'profile/nostr/', // Example of a path with a parameter
         parse: {
           id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
         },
+
+        // path: 'details/:id', // Example of a path with a parameter
+        // parse: {
+        //   id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
+        // },
       },
     },
   },
@@ -314,7 +341,9 @@ const RootNavigator: React.FC = () => {
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {/* <RootStack.Screen name="MainStack" component={MainNavigator} /> */}
       {publicKey ? (
-        <RootStack.Screen name="MainStack" component={MainNavigator} />
+        <RootStack.Screen
+          name="MainStack"
+          component={MainNavigator} />
       ) : (
         <RootStack.Screen name="AuthStack" component={AuthNavigator} />
       )}
@@ -328,7 +357,7 @@ export const Router: React.FC = () => {
   const shouldShowSidebar = isWeb && windowWidth >= 1024;
   return (
     <NavigationContainer
-    // linking={linking}
+      linking={linking}
     >
       {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
 

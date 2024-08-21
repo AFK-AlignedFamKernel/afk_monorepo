@@ -18,7 +18,7 @@ import Animated, {
 import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
 import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
-import {useTipModal} from '../../hooks/modals';
+import {useTipModal, useToast} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
 import {getImageRatio, shortenPubkey} from '../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../utils/timestamp';
@@ -34,6 +34,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
+  const {showToast} = useToast()
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -118,6 +119,19 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
       },
     );
   };
+
+
+  const handleRepost = async() => {
+
+    showToast({title:"Repost coming soon", type:"info"})
+
+  }
+
+  const handleBookmarkList = async() => {
+
+    showToast({title:"Bookmark and List coming soon", type:"info"})
+
+  }
 
   const content = event?.content || '';
   const truncatedContent = content.length > 200 ? `${content.slice(0, 200)}...` : content;
@@ -261,11 +275,34 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
                 name="CoinIcon"
                 size={20}
                 title="Tip"
-                // onPress={() => {
-                //   if (!event) return;
+              />
+            </Pressable>
 
-                //   showTipModal(event);
-                // }}
+            <Pressable
+              style={{marginHorizontal: 3}}
+              onPress={() => {
+                if (!event) return;
+                handleRepost()
+              }}
+            >
+              <Icon
+                name="RepostIcon"
+                size={20}
+                title="Repost"
+              />
+            </Pressable>
+
+            <Pressable
+              style={{marginHorizontal: 3}}
+              onPress={() => {
+                if (!event) return;
+                handleBookmarkList()
+              }}
+            >
+              <Icon
+                name="BookmarkIcon"
+                size={20}
+                title="Bookmark"
               />
             </Pressable>
           </View>

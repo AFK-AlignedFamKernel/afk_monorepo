@@ -18,7 +18,31 @@ export enum SelectedTab {
   BTC_FI_VAULT,
 }
 
-export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+  {
+    title: 'Tips',
+    screen: 'Tips',
+    tab: SelectedTab.TIPS,
+  },
+  {
+    title: 'Messages',
+    screen: 'Messages',
+    tab: SelectedTab.MESSAGES,
+  },
+  {
+    title: 'Channels',
+    screen: 'ChannelsFeed',
+    tab: SelectedTab.CHANNELS,
+  },
+  // {
+  //   title: 'Messages',
+  //   screen: "ChannelsFeed",
+  //   tab: SelectedTab.MESSAGES
+
+  // },
+];
+
+export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -37,7 +61,7 @@ export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   // },
 ];
 
-export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Notes',
     screen: 'Feed',
@@ -61,7 +85,7 @@ export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Notes',
     screen: 'PostCreate',
@@ -86,7 +110,7 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Pump',
     screen: 'Launchpad',
@@ -133,7 +157,7 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
 
 
 
-export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'BTC Fi',
     screen: 'BTCVault',

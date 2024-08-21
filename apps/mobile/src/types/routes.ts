@@ -74,6 +74,7 @@ export type HomeBottomStackParams = {
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
   Main: NavigatorScreenParams<MainStackParams>;
+  // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
 };
