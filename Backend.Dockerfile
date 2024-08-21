@@ -38,8 +38,6 @@ COPY . .
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
-# Build the data-backend package
-RUN pnpm --filter data-backend install
 
 # Build the data-backend package
 RUN pnpm --filter data-backend build
