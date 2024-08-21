@@ -9,11 +9,12 @@ export const metadata: Metadata = {
   description: 'afk community portal',
 };
 import {AppProps} from 'next/app';
-import { launchBot } from '@/services/telegram';
+
+import {launchBot} from '@/services/telegram';
 
 function MyApp({Component, pageProps}: AppProps) {
-  console.log("process.env.TELEGRAM_BOT_TOKEN)", process.env.TELEGRAM_BOT_TOKEN)
-  launchBot(process.env.TELEGRAM_BOT_TOKEN)
+  console.log('process.env.TELEGRAM_BOT_TOKEN)', process.env.TELEGRAM_BOT_TOKEN);
+  launchBot(process.env.TELEGRAM_BOT_TOKEN);
   return (
     <Providers>
       <Component {...pageProps} />

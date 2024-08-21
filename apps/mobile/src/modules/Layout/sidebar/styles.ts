@@ -8,6 +8,8 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     padding: 20,
     gap: 1,
+    color: theme.colors.text,
+
     // borderRight:"1"
   },
   sidebarText: {

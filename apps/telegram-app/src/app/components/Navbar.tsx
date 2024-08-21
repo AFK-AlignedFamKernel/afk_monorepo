@@ -6,7 +6,6 @@ import {createPortal} from 'react-dom';
 
 import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
-import { ToggleTheme } from './ToggleTheme';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);

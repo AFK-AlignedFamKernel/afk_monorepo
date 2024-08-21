@@ -1,11 +1,4 @@
-<div align="center">
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-  <img src="resources/branding/afk-logo.png" alt="afk_aligned_fam_kernel logo" height="300"/>
+<img src="resources/branding/afk-logo.png" alt="afk_aligned_fam_kernel logo" height="300"/>
 
 [![Starknet Test Workflow Status](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml/badge.svg)](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml)
 
@@ -40,14 +33,47 @@ Tech stack:
 - React Native for the mobile app - [Learn React Native now](https://reactnative.dev/docs/tutorial)
 - Typescript for the Nostr relayer - [Learn Typescript now](https://www.typescriptlang.org/docs/handbook/2/basic-types.html)
 
+
+## Monorepo
+
+We use Turborepo for the monorepo.
+
+- Onchain (Cairo & Solidity): /onchain
+- Scripts: Run & deploy Cairo code
+
+Apps:
+
+- Mobile: apps/mobile
+- Website landing page: apps/website
+- Backend: apps/data-backend
+- Indexer Apibara: apps/indexer
+
+Packages:
+
+- Common: packages/common
+- Prisma indexer pull: packages/indexer-prisma
+- Nostr sdk: packages/afk_nostr_sdk
+
 ## Roadmap
+
+### MVP
 
 - [x] Cairo implementation of Nostr signature verification
 - [x] Starknet account contract implementation, controlled by Nostr keypair
-- [ ] AFK landing page 
+- [X] AFK landing page 
 - [x] SocialPay feature to send and receive tips through Nostr signed messages
-- [x] Implement a full Nostr client application with Starknet integration
+- [x] Implement a Nostr client application with Starknet integration
 - [x] Run Nostr relay server
+
+### Now
+
+- [ ] Complete Nostr client
+- [ ] ZAP
+- [ ] Launchpad & Pump it
+- [ ] Questings
+- [ ] Social games
+- [ ] BTCFi and Bridge
+- [ ] Onramp offramp
 - [ ] Crossover with [Vault](https://github.com/keep-starknet-strange/vault) to bring Social features to the Vault application
 
 ## Architecture

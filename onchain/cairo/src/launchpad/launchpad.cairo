@@ -86,11 +86,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 mod LaunchpadMarketplace {
-    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{sqrt};
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
@@ -402,7 +402,7 @@ mod LaunchpadMarketplace {
             let mut pool_coin = old_launch.clone();
             let total_supply_memecoin = memecoin.total_supply();
             let threshold_liquidity = self.threshold_liquidity.read();
-            let liquidity_raised = old_launch.liquidity_raised.clone();
+            // let liquidity_raised = old_launch.liquidity_raised.clone();
 
             // assert!(threshold_liquidity < liquidity_raised + quote_amount,"threshold reached");
             // assert!(threshold_liquidity <= liquidity_raised + quote_amount,"threshold reached");
@@ -704,15 +704,15 @@ mod LaunchpadMarketplace {
 
         fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
             let max_key_id = self.total_launch.read() + 1;
-            let mut launchs: Array<TokenLaunch> = ArrayTrait::new();
+            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
             let mut i = 0; //Since the stream id starts from 0
             loop {
                 if i >= max_key_id {}
                 let pool = self.array_launched_coins.read(i);
                 if pool.owner.is_zero() {
-                    break launchs.span();
+                    break launches.span();
                 }
-                launchs.append(pool);
+                launches.append(pool);
                 i += 1;
             }
         }
@@ -748,7 +748,6 @@ mod LaunchpadMarketplace {
         ) -> u256 {
             self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
-
     }
 
     // // Could be a group of functions about a same topic
@@ -837,7 +836,8 @@ mod LaunchpadMarketplace {
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
 
-            let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
+            let (slope, _) = self._calculate_pricing(total_supply - liquidity_supply);
+            // let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
             // println!("slope key price {:?}",slope);
             // println!("ini_price key price {:?}",ini_price);
 
@@ -970,7 +970,7 @@ mod LaunchpadMarketplace {
             // TODO check if pool exist 
             // Pool need to be create
             // Better params for Liquidity launching
-            let token_asset = IERC20Dispatcher { contract_address: token_a };
+            // let token_asset = IERC20Dispatcher { contract_address: token_a };
 
             // TODO
             // Used total supply if coin is minted
@@ -1086,7 +1086,7 @@ mod LaunchpadMarketplace {
             // println!("k_max {:?}", k_max);
 
             // let q_in = total_supply -  (k /  (quote_amount));
-            let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+            // let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
             // println!("liquidity_ratio {:?}", liquidity_ratio);
             // let q_in = (k /  (quote_amount)) - (total_supply - liquidity_ratio);
             let q_in = (k / (total_supply - amount_to_buy)) - (k_max / total_supply);

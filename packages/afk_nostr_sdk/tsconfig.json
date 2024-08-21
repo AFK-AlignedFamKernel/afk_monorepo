@@ -15,6 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
+    "declaration": true,
     "sourceMap": true
   },
   "include": ["src/**/*"],

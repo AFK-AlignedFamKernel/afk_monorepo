@@ -27,4 +27,4 @@ apibara run ./src/pump-buy-coin.js -A dna_XXX
 ```
 
  ### Run it
- docker run -it --env-file ./.env pump-indexer run /app/pump-deploy-coin.js --tls-accept-invalid-certificates=true --connection-string POSTGRES:CONNECTION_INDEXER
+ docker run -it --env-file ./.env afk-indexer run /app/pump-deploy-coin.js --tls-accept-invalid-certificates=true --connection-string POSTGRES:INDEXER_DATABASE_URL

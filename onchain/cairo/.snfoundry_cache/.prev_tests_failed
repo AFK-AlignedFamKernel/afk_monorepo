@@ -1,16 +1,1 @@
-afk::social::account::tests::wrong_token
-afk::social::account::tests::get_public_key
-afk::social::account::tests::successful_transfer
-afk::social::account::tests::incorrect_signature
-afk::social::account::tests::wrong_recipient
-afk::social::account::tests::wrong_sender
-afk::social::namespace::tests::link_incorrect_signature
-afk::social::namespace::tests::linked_wallet_to
-afk::social::account::tests::double_transfer
-afk::social::account::tests::is_valid_signature
-afk::social::account::tests::validate_transaction
-afk::tests::launchpad_tests::launchpad_tests::launchpad_integration
-afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_more_then_liquidity_threshold
-afk::social::deposit::tests::deposit_claim
-afk::social::deposit::tests::claim_incorrect_gas_amount
-afk::social::deposit::tests::deposit_claim_gas_fee
+afk::tests::tap_tests::identity_tests::tap_daily_already_done

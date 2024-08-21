@@ -9,10 +9,10 @@
     "format:check": "prettier -c \"src/**/*.{ts,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:strict": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
-    "lint:fix": "pnpm lint --fix",
+    "lint:fix": "yarn lint --fix",
     "ts:check": "tsc --noEmit",
-    "check:all": "pnpm check && pnpm format:check && pnpm lint && pnpm ts:check",
-    "check:all-strict": "pnpm check && pnpm format:check && pnpm lint:strict && pnpm ts:check"
+    "check:all": "yarn check && yarn format:check && yarn lint && yarn ts:check",
+    "check:all-strict": "yarn check && yarn format:check && yarn lint:strict && yarn ts:check"
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.8.2",

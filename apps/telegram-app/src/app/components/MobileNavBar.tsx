@@ -48,9 +48,7 @@ export function MobileNavBar({setToggle, toggle}: Props) {
           }}
           className="flex h-full w-full items-center justify-center rounded-md bg-redPrimary p-2 text-center"
         >
-          <ul className="flex w-[90%] flex-col gap-8 text-left">
-       
-          </ul>
+          <ul className="flex w-[90%] flex-col gap-8 text-left"></ul>
         </motion.div>
       </div>
     </div>

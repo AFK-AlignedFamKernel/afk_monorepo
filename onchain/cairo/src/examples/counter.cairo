@@ -1,4 +1,3 @@
-
 #[starknet::interface]
 pub trait ICounter<T> {
     fn number(self: @T) -> u256;

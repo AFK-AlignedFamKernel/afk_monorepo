@@ -1,10 +1,12 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ESNext",
     "lib": [
       "dom",
-      "esnext"
+      "esnext",
     ],
+    "module": "CommonJS",
     "moduleResolution": "Node",
     "allowJs": true,
     "useUnknownInCatchVariables": false,

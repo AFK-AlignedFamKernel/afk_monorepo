@@ -3,21 +3,21 @@ use starknet::ContractAddress;
 
 #[starknet::contract]
 mod ERC20Mintable {
-    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
-    use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
+    use openzeppelin::access::accesscontrol::interface::IAccessControl;
+    use openzeppelin::access::ownable::OwnableComponent;
+    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+    use starknet::ContractAddress;
 
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const MAKER_ROLE: felt252 = selector!("MAKER_ROLE");
-    use starknet::ContractAddress;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
     // Ownable
-    
+
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
     #[abi(embed_v0)]
@@ -44,12 +44,10 @@ mod ERC20Mintable {
     // #[abi(embed_v0)]
     // impl SafeAllowanceImpl = ERC20Component::SafeAllowanceImpl<ContractState>;
 
-
     #[storage]
     struct Storage {
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
-
         #[substorage(v0)]
         ownable: OwnableComponent::Storage
     }
@@ -59,7 +57,6 @@ mod ERC20Mintable {
     enum Event {
         #[flat]
         ERC20Event: ERC20Component::Event,
-
         #[flat]
         OwnableEvent: OwnableComponent::Event
     }
@@ -70,22 +67,16 @@ mod ERC20Mintable {
         name: ByteArray,
         symbol: ByteArray,
         owner: ContractAddress,
-        initial_supply:u256
+        initial_supply: u256
     ) {
         self.ownable.initializer(owner);
         self.erc20.initializer(name, symbol);
         self.erc20._mint(owner, initial_supply);
-
     }
 
     #[external(v0)]
-    fn mint(
-        ref self: ContractState,
-        recipient: ContractAddress,
-        amount: u256
-    ) {
+    fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
         self.ownable.assert_only_owner();
         self.erc20._mint(recipient, amount);
     }
-
 }

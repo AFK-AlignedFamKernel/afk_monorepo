@@ -2,18 +2,20 @@ import express from 'express'
 // import prisma from 'indexer-prisma';
 const { prisma } = require("indexer-prisma");
 
-import { HTTPStatus } from '../utils/http';
-import { isValidStarknetAddress } from '../utils/starknet';
+import { HTTPStatus } from '../../utils/http';
+import { isValidStarknetAddress } from '../../utils/starknet';
 
 const Router = express.Router()
 
 Router.get('/', async (req, res) => {
   try {
-    const launchs = await prisma.token_launch.findMany({})
-    // console.log("launchs", launchs)
-    res.status(HTTPStatus.OK).json(launchs)
+    const launches = await prisma.token_launch.findMany({})
+    // console.log("launches", launches)
+    res.status(HTTPStatus.OK).json({
+      data:launches
+    })
     // res.status(HTTPStatus.OK).json({
-    //   data: launchs
+    //   data: launches
     // })
   } catch (error) {
     res.status(HTTPStatus.InternalServerError).send(error)

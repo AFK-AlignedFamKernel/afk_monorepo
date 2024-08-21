@@ -11,18 +11,21 @@
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "ts-node dist/index.js",
     "start:node": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:generate":"npx prisma generate",
+    "prisma:push":"npx prisma db push",
+    "prisma:setup":"npx prisma generate && npx prisma db push"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.18.0",
     "@telegraf/types": "^7.1.0",
     "apollo-server": "^3.13.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "express-graphql": "^0.12.0",
     "graphql": "^16.9.0",
     "helmet": "^7.1.0",
     "indexer-prisma": "workspace:*",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.16.1",
+    "prisma": "^5.18.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsup": "^8.0.2",

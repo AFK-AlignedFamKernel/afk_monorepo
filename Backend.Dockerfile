@@ -24,13 +24,13 @@ ARG TELEGRAM_WEB_APP
 ENV TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
 
 # Copy root-level package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml ./
 
 # Install pnpm globally
 RUN npm install -g pnpm
 
 # Install all dependencies for the workspace, including common and data-backend
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --force
 
 # Copy the entire repository into the Docker container
 COPY . .
@@ -38,8 +38,10 @@ COPY . .
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
+
 # Build the data-backend package
 RUN pnpm --filter data-backend build
+
 
 # Use a smaller production base image
 FROM node:18-alpine AS production
