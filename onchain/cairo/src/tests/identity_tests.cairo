@@ -35,7 +35,7 @@ mod identity_tests {
     ) -> (ContractAddress, IERC20Dispatcher, IFactoryAfkIdentityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
-        let token_address = erc20.contract_address.clone();
+        // let token_address = erc20.contract_address.clone();
         let factory = deploy_factory(factory_class, sender_address);
         (sender_address, erc20, factory)
     }
@@ -85,8 +85,21 @@ mod identity_tests {
     #[test]
     fn factory_end_to_end() {
         println!("factory_end_to_end");
-        let (sender_address, erc20, factory) = request_fixture();
+        let (sender_address, _, factory) = request_fixture();
         cheat_caller_address_global(sender_address);
-        start_cheat_caller_address(erc20.contract_address, sender_address);
+        start_cheat_caller_address(factory.contract_address, sender_address);
+        run_create_identity(factory);
+    }
+
+    #[test]
+    #[should_panic]
+    fn factory_two_create() {
+        println!("factory_two_create");
+        let (sender_address, _, factory) = request_fixture();
+        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(factory.contract_address, sender_address);
+        run_create_identity(factory);
+
+        run_create_identity(factory);
     }
 }

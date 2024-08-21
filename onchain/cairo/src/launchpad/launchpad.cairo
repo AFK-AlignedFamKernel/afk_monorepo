@@ -402,7 +402,7 @@ mod LaunchpadMarketplace {
             let mut pool_coin = old_launch.clone();
             let total_supply_memecoin = memecoin.total_supply();
             let threshold_liquidity = self.threshold_liquidity.read();
-            let liquidity_raised = old_launch.liquidity_raised.clone();
+            // let liquidity_raised = old_launch.liquidity_raised.clone();
 
             // assert!(threshold_liquidity < liquidity_raised + quote_amount,"threshold reached");
             // assert!(threshold_liquidity <= liquidity_raised + quote_amount,"threshold reached");
@@ -836,7 +836,8 @@ mod LaunchpadMarketplace {
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
 
-            let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
+            let (slope, _) = self._calculate_pricing(total_supply - liquidity_supply);
+            // let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
             // println!("slope key price {:?}",slope);
             // println!("ini_price key price {:?}",ini_price);
 
@@ -969,7 +970,7 @@ mod LaunchpadMarketplace {
             // TODO check if pool exist 
             // Pool need to be create
             // Better params for Liquidity launching
-            let token_asset = IERC20Dispatcher { contract_address: token_a };
+            // let token_asset = IERC20Dispatcher { contract_address: token_a };
 
             // TODO
             // Used total supply if coin is minted
@@ -1085,7 +1086,7 @@ mod LaunchpadMarketplace {
             // println!("k_max {:?}", k_max);
 
             // let q_in = total_supply -  (k /  (quote_amount));
-            let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+            // let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
             // println!("liquidity_ratio {:?}", liquidity_ratio);
             // let q_in = (k /  (quote_amount)) - (total_supply - liquidity_ratio);
             let q_in = (k / (total_supply - amount_to_buy)) - (k_max / total_supply);

@@ -26,12 +26,33 @@ mod FactoryAfkIdentity {
         user_identity: LegacyMap<ContractAddress, AfkIdentityState>
     }
 
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        AfkIdentityCreated: AfkIdentityCreated,
+    }
+
     #[abi(embed_v0)]
     impl FactoryIdImpl of super::IFactoryAfkIdentity<ContractState> {
         fn create_afk_identity(ref self: ContractState) {
             let caller = get_contract_address();
             let id_afk_old = self.user_identity.read(caller);
             assert!(id_afk_old.owner.is_zero(), "id already created");
+
+            // TODO create tokenbound/souldbound and/or AA
+            let token_address = caller;
+            let afk_identity = AfkIdentityState {
+                owner: caller,
+                token_address: token_address.clone(),
+                created_at: get_block_timestamp()
+            };
+            self.user_identity.write(caller, afk_identity);
+            self
+                .emit(
+                    AfkIdentityCreated {
+                        owner: caller, token_address, created_at: get_block_timestamp()
+                    }
+                );
         }
 
         fn get_afk_id(self: @ContractState, user: ContractAddress) -> AfkIdentityState {
