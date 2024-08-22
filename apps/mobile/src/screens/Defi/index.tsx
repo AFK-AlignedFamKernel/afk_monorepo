@@ -1,15 +1,16 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
+import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import {useStyles} from '../../hooks';
-import {DefiScreenProps} from '../../types';
-import {SelectedTab, TABS_DEFI} from '../../types/tab';
+import { useStyles } from '../../hooks';
+import { DefiScreenProps } from '../../types';
+import {LightningNetworkWalletView} from "../../modules/Lightning"
+import { SelectedTab, TABS_DEFI } from '../../types/tab';
 import stylesheet from './styles';
 
-export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
+export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.BTC_FI_VAULT);
 
@@ -36,8 +37,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
           addScreenNavigation={false}
         ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          <Text style={styles.text}>DeFi, Ramp and more soon</Text>
-          <Text style={styles.text}>Stay tuned for the AFK Fi</Text>
+          <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text>
 
           {selectedTab == SelectedTab.BTC_FI_VAULT && (
             <View>
@@ -48,6 +48,13 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
           {selectedTab == SelectedTab.BTC_BRIDGE && (
             <View>
               <Text style={styles.text}>Brdige coming soon</Text>
+            </View>
+          )}
+
+          {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
+            <View>
+              <Text style={styles.text}>Brdige coming soon</Text>
+              <LightningNetworkWalletView></LightningNetworkWalletView>
             </View>
           )}
         </SafeAreaView>

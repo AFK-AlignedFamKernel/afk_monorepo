@@ -30,6 +30,7 @@ import {Profile} from '../screens/Profile';
 import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {Tips} from '../screens/Tips';
+import {LightningNetworkScreen} from '../screens/Lightning';
 import {ThemedStyleSheet} from '../styles';
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {retrievePublicKey} from '../utils/storage';
@@ -193,7 +194,7 @@ const AuthNavigator: React.FC = () => {
         overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
         // swipeEdgeWidth: 0
         drawerStyle: {
-          width: '25%', // Adjust width or other styling as necessary
+          width: '20%', // Adjust width or other styling as necessary
         },
       })}
     >
@@ -230,7 +231,9 @@ const MainNavigator: React.FC = () => {
         overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
         // swipeEdgeWidth: 0
         drawerStyle: {
-          width: 200, // Adjust width or other styling as necessary
+          maxWidth:270,
+          width: '15%', // Adjust width or other styling as necessary
+          // width: 200, // Adjust width or other styling as necessary
         },
       })}
     >
@@ -255,6 +258,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />
       <DrawerStack.Screen name="Auth" component={AuthNavigator} />
       <DrawerStack.Screen name="Login" component={Login} />
+      <DrawerStack.Screen name="Lightning" component={LightningNetworkScreen} />
     </DrawerStack.Navigator>
   );
 };

@@ -76,6 +76,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
 
       <SearchComponent setSearchQuery={setSearch} searchQuery={search}></SearchComponent>
 
+      {/* Todo todo filter for trending, latest etc */}
+
       <FlatList
         ListHeaderComponent={
           <FlatList
@@ -111,9 +113,10 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
           if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
           if (item?.kind == NDKKind.ChannelCreation || item?.kind == NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
-          } else if (item?.kind == NDKKind.Metadata) {
-            return <BubbleUser event={item} />;
-          }
+          } 
+          // else if (item?.kind == NDKKind.Metadata) {
+          //   return <BubbleUser event={item} />;
+          // }
           return <PostCard event={item} />;
         }}
         refreshControl={
