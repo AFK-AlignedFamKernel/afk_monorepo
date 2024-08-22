@@ -14,6 +14,7 @@ export enum SelectedTab {
   LAUNCHPAD_VIEW,
   BTC_BRIDGE,
   BTC_FI_VAULT,
+  LIGHTNING_NETWORK_WALLET,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -162,5 +163,10 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'BTC Bridge',
     screen: 'BTCBridge',
     tab: SelectedTab.BTC_BRIDGE,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
 ];

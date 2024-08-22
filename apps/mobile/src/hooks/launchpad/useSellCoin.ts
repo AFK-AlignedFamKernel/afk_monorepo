@@ -10,7 +10,6 @@ export const useSellCoin = () => {
   const chain = useNetwork();
   const rpcProvider = useProvider();
   const chainId = chain?.chain?.id;
-  // const provider = rpcProvider?.provider ?? new RpcProvider();
   const provider = rpcProvider?.provider ?? new RpcProvider();
 
   const handleSellCoins = async (
@@ -30,7 +29,7 @@ export const useSellCoin = () => {
     // );
 
     let amountUint256 = formatFloatToUint256(amount);
-    amountUint256 = uint256.bnToUint256(BigInt('0x' + amount));
+    // amountUint256 = uint256.bnToUint256(BigInt('0x' + amount));
 
     const sellKeysParams = {
       user_address, // token address

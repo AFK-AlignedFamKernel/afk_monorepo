@@ -34,15 +34,14 @@ export const deployLaunchpad = async () => {
     }
     const initial_key_price = cairo.uint256(1);
     const step_increase_linear = cairo.uint256(1);
+
+    /** TODO check correct format for uint256 */
     const threshold_liquidity_nb = 10;
     const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb)
     const threshold_marketcap_nb = 5000;
     const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
-    // const threshold_marketcap = cairo.uint256(5000);
-    // const initial_key_price = uint256.bnToUint256(BigInt(1/10_000));
-    // const step_increase_linear = uint256.bnToUint256(BigInt(1/100));
-    // const threshold_liquidity = cairo.uint256(100);
-    // const threshold_marketcap = cairo.uint256(50000);
+    // const threshold_marketcap = cairo.uint256(threshold_marketcap_nb);
+    // const threshold_liquidity = cairo.uint256(threshold_liquidity_nb);
 
     const TOKEN_CLASS_HASH = CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA]
     if (process.env.IS_DEPLOY_CONTRACT == "true") {
