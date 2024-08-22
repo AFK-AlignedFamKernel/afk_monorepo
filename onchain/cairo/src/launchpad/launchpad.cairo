@@ -596,7 +596,6 @@ mod LaunchpadMarketplace {
 
             assert!(old_share.amount_buy >= amount, "Trying to sell more than bought");
 
-
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
             // println!("quote_amount {:?}", quote_amount);
@@ -1062,7 +1061,7 @@ mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
             let current_supply = pool_coin.token_holded.clone();
-            if is_decreased != true {
+            if is_decreased == true {
                 let k = current_supply * pool_coin.liquidity_raised;
                 // println!("k {:?}", k);
                 // let q_out = total_supply -  (k /  (quote_amount));
@@ -1202,7 +1201,10 @@ mod LaunchpadMarketplace {
                     match x {
                         BondingType::Linear => {
                             if is_quote_amount == true {
-                                self._get_coin_amount_by_quote_amount(coin_address, amount, is_decreased)
+                                self
+                                    ._get_coin_amount_by_quote_amount(
+                                        coin_address, amount, is_decreased
+                                    )
                             } else {
                                 self._get_quote_paid_by_amount_coin(coin_address, amount, false)
                             }
