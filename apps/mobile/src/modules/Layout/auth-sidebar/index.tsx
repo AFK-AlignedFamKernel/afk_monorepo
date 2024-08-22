@@ -28,7 +28,7 @@ const AuthSidebar = ({navigation}: SidebarInterface) => {
 
       <View style={styles.container}>
         <Text style={styles.textItem}>Connect or create an Account</Text>
-        <Text style={styles.textItem}>Acces the AFK app</Text>
+        <Text style={styles.textItem}>Access the AFK app</Text>
       </View>
 
       <View style={styles.container}>

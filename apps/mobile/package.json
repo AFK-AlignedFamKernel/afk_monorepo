@@ -83,7 +83,13 @@
     "starknet": "6.9.0",
     "starknetkit": "^1.1.9",
     "zustand": "^4.5.2",
-    "common":"workspace:*"
+    "common":"workspace:*",
+    "@getalby/lightning-tools": "^5.0.3",
+    "@getalby/bitcoin-connect-react": "^3.5.3",
+    "@getalby/sdk": "^3.6.1",
+    "react-native-webview-crypto": "^0.0.25",
+    "text-encoding": "^0.7.0",
+    "@webbtc/webln-types": "^2.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

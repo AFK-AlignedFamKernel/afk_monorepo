@@ -51,6 +51,8 @@ export type MainStackParams = {
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
+  Lightning: undefined;
+
 };
 
 export type HomeBottomStackParams = {
@@ -76,7 +78,7 @@ export type HomeBottomStackParams = {
   Auth: NavigatorScreenParams<AuthStackParams>;
   Main: NavigatorScreenParams<MainStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
-
+  Lightning: undefined;
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -230,6 +232,11 @@ export type LaunchDetailScreenProps = CompositeScreenProps<
 
 export type PrivateGroupScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'PrivateGroupDetails'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type LightningNetworkScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Lightning'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
