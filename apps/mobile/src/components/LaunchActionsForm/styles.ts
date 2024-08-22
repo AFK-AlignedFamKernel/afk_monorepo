@@ -1,21 +1,12 @@
-import {Spacing, ThemedStyleSheet} from '../../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
-    // alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: Spacing.normal,
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap: 'break-word',
-    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
-    // width:"100%"
-    // width:300,
+    marginBottom: Spacing.normal,
   },
   imageContainer: {
-    // position: 'relative',
-    // display: 'flex',
-    // alignItems: 'center',
-    // justifyContent: 'center',
     borderRadius: 15,
   },
   text: {},

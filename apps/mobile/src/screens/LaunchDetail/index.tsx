@@ -1,14 +1,23 @@
 import {useAccount, useProvider} from '@starknet-react/core';
 import {useNostrContext} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
-import {Text, View} from 'react-native';
+import {KeyboardAvoidingView, Text, View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
+import {TextButton} from '../../components';
+import {LaunchActionsForm} from '../../components/LaunchActionsForm';
 import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
-import {useStyles, useTheme} from '../../hooks';
+import TabSelector from '../../components/TabSelector';
+import {useStyles, useTheme, useWaitConnection} from '../../hooks';
+import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useDataCoins} from '../../hooks/launchpad/useDataCoins';
+import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
+import {useWalletModal} from '../../hooks/modals';
 import {LaunchDetailScreenProps} from '../../types';
 import {TokenLaunchInterface} from '../../types/keys';
-import {SelectedTab} from '../../types/tab';
+import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
+import {feltToAddress} from '../../utils/format';
 import stylesheet from './styles';
 
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
@@ -25,7 +34,16 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.TIPS);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.LAUNCH_OVERVIEW,
+  );
+  const {handleSellCoins} = useSellCoin();
+  // const { handleBuyKeys } = useBuyKeys()
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
+
+  const waitConnection = useWaitConnection();
+  const walletModal = useWalletModal();
+  const [amount, setAmount] = useState<number | undefined>();
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -46,6 +64,55 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   }, [coinAddress]);
 
+  const onConnect = async () => {
+    if (!account.address) {
+      walletModal.show();
+
+      const result = await waitConnection();
+      if (!result) return;
+    }
+  };
+  const sellKeys = async () => {
+    if (!amount) return;
+
+    await onConnect();
+    if (!account || !account?.account) return;
+
+    if (!launch?.owner) return;
+
+    if (!launch?.token_quote) return;
+
+    // handleSellKeys(account?.account, launch?.owner, Number(amount), launch?.token_quote, undefined)
+    handleSellCoins(
+      account?.account,
+      feltToAddress(BigInt(launch?.token_address)),
+      Number(amount),
+      launch?.token_quote,
+      undefined,
+    );
+  };
+
+  const buyCoin = async () => {
+    if (!amount) return;
+
+    await onConnect();
+
+    if (!account || !account?.account) return;
+
+    if (!launch?.owner) return;
+
+    if (!launch?.token_quote) return;
+
+    console.log('launch', launch);
+    // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
+    handleBuyCoins(
+      account?.account,
+      feltToAddress(BigInt(launch?.token_address)),
+      Number(amount),
+      launch?.token_quote,
+    );
+  };
+
   if (!coinAddress) {
     return (
       <>
@@ -59,29 +126,37 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   return (
     <View style={styles.container}>
       {/* <Header showLogo /> */}
-      <Text style={styles.text}>Launchpad to Pump it</Text>
-      <Text style={styles.text}>LFG</Text>
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
+        <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
+          Back
+        </TextButton>
+      </SafeAreaView>
+      <KeyboardAvoidingView behavior="padding" style={styles.content}>
+        <LaunchActionsForm
+          onChangeText={(e) => setAmount(Number(e))}
+          onBuyPress={buyCoin}
+          onSellPress={sellKeys}
+        ></LaunchActionsForm>
+        <TabSelector
+          activeTab={selectedTab}
+          handleActiveTab={handleTabSelected}
+          buttons={TABS_LAUNCH}
+          addScreenNavigation={false}
+        ></TabSelector>
+        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
+          <ScrollView>
+            {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
+              <>
+                <TokenLaunchDetail isViewDetailDisabled={true} launch={launch}></TokenLaunchDetail>
+              </>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
 
-      {launch && (
+      {/* {launch && (
         <TokenLaunchDetail isViewDetailDisabled={true} launch={launch}></TokenLaunchDetail>
-      )}
-      <Text style={styles.text}>Coming soon</Text>
-
-      <View>
-        <View>
-          <Text style={styles.text}>Overview </Text>
-        </View>
-
-        <View>
-          <Text style={styles.text}>Graph</Text>
-        </View>
-        <View>
-          <Text style={styles.text}>Holders</Text>
-        </View>
-        <View>
-          <Text style={styles.text}>TX </Text>
-        </View>
-      </View>
+      )} */}
     </View>
   );
 };
