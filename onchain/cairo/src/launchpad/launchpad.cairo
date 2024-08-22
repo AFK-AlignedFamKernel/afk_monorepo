@@ -1062,7 +1062,7 @@ mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
             let current_supply = pool_coin.token_holded.clone();
-            if (!is_decreased) {
+            if is_decreased != true {
                 let k = current_supply * pool_coin.liquidity_raised;
                 // println!("k {:?}", k);
                 // let q_out = total_supply -  (k /  (quote_amount));
