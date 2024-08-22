@@ -1,16 +1,10 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {AdminGroupPermission} from './useAddPermissions';
 
-export type UseRemovePermissionsOptions = {
-  authors?: string[];
-  search?: string;
-};
-
 // TODO
-export const useRemovePermissions = (options?: UseRemovePermissionsOptions) => {
+export const useRemovePermissions = () => {
   const {ndk} = useNostrContext();
 
   return useMutation({

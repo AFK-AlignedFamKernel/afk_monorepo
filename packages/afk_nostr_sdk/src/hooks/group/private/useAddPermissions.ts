@@ -1,6 +1,5 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 
 export type UseAddPermissionsOptions = {
@@ -20,7 +19,7 @@ export enum AdminGroupPermission {
 }
 
 // TODO
-export const useAddPermissions = (options?: UseAddPermissionsOptions) => {
+export const useAddPermissions = () => {
   const {ndk} = useNostrContext();
 
   return useMutation({

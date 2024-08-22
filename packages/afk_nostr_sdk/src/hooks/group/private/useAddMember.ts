@@ -1,15 +1,9 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 
-export type UseAddMemberOptions = {
-  authors?: string[];
-  search?: string;
-};
-
 // TODO
-export const useAddMember = (options?: UseAddMemberOptions) => {
+export const useAddMember = () => {
   const {ndk} = useNostrContext();
 
   return useMutation({

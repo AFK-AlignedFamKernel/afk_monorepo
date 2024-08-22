@@ -1,13 +1,7 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {objectToTagArray} from './util';
-
-export type UseAddMemberOptions = {
-  authors?: string[];
-  search?: string;
-};
 
 type UpdateMetaData = {
   name?: string;
@@ -16,7 +10,7 @@ type UpdateMetaData = {
 };
 
 // TODO
-export const useGroupEditMetadata = (options?: UseAddMemberOptions) => {
+export const useGroupEditMetadata = () => {
   const {ndk} = useNostrContext();
 
   return useMutation({
