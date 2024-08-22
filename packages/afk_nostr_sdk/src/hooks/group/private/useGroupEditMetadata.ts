@@ -15,7 +15,7 @@ export const useGroupEditMetadata = () => {
 
   return useMutation({
     mutationKey: ['editGroupMetadata', ndk],
-    mutationFn: async (data: {pubkey: string; groupId: string; meta: UpdateMetaData}) => {
+    mutationFn: async (data: {groupId: string; meta: UpdateMetaData}) => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminEditMetadata;
       event.tags = [['d', data.groupId], objectToTagArray(data.meta)[0]];
