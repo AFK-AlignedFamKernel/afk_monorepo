@@ -586,11 +586,12 @@ mod LaunchpadMarketplace {
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
-            // let mut amount = self
-            // ._get_amount_by_type_of_coin_or_quote(coin_address, quote_amount, false, true);
+            // let mut amount = self._get_amount_by_type_of_coin_or_quote(coin_address, quote_amount, false, true);
 
             let mut amount = self
-                ._get_coin_amount_by_quote_amount(coin_address, quote_amount, false);
+                ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
+
+            assert!(old_share.amount_buy >= amount, "Trying to sell more than bought");
 
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
@@ -1053,6 +1054,15 @@ mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
             let current_supply = pool_coin.token_holded.clone();
+            if (!is_decreased) {
+                let k = current_supply * pool_coin.liquidity_raised;
+                // println!("k {:?}", k);
+                // let q_out = total_supply -  (k /  (quote_amount));
+                let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+                let q_out = (total_supply + liquidity_ratio) + (k / (quote_amount));
+                // println!("q_out {:?}", q_out);
+                return q_out;
+            }
             // let mut current_price = self
             //     ._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
             // println!("current_price {:?}", current_price);
