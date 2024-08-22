@@ -18,6 +18,7 @@ export enum SelectedTab {
   LAUNCH_GRAPH,
   LAUNCH_HOLDERS,
   LAUNCH_TX,
+  LIGHTNING_NETWORK_WALLET,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -166,6 +167,11 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'BTC Bridge',
     screen: 'BTCBridge',
     tab: SelectedTab.BTC_BRIDGE,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
 ];
 

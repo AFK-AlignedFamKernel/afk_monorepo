@@ -1,1 +1,2 @@
-afk::tests::tap_tests::identity_tests::tap_daily_already_done
+afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_more_then_liquidity_threshold
+afk::tests::launchpad_tests::launchpad_tests::launchpad_integration

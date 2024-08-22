@@ -1,11 +1,11 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useQueryClient} from '@tanstack/react-query';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 // import {useAuth} from '../../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {useProfile, useReact, useReactions, useReplyNotes} from 'afk_nostr_sdk/hooks';
-import {useMemo, useState} from 'react';
-import {Image, Pressable, View} from 'react-native';
+import { useAuth } from 'afk_nostr_sdk';
+import { useProfile, useReact, useReactions, useReplyNotes } from 'afk_nostr_sdk';
+import { useMemo, useState } from 'react';
+import { Image, Pressable, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -15,13 +15,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../../assets/icons';
-import {Avatar, IconButton, Menu, Text} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
-import {useTipModal} from '../../../hooks/modals';
-import {MainStackNavigationProps} from '../../../types';
-import {getImageRatio, shortenPubkey} from '../../../utils/helpers';
-import {getElapsedTimeStringFull} from '../../../utils/timestamp';
+import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from '../../../assets/icons';
+import { Avatar, IconButton, Menu, Text } from '../../../components';
+import { useStyles, useTheme } from '../../../hooks';
+import { useTipModal } from '../../../hooks/modals';
+import { MainStackNavigationProps } from '../../../types';
+import { getImageRatio, shortenPubkey } from '../../../utils/helpers';
+import { getElapsedTimeStringFull } from '../../../utils/timestamp';
 import stylesheet from './styles';
 
 export type CardProps = {
@@ -29,20 +29,20 @@ export type CardProps = {
   event?: NDKEvent;
 };
 
-export const Card: React.FC<CardProps> = ({asComment, event}) => {
+export const Card: React.FC<CardProps> = ({ asComment, event }) => {
   const repostedEvent = undefined;
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const {publicKey} = useAuth();
-  const {show: showTipModal} = useTipModal();
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const reactions = useReactions({noteId: event?.id});
-  const userReaction = useReactions({authors: [publicKey], noteId: event?.id});
-  const comments = useReplyNotes({noteId: event?.id});
+  const { publicKey } = useAuth();
+  const { show: showTipModal } = useTipModal();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const reactions = useReactions({ noteId: event?.id });
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
+  const comments = useReplyNotes({ noteId: event?.id });
   const react = useReact();
   const queryClient = useQueryClient();
 
@@ -73,36 +73,36 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
     if (!imageTag) return;
 
     const dimensions = imageTag[2].split('x').map(Number);
-    return {uri: imageTag[1], width: dimensions[0], height: dimensions[1]};
+    return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
+    transform: [{ scale: scale.value }],
   }));
 
   const handleProfilePress = (userId?: string) => {
     if (userId) {
-      navigation.navigate('Profile', {publicKey: userId});
+      navigation.navigate('Profile', { publicKey: userId });
     }
   };
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    navigation.navigate('PostDetail', {postId: event?.id, post: event});
+    navigation.navigate('PostDetail', { postId: event?.id, post: event });
   };
 
   const toggleLike = async () => {
     if (!event?.id) return;
 
     await react.mutateAsync(
-      {event, type: isLiked ? 'dislike' : 'like'},
+      { event, type: isLiked ? 'dislike' : 'like' },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['reactions', event?.id]});
+          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
 
           scale.value = withSequence(
-            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}), // Scale up
-            withSpring(1, {damping: 6, stiffness: 200}), // Bounce back
+            withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }), // Scale up
+            withSpring(1, { damping: 6, stiffness: 200 }), // Bounce back
           );
         },
       },
@@ -111,19 +111,14 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
 
   return (
     <View style={styles.container}>
-      {repostedEvent && (
-        <View style={styles.repost}>
-          <RepostIcon color={theme.colors.textLight} height={18} />
-          <Text color="textLight">Reposted</Text>
-        </View>
-      )}
+
 
       <View style={styles.info}>
         <View style={styles.infoUser}>
           <Pressable onPress={() => handleProfilePress(event?.pubkey)}>
             <Avatar
               size={asComment ? 40 : 50}
-              source={profile?.image ? {uri: profile.image} : require('../../assets/afk-logo.png')}
+              source={profile?.image ? { uri: profile.image } : require('../../assets/afk-logo.png')}
             />
           </Pressable>
 
@@ -165,7 +160,7 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
             </View>
           </Pressable>
         </View>
-
+        {/* 
         <Pressable onPress={toggleLike}>
           <View style={styles.infoLikes}>
             <Animated.View style={animatedIconStyle}>
@@ -182,9 +177,9 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
               </Text>
             )}
           </View>
-        </Pressable>
+        </Pressable> */}
       </View>
-
+      {/* 
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
           <Text color="textStrong" fontSize={13} lineHeight={20}>
@@ -196,16 +191,16 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
               source={postSource}
               style={[
                 styles.contentImage,
-                {aspectRatio: getImageRatio(postSource.width, postSource.height)},
+                { aspectRatio: getImageRatio(postSource.width, postSource.height) },
               ]}
             />
           )}
         </Pressable>
-      </View>
+      </View> */}
 
       {/* TODO: check tags if it's: quote repost reply  */}
 
-      {!asComment && (
+      {/* {!asComment && (
         <View style={styles.footer}>
           <Pressable onPress={handleNavigateToPostDetails}>
             <View style={styles.footerComments}>
@@ -224,7 +219,6 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
               <IconButton icon="MoreHorizontalIcon" size={20} onPress={() => setMenuOpen(true)} />
             }
           >
-            {/* <Menu.Item label="Share" icon="ShareIcon" /> */}
             <Menu.Item
               label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
               icon="CoinIcon"
@@ -237,7 +231,7 @@ export const Card: React.FC<CardProps> = ({asComment, event}) => {
             />
           </Menu>
         </View>
-      )}
+      )} */}
     </View>
   );
 };
