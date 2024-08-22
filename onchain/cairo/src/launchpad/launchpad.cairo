@@ -593,7 +593,7 @@ mod LaunchpadMarketplace {
 
             // TODO fix this function
             let mut amount = self
-                ._get_coin_amount_by_quote_amount(coin_address, quote_amount, false);
+                ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
 
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
@@ -1048,6 +1048,9 @@ mod LaunchpadMarketplace {
         }
 
         // Get amount of token received by token quote IN
+        // Params
+        // Quote amount
+        // Is decreased for sell, !is_decrease for buy
         fn _get_coin_amount_by_quote_amount(
             self: @ContractState,
             coin_address: ContractAddress,
@@ -1188,7 +1191,7 @@ mod LaunchpadMarketplace {
                     match x {
                         BondingType::Linear => {
                             if is_quote_amount == true {
-                                self._get_coin_amount_by_quote_amount(coin_address, amount, false)
+                                self._get_coin_amount_by_quote_amount(coin_address, amount, is_decreased)
                             } else {
                                 self._get_quote_paid_by_amount_coin(coin_address, amount, false)
                             }
