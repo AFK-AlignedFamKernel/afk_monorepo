@@ -231,9 +231,9 @@ const MainNavigator: React.FC = () => {
         overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
         // swipeEdgeWidth: 0
         drawerStyle: {
-          maxWidth:270,
-          width: '15%', // Adjust width or other styling as necessary
-          // width: 200, // Adjust width or other styling as necessary
+          // maxWidth:270,
+          // width: '15%', // Adjust width or other styling as necessary
+          width: 250, // Adjust width or other styling as necessary
         },
       })}
     >
