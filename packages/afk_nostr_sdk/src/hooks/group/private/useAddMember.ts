@@ -1,22 +1,23 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import { useAuth } from '../../../store';
 
-export type UseAddMemberOptions = {
-  authors?: string[];
-  search?: string;
-};
-
 // TODO
-export const useAddMember = (options?: UseAddMemberOptions) => {
+export const useAddMember = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
 
   return useMutation({
     mutationKey: ['addMemberGroup', ndk],
-    mutationFn: async (data: {pubkey: string}) => {
-     
-
+    mutationFn: async (data: {pubkey: string; groupId: string}) => {
+      const event = new NDKEvent(ndk);
+      event.kind = NDKKind.GroupAdminAddUser;
+      event.tags = [
+        ['d', data.groupId],
+        ['p', data.pubkey],
+      ];
+      return event.publish();
     },
   });
 };

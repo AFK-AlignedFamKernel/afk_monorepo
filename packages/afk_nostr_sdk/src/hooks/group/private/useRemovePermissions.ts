@@ -1,22 +1,28 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {AdminGroupPermission} from './useAddPermissions';
 import { useAuth } from '../../../store';
 
-export type UseRemovePermissionsOptions = {
-  authors?: string[];
-  search?: string;
-};
-
 // TODO
-export const useRemovePermissions = (options?: UseRemovePermissionsOptions) => {
+export const useRemovePermissions = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
 
   return useMutation({
     mutationKey: ['removePermissions', ndk],
-    mutationFn: async (data: {pubkey: string}) => {
-     
-
+    mutationFn: async (data: {
+      pubkey: string;
+      permissionName: AdminGroupPermission[];
+      groupId: string;
+    }) => {
+      const event = new NDKEvent(ndk);
+      event.kind = NDKKind.GroupAdminRemovePermission;
+      event.tags = [
+        ['d', data.groupId],
+        ['p', data.pubkey, ...data.permissionName],
+      ];
+      return event.publish();
     },
   });
 };
