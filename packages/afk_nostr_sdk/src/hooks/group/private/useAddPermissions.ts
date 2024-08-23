@@ -1,11 +1,6 @@
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-
-export type UseAddPermissionsOptions = {
-  authors?: string[];
-  search?: string;
-};
 
 export enum AdminGroupPermission {
   AddMember = 'add-user',
@@ -18,7 +13,6 @@ export enum AdminGroupPermission {
   DeleteGroup = 'delete-group',
 }
 
-// TODO
 export const useAddPermissions = () => {
   const {ndk} = useNostrContext();
 
