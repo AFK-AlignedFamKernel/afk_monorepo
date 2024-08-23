@@ -76,6 +76,8 @@ export default function DecodeTokenLaunchDeploy({ header, events }) {
       liquidity_raised: liquidity_raised_decoded,
       price: price_decoded,
       _cursor: transaction.meta.cursor,
+      timestamp: new Date(timestamp * 1000).toISOString(),
+
     }
   })
 }

@@ -13,6 +13,8 @@ create table token_launch(
     liquidity_raised text,
     price text,
     _cursor bigint
+    timestamp TIMESTAMP,
+
 
 );
 
@@ -31,6 +33,8 @@ create table token_deploy(
     total_supply text,
     created_at timestamp default current_timestamp,
     _cursor bigint
+    timestamp TIMESTAMP,
+
 
 );
 

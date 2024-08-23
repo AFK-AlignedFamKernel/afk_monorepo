@@ -60,6 +60,8 @@ export default function DecodeTokenDeploy({ header, events }) {
       total_supply,
       created_at: new Date().toISOString(),
       _cursor: transaction.meta.cursor,
+      timestamp: new Date(timestamp * 1000).toISOString(),
+
     };
   });
 }
