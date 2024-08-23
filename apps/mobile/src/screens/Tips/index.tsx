@@ -10,6 +10,7 @@ import {SelectedTab, TABS_TIP_LIST} from '../../types/tab';
 import {ChannelsFeedComponent} from '../ChannelsFeed/ChannelsFeedComponent';
 import stylesheet from './styles';
 import {TipsComponent} from './TipsComponent';
+import { DirectMessages } from '../../modules/DirectMessages';
 
 export const Tips: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -39,7 +40,7 @@ export const Tips: React.FC = () => {
           <ChannelsFeedComponent></ChannelsFeedComponent>
         </>
       ) : (
-        <></>
+        <DirectMessages />
       )}
       <Pressable
         style={styles.createPostButton}
