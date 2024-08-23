@@ -3,7 +3,9 @@ import {KeyboardAvoidingView, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
+import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
+import {TOKENS} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {DefiScreenProps} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';
@@ -40,8 +42,15 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
           <Text style={styles.text}>Stay tuned for the AFK Fi</Text>
 
           {selectedTab == SelectedTab.BTC_FI_VAULT && (
-            <View>
-              <Text style={styles.text}>Vault coming soon</Text>
+            <View style={{display: 'flex', alignItems: 'center'}}>
+              <Swap
+                tokensIns={TOKENS}
+                tokenOut={TOKENS.WBTC}
+                onPress={() => console.log('pressed!')}
+                calculRewardCallback={function (): void {
+                  console.log('Calcul rewards');
+                }}
+              />
             </View>
           )}
 
