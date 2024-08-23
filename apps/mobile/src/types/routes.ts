@@ -9,6 +9,7 @@ export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
   DrawerStack: DrawerScreenProps<MainStackParams>;
   AuthStack: NavigatorScreenParams<AuthStackParams>;
+  DegensStack: NavigatorScreenParams<DegensAppStackParams>;
 };
 
 export type AuthStackParams = {
@@ -53,6 +54,53 @@ export type MainStackParams = {
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
 
+};
+
+export type DegensAppStackParams = {
+  // Home: NavigatorScreenParams<HomeBottomStackParams>;
+  CreatePost: undefined;
+  Profile: {publicKey: string};
+  CreateForm: undefined;
+  Defi: undefined;
+  Games: undefined;
+  KeysMarketplace: undefined;
+  Slinks: undefined;
+  Tips: undefined;
+  Home: undefined;
+  Feed: undefined;
+  Lightning: undefined;
+  Settings: undefined;
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+
+};
+
+export type DegensBottomStackParams = {
+  // Feed: undefined;
+  UserProfile: {publicKey: string};
+  Notifications: undefined;
+  Tips: undefined;
+  Games: undefined;
+  Defi: undefined;
+  Home: undefined;
+  Settings: undefined;
+  Profile: {publicKey: string};
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys: undefined;
+  Lightning: undefined;
 };
 
 export type HomeBottomStackParams = {

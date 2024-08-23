@@ -1,13 +1,13 @@
-import React, {useEffect} from 'react';
-import {Text, View} from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, View, Image } from 'react-native';
 
-import {useStyles} from '../../../hooks';
+import { useStyles } from '../../../hooks';
 import stylesheet from './styles';
 
 interface SidebarInterface {
   navigation: any;
 }
-const AuthSidebar = ({navigation}: SidebarInterface) => {
+const AuthSidebar = ({ navigation }: SidebarInterface) => {
   const styles = useStyles(stylesheet);
 
   useEffect(() => {
@@ -20,7 +20,14 @@ const AuthSidebar = ({navigation}: SidebarInterface) => {
 
   return (
     <View style={styles.sidebar}>
+
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={require('../../../assets/afkMascot.png')} />
+        {/* <AFKIcon color={theme.colors.text} width={96} height={16} /> */}
+      </View>
+
       <Text style={styles.sidebarText}>AFK: Aligned Fam Kernel</Text>
+
 
       <View style={styles.container}>
         <Text style={styles.title}>All-in-one platform</Text>
@@ -34,7 +41,7 @@ const AuthSidebar = ({navigation}: SidebarInterface) => {
       <View style={styles.container}>
         <Text style={styles.textItem}>Coming soon also in IOS and Android</Text>
 
-        <View style={{flex: 1, flexDirection: 'row'}}></View>
+        <View style={{ flex: 1, flexDirection: 'row' }}></View>
       </View>
     </View>
   );

@@ -125,6 +125,25 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
     });
   };
 
+  const handleGoDegenApp= () => {
+    showDialog({
+      title: 'WARNING',
+      description:
+        'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
+      buttons: [
+        {
+          type: 'primary',
+          label: 'Continue',
+          onPress: () => {
+            navigation.navigate("DegensStack", {screen:"Games"});
+            hideDialog();
+          },
+        },
+        {type: 'default', label: 'Cancel', onPress: hideDialog},
+      ],
+    });
+  };
+
   return (
     <Auth title="Login">
       <Input
@@ -142,6 +161,9 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
       <TextButton onPress={handleImportAccount}>Import Account</TextButton>
       <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
+
+      <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton>
+
     </Auth>
   );
 };

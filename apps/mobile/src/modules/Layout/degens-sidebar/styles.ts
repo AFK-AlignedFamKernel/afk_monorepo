@@ -9,7 +9,6 @@ export default ThemedStyleSheet((theme) => ({
     padding: 20,
     gap: 1,
     color: theme.colors.text,
-
     // borderRight:"1"
   },
   logoContainer: {
@@ -25,7 +24,6 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 18,
     color: theme.colors.text,
     marginVertical:5,
-
   },
   title: {
     fontWeight: 'bold',

@@ -603,7 +603,7 @@ mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let creator_fee_percent = self.creator_fee_percent.read();
 
-            assert!(total_supply >= amount, "share > supply");
+            assert!(total_supply <= amount, "share > supply");
             let old_price = old_pool.price.clone();
 
             // Update keys with new values
