@@ -12,6 +12,7 @@ export type MultiChainTokens = Record<TokenSymbol, MultiChainToken>;
 export enum TokenSymbol {
   ETH = 'ETH',
   STRK = 'STRK',
+  WBTC = 'WBTC',
 }
 
 export const ETH: MultiChainToken = {
@@ -52,9 +53,29 @@ export const STRK: MultiChainToken = {
   },
 };
 
+export const WBTC: MultiChainToken = {
+  [constants.StarknetChainId.SN_MAIN]: {
+    name: 'Wrapped BTC',
+    symbol: TokenSymbol.WBTC,
+    decimals: 8,
+    address: getChecksumAddress(
+      '0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac',
+    ),
+  },
+  [constants.StarknetChainId.SN_SEPOLIA]: {
+    name: 'Wrapped BTC',
+    symbol: TokenSymbol.WBTC,
+    decimals: 8,
+    address: getChecksumAddress(
+      '0x00452bd5c0512a61df7c7be8cfea5e4f893cb40e126bdc40aee6054db955129e',
+    ),
+  },
+};
+
 export const TOKENS: MultiChainTokens = {
   [TokenSymbol.ETH]: ETH,
   [TokenSymbol.STRK]: STRK,
+  [TokenSymbol.WBTC]: WBTC,
 };
 
 export const TOKEN_ADDRESSES: Record<
