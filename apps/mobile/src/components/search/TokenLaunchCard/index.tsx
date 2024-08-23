@@ -16,7 +16,7 @@ import {TokenLaunchInterface} from '../../../types/keys';
 import {feltToAddress} from '../../../utils/format';
 import {decimalsScale} from '../../../utils/helpers';
 import {Button} from '../../Button';
-import {Input} from '../../Input';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
 import {Text} from '../../Text';
 import stylesheet from './styles';
 
@@ -123,11 +123,18 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     <View style={styles.container}>
       <View>
         {launch?.token_address && (
-          <Text>Coin address: {feltToAddress(BigInt(launch.token_address))}</Text>
+          <View style={styles.borderBottom}>
+            <Text weight="semiBold">Coin address:</Text>
+            <Text>{feltToAddress(BigInt(launch.token_address))}</Text>
+          </View>
         )}
 
-        {launch?.owner && <Text>Owner: {feltToAddress(BigInt(launch.owner))}</Text>}
-
+        {/* {launch?.owner && (
+          <View style={styles.borderBottom}>
+            <Text weight="semiBold">Owner:</Text>
+            <Text>{feltToAddress(BigInt(launch.owner))}</Text>
+          </View>
+        )} */}
         {/*         
       <View style={styles.imageContainer}>
         <Image
@@ -152,8 +159,14 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           Price: {Number(launch?.price)}
         </Text> */}
 
-        <Text>Supply: {Number(launch?.total_supply) / 10 ** 18}</Text>
-        <Text>Price: {Number(launch?.price)}</Text>
+        {/* <View style={styles.borderBottom}>
+          <Text weight="semiBold">Supply:</Text>
+          <Text>{Number(launch?.total_supply) / 10 ** 18}</Text>
+        </View> */}
+        <View style={styles.borderBottom}>
+          <Text weight="semiBold">Price:</Text>
+          <Text>{Number(launch?.price)}</Text>
+        </View>
 
         {/* {launch?.created_at &&
           <Text>
@@ -164,50 +177,48 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
 
       <View>
         {launch?.threshold_liquidity && (
-          <Text>Threshold liquidity: {Number(launch?.threshold_liquidity)}</Text>
+          <View style={styles.borderBottom}>
+            <Text weight="semiBold">Threshold liquidity:</Text>
+            <Text>{Number(launch?.threshold_liquidity)}</Text>
+          </View>
         )}
 
-        {launch?.liquidity_raised && <Text>Raised: {Number(launch?.liquidity_raised)}</Text>}
-
-        {launch?.is_liquidity_launch && (
-          <Text>Is launched in DEX: {Number(launch?.is_liquidity_launch)}</Text>
+        {launch?.liquidity_raised && (
+          <View>
+            <Text weight="semiBold">Raised:</Text>
+            <Text>{Number(launch?.liquidity_raised)}</Text>
+          </View>
         )}
+
+        {/* {launch?.is_liquidity_launch && (
+          <View style={styles.borderBottom}>
+            <Text weight="semiBold">Is launched in DEX:</Text>
+            <Text>{Number(launch?.is_liquidity_launch)}</Text>
+          </View>
+        )} */}
       </View>
 
-      {launch?.token_quote && (
-        <View
-        // style={styles.imageContainer}
-        >
-          <Text>Token quote</Text>
-          <Text>Quote token: {feltToAddress(BigInt(launch.token_quote?.token_address))}</Text>
-          <Text>Step increase: {Number(launch.token_quote?.step_increase_linear) / 10 ** 18}</Text>
+      {/* {launch?.token_quote && (
+        <View>
+          <Text weight="bold" fontSize={18} style={styles.marginBottom}>
+            Token quote
+          </Text>
+          <View style={styles.borderBottom}>
+            <Text weight="semiBold">Quote token:</Text>
+            <Text>{feltToAddress(BigInt(launch.token_quote?.token_address))}</Text>
+          </View>
+          <View>
+            <Text weight="semiBold">Step increase: </Text>
+            <Text>{Number(launch.token_quote?.step_increase_linear) / 10 ** 18}</Text>
+          </View>
         </View>
-      )}
+      )} */}
 
-      <Input
-        keyboardType="numeric"
-        // value={amount ? String(amount) : "0"}
-        onChangeText={(e) => {
-          setAmount(Number(e));
-          // if (e && Number(e) ) {
-          //   setAmount(Number(e))
-          // }
-
-          // if (e ) {
-          //   setAmount(Number(0))
-          // }
-        }}
-        placeholder="Amount"
-      />
-      <View style={{display: 'flex', flex: 1, flexDirection: 'row', gap: 3}}>
-        <Button onPress={buyCoin} style={{backgroundColor: 'green'}}>
-          <Text>Buy</Text>
-        </Button>
-
-        <Button onPress={sellKeys} style={{backgroundColor: 'red'}}>
-          Sell
-        </Button>
-      </View>
+      <LaunchActionsForm
+        onChangeText={(e) => setAmount(Number(e))}
+        onBuyPress={buyCoin}
+        onSellPress={sellKeys}
+      ></LaunchActionsForm>
 
       {!isViewDetailDisabled && (
         <View>
