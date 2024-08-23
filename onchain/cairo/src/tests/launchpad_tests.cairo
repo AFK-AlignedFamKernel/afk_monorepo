@@ -192,6 +192,7 @@ mod launchpad_tests {
         IERC20Dispatcher { contract_address }
     }
 
+
     fn run_buy_by_amount(
         launchpad: ILaunchpadMarketplaceDispatcher,
         erc20: IERC20Dispatcher,
@@ -505,5 +506,43 @@ mod launchpad_tests {
     //     token_address,
     //     sender_address,
     // );
+    }
+
+
+    fn run_calculation(
+        launchpad: ILaunchpadMarketplaceDispatcher,
+        amount_quote: u256,
+        token_address: ContractAddress,
+        sender_address: ContractAddress,
+        is_decreased: bool,
+        is_quote_amount: bool
+    ) -> u256 {
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+        println!("buy coin",);
+        launchpad.get_coin_amount_by_quote_amount(token_address, amount_quote, is_decreased)
+    }
+
+    #[test]
+    fn launchpad_test_calculation() {
+        println!("launchpad_test_calculation");
+        let (sender_address, erc20, launchpad) = request_fixture();
+        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = default_token.token_address;
+        let amount_to_buy = THRESHOLD_LIQUIDITY;
+        let amount_coin_get = run_calculation(
+            launchpad, amount_to_buy, token_address, sender_address, false, true
+        );
+        println!("amount coin get {:?}", amount_coin_get);
+
+        let amount_coin_sell = run_calculation(
+            launchpad, amount_to_buy, token_address, sender_address, true, true
+        );
+        println!("amount_coin_sell {:?}", amount_coin_sell);
     }
 }

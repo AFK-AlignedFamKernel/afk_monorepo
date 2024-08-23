@@ -12,13 +12,13 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
       - name: Scarb version
         run: scarb --version
-        working-directory: onchain
+        working-directory: onchain/cairo
       - name: Check cairo format
         run: scarb fmt --check
-        working-directory: onchain
+        working-directory: onchain/cairo
       - name: Build cairo programs
         run: scarb build
-        working-directory: onchain
+        working-directory: onchain/cairo
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -26,11 +26,11 @@ jobs:
       - uses: software-mansion/setup-scarb@v1
       - name: Scarb version
         run: scarb --version
-        working-directory: onchain
+        working-directory: onchain/cairo
       - uses: actions/checkout@v3
       - uses: foundry-rs/setup-snfoundry@v3
         with:
           starknet-foundry-version: '0.25.0'
       - name: Run cairo tests
         run: snforge test
-        working-directory: onchain
+        working-directory: onchain/cairo

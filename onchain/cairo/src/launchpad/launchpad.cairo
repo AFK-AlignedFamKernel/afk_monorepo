@@ -603,7 +603,7 @@ mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let creator_fee_percent = self.creator_fee_percent.read();
 
-            assert!(total_supply >= amount, "share > supply");
+            assert!(total_supply <= amount, "share > supply");
             let old_price = old_pool.price.clone();
 
             // Update keys with new values
@@ -1191,7 +1191,10 @@ mod LaunchpadMarketplace {
                     match x {
                         BondingType::Linear => {
                             if is_quote_amount == true {
-                                self._get_coin_amount_by_quote_amount(coin_address, amount, is_decreased)
+                                self
+                                    ._get_coin_amount_by_quote_amount(
+                                        coin_address, amount, is_decreased
+                                    )
                             } else {
                                 self._get_quote_paid_by_amount_coin(coin_address, amount, false)
                             }

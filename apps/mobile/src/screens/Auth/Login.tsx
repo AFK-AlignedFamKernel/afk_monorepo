@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useAuth, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import {Platform} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import {LockIcon} from '../../assets/icons';
 import {Button, Input, TextButton} from '../../components';
@@ -125,6 +125,27 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
     });
   };
 
+  const handleGoDegenApp = () => {
+    // Brind dialog
+    navigation.navigate('DegensStack', {screen: 'Games'});
+    // showDialog({
+    //   title: 'WARNING',
+    //   description:
+    //     'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
+    //   buttons: [
+    //     {
+    //       type: 'primary',
+    //       label: 'Continue',
+    //       onPress: () => {
+    //         navigation.navigate("DegensStack", { screen: "Games" });
+    //         hideDialog();
+    //       },
+    //     },
+    //     { type: 'default', label: 'Cancel', onPress: hideDialog },
+    //   ],
+    // });
+  };
+
   return (
     <Auth title="Login">
       <Input
@@ -135,13 +156,31 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
         placeholder="Enter your password"
       />
 
-      <Button block variant="secondary" disabled={!password?.length} onPress={handleLogin}>
+      <Button
+        block
+        style={{width: 'auto', maxWidth: 130}}
+        variant="secondary"
+        disabled={!password?.length}
+        onPress={handleLogin}
+      >
         Login
       </Button>
+
       <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
 
-      <TextButton onPress={handleImportAccount}>Import Account</TextButton>
-      <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
+      <View
+        style={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'row',
+          rowGap: 3,
+        }}
+      >
+        <TextButton onPress={handleImportAccount}>Import Account</TextButton>
+        <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
+      </View>
+
+      <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton>
     </Auth>
   );
 };
