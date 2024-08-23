@@ -1,7 +1,8 @@
 import { ApolloServer, gql } from 'apollo-server';
 const { prisma } = require("indexer-prisma");
 
-// GraphQL schema definitions
+//GraphQL schema definitions
+
 const typeDefs = gql`
   type TokenDeploy {
     memecoinAddress: String
@@ -41,7 +42,6 @@ const typeDefs = gql`
     tokenDeploys: [TokenDeploy]
     tokenDeploy(memecoinAddress: String!): TokenDeploy
   }
-
   type Mutation {
     createBuyToken(
       network: String!

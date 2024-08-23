@@ -34,7 +34,7 @@ create table token_deploy(
 
 );
 
-CREATE TABLE buy_token (
+CREATE TABLE token_transactions (
     transfer_id text,
     network TEXT,
     block_hash TEXT,
@@ -56,8 +56,10 @@ CREATE TABLE buy_token (
     amount TEXT,
     timestamp TIMESTAMP,
     _cursor bigint,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),, 
 
 );
+
 
 create table unrugmeme_transfers(
     network text,

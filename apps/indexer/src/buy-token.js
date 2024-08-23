@@ -23,7 +23,7 @@ export const config = {
   sinkType: 'postgres',
   sinkOptions: {
     connectionString: '',  // Specify your PostgreSQL connection string here
-    tableName: 'buy_token',
+    tableName: 'token_transactions',
   },
 }
 
@@ -49,6 +49,7 @@ export default function DecodeBuyToken({ header, events }) {
     const initial_supply = uint256.uint256ToBN({ low: initial_supply_low, high: initial_supply_high }).toString();
 
     return {
+      transaction_type: 'buy',
       network: 'starknet-sepolia',
       block_hash: blockHash,
       block_number: Number(blockNumber),

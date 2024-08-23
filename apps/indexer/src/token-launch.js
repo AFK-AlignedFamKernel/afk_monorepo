@@ -22,10 +22,6 @@ export const config = {
   network: 'starknet',
   finality: 'DATA_STATUS_ACCEPTED',
   filter,
-  // sinkType: 'console',
-  // sinkOptions: {
-  //   connectionString: "",
-  // },
   sinkType: 'postgres',
   sinkOptions: {
     connectionString: '',
@@ -53,9 +49,10 @@ export default function DecodeTokenLaunchDeploy({ header, events }) {
 
     const name_decoded = shortString.decodeShortString(name.replace(/0x0+/, '0x'))
     const symbol_decoded = shortString.decodeShortString(symbol.replace(/0x0+/, '0x'))
-    // const initial_supply = uint256.uint256ToBN({ low: initial_supply_low, high: initial_supply_high }).toString()
- 
-    // console.log("initial_supply", initial_supply)
+    const quote_token_decoded = quote_token ? shortString.decodeShortString(quote_token.replace(/0x0+/, '0x')) : '';
+    const exchange_name_decoded = exchange_name ? shortString.decodeShortString(exchange_name.replace(/0x0+/, '0x')) : '';
+    const price_decoded = price ? shortString.decodeShortString(price.replace(/0x0+/, '0x')) : '';
+    const liquidity_raised_decoded = liquidity_raised ? uint256.uint256ToBN({ low: liquidity_raised, high: 0 }).toString() : '0';
 
     let total_supply= cairo.uint256(0)
     if(total_supply_high && total_supply_low) {
@@ -71,11 +68,14 @@ export default function DecodeTokenLaunchDeploy({ header, events }) {
       block_timestamp: timestamp,
       transaction_hash: transactionHash,
       memecoin_address: token_address,
-      owner_address: owner,
-      name: name_decoded,
-      symbol: symbol_decoded,
-      // initial_supply: initial_supply,
+      quote_token: quote_token_decoded,
+      exchange_name: exchange_name_decoded,
       created_at: new Date().toISOString(),
+      total_supply,
+      current_supply,
+      liquidity_raised: liquidity_raised_decoded,
+      price: price_decoded,
+      _cursor: transaction.meta.cursor,
     }
   })
 }
