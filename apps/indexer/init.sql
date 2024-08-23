@@ -34,7 +34,6 @@ create table token_deploy(
 
 );
 
-
 CREATE TABLE buy_token (
     transfer_id text,
     network TEXT,
@@ -55,7 +54,8 @@ CREATE TABLE buy_token (
     liquidity_raised TEXT,
     price TEXT,
     amount TEXT,
-    _cursor bigint
+    timestamp TIMESTAMP,
+    _cursor bigint,
 
 );
 
