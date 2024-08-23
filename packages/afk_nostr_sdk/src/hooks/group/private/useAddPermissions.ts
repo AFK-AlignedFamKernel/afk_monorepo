@@ -26,6 +26,7 @@ export const useAddPermissions = () => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminAddPermission;
       event.tags = [
+        ['h', data.groupId],
         ['d', data.groupId],
         ['p', data.pubkey, ...data.permissionName],
       ];
