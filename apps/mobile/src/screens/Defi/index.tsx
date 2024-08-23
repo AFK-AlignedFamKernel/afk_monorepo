@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {TextButton} from '../../components';
 import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import {TOKENS} from '../../constants/tokens';
+import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
 import {DefiScreenProps} from '../../types';
@@ -44,8 +44,8 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
           {selectedTab == SelectedTab.BTC_FI_VAULT && (
             <View style={{display: 'flex', alignItems: 'center'}}>
               <Swap
-                tokensIns={TOKENS}
-                tokenOut={TOKENS.WBTC}
+                tokensIns={TOKENSMINT}
+                tokenOut={TOKENSMINT.WBTC}
                 onPress={() => console.log('pressed!')}
                 calculRewardCallback={function (): void {
                   console.log('Calcul rewards');

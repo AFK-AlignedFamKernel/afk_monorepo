@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {StyleProp, TextInput, TextStyle, View, ViewStyle} from 'react-native';
 
 import {CHAIN_ID} from '../../constants/env';
-import {MultiChainToken, MultiChainTokens, TokenSymbol} from '../../constants/tokens';
+import {MultiChainTokenMint, MultiChainTokensMint, TokenSymbol} from '../../constants/tokens';
 import {useStyles, useTheme} from '../../hooks';
 import {Button} from '../Button';
 import {Picker} from '../Picker';
@@ -13,8 +13,8 @@ export type SwapProps = {
    * Error message to be displayed.
    * If this prop is not provided or is undefined, no error message will be displayed.
    */
-  tokensIns: MultiChainTokens;
-  tokenOut: MultiChainToken;
+  tokensIns: MultiChainTokensMint;
+  tokenOut: MultiChainTokenMint;
   onPress: () => void;
   calculRewardCallback: () => void;
   error?: string;
