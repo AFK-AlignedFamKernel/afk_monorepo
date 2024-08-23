@@ -9,7 +9,7 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   flatListContent: {
-    paddingHorizontal: Spacing.pagePadding,
+    // paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
   },
 

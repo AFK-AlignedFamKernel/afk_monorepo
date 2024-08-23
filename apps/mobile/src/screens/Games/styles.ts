@@ -26,6 +26,13 @@ export default ThemedStyleSheet((theme) => ({
     margin: Spacing.pagePadding,
     // color: theme.colors.text,
   },
+  viewContent: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    marginTop: Spacing.pagePadding,
+    marginBottom: Spacing.pagePadding,
+    // color: theme.colors.text,
+  },
   form: {
     flex: 1,
   },
