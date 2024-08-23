@@ -25,7 +25,7 @@ export default ThemedStyleSheet((theme) => ({
   sidebarText: {
     fontSize: 18,
     color: theme.colors.text,
-    marginVertical:5,
+    marginVertical: 5,
   },
   title: {
     fontWeight: 'bold',

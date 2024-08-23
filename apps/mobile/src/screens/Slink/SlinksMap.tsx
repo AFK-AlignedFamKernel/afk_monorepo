@@ -1,9 +1,9 @@
-import { FlatList, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {FlatList, KeyboardAvoidingView, ScrollView} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { Divider } from '../../components';
+import {Divider} from '../../components';
 import EmbedCard from '../../components/Embed';
-import { useStyles, useTheme } from '../../hooks';
+import {useStyles, useTheme} from '../../hooks';
 import stylesheet from './styles';
 
 export const ECOSYSTEM_INTEGRATION = {
@@ -33,7 +33,7 @@ export const SlinksMap: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             // data={stories}
             ItemSeparatorComponent={() => <Divider />}
-            renderItem={({ item }) => {
+            renderItem={({item}) => {
               // console.log("item", item)
               return (
                 <EmbedCard

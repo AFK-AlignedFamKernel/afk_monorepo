@@ -1,17 +1,17 @@
-import { Platform, StatusBar } from "react-native";
-import { Spacing, ThemedStyleSheet } from "../../styles";
+import {Platform, StatusBar} from 'react-native';
+
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   safeArea: {
     flex: 1,
-    padding:5,
+    padding: 5,
     backgroundColor: theme.colors.background,
-    color:theme.colors.text,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    color: theme.colors.text,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   text: {
-    color:theme.colors.text,
-
+    color: theme.colors.text,
   },
   secondaryButton: {
     backgroundColor: theme.colors.buttonDisabledBackground,

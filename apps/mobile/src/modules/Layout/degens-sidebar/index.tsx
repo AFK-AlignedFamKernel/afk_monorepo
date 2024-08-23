@@ -1,21 +1,21 @@
-import { useAuth, useNostrContext } from 'afk_nostr_sdk';
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, Text, View, Image } from 'react-native';
+import {useAuth, useNostrContext} from 'afk_nostr_sdk';
+import React, {useEffect, useMemo} from 'react';
+import {Image, Pressable, Text, View} from 'react-native';
 
-import { Icon } from '../../../components/Icon';
-import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
+import {Icon} from '../../../components/Icon';
+import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import stylesheet from './styles';
 
 interface SidebarInterface {
   // navigation:MainStackNavigationProps | DrawerNavigationHelpers
   navigation: any;
 }
-const DegensSidebar = ({ navigation }: SidebarInterface) => {
+const DegensSidebar = ({navigation}: SidebarInterface) => {
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
   const ndk = useNostrContext();
   const handleNavigateProfile = () => {
-    navigation.navigate('Profile', { publicKey });
+    navigation.navigate('Profile', {publicKey});
   };
 
   const handleAuth = () => {
@@ -57,22 +57,19 @@ const DegensSidebar = ({ navigation }: SidebarInterface) => {
 
   return (
     <View style={styles.sidebar}>
-
-
       <View style={styles.logoContainer}>
         <Image style={styles.logo} source={require('../../../assets/afkMascot.png')} />
         {/* <AFKIcon color={theme.colors.text} width={96} height={16} /> */}
       </View>
       <Text style={styles.sidebarText}>AFK</Text>
 
-
       <Pressable onPress={handleDefiScreen} style={styles.item}>
-        <Icon name="CoinIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="CoinIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>DeFi</Text>
       </Pressable>
 
       <Pressable onPress={handleGameScreen} style={styles.item}>
-        <Icon name="GameIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="GameIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>LFG</Text>
       </Pressable>
 
@@ -80,7 +77,6 @@ const DegensSidebar = ({ navigation }: SidebarInterface) => {
         <Icon name="CoinIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
         <Text style={styles.textItem}>Tips</Text>
       </Pressable> */}
-
 
       {publicKey && (
         <Pressable onPress={handleNavigateProfile} style={styles.item}>

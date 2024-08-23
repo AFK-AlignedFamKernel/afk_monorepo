@@ -1,20 +1,19 @@
-import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useAllProfiles, useSearchNotes } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useAllProfiles, useSearchNotes} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
 
-import { AddPostIcon } from '../../assets/icons';
-import { BubbleUser } from '../../components/BubbleUser';
+import {AddPostIcon} from '../../assets/icons';
+import {BubbleUser} from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import { useStyles, useTheme } from '../../hooks';
-import { ChannelComponent } from '../../modules/ChannelCard';
-import { PostCard } from '../../modules/PostCard';
-import { FeedScreenProps } from '../../types';
+import {useStyles, useTheme} from '../../hooks';
+import {ChannelComponent} from '../../modules/ChannelCard';
+import {PostCard} from '../../modules/PostCard';
+import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
-import { UserCard } from '../../modules/UserCard';
 
-export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
-  const { theme } = useTheme();
+export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles();
   const [search, setSearch] = useState<string | undefined>(undefined);
@@ -95,7 +94,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             }
             // data={stories}
             ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({ item }) => {
+            renderItem={({item}) => {
               if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
               return (
                 <BubbleUser
@@ -110,7 +109,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         contentContainerStyle={styles.flatListContent}
         data={notes.data?.pages.flat()}
         keyExtractor={(item) => item?.id}
-        renderItem={({ item }) => {
+        renderItem={({item}) => {
           if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
           if (item?.kind == NDKKind.ChannelCreation || item?.kind == NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
@@ -121,7 +120,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           else if (item?.kind == NDKKind.Text) {
             return <PostCard event={item} />;
           }
-          return <></>
+          return <></>;
         }}
         refreshControl={
           <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
@@ -131,7 +130,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       <Pressable
         style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
       </Pressable>

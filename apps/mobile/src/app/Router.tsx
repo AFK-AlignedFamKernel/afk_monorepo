@@ -1,40 +1,47 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from 'afk_nostr_sdk';
-import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useAuth} from 'afk_nostr_sdk';
+import {useEffect, useMemo, useState} from 'react';
+import {Dimensions, Platform, StyleSheet, useWindowDimensions, View} from 'react-native';
 
-import { Icon } from '../components';
-import { Navbar } from '../components/Navbar';
-import { useStyles, useTheme } from '../hooks';
+import {Icon} from '../components';
+import {Navbar} from '../components/Navbar';
+import {useStyles, useTheme} from '../hooks';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
-import Sidebar from '../modules/Layout/sidebar';
-import { CreateAccount } from '../screens/Auth/CreateAccount';
-import { ImportKeys } from '../screens/Auth/ImportKeys';
-import { Login } from '../screens/Auth/Login';
-import { SaveKeys } from '../screens/Auth/SaveKeys';
-import { ChannelDetail } from '../screens/ChannelDetail';
-import { ChannelsFeed } from '../screens/ChannelsFeed';
-import { CreateChannel } from '../screens/CreateChannel';
-import { CreateForm } from '../screens/CreateForm';
-import { CreatePost } from '../screens/CreatePost';
-import { Defi } from '../screens/Defi';
-import { EditProfile } from '../screens/EditProfile';
-import { Feed } from '../screens/Feed';
-import { Games } from '../screens/Games';
-import { LaunchDetail } from '../screens/LaunchDetail';
-import { PostDetail } from '../screens/PostDetail';
-import { Profile } from '../screens/Profile';
-import { Search } from '../screens/Search';
-import { Settings } from '../screens/Settings';
-import { Tips } from '../screens/Tips';
-import { LightningNetworkScreen } from '../screens/Lightning';
-import { ThemedStyleSheet } from '../styles';
-import { AuthStackParams, DegensAppStackParams, DegensBottomStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
-import { retrievePublicKey } from '../utils/storage';
 import DegensSidebar from '../modules/Layout/degens-sidebar';
+import Sidebar from '../modules/Layout/sidebar';
+import {CreateAccount} from '../screens/Auth/CreateAccount';
+import {ImportKeys} from '../screens/Auth/ImportKeys';
+import {Login} from '../screens/Auth/Login';
+import {SaveKeys} from '../screens/Auth/SaveKeys';
+import {ChannelDetail} from '../screens/ChannelDetail';
+import {ChannelsFeed} from '../screens/ChannelsFeed';
+import {CreateChannel} from '../screens/CreateChannel';
+import {CreateForm} from '../screens/CreateForm';
+import {CreatePost} from '../screens/CreatePost';
+import {Defi} from '../screens/Defi';
+import {EditProfile} from '../screens/EditProfile';
+import {Feed} from '../screens/Feed';
+import {Games} from '../screens/Games';
+import {LaunchDetail} from '../screens/LaunchDetail';
+import {LightningNetworkScreen} from '../screens/Lightning';
+import {PostDetail} from '../screens/PostDetail';
+import {Profile} from '../screens/Profile';
+import {Search} from '../screens/Search';
+import {Settings} from '../screens/Settings';
+import {Tips} from '../screens/Tips';
+import {ThemedStyleSheet} from '../styles';
+import {
+  AuthStackParams,
+  DegensAppStackParams,
+  DegensBottomStackParams,
+  HomeBottomStackParams,
+  MainStackParams,
+  RootStackParams,
+} from '../types';
+import {retrievePublicKey} from '../utils/storage';
 
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
@@ -49,8 +56,8 @@ const DegensAppStack = createDrawerNavigator<DegensAppStackParams>();
 const HomeBottomTabNavigator: React.FC = () => {
   const styles = useStyles(stylesheet);
 
-  const { publicKey } = useAuth();
-  const { theme } = useTheme();
+  const {publicKey} = useAuth();
+  const {theme} = useTheme();
 
   return (
     <HomeBottomTabsStack.Navigator
@@ -67,7 +74,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="HomeIcon"
@@ -86,7 +93,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="CoinIcon"
@@ -106,7 +113,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="GameIcon"
@@ -123,11 +130,11 @@ const HomeBottomTabNavigator: React.FC = () => {
         <HomeBottomTabsStack.Screen
           name="UserProfile"
           component={Profile as any}
-          initialParams={{ publicKey }}
+          initialParams={{publicKey}}
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <View style={styles.tabBarIcon}>
                 <Icon
                   name="UserIcon"
@@ -148,7 +155,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <View style={styles.tabBarIcon}>
                 <Icon
                   name="UserIcon"
@@ -185,7 +192,7 @@ const AuthNavigator: React.FC = () => {
   return (
     <AuthStack.Navigator
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({navigation}) => ({
         // headerShown:false,
         // header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
         headerShown: false,
@@ -223,7 +230,7 @@ const MainNavigator: React.FC = () => {
       // screenOptions={{ headerShown: false }}
       // initialRouteName="Home"
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({navigation}) => ({
         // headerShown:false,
         header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
         headerStyle: {
@@ -267,12 +274,11 @@ const MainNavigator: React.FC = () => {
   );
 };
 
-
 const DegensBottomTabNavigator: React.FC = () => {
   const styles = useStyles(stylesheet);
 
-  const { publicKey } = useAuth();
-  const { theme } = useTheme();
+  const {publicKey} = useAuth();
+  const {theme} = useTheme();
 
   return (
     <DegensBottomTabsStack.Navigator
@@ -289,7 +295,7 @@ const DegensBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="MoonIcon"
@@ -308,7 +314,7 @@ const DegensBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="CoinIcon"
@@ -328,7 +334,7 @@ const DegensBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: ({focused}) => (
             <View style={styles.tabBarIcon}>
               <Icon
                 name="GameIcon"
@@ -341,7 +347,6 @@ const DegensBottomTabNavigator: React.FC = () => {
         }}
       />
 
-
       {!publicKey && (
         <DegensBottomTabsStack.Screen
           name="Login"
@@ -349,7 +354,7 @@ const DegensBottomTabNavigator: React.FC = () => {
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <View style={styles.tabBarIcon}>
                 <Icon
                   name="UserIcon"
@@ -379,7 +384,7 @@ const DegensAppNavigator: React.FC = () => {
       // screenOptions={{ headerShown: false }}
       // initialRouteName="Home"
       drawerContent={(props) => <DegensSidebar navigation={props?.navigation}></DegensSidebar>}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({navigation}) => ({
         // headerShown:false,
         header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
         headerStyle: {
@@ -397,9 +402,7 @@ const DegensAppNavigator: React.FC = () => {
         },
       })}
     >
-      {!isDesktop && (
-        <DegensAppStack.Screen name="Home" component={DegensBottomTabNavigator} />
-      )}
+      {!isDesktop && <DegensAppStack.Screen name="Home" component={DegensBottomTabNavigator} />}
       <DegensAppStack.Screen name="Games" component={Games} />
       <DegensAppStack.Screen name="Defi" component={Defi} />
       <DegensAppStack.Screen name="Profile" component={Profile} />
@@ -492,10 +495,10 @@ const linking = {
 };
 
 const RootNavigator: React.FC = () => {
-  const { publicKey } = useAuth();
+  const {publicKey} = useAuth();
 
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Navigator screenOptions={{headerShown: false}}>
       {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
       <RootStack.Screen name="AuthStack" component={AuthNavigator} />
           <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
@@ -505,11 +508,8 @@ const RootNavigator: React.FC = () => {
         <>
           <RootStack.Screen name="AuthStack" component={AuthNavigator} />
           <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
-
         </>
       )}
-
-
     </RootStack.Navigator>
   );
 };

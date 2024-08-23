@@ -53,7 +53,6 @@ export type MainStackParams = {
   Auth: NavigatorScreenParams<AuthStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
-
 };
 
 export type DegensAppStackParams = {
@@ -82,7 +81,6 @@ export type DegensAppStackParams = {
     privateKey: string;
     publicKey: string;
   };
-
 };
 
 export type DegensBottomStackParams = {
@@ -97,7 +95,7 @@ export type DegensBottomStackParams = {
   Profile: {publicKey: string};
   Launchpad: undefined;
   LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
-  
+
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
