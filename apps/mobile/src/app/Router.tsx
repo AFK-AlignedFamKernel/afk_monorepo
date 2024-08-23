@@ -496,18 +496,19 @@ const RootNavigator: React.FC = () => {
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* <RootStack.Screen name="MainStack" component={MainNavigator} /> */}
-
+      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
+      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
       {publicKey ? (
         <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (
         <>
           <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
 
         </>
       )}
 
-      <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
 
     </RootStack.Navigator>
   );

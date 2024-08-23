@@ -58,6 +58,8 @@ export type MainStackParams = {
 
 export type DegensAppStackParams = {
   // Home: NavigatorScreenParams<HomeBottomStackParams>;
+  Home: NavigatorScreenParams<DegensBottomStackParams>;
+
   CreatePost: undefined;
   Profile: {publicKey: string};
   CreateForm: undefined;
@@ -66,7 +68,7 @@ export type DegensAppStackParams = {
   KeysMarketplace: undefined;
   Slinks: undefined;
   Tips: undefined;
-  Home: undefined;
+  // Home: undefined;
   Feed: undefined;
   Lightning: undefined;
   Settings: undefined;
@@ -74,6 +76,8 @@ export type DegensAppStackParams = {
   LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
   Login: undefined;
   CreateAccount: undefined;
+  Auth: NavigatorScreenParams<AuthStackParams>;
+
   SaveKeys: {
     privateKey: string;
     publicKey: string;
@@ -93,6 +97,7 @@ export type DegensBottomStackParams = {
   Profile: {publicKey: string};
   Launchpad: undefined;
   LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
