@@ -19,8 +19,12 @@ export const DirectMessages: React.FC = () => {
     setConversations(conversationsData);
   }, []);
 
+  const handleGoBack = () => {
+    setSelectedConversation(null);
+  };
+
   return (
-    selectedConversation ? <Chat conversation={selectedConversation} />
+    selectedConversation ? <Chat conversation={selectedConversation} handleGoBack={handleGoBack} />
       : (
         <View style={styles.container}>
           <FlatList

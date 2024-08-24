@@ -5,12 +5,14 @@ import { View, Image, Text } from 'react-native';
 import { MessageInput } from '../PrivateMessageInput';
 import { MessagesList } from '../MessagesList.tsx';
 import stylesheet from './styles';
+import { IconButton } from '../IconButton';
 
 export type ChatProps = {
 	conversation: ConversationType;
+	handleGoBack: () => void;
 };
 
-export const Chat: React.FC<ChatProps> = ({ conversation }) => {
+export const Chat: React.FC<ChatProps> = ({ conversation, handleGoBack }) => {
 
 	const styles = useStyles(stylesheet);
 	const user = conversation.user;
@@ -25,9 +27,12 @@ export const Chat: React.FC<ChatProps> = ({ conversation }) => {
 	return (
 		<>
 			<View style={styles.header}>
-				<Image source={avatar} style={styles.avatar} />
-				<Text style={styles.name}>{user.name}</Text>
-			</View>
+				<IconButton icon="ChevronLeftIcon" size={20} onPress={handleGoBack} style={styles.backButton} />
+        		<View style={styles.headerContent}>
+          			<Image source={avatar} style={styles.avatar} />
+          			<Text style={styles.name}>{user.name}</Text>
+        		</View>
+      		</View>
 			<View style={styles.container}>
 				<MessagesList messages={conversation.messages} />
 				<MessageInput onSend={handleSendMessage} />

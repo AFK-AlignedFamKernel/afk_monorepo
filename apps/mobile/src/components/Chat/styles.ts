@@ -11,6 +11,16 @@ export default ThemedStyleSheet((theme) => ({
 		borderBottomColor: theme.colors.divider,
 		alignItems: 'center',
 		justifyContent: 'center',
+		position: 'relative',
+	},
+	headerContent: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	backButton: {
+		position: 'absolute',
+		left: 10,
 	},
 	avatar: {
 		width: 50,
