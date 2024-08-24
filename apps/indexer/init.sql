@@ -13,6 +13,8 @@ create table token_launch(
     liquidity_raised text,
     price text,
     _cursor bigint
+    timestamp TIMESTAMP,
+
 
 );
 
@@ -31,11 +33,12 @@ create table token_deploy(
     total_supply text,
     created_at timestamp default current_timestamp,
     _cursor bigint
+    timestamp TIMESTAMP,
+
 
 );
 
-
-CREATE TABLE buy_token (
+CREATE TABLE token_transactions (
     transfer_id text,
     network TEXT,
     block_hash TEXT,
@@ -55,9 +58,12 @@ CREATE TABLE buy_token (
     liquidity_raised TEXT,
     price TEXT,
     amount TEXT,
-    _cursor bigint
+    timestamp TIMESTAMP,
+    _cursor bigint,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),, 
 
 );
+
 
 create table unrugmeme_transfers(
     network text,

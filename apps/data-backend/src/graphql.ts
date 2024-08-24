@@ -1,28 +1,66 @@
 import { ApolloServer, gql } from 'apollo-server';
-// import prisma from 'indexer-prisma';
 const { prisma } = require("indexer-prisma");
-import { MutationBuyToken, TypeBuyToken } from './schema/indexer/buy_token';
-// Define your resolvers
+
+//GraphQL schema definitions
+
+const typeDefs = gql`
+  type TokenDeploy {
+    memecoinAddress: String
+    network: String
+    blockHash: String
+    blockNumber: Int
+    blockTimestamp: String
+    transactionHash: String!
+    ownerAddress: String
+    name: String
+    symbol: String
+    initialSupply: String
+    totalSupply: String
+    createdAt: String
+    cursor: String
+  }
+
+  type BuyToken {
+    network: String
+    blockHash: String
+    blockNumber: Int
+    blockTimestamp: String
+    transactionHash: String!
+    memecoinAddress: String
+    ownerAddress: String
+    price: String
+    amount: String
+    protocolFee: String
+    initialSupply: String
+    timestamp: String
+    createdAt: String
+  }
+
+  type Query {
+    buyTokens: [BuyToken]
+    buyToken(transactionHash: String!): BuyToken
+    tokenDeploys: [TokenDeploy]
+    tokenDeploy(memecoinAddress: String!): TokenDeploy
+  }
+`;
+
+// Resolvers for the schema
 const resolvers = {
   Query: {
     buyTokens: () => prisma.buy_token.findMany(),
-    // buyToken: (_parent, args) => prisma.buy_token.findUnique({
-    //   // where: { memecoin_address: args.memecoin_address },
-    // }),
+    buyToken: (_parent, { transactionHash }) => prisma.buy_token.findUnique({
+      where: { transactionHash },
+    }),
+    tokenDeploys: () => prisma.token_deploy.findMany(),
+    tokenDeploy: (_parent, { memecoinAddress }) => prisma.token_deploy.findUnique({
+      where: { memecoin_address: memecoinAddress },
+    }),
   },
-  // Mutation: {
-  //   createBuyToken: (_parent, args) => prisma.buy_token.create({
-  //     data: args,
-  //   }),
-  //   updateBuyToken: (_parent, args) => prisma.buy_token.update({
-  //     where: { memecoin_address: args.memecoin_address },
-  //     data: args,
-  //   }),
-  //   deleteBuyToken: (_parent, args) => prisma.buy_token.delete({
-  //     where: { memecoin_address: args.memecoin_address },
-  //   }),
-  // },
 };
 
 // Create the Apollo Server
-export const server = new ApolloServer({ typeDefs: { ...TypeBuyToken }, resolvers });
+const server = new ApolloServer({ 
+  typeDefs,
+  resolvers,
+  context: () => ({ prisma }),
+});
