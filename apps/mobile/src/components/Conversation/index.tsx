@@ -6,21 +6,18 @@ import stylesheet from './styles';
 
 export type ConversationPreviewProps = {
 	conversation: ConversationType;
+	onPressed: () => void;
 };
 
-export const Conversation: React.FC<ConversationPreviewProps> = ({conversation}) => {
+export const Conversation: React.FC<ConversationPreviewProps> = ({conversation, onPressed}) => {
 
 	const styles = useStyles(stylesheet);
-
-	const handleOnPress = () => {
-		console.log('Conversation pressed');
-	};
 
 	const user = conversation.user;
 	const avatar = user.avatar ? {uri: user.avatar } : require('../../assets/pepe-logo.png');
 
 	return (
-		<Pressable style={styles.container} onPress={handleOnPress}>
+		<Pressable style={styles.container} onPress={onPressed}>
 			<Image source={avatar} style={styles.avatar} />
 			<View style={styles.textContainer}>
 				<Text style={styles.name}>{user.name}</Text>

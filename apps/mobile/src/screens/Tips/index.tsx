@@ -1,15 +1,15 @@
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
-import {Pressable, View} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-import {AddPostIcon} from '../../assets/icons';
+import { AddPostIcon } from '../../assets/icons';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
-import {MainStackNavigationProps} from '../../types';
-import {SelectedTab, TABS_TIP_LIST} from '../../types/tab';
-import {ChannelsFeedComponent} from '../ChannelsFeed/ChannelsFeedComponent';
+import { useStyles, useTheme } from '../../hooks';
+import { MainStackNavigationProps } from '../../types';
+import { SelectedTab, TABS_TIP_LIST } from '../../types/tab';
+import { ChannelsFeedComponent } from '../ChannelsFeed/ChannelsFeedComponent';
 import stylesheet from './styles';
-import {TipsComponent} from './TipsComponent';
+import { TipsComponent } from './TipsComponent';
 import { DirectMessages } from '../../modules/DirectMessages';
 
 export const Tips: React.FC = () => {
@@ -42,12 +42,14 @@ export const Tips: React.FC = () => {
       ) : (
         <DirectMessages />
       )}
-      <Pressable
-        style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
-      >
-        <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
-      </Pressable>
+      {selectedTab !== SelectedTab.MESSAGES && (
+        <Pressable
+          style={styles.createPostButton}
+          onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+        >
+          <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
+        </Pressable>
+      )}
     </View>
   );
 };
