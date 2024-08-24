@@ -9,7 +9,28 @@ export const conversationsData: Conversation[] = [
 			handle: '@johndoe',
 			avatar: '',
 		},
-		messages: []
+		messages: [
+			{
+				message: 'Doing well, thanks!',
+				isUser: true,
+				timestamp: new Date().toString(),
+			},
+			{
+				message: 'How are you?',
+				isUser: false,
+				timestamp: new Date().toString(),
+			},
+			{
+				message: 'Hello',
+				isUser: false,
+				timestamp: new Date().toString(),
+			},
+			{
+				message: 'Hi!',
+				isUser: true,
+				timestamp: new Date().toString(),
+			},
+		]
 	},
 	{
 		id: '2',
