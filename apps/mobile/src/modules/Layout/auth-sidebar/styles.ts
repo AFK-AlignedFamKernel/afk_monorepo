@@ -13,9 +13,19 @@ export default ThemedStyleSheet((theme) => ({
     gap: 1,
     // borderRight:"1"
   },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: Spacing.xsmall,
+  },
   sidebarText: {
     fontSize: 18,
     color: theme.colors.text,
+    marginVertical: 5,
   },
   title: {
     fontWeight: 'bold',

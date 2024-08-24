@@ -1,4 +1,4 @@
-import {FlatList, KeyboardAvoidingView} from 'react-native';
+import {FlatList, KeyboardAvoidingView, ScrollView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {Divider} from '../../components';
@@ -27,23 +27,25 @@ export const SlinksMap: React.FC = () => {
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.content}>
       <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-        <FlatList
-          data={Object.values(ECOSYSTEM_INTEGRATION)}
-          showsHorizontalScrollIndicator={false}
-          // data={stories}
-          ItemSeparatorComponent={() => <Divider />}
-          renderItem={({item}) => {
-            // console.log("item", item)
-            return (
-              <EmbedCard
-                key={item?.uri}
-                uri={item.uri}
-                title={item?.title}
-                description={item?.description}
-              ></EmbedCard>
-            );
-          }}
-        />
+        <ScrollView>
+          <FlatList
+            data={Object.values(ECOSYSTEM_INTEGRATION)}
+            showsHorizontalScrollIndicator={false}
+            // data={stories}
+            ItemSeparatorComponent={() => <Divider />}
+            renderItem={({item}) => {
+              // console.log("item", item)
+              return (
+                <EmbedCard
+                  key={item?.uri}
+                  uri={item.uri}
+                  title={item?.title}
+                  description={item?.description}
+                ></EmbedCard>
+              );
+            }}
+          />
+        </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
