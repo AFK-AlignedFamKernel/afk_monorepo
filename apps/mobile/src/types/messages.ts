@@ -6,9 +6,9 @@ export type User = {
 };
 
 export type Message = {
-  user: User;
   message: string;
-  createdAt: Date;
+  isUser: boolean; // Indicates if the message is from the current user or the other party
+  timestamp: string;
 }
 
 export type Conversation = {
