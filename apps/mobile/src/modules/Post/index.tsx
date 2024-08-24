@@ -22,6 +22,7 @@ import {useTipModal, useToast} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
 import {getImageRatio, shortenPubkey} from '../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../utils/timestamp';
+import {useBookmark} from 'afk_nostr_sdk'
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -45,6 +46,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
   const reactions = useReactions({noteId: event?.id});
   const userReaction = useReactions({authors: [publicKey], noteId: event?.id});
   const comments = useReplyNotes({noteId: event?.id});
+  const bookmark = useBookmark();
   const react = useReact();
   const queryClient = useQueryClient();
 
@@ -124,8 +126,23 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
     showToast({title: 'Repost coming soon', type: 'info'});
   };
 
-  const handleBookmarkList = async () => {
-    showToast({title: 'Bookmark and List coming soon', type: 'info'});
+  const handleBookmarkPress = async () => {
+    if (!event?.id) return;
+
+    await bookmark.mutateAsync(
+      {event, type: 'bookmark'},
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['bookmarks']});
+        },
+        onError: () => {
+          showToast({
+            type: 'error',
+            title: 'Failed to bookmark',
+          });
+        },
+      },
+    );
   };
 
   const content = event?.content || '';
@@ -283,7 +300,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
               style={{marginHorizontal: 3}}
               onPress={() => {
                 if (!event) return;
-                handleBookmarkList();
+                handleBookmarkPress();
               }}
             >
               <Icon name="BookmarkIcon" size={20} title="Bookmark" />
