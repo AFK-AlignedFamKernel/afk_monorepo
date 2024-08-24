@@ -8,15 +8,18 @@ const Router = express.Router()
 
 Router.get('/', async (req, res) => {
   try {
-    const buy_token = await prisma.buy_token.findMany({})
-    console.log("buy_token", buy_token)
+    const buyTokens = await prisma.token_transactions.findMany({
+      where: { transaction_type: 'buy' }
+    });
+    console.log("Fetched Buy Tokens:", buyTokens);
     res.status(HTTPStatus.OK).json({
-      data: buy_token
-    })
+      data: buyTokens
+    });
   } catch (error) {
-    res.status(HTTPStatus.InternalServerError).send(error)
+    console.error("Error fetching buy tokens:", error);
+    res.status(HTTPStatus.InternalServerError).send("Internal Server Error");
   }
-})
+});
 
 
 export default Router
