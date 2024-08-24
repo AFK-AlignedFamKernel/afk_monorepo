@@ -21,7 +21,7 @@ export const ACCOUNT_TEST_PROFILE = {
         nostrPublicKey: "d6f1cf53f9f52d876505164103b1e25811ec4226a17c7449576ea48b00578171",
 
         contract:
-            "0x1b5f5bee60ce25d6979c5b88cfbb74ad1dae197dba11719b2e06a5efa7e666d",
+            "0x29a532e6933a6d6f9939e59469d96b52b7c38561745331302e1a29f035e4dd0",
     },
 
 };
