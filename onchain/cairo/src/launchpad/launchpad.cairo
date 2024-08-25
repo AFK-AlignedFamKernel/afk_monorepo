@@ -38,6 +38,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
     fn get_default_token(self: @TContractState,) -> TokenQuoteBuyKeys;
+
+    // Main function to calculate amount
     fn get_amount_by_type_of_coin_or_quote(
         self: @TContractState,
         coin_address: ContractAddress,
@@ -604,6 +606,9 @@ mod LaunchpadMarketplace {
             let creator_fee_percent = self.creator_fee_percent.read();
 
             assert!(total_supply <= amount, "share > supply");
+            assert!( old_pool.liquidity_raised <= amount, "pool_update.liquidity_raised <= amount");
+
+
             let old_price = old_pool.price.clone();
 
             // Update keys with new values
@@ -612,7 +617,8 @@ mod LaunchpadMarketplace {
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let amount_creator_fee = total_price * creator_fee_percent / BPS;
             // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
-            let remain_liquidity = total_price - amount_protocol_fee;
+            // let remain_liquidity = total_price - amount_protocol_fee;
+            let remain_liquidity = total_price ;
 
             if old_share.owner.is_zero() {
                 share_user =
@@ -1060,6 +1066,13 @@ mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
             let current_supply = pool_coin.token_holded.clone();
+
+            if is_decreased  == true {
+                let k = current_supply * pool_coin.liquidity_raised;
+                let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+                let q_out = (total_supply - liquidity_ratio) + (k / (quote_amount));
+                return q_out;
+            }
             // let mut current_price = self
             //     ._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
             // println!("current_price {:?}", current_price);
