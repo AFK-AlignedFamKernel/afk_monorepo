@@ -14,7 +14,7 @@ mod Vault {
 
     // TODO Change interface of IERC20 Mintable
     // Fix dispatcher
-    use afk::tokens::erc20_mintable::{ IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    // use afk::tokens::erc20_mintable::{ IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
 
     #[storage]
     struct Storage {
@@ -22,7 +22,7 @@ mod Vault {
         is_mintable_paused:bool,
         token_permitted:LegacyMap<ContractAddress, TokenPermitted>,
         deposit_by_user: LegacyMap<ContractAddress, DepositUser>,
-        deposit_by_user_by_token: LegacyMap::<(ContractAddress, ContractAddress), SharesKeys>,
+        deposit_by_user_by_token: LegacyMap::<(ContractAddress, ContractAddress), DepositUser>,
     }
 
 
@@ -54,13 +54,13 @@ mod Vault {
 
             // Sent token to deposit
 
-            let token_deposited= IERC20MintableDispatcher{ token_address};
+            // let token_deposited= IERC20MintableDispatcher{ token_address};
             // token_deposited.transfer_from(caller, get_contract_address, amount);
 
 
             // Mint token and send it to the receiver
 
-            let token_mintable= IERC20MintableDispatcher{ token_address};
+            // let token_mintable= IERC20MintableDispatcher{ token_address};
 
             // Calculate the ratio if 1:1, less or more
             // let amount_ratio=1;
