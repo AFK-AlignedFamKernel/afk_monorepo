@@ -9,11 +9,14 @@ export type UseRepostOptions = {
 export const useRepost = (options?: UseRepostOptions) => {
   const { ndk } = useNostrContext();
   const queryClient = useQueryClient();
+  
   return useMutation({
+    mutationKey: ["sendRepost", ndk],
     mutationFn: async () => {
       if (!options?.event) {
         throw new Error('No event provided for repost');
       }
+
       const repostEvent = new NDKEvent(ndk);
       repostEvent.kind = NDKKind.Repost;
       repostEvent.content = JSON.stringify(options.event.rawEvent());
@@ -21,8 +24,7 @@ export const useRepost = (options?: UseRepostOptions) => {
         ['e', options.event.id, options.event.relay?.url || ''],
         ['p', options.event.pubkey],
       ];
-      await repostEvent.sign();
-      await ndk.publish(repostEvent);
+      await repostEvent.publish();
       return repostEvent;
     },
     onSuccess: () => {
