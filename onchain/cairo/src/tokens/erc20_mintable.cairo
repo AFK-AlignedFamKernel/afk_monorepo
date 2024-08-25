@@ -1,6 +1,5 @@
-use starknet::ContractAddress;
-
 use afk::interfaces::erc20_mintable::{IERC20Mintable};
+use starknet::ContractAddress;
 
 #[starknet::contract]
 mod ERC20Mintable {
@@ -88,5 +87,4 @@ mod ERC20Mintable {
             self.erc20._mint(recipient, amount);
         }
     }
-
 }

@@ -1,6 +1,6 @@
-use starknet::ContractAddress;
-use afk::types::defi_types::{TokenPermitted, DepositUser};
 use afk::interfaces::vault::{IERCVault};
+use afk::types::defi_types::{TokenPermitted, DepositUser};
+use starknet::ContractAddress;
 
 #[starknet::contract]
 mod ERC4626Vault {
@@ -42,8 +42,7 @@ mod ERC4626Vault {
 
     #[storage]
     struct Storage {
-
-        token_permitted:LegacyMap<ContractAddress, TokenPermitted>,
+        token_permitted: LegacyMap<ContractAddress, TokenPermitted>,
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
         #[substorage(v0)]
@@ -71,19 +70,14 @@ mod ERC4626Vault {
         self.erc20.initializer(name, symbol);
         self.erc20._mint(owner, initial_supply);
     }
- 
+
 
     #[abi(embed_v0)]
     impl VaultImpl of super::IVault<ContractState> {
-     
         //  Mint a coin
-        fn mint_coin(ref self: ContractState, amount: u256) {
-        }
+        fn mint_coin(ref self: ContractState, amount: u256) {}
 
         //  Mint a coin
-        fn withdraw_coin(ref self: ContractState, amount: u256) {
-            
-        }
-
+        fn withdraw_coin(ref self: ContractState, amount: u256) {}
     }
 }

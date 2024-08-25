@@ -4,8 +4,8 @@ use starknet::ContractAddress;
 pub struct TokenPermitted {
     pub token_address: ContractAddress,
     pub ratio_mint: u256,
-    pub is_available:bool,
-    pub pooling_timestamp:u64,
+    pub is_available: bool,
+    pub pooling_timestamp: u64,
 }
 
 // Storage
