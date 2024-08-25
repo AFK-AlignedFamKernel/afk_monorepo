@@ -4,6 +4,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useStyles, useTheme} from '../../hooks';
 import {Text} from '../Text';
 import stylesheet from './styles';
+import {Divider} from '../Divider';
+import {Spacing} from '../../styles';
 
 export type HeaderProps = {
   showLogo?: boolean;
@@ -19,7 +21,7 @@ export const HeaderScreen: React.FC<HeaderProps> = ({showLogo = true, left, righ
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.container}>
       <View style={styles.content}>
-        {left}
+        {left && <View style={styles.leftContainer}>{left}</View>}
 
         {showLogo && (
           <View style={styles.logoContainer}>
@@ -30,7 +32,7 @@ export const HeaderScreen: React.FC<HeaderProps> = ({showLogo = true, left, righ
 
         {title && (
           <View style={styles.title}>
-            <Text weight="bold" color="textStrong" align="center" fontSize={18}>
+            <Text weight="bold" color="textStrong" align="center" fontSize={Spacing.normal}>
               {title}
             </Text>
           </View>
@@ -44,6 +46,8 @@ export const HeaderScreen: React.FC<HeaderProps> = ({showLogo = true, left, righ
           </View>
         )} */}
       </View>
+
+      <Divider style={{marginVertical: 12}} />
     </SafeAreaView>
   );
 };

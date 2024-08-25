@@ -1,23 +1,54 @@
 import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
-    marginHorizontal: 10,
+    gap: Spacing.small,
+    paddingBottom: Spacing.normal,
+  },
+  codeBox: {
+    backgroundColor: theme.colors.codeBoxBackground,
+    padding: Spacing.medium,
+    borderRadius: 6,
+    fontFamily: 'Courier New, Courier, monospace',
+    color: theme.colors.buttonText,
+    maxHeight: 150,
+    overflow: 'hidden',
+    overflowX: 'auto',
+  },
+  editCodeBox: {
+    backgroundColor: theme.colors.codeBoxBackground,
+    padding: Spacing.medium,
+    borderRadius: 6,
+    fontFamily: 'Courier New, Courier, monospace',
+    color: theme.colors.buttonText,
+    overflowX: 'auto',
+  },
+  editCodeBoxRelays: {
+    maxHeight: 150,
+    overflow: 'hidden',
+  },
+  codeBoxText: {
+    // marginVertical and marginHorizontal does not support with <pre> tag
+    marginRight: 0,
+    marginLeft: 0,
+    marginTop: 6,
+    marginBottom: 6,
+    display: 'flex',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  relayItem: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 3,
-    alignItems: 'center',
+  relayInput: {
+    height: 30,
+    marginTop: Spacing.small,
   },
-  relayText: {
-    width: '100%',
+  relayButtonContainer: {
+    gap: Spacing.small,
+    justifyContent: 'center',
+    marginTop: Spacing.small,
   },
-  relayButton: {},
   title: {
+    textAlign: 'center',
     color: theme.colors.text,
-    fontSize: 24,
-    marginBottom: 4,
+    fontSize: 18,
   },
   text: {
     color: theme.colors.text,
@@ -34,9 +65,6 @@ export default ThemedStyleSheet((theme) => ({
     width: 35,
     height: 35,
     borderRadius: 15,
-  },
-  button: {
-    marginVertical: 5,
   },
 
   name: {

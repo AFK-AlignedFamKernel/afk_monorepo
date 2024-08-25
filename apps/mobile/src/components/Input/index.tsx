@@ -13,6 +13,7 @@ export type InputProps = TextInputProps & {
 
   left?: React.ReactNode;
   right?: React.ReactNode;
+  paddingRight?: boolean;
 
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
@@ -24,6 +25,7 @@ export const Input: React.FC<InputProps> = (props) => {
     error,
     left,
     right,
+    paddingRight,
     style: styleProp,
     containerStyle: containerStyleProp,
     inputStyle: inputStyleProp,
@@ -31,7 +33,7 @@ export const Input: React.FC<InputProps> = (props) => {
   } = props;
 
   const {theme} = useTheme();
-  const styles = useStyles(stylesheet, !!error, !!left, !!right);
+  const styles = useStyles(stylesheet, !!error, !!left, !!right, !!paddingRight);
 
   return (
     <View style={[styles.container, containerStyleProp]}>

@@ -4,7 +4,7 @@ import {Spacing} from '../../styles';
 
 export default StyleSheet.create({
   container: {
-    alignItems: 'center',
+    gap: Spacing.small,
     // width: 100, // Set a fixed width for each item
     // height: 100, // Set a fixed height for each item
     // justifyContent: 'center',
