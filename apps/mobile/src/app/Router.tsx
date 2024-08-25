@@ -9,6 +9,8 @@ import {Dimensions, Platform, StyleSheet, useWindowDimensions, View} from 'react
 import {Icon} from '../components';
 import {Navbar} from '../components/Navbar';
 import {useStyles, useTheme} from '../hooks';
+import GroupChatDetail from '../modules/Group/groupDetail/GroupChatDetail';
+import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import DegensSidebar from '../modules/Layout/degens-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
@@ -264,6 +266,8 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="CreateForm" component={CreateForm} />
       <DrawerStack.Screen name="Defi" component={Defi} />
       <DrawerStack.Screen name="Games" component={Games} />
+      <DrawerStack.Screen name="GroupChat" component={GroupChat} />
+      <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
       <DrawerStack.Screen name="Tips" component={Tips} />
       <DrawerStack.Screen name="Settings" component={Settings} />
       <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />

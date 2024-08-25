@@ -27,6 +27,8 @@ export type MainStackParams = {
   CreatePost: undefined;
   Profile: {publicKey: string};
   PostDetail: {postId: string; post?: NDKEvent};
+  GroupChat: {groupId: string; post?: NDKEvent};
+  GroupChatDetail: {groupId: string; post?: NDKEvent};
   EditProfile: undefined;
   Search: undefined;
   CreateChannel: undefined;
@@ -218,6 +220,14 @@ export type ProfileScreenProps = CompositeScreenProps<
 
 export type PostDetailScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'PostDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type GroupChatScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'GroupChat'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type GroupChatDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'GroupChatDetail'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

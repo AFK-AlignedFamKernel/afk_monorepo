@@ -18,6 +18,9 @@ export const LightTheme = {
     ...CommonColors,
     red: '#EC796B',
 
+    messageCard: '#FFFFFF',
+    messageCardText: '#14142C',
+
     // primary: '#EC796B',
     primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
@@ -67,6 +70,10 @@ export const DarkTheme = {
   colors: {
     ...CommonColors,
     red: '#EC796B',
+
+    messageCard: '#2C2C2C',
+    messageCardText: '#FFFFFF',
+
     // primary: '#EC796B',
     primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
