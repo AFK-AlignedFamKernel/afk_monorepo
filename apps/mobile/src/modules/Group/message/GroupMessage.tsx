@@ -7,45 +7,35 @@ import {useStyles} from '../../../hooks';
 import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
 
+const data = [
+  {id: '1', text: 'Hello everyone!', sender: 'Alice'},
+  {id: '2', text: 'Hi Alice, how are you?', sender: 'Bob'},
+  {id: '3', text: 'Im doing great, thanks!', sender: 'Alice'},
+  {
+    id: '4',
+    text: 'Whats the plan for today? Whats the plan for today Whats the plan for todayWhats the plan for today',
+    sender: 'Charlie',
+  },
+  {id: '5', text: 'Whats the plan for today?', sender: 'Charlie'},
+  {id: '6', text: 'Whats the plan for today?', sender: 'Charlie'},
+  {id: '7', text: 'Whats the plan for today?', sender: 'Charlie'},
+  {id: '8', text: 'Whats the plan for today?', sender: 'Charlie'},
+  {id: '9', text: 'Whats the plan for today?', sender: 'Charlie'},
+];
+
+const groupName = 'Project Team';
+const memberCount = 15;
+
 const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    {id: '1', text: 'Hello everyone!', sender: 'Alice'},
-    {id: '2', text: 'Hi Alice, how are you?', sender: 'Bob'},
-    {id: '3', text: 'Im doing great, thanks!', sender: 'Alice'},
-    {
-      id: '4',
-      text: 'Whats the plan for today? Whats the plan for today Whats the plan for todayWhats the plan for today',
-      sender: 'Charlie',
-    },
-    {id: '5', text: 'Whats the plan for today?', sender: 'Charlie'},
-    {id: '6', text: 'Whats the plan for today?', sender: 'Charlie'},
-    {id: '7', text: 'Whats the plan for today?', sender: 'Charlie'},
-    {id: '8', text: 'Whats the plan for today?', sender: 'Charlie'},
-    {id: '9', text: 'Whats the plan for today?', sender: 'Charlie'},
-  ]);
+  const [messages, setMessages] = useState(data);
 
   const sendMessage = () => {
     if (message.trim() === '') return;
     setMessages([...messages, {id: Date.now().toString(), text: message, sender: 'You'}]);
     setMessage('');
   };
-
-  const groupName = 'Project Team';
-  const memberCount = 15;
-
-  const renderMessage = ({item}: any) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender === 'You' ? styles.yourMessage : styles.otherMessage,
-      ]}
-    >
-      <Text style={styles.senderName}>{item.sender}</Text>
-      <Text style={styles.messageText}>{item.text}</Text>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -66,7 +56,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
       </View>
       <FlatList
         data={messages}
-        renderItem={renderMessage}
+        renderItem={({item}) => <MessageCard item={item} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messageList}
         inverted
@@ -85,6 +75,22 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
         </View>
       </KeyboardFixedView>
     </SafeAreaView>
+  );
+};
+
+// TODO: MOVE TO COMPONENT
+const MessageCard = ({item}: {item: (typeof data)[0]}) => {
+  const styles = useStyles(stylesheet);
+  return (
+    <View
+      style={[
+        styles.messageBubble,
+        item.sender === 'You' ? styles.yourMessage : styles.otherMessage,
+      ]}
+    >
+      <Text style={styles.senderName}>{item.sender}</Text>
+      <Text style={styles.messageText}>{item.text}</Text>
+    </View>
   );
 };
 
