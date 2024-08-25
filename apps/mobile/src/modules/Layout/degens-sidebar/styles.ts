@@ -9,7 +9,6 @@ export default ThemedStyleSheet((theme) => ({
     padding: 20,
     gap: 1,
     color: theme.colors.text,
-
     // borderRight:"1"
   },
   logoContainer: {

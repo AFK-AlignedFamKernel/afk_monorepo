@@ -1,6 +1,5 @@
 import { gql } from "apollo-server";
 
-
 export const AllBuyToken = gql`
     scalar BigInt
     scalar DateTime
@@ -18,7 +17,6 @@ export const AllBuyToken = gql`
       created_at: DateTime!
       cursor: BigInt
     }
- 
 
     type Query {
       buyTokens: [BuyToken!]!

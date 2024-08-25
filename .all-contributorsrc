@@ -18,6 +18,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "addegbenga",
+      "name": "Adeyemi Gbenga",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47580934?v=4",
+      "profile": "https://github.com/addegbenga",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "BlackStarkGoku",
+      "name": "BlackStarkGoku",
+      "avatar_url": "https://avatars.githubusercontent.com/u/165695008?v=4",
+      "profile": "https://github.com/BlackStarkGoku",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Ayoazeez26",
+      "name": "Abdulhakeem Abdulazeez Ayodeji",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44169294?v=4",
+      "profile": "https://github.com/Ayoazeez26",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

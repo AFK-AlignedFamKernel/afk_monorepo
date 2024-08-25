@@ -10,6 +10,9 @@
       "image": "./assets/icon.png",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
