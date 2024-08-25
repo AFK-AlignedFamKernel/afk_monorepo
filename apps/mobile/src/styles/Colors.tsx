@@ -53,6 +53,8 @@ export const LightTheme = {
     buttonDisabledBackground: 'rgba(12, 12, 79, 0.1)',
     buttonDisabledText: 'rgba(20, 20, 44, 0.5)',
 
+    codeBoxBackground: '#f0e9dd',
+
     successLight: '#E4E9FA',
     successDark: '#6B87EC',
     errorLight: '#FFEDEB',
@@ -101,6 +103,8 @@ export const DarkTheme = {
     buttonText: '#FFFFFF',
     buttonDisabledBackground: 'rgba(150, 150, 150, 0.1)',
     buttonDisabledText: '#FFFFFF',
+
+    codeBoxBackground: '#373737',
 
     successLight: '#E4E9FA',
     successDark: '#6B87EC',
