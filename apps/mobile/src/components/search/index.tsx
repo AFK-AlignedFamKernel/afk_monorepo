@@ -23,6 +23,10 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
+  const [activeSortBy, setActiveSortBy] = useState<string>('');
+  const handleSortChange = (sortBy: string) => {
+    setActiveSortBy(sortBy);
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -70,6 +74,8 @@ const SearchComponent: React.FC<ISearchComponent> = ({
         onClose={() => setIsOpenFilter(false)}
         kinds={kinds}
         setKinds={setKinds}
+        onSortChange={handleSortChange}
+        activeSortBy={activeSortBy}
       />
     </View>
   );
