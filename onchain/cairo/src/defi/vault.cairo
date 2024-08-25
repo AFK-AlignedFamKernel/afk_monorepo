@@ -96,7 +96,7 @@ mod Vault {
 
         //  Withdraw a coin
         // Use one token
-        // Used the specificy ratio. Burn the token. Check the pooling withdraw
+        // Used the specify ratio. Burn the token. Check the pooling withdraw
         fn withdraw_coin_by_token(
             ref self: ContractState, token_address: ContractAddress, amount: u256
         ) {

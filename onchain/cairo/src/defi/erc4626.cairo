@@ -2,6 +2,8 @@ use afk::interfaces::vault::{IERCVault};
 use afk::types::defi_types::{TokenPermitted, DepositUser};
 use starknet::ContractAddress;
 
+
+// Used the component for a vault
 #[starknet::contract]
 mod ERC4626Vault {
     use afk::interfaces::vault::{IERCVault};
