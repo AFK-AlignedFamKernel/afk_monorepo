@@ -14,4 +14,5 @@ export const config = {
   // This transform does nothing.
   export default function transform(block) {
     return block;
-  }
+}
+
