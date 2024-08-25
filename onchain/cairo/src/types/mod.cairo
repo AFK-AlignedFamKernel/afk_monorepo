@@ -4,4 +4,5 @@ pub mod types {
     pub mod keys_types;
     pub mod launchpad_types;
     pub mod tap_types;
+    pub mod defi_types;
 }

@@ -170,10 +170,10 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
       <View
         style={{
-          display: 'flex',
-          flex: 1,
-          flexDirection: 'row',
-          rowGap: 3,
+          // display: 'flex',
+          // flex: 1,
+          // flexDirection: 'row',
+          // rowGap: 3,
         }}
       >
         <TextButton onPress={handleImportAccount}>Import Account</TextButton>

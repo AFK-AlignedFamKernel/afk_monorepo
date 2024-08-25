@@ -1,15 +1,15 @@
 import '../../../applyGlobalPolyfills';
 
-import {init, launchModal} from '@getalby/bitcoin-connect-react';
-import {LightningAddress} from '@getalby/lightning-tools';
-import {webln} from '@getalby/sdk';
+import { init, launchModal } from '@getalby/bitcoin-connect-react';
+import { LightningAddress } from '@getalby/lightning-tools';
+import { webln } from '@getalby/sdk';
 import React from 'react';
-import {Platform, SafeAreaView, Text, TextInput, View} from 'react-native';
+import { Platform, SafeAreaView, Text, TextInput, View } from 'react-native';
 import WebView from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {Button} from '../../components';
-import {useStyles} from '../../hooks';
+import { Button, Input } from '../../components';
+import { useStyles } from '../../hooks';
 import stylesheet from './styles';
 export const LightningNetworkWalletView: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -23,6 +23,7 @@ export const LightningNetworkWalletView: React.FC = () => {
 
 function LightningNetworkWallet() {
   const styles = useStyles(stylesheet);
+  const [amountSats, setAmountSats] = React.useState<string | undefined>("1")
 
   const [nwcUrl, setNwcUrl] = React.useState('');
   const [pendingNwcUrl, setPendingNwcUrl] = React.useState('');
@@ -110,40 +111,68 @@ function LightningNetworkWallet() {
     );
   }
 
-  if (nwcAuthUrl) {
-    return Platform.OS == 'web' ? (
-      <iframe src={nwcAuthUrl} height="250" width="100%" />
-    ) : (
-      <WebView
-        source={{uri: nwcAuthUrl}}
-        javaScriptEnabled={true}
-        injectedJavaScriptBeforeContentLoaded={`
-          // TODO: remove once NWC also posts messages to the window
-          window.opener = window;
-          // Listen for window messages
-          window.addEventListener("message", (event) => {
-            window.ReactNativeWebView.postMessage(event.data?.type);
-          });
-        `}
-        onMessage={(event) => {
-          if (event.nativeEvent.data === 'nwc:success') {
-            setNwcAuthUrl('');
-            setNwcUrl(pendingNwcUrl);
-          }
-        }}
-      />
-    );
-  }
+  // if (nwcAuthUrl) {
+  //   return Platform.OS == 'web' ? (
+  //     <iframe src={nwcAuthUrl} height="250" width="100%" />
+  //   ) : (
+  //     <WebView
+  //       source={{ uri: nwcAuthUrl }}
+  //       javaScriptEnabled={true}
+  //       injectedJavaScriptBeforeContentLoaded={`
+  //         // TODO: remove once NWC also posts messages to the window
+  //         window.opener = window;
+  //         // Listen for window messages
+  //         window.addEventListener("message", (event) => {
+  //           window.ReactNativeWebView.postMessage(event.data?.type);
+  //         });
+  //       `}
+  //       onMessage={(event) => {
+  //         if (event.nativeEvent.data === 'nwc:success') {
+  //           setNwcAuthUrl('');
+  //           setNwcUrl(pendingNwcUrl);
+  //         }
+  //       }}
+  //     />
+  //   );
+  // }
 
   const handleRequest = async () => {
-    launchModal();
+    let modal = launchModal();
     // const provider = await requestProvider();
     // let send_payment = await provider.sendPayment('lnbc...');
     return;
   };
   return (
     <View>
-      <View style={{marginVertical: 5}}>
+
+
+      {
+        Platform.OS == 'web' ? (
+          <iframe src={nwcAuthUrl} height="250" width="100%"
+
+          />
+        ) : (
+          <WebView
+            source={{ uri: nwcAuthUrl }}
+            javaScriptEnabled={true}
+            injectedJavaScriptBeforeContentLoaded={`
+              // TODO: remove once NWC also posts messages to the window
+              window.opener = window;
+              // Listen for window messages
+              window.addEventListener("message", (event) => {
+                window.ReactNativeWebView.postMessage(event.data?.type);
+              });
+            `}
+            onMessage={(event) => {
+              if (event.nativeEvent.data === 'nwc:success') {
+                setNwcAuthUrl('');
+                setNwcUrl(pendingNwcUrl);
+              }
+            }}
+          />
+        )
+      }
+      <View style={{ marginVertical: 5 }}>
         <Text style={styles.text}>Paste NWC URL</Text>
         <TextInput
           onChangeText={(text) => setNwcUrl(text)}
@@ -161,8 +190,8 @@ function LightningNetworkWallet() {
       </View>
 
       <View
-        style={{marginVertical: 5}}
-        // style={{ margin: 5 }}
+        style={{ marginVertical: 5 }}
+      // style={{ margin: 5 }}
       >
         <Button onPress={handleRequest}>
           <Text>Handle</Text>
@@ -175,9 +204,19 @@ function LightningNetworkWallet() {
           <Text style={styles.text}>Pay an invoice</Text>
           <Text style={styles.text}>{paymentRequest ?? 'Loading...'}</Text>
           {paymentRequest && (
-            <Button onPress={payInvoice}>
-              <Text>Pay invoice (1 sat)</Text>
-            </Button>
+
+            <View>
+              <Input 
+              keyboardType='numeric'
+              value={amountSats} 
+              onChangeText={setAmountSats} 
+              placeholder="Amount Sats" />
+
+              <Button onPress={payInvoice}>
+                <Text>Pay invoice ({amountSats} sats)</Text>
+              </Button>
+            </View>
+
           )}
           <Text style={styles.text}>{preimage ? `PAID: ${preimage}` : 'Not paid yet'}</Text>
         </>

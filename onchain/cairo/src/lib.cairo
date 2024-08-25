@@ -1,5 +1,5 @@
 pub mod bip340;
-pub mod interfaces;
+// pub mod interfaces;
 pub mod keys;
 pub mod launchpad;
 pub mod sha256;
@@ -9,9 +9,20 @@ pub mod quests {
     pub mod tap;
 }
 
+pub mod interfaces {
+    pub mod vault;
+    pub mod jediswap;
+    pub mod erc20_mintable;
+    pub mod erc20;
+}
+
 pub mod afk_id {
     pub mod afk_identity;
     pub mod id_factory;
+}
+
+pub mod defi {
+    pub mod vault;
 }
 
 pub mod types {
@@ -20,6 +31,7 @@ pub mod types {
     pub mod keys_types;
     pub mod launchpad_types;
     pub mod tap_types;
+    pub mod defi_types;
 }
 
 

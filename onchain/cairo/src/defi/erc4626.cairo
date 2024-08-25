@@ -1,14 +1,17 @@
 use starknet::ContractAddress;
-
-use afk::interfaces::erc20_mintable::{IERC20Mintable};
+use afk::types::defi_types::{TokenPermitted, DepositUser};
+use afk::interfaces::vault::{IERCVault};
 
 #[starknet::contract]
-mod ERC20Mintable {
+mod ERC4626Vault {
+    use afk::interfaces::vault::{IERCVault};
+
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::ContractAddress;
+    use super::{TokenPermitted, DepositUser};
 
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
@@ -37,16 +40,10 @@ mod ERC20Mintable {
 
     impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
 
-
-    // #[abi(embed_v0)]
-    // impl SafeAllowanceCamelImpl =
-    //     ERC20Component::SafeAllowanceCamelImpl<ContractState>;
-    // impl InternalImpl = ERC20Component::InternalImpl<ContractState>;
-    // #[abi(embed_v0)]
-    // impl SafeAllowanceImpl = ERC20Component::SafeAllowanceImpl<ContractState>;
-
     #[storage]
     struct Storage {
+
+        token_permitted:LegacyMap<ContractAddress, TokenPermitted>,
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
         #[substorage(v0)]
@@ -74,19 +71,19 @@ mod ERC20Mintable {
         self.erc20.initializer(name, symbol);
         self.erc20._mint(owner, initial_supply);
     }
-
-    // #[external(v0)]
-    // fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-    //     self.ownable.assert_only_owner();
-    //     self.erc20._mint(recipient, amount);
-    // }
+ 
 
     #[abi(embed_v0)]
-    impl IERC20MintableImpl of super::IERC20Mintable<ContractState> {
-        fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-            self.ownable.assert_only_owner();
-            self.erc20._mint(recipient, amount);
+    impl VaultImpl of super::IVault<ContractState> {
+     
+        //  Mint a coin
+        fn mint_coin(ref self: ContractState, amount: u256) {
         }
-    }
 
+        //  Mint a coin
+        fn withdraw_coin(ref self: ContractState, amount: u256) {
+            
+        }
+
+    }
 }
