@@ -1,4 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
+import useSearch from 'afk_nostr_sdk/src/hooks/search/useSearch'; // Import useSearch
 import React, {useEffect, useState} from 'react';
 import {Pressable, Text, TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
@@ -12,18 +13,21 @@ interface ISearchComponent {
   setSearchQuery: (search: string) => void;
   kinds?: NDKKind[];
   setKinds?: (kinds: NDKKind[]) => void;
+  contactList: string[];
 }
 
 const SearchComponent: React.FC<ISearchComponent> = ({
   searchQuery,
   setSearchQuery,
   kinds = [],
-  setKinds = (kinds: NDKKind[]) => {},
+  setKinds = () => {},
+  contactList,
 }) => {
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
   const [activeSortBy, setActiveSortBy] = useState<string>('');
+
   const handleSortChange = (sortBy: string) => {
     setActiveSortBy(sortBy);
   };
@@ -32,6 +36,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
     const handler = setTimeout(() => {
       setSearchQuery(debouncedQuery || '');
     }, 300);
+
     return () => {
       clearTimeout(handler);
     };
@@ -40,6 +45,13 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   const handleChangeText = (text: string) => {
     setDebouncedQuery(text);
   };
+
+  const {data, isLoading, isError} = useSearch({
+    search: searchQuery,
+    kinds,
+    authors: contactList,
+    sortBy: activeSortBy,
+  });
 
   return (
     <View style={styles.container}>
@@ -77,6 +89,16 @@ const SearchComponent: React.FC<ISearchComponent> = ({
         onSortChange={handleSortChange}
         activeSortBy={activeSortBy}
       />
+
+      {isLoading && <Text>Loading...</Text>}
+      {isError && <Text>Error loading data</Text>}
+      {data?.pages?.map((page, index) => (
+        <View key={index}>
+          {page.map((item: any, itemIndex: any) => (
+            <Text key={itemIndex}>{item.content}</Text>
+          ))}
+        </View>
+      ))}
     </View>
   );
 };
