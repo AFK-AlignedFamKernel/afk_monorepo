@@ -1,11 +1,10 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useQueryClient} from '@tanstack/react-query';
-import {useProfile, useReact, useReactions, useReplyNotes, useRepost} from 'afk_nostr_sdk';
-// import { useAuth } from '../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {useMemo, useState} from 'react';
-import {ActivityIndicator, Image, Pressable, View} from 'react-native';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { useProfile, useReact, useReactions, useReplyNotes, useBookmark, useAuth, useRepost } from 'afk_nostr_sdk';
+
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -15,13 +14,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
-import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useTipModal, useToast} from '../../hooks/modals';
-import {MainStackNavigationProps} from '../../types';
-import {getImageRatio, shortenPubkey} from '../../utils/helpers';
-import {getElapsedTimeStringFull} from '../../utils/timestamp';
+import { CommentIcon, LikeFillIcon, LikeIcon, BookmarkFillIcon, RepostIcon, RepostFillIcon, BookmarkIcon } from '../../assets/icons';
+import { Avatar, Icon, IconButton, Menu, Text } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useTipModal, useToast } from '../../hooks/modals';
+import { MainStackNavigationProps } from '../../types';
+import { getImageRatio, shortenPubkey } from '../../utils/helpers';
+import { getElapsedTimeStringFull } from '../../utils/timestamp';
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -29,30 +28,30 @@ export type PostProps = {
   event?: NDKEvent;
 };
 
-
-export const Post: React.FC<PostProps> = ({asComment, event}) => {
-  const repostedEvent = undefined;
-
-  const {theme} = useTheme();
+export const Post: React.FC<PostProps> = ({ asComment, event }) => {
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
-  const {publicKey} = useAuth();
-  const {show: showTipModal} = useTipModal();
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const reactions = useReactions({noteId: event?.id});
-  const userReaction = useReactions({authors: [publicKey], noteId: event?.id});
-  const comments = useReplyNotes({noteId: event?.id});
+  const { publicKey } = useAuth();
+  const { show: showTipModal } = useTipModal();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const reactions = useReactions({ noteId: event?.id });
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
+  const comments = useReplyNotes({ noteId: event?.id });
   const react = useReact();
   const queryClient = useQueryClient();
   const repostMutation = useRepost({ event });
+  const bookmarkMutation = useBookmark({ event });
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const scale = useSharedValue(1);
+  const likeScale = useSharedValue(1);
+  const repostScale = useSharedValue(1);
+  const bookmarkScale = useSharedValue(1);
   const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   const toggleExpandedContent = () => {
@@ -75,6 +74,16 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
     return likesCount - dislikesCount;
   }, [reactions.data]);
 
+  const isBookmarked = useMemo(() => {
+    const bookmarks = queryClient.getQueryData(['bookmarks', event?.id, publicKey]);
+    return Array.isArray(bookmarks) && bookmarks.length > 0;
+  }, [queryClient, event?.id, publicKey]);
+
+  const isReposted = useMemo(() => {
+    const reposts = queryClient.getQueryData(['reposts', event?.id, publicKey]);
+    return Array.isArray(reposts) && reposts.length > 0;
+  }, [queryClient, event?.id, publicKey]);
+
   const postSource = useMemo(() => {
     if (!event?.tags) return;
 
@@ -85,36 +94,44 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
       dimensions = imageTag[2].split('x').map(Number);
       setMediaDimensions(dimensions);
     }
-    return {uri: imageTag[1], width: dimensions[0], height: dimensions[1]};
+    return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
-  const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
+  const animatedLikeIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: likeScale.value }],
+  }));
+
+  const animatedRepostIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: repostScale.value }],
+  }));
+
+  const animatedBookmarkIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: bookmarkScale.value }],
   }));
 
   const handleProfilePress = (userId?: string) => {
     if (userId) {
-      navigation.navigate('Profile', {publicKey: userId});
+      navigation.navigate('Profile', { publicKey: userId });
     }
   };
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    navigation.navigate('PostDetail', {postId: event?.id, post: event});
+    navigation.navigate('PostDetail', { postId: event?.id, post: event });
   };
 
   const toggleLike = async () => {
     if (!event?.id) return;
 
     await react.mutateAsync(
-      {event, type: isLiked ? 'dislike' : 'like'},
+      { event, type: isLiked ? 'dislike' : 'like' },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['reactions', event?.id]});
+          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
 
-          scale.value = withSequence(
-            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}),
-            withSpring(1, {damping: 6, stiffness: 200}),
+          likeScale.value = withSequence(
+            withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+            withSpring(1, { damping: 6, stiffness: 200 }),
           );
         },
       },
@@ -125,15 +142,32 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
     if (!event) return;
     try {
       await repostMutation.mutateAsync();
-      showToast({title: 'Post reposted successfully', type: 'success'});
+      repostScale.value = withSequence(
+        withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+        withSpring(1, { damping: 6, stiffness: 200 }),
+      );
+      queryClient.invalidateQueries({ queryKey: ['reposts', event.id, publicKey] });
+      showToast({ title: isReposted ? 'Repost removed' : 'Post reposted successfully', type: 'success' });
     } catch (error) {
       console.error('Repost error:', error);
-      showToast({title: 'Failed to repost', type: 'error'});
+      showToast({ title: 'Failed to repost', type: 'error' });
     }
   };
 
-  const handleBookmarkList = async () => {
-    showToast({title: 'Bookmark and List coming soon', type: 'info'});
+  const handleBookmark = async () => {
+    if (!event) return;
+    try {
+      await bookmarkMutation.mutateAsync();
+      bookmarkScale.value = withSequence(
+        withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+        withSpring(1, { damping: 6, stiffness: 200 }),
+      );
+      queryClient.invalidateQueries({ queryKey: ['bookmarks', event.id, publicKey] });
+      showToast({ title: isBookmarked ? 'Bookmark removed' : 'Post bookmarked successfully', type: 'success' });
+    } catch (error) {
+      console.error('Bookmark error:', error);
+      showToast({ title: 'Failed to bookmark', type: 'error' });
+    }
   };
 
   const content = event?.content || '';
@@ -141,20 +175,13 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
   return (
     <View style={styles.container}>
-      {repostedEvent && (
-        <View style={styles.repost}>
-          <RepostIcon color={theme.colors.textLight} height={18} />
-          <Text color="textLight">Reposted</Text>
-        </View>
-      )}
-
       <View style={styles.info}>
         <View style={styles.infoUser}>
           <Pressable onPress={() => handleProfilePress(event?.pubkey)}>
             <Avatar
               size={asComment ? 40 : 50}
               source={
-                profile?.image ? {uri: profile.image} : require('../../assets/degen-logo.png')
+                profile?.image ? { uri: profile.image } : require('../../assets/degen-logo.png')
               }
             />
           </Pressable>
@@ -200,7 +227,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
         <Pressable onPress={toggleLike}>
           <View style={styles.infoLikes}>
-            <Animated.View style={animatedIconStyle}>
+            <Animated.View style={animatedLikeIconStyle}>
               {isLiked ? (
                 <LikeFillIcon height={20} color={theme.colors.red} />
               ) : (
@@ -265,7 +292,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
             </Pressable>
 
             <Pressable
-              style={{marginHorizontal: 3}}
+              style={{ marginHorizontal: 3 }}
               onPress={() => {
                 if (!event) return;
                 showTipModal(event);
@@ -275,22 +302,33 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
             </Pressable>
 
             <Pressable
-              style={{marginHorizontal: 3}}
+              style={{ marginHorizontal: 3 }}
               onPress={handleRepost}
               disabled={repostMutation.isPending}
             >
-              <Icon name="RepostIcon" size={20} title="Repost" />
+              <Animated.View style={animatedRepostIconStyle}>
+                {isReposted ? (
+                  <RepostFillIcon height={20} color={theme.colors.primary} />
+                ) : (
+                  <RepostIcon height={20} color={theme.colors.textSecondary} />
+                )}
+              </Animated.View>
               {repostMutation.isPending && <ActivityIndicator size="small" />}
             </Pressable>
 
             <Pressable
-              style={{marginHorizontal: 3}}
-              onPress={() => {
-                if (!event) return;
-                handleBookmarkList();
-              }}
+              style={{ marginHorizontal: 3 }}
+              onPress={handleBookmark}
+              disabled={bookmarkMutation.isPending}
             >
-              <Icon name="BookmarkIcon" size={20} title="Bookmark" />
+              <Animated.View style={animatedBookmarkIconStyle}>
+                {isBookmarked ? (
+                  <BookmarkFillIcon height={20} color={theme.colors.primary} />
+                ) : (
+                  <BookmarkIcon height={20} color={theme.colors.textSecondary} />
+                )}
+              </Animated.View>
+              {bookmarkMutation.isPending && <ActivityIndicator size="small" />}
             </Pressable>
           </View>
 
