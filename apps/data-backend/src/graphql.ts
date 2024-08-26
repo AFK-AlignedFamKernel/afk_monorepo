@@ -59,7 +59,7 @@ const resolvers = {
 };
 
 // Create the Apollo Server
-const server = new ApolloServer({ 
+export const server = new ApolloServer({ 
   typeDefs,
   resolvers,
   context: () => ({ prisma }),
