@@ -14,6 +14,10 @@ export enum SelectedTab {
   LAUNCHPAD_VIEW,
   BTC_BRIDGE,
   BTC_FI_VAULT,
+  LAUNCH_OVERVIEW,
+  LAUNCH_GRAPH,
+  LAUNCH_HOLDERS,
+  LAUNCH_TX,
   LIGHTNING_NETWORK_WALLET,
 }
 
@@ -168,5 +172,28 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'Lightning',
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+];
+
+export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Overview',
+    screen: 'overview',
+    tab: SelectedTab.LAUNCH_OVERVIEW,
+  },
+  {
+    title: 'Graph',
+    screen: 'Graph',
+    tab: SelectedTab.LAUNCH_GRAPH,
+  },
+  {
+    title: 'Holders',
+    screen: 'Holders',
+    tab: SelectedTab.LAUNCH_HOLDERS,
+  },
+  {
+    title: 'TX',
+    screen: 'TX',
+    tab: SelectedTab.LAUNCH_TX,
   },
 ];

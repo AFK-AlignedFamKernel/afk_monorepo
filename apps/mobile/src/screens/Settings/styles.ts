@@ -7,11 +7,31 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.pagePadding,
     color: theme.colors.text,
     gap: 3,
+    overflow: 'scroll',
+  },
+  toggleThemeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  themeButton: {
+    width: Spacing.xxlarge,
+    height: Spacing.xxlarge,
+    borderRadius: Spacing.normal,
+    padding: 0,
+    paddingInline: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toggleIcon: {
+    position: 'relative',
+    top: 6,
+    left: 4,
   },
   content: {
     flex: 1,
     color: theme.colors.text,
-    padding: Spacing.medium,
+    paddingHorizontal: Spacing.medium,
   },
 
   backButton: {

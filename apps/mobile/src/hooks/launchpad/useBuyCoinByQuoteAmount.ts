@@ -1,16 +1,15 @@
-import { useNetwork } from '@starknet-react/core';
+import {useNetwork} from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
-import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, CallData, constants, RpcProvider } from 'starknet';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
-import { TokenQuoteBuyKeys } from '../../types/keys';
-import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
-import { prepareAndConnectContract , prepareTokenAndConnectContract} from '../../utils/starknet';
+import {TokenQuoteBuyKeys} from '../../types/keys';
+import {feltToAddress, formatFloatToUint256} from '../../utils/format';
 
 export const useBuyCoinByQuoteAmount = () => {
   const chain = useNetwork();
   const chainId = chain?.chain?.id;
-  const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
   const handleBuyCoins = async (
     account: AccountInterface,
     coin_address: string,
@@ -24,7 +23,10 @@ export const useBuyCoinByQuoteAmount = () => {
       contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     console.log('addressContract', addressContract);
     console.log('read asset');
-    console.log(' feltToAddress(BigInt(tokenQuote?.token_address)', feltToAddress(BigInt(tokenQuote?.token_address)));
+    console.log(
+      ' feltToAddress(BigInt(tokenQuote?.token_address)',
+      feltToAddress(BigInt(tokenQuote?.token_address)),
+    );
     // const asset = await prepareAndConnectContract(
     //   provider,
     //   feltToAddress(BigInt(tokenQuote?.token_address)),
@@ -33,7 +35,7 @@ export const useBuyCoinByQuoteAmount = () => {
     // );
     // console.log('read launchpad_contract');
 
-    const quote_address_token=feltToAddress(BigInt(tokenQuote?.token_address));
+    const quote_address_token = feltToAddress(BigInt(tokenQuote?.token_address));
     // const launchpad_contract = await prepareAndConnectContract(provider, addressContract);
     // const launchpad_contract = await prepareAndConnectContract(provider, addressContract, account);
 
@@ -71,5 +73,5 @@ export const useBuyCoinByQuoteAmount = () => {
     const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
   };
 
-  return { handleBuyCoins };
+  return {handleBuyCoins};
 };

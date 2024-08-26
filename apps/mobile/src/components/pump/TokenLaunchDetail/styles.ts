@@ -2,8 +2,8 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     // alignItems: 'center',
-    // backgroundColor: theme.colors.surface,
-    padding: Spacing.xsmall,
+    backgroundColor: theme.colors.surface,
+    padding: Spacing.normal,
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap: 'break-word',
@@ -27,5 +27,14 @@ export default ThemedStyleSheet((theme) => ({
   },
   name: {
     paddingTop: Spacing.xxsmall,
+  },
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#b5b5b5',
+    paddingBottom: 10,
+    marginBottom: 15,
+  },
+  marginBottom: {
+    marginBottom: 10,
   },
 }));

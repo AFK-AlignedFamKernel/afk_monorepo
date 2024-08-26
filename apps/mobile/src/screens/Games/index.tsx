@@ -38,9 +38,8 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
           buttons={TABS_MENU}
           addScreenNavigation={false}
         ></TabSelector>
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
           <ScrollView>
-            <Text style={styles.text}>More features coming soon</Text>
             {selectedTab == SelectedTab.SLINK && (
               <>
                 <SlinksMap></SlinksMap>
@@ -49,7 +48,6 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
 
             {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
               <View>
-                <Text>Coming soon</Text>
                 <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
               </View>
             )}

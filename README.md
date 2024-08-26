@@ -227,6 +227,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MSghais"><img src="https://avatars.githubusercontent.com/u/59928086?v=4?s=100" width="100px;" alt="MSG"/><br /><sub><b>MSG</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=MSghais" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/addegbenga"><img src="https://avatars.githubusercontent.com/u/47580934?v=4?s=100" width="100px;" alt="Adeyemi Gbenga"/><br /><sub><b>Adeyemi Gbenga</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=addegbenga" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/BlackStarkGoku"><img src="https://avatars.githubusercontent.com/u/165695008?v=4?s=100" width="100px;" alt="BlackStarkGoku"/><br /><sub><b>BlackStarkGoku</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=BlackStarkGoku" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ayoazeez26"><img src="https://avatars.githubusercontent.com/u/44169294?v=4?s=100" width="100px;" alt="Abdulhakeem Abdulazeez Ayodeji"/><br /><sub><b>Abdulhakeem Abdulazeez Ayodeji</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=Ayoazeez26" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://fishonsnote.medium.com/"><img src="https://avatars.githubusercontent.com/u/43862685?v=4?s=100" width="100px;" alt="Fishon Amos"/><br /><sub><b>Fishon Amos</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=fishonamos" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lindsaymoralesb"><img src="https://avatars.githubusercontent.com/u/87027508?v=4?s=100" width="100px;" alt="Lindsay Morales"/><br /><sub><b>Lindsay Morales</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=lindsaymoralesb" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://nnaji-benjamin-portfolio.vercel.app/"><img src="https://avatars.githubusercontent.com/u/60315147?v=4?s=100" width="100px;" alt="Nnaji Benjamin"/><br /><sub><b>Nnaji Benjamin</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=Benjtalkshow" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bhavyagosai"><img src="https://avatars.githubusercontent.com/u/64588227?v=4?s=100" width="100px;" alt="Bhavya Gosai"/><br /><sub><b>Bhavya Gosai</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=bhavyagosai" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

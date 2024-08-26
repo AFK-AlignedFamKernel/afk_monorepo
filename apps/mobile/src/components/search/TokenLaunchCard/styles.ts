@@ -3,13 +3,13 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     // alignItems: 'center',
     backgroundColor: theme.colors.surface,
-    padding: Spacing.xsmall,
+    padding: Spacing.normal,
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap: 'break-word',
     // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
     // width:"100%"
-    width: 300,
+    width: '100%',
   },
   imageContainer: {
     // position: 'relative',
@@ -27,5 +27,14 @@ export default ThemedStyleSheet((theme) => ({
   },
   name: {
     paddingTop: Spacing.xxsmall,
+  },
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#b5b5b5',
+    paddingBottom: 10,
+    marginBottom: 15,
+  },
+  marginBottom: {
+    marginBottom: 10,
   },
 }));

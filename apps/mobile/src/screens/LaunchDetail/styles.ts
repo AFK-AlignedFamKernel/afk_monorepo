@@ -7,12 +7,33 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
   },
-
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: Spacing.pagePadding,
+    // borderBottomWidth: StyleSheet.hairlineWidth,
+    // borderBottomColor: theme.colors.divider,
+  },
   flatListContent: {
     paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
   },
-
+  cancelButton: {
+    paddingVertical: Spacing.small,
+    paddingHorizontal: Spacing.xsmall,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    margin: Spacing.pagePadding,
+    // color: theme.colors.text,
+  },
+  overview: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    // color: theme.colors.text,
+  },
   separator: {
     height: Spacing.xsmall,
   },
