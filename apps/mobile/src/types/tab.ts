@@ -19,6 +19,9 @@ export enum SelectedTab {
   LAUNCH_HOLDERS,
   LAUNCH_TX,
   LIGHTNING_NETWORK_WALLET,
+  GROUP,
+  ALL_GROUP,
+  GROUP_MESSAGE,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -36,6 +39,11 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     title: 'Channels',
     screen: 'ChannelsFeed',
     tab: SelectedTab.CHANNELS,
+  },
+  {
+    title: 'All Group',
+    screen: 'AllGroup',
+    tab: SelectedTab.ALL_GROUP,
   },
   // {
   //   title: 'Messages',
@@ -80,6 +88,7 @@ export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab
     screen: 'ChannelsFeed',
     tab: SelectedTab.CHANNELS,
   },
+
   // {
   //   title: 'Messages',
   //   screen: "ChannelsFeed",
@@ -103,6 +112,11 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
     title: 'Token',
     screen: 'LaunchToken',
     tab: SelectedTab.LAUNCH_TOKEN,
+  },
+  {
+    title: 'Group',
+    screen: 'Group',
+    tab: SelectedTab.GROUP,
   },
 
   // {
