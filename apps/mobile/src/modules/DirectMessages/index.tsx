@@ -24,18 +24,27 @@ export const DirectMessages: React.FC = () => {
   };
 
   return (
-    selectedConversation ? <Chat conversation={selectedConversation} handleGoBack={handleGoBack} />
-      : (
-        <View style={styles.container}>
-          <FlatList
-            data={conversations}
-            keyExtractor={(conversation) => conversation.id}
-            renderItem={({ item }) => (
-              <ConversationPreview conversation={item} onPressed={() => setSelectedConversation(item)}/>
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
-        </View>
-      )
+    <>
+
+    <View>
+      
+    </View>
+
+
+      {selectedConversation ? <Chat conversation={selectedConversation} handleGoBack={handleGoBack} />
+        : (
+          <View style={styles.container}>
+            <FlatList
+              data={conversations}
+              keyExtractor={(conversation) => conversation.id}
+              renderItem={({ item }) => (
+                <ConversationPreview conversation={item} onPressed={() => setSelectedConversation(item)} />
+              )}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          </View>
+        )}
+    </>
+
   );
 };
