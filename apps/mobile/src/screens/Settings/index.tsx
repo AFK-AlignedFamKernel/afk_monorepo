@@ -1,7 +1,7 @@
 import {useAuth} from 'afk_nostr_sdk';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 
-import {Button, Divider, Icon, IconButton} from '../../components';
+import {Button, Divider, Icon, IconButton, Text} from '../../components';
 import {HeaderScreen} from '../../components/HeaderScreen';
 import {PrivateKeyImport} from '../../components/PrivateKeyImport';
 import {RelaysConfig} from '../../components/RelaysConfig';
@@ -20,7 +20,7 @@ export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
         left={
           <IconButton
             icon="ChevronLeftIcon"
-            size={24}
+            size={16}
             onPress={() => {
               navigation.navigate('Profile', {publicKey});
               // navigation.goBack
@@ -42,24 +42,28 @@ export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
         />
       </Pressable> */}
 
-      <Button onPress={toggleTheme} style={{width: 'auto'}}>
-        <Icon
-          name={theme.dark ? 'SunIcon' : 'MoonIcon'}
-          size={24}
-          title="Switch theme"
-          onPress={toggleTheme}
-        />
-        <Text>Switch theme</Text>
-      </Button>
+      <View style={styles.content}>
+        <View style={styles.toggleThemeContainer}>
+          <Text>Switch theme</Text>
+          <Button onPress={toggleTheme} style={styles.themeButton}>
+            <Icon
+              style={styles.toggleIcon}
+              name={theme.dark ? 'SunIcon' : 'MoonIcon'}
+              size={24}
+              title="Switch theme"
+              onPress={toggleTheme}
+            />
+          </Button>
+        </View>
 
-      <Divider />
+        <Divider style={{marginVertical: 12}} />
 
-      {!isExtension && <PrivateKeyImport />}
-      <Divider />
+        {!isExtension && <PrivateKeyImport />}
 
-      <RelaysConfig></RelaysConfig>
+        <Divider style={{marginVertical: 12}} />
 
-      <Divider />
+        <RelaysConfig />
+      </View>
     </View>
   );
 };

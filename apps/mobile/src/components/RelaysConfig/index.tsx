@@ -1,9 +1,9 @@
 import {useSettingsStore} from 'afk_nostr_sdk';
 import {AFK_RELAYS} from 'afk_nostr_sdk/src/utils/relay';
 import {useState} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 
-import {useStyles} from '../../hooks';
+import {useStyles, useWindowDimensions} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Button} from '../Button';
 import {Input} from '../Input';
@@ -19,6 +19,8 @@ export const RelaysConfig: React.FC = () => {
   const [relaysUpdated, setRelaysUpdated] = useState<string[]>(relays);
   const [openUpdateMenu, setOpenUpdateMenu] = useState<boolean>(false);
   const [relayToAdd, setRelayToAdd] = useState<string | undefined>();
+
+  const {width} = useWindowDimensions();
 
   const removeRelay = (relay: string) => {
     const newRelays = relaysUpdated.filter((r) => r != relay);
@@ -39,15 +41,18 @@ export const RelaysConfig: React.FC = () => {
     /** @TODO add verify validity of the relayer */
 
     setRelaysUpdated(newRelays);
+    setRelayToAdd('');
   };
 
   const updateRelayToUsed = () => {
     setRelays(relaysUpdated);
+    showToast({type: 'success', title: 'Relays updated!'});
   };
 
   const resetDefault = () => {
     setRelays(AFK_DEFAULT_RELAYS);
     setRelaysUpdated(AFK_DEFAULT_RELAYS);
+    showToast({type: 'success', title: 'Relays have been reset to default'});
   };
 
   const handleOpenMenu = () => {
@@ -57,59 +62,113 @@ export const RelaysConfig: React.FC = () => {
   return (
     <View style={styles.container}>
       <View>
-        <Text style={styles.title}>AFK: All relays used</Text>
-        {RELAYS_USED?.map((r, i) => {
-          return (
-            <View style={styles.relayItem} key={i}>
-              <Text style={styles.text}>Relay: {r}</Text>
-            </View>
-          );
-        })}
+        <Text weight="bold" style={styles.title}>
+          AFK: All relays used
+        </Text>
       </View>
-      <View>
-        <Text>You can setup your relays</Text>
-        <Button style={{width: 'auto'}} onPress={handleOpenMenu}>
-          <Text>Open menu</Text>
-        </Button>
-      </View>
+
+      {!openUpdateMenu && (
+        <ScrollView
+          style={styles.codeBox}
+          showsVerticalScrollIndicator={true}
+          persistentScrollbar={true}
+        >
+          {RELAYS_USED?.map((r, i) => {
+            return (
+              <pre key={i} style={styles.codeBoxText}>
+                Relay: {r}
+              </pre>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {!openUpdateMenu && (
+        <View style={{alignItems: width >= 600 ? 'center' : undefined}}>
+          <Button onPress={handleOpenMenu} small>
+            <Text>Open menu to setup relays</Text>
+          </Button>
+        </View>
+      )}
 
       {openUpdateMenu && (
         <View>
-          {relaysUpdated?.map((r, i) => {
-            return (
-              <View style={styles.relayItem} key={i}>
-                <Text style={styles.text}>Relay: {r}</Text>
+          <View style={styles.editCodeBox}>
+            <ScrollView
+              style={styles.editCodeBoxRelays}
+              showsVerticalScrollIndicator={true}
+              persistentScrollbar={true}
+            >
+              {relaysUpdated?.map((r, i) => {
+                return (
+                  <pre key={i} style={styles.codeBoxText}>
+                    Relay: {r}
+                    <View style={{alignItems: 'flex-start'}}>
+                      <Button
+                        small
+                        style={{
+                          width: 'auto',
+                          paddingVertical: 6,
+                          paddingHorizontal: 12,
+                        }}
+                        textStyle={{
+                          fontSize: 12,
+                        }}
+                        onPress={() => removeRelay(r)}
+                        children="Remove"
+                      />
+                    </View>
+                  </pre>
+                );
+              })}
+            </ScrollView>
 
+            <Input
+              style={styles.relayInput}
+              inputStyle={{fontSize: 12}}
+              right={
                 <Button
+                  small
                   style={{
                     width: 'auto',
-                    marginHorizontal: 5,
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
                   }}
-                  onPress={() => removeRelay(r)}
-                >
-                  <Text>Remove</Text>
-                </Button>
-              </View>
-            );
-          })}
-          <Input
-            right={
-              <Button onPress={() => addRelay(relayToAdd)}>
-                <Text>Add this relay</Text>
+                  textStyle={{
+                    fontSize: 12,
+                  }}
+                  onPress={() => addRelay(relayToAdd)}
+                  children="+"
+                />
+              }
+              paddingRight={false}
+              value={relayToAdd}
+              onChangeText={setRelayToAdd}
+              placeholder="Relay"
+            />
+          </View>
+
+          <View
+            style={[styles.relayButtonContainer, {flexDirection: width >= 600 ? 'row' : 'column'}]}
+          >
+            <View style={{alignItems: width >= 600 ? 'center' : undefined}}>
+              <Button onPress={updateRelayToUsed} small>
+                <Text>Update my relay</Text>
               </Button>
-            }
-            value={relayToAdd}
-            onChangeText={setRelayToAdd}
-            placeholder="Relay"
-          />
+            </View>
 
-          <Button style={styles.button} onPress={updateRelayToUsed}>
-            <Text>Update my relay</Text>
-          </Button>
+            <View style={{alignItems: width >= 600 ? 'center' : undefined}}>
+              <Button onPress={resetDefault} small>
+                <Text>Reuse default AFK relay</Text>
+              </Button>
+            </View>
 
-          <Button style={styles.button} onPress={resetDefault}>
-            <Text>Reuse default AFK relay</Text>
-          </Button>
+            <View style={{alignItems: width >= 600 ? 'center' : undefined}}>
+              <Button onPress={handleOpenMenu} small>
+                <Text>Close Menu</Text>
+              </Button>
+            </View>
+          </View>
         </View>
       )}
     </View>

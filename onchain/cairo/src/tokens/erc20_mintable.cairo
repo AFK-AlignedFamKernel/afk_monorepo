@@ -1,5 +1,5 @@
+use afk::interfaces::erc20_mintable::{IERC20Mintable};
 use starknet::ContractAddress;
-
 
 #[starknet::contract]
 mod ERC20Mintable {
@@ -74,9 +74,17 @@ mod ERC20Mintable {
         self.erc20._mint(owner, initial_supply);
     }
 
-    #[external(v0)]
-    fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-        self.ownable.assert_only_owner();
-        self.erc20._mint(recipient, amount);
+    // #[external(v0)]
+    // fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+    //     self.ownable.assert_only_owner();
+    //     self.erc20._mint(recipient, amount);
+    // }
+
+    #[abi(embed_v0)]
+    impl IERC20MintableImpl of super::IERC20Mintable<ContractState> {
+        fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+            self.ownable.assert_only_owner();
+            self.erc20._mint(recipient, amount);
+        }
     }
 }
