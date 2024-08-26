@@ -5,7 +5,7 @@ use starknet::ContractAddress;
 // Create the as a Vault component
 #[starknet::contract]
 mod Vault {
-    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
     // use afk::interfaces::erc20_mintable::{IERC20Mintable};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
@@ -34,6 +34,7 @@ mod Vault {
         token_address: ContractAddress,
         is_mintable_paused: bool,
         token_permitted: LegacyMap<ContractAddress, TokenPermitted>,
+        is_token_permitted: LegacyMap<ContractAddress, bool>,
         deposit_by_user: LegacyMap<ContractAddress, DepositUser>,
         deposit_by_user_by_token: LegacyMap::<(ContractAddress, ContractAddress), DepositUser>,
         #[substorage(v0)]
@@ -126,16 +127,21 @@ mod Vault {
         fn set_token_permitted(
             ref self: ContractState,
             token_address: ContractAddress,
-            ratio: u256,
+            // ratio: u256,
             ratio_mint: u256,
             is_available: bool,
             pooling_timestamp: u64
         ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token_permitted = TokenPermitted {
                 token_address, ratio_mint, is_available, pooling_timestamp,
             };
-            self.token_permitted.write(token_address, token_permitted)
+            self.token_permitted.write(token_address, token_permitted);
+            self.is_token_permitted.write(token_address, true);
+        }
+
+        fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {
+             self.is_token_permitted.read(token_address)
         }
     }
 // Admin

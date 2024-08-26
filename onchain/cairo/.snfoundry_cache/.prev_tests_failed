@@ -1,2 +1,1 @@
-afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_more_then_liquidity_threshold
-afk::tests::launchpad_tests::launchpad_tests::launchpad_integration
+afk::tests::vault_tests::vault_test::test_set_token_permitted

@@ -2,7 +2,7 @@ use afk::interfaces::erc20_mintable::{IERC20Mintable};
 use starknet::ContractAddress;
 
 #[starknet::contract]
-mod ERC20Mintable {
+pub mod ERC20Mintable {
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::ownable::OwnableComponent;
