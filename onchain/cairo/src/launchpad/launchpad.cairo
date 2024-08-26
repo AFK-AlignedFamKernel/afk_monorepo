@@ -38,6 +38,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
     fn get_default_token(self: @TContractState,) -> TokenQuoteBuyKeys;
+
+    // Main function to calculate amount
     fn get_amount_by_type_of_coin_or_quote(
         self: @TContractState,
         coin_address: ContractAddress,
@@ -446,6 +448,8 @@ mod LaunchpadMarketplace {
             } else {
                 amount = self
                     ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
+                // remain_liquidity = total_price - amount_protocol_fee;
+
                 erc20
                     .transfer_from(
                         get_caller_address(),
@@ -548,6 +552,7 @@ mod LaunchpadMarketplace {
                 self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
+            // TODO check reetrancy guard
             // Update state
             self.shares_by_users.write((get_caller_address(), coin_address), share_user.clone());
             self.launched_coins.write(coin_address, pool_coin.clone());
@@ -603,7 +608,12 @@ mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let creator_fee_percent = self.creator_fee_percent.read();
 
-            assert!(total_supply <= amount, "share > supply");
+            // assert!(old_share.amount_owned >= amount, "share to sell > supply");
+            // println!("amount{:?}", amount);
+            // assert!(total_supply >= quote_amount, "share to sell > supply");
+            assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
+            // assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
+
             let old_price = old_pool.price.clone();
 
             // Update keys with new values
@@ -613,31 +623,21 @@ mod LaunchpadMarketplace {
             let amount_creator_fee = total_price * creator_fee_percent / BPS;
             // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
             let remain_liquidity = total_price - amount_protocol_fee;
+            // let remain_liquidity = total_price ;
+            assert!( old_pool.liquidity_raised >= remain_liquidity, "pool_update.liquidity_raised <= remain_liquidity");
 
-            if old_share.owner.is_zero() {
-                share_user =
-                    SharesKeys {
-                        owner: get_caller_address(),
-                        key_address: coin_address,
-                        amount_owned: amount,
-                        amount_buy: amount,
-                        amount_sell: amount,
-                        created_at: get_block_timestamp(),
-                        total_paid: total_price,
-                    };
-            } else {
-                share_user.total_paid -= total_price;
-                share_user.amount_owned -= amount;
-                share_user.amount_sell += amount;
-            }
+            // TODO fix amount owned and sellable.
+            // Update share user key
+            // share_user.amount_owned -= amount;
+            // share_user.amount_sell += amount;
 
             // Transfer to Liquidity, Creator and Protocol
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-            erc20.transfer(get_caller_address(), remain_liquidity);
-            // println!("transfer protocol fee {}", amount_protocol_fee.clone());
-            erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            // erc20.transfer(get_caller_address(), remain_liquidity);
+            // // println!("transfer protocol fee {}", amount_protocol_fee.clone());
+            // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
@@ -645,9 +645,14 @@ mod LaunchpadMarketplace {
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount);
 
             // pool_update.price = total_price;
+
             // key.total_supply -= amount;
-            pool_update.total_supply = pool_update.total_supply - amount;
-            pool_update.liquidity_raised = pool_update.liquidity_raised - remain_liquidity;
+            // TODO check reetrancy guard
+
+            // TODO finish update state
+            // pool_update.price = total_price;
+            // pool_update.total_supply = pool_update.total_supply - amount;
+            // pool_update.liquidity_raised = pool_update.liquidity_raised - remain_liquidity;
             self
                 .shares_by_users
                 .write((get_caller_address(), coin_address.clone()), share_user.clone());
@@ -1060,6 +1065,19 @@ mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
             let current_supply = pool_coin.token_holded.clone();
+            let threshold_liquidity = self.threshold_liquidity.read().clone();
+
+            let k_max = total_supply * threshold_liquidity;
+
+            if is_decreased  == true {
+                let k = current_supply * pool_coin.liquidity_raised;
+                let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+                 let q_out = (total_supply - liquidity_ratio) + (k / (quote_amount));
+                return q_out;
+                // let q_in = (k / (total_supply - quote_amount)) - (k_max / total_supply);
+                // return q_in;
+               
+            }
             // let mut current_price = self
             //     ._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
             // println!("current_price {:?}", current_price);
