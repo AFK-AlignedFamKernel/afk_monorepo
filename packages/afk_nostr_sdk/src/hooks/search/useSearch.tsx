@@ -35,8 +35,9 @@ export const useSearch = (options?: UseSearch) => {
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
       });
+      console.log('notes', notes);
 
-      return [notes];
+      return [...notes];
       // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
     placeholderData: {pages: [], pageParams: []},

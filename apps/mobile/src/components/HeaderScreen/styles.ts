@@ -11,8 +11,9 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     paddingVertical: Spacing.xxsmall,
     paddingHorizontal: Spacing.medium,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.colors.divider,
+  },
+  leftContainer: {
+    position: 'absolute',
   },
 
   logoContainer: {

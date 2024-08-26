@@ -10,7 +10,7 @@ export const useLeaveGroupRequest = () => {
     mutationKey: ['leaveGroupRequest', ndk],
     mutationFn: async (data: {groupId: string; content?: string}) => {
       const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminRequestLeave;
+      event.kind = 9022 //  NDKKind.GroupAdminRequestLeave;
       event.content = data?.content || '';
       event.tags = [['h', data.groupId]];
       return event.publish();

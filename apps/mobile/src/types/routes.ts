@@ -55,6 +55,8 @@ export type MainStackParams = {
   Auth: NavigatorScreenParams<AuthStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
+  Whatever: undefined;
+  RightDrawer:undefined;
 };
 
 export type DegensAppStackParams = {

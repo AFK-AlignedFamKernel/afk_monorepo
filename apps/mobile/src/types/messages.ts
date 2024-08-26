@@ -11,7 +11,7 @@ export type Message = {
   timestamp: string;
 }
 
-export type Conversation = {
+export type ConversationType = {
   id: string;
   user: User;
   messages: Message[];
