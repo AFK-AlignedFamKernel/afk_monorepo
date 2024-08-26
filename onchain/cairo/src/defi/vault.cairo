@@ -5,6 +5,7 @@ use starknet::ContractAddress;
 // Create the as a Vault component
 #[starknet::contract]
 mod Vault {
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
     // use afk::interfaces::erc20_mintable::{IERC20Mintable};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
@@ -27,10 +28,6 @@ mod Vault {
     impl AccessControlImpl =
         AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
-
-    // TODO Change interface of IERC20 Mintable
-    // Fix dispatcher
-    // use afk::tokens::erc20_mintable::{ IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
 
     #[storage]
     struct Storage {
@@ -76,22 +73,27 @@ mod Vault {
         // Used the specify ratio. Burn the token. Check the pooling withdraw
         fn mint_by_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
             let caller = get_caller_address();
-        // Check if token valid
+            // Check if token valid
+            assert(
+                self.token_permitted.read(token_address).token_address == token_address,
+                'Non permited token'
+            );
 
-        // Sent token to deposit
+            // Sent token to deposit
 
-        // let token_deposited= IERC20MintableDispatcher{ token_address};
-        // token_deposited.transfer_from(caller, get_contract_address, amount);
+            let token_deposited = IERC20MintableDispatcher { contract_address: token_address };
+            token_deposited.transfer_token(caller, get_contract_address(), amount);
 
-        // Mint token and send it to the receiver
+            // Mint token and send it to the receiver
 
-        // let token_mintable= IERC20MintableDispatcher{ token_address};
+            let token_mintable = IERC20MintableDispatcher {
+                contract_address: self.token_address.read()
+            };
 
-        // Calculate the ratio if 1:1, less or more
-        // let amount_ratio=1;
-        // // let ratio =;
-        // token_mintable.mint(caller, amount_ratio);
+            // Calculate the ratio if 1:1, less or more
+            let amount_ratio = self.token_permitted.read(token_address).ratio_mint * amount;
 
+            token_mintable.mint(caller, amount_ratio);
         }
 
         //  Withdraw a coin
@@ -101,12 +103,23 @@ mod Vault {
             ref self: ContractState, token_address: ContractAddress, amount: u256
         ) {
             let caller = get_caller_address();
-        // Check if token valid
+            // Check if token valid
+            assert(
+                self.token_permitted.read(token_address).token_address == token_address,
+                'Non permited token'
+            );
 
-        // Receive/burn token minted
+            // Receive/burn token minted
+            let token_mintable = IERC20MintableDispatcher {
+                contract_address: self.token_address.read()
+            };
+            token_mintable.burn(caller, amount);
 
-        // Resend amount of coin deposit by user
+            // Resend amount of coin deposit by user
+            let token_deposited = IERC20MintableDispatcher { contract_address: token_address };
 
+            let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
+            token_deposited.transfer_token(get_contract_address(), caller, amount_ratio)
         }
 
         // Set token permitted
@@ -117,7 +130,13 @@ mod Vault {
             ratio_mint: u256,
             is_available: bool,
             pooling_timestamp: u64
-        ) {}
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            let token_permitted = TokenPermitted {
+                token_address, ratio_mint, is_available, pooling_timestamp,
+            };
+            self.token_permitted.write(token_address, token_permitted)
+        }
     }
 // Admin
 // Add OPERATOR role to the Vault escrow
