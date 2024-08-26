@@ -6,7 +6,8 @@ import { useAuth, useSettingsStore } from '../../store';
 import {
   generateRandomKeypair, transformStringToUint8Array, generateSharedSecret,
   generateRandomBytes, randomTimeUpTo2DaysInThePast, deriveSharedKey,
-  stringToHex
+  stringToHex,
+  fixPubKey
 } from "../../utils/keypair"
 
 import {
@@ -24,15 +25,17 @@ export const useSendPrivateMessage = () => {
     mutationFn: async (data: {
       content: string;
       relayUrl?: string,
-      receiverPublicKey?: string,
+      receiverPublicKeyProps?: string,
       tags?: string[][],
       isEncrypted?: boolean,
       encryptedMessage?: string
     }) => {
 
-      const { relayUrl, receiverPublicKey, isEncrypted, tags, encryptedMessage, content } = data
-      /** NIP-14 - Direct private message  */
+      const { relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content } = data
 
+      // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
+      let receiverPublicKey = fixPubKey(receiverPublicKeyProps)
+      /** NIP-4 - Encrypted Direct private message  */
 
       const eventDirectMessage = new NDKEvent(ndk);
       eventDirectMessage.kind = 14;
@@ -45,7 +48,7 @@ export const useSendPrivateMessage = () => {
       // ["e", "<kind-14-id>", "<relay-url>", "reply"] // if this is a reply
       // ["subject", "<conversation-title>"],
       eventDirectMessage.tags = data.tags ?? [];
-      console.log('eventDirectMessage', eventDirectMessage)
+      // console.log('eventDirectMessage', eventDirectMessage)
 
       // const eventDirectMessage = {
       //   kind: 14,
@@ -82,9 +85,9 @@ export const useSendPrivateMessage = () => {
       eventSealed.content = v2.encrypt(JSON.stringify(encryptedEventToNostr), conversationKey, nonce);
 
       await eventSealed.sign()
-      console.log('eventSealed', eventSealed)
+      // console.log('eventSealed', eventSealed)
       let sealedEvent = await eventSealed.toNostrEvent()
-      console.log('sealedEvent', sealedEvent)
+      // console.log('sealedEvent', sealedEvent)
 
 
       /** Fetch dm relay */
@@ -126,7 +129,7 @@ export const useSendPrivateMessage = () => {
 
       await eventGift.sign()
 
-      console.log('eventGift', eventGift)
+      // console.log('eventGift', eventGift)
       return await eventGift?.publish()
 
     },

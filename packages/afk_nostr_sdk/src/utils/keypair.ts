@@ -233,3 +233,39 @@ export function stringToHex(str: string): string {
     }
     return hex;
   }
+
+
+/**
+ * Fix a public key by padding with leading zeros if necessary.
+ * @param pubkey - The potentially malformed public key.
+ * @returns A correctly formatted public key.
+ * @throws Error if the pubkey is invalid or cannot be corrected.
+ */
+export function fixPubKey(pubkey: string): string {
+//   // Ensure the pubkey is a valid hexadecimal string
+//   if (!/^[0-9a-fA-F]*$/.test(pubkey)) {
+//     throw new Error('Invalid public key format. Public key must be a hexadecimal string.');
+//   }
+
+  // Determine the desired length for a compressed pubkey (66 characters)
+  const desiredLength = 66;
+
+  if (pubkey.length > desiredLength) {
+    throw new Error('Public key is too long or unrecognized format.');
+  }
+
+  // Pad with leading zeros if the length is less than desired
+  // const fixedPubKey = pubkey.padStart(desiredLength, '0');
+  /** TODO fix pubkey padding way */
+  const fixedPubKey = pubkey.padStart(desiredLength, '02');
+
+  // Validate the corrected public key using secp256k1 library
+  try {
+    const publicKeyPoint = secp.ProjectivePoint.fromHex(fixedPubKey);
+    publicKeyPoint.assertValidity(); // Check if the point is valid on the curve
+  } catch (error) {
+    throw new Error('Corrected public key is not valid on the secp256k1 curve.');
+  }
+
+  return fixedPubKey;
+}

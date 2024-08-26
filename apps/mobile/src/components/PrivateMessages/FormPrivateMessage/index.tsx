@@ -47,7 +47,7 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({ user, public
 		//todo: encrypt message
 		//todo: send message
 		await sendPrivateMessage.mutateAsync(
-			{ receiverPublicKey: receiverPublicKey, content: message, },
+			{ receiverPublicKeyProps: receiverPublicKey, content: message, },
 			{
 				onSuccess: () => {
 					showToast({title:"Message sent", type:"success"})
