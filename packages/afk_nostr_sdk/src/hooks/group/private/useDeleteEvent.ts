@@ -23,7 +23,7 @@ export const useDeleteEvent = () => {
         throw new Error('You do not have permission to delete this event');
       }
       const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminDeleteEvent;
+      event.kind =  9005 //NDKKind.GroupAdminDeleteEvent;
       event.tags = [
         ['d', data.groupId],
         ['e', data.id],

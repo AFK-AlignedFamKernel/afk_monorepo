@@ -16,6 +16,7 @@ import {Button} from '../Button';
 import {Input} from '../Input';
 import {Text} from '../Text';
 import styles from './styles';
+import {useWindowDimensions} from '../../hooks';
 
 export const PrivateKeyImport: React.FC = () => {
   const {publicKey, isExtension, privateKey, setAuth} = useAuth();
@@ -23,6 +24,8 @@ export const PrivateKeyImport: React.FC = () => {
   const theme = useTheme();
   const {showToast} = useToast();
   const [password, setPassword] = useState('');
+
+  const {width} = useWindowDimensions();
 
   const handleCopy = async (type: 'privateKey' | 'publicKey') => {
     await Clipboard.setStringAsync(type === 'privateKey' ? privateKey : publicKey);
@@ -58,19 +61,22 @@ export const PrivateKeyImport: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Enter your password to import your private key</Text>
+      <Text>Enter your password to import your private key:</Text>
 
       <Input
-        left={<LockIcon color={theme.colors.primary} />}
+        style={{height: 45}}
+        left={<LockIcon color={theme.colors.primary} width={16} height={16} />}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         placeholder="Password"
       />
 
-      <Button onPress={handlePassword}>
-        <Text>Enter password</Text>
-      </Button>
+      <View style={{alignItems: width >= 600 ? 'center' : undefined}}>
+        <Button onPress={handlePassword} small>
+          <Text>Enter password</Text>
+        </Button>
+      </View>
 
       {isPasswordOk && (
         <>
@@ -79,6 +85,7 @@ export const PrivateKeyImport: React.FC = () => {
           </Text>
           <Input
             value={privateKey}
+            style={{height: 45}}
             editable={false}
             right={
               <TouchableOpacity

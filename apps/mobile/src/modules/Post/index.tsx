@@ -1,11 +1,11 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
-import {useProfile, useReact, useReactions, useReplyNotes} from 'afk_nostr_sdk';
+import {useProfile, useReact, useReactions, useReplyNotes, useRepost} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
-import {Image, Pressable, View} from 'react-native';
+import {ActivityIndicator, Image, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -27,10 +27,13 @@ import stylesheet from './styles';
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;
+  repostedEventProps?:string;
+  isRepost?:boolean
 };
 
-export const Post: React.FC<PostProps> = ({asComment, event}) => {
-  const repostedEvent = undefined;
+
+export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost}) => {
+  const repostedEvent = repostedEventProps  ?? undefined;
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -47,6 +50,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
   const comments = useReplyNotes({noteId: event?.id});
   const react = useReact();
   const queryClient = useQueryClient();
+  const repostMutation = useRepost({ event });
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -78,7 +82,6 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
     const imageTag = event.tags.find((tag) => tag[0] === 'image');
     if (!imageTag) return;
-    /** @TODO finish good dimensions with correct ratio and base on the Platform */
     let dimensions = [250, 300];
     if (imageTag[2]) {
       dimensions = imageTag[2].split('x').map(Number);
@@ -112,8 +115,8 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
           queryClient.invalidateQueries({queryKey: ['reactions', event?.id]});
 
           scale.value = withSequence(
-            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}), // Scale up
-            withSpring(1, {damping: 6, stiffness: 200}), // Bounce back
+            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}),
+            withSpring(1, {damping: 6, stiffness: 200}),
           );
         },
       },
@@ -121,7 +124,14 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
   };
 
   const handleRepost = async () => {
-    showToast({title: 'Repost coming soon', type: 'info'});
+    if (!event) return;
+    try {
+      await repostMutation.mutateAsync();
+      showToast({title: 'Post reposted successfully', type: 'success'});
+    } catch (error) {
+      console.error('Repost error:', error);
+      showToast({title: 'Failed to repost', type: 'error'});
+    }
   };
 
   const handleBookmarkList = async () => {
@@ -133,7 +143,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
   return (
     <View style={styles.container}>
-      {repostedEvent && (
+      {repostedEvent || event?.kind == NDKKind.Repost || isRepost && (
         <View style={styles.repost}>
           <RepostIcon color={theme.colors.textLight} height={18} />
           <Text color="textLight">Reposted</Text>
@@ -227,7 +237,6 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
               style={[
                 styles.contentImage,
                 {
-                  // width:dimensionsMedia[0],
                   height: dimensionsMedia[1],
                   aspectRatio: getImageRatio(postSource.width, postSource.height),
                 },
@@ -236,8 +245,6 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
           )}
         </Pressable>
       </View>
-
-      {/* TODO: check tags if it's: quote repost reply  */}
 
       {!asComment && (
         <View style={styles.footer}>
@@ -271,12 +278,11 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
             <Pressable
               style={{marginHorizontal: 3}}
-              onPress={() => {
-                if (!event) return;
-                handleRepost();
-              }}
+              onPress={handleRepost}
+              disabled={repostMutation.isPending}
             >
               <Icon name="RepostIcon" size={20} title="Repost" />
+              {repostMutation.isPending && <ActivityIndicator size="small" />}
             </Pressable>
 
             <Pressable
@@ -289,32 +295,6 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
               <Icon name="BookmarkIcon" size={20} title="Bookmark" />
             </Pressable>
           </View>
-
-          {/* <Pressable
-            // style={styles.seeMore}
-            onPress={() => {
-              if (!event) return;
-
-              showTipModal(event);
-            }}
-          >
-
-            <Icon name='CoinIcon'
-              size={24}
-              title='Tip'
-            />
-          </Pressable> */}
-          {/* 
-          <Menu.Item
-            label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
-            icon="CoinIcon"
-            onPress={() => {
-              if (!event) return;
-
-              showTipModal(event);
-              setMenuOpen(false);
-            }}
-          /> */}
 
           <Menu
             open={menuOpen}
