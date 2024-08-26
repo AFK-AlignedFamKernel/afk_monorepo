@@ -32,3 +32,4 @@ export {useDeleteGroup} from './group/private/useDeleteGroup';
 export {useJoinGroupRequest} from './group/private/useJoinRequest';
 export {useLeaveGroupRequest} from './group/private/useLeaveRequest';
 export {useRepost} from './useRepost';
+export {useBookmark} from './useBookmark';
