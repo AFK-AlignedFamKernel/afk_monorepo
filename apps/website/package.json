@@ -31,7 +31,13 @@
     "zustand": "^4.5.2",
     "@nostr-dev-kit/ndk": "^2.8.2",
     "afk_nostr_sdk":"workspace:*",
-    "common":"workspace:*"
+    "common":"workspace:*",
+    "@starknet-react/chains": "^0.1.7",
+    "@starknet-react/core": "^2.8.2",
+    "@starknet-wc/core": "0.0.4",
+    "@starknet-wc/react": "0.0.4",
+    "get-starknet-core": "^3.3.0"
+
   },
   "devDependencies": {
     "@types/node": "^20",

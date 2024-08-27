@@ -1,7 +1,9 @@
 // https://github.com/paulmillr/nip44/blob/main/javascript/index.ts
 
 import { chacha20 } from '@noble/ciphers/chacha';
-import { ensureBytes, equalBytes } from '@noble/ciphers/utils';
+import { 
+  ensureBytes, 
+  equalBytes } from '@noble/ciphers/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { extract as hkdf_extract, expand as hkdf_expand } from '@noble/hashes/hkdf';
 import { hmac } from '@noble/hashes/hmac';

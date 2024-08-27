@@ -22,6 +22,8 @@ export enum SelectedTab {
   GROUP,
   ALL_GROUP,
   GROUP_MESSAGE,
+  PIXEL_PEACE,
+
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -137,6 +139,11 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'Keys',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+  },
+  {
+    title: 'Pixel Peace',
+    screen: 'PixelPeace',
+    tab: SelectedTab.PIXEL_PEACE,
   },
   {
     title: 'Slink',
