@@ -6,6 +6,9 @@ This directory contains the Go backend for `art/peace`, which provides routes fo
 
 ```
 go run main.go
+
+go run ./cmd/backend/backend.go
+
 ```
 
 ## Build

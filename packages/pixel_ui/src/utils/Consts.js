@@ -1,8 +1,13 @@
 import backendConfig from '../configs/backend.config.json';
 
-export const backendUrl = backendConfig.production
-  ? 'https://' + backendConfig.host
-  : 'http://' + backendConfig.host + ':' + backendConfig.port;
+/** TODO fix url */
+export const backendUrl = 'http://' + backendConfig.host + ':' + backendConfig.port;
+
+// export const backendUrl = backendConfig.production
+//   ? 'https://' + backendConfig.host
+//   : 'http://' + backendConfig.host + ':' + backendConfig.port;
+
+
 
 export const wsUrl = backendConfig.production
   ? 'wss://' + backendConfig.host + '/ws'
