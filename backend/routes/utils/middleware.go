@@ -3,7 +3,7 @@ package routeutils
 import (
 	"net/http"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 // Middleware functions for routes

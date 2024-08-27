@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitBaseRoutes() {

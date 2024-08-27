@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	"github.com/keep-starknet-strange/art-peace/backend/config"
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	"github.com/keep-starknet-strange/art-peace/backend/routes"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes"
 )
 
 func isFlagSet(name string) bool {

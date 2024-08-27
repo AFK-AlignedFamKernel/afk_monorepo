@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/keep-starknet-strange/art-peace/backend/config"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 )
 
 type Backend struct {

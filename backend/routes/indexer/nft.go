@@ -11,8 +11,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func processNFTMintedEvent(event IndexerEvent) {

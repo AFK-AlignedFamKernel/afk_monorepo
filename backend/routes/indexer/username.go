@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processUsernameClaimedEvent(event IndexerEvent) {

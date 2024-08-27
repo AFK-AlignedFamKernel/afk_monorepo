@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/keep-starknet-strange/art-peace/backend/config"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 )
 
 type Databases struct {

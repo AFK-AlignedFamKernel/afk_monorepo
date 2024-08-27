@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	"github.com/keep-starknet-strange/art-peace/backend/quests"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/quests"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 type DailyUserQuest struct {

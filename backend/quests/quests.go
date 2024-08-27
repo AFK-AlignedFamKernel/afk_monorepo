@@ -1,6 +1,6 @@
 package quests
 
-import "github.com/keep-starknet-strange/art-peace/backend/core"
+import "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 
 // Quest types
 const (
