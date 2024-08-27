@@ -32,6 +32,7 @@
     "@nostr-dev-kit/ndk": "^2.8.2",
     "afk_nostr_sdk":"workspace:*",
     "common":"workspace:*",
+    "pixel_ui":"workspace:*",
     "@starknet-react/chains": "^0.1.7",
     "@starknet-react/core": "^2.8.2",
     "@starknet-wc/core": "0.0.4",

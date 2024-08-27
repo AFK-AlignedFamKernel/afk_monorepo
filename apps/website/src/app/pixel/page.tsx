@@ -9,7 +9,8 @@ export default function Pixel() {
     <div className="min-h-screen w-full relative bg-black">
       <Navbar />
       {/* <App></App> */}
-      <AppRender></AppRender>
+
+      {typeof window !== 'undefined' && <AppRender></AppRender>}
       <Footer />
     </div>
   );
