@@ -13,7 +13,7 @@ Router.get('/candles/:tokenAddress', async (req, res) => {
             error: "Invalid token address format."
         });
     }
-
+    
     try {
         const transactions = await prisma.token_transactions.findMany({
             where: { memecoin_address: tokenAddress },
@@ -30,8 +30,7 @@ Router.get('/candles/:tokenAddress', async (req, res) => {
                 error: "No transactions found for this token address."
             });
         }
-
-        // hourly candles
+        // Hourly candles
         const candles = transactions.reduce((acc, { block_timestamp, price }) => {
             const hour = block_timestamp.getHours();
             if (!acc[hour]) {
@@ -46,7 +45,6 @@ Router.get('/candles/:tokenAddress', async (req, res) => {
 
         res.status(HTTPStatus.OK).json(candles);
     } catch (error) {
-        console.error("Failed to generate candles:", error);
         res.status(HTTPStatus.InternalServerError).json({
             error: "Internal Server Error while generating candles."
         });
