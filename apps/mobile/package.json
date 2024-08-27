@@ -84,7 +84,6 @@
     "starknetkit": "^1.1.9",
     "zustand": "^4.5.2",
     "common":"workspace:*",
-    "pixel_ui":"workspace:*",
     "@getalby/lightning-tools": "^5.0.3",
     "@getalby/bitcoin-connect-react": "^3.5.3",
     "@getalby/sdk": "^3.6.1",
