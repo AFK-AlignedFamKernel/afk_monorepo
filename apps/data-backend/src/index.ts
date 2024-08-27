@@ -16,7 +16,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/', router);
-
 const port = process.env.PORT || 5050;
 app.listen(port, () => {
     console.log(`🚀 Backend server running at http://localhost:${port}`);
@@ -26,7 +25,6 @@ app.listen(port, () => {
         console.error("Error launching bot:", error);
     }
 });
-
 // Optionally re-enable GraphQL if you plan to use it
 /*
 server.listen({ port: 4000 }).then(({ url }) => {
