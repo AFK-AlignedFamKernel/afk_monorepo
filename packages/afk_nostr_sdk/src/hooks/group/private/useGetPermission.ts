@@ -1,6 +1,7 @@
-import {useQuery} from '@tanstack/react-query';
-import {useNostrContext} from '../../../context/NostrContext';
 import NDK, {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {useQuery} from '@tanstack/react-query';
+
+import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
 
