@@ -193,6 +193,7 @@ pub mod Vault {
         }
 
         fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {
+            assert(self.is_token_permitted(token_address), 'Non permited token');
             self.token_permitted.read(token_address).ratio_mint
         }
     }

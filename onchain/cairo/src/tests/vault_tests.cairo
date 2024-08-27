@@ -173,6 +173,24 @@ mod vault_test {
     }
 
     #[test]
+    #[should_panic(expected: ('Non permited token',))]
+    fn test_mint_by_token_with_non_permitted_token() {
+        let (vaultDispatcher, wBTCDispatcher, _,) = setup();
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, CALLER());
+        vaultDispatcher.mint_by_token(wBTCDispatcher.contract_address, 200);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Non permited token',))]
+    fn test_withdraw_coin_by_token_with_non_permitted_token() {
+        let (vaultDispatcher, wBTCDispatcher, _,) = setup();
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, CALLER());
+        vaultDispatcher.withdraw_coin_by_token(wBTCDispatcher.contract_address, 200);
+    }
+
+    #[test]
     fn test_set_token_permitted() {
         let (vaultDispatcher, wBTCDispatcher, _,) = setup();
 
@@ -184,5 +202,29 @@ mod vault_test {
             'token should be permitted'
         );
         stop_cheat_caller_address(vaultDispatcher.contract_address);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Non permited token',))]
+    fn test_get_token_ratio_with_non_permitted_token() {
+        let (vaultDispatcher, _, aBTCDispatcher,) = setup();
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, CALLER());
+        vaultDispatcher.get_token_ratio(aBTCDispatcher.contract_address);
+    }
+
+    #[test]
+    fn test_get_token_ratio() {
+        let (vaultDispatcher, wBTCDispatcher, _,) = setup();
+        let ratio = 5;
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, ADMIN());
+        vaultDispatcher.set_token_permitted(wBTCDispatcher.contract_address, ratio, true, 1_64);
+        stop_cheat_caller_address(vaultDispatcher.contract_address);
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, CALLER());
+        let res = vaultDispatcher.get_token_ratio(wBTCDispatcher.contract_address);
+
+        assert(res == ratio, 'wrong ratio');
     }
 }
