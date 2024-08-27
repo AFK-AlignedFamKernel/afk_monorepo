@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
-import { Message } from '../../types/messages';
+import { Message } from '../../../types/messages';
 import stylesheet from './styles';
-import { useStyles } from '../../hooks';
+import { useStyles } from '../../../hooks';
 
 export type MessagesListProps = {
 	messages: Message[];

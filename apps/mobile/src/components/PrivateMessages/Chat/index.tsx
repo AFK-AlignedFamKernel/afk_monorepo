@@ -3,7 +3,7 @@ import { ConversationType } from '../../../types/messages';
 import { useStyles } from '../../../hooks';
 import { View, Image, Text } from 'react-native';
 import { MessageInput } from '../PrivateMessageInput';
-import { MessagesList } from '../../MessagesList.tsx';
+import { MessagesList } from '../MessagesList.tsx';
 import stylesheet from './styles';
 import { IconButton } from '../../IconButton';
 

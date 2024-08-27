@@ -34,5 +34,5 @@ export {useLeaveGroupRequest} from './group/private/useLeaveRequest';
 export {useRepost} from './useRepost';
 export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
-export {useBookmark} from './useBookmark';
+export {useMyMessagesSent} from './messages/useMyMessagesSent';
 

@@ -19,7 +19,8 @@
     "TELEGRAM_BOT_TOKEN",
     "TELEGRAM_WEB_APP",
     "TG_ADMIN_CHAT_ID",
-    "TELEGRAM_MOBILE_APP"
+    "TELEGRAM_MOBILE_APP",
+    "EXPO_PUBLIC_PIXEL_URL"
   ],
   "pipeline": {
     "build": {
@@ -42,7 +43,8 @@
         "TELEGRAM_BOT_TOKEN",
         "TELEGRAM_WEB_APP",
         "INDEXER_DATABASE_URL",
-        "TELEGRAM_MOBILE_APP"
+        "TELEGRAM_MOBILE_APP",
+        "EXPO_PUBLIC_PIXEL_URL"
       ]
     },
     "run": {
@@ -55,7 +57,8 @@
         "PINATA_GATEWAY_KEY",
         "NEXT_PUBLIC_PINATA_JWT",
         "APP_URL",
-        "NEXT_PUBLIC_WALLET_CONNECT_ID"
+        "NEXT_PUBLIC_WALLET_CONNECT_ID",
+        "EXPO_PUBLIC_PIXEL_URL"
       ]
     },
     "deploy": {

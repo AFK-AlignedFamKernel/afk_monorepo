@@ -28,7 +28,7 @@
       "@/*": [
         "./src/*"
       ],
-      "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"]
+      "pixel_ui": ["../../packages/pixel_ui/src"]
     },
     "noEmit": true
   },
@@ -36,8 +36,9 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
+    "**/*.jsx",
+    "**/*.js",
+    ".next/types/**/*.ts" ],
   "exclude": [
     "node_modules"
   ]

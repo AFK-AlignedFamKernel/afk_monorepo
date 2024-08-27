@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { useStyles } from '../../hooks';
-import { ConversationType} from '../../types/messages';
+import { ConversationType } from '../../types/messages';
 import { conversationsData } from '../../utils/dummyData';
 import stylesheet from './styles';
 import { Chat } from '../../components/PrivateMessages/Chat';
 import { Conversation as ConversationPreview, Input } from '../../components';
 import { FormPrivateMessage } from '../../components/PrivateMessages/FormPrivateMessage';
-import { useMyGiftWrapMessages } from 'afk_nostr_sdk';
+import { useMyGiftWrapMessages, useMyMessagesSent } from 'afk_nostr_sdk';
 
 export const DirectMessages: React.FC = () => {
 
@@ -15,7 +15,8 @@ export const DirectMessages: React.FC = () => {
   const [conversations, setConversations] = useState<ConversationType[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null);
 
-  const giftMessage = useMyGiftWrapMessages()
+  const giftMessages = useMyGiftWrapMessages()
+  const messagesSent = useMyMessagesSent()
   useEffect(() => {
     // Fetch the list of messages
     // const { conversationsData } = useGetMessages();
@@ -25,6 +26,9 @@ export const DirectMessages: React.FC = () => {
   const handleGoBack = () => {
     setSelectedConversation(null);
   };
+
+  console.log("giftMessages", giftMessages?.data?.pages)
+  console.log("messagesSent", messagesSent?.data?.pages)
 
   return (
     <>
@@ -46,20 +50,18 @@ export const DirectMessages: React.FC = () => {
           </View>
         )}
 
-      <FlatList
-        data={giftMessage?.data?.pages?.flat()}
+      {/* <FlatList
+        data={messagesSent?.data?.pages?.flat()}
         keyExtractor={(conversation) => conversation.id}
-        renderItem={({ item }) =>  {
-
-            console.log("item",item)
-            return(
-              <ConversationPreview conversation={item} onPressed={() => setSelectedConversation(item)} />
-
-            )
-          }
+        renderItem={({ item }) => {
+          // console.log("item",item)
+          return (
+            <ConversationPreview conversation={item} onPressed={() => setSelectedConversation(item)} />
+          )
+        }
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      /> */}
     </>
 
   );
