@@ -1,18 +1,15 @@
 #[cfg(test)]
 mod vault_test {
-    // use afk::interfaces::erc20_mintable::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::defi::vault::Vault::Event;
     use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    // use afk::tokens::erc20_mintable::{ERC20Mintable};
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::defi_types::{
         TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent
     };
 
-    // use openzeppelin::token::erc20::interface::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address
+        stop_cheat_caller_address, spy_events, EventSpy, SpyOn, EventAssertions
     };
     use starknet::ContractAddress;
 
@@ -96,17 +93,21 @@ mod vault_test {
     #[test]
     fn test_mint_by_token() {
         let (vaultDispatcher, wBTCDispatcher, aBTCDispatcher) = setup();
+        let mut spy = spy_events(SpyOn::One(vaultDispatcher.contract_address));
         let amount = 200;
 
+        // set permited token
         start_cheat_caller_address(vaultDispatcher.contract_address, ADMIN());
         vaultDispatcher.set_token_permitted(wBTCDispatcher.contract_address, 2_u256, true, 1_64);
 
+        // transfer tokens to caller
         start_cheat_caller_address(wBTCDispatcher.contract_address, ADMIN());
         wBTCDispatcher.transfer(CALLER(), 400);
         stop_cheat_caller_address(wBTCDispatcher.contract_address);
 
         let caller_initial_balance = wBTCDispatcher.balance_of(CALLER());
 
+        // get allowance
         start_cheat_caller_address(wBTCDispatcher.contract_address, CALLER());
         wBTCDispatcher.approve(vaultDispatcher.contract_address, amount);
         stop_cheat_caller_address(wBTCDispatcher.contract_address);
@@ -141,6 +142,34 @@ mod vault_test {
             wBTCDispatcher.balance_of(CALLER()) == caller_init_wBTC_balance + (amount / ratio),
             'wrong balance'
         );
+
+        let expected_deposit_event = Event::MintDepositEvent(
+            MintDepositEvent {
+                caller: CALLER(),
+                token_deposited: wBTCDispatcher.contract_address,
+                amount_deposit: amount,
+                mint_receive: amount * ratio,
+            }
+        );
+
+        let expected_withdraw_event = Event::WithdrawDepositEvent(
+            WithdrawDepositEvent {
+                caller: CALLER(),
+                token_deposited: aBTCDispatcher.contract_address,
+                amount_deposit: amount,
+                mint_receive: amount / ratio,
+                mint_to_get_after_poolin: 0,
+                pooling_interval: 1_64
+            }
+        );
+
+        spy
+            .assert_emitted(
+                @array![
+                    (vaultDispatcher.contract_address, expected_deposit_event),
+                    (vaultDispatcher.contract_address, expected_withdraw_event)
+                ]
+            );
     }
 
     #[test]

@@ -4,16 +4,16 @@ use starknet::ContractAddress;
 // TODO
 // Create the as a Vault component
 #[starknet::contract]
-mod Vault {
+pub mod Vault {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    // use openzeppelin::token::erc20::interface::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    // use afk::interfaces::erc20_mintable::{IERC20Mintable};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
+    use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
+    use starknet::event::EventEmitter;
 
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
@@ -59,7 +59,7 @@ mod Vault {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         MintDepositEvent: MintDepositEvent,
         WithdrawDepositEvent: WithdrawDepositEvent,
         #[flat]
@@ -81,24 +81,51 @@ mod Vault {
             assert(self.is_token_permitted(token_address), 'Non permited token');
 
             // Sent token to deposit
-
             let token_deposited = IERC20Dispatcher { contract_address: token_address };
-
             token_deposited.approve(caller, amount);
             token_deposited.transfer_from(caller, get_contract_address(), amount);
 
             // Mint token and send it to the receiver
-
             let token_mintable = IERC20MintableDispatcher {
                 contract_address: self.token_address.read()
             };
-
             let token = self.token_permitted.read(token_address);
 
             // Calculate the ratio if 1:1, less or more
             let amount_ratio = token.ratio_mint * amount;
 
             token_mintable.mint(caller, amount_ratio);
+
+            // update user deposit state
+            let mut old_deposit_user = self.deposit_by_user.read(caller);
+
+            let mut deposit_user = old_deposit_user.clone();
+            if old_deposit_user.token_address.is_zero() {
+                deposit_user =
+                    DepositUser {
+                        token_address: token_address,
+                        deposited: amount,
+                        minted: amount_ratio,
+                        withdraw: 0,
+                    };
+            } else {
+                deposit_user.deposited += amount;
+                deposit_user.minted += amount_ratio;
+            }
+
+            self.deposit_by_user.write(caller, deposit_user);
+            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+
+            // emit event
+            self
+                .emit(
+                    MintDepositEvent {
+                        caller: caller,
+                        token_deposited: token_address,
+                        amount_deposit: amount,
+                        mint_receive: amount_ratio
+                    }
+                );
         }
 
         //  Withdraw a coin
@@ -119,9 +146,29 @@ mod Vault {
 
             // Resend amount of coin deposit by user
             let token_deposited = IERC20Dispatcher { contract_address: token_address };
-
             let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
             token_deposited.transfer(caller, amount_ratio);
+
+            // update user withdraw state
+            let mut deposit_user = self.deposit_by_user.read(caller);
+
+            deposit_user.withdraw += amount_ratio;
+
+            self.deposit_by_user.write(caller, deposit_user);
+            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+
+            // emit event
+            self
+                .emit(
+                    WithdrawDepositEvent {
+                        caller: caller,
+                        token_deposited: self.token_address.read(),
+                        amount_deposit: amount,
+                        mint_receive: amount_ratio,
+                        mint_to_get_after_poolin: 0,
+                        pooling_interval: self.token_permitted.read(token_address).pooling_timestamp
+                    }
+                );
         }
 
         // Set token permitted
@@ -143,10 +190,6 @@ mod Vault {
 
         fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {
             self.is_token_permitted.read(token_address)
-        }
-
-        fn set_token_address(ref self: ContractState, token_address: ContractAddress) {
-            self.token_address.write(token_address);
         }
 
         fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {

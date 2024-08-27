@@ -91,15 +91,5 @@ pub mod ERC20Mintable {
             // self.ownable.assert_only_owner();
             self.erc20._burn(recipient, amount);
         }
-
-        fn transfer_token(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256
-        ) {
-            // self.ownable.assert_only_owner();
-            self.erc20.transfer_from(sender, recipient, amount);
-        }
     }
 }
