@@ -10,7 +10,7 @@ COPY ./configs/prod-backend.config.json ./backend.config.json
 WORKDIR /app
 COPY ./go.mod ./go.sum ./
 RUN go mod download
-COPY ./backend .
+COPY ./ .
 
 # Build the app & run it
 RUN go build -o consumer ./cmd/consumer/consumer.go

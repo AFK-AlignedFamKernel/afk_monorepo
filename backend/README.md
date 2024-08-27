@@ -17,3 +17,7 @@ go run ./cmd/backend/backend.go
 go mod download
 go build
 ```
+
+## TODO 
+- [] Fix env Database Redis and Postgres in DockerFile
+- [] More coming soon
