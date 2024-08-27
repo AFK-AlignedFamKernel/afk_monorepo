@@ -15,6 +15,89 @@ export const AddPostIcon: React.FC<SvgProps> = (props) => (
   </Svg>
 );
 
+export const AdminIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+export const CrownIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    viewBox="0 0 24 24"
+    fill="none"
+    {...props}
+    // stroke="#4a90e2"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+  </Svg>
+);
+
+export const RemoveIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    {...props}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M18 6L6 18M6 6l12 12" />
+  </Svg>
+);
+
+export const CheckIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor" />
+  </Svg>
+);
+
+export const BackIcon: React.FC<SvgProps> = (props) => (
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M20 12H4M10 18L4 12L10 6"
+      {...props}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+export const MoreIcon: React.FC<SvgProps> = (props) => (
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"
+      fill="currentColor"
+    />
+    <Path
+      d="M19 13C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11C18.4477 11 18 11.4477 18 12C18 12.5523 18.4477 13 19 13Z"
+      fill="currentColor"
+    />
+    <Path
+      d="M5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
+// export const MenuIcon: React.FC<SvgProps> = (props) => (
+//   <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+//     <Path
+//       d="M3 12H21M3 6H21M3 18H21"
+//       stroke="black"
+//       strokeWidth={2}
+//       strokeLinecap="round"
+//       strokeLinejoin="round"
+//     />
+//   </Svg>
+// );
+
 export const GameIcon: React.FC<SvgProps> = (props) => {
   return (
     <Svg
@@ -146,6 +229,65 @@ export const CopyIcon: React.FC<SvgProps> = (props) => {
     </Svg>
   );
 };
+
+export const GlobeIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    width="16"
+    height="16"
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M12 2a10 10 0 1 0 0 20 10 10 0 1 0 0-20z" />
+    <Path d="M2 12h20" />
+    <Path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </Svg>
+);
+
+export const PadlockIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    {...props}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z" />
+    <Path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </Svg>
+);
+export const SlantedArrowIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    {...props}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Path d="M7 17L17 7M7 7h10v10" />
+  </Svg>
+);
+
+export const MenuIcons: React.FC<SvgProps> = (props) => (
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M3 12H21M3 6H21M3 18H21"
+      {...props}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 export const GalleryIcon: React.FC<SvgProps> = (props) => {
   return (
