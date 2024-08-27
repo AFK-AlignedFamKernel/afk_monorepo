@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useMediaQuery } from 'react-responsive';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import {
   useAccount,
@@ -23,6 +22,8 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
+import useMediaQuery from './hooks/useMediaQuery';
+// import { useMediaQuery } from 'react-responsive';
 
 function App() {
   // Window management
