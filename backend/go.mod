@@ -1,4 +1,4 @@
-module github.com/keep-starknet-strange/art-peace/backend
+module github.com/AFK-AlignedFamKernel/afk_monorepo/backend
 
 go 1.22.0
 
