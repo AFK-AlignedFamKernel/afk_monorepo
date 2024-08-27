@@ -4,15 +4,19 @@ import stylesheet from './styles';
 import { Chat } from '../../components/PrivateMessages/Chat';
 import { App, AppRender } from "pixel_ui"
 import WebView from 'react-native-webview';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { useIsDesktop } from '../../hooks/useIsDesktop';
 
 export const PixelPeace: React.FC = () => {
 
   const styles = useStyles(stylesheet);
+  const isDesktop = useIsDesktop()
 
 
   return (
-    <>
+    <View
+      style={{ height: "100%" }}
+    >
 
       {Platform.OS == "web"
 
@@ -20,7 +24,8 @@ export const PixelPeace: React.FC = () => {
 
         <>
           <iframe src={process.env.EXPO_PUBLIC_PIXEL_URL}
-            height={"100%"}
+            height={isDesktop ? 750 : 550}
+            // height={750}
             width={"100%"}
           ></iframe>
 
@@ -34,7 +39,7 @@ export const PixelPeace: React.FC = () => {
         </WebView>
       }
 
-    </>
+    </View>
 
   );
 };
