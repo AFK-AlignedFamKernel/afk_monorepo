@@ -50,7 +50,7 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
   const react = useReact();
   const queryClient = useQueryClient();
   const repostMutation = useRepost({ event });
-  const { bookmarkNote } = useBookmark(publicKey);  // Integrating the useBookmark hook
+  const { bookmarkNote } = useBookmark(publicKey);  
 
   const [menuOpen, setMenuOpen] = useState(false);
 

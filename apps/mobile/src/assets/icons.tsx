@@ -372,19 +372,7 @@ export const RepostIcon: React.FC<SvgProps> = (props) => {
   );
 };
 
-export const RepostFillIcon: React.FC<SvgProps> = (props) => (
-  <Svg width="32" height="32" viewBox="0 0 21 21" {...props}>
-    <G
-      fill="currentColor"
-      fillRule="evenodd"
-      stroke="none" 
-    >
-      <Path d="m13.5 13.5l3 3l3-3" />
-      <Path d="M9.5 4.5h3a4 4 0 0 1 4 4v8m-9-9l-3-3l-3 3" />
-      <Path d="M11.5 16.5h-3a4 4 0 0 1-4-4v-8" />
-    </G>
-  </Svg>
-);
+
 export const LikeIcon: React.FC<SvgProps> = (props) => {
   return (
     <Svg width="26" height="26" viewBox="0 0 20 20" fill="none" {...props}>
@@ -408,16 +396,7 @@ export const BookmarkIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
-export const BookmarkFillIcon: React.FC<SvgProps> = (props) => (
-  <Svg width="32" height="32" viewBox="0 0 21 21" {...props}>
-    <Path
-      fill="skyblue"
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M 6.0097656 2 C 4.9143111 2 4.0097656 2.9025988 4.0097656 3.9980469 L 4 22 L 12 19 L 20 22 L 20 20.556641 L 20 4 C 20 2.9069372 19.093063 2 18 2 L 6.0097656 2 z M 6.0097656 4 L 18 4 L 18 19.113281 L 12 16.863281 L 6.0019531 19.113281 L 6.0097656 4 z"
-    />
-  </Svg>
-);
+
 export const LikeFillIcon: React.FC<SvgProps> = (props) => {
   return (
     <Svg width="26" height="26" viewBox="0 0 20 20" fill="none" {...props}>
