@@ -10,7 +10,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({
-    origin: 'http://localhost:8081'
+    origin: process.env.APP_URL_WEB
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
