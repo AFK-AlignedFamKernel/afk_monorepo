@@ -51,7 +51,7 @@ mod Vault {
         ref self: ContractState, token_address: ContractAddress, admin: ContractAddress
     ) {
         // Give MINTER role to the Vault for the token used 
-        // self.token_address.write(token_address);
+        self.token_address.write(token_address);
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
     }
@@ -121,7 +121,7 @@ mod Vault {
             let token_deposited = IERC20Dispatcher { contract_address: token_address };
 
             let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
-            token_deposited.transfer( caller, amount_ratio);
+            token_deposited.transfer(caller, amount_ratio);
         }
 
         // Set token permitted
@@ -133,7 +133,7 @@ mod Vault {
             is_available: bool,
             pooling_timestamp: u64
         ) {
-            // self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token_permitted = TokenPermitted {
                 token_address, ratio_mint, is_available, pooling_timestamp,
             };
