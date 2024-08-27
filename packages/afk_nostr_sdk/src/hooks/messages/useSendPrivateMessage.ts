@@ -109,29 +109,32 @@ export const useSendPrivateMessage = () => {
       const ndkRandom = new NDK({
         explicitRelayUrls:
           // tagsRelayDM ?? 
-          relays ?? AFK_RELAYS,
+          // relays ?? 
+          AFK_RELAYS,
         signer: ndkRandomSigner
       }
       );
 
-      let eventGift = new NDKEvent(ndkRandom);
+      console.log("AFK_RELAYS",AFK_RELAYS)
       // TODO generate public key random
       // Used random private
       // How to retrieve it easily as a sender?
-      eventGift.pubkey = randomPublicKey;
+      let eventGift = new NDKEvent(ndk);
+      eventGift.pubkey = publicKey;
+      // TODO Fix the random sender and the way to retrieve it
 
+      // eventGift.pubkey = randomPublicKey;
+      // let eventGift = new NDKEvent(ndkRandom);
       eventGift.kind = 1059;
       eventGift.created_at = new Date().getTime()
       /** Used encryption of the sealed event */
+      // eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
+      // eventGift.content = "gm";
       eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-
-      eventGift.tags = [["p", receiverPublicKey, relayUrl]];
-
-      await eventGift.sign()
-
-      // console.log('eventGift', eventGift)
-      return await eventGift?.publish()
-
+      eventGift.tags = [["p", receiverPublicKeyProps ?? "", relayUrl ?? ""]] as string[][];
+      // await eventGift.sign()
+      const eventPublish= await eventGift?.publish()
+      return eventPublish;
     },
   });
 };

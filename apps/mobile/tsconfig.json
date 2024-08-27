@@ -26,7 +26,8 @@
     "module": "ES6",
     "paths": {
       "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"],
-      "common": ["../../packages/common/src"]
+      "common": ["../../packages/common/src"],
+      "pixel_ui": ["../../packages/pixel_ui/src"],
     },
   },
   "exclude": ["node_modules", "dist", "babel.config.js", "metro.config.js", "jest.config.js"],

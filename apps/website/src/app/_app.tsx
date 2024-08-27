@@ -2,7 +2,7 @@ import './index.css';
 
 import type {Metadata} from 'next';
 
-import Providers from './providers';
+import StarknetProvider from '@/context/StarknetProvider';
 
 export const metadata: Metadata = {
   title: 'afk community portal',
@@ -10,10 +10,13 @@ export const metadata: Metadata = {
 };
 import {AppProps} from 'next/app';
 
+import Providers from './providers';
 function MyApp({Component, pageProps}: AppProps) {
   return (
     <Providers>
-      <Component {...pageProps} />
+      <StarknetProvider>
+        <Component {...pageProps} />
+      </StarknetProvider>
     </Providers>
   );
 }

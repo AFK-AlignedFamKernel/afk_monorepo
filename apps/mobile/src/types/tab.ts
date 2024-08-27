@@ -19,6 +19,11 @@ export enum SelectedTab {
   LAUNCH_HOLDERS,
   LAUNCH_TX,
   LIGHTNING_NETWORK_WALLET,
+  GROUP,
+  ALL_GROUP,
+  GROUP_MESSAGE,
+  PIXEL_PEACE,
+
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -36,6 +41,11 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     title: 'Channels',
     screen: 'ChannelsFeed',
     tab: SelectedTab.CHANNELS,
+  },
+  {
+    title: 'All Group',
+    screen: 'AllGroup',
+    tab: SelectedTab.ALL_GROUP,
   },
   // {
   //   title: 'Messages',
@@ -80,6 +90,7 @@ export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab
     screen: 'ChannelsFeed',
     tab: SelectedTab.CHANNELS,
   },
+
   // {
   //   title: 'Messages',
   //   screen: "ChannelsFeed",
@@ -104,6 +115,11 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
     screen: 'LaunchToken',
     tab: SelectedTab.LAUNCH_TOKEN,
   },
+  {
+    title: 'Group',
+    screen: 'Group',
+    tab: SelectedTab.GROUP,
+  },
 
   // {
   //   title: 'Messages',
@@ -120,6 +136,11 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     tab: SelectedTab.LAUNCHPAD_VIEW,
   },
   {
+    title: 'Pixel Peace',
+    screen: 'PixelPeace',
+    tab: SelectedTab.PIXEL_PEACE,
+  },
+  {
     title: 'Keys',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
@@ -129,6 +150,7 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'Slink',
     tab: SelectedTab.SLINK,
   },
+  
   {
     title: '?',
     screen: '?',

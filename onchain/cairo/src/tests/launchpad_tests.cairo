@@ -410,7 +410,7 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        //  Thresshold buy - 1
+        //  Threshold buy - 1
         run_buy_by_amount(
             launchpad, erc20, memecoin, new_amount, token_address, sender_address,
         );

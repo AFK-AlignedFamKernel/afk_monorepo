@@ -5,6 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {TextButton} from '../../components';
 import TabSelector from '../../components/TabSelector';
 import {useStyles} from '../../hooks';
+import {CreateGroup} from '../../modules/Group/addGroup/AddGroup';
 import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
 import {CreateFormScreenProps} from '../../types';
 import {SelectedTab, TABS_FORM_CREATE} from '../../types/tab';
@@ -43,6 +44,8 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
             <FormCreatePost></FormCreatePost>
           ) : selectedTab == SelectedTab.CREATE_CHANNEL ? (
             <FormCreateChannel showBackButton={false}></FormCreateChannel>
+          ) : selectedTab == SelectedTab.GROUP ? (
+            <CreateGroup></CreateGroup>
           ) : (
             selectedTab == SelectedTab.LAUNCH_TOKEN && (
               <>
