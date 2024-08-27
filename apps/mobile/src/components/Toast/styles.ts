@@ -29,6 +29,7 @@ export default ThemedStyleSheet((theme, type: 'success' | 'info' | 'error') => (
 
   closeIcon: {
     backgroundColor: theme.colors.transparent,
+    color: theme.colors.text,
     padding: Spacing.none,
   },
 }));
