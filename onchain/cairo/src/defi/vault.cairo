@@ -5,8 +5,10 @@ use starknet::ContractAddress;
 // Create the as a Vault component
 #[starknet::contract]
 mod Vault {
-use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    // use openzeppelin::token::erc20::interface::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
+    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk::interfaces::erc20_mintable::{IERC20Mintable};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
 
@@ -49,7 +51,7 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         ref self: ContractState, token_address: ContractAddress, admin: ContractAddress
     ) {
         // Give MINTER role to the Vault for the token used 
-        self.token_address.write(token_address);
+        // self.token_address.write(token_address);
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
     }
@@ -74,16 +76,16 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         // Used the specify ratio. Burn the token. Check the pooling withdraw
         fn mint_by_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
             let caller = get_caller_address();
+
             // Check if token valid
-            assert(
-                self.token_permitted.read(token_address).token_address == token_address,
-                'Non permited token'
-            );
+            assert(self.is_token_permitted(token_address), 'Non permited token');
 
             // Sent token to deposit
 
-            let token_deposited = IERC20MintableDispatcher { contract_address: token_address };
-            token_deposited.transfer_token(caller, get_contract_address(), amount);
+            let token_deposited = IERC20Dispatcher { contract_address: token_address };
+
+            token_deposited.approve(caller, amount);
+            token_deposited.transfer_from(caller, get_contract_address(), amount);
 
             // Mint token and send it to the receiver
 
@@ -91,8 +93,10 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
                 contract_address: self.token_address.read()
             };
 
+            let token = self.token_permitted.read(token_address);
+
             // Calculate the ratio if 1:1, less or more
-            let amount_ratio = self.token_permitted.read(token_address).ratio_mint * amount;
+            let amount_ratio = token.ratio_mint * amount;
 
             token_mintable.mint(caller, amount_ratio);
         }
@@ -105,10 +109,7 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         ) {
             let caller = get_caller_address();
             // Check if token valid
-            assert(
-                self.token_permitted.read(token_address).token_address == token_address,
-                'Non permited token'
-            );
+            assert(self.is_token_permitted(token_address), 'Non permited token');
 
             // Receive/burn token minted
             let token_mintable = IERC20MintableDispatcher {
@@ -141,7 +142,15 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         }
 
         fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {
-             self.is_token_permitted.read(token_address)
+            self.is_token_permitted.read(token_address)
+        }
+
+        fn set_token_address(ref self: ContractState, token_address: ContractAddress) {
+            self.token_address.write(token_address);
+        }
+
+        fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {
+            self.token_permitted.read(token_address).ratio_mint
         }
     }
 // Admin

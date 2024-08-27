@@ -18,4 +18,7 @@ pub trait IERCVault<TContractState> {
         is_available: bool,
         pooling_timestamp: u64
     );
+
+    fn set_token_address(ref self: TContractState, token_address: ContractAddress);
+    fn get_token_ratio(ref self: TContractState, token_address: ContractAddress) -> u256;
 }

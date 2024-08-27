@@ -83,12 +83,12 @@ pub mod ERC20Mintable {
     #[abi(embed_v0)]
     impl IERC20MintableImpl of super::IERC20Mintable<ContractState> {
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-            self.ownable.assert_only_owner();
+            // self.ownable.assert_only_owner();
             self.erc20._mint(recipient, amount);
         }
 
         fn burn(ref self: ContractState, recipient: ContractAddress, amount: u256) {
-            self.ownable.assert_only_owner();
+            // self.ownable.assert_only_owner();
             self.erc20._burn(recipient, amount);
         }
 
@@ -98,7 +98,7 @@ pub mod ERC20Mintable {
             recipient: ContractAddress,
             amount: u256
         ) {
-            self.ownable.assert_only_owner();
+            // self.ownable.assert_only_owner();
             self.erc20.transfer_from(sender, recipient, amount);
         }
     }
