@@ -255,7 +255,7 @@ const QuestItem = (props) => {
           'QuestItem__form' + (expanded ? ' QuestItem__form--expanded' : '')
         }
       >
-        <div className='QuestItem__form__seperator'></div>
+        <div className='QuestItem__form__separator'></div>
         {props.claimParams &&
           props.claimParams.map((arg, idx) => (
             <div className='QuestItem__form__item' key={idx}>

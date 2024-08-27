@@ -8,7 +8,7 @@ const EventItem = (props) => {
   const posx = props.template.position % canvasConfig.canvas.width;
   const posy = Math.floor(props.template.position / canvasConfig.canvas.width);
 
-  const [formatedEnding, setFormatedEnding] = React.useState('');
+  const [formattedEnding, setFormattedEnding] = React.useState('');
 
   // Create changing gradient color backgroundColor
   const [color, setColor] = React.useState(0);
@@ -33,7 +33,7 @@ const EventItem = (props) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setFormatedEnding(formatEnding(props.template.end_time));
+      setFormattedEnding(formatEnding(props.template.end_time));
     }, 1000);
     return () => clearInterval(interval);
   }, [formatEnding, props.template.end_time]);
@@ -59,7 +59,7 @@ const EventItem = (props) => {
             <p>{props.template.users}</p>
           </div>
           <div className='EventItem__time'>
-            <p>{formatedEnding}</p>
+            <p>{formattedEnding}</p>
           </div>
         </div>
       </div>

@@ -22,7 +22,7 @@ const TemplatesMainSection = (props) => {
     const imageData = ctx.getImageData(0, 0, image.width, image.height);
     const data = imageData.data;
 
-    let imagePalleteIds = [];
+    let imagePaletteIds = [];
     // Convert image data to color palette
     for (let i = 0; i < data.length; i += 4) {
       if (data[i + 3] < 128) {
@@ -30,7 +30,7 @@ const TemplatesMainSection = (props) => {
         data[i + 1] = 255;
         data[i + 2] = 255;
         data[i + 3] = 0;
-        imagePalleteIds.push(255);
+        imagePaletteIds.push(255);
         continue;
       }
       let minDistance = 1000000;
@@ -54,12 +54,12 @@ const TemplatesMainSection = (props) => {
       data[i] = minColor[0];
       data[i + 1] = minColor[1];
       data[i + 2] = minColor[2];
-      imagePalleteIds.push(minColorIndex);
+      imagePaletteIds.push(minColorIndex);
     }
 
     // Set image data back to canvas
     ctx.putImageData(imageData, 0, 0);
-    return [canvas.toDataURL(), imagePalleteIds];
+    return [canvas.toDataURL(), imagePaletteIds];
   };
 
   const uploadTemplate = () => {

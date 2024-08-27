@@ -128,7 +128,7 @@
   pointer-events: none;
 }
 
-.QuestItem__form__seperator {
+.QuestItem__form__separator {
   margin: 0.5rem;
   height: 0.2rem;
   background-color: rgba(0, 0, 0, 0.3);
