@@ -10,11 +10,6 @@ export function NavigationLinks() {
       <li>
         <Link href="/pixel">Pixel </Link>
       </li>
-      {/* <li>
-        <Link href="/app">App </Link>
-      </li> */}
-      {/* <li>Ecosystem</li> */}
-      {/* <li>Developers</li> */}
     </ul>
   );
 }
