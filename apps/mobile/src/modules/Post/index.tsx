@@ -1,4 +1,4 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {useProfile, useReact, useReactions, useReplyNotes, useRepost} from 'afk_nostr_sdk';
@@ -27,11 +27,13 @@ import stylesheet from './styles';
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;
+  repostedEventProps?:string;
+  isRepost?:boolean
 };
 
 
-export const Post: React.FC<PostProps> = ({asComment, event}) => {
-  const repostedEvent = undefined;
+export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost}) => {
+  const repostedEvent = repostedEventProps  ?? undefined;
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -141,7 +143,7 @@ export const Post: React.FC<PostProps> = ({asComment, event}) => {
 
   return (
     <View style={styles.container}>
-      {repostedEvent && (
+      {repostedEvent || event?.kind == NDKKind.Repost || isRepost && (
         <View style={styles.repost}>
           <RepostIcon color={theme.colors.textLight} height={18} />
           <Text color="textLight">Reposted</Text>

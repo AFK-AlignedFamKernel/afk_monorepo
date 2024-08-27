@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { KeyboardFixedView } from '../Skeleton/KeyboardFixedView';
-import { Divider } from '../Divider';
-import { Input } from '../Input';
-import { IconButton } from '../IconButton';
-import { useStyles } from '../../hooks';
 import stylesheet from './styles';
+import { KeyboardFixedView } from '../../Skeleton/KeyboardFixedView';
+import { Divider } from '../../Divider';
+import { Input } from '../../Input';
+import { IconButton } from '../../IconButton';
+import { useStyles } from '../../../hooks';
 
 export type MessageInputProps = {
 	onSend: (message: string) => void;

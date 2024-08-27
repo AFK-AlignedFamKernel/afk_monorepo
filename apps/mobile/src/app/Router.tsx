@@ -9,6 +9,8 @@ import {Dimensions, Platform, StyleSheet, useWindowDimensions, View} from 'react
 import {Icon} from '../components';
 import {Navbar} from '../components/Navbar';
 import {useStyles, useTheme} from '../hooks';
+import GroupChatDetail from '../modules/Group/groupDetail/GroupChatDetail';
+import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import DegensSidebar from '../modules/Layout/degens-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
@@ -32,6 +34,7 @@ import {Profile} from '../screens/Profile';
 import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {Tips} from '../screens/Tips';
+import {Whatever} from '../screens/Whatever';
 import {ThemedStyleSheet} from '../styles';
 import {
   AuthStackParams,
@@ -42,7 +45,6 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -194,7 +196,7 @@ const AuthNavigator: React.FC = () => {
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        // header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
+        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
         headerShown: false,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
@@ -214,6 +216,39 @@ const AuthNavigator: React.FC = () => {
       <AuthStack.Screen name="SaveKeys" component={SaveKeys} />
       <AuthStack.Screen name="ImportKeys" component={ImportKeys} />
     </AuthStack.Navigator>
+  );
+};
+
+const DrawerRightDesktop = createDrawerNavigator();
+
+const RightDrawerNavigator = () => {
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]); // Adjust based on your breakpoint for desktop
+
+  const theme = useTheme();
+
+  return (
+    <DrawerRightDesktop.Navigator
+      // initialRouteName="RightDrawer"
+      drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
+      screenOptions={({navigation}) => ({
+        // drawerPosition: "right",
+        drawerType: isDesktop ? 'permanent' : 'front',
+        // drawerType:"permanent",
+        headerTintColor: theme.theme.colors.text,
+        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
+        // swipeEdgeWidth: 0
+        drawerStyle: {
+          // maxWidth:270,
+          // width: '15%', // Adjust width or other styling as necessary
+          width: 250, // Adjust width or other styling as necessary
+        },
+      })}
+    >
+      <DrawerRightDesktop.Screen name="Whatever" component={Whatever} />
+    </DrawerRightDesktop.Navigator>
   );
 };
 
@@ -253,6 +288,13 @@ const MainNavigator: React.FC = () => {
       ) : (
         <DrawerStack.Screen name="Feed" component={Feed} />
       )}
+      {isDesktop && (
+        <DrawerStack.Screen
+          name="RightDrawer"
+          component={RightDrawerNavigator}
+        ></DrawerStack.Screen>
+      )}
+
       <DrawerStack.Screen name="Profile" component={Profile} />
       <DrawerStack.Screen name="EditProfile" component={EditProfile} />
       <DrawerStack.Screen name="CreatePost" component={CreatePost} />
@@ -264,6 +306,8 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="CreateForm" component={CreateForm} />
       <DrawerStack.Screen name="Defi" component={Defi} />
       <DrawerStack.Screen name="Games" component={Games} />
+      <DrawerStack.Screen name="GroupChat" component={GroupChat} />
+      <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
       <DrawerStack.Screen name="Tips" component={Tips} />
       <DrawerStack.Screen name="Settings" component={Settings} />
       <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />
