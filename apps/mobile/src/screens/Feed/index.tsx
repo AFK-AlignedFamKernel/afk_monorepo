@@ -29,11 +29,18 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     kinds,
   });
 
+  // Filter profiles based on the search query
   const profilesSearch =
     profiles?.data?.pages
       ?.flat()
       .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
     [];
+
+  const filteredNotes = notes.data?.pages
+    .flat()
+    .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true));
+
+  const combinedData = [...(profilesSearch ?? []), ...(filteredNotes ?? [])];
 
   return (
     <View style={styles.container}>
@@ -48,42 +55,39 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
         searchQuery={search ?? ''}
         kinds={kinds}
         setKinds={setKinds}
+        contactList={profilesSearch.map((item) => item?.id)}
       />
 
       <FlatList
-        ListHeaderComponent={
-          <FlatList
-            contentContainerStyle={styles.stories}
-            horizontal
-            data={profilesSearch}
-            showsHorizontalScrollIndicator={false}
-            onEndReached={() => profiles.fetchNextPage()}
-            refreshControl={
-              <RefreshControl
-                refreshing={profiles.isFetching}
-                onRefresh={() => profiles.refetch()}
-              />
-            }
-            ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({item}) => <BubbleUser event={item} />}
-          />
-        }
         contentContainerStyle={styles.flatListContent}
-        data={notes.data?.pages.flat()}
+        data={combinedData}
         keyExtractor={(item) => item?.id}
         renderItem={({item}) => {
-          if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
-          if (item?.kind === NDKKind.ChannelCreation || item?.kind === NDKKind.ChannelMetadata) {
+          if (item.kind === undefined) {
+            return <BubbleUser event={item} />;
+          } else if (
+            item.kind === NDKKind.ChannelCreation ||
+            item.kind === NDKKind.ChannelMetadata
+          ) {
             return <ChannelComponent event={item} />;
-          } else if (item?.kind === NDKKind.Text) {
+          } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
           }
           return <></>;
         }}
         refreshControl={
-          <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
+          <RefreshControl
+            refreshing={notes.isFetching || profiles.isFetching}
+            onRefresh={() => {
+              notes.refetch();
+              profiles.refetch();
+            }}
+          />
         }
-        onEndReached={() => notes.fetchNextPage()}
+        onEndReached={() => {
+          notes.fetchNextPage();
+          profiles.fetchNextPage();
+        }}
       />
 
       <Pressable

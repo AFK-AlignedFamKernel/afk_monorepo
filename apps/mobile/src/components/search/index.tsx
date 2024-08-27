@@ -89,16 +89,6 @@ const SearchComponent: React.FC<ISearchComponent> = ({
         onSortChange={handleSortChange}
         activeSortBy={activeSortBy}
       />
-
-      {isLoading && <Text>Loading...</Text>}
-      {isError && <Text>Error loading data</Text>}
-      {data?.pages?.map((page, index) => (
-        <View key={index}>
-          {page.map((item: any, itemIndex: any) => (
-            <Text key={itemIndex}>{item.content}</Text>
-          ))}
-        </View>
-      ))}
     </View>
   );
 };
