@@ -1,16 +1,21 @@
 import * as React from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
-import {useStyles} from '../../hooks';
-import {Icon} from '../Icon';
+import { useStyles, useWindowDimensions } from '../../hooks';
+import { Icon } from '../Icon';
 import stylesheet from './styles';
 interface CustomHeaderInterface {
   title?: string;
   navigation?: any;
   showLogo?: boolean;
 }
-export const Navbar = ({title, navigation, showLogo}: CustomHeaderInterface) => {
+export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) => {
   const styles = useStyles(stylesheet);
+  const dimensions = useWindowDimensions();
+  const isDesktop = React.useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]); // Adjust based on your breakpoint for desktop
+
   // const navigation = useNavigation<DrawerNavigationConfig>()
   return (
     <View style={styles.header}>
@@ -21,9 +26,19 @@ export const Navbar = ({title, navigation, showLogo}: CustomHeaderInterface) => 
         </View>
       )}
       <Text style={styles.headerTitle}>{title}</Text>
-      <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>
-        <Icon name="MenuIcon" size={25} />
-      </TouchableOpacity>
+
+      {!isDesktop &&
+        <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>
+          <Icon name="MenuIcon" size={25} />
+        </TouchableOpacity>
+      }
+
+      {/* {isDesktop &&
+        <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>
+          <Icon name="MenuIcon" size={25} />
+        </TouchableOpacity>
+      } */}
+
     </View>
   );
 };

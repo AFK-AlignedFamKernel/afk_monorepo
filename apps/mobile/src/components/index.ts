@@ -18,4 +18,6 @@ export {SquareInput} from './SquareInput';
 export {Text} from './Text';
 export {TextButton} from './TextButton';
 export {Toast} from './Toast';
-export {Conversation} from './Conversation'
+export {Conversation} from './PrivateMessages/Conversation'
+export {Chat} from './PrivateMessages/Chat'
+export {FormPrivateMessage} from './PrivateMessages/FormPrivateMessage'

@@ -24,7 +24,7 @@ export const useDeleteGroup = () => {
         throw new Error('You do not have permission to delete group');
       }
       const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminDeleteGroup;
+      event.kind =  9008 // NDKKind.GroupAdminDeleteGroup;
       event.tags = [['d', data.groupId]];
       return event.publish();
     },
