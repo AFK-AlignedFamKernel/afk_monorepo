@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod vault_test {
     // use afk::interfaces::erc20_mintable::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
+use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
     // use afk::tokens::erc20_mintable::{ERC20Mintable};
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::defi_types::{
@@ -145,8 +145,24 @@ mod vault_test {
         );
 
         let ratio = vaultDispatcher.get_token_ratio(wBTCDispatcher.contract_address);
-        assert(aBTCDispatcher.balance_of(CALLER()) == ratio * amount, 'wrong balance');
+        assert(aBTCDispatcher.balance_of(CALLER()) == amount * ratio, 'wrong balance');
+
+        // withdraw coin by token
+        let caller_init_aBTC_balance = aBTCDispatcher.balance_of(CALLER());
+        let caller_init_wBTC_balance = wBTCDispatcher.balance_of(CALLER());
+
+        start_cheat_caller_address(vaultDispatcher.contract_address, CALLER());
+        vaultDispatcher.withdraw_coin_by_token(wBTCDispatcher.contract_address, amount);
+        stop_cheat_caller_address(vaultDispatcher.contract_address); 
+
+        assert(aBTCDispatcher.balance_of(CALLER()) == caller_init_aBTC_balance - amount , 'wrong balance');
+        assert(wBTCDispatcher.balance_of(CALLER()) == caller_init_wBTC_balance + (amount / ratio), 'wrong balance');
     }
+
+    // #[test]
+    // fn test_withdraw_coin_by_token() {
+
+    // }
 
     #[test]
     fn test_set_token_permitted() {

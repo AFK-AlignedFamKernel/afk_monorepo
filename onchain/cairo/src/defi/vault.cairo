@@ -118,10 +118,10 @@ mod Vault {
             token_mintable.burn(caller, amount);
 
             // Resend amount of coin deposit by user
-            let token_deposited = IERC20MintableDispatcher { contract_address: token_address };
+            let token_deposited = IERC20Dispatcher { contract_address: token_address };
 
             let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
-            token_deposited.transfer_token(get_contract_address(), caller, amount_ratio)
+            token_deposited.transfer( caller, amount_ratio);
         }
 
         // Set token permitted
