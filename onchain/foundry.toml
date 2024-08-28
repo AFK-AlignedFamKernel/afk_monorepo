@@ -3,6 +3,9 @@ src = "solidity_contracts/src"
 test = "solidity_contracts/test"
 out = "out"
 libs = ["solidity_contracts/lib"]
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts-upgradeable/"
+]
 
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
