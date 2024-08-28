@@ -3,7 +3,6 @@ FROM golang:1.22.2-alpine
 RUN apk add --no-cache bash curl git jq
 
 # Copy over the configs
-COPY ./configs/docker-database.config.json ./database.config.json
 COPY ./configs/docker-backend.config.json ./backend.config.json
 
 # Copy over the app
