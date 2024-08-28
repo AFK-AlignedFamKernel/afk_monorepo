@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processColorAddedEvent(event IndexerEvent) {
@@ -20,7 +20,7 @@ func processColorAddedEvent(event IndexerEvent) {
 	color := colorHex[len(colorHex)-6:]
 
 	// Set color in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Colors (color_key, hex) VALUES ($1, $2)", colorKey, color)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Colors (color_key, hex) VALUES ($1, $2)", colorKey, color)
 	if err != nil {
 		PrintIndexerError("processColorAddedEvent", "Error inserting color into postgres", colorKey, color)
 		return
@@ -37,7 +37,7 @@ func revertColorAddedEvent(event IndexerEvent) {
 	}
 
 	// Delete color from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM colors WHERE color_key = $1", colorIdx)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM colors WHERE color_key = $1", colorIdx)
 	if err != nil {
 		PrintIndexerError("revertColorAddedEvent", "Error deleting color from postgres", colorIdx)
 		return

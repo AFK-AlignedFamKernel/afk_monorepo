@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func processPixelPlacedEvent(event IndexerEvent) {
@@ -22,7 +22,7 @@ func processPixelPlacedEvent(event IndexerEvent) {
 	}
 
 	//validate position
-	maxPosition := int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width) * int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Height)
+	maxPosition := int64(core.AFKBackend.CanvasConfig.Canvas.Width) * int64(core.AFKBackend.CanvasConfig.Canvas.Height)
 
 	// Perform comparison with maxPosition
 	if position < 0 || position >= maxPosition {
@@ -42,18 +42,18 @@ func processPixelPlacedEvent(event IndexerEvent) {
 	}
 
 	// Set pixel in redis
-	bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-	pos := uint(position) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 	ctx := context.Background()
-	err = core.ArtPeaceBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()
+	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()
 	if err != nil {
 		PrintIndexerError("processPixelPlacedEvent", "Error setting pixel in redis", address, posHex, dayIdxHex, colorHex)
 		return
 	}
 
 	// Set pixel in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Pixels (address, position, day, color) VALUES ($1, $2, $3, $4)", address, position, dayIdx, color)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Pixels (address, position, day, color) VALUES ($1, $2, $3, $4)", address, position, dayIdx, color)
 	if err != nil {
 		// TODO: Reverse redis operation?
 		PrintIndexerError("processPixelPlacedEvent", "Error inserting pixel into postgres", address, posHex, dayIdxHex, colorHex)
@@ -81,7 +81,7 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 	}
 
 	// Delete pixel from postgres ( last one )
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2 ORDER BY time limit 1", address, position)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2 ORDER BY time limit 1", address, position)
 	if err != nil {
 		PrintIndexerError("revertPixelPlacedEvent", "Error deleting pixel from postgres", address, posHex)
 		return
@@ -94,11 +94,11 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 	// Reset pixel in redis
-	bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-	pos := uint(position) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 	ctx := context.Background()
-	err = core.ArtPeaceBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, oldColor).Err()
+	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, oldColor).Err()
 	if err != nil {
 		PrintIndexerError("revertPixelPlacedEvent", "Error resetting pixel in redis", address, posHex)
 		return
@@ -123,7 +123,7 @@ func processBasicPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO LastPlacedTime (address, time) VALUES ($1, TO_TIMESTAMP($2)) ON CONFLICT (address) DO UPDATE SET time = TO_TIMESTAMP($2)", address, timestamp)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO LastPlacedTime (address, time) VALUES ($1, TO_TIMESTAMP($2)) ON CONFLICT (address) DO UPDATE SET time = TO_TIMESTAMP($2)", address, timestamp)
 	if err != nil {
 		PrintIndexerError("processBasicPixelPlacedEvent", "Error inserting last placed time into postgres", address, timestampHex)
 		return
@@ -134,7 +134,7 @@ func revertBasicPixelPlacedEvent(event IndexerEvent) {
 	address := event.Event.Keys[1][2:] // Remove 0x prefix
 
 	// Reset last placed time to time of last pixel placed
-	_, err := core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE LastPlacedTime SET time = (SELECT time FROM Pixels WHERE address = $1 ORDER BY time DESC LIMIT 1) WHERE address = $1", address)
+	_, err := core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE LastPlacedTime SET time = (SELECT time FROM Pixels WHERE address = $1 ORDER BY time DESC LIMIT 1) WHERE address = $1", address)
 	if err != nil {
 		PrintIndexerError("revertBasicPixelPlacedEvent", "Error resetting last placed time in postgres", address)
 		return
@@ -161,7 +161,7 @@ func processFactionPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionMembersInfo SET last_placed_time = TO_TIMESTAMP($1), member_pixels = $2 WHERE user_address = $3", timestamp, memberPixels, userAddress)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionMembersInfo SET last_placed_time = TO_TIMESTAMP($1), member_pixels = $2 WHERE user_address = $3", timestamp, memberPixels, userAddress)
 	if err != nil {
 		PrintIndexerError("processMemberPixelsPlacedEvent", "Error updating faction member info in postgres", userAddress, timestampHex, memberPixelsHex)
 		return
@@ -190,7 +190,7 @@ func processChainFactionPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionMembersInfo SET last_placed_time = TO_TIMESTAMP($1), member_pixels = $2 WHERE user_address = $3", timestamp, memberPixels, userAddress)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionMembersInfo SET last_placed_time = TO_TIMESTAMP($1), member_pixels = $2 WHERE user_address = $3", timestamp, memberPixels, userAddress)
 	if err != nil {
 		PrintIndexerError("processChainFactionMemberPixelsPlacedEvent", "Error updating chain faction member info in postgres", userAddress, timestampHex, memberPixelsHex)
 		return
@@ -211,7 +211,7 @@ func processExtraPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ExtraPixels SET available = available - $1, used = used + $1 WHERE address = $2", extraPixels, address)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ExtraPixels SET available = available - $1, used = used + $1 WHERE address = $2", extraPixels, address)
 	if err != nil {
 		PrintIndexerError("processExtraPixelsPlacedEvent", "Error updating extra pixels in postgres", address, extraPixelsHex)
 		return
@@ -228,7 +228,7 @@ func revertExtraPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ExtraPixels SET available = available + $1, used = used - $1 WHERE address = $2", extraPixels, address)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ExtraPixels SET available = available + $1, used = used - $1 WHERE address = $2", extraPixels, address)
 	if err != nil {
 		PrintIndexerError("revertExtraPixelsPlacedEvent", "Error updating extra pixels in postgres", address, extraPixelsHex)
 		return

@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitUserRoutes() {
@@ -24,7 +24,7 @@ func InitUserRoutes() {
 	http.HandleFunc("/get-pixel-count", getPixelCount)
 	http.HandleFunc("/check-username-unique", checkUsernameUnique)
 	http.HandleFunc("/get-user-rewards", getUserRewards)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/new-username-devnet", newUsernameDevnet)
 		http.HandleFunc("/change-username-devnet", changeUsernameDevnet)
 	}
@@ -178,7 +178,7 @@ func newUsernameDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.NewUsernameDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.NewUsernameDevnet
 	contract := os.Getenv("USERNAME_STORE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "claim_username", username)
@@ -215,7 +215,7 @@ func changeUsernameDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.ChangeUsernameDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.ChangeUsernameDevnet
 	contract := os.Getenv("USERNAME_STORE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "change_username", username)

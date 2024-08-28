@@ -2,10 +2,13 @@ package main
 
 import (
 	"flag"
+	"log"
 
-	"github.com/keep-starknet-strange/art-peace/backend/config"
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	"github.com/keep-starknet-strange/art-peace/backend/routes"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes"
+
+	"github.com/joho/godotenv"
 )
 
 func isFlagSet(name string) bool {
@@ -19,8 +22,12 @@ func isFlagSet(name string) bool {
 }
 
 func main() {
+	err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+	
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
 	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 	production := flag.Bool("production", false, "Production mode")
 	admin := flag.Bool("admin", false, "Admin mode")
@@ -32,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	databaseConfig, err := config.LoadDatabaseConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -49,9 +56,9 @@ func main() {
 	databases := core.NewDatabases(databaseConfig)
 	defer databases.Close()
 
-	core.ArtPeaceBackend = core.NewBackend(databases, canvasConfig, backendConfig, *admin)
+	core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, *admin)
 
 	routes.InitRoutes()
 
-	core.ArtPeaceBackend.Start(core.ArtPeaceBackend.BackendConfig.Port)
+	core.AFKBackend.Start(core.AFKBackend.BackendConfig.Port)
 }

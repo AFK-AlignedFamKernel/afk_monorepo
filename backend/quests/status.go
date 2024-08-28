@@ -1,7 +1,7 @@
 package quests
 
 import (
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 var QuestChecks = map[int]func(*Quest, string) (int, int){

@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitFactionRoutes() {
@@ -24,7 +24,7 @@ func InitFactionRoutes() {
 	http.HandleFunc("/get-faction-members", getFactionMembers)
 	// Create a static file server for the nft images
 	http.Handle("/faction-images/", http.StripPrefix("/faction-images/", http.FileServer(http.Dir("./factions"))))
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/join-chain-faction-devnet", joinChainFactionDevnet)
 		http.HandleFunc("/join-faction-devnet", joinFactionDevnet)
 		http.HandleFunc("/leave-faction-devnet", leaveFactionDevnet)
@@ -102,7 +102,7 @@ func initFactions(w http.ResponseWriter, r *http.Request) {
 
 	// Insert factions info into the database
 	for _, faction := range factionJson.Factions {
-		_, err := core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionLinks (faction_id, icon, telegram, twitter, github, site) VALUES ($1, $2, $3, $4, $5, $6)", faction.Id, faction.Icon, faction.Links.Telegram, faction.Links.Twitter, faction.Links.Github, faction.Links.Site)
+		_, err := core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionLinks (faction_id, icon, telegram, twitter, github, site) VALUES ($1, $2, $3, $4, $5, $6)", faction.Id, faction.Icon, faction.Links.Telegram, faction.Links.Twitter, faction.Links.Github, faction.Links.Site)
 		if err != nil {
 			routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert factions")
 			return
@@ -376,7 +376,7 @@ func joinChainFactionDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.JoinChainFactionDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.JoinChainFactionDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "join_chain_faction", chainId)
@@ -407,7 +407,7 @@ func joinFactionDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.JoinFactionDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.JoinFactionDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "join_faction", factionId)
@@ -426,7 +426,7 @@ func leaveFactionDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.LeaveFactionDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.LeaveFactionDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "leave_faction")

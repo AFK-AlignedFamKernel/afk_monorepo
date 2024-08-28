@@ -1,8 +1,9 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
+	"strconv"
+	"fmt"
 )
 
 type RedisConfig struct {
@@ -30,25 +31,33 @@ var DefaultDatabaseConfig = DatabaseConfig{
 	Postgres: PostgresConfig{
 		Host:     "localhost",
 		Port:     5432,
-		User:     "art-peace-user",
-		Database: "art-peace-db",
+		User:     "afk-user",
+		Database: "afk-db",
 	},
 }
 
-var DefaultDatabaseConfigPath = "./configs/database.config.json"
-
-func LoadDatabaseConfig(databaseConfigPath string) (*DatabaseConfig, error) {
-	file, err := os.Open(databaseConfigPath)
+func LoadDatabaseConfig() (*DatabaseConfig, error) {
+	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid REDIS_PORT: %v", err)
 	}
-	defer file.Close()
 
-	decoder := json.NewDecoder(file)
-	config := DatabaseConfig{}
-	err = decoder.Decode(&config)
+	postgresPort, err := strconv.Atoi(os.Getenv("POSTGRES_PORT"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid POSTGRES_PORT: %v", err)
+	}
+
+	config := DatabaseConfig{
+		Redis: RedisConfig{
+		Host: os.Getenv("REDIS_HOST"),
+		Port: redisPort,
+		},
+		Postgres: PostgresConfig{
+			Host:     os.Getenv("POSTGRES_HOST"),
+			Port:     postgresPort,
+			User:     os.Getenv("POSTGRES_USER"),
+			Database: os.Getenv("POSTGRES_DATABASE"),
+		},
 	}
 
 	return &config, nil

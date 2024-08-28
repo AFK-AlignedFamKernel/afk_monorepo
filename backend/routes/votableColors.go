@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 type VotableColor struct {
@@ -20,7 +20,7 @@ type VotableColor struct {
 func InitVotableColorsRoutes() {
 	http.HandleFunc("/init-votable-colors", InitVotableColors)
 	http.HandleFunc("/votable-colors", GetVotableColorsWithVoteCount)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/vote-color-devnet", voteColorDevnet)
 	}
 }
@@ -51,7 +51,7 @@ func InitVotableColors(w http.ResponseWriter, r *http.Request) {
 
 	// Proceed with inserting unique colors into the VotableColors table
 	for idx, colorHex := range *colors {
-		_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), `
+		_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), `
 			INSERT INTO VotableColors (day_index, color_key, hex)
 			VALUES ($1, $2, $3)
 		`, 0, idx+1, colorHex)
@@ -111,13 +111,13 @@ func voteColorDevnet(w http.ResponseWriter, r *http.Request) {
 
 	// Validate color format
 	// TODO: Get length from postgres
-	votableColorsLength := len(core.ArtPeaceBackend.CanvasConfig.VotableColors)
+	votableColorsLength := len(core.AFKBackend.CanvasConfig.VotableColors)
 	if colorIndex <= 0 || colorIndex > votableColorsLength {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid colorIndex, out of range")
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.VoteColorDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.VoteColorDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "vote_color", strconv.Itoa(colorIndex))

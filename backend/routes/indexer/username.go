@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processUsernameClaimedEvent(event IndexerEvent) {
@@ -30,7 +30,7 @@ func processUsernameClaimedEvent(event IndexerEvent) {
 	username := string(trimmedUsername)
 
 	// Set username in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Users (address, name) VALUES ($1, $2)", address, username)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Users (address, name) VALUES ($1, $2)", address, username)
 	if err != nil {
 		PrintIndexerError("processUsernameClaimedEvent", "Error inserting username into postgres", address, username)
 		return
@@ -41,7 +41,7 @@ func revertUsernameClaimedEvent(event IndexerEvent) {
 	address := event.Event.Keys[1][2:] // Remove 0x prefix
 
 	// Remove username from postgres
-	_, err := core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Users WHERE address = $1", address)
+	_, err := core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Users WHERE address = $1", address)
 	if err != nil {
 		PrintIndexerError("revertUsernameClaimedEvent", "Error deleting username from postgres", address, "")
 		return
@@ -71,7 +71,7 @@ func processUsernameChangedEvent(event IndexerEvent) {
 	username := string(trimmedUsername)
 
 	// Set username in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Users SET name = $1 WHERE address = $2", username, address)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Users SET name = $1 WHERE address = $2", username, address)
 	if err != nil {
 		PrintIndexerError("processUsernameChangedEvent", "Error updating username in postgres", address, username)
 		return
