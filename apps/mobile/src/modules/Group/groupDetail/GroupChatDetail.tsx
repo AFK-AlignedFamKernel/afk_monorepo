@@ -18,7 +18,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const {publicKey: pubKey} = useAuth();
   const queryClient = useQueryClient();
   const {showToast} = useToast();
-  const datas = useGetGroupMemberList({
+  const memberListData = useGetGroupMemberList({
     groupId: route.params.groupId,
   });
   const {mutate} = useDeleteGroup();
@@ -113,13 +113,15 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
             </TouchableOpacity>
             <View style={styles.headerTextContainer}>
               <Text style={styles.groupName}>{route.params.groupName}</Text>
-              <Text style={styles.memberCount}>{datas.data.pages.flat().length} members</Text>
+              <Text style={styles.memberCount}>
+                {memberListData.data.pages.flat().length} members
+              </Text>
             </View>
           </View>
         </View>
 
         <FlatList
-          data={datas.data.pages.flat()}
+          data={memberListData.data.pages.flat()}
           renderItem={({item}: any) => <MemberCard item={item} handleOpen={() => onOpen(item)} />}
           keyExtractor={(item: any) => item.id}
           contentContainerStyle={styles.memberList}

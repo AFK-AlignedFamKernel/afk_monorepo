@@ -18,7 +18,7 @@ import stylesheet from './styles';
 
 const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
   const {publicKey} = useAuth();
-  const datas = useGetGroupMemberList({
+  const memberListData = useGetGroupMemberList({
     groupId: route.params.groupId,
   });
   const profile = useProfile({publicKey});
@@ -87,7 +87,9 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{route.params.groupName}</Text>
 
-          <Text style={styles.headerSubtitle}>{datas.data.pages.flat().length} members</Text>
+          <Text style={styles.headerSubtitle}>
+            {memberListData.data.pages.flat().length} members
+          </Text>
         </View>
         <TouchableOpacity
           onPress={() =>
