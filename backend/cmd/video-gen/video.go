@@ -11,7 +11,6 @@ import (
 
 func main() {
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
 	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 
 	flag.Parse()
@@ -21,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	databaseConfig, err := config.LoadDatabaseConfig()
 	if err != nil {
 		panic(err)
 	}

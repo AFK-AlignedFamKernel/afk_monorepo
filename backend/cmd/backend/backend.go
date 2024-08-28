@@ -20,7 +20,6 @@ func isFlagSet(name string) bool {
 
 func main() {
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
 	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 	production := flag.Bool("production", false, "Production mode")
 	admin := flag.Bool("admin", false, "Admin mode")
@@ -32,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	databaseConfig, err := config.LoadDatabaseConfig()
 	if err != nil {
 		panic(err)
 	}
