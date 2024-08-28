@@ -30,7 +30,7 @@ pub enum BondingType {
 // Storage
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
-pub struct TokenQuoteBuyKeys {
+pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
     pub initial_key_price: u256,
     pub price: u256,
@@ -69,7 +69,7 @@ pub struct TokenLaunch {
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyKeys,
+    pub token_quote: TokenQuoteBuyCoin,
     pub liquidity_raised: u256,
     pub token_holded: u256,
     pub is_liquidity_launch: bool,
@@ -87,14 +87,14 @@ pub struct TokenLaunchFair {
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyKeys,
+    pub token_quote: TokenQuoteBuyCoin,
     pub final_time: u64,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]
-pub struct SharesKeys {
+pub struct SharesTokenUser {
     pub owner: ContractAddress,
-    pub key_address: ContractAddress,
+    pub token_address: ContractAddress,
     pub amount_owned: u256,
     pub amount_buy: u256,
     pub amount_sell: u256,
@@ -183,6 +183,17 @@ pub struct SetJediwapV2Factory {
 #[derive(Drop, starknet::Event)]
 pub struct SetJediwapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
+}
+
+
+#[derive(Drop, starknet::Event)]
+pub struct LiquidityCanBeAdded {
+    #[key]
+    pub pool: ContractAddress,
+    #[key]
+    pub asset: ContractAddress,
+    #[key]
+    pub quote_token_address: ContractAddress,
 }
 
 #[derive(Drop, starknet::Event)]
