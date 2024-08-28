@@ -4,6 +4,7 @@ test = "solidity_contracts/test"
 out = "out"
 libs = ["solidity_contracts/lib", "lib/kakarot-rpc"]
 remappings = [
-    "@openzeppelin/=lib/openzeppelin-contracts-upgradeable/"
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/contracts/"
 ]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
