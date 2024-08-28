@@ -52,5 +52,6 @@ pub mod tests {
     pub mod keys_tests;
     pub mod launchpad_tests;
     pub mod tap_tests;
+    pub mod vault_tests;
 }
 
