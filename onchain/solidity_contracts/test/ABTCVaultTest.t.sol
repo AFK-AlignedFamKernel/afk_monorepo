@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MockWrappedBTC is ERC20 {
     constructor(string memory name, string memory symbol) ERC20(name, symbol) {
-        _mint(msg.sender, 1000000 * 10**18);
+        _mint(msg.sender, 1000000 * 10 ** 18);
     }
 }
 
@@ -48,16 +48,19 @@ contract ABTCVaultTest is Test {
     }
 
     function testSetWrappedBTCToken() public {
-        vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
-        (bool isPermitted, uint256 ratio, uint256 poolingTimestamp) = vault.wrappedBTCTokens(address(wbtc));
+        vault.setWrappedBTCToken(address(wbtc), true, block.timestamp);
+        (bool isPermitted, uint256 poolingTimestamp) = vault.wrappedBTCTokens(
+            address(wbtc)
+        );
         assertTrue(isPermitted);
-        assertEq(ratio, 1e18);
         assertEq(poolingTimestamp, block.timestamp);
     }
 
     function testSetWrappedBTCTokenUnauthorized() public {
         vm.prank(user1);
-        vm.expectRevert("AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000");
+        vm.expectRevert(
+            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
         vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
     }
 
@@ -85,8 +88,14 @@ contract ABTCVaultTest is Test {
 
         uint256 withdrawAmount = 50 * 1e18;
         vault.withdraw(address(wbtc), withdrawAmount);
-        assertEq(vault.balanceOf(address(this)), depositAmount - withdrawAmount);
-        assertEq(wbtc.balanceOf(address(this)), 1000000 * 1e18 - depositAmount + withdrawAmount);
+        assertEq(
+            vault.balanceOf(address(this)),
+            depositAmount - withdrawAmount
+        );
+        assertEq(
+            wbtc.balanceOf(address(this)),
+            1000000 * 1e18 - depositAmount + withdrawAmount
+        );
     }
 
     function testWithdrawInsufficientBalance() public {
@@ -109,7 +118,9 @@ contract ABTCVaultTest is Test {
     function testMintUnauthorized() public {
         uint256 mintAmount = 100 * 1e18;
         vm.prank(user1);
-        vm.expectRevert("AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6");
+        vm.expectRevert(
+            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6"
+        );
         vault.mint(user2, mintAmount);
     }
 
@@ -124,7 +135,9 @@ contract ABTCVaultTest is Test {
         uint256 mintAmount = 100 * 1e18;
         vault.mint(user1, mintAmount);
         vm.prank(user1);
-        vm.expectRevert("AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6");
+        vm.expectRevert(
+            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6"
+        );
         vault.burn(user1, mintAmount);
     }
 
@@ -135,7 +148,9 @@ contract ABTCVaultTest is Test {
 
     function testPauseUnauthorized() public {
         vm.prank(user1);
-        vm.expectRevert("AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a");
+        vm.expectRevert(
+            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a"
+        );
         vault.pause();
     }
 
