@@ -9,6 +9,7 @@ export type UseSearch = {
   search?: string;
   kind?: NDKKind;
   kinds?: NDKKind[];
+  sortBy?: string;
 };
 
 export const useSearch = (options?: UseSearch) => {
