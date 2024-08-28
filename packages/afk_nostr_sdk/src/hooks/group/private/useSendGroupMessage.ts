@@ -13,17 +13,59 @@ export const useSendGroupMessages = () => {
       pubkey: string;
       content: string;
       groupId: string;
-      tag?: string[];
-      previousEventIds?: string[];
+      name?: string;
+      replyId: string;
     }) => {
       const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupNote;
       event.content = data.content;
+      // Set the kind based on whether it's a reply or not
+      event.kind = data.replyId ? NDKKind.GroupReply : NDKKind.GroupNote; // Using literal kind values
+
+      // Base tags
       event.tags = [
         ['h', data.groupId],
-        ['previous', ...(data.previousEventIds ?? [])],
+        ['p', data.pubkey],
+        ['name', data.name],
       ];
+
+      // Check if it's a reply and append NIP-10 markers
+      if (data.replyId) {
+        event.tags.push(['e', data.replyId, '', 'reply']);
+      }
+
       return event.publish();
     },
   });
 };
+
+// const data = [
+//   {
+//     id: 1,
+//     content: 'Root Note',
+//     tags: [
+//       ['h', 'groupId'],
+//       ['p', 'pubKey'],
+//       ['name', 'nip4'],
+//     ],
+//   },
+//   {
+//     id: 2,
+//     content: 'Reply root Note',
+//     tags: [
+//       ['h', 'groupId'],
+//       ['p', 'pubKey'],
+//       ['name', 'nip4'],
+//       ['e', 1, '', 'reply'],
+//     ],
+
+//     reply: {
+//       id: 1,
+//       content: 'Root Note',
+//       tags: [
+//         ['h', 'groupId'],
+//         ['p', 'pubKey'],
+//         ['name', 'nip4'],
+//       ],
+//     },
+//   },
+// ];

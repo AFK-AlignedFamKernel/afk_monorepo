@@ -7,6 +7,8 @@ interface UseGetActiveGroupListOptions {
   search?: string;
   limit?: number;
   groupId: string;
+  authors: string;
+  content?: string;
 }
 
 export const useGetGroupMessages = (options: UseGetActiveGroupListOptions) => {
@@ -24,16 +26,48 @@ export const useGetGroupMessages = (options: UseGetActiveGroupListOptions) => {
     },
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
-        kinds: [NDKKind.GroupNote],
+        '#h': [options.groupId],
+        kinds: [NDKKind.GroupNote, NDKKind.GroupReply],
+        authors: [options?.authors],
+        search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,
-        search: options?.search,
-        '#h': [options.groupId],
       });
 
-      return events ?? null;
-    },
+      const eventMap = new Map();
+      const replyMap = new Map();
 
+      // Single pass: Store all events and process replies
+      events.forEach((event) => {
+        eventMap.set(event.id, event);
+
+        const replyTag = event.tags.find((tag) => tag[0] === 'e' && tag[3] === 'reply');
+        if (replyTag) {
+          const rootId = replyTag[1];
+          const rootMessage = eventMap.get(rootId);
+          if (rootMessage) {
+            event['reply'] = rootMessage;
+          } else {
+            if (!replyMap.has(rootId)) {
+              replyMap.set(rootId, []);
+            }
+            replyMap.get(rootId).push(event);
+          }
+        }
+      });
+
+      // Process any remaining replies
+      replyMap.forEach((replies, rootId) => {
+        const rootMessage = eventMap.get(rootId);
+        if (rootMessage) {
+          replies.forEach((reply) => {
+            reply['reply'] = rootMessage;
+          });
+        }
+      });
+
+      return [...eventMap.values()];
+    },
     placeholderData: {pages: [], pageParams: []},
   });
 };
