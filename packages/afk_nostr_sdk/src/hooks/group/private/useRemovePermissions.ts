@@ -17,7 +17,8 @@ export const useRemovePermissions = () => {
       groupId: string;
     }) => {
       const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminRemovePermission;
+      event.kind = 9004 // NDKKind.GroupAdminRemovePermission;
+
       event.tags = [
         ['d', data.groupId],
         ['p', data.pubkey, ...data.permissionName],

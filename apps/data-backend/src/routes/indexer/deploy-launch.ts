@@ -10,13 +10,9 @@ const Router = express.Router()
 Router.get('/', async (req, res) => {
   try {
     const launches = await prisma.token_launch.findMany({})
-    // console.log("launches", launches)
     res.status(HTTPStatus.OK).json({
       data:launches
     })
-    // res.status(HTTPStatus.OK).json({
-    //   data: launches
-    // })
   } catch (error) {
     res.status(HTTPStatus.InternalServerError).send(error)
   }
@@ -63,7 +59,5 @@ Router.get('/stats/:launch', async (req, res) => {
       res.status(HTTPStatus.InternalServerError).send(error)
   }
 })
-
-
 
 export default Router

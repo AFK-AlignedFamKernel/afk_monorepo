@@ -50,13 +50,13 @@ export function MobileNavBar({setToggle, toggle}: Props) {
           className="flex h-full w-full items-center justify-center rounded-md bg-redPrimary p-2 text-center"
         >
           <ul className="flex w-[90%] flex-col gap-8 text-left">
-            <li className="">Servers</li>
             <li className="">
               <Link href="/features">Features </Link>
-              Features
             </li>
-            {/* <li className="">Ecosystem</li> */}
-            {/* <li className="">Developers</li> */}
+
+            <li className="">
+              <Link href="/pixel">Pixel </Link>
+            </li>
             <li>
               <button className="py-[12px] w-[145px] bg-[#8DAEF1]">
                 {' '}
@@ -66,9 +66,6 @@ export function MobileNavBar({setToggle, toggle}: Props) {
                 </a>
               </button>
             </li>
-            {/* <li>
-              <button className="py-[12px] w-[145px] bg-white text-black"><a  href="https://app.afk-community.xyz" target='_blank'> Log in </a> </button>
-            </li> */}
           </ul>
         </motion.div>
       </div>
