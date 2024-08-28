@@ -22,7 +22,7 @@ export const config = {
     filter,
     sinkType: 'postgres',
     sinkOptions: {
-        connectionString: 'Your Connection String Here',
+        connectionString: '',
         tableName: 'token_launch',
     },
 }
