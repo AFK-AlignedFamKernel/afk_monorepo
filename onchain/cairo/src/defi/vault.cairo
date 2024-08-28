@@ -89,12 +89,12 @@ pub mod Vault {
             let token_mintable = IERC20MintableDispatcher {
                 contract_address: self.token_address.read()
             };
-            let token = self.token_permitted.read(token_address);
+            let _token = self.token_permitted.read(token_address);
 
-            // Calculate the ratio if 1:1, less or more
-            let amount_ratio = token.ratio_mint * amount;
+            //TODO Calculate the ratio if 1:1, less or more
+            // let amount_ratio = token.ratio_mint * amount;
 
-            token_mintable.mint(caller, amount_ratio);
+            token_mintable.mint(caller, amount);
 
             // update user deposit state
             let mut old_deposit_user = self.deposit_by_user.read(caller);
@@ -105,12 +105,12 @@ pub mod Vault {
                     DepositUser {
                         token_address: token_address,
                         deposited: amount,
-                        minted: amount_ratio,
+                        minted: amount,
                         withdraw: 0,
                     };
             } else {
                 deposit_user.deposited += amount;
-                deposit_user.minted += amount_ratio;
+                deposit_user.minted += amount;
             }
 
             self.deposit_by_user.write(caller, deposit_user);
@@ -123,7 +123,7 @@ pub mod Vault {
                         caller: caller,
                         token_deposited: token_address,
                         amount_deposit: amount,
-                        mint_receive: amount_ratio
+                        mint_receive: amount
                     }
                 );
         }
@@ -146,13 +146,14 @@ pub mod Vault {
 
             // Resend amount of coin deposit by user
             let token_deposited = IERC20Dispatcher { contract_address: token_address };
-            let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
-            token_deposited.transfer(caller, amount_ratio);
+            //TODO calculate ratio
+            // let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
+            token_deposited.transfer(caller, amount);
 
             // update user withdraw state
             let mut deposit_user = self.deposit_by_user.read(caller);
 
-            deposit_user.withdraw += amount_ratio;
+            deposit_user.withdraw += amount;
 
             self.deposit_by_user.write(caller, deposit_user);
             self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
@@ -164,7 +165,7 @@ pub mod Vault {
                         caller: caller,
                         token_deposited: self.token_address.read(),
                         amount_deposit: amount,
-                        mint_receive: amount_ratio,
+                        mint_receive: amount,
                         mint_to_get_after_poolin: 0,
                         pooling_interval: self.token_permitted.read(token_address).pooling_timestamp
                     }
