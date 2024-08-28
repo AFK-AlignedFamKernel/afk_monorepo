@@ -44,11 +44,11 @@ pub enum LinkedResult {
 #[starknet::interface]
 pub trait INamespace<TContractState> {
     // Getters
-    fn get_nostr_to_sn_default(
+    fn get_nostr_by_sn_default(
         self: @TContractState, nostr_public_key: NostrPublicKey
     ) -> ContractAddress;
 
-    fn get_sn_to_nostr_default(
+    fn get_sn_by_nostr_default(
         self: @TContractState, starknet_address: ContractAddress
     ) -> NostrPublicKey;
     // Admin
@@ -179,14 +179,14 @@ pub mod Namespace {
         }
 
         // Getters
-        fn get_nostr_to_sn_default(
+        fn get_nostr_by_sn_default(
             self: @ContractState, nostr_public_key: NostrPublicKey
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_public_key)
         }
 
 
-        fn get_sn_to_nostr_default(
+        fn get_sn_by_nostr_default(
             self: @ContractState, starknet_address: ContractAddress
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
@@ -360,7 +360,7 @@ mod tests {
         start_cheat_caller_address(namespace.contract_address, sender_address);
         namespace.linked_nostr_default_account(request);
 
-        let nostr_linked = namespace.get_nostr_to_sn_default(recipient_nostr_key);
+        let nostr_linked = namespace.get_nostr_by_sn_default(recipient_nostr_key);
         assert!(nostr_linked == sender_address, "nostr not linked");
     }
 
