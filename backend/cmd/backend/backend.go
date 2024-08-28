@@ -2,10 +2,13 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes"
+
+	"github.com/joho/godotenv"
 )
 
 func isFlagSet(name string) bool {
@@ -19,6 +22,11 @@ func isFlagSet(name string) bool {
 }
 
 func main() {
+	err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+	
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
 	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 	production := flag.Bool("production", false, "Production mode")
