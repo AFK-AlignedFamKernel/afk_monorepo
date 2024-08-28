@@ -1,9 +1,12 @@
+import {useQueryClient} from '@tanstack/react-query';
+import {useAuth, useGetGroupMessages, useSendGroupMessages} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {FlatList, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 
 import {BackIcon, MenuIcons} from '../../../assets/icons';
 import {IconButton, Input, KeyboardFixedView} from '../../../components';
 import {useStyles} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
 import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
 
@@ -27,14 +30,45 @@ const groupName = 'Project Team';
 const memberCount = 15;
 
 const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
+  const {publicKey} = useAuth();
+  const queryClient = useQueryClient();
+  const {showToast} = useToast();
+  const {data: messageData} = useGetGroupMessages({
+    groupId: route.params.groupId,
+  });
+  const {mutate} = useSendGroupMessages();
+
+  console.log(messageData, 'data');
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState(data);
 
   const sendMessage = () => {
-    if (message.trim() === '') return;
-    setMessages([...messages, {id: Date.now().toString(), text: message, sender: 'You'}]);
-    setMessage('');
+    // let tags = [['e', post?.id ?? '', '', 'root', note?.pubkey ?? '']];
+
+    mutate(
+      {
+        content: 'Hello World',
+        groupId: route.params.groupId,
+        pubkey: publicKey,
+        // tag: ['h', route.params.groupId],
+        tag: [],
+      },
+      {
+        onSuccess(data) {
+          console.log(data, 'data');
+
+          showToast({type: 'success', title: 'Message sent successfully'});
+          queryClient.invalidateQueries({queryKey: ['getGroupMessages', route.params.groupId]});
+        },
+        onError() {
+          showToast({
+            type: 'error',
+            title: 'Error! Comment could not be sent. Please try again later.',
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -71,7 +105,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
             placeholder="Send Message"
           />
 
-          <IconButton icon="SendIcon" size={24} />
+          <IconButton onPress={() => sendMessage()} icon="SendIcon" size={24} />
         </View>
       </KeyboardFixedView>
     </SafeAreaView>

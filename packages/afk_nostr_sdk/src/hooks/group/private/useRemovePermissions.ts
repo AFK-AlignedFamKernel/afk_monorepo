@@ -2,13 +2,11 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
 
 // TODO
 export const useRemovePermissions = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
 
   return useMutation({
     mutationKey: ['removePermissions', ndk],

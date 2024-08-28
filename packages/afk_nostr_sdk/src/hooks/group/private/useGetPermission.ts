@@ -29,7 +29,7 @@ export const useGetPermissionsByUserConnected = (groupId: string) => {
 };
 
 // Function for fetching permissions
-const fetchPermissions = async ({
+export const fetchPermissions = async ({
   ndk,
   groupId,
   pubkey,

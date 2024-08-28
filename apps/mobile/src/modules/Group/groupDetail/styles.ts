@@ -47,7 +47,7 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
   },
   memberName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     color: theme.colors.text,
   },
@@ -62,5 +62,36 @@ export default ThemedStyleSheet((theme) => ({
   iconButton: {
     backgroundColor: theme.colors.buttonDisabledBackground,
     padding: Spacing.small,
+  },
+  addMemberButton: {
+    position: 'absolute',
+    bottom: Spacing.large,
+    right: Spacing.pagePadding,
+  },
+
+  //Menu
+  menuContainer: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: theme.colors.text,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  actionText: {
+    marginLeft: 16,
+    fontSize: 16,
+    color: theme.colors.text,
+  },
+  deleteText: {
+    color: theme.colors.red,
   },
 }));

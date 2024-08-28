@@ -6,13 +6,12 @@ import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
 import {checkGroupPermission} from './useGetPermission';
 
-// TODO
 export const useRemoveMember = () => {
   const {ndk} = useNostrContext();
   const {publicKey: pubkey} = useAuth();
 
   return useMutation({
-    mutationKey: ['removeMemberGroup', ndk],
+    mutationKey: ['removeMemberGroup'],
     mutationFn: async (data: {pubkey: string; groupId: string}) => {
       const hasPermission = checkGroupPermission({
         groupId: data.groupId,

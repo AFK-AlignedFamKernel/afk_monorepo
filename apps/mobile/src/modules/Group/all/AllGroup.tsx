@@ -1,21 +1,17 @@
 import {useNavigation} from '@react-navigation/native';
+import {useAuth, useGetGroupList} from 'afk_nostr_sdk';
 import {FlatList, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 
-import {GlobeIcon, PadlockIcon, SlantedArrowIcon} from '../../../assets/icons';
+import {PadlockIcon, SlantedArrowIcon} from '../../../assets/icons';
 import {useStyles} from '../../../hooks';
 import {MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
 
-// Mock data for the groups
-const groups = [
-  {id: '1', name: 'Book Club', type: 'public'},
-  {id: '2', name: 'Family', type: 'private'},
-  {id: '3', name: 'Work Team', type: 'private'},
-  {id: '4', name: 'Hiking Enthusiasts', type: 'public'},
-  {id: '5', name: 'Local Community', type: 'public'},
-];
-
 export default function AllGroupListComponent() {
+  const {publicKey: pubKey} = useAuth();
+  const data = useGetGroupList({
+    pubKey,
+  });
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -25,21 +21,17 @@ export default function AllGroupListComponent() {
         <Text style={styles.headerTitle}>My Groups</Text>
       </View>
       <FlatList
-        data={groups}
-        renderItem={({item}) => (
+        data={data.data.pages.flat()}
+        renderItem={({item}: any) => (
           <TouchableOpacity
             onPress={() => navigation.navigate('GroupChat', {groupId: item.id})}
             style={styles.groupItem}
           >
             <View style={styles.groupInfo}>
-              <Text style={styles.groupName}>{item.name}</Text>
+              <Text style={styles.groupName}>{item.content || 'No Name'}</Text>
               <View style={styles.groupType}>
-                {item.type === 'private' ? (
-                  <PadlockIcon stroke="gray" />
-                ) : (
-                  <GlobeIcon stroke="gray" />
-                )}
-                <Text style={styles.groupTypeText}>{item.type}</Text>
+                <PadlockIcon stroke="gray" />
+                <Text style={styles.groupTypeText}>Private</Text>
               </View>
             </View>
             <View>
@@ -47,7 +39,7 @@ export default function AllGroupListComponent() {
             </View>
           </TouchableOpacity>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: any) => item.id}
         contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>

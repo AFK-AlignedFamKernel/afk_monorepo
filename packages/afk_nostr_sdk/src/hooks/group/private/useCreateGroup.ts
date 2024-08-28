@@ -9,9 +9,10 @@ export const useCreateGroup = () => {
 
   return useMutation({
     mutationKey: ['createGroup', ndk],
-    mutationFn: async (data?: {groupType: 'private' | 'public'}) => {
+    mutationFn: async (data?: {groupType: 'private' | 'public'; groupName: string}) => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminCreateGroup;
+      event.content = data.groupName;
       event.tags = [[data.groupType || 'private']];
       return event.publish();
     },
