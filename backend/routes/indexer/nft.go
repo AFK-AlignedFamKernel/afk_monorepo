@@ -82,7 +82,7 @@ func processNFTMintedEvent(event IndexerEvent) {
 	}
 
 	// Set NFT in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTs (token_id, position, width, height, name, image_hash, block_number, day_index, minter, owner) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", tokenId, position, width, height, name, imageHashHex, blockNumber, dayIndex, minter, minter)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTs (token_id, position, width, height, name, image_hash, block_number, day_index, minter, owner) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", tokenId, position, width, height, name, imageHashHex, blockNumber, dayIndex, minter, minter)
 	if err != nil {
 		PrintIndexerError("processNFTMintedEvent", "Error inserting NFT into postgres", tokenIdLowHex, tokenIdHighHex, positionHex, widthHex, heightHex, nameHex, imageHashHex, blockNumberHex, minter)
 		return
@@ -90,7 +90,7 @@ func processNFTMintedEvent(event IndexerEvent) {
 
 	// Load image from redis
 	ctx := context.Background()
-	canvas, err := core.ArtPeaceBackend.Databases.Redis.Get(ctx, "canvas").Result()
+	canvas, err := core.AFKBackend.Databases.Redis.Get(ctx, "canvas").Result()
 	if err != nil {
 		PrintIndexerError("processNFTMintedEvent", "Error getting canvas from redis", tokenIdLowHex, tokenIdHighHex, positionHex, widthHex, heightHex, nameHex, imageHashHex, blockNumberHex, minter)
 		return
@@ -121,15 +121,15 @@ func processNFTMintedEvent(event IndexerEvent) {
 		}
 		colorPalette[idx] = color.RGBA{R: uint8(r), G: uint8(g), B: uint8(b), A: 255}
 	}
-	bitWidth := int64(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth)
-	startX := int64(position % int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width))
-	startY := int64(position / int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width))
+	bitWidth := int64(core.AFKBackend.CanvasConfig.ColorsBitWidth)
+	startX := int64(position % int64(core.AFKBackend.CanvasConfig.Canvas.Width))
+	startY := int64(position / int64(core.AFKBackend.CanvasConfig.Canvas.Width))
 	oneByteBitOffset := int64(8 - bitWidth)
 	twoByteBitOffset := int64(16 - bitWidth)
 	generatedImage := image.NewRGBA(image.Rect(0, 0, int(width), int(height)))
 	for y := startY; y < startY+height; y++ {
 		for x := startX; x < startX+width; x++ {
-			pos := y*int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width) + x
+			pos := y*int64(core.AFKBackend.CanvasConfig.Canvas.Width) + x
 			bitPos := pos * bitWidth
 			bytePos := bitPos / 8
 			bitOffset := bitPos % 8
@@ -184,12 +184,12 @@ func processNFTMintedEvent(event IndexerEvent) {
 
 	// Create a NFT JSON metadata file
 
-	x := position % int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width)
-	y := position / int64(core.ArtPeaceBackend.CanvasConfig.Canvas.Width)
+	x := position % int64(core.AFKBackend.CanvasConfig.Canvas.Width)
+	y := position / int64(core.AFKBackend.CanvasConfig.Canvas.Width)
 	metadata := map[string]interface{}{
 		"name":        name,
 		"description": "User minted art/peace NFT from the canvas.",
-		"image":       fmt.Sprintf("%s/nft-images/nft-%d.png", core.ArtPeaceBackend.GetBackendUrl(), tokenId),
+		"image":       fmt.Sprintf("%s/nft-images/nft-%d.png", core.AFKBackend.GetBackendUrl(), tokenId),
 		"attributes": []map[string]interface{}{
 			{
 				"trait_type": "Width",
@@ -252,7 +252,7 @@ func revertNFTMintedEvent(event IndexerEvent) {
 	}
 	tokenId := tokenIdU256.Uint64()
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTs WHERE token_id = $1", tokenId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTs WHERE token_id = $1", tokenId)
 	if err != nil {
 		PrintIndexerError("reverseNFTMintedEvent", "Error deleting NFT from postgres", tokenIdLowHex)
 		return
@@ -273,7 +273,7 @@ func processNFTLikedEvent(event IndexerEvent) {
 	}
 	tokenId := tokenIdU256.Uint64()
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2) ON CONFLICT DO NOTHING", tokenId, liker)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2) ON CONFLICT DO NOTHING", tokenId, liker)
 	if err != nil {
 		PrintIndexerError("processNFTLikedEvent", "Error inserting NFT like into postgres", tokenIdLowHex, liker)
 		return
@@ -295,7 +295,7 @@ func revertNFTLikedEvent(event IndexerEvent) {
 	tokenId := tokenIdU256.Uint64()
 
 	// TODO: Check if like exists before event
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTLikes WHERE nftKey = $1 AND liker = $2", tokenId, liker)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTLikes WHERE nftKey = $1 AND liker = $2", tokenId, liker)
 	if err != nil {
 		PrintIndexerError("revertNFTLikedEvent", "Error deleting NFT like from postgres", tokenIdLowHex, liker)
 		return
@@ -314,7 +314,7 @@ func processNFTUnlikedEvent(event IndexerEvent) {
 	}
 	tokenId := tokenIdU256.Uint64()
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTLikes WHERE nftKey = $1 AND liker = $2", tokenId, unliker)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM NFTLikes WHERE nftKey = $1 AND liker = $2", tokenId, unliker)
 	if err != nil {
 		PrintIndexerError("processNFTUnlikedEvent", "Error deleting NFT like from postgres", tokenIdLowHex, unliker)
 		return
@@ -335,7 +335,7 @@ func revertNFTUnlikedEvent(event IndexerEvent) {
 	}
 	tokenId := tokenIdU256.Uint64()
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2) ON CONFLICT DO NOTHING", tokenId, unliker)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2) ON CONFLICT DO NOTHING", tokenId, unliker)
 	if err != nil {
 		PrintIndexerError("revertNFTUnlikedEvent", "Error inserting NFT like into postgres", tokenIdLowHex, unliker)
 		return

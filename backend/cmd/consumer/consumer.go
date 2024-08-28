@@ -48,7 +48,7 @@ func main() {
 	databases := core.NewDatabases(databaseConfig)
 	defer databases.Close()
 
-	core.ArtPeaceBackend = core.NewBackend(databases, canvasConfig, backendConfig, false)
+	core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, false)
 
 	routes.InitBaseRoutes()
 	indexer.InitIndexerRoutes()
@@ -56,5 +56,5 @@ func main() {
 	routes.InitNFTStaticRoutes()
 	indexer.StartMessageProcessor()
 
-	core.ArtPeaceBackend.Start(core.ArtPeaceBackend.BackendConfig.ConsumerPort)
+	core.AFKBackend.Start(core.AFKBackend.BackendConfig.ConsumerPort)
 }

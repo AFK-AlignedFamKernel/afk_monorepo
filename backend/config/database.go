@@ -36,8 +36,6 @@ var DefaultDatabaseConfig = DatabaseConfig{
 	},
 }
 
-var DefaultDatabaseConfigPath = "./configs/database.config.json"
-
 func LoadDatabaseConfig() (*DatabaseConfig, error) {
 	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	if err != nil {

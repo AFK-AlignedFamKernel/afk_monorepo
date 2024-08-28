@@ -52,14 +52,14 @@ func processDailyQuestClaimedEvent(event IndexerEvent) {
 
 	// TODO: Add calldata field & completed_at field
 	// Add daily quest info into postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO UserDailyQuests (user_address, day_index, quest_id, completed) VALUES ($1, $2, $3, $4)", user, dayIndex, questId, true)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO UserDailyQuests (user_address, day_index, quest_id, completed) VALUES ($1, $2, $3, $4)", user, dayIndex, questId, true)
 	if err != nil {
 		PrintIndexerError("processDailyQuestClaimedEvent", "Failed to insert daily quest into postgres", dayIndexHex, questIdHex, user, rewardHex, calldataLenHex, calldata)
 		return
 	}
 
 	// Update user's extra pixels
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ExtraPixels (address, available, used) VALUES ($1, $2, 0) ON CONFLICT (address) DO UPDATE SET available = ExtraPixels.available + $2", user, reward)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ExtraPixels (address, available, used) VALUES ($1, $2, 0) ON CONFLICT (address) DO UPDATE SET available = ExtraPixels.available + $2", user, reward)
 	if err != nil {
 		PrintIndexerError("processDailyQuestClaimedEvent", "Failed to update user's extra pixels", dayIndexHex, questIdHex, user, rewardHex, calldataLenHex, calldata)
 		return
@@ -100,14 +100,14 @@ func processMainQuestClaimedEvent(event IndexerEvent) {
 	}
 
 	// Add main quest info into postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO UserMainQuests (user_address, quest_id, completed) VALUES ($1, $2, $3)", user, questId, true)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO UserMainQuests (user_address, quest_id, completed) VALUES ($1, $2, $3)", user, questId, true)
 	if err != nil {
 		PrintIndexerError("processMainQuestClaimedEvent", "Failed to insert main quest into postgres", questIdHex, user, rewardHex, calldataLenHex, calldata)
 		return
 	}
 
 	// Update user's extra pixels
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ExtraPixels (address, available, used) VALUES ($1, $2, 0) ON CONFLICT (address) DO UPDATE SET available = ExtraPixels.available + $2", user, reward)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ExtraPixels (address, available, used) VALUES ($1, $2, 0) ON CONFLICT (address) DO UPDATE SET available = ExtraPixels.available + $2", user, reward)
 	if err != nil {
 		PrintIndexerError("processMainQuestClaimedEvent", "Failed to update user's extra pixels", questIdHex, user, rewardHex, calldataLenHex, calldata)
 		return

@@ -30,7 +30,7 @@ func InitColors(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, color := range *colors {
-		_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO colors (hex) VALUES ($1)", color)
+		_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO colors (hex) VALUES ($1)", color)
 		if err != nil {
 			routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert color: "+color)
 			return

@@ -126,7 +126,7 @@ func InitQuestsRoutes() {
 	http.HandleFunc("/get-daily-quest-progress", GetDailyQuestProgress)
 	http.HandleFunc("/get-today-quest-progress", GetTodayQuestProgress)
 	http.HandleFunc("/get-main-quest-progress", GetMainQuestProgress)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/claim-today-quest-devnet", ClaimTodayQuestDevnet)
 		http.HandleFunc("/claim-main-quest-devnet", ClaimMainQuestDevnet)
 		http.HandleFunc("/increase-day-devnet", IncreaseDayDevnet)
@@ -149,7 +149,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 	// Setup daily quests tables
 	for _, dailyQuestConfig := range questJson.DailyQuests.Quests {
 		for idx, questConfig := range dailyQuestConfig.Quests {
-			_, err := core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuests (name, description, reward, day_index, quest_id, quest_type) VALUES ($1, $2, $3, $4, $5, $6)", questConfig.Name, questConfig.Description, questConfig.Reward, dailyQuestConfig.Day-1, idx, questConfig.ContractConfig.Type)
+			_, err := core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuests (name, description, reward, day_index, quest_id, quest_type) VALUES ($1, $2, $3, $4, $5, $6)", questConfig.Name, questConfig.Description, questConfig.Reward, dailyQuestConfig.Day-1, idx, questConfig.ContractConfig.Type)
 			if err != nil {
 				fmt.Println("Error inserting daily quest, ", idx, err)
 				routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert daily quest")
@@ -170,7 +170,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuestsInput (day_index, quest_id, input_key, input_value) VALUES ($1, $2, $3, $4)", dailyQuestConfig.Day-1, idx, paramIdx, param)
+				_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuestsInput (day_index, quest_id, input_key, input_value) VALUES ($1, $2, $3, $4)", dailyQuestConfig.Day-1, idx, paramIdx, param)
 				if err != nil {
 					routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert daily quest input")
 					return
@@ -181,7 +181,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 
 			claimParamIdx := 0
 			for _, claimParam := range questConfig.ContractConfig.ClaimParams {
-				_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuestsClaimParams (day_index, quest_id, claim_key, claim_type, name, example, input) VALUES ($1, $2, $3, $4, $5, $6, $7)", dailyQuestConfig.Day-1, idx, claimParamIdx, claimParam.Type, claimParam.Name, claimParam.Example, claimParam.Input)
+				_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO DailyQuestsClaimParams (day_index, quest_id, claim_key, claim_type, name, example, input) VALUES ($1, $2, $3, $4, $5, $6, $7)", dailyQuestConfig.Day-1, idx, claimParamIdx, claimParam.Type, claimParam.Name, claimParam.Example, claimParam.Input)
 				if err != nil {
 					routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert daily quest claim param")
 					return
@@ -194,7 +194,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 
 	// Setup main quests tables
 	for idx, questConfig := range questJson.MainQuests.Quests {
-		_, err := core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuests (name, description, reward, quest_type) VALUES ($1, $2, $3, $4)", questConfig.Name, questConfig.Description, questConfig.Reward, questConfig.ContractConfig.Type)
+		_, err := core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuests (name, description, reward, quest_type) VALUES ($1, $2, $3, $4)", questConfig.Name, questConfig.Description, questConfig.Reward, questConfig.ContractConfig.Type)
 		if err != nil {
 			routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert main quest")
 			return
@@ -209,7 +209,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuestsInput (quest_id, input_key, input_value) VALUES ($1, $2, $3)", idx, paramIdx, param)
+			_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuestsInput (quest_id, input_key, input_value) VALUES ($1, $2, $3)", idx, paramIdx, param)
 			if err != nil {
 				routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert main quest input")
 				return
@@ -220,7 +220,7 @@ func InitQuests(w http.ResponseWriter, r *http.Request) {
 
 		claimParamIdx := 0
 		for _, claimParam := range questConfig.ContractConfig.ClaimParams {
-			_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuestsClaimParams (quest_id, claim_key, claim_type, name, example, input) VALUES ($1, $2, $3, $4, $5, $6)", idx, claimParamIdx, claimParam.Type, claimParam.Name, claimParam.Example, claimParam.Input)
+			_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO MainQuestsClaimParams (quest_id, claim_key, claim_type, name, example, input) VALUES ($1, $2, $3, $4, $5, $6)", idx, claimParamIdx, claimParam.Type, claimParam.Name, claimParam.Example, claimParam.Input)
 			if err != nil {
 				routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to insert main quest claim param")
 				return
@@ -609,7 +609,7 @@ func ClaimTodayQuestDevnet(w http.ResponseWriter, r *http.Request) {
 		calldata = "0"
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.ClaimTodayQuestDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.ClaimTodayQuestDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "claim_today_quest", strconv.Itoa(questId), calldata)
@@ -649,7 +649,7 @@ func ClaimMainQuestDevnet(w http.ResponseWriter, r *http.Request) {
 		calldata = "0"
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.ClaimTodayQuestDevnet // TODO
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.ClaimTodayQuestDevnet // TODO
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "claim_main_quest", strconv.Itoa(questId), calldata)
@@ -668,7 +668,7 @@ func IncreaseDayDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.IncreaseDayDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.IncreaseDayDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "increase_day_index")
