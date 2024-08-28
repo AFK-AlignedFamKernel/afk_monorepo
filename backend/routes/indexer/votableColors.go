@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processVotableColorAddedEvent(event IndexerEvent) {
@@ -27,7 +27,7 @@ func processVotableColorAddedEvent(event IndexerEvent) {
 	color := colorHex[len(colorHex)-6:]
 
 	// Set votable color in postgres ( or update if already exists )
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO VotableColors (day_index, color_key, hex) VALUES ($1, $2, $3)", dayIdx, colorKey, color)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO VotableColors (day_index, color_key, hex) VALUES ($1, $2, $3)", dayIdx, colorKey, color)
 	if err != nil {
 		PrintIndexerError("processVotableColorAddedEvent", "Error inserting color vote into postgres", dayIdxHex, colorHex)
 		return
@@ -51,7 +51,7 @@ func revertVotableColorAddedEvent(event IndexerEvent) {
 	}
 
 	// Remove vote from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM VotableColors WHERE day_index = $1 AND color_key = $2", dayIdx, colorKey)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM VotableColors WHERE day_index = $1 AND color_key = $2", dayIdx, colorKey)
 	if err != nil {
 		PrintIndexerError("revertVotableColorAddedEvent", "Error deleting votable color from postgres", dayIdxHex, colorKeyHex)
 		return

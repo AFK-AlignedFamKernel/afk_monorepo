@@ -8,7 +8,6 @@ RUN curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master
 RUN /bin/bash /root/.local/bin/snfoundryup --version 0.21.0
 
 # Copy over the configs
-COPY ./configs/docker-database.config.json ./database.config.json
 COPY ./configs/docker-backend.config.json ./backend.config.json
 
 # Copy over the scripts
@@ -20,6 +19,26 @@ WORKDIR /app
 COPY ./backend/go.mod ./backend/go.sum ./
 RUN go mod download
 COPY ./backend .
+
+# Argument for Redis host and port
+ARG REDIS_HOST
+ARG REDIS_PORT
+
+# Set Redis host and port environment variables
+ENV REDIS_HOST=${REDIS_HOST}
+ENV REDIS_PORT=${REDIS_PORT}
+
+# Argument for Postgres host, port, user, and database
+ARG POSTGRES_HOST
+ARG POSTGRES_PORT
+ARG POSTGRES_USER
+ARG POSTGRES_DATABASE
+
+# Set Postgres host, port, user, and database environment variables
+ENV POSTGRES_HOST=${POSTGRES_HOST}
+ENV POSTGRES_PORT=${POSTGRES_PORT}
+ENV POSTGRES_USER=${POSTGRES_USER}
+ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
 
 # Build the app & run it
 RUN go build -o main ./cmd/backend/backend.go

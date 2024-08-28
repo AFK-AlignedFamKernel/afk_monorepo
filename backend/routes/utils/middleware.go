@@ -3,14 +3,14 @@ package routeutils
 import (
 	"net/http"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 // Middleware functions for routes
 // Return true if middleware stops the request
 
 func NonProductionMiddleware(w http.ResponseWriter, r *http.Request) bool {
-	if core.ArtPeaceBackend.BackendConfig.Production {
+	if core.AFKBackend.BackendConfig.Production {
 		WriteErrorJson(w, http.StatusNotImplemented, "Route is disabled in production")
 		return true
 	}
@@ -25,7 +25,7 @@ func AuthMiddleware(w http.ResponseWriter, r *http.Request) bool {
 
 func AdminMiddleware(w http.ResponseWriter, r *http.Request) bool {
 	// TODO: Implement admin authentication
-	if core.ArtPeaceBackend.AdminMode {
+	if core.AFKBackend.AdminMode {
 		return false
 	} else {
 		WriteErrorJson(w, http.StatusUnauthorized, "Admin is required")

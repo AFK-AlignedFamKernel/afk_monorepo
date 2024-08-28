@@ -12,7 +12,7 @@ export const readContractSierraCasm = (name: string): CompiledSierraCasm =>
       .readFileSync(
         path.resolve(
           __dirname,
-          `../cairo_contracts/target/dev/cairo_contracts_${name}.compiled_contract_class.json`,
+          `../cairo/target/dev/afk_${name}.compiled_contract_class.json`,
         ),
       )
       .toString("ascii"),
@@ -24,7 +24,7 @@ export const readContractSierra = (name: string): CompiledSierra =>
       .readFileSync(
         path.resolve(
           __dirname,
-          `../cairo_contracts/target/dev/cairo_contracts_${name}.contract_class.json`,
+          `../cairo/target/dev/afk_${name}.contract_class.json`,
         ),
       )
       .toString("ascii"),

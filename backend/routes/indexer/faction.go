@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processFactionCreatedEvent(event IndexerEvent) {
@@ -52,7 +52,7 @@ func processFactionCreatedEvent(event IndexerEvent) {
 	}
 
 	// Add faction info into postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Factions (faction_id, name, leader, joinable, allocation) VALUES ($1, $2, $3, $4, $5)", factionId, name, leader, joinable, allocation)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Factions (faction_id, name, leader, joinable, allocation) VALUES ($1, $2, $3, $4, $5)", factionId, name, leader, joinable, allocation)
 	if err != nil {
 		PrintIndexerError("processFactionCreatedEvent", "Failed to insert faction into postgres", factionIdHex, nameHex, leader, joinableHex, allocationHex)
 		return
@@ -68,7 +68,7 @@ func revertFactionCreatedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Factions WHERE id = $1", factionId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Factions WHERE id = $1", factionId)
 	if err != nil {
 		PrintIndexerError("revertFactionCreatedEvent", "Failed to delete faction from postgres", factionIdHex)
 		return
@@ -85,7 +85,7 @@ func processFactionLeaderChangedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Factions SET leader = $1 WHERE faction_id = $2", newLeader, factionId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Factions SET leader = $1 WHERE faction_id = $2", newLeader, factionId)
 	if err != nil {
 		PrintIndexerError("processFactionLeaderChangedEvent", "Failed to update faction leader in postgres", factionIdHex, newLeader)
 		return
@@ -106,7 +106,7 @@ func processFactionJoinedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
 	if err != nil {
 		PrintIndexerError("processFactionJoinedEvent", "Failed to insert faction member into postgres", factionIdHex, userAddress)
 		return
@@ -123,7 +123,7 @@ func revertFactionJoinedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
 	if err != nil {
 		PrintIndexerError("revertFactionJoinedEvent", "Failed to delete faction member from postgres", factionIdHex, userAddress)
 		return
@@ -140,7 +140,7 @@ func processFactionLeftEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
 	if err != nil {
 		PrintIndexerError("processFactionLeftEvent", "Failed to delete faction member from postgres", factionIdHex, userAddress)
 		return
@@ -158,7 +158,7 @@ func revertFactionLeftEvent(event IndexerEvent) {
 	}
 
 	// TODO: Stash the last_placed_time and member_pixels in the event data
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
 	if err != nil {
 		PrintIndexerError("revertFactionLeftEvent", "Failed to insert faction member into postgres", factionIdHex, userAddress)
 		return
@@ -193,7 +193,7 @@ func processChainFactionCreatedEvent(event IndexerEvent) {
 	name := string(trimmedName)
 
 	// Add faction info into postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactions (faction_id, name) VALUES ($1, $2)", factionId, name)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactions (faction_id, name) VALUES ($1, $2)", factionId, name)
 	if err != nil {
 		PrintIndexerError("processChainFactionCreatedEvent", "Failed to insert faction into postgres", factionIdHex, nameHex)
 		return
@@ -209,7 +209,7 @@ func revertChainFactionCreatedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactions WHERE faction_id = $1", factionId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactions WHERE faction_id = $1", factionId)
 	if err != nil {
 		PrintIndexerError("revertChainFactionCreatedEvent", "Failed to delete faction from postgres", factionIdHex)
 		return
@@ -226,7 +226,7 @@ func processChainFactionJoinedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactionMembersInfo (faction_id, user_address, last_placed_time, member_pixels) VALUES ($1, $2, TO_TIMESTAMP($3), $4)", factionId, userAddress, 0, 0)
 	if err != nil {
 		PrintIndexerError("processChainFactionJoinedEvent", "Failed to insert faction member into postgres", factionIdHex, userAddress)
 		return
@@ -243,7 +243,7 @@ func revertChainFactionJoinedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactionMembersInfo WHERE faction_id = $1 AND user_address = $2", factionId, userAddress)
 	if err != nil {
 		PrintIndexerError("revertChainFactionJoinedEvent", "Failed to delete faction member from postgres", factionIdHex, userAddress)
 		return

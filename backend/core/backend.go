@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/keep-starknet-strange/art-peace/backend/config"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 )
 
 type Backend struct {
@@ -21,7 +21,7 @@ type Backend struct {
 	AdminMode bool
 }
 
-var ArtPeaceBackend *Backend
+var AFKBackend *Backend
 
 func NewBackend(databases *Databases, canvasConfig *config.CanvasConfig, backendConfig *config.BackendConfig, adminMode bool) *Backend {
 	return &Backend{

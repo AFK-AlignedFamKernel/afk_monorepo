@@ -3,7 +3,7 @@ package indexer
 import (
 	"context"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processNFTTransferEvent(event IndexerEvent) {
@@ -20,7 +20,7 @@ func processNFTTransferEvent(event IndexerEvent) {
 	tokenId := tokenIdU256.Uint64()
 
 	// Set owner
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE NFTs SET owner = $1 WHERE token_id = $2", to, tokenId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE NFTs SET owner = $1 WHERE token_id = $2", to, tokenId)
 	if err != nil {
 		PrintIndexerError("processNFTTransferEvent", "Error updating owner in postgres", to, tokenIdLowHex, tokenIdHighHex)
 		return
@@ -41,7 +41,7 @@ func revertNFTTransferEvent(event IndexerEvent) {
 	tokenId := tokenIdU256.Uint64()
 
 	// Set owner
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE NFTs SET owner = $1 WHERE token_id = $2", from, tokenId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE NFTs SET owner = $1 WHERE token_id = $2", from, tokenId)
 	if err != nil {
 		PrintIndexerError("revertNFTTransferEvent", "Error updating owner in postgres", from, tokenIdLowHex, tokenIdHighHex)
 		return

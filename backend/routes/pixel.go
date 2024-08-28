@@ -7,14 +7,14 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
-	routeutils "github.com/keep-starknet-strange/art-peace/backend/routes/utils"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
+	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitPixelRoutes() {
 	http.HandleFunc("/get-pixel", getPixel)
 	http.HandleFunc("/get-pixel-info", getPixelInfo)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/place-pixel-devnet", placePixelDevnet)
 		http.HandleFunc("/place-extra-pixels-devnet", placeExtraPixelsDevnet)
 	}
@@ -30,16 +30,16 @@ func getPixel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if position is within canvas bounds
-	if position < 0 || position >= (int(core.ArtPeaceBackend.CanvasConfig.Canvas.Width)*int(core.ArtPeaceBackend.CanvasConfig.Canvas.Height)) {
+	if position < 0 || position >= (int(core.AFKBackend.CanvasConfig.Canvas.Width)*int(core.AFKBackend.CanvasConfig.Canvas.Height)) {
 		http.Error(w, "Position out of range", http.StatusBadRequest)
 		return
 	}
 
-	bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-	pos := uint(position) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 	ctx := context.Background()
-	val, err := core.ArtPeaceBackend.Databases.Redis.BitField(ctx, "canvas", "GET", bitfieldType, pos).Result()
+	val, err := core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "GET", bitfieldType, pos).Result()
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error getting pixel")
 		return
@@ -109,7 +109,7 @@ func placePixelDevnet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate position range
-	if position < 0 || position >= int(core.ArtPeaceBackend.CanvasConfig.Canvas.Width*core.ArtPeaceBackend.CanvasConfig.Canvas.Height) {
+	if position < 0 || position >= int(core.AFKBackend.CanvasConfig.Canvas.Width*core.AFKBackend.CanvasConfig.Canvas.Height) {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Position out of range")
 		return
 	}
@@ -125,7 +125,7 @@ func placePixelDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.PlacePixelDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.PlacePixelDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "place_pixel", strconv.Itoa(position), strconv.Itoa(color), strconv.Itoa(timestamp))
@@ -155,7 +155,7 @@ func placeExtraPixelsDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.PlaceExtraPixelsDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.PlaceExtraPixelsDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	positions := strconv.Itoa(len(jsonBody.ExtraPixels))
@@ -190,8 +190,8 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 	position := (*jsonBody)["position"]
 	color := (*jsonBody)["color"]
 
-	canvasWidth := core.ArtPeaceBackend.CanvasConfig.Canvas.Width
-	canvasHeight := core.ArtPeaceBackend.CanvasConfig.Canvas.Height
+	canvasWidth := core.AFKBackend.CanvasConfig.Canvas.Width
+	canvasHeight := core.AFKBackend.CanvasConfig.Canvas.Height
 
 	// Validate position range
 	if position >= canvasWidth*canvasHeight {
@@ -211,11 +211,11 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-	pos := position * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := position * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 	ctx := context.Background()
-	err = core.ArtPeaceBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()
+	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error setting pixel on redis")
 		return

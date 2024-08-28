@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func InitWebsocketRoutes() {
@@ -28,8 +28,8 @@ func wsReader(conn *websocket.Conn) {
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  core.ArtPeaceBackend.BackendConfig.WebSocket.ReadBufferSize,
-		WriteBufferSize: core.ArtPeaceBackend.BackendConfig.WebSocket.WriteBufferSize,
+		ReadBufferSize:  core.AFKBackend.BackendConfig.WebSocket.ReadBufferSize,
+		WriteBufferSize: core.AFKBackend.BackendConfig.WebSocket.WriteBufferSize,
 	}
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
@@ -39,8 +39,8 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	core.ArtPeaceBackend.WSConnectionsLock.Lock()
-	core.ArtPeaceBackend.WSConnections = append(core.ArtPeaceBackend.WSConnections, ws)
-	core.ArtPeaceBackend.WSConnectionsLock.Unlock()
+	core.AFKBackend.WSConnectionsLock.Lock()
+	core.AFKBackend.WSConnections = append(core.AFKBackend.WSConnections, ws)
+	core.AFKBackend.WSConnectionsLock.Unlock()
 	wsReader(ws)
 }

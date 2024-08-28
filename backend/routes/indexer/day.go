@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/keep-starknet-strange/art-peace/backend/core"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 )
 
 func processNewDayEvent(event IndexerEvent) {
@@ -24,7 +24,7 @@ func processNewDayEvent(event IndexerEvent) {
 	}
 
 	// Set day in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Days (day_index, day_start) VALUES ($1, to_timestamp($2))", dayIdx, dayStartTime)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Days (day_index, day_start) VALUES ($1, to_timestamp($2))", dayIdx, dayStartTime)
 	if err != nil {
 		PrintIndexerError("processNewDayEvent", "Error inserting day into postgres", dayIdx, dayStartTime)
 		return
@@ -41,7 +41,7 @@ func revertNewDayEvent(event IndexerEvent) {
 	}
 
 	// Delete day from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Days WHERE day_index = $1", dayIdx)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Days WHERE day_index = $1", dayIdx)
 	if err != nil {
 		PrintIndexerError("revertNewDayEvent", "Error deleting day from postgres", dayIdx)
 		return
