@@ -13,7 +13,10 @@ interface ISearchComponent {
   setSearchQuery: (search: string) => void;
   kinds?: NDKKind[];
   setKinds?: (kinds: NDKKind[]) => void;
-  contactList: string[];
+  contactList?: string[];
+  setSortBy?: (sort:string) => void;
+  sortBy?:string;
+
 }
 
 const SearchComponent: React.FC<ISearchComponent> = ({
@@ -22,14 +25,17 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   kinds = [],
   setKinds = () => {},
   contactList,
+  sortBy,
+  setSortBy
 }) => {
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
-  const [activeSortBy, setActiveSortBy] = useState<string>('');
+  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? "trending");
 
   const handleSortChange = (sortBy: string) => {
     setActiveSortBy(sortBy);
+    setSortBy
   };
 
   useEffect(() => {
@@ -46,12 +52,12 @@ const SearchComponent: React.FC<ISearchComponent> = ({
     setDebouncedQuery(text);
   };
 
-  const {data, isLoading, isError} = useSearch({
-    search: searchQuery,
-    kinds,
-    authors: contactList,
-    sortBy: activeSortBy,
-  });
+  // const {data, isLoading, isError} = useSearch({
+  //   search: searchQuery,
+  //   kinds,
+  //   authors: contactList,
+  //   sortBy: activeSortBy,
+  // });
 
   return (
     <View style={styles.container}>
