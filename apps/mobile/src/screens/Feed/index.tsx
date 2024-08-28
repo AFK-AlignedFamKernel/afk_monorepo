@@ -36,11 +36,10 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
     [];
 
+  // Filter notes based on the search query
   const filteredNotes = notes.data?.pages
     .flat()
     .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true));
-
-  const combinedData = [...(profilesSearch ?? []), ...(filteredNotes ?? [])];
 
   return (
     <View style={styles.container}>
@@ -59,16 +58,24 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       />
 
       <FlatList
+        contentContainerStyle={styles.stories}
+        horizontal
+        data={profilesSearch}
+        showsHorizontalScrollIndicator={false}
+        onEndReached={() => profiles.fetchNextPage()}
+        refreshControl={
+          <RefreshControl refreshing={profiles.isFetching} onRefresh={() => profiles.refetch()} />
+        }
+        ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
+        renderItem={({item}) => <BubbleUser event={item} />}
+      />
+
+      <FlatList
         contentContainerStyle={styles.flatListContent}
-        data={combinedData}
+        data={filteredNotes}
         keyExtractor={(item) => item?.id}
         renderItem={({item}) => {
-          if (item.kind === undefined) {
-            return <BubbleUser event={item} />;
-          } else if (
-            item.kind === NDKKind.ChannelCreation ||
-            item.kind === NDKKind.ChannelMetadata
-          ) {
+          if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
           } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
@@ -76,18 +83,9 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
           return <></>;
         }}
         refreshControl={
-          <RefreshControl
-            refreshing={notes.isFetching || profiles.isFetching}
-            onRefresh={() => {
-              notes.refetch();
-              profiles.refetch();
-            }}
-          />
+          <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
         }
-        onEndReached={() => {
-          notes.fetchNextPage();
-          profiles.fetchNextPage();
-        }}
+        onEndReached={() => notes.fetchNextPage()}
       />
 
       <Pressable
