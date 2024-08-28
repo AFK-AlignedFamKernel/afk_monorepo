@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod vault_test {
     use afk::defi::vault::Vault::Event;
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::defi_types::{
@@ -29,6 +30,8 @@ mod vault_test {
         'symbol'.try_into().unwrap()
     }
 
+    const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
     fn setup() -> (IERCVaultDispatcher, IERC20Dispatcher, IERC20Dispatcher,) {
         let erc20mintable_class = declare("ERC20Mintable").unwrap();
         let erc20_class = declare("ERC20").unwrap();
@@ -47,6 +50,15 @@ mod vault_test {
         let (vault_address, _) = vault_class.deploy(@calldata).unwrap();
 
         let vaultDispatcher = IERCVaultDispatcher { contract_address: vault_address };
+
+        // set minter role in erc20 mintable token
+        let aBTC_mintable_Dispathcer = IERC20MintableDispatcher {
+            contract_address: aBTC_Dispathcer.contract_address
+        };
+
+        start_cheat_caller_address(aBTC_Dispathcer.contract_address, ADMIN());
+        aBTC_mintable_Dispathcer.set_role(vaultDispatcher.contract_address, MINTER_ROLE, true);
+        stop_cheat_caller_address(aBTC_Dispathcer.contract_address);
 
         (vaultDispatcher, wBTC_Dispathcer, aBTC_Dispathcer,)
     }
