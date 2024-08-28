@@ -38,3 +38,4 @@ export {useRepost} from './useRepost';
 export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
 export {useMyMessagesSent} from './messages/useMyMessagesSent';
+export {useBookmark} from './useBookmark';

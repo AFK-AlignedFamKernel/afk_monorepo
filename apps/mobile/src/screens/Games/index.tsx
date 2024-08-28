@@ -11,6 +11,7 @@ import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
 import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
 import stylesheet from './styles';
+import { PixelPeace } from '../../modules/PixelPeace';
 
 export const Games: React.FC<GameSreenProps> = ({navigation}) => {
   const theme = useTheme();
@@ -40,6 +41,13 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
         ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
           <ScrollView>
+
+          {selectedTab == SelectedTab.PIXEL_PEACE && (
+              <>
+                <PixelPeace></PixelPeace>
+              </>
+            )}
+
             {selectedTab == SelectedTab.SLINK && (
               <>
                 <SlinksMap></SlinksMap>

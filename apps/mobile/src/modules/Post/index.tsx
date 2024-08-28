@@ -1,7 +1,7 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
-import {useProfile, useReact, useReactions, useReplyNotes, useRepost} from 'afk_nostr_sdk';
+import {useProfile, useReact, useReactions, useReplyNotes, useRepost, useBookmark} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
@@ -31,7 +31,6 @@ export type PostProps = {
   isRepost?:boolean
 };
 
-
 export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost}) => {
   const repostedEvent = repostedEventProps  ?? undefined;
 
@@ -51,6 +50,7 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
   const react = useReact();
   const queryClient = useQueryClient();
   const repostMutation = useRepost({ event });
+  const { bookmarkNote } = useBookmark(publicKey);  
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -134,8 +134,15 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
     }
   };
 
-  const handleBookmarkList = async () => {
-    showToast({title: 'Bookmark and List coming soon', type: 'info'});
+  const handleBookmark = async () => {
+    if (!event) return;
+    try {
+      await bookmarkNote({ event });
+      showToast({title: 'Post bookmarked successfully', type: 'success'});
+    } catch (error) {
+      console.error('Bookmark error:', error);
+      showToast({title: 'Failed to bookmark', type: 'error'});
+    }
   };
 
   const content = event?.content || '';
@@ -287,10 +294,7 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
 
             <Pressable
               style={{marginHorizontal: 3}}
-              onPress={() => {
-                if (!event) return;
-                handleBookmarkList();
-              }}
+              onPress={handleBookmark}
             >
               <Icon name="BookmarkIcon" size={20} title="Bookmark" />
             </Pressable>

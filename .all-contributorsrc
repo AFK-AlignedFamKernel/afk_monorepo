@@ -81,6 +81,33 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "manlikeHB",
+      "name": "Yusuf Habib",
+      "avatar_url": "https://avatars.githubusercontent.com/u/109147010?v=4",
+      "profile": "https://github.com/manlikeHB",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Dprof-in-tech",
+      "name": "Isaac Onyemaechi Ugwu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/116242877?v=4",
+      "profile": "https://isaaconyemaechi.tech/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "EjembiEmmanuel",
+      "name": "Oche",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83036156?v=4",
+      "profile": "https://github.com/EjembiEmmanuel",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -1,26 +1,63 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import React from 'react';
-import {TextInput, View} from 'react-native';
+import useSearch from 'afk_nostr_sdk/src/hooks/search/useSearch'; // Import useSearch
+import React, {useEffect, useState} from 'react';
+import {Pressable, Text, TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
 import {useStyles} from '../../hooks';
+import FilterMenu from '../Filter';
 import stylesheet from './styles';
 
 interface ISearchComponent {
-  searchQuery?: string;
+  searchQuery: string;
   setSearchQuery: (search: string) => void;
   kinds?: NDKKind[];
   setKinds?: (kinds: NDKKind[]) => void;
-  isOpenFilter?: boolean;
-  setIsOpenFilter?: (isOpen: boolean) => void;
+  contactList?: string[];
+  setSortBy?: (sort:string) => void;
+  sortBy?:string;
+
 }
-const SearchComponent = ({searchQuery, setSearchQuery}: ISearchComponent) => {
-  // const [searchQuery, setSearchQuery] = useState('');
+
+const SearchComponent: React.FC<ISearchComponent> = ({
+  searchQuery,
+  setSearchQuery,
+  kinds = [],
+  setKinds = () => {},
+  contactList,
+  sortBy,
+  setSortBy
+}) => {
   const styles = useStyles(stylesheet);
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const [isOpenFilter, setIsOpenFilter] = useState(false);
+  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? "trending");
+
+  const handleSortChange = (sortBy: string) => {
+    setActiveSortBy(sortBy);
+    setSortBy
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearchQuery(debouncedQuery || '');
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [debouncedQuery, setSearchQuery]);
 
   const handleChangeText = (text: string) => {
-    setSearchQuery(text);
+    setDebouncedQuery(text);
   };
+
+  // const {data, isLoading, isError} = useSearch({
+  //   search: searchQuery,
+  //   kinds,
+  //   authors: contactList,
+  //   sortBy: activeSortBy,
+  // });
 
   return (
     <View style={styles.container}>
@@ -41,10 +78,22 @@ const SearchComponent = ({searchQuery, setSearchQuery}: ISearchComponent) => {
       </View>
       <TextInput
         style={styles.input}
-        value={searchQuery}
+        value={debouncedQuery}
         onChangeText={handleChangeText}
         placeholder="Search"
         clearButtonMode="always"
+      />
+      <Pressable onPress={() => setIsOpenFilter(true)}>
+        <Text style={styles.input}>Filter</Text>
+      </Pressable>
+
+      <FilterMenu
+        visible={isOpenFilter}
+        onClose={() => setIsOpenFilter(false)}
+        kinds={kinds}
+        setKinds={setKinds}
+        onSortChange={handleSortChange}
+        activeSortBy={activeSortBy}
       />
     </View>
   );

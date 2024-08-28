@@ -2,6 +2,7 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
 
 // TODO
 export const useSendGroupMessages = () => {
@@ -37,35 +38,3 @@ export const useSendGroupMessages = () => {
     },
   });
 };
-
-// const data = [
-//   {
-//     id: 1,
-//     content: 'Root Note',
-//     tags: [
-//       ['h', 'groupId'],
-//       ['p', 'pubKey'],
-//       ['name', 'nip4'],
-//     ],
-//   },
-//   {
-//     id: 2,
-//     content: 'Reply root Note',
-//     tags: [
-//       ['h', 'groupId'],
-//       ['p', 'pubKey'],
-//       ['name', 'nip4'],
-//       ['e', 1, '', 'reply'],
-//     ],
-
-//     reply: {
-//       id: 1,
-//       content: 'Root Note',
-//       tags: [
-//         ['h', 'groupId'],
-//         ['p', 'pubKey'],
-//         ['name', 'nip4'],
-//       ],
-//     },
-//   },
-// ];

@@ -1,26 +1,23 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useAllProfiles, useSearchNotes} from 'afk_nostr_sdk';
-import {useState} from 'react';
-import {FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import { useAllProfiles, useContacts, useSearch, useSearchNotes } from 'afk_nostr_sdk';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
 
-import {AddPostIcon} from '../../assets/icons';
-import {BubbleUser} from '../../components/BubbleUser';
+import { AddPostIcon } from '../../assets/icons';
+import { BubbleUser } from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import {useStyles, useTheme} from '../../hooks';
-import {ChannelComponent} from '../../modules/ChannelCard';
-import {PostCard} from '../../modules/PostCard';
-import {FeedScreenProps} from '../../types';
+import { useStyles, useTheme } from '../../hooks';
+import { ChannelComponent } from '../../modules/ChannelCard';
+import { PostCard } from '../../modules/PostCard';
+import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 
-export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
-  const {theme} = useTheme();
+export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles();
+  const [activeSortBy, setSortBy] = useState<string | undefined>()
   const [search, setSearch] = useState<string | undefined>(undefined);
-  // const notes = useRootNotes();
-  const [isAllKinds, setIsAllKinds] = useState(false);
-  const [isFilterOpen, setISFilterOpen] = useState(false);
-  const [isOpenProfile, setIsOpenProfile] = useState(false);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
     NDKKind.ChannelCreation,
@@ -28,96 +25,74 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
   ]);
-  const notes = useSearchNotes({
+
+  const contacts = useContacts()
+  console.log("contacts", contacts)
+  const notes = useSearch({
     // search: search,
     kinds,
+    // authors: activeSortBy && contacts?.data?.?? [],
+    // sortBy: activeSortBy,
   });
 
+
+  // Filter profiles based on the search query
   const profilesSearch =
-    profiles?.data?.pages?.flat().map((item) => {
-      item?.content?.includes(search) && search && search?.length > 0;
-    }) ?? [];
+    profiles?.data?.pages
+      ?.flat()
+    //   .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
+    ?? [];
+
+  // Filter notes based on the search query
+  const filteredNotes = notes.data?.pages
+    .flat()
+    .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ?? [];
 
   return (
     <View style={styles.container}>
       <Image
         style={styles.backgroundImage}
-        // source={require('../../assets/feed-background.png')}
         source={require('../../assets/feed-background-afk.png')}
         resizeMode="cover"
       />
 
-      {/* <Header /> */}
+      <SearchComponent
+        setSearchQuery={setSearch}
+        searchQuery={search ?? ''}
+        kinds={kinds}
+        setKinds={setKinds}
+        setSortBy={setSortBy}
+        sortBy={activeSortBy}
+        contactList={contacts?.data?.map((item) => item)}
+      />
 
-      {/* <View
-        style={{
-          alignItems: 'center', // Ensure the tabs are vertically centered
-          paddingVertical: 5,
-          flexDirection: 'row',
-        }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.stories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {profilesSearch.map((item, i) => {
-            console.log('item profile', item);
-            console.log('search', search);
-            if (search && search?.length > 0 && item?.content?.includes(search)) {
-              return <BubbleUser key={i} event={item} />;
-            } else if (!search || search?.length == 0) {
-              return <BubbleUser key={i} event={item} />;
-            }
-            return <></>;
-          })}
-        </ScrollView>
-      </View> */}
-
-      <SearchComponent setSearchQuery={setSearch} searchQuery={search}></SearchComponent>
-
-      {/* Todo todo filter for trending, latest etc */}
+      {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
 
       <FlatList
-        ListHeaderComponent={
+        ListHeaderComponent={<>
           <FlatList
             contentContainerStyle={styles.stories}
             horizontal
-            data={profiles.data?.pages.flat()}
+            data={profilesSearch}
             showsHorizontalScrollIndicator={false}
             onEndReached={() => profiles.fetchNextPage()}
             refreshControl={
-              <RefreshControl
-                refreshing={profiles.isFetching}
-                onRefresh={() => profiles.refetch()}
-              />
+              <RefreshControl refreshing={profiles.isFetching} onRefresh={() => profiles.refetch()} />
             }
-            // data={stories}
             ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({item}) => {
-              if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
-              return (
-                <BubbleUser
-                  // name={item.name}
-                  // image={item.img}
-                  event={item}
-                />
-              );
-            }}
-          />
-        }
+            renderItem={({ item }) => <BubbleUser event={item} />}
+          /></>}
         contentContainerStyle={styles.flatListContent}
-        data={notes.data?.pages.flat()}
+        data={filteredNotes}
         keyExtractor={(item) => item?.id}
-        renderItem={({item}) => {
-          if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
-          if (item?.kind == NDKKind.ChannelCreation || item?.kind == NDKKind.ChannelMetadata) {
+        renderItem={({ item }) => {
+          if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
-          }
-          // else if (item?.kind == NDKKind.Metadata) {
-          //   return <UserCard event={item} />;
-          // }
-          else if (item?.kind == NDKKind.Text) {
+          } 
+          else if (item.kind === NDKKind.ChannelMessage) {
+            return <PostCard event={item} />;
+          } 
+          else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
           }
           return <></>;
@@ -130,7 +105,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
 
       <Pressable
         style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
+        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
       </Pressable>

@@ -2,6 +2,7 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
 
 // TODO

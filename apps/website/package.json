@@ -30,8 +30,20 @@
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2",
     "@nostr-dev-kit/ndk": "^2.8.2",
-    "afk_nostr_sdk":"workspace:*",
-    "common":"workspace:*"
+    "common":"workspace:*",
+    "pixel_ui":"workspace:*",
+    "@starknet-react/chains": "^0.1.7",
+    "@starknet-react/core": "^2.8.2",
+    "@starknet-wc/core": "0.0.4",
+    "@starknet-wc/react": "0.0.4",
+    "get-starknet-core": "^3.3.0",
+    "react-transition-group": "^4.4.5",
+    "react-use-websocket": "^4.8.1",
+    "js-sha256": "^0.11.0",
+    "d3": "^7.9.0"
+
+
+
   },
   "devDependencies": {
     "@types/node": "^20",

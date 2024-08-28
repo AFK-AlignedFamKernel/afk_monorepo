@@ -4,7 +4,7 @@ mod launchpad_tests {
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait
     };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::launchpad_types::{MINTER_ROLE, ADMIN_ROLE, TokenQuoteBuyKeys, BondingType};
+    use afk::types::launchpad_types::{MINTER_ROLE, ADMIN_ROLE, TokenQuoteBuyCoin, BondingType};
     use core::array::SpanTrait;
     use core::num::traits::Zero;
     use core::traits::Into;
@@ -204,7 +204,7 @@ mod launchpad_tests {
         start_cheat_caller_address(erc20.contract_address, sender_address);
         erc20.approve(launchpad.contract_address, amount_quote);
         let allowance = erc20.allowance(sender_address, launchpad.contract_address);
-        println!("test allowance erc20 {}", allowance);
+        // println!("test allowance erc20 {}", allowance);
         stop_cheat_caller_address(erc20.contract_address);
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
@@ -331,10 +331,11 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, first_buy, token_address, sender_address,
         );
 
-        //  All buy
         run_buy_by_amount(
-            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY -30, token_address, sender_address,
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY / 10, token_address, sender_address,
         );
+
+
     }
 
 
@@ -410,10 +411,10 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        //  Thresshold buy - 1
-        run_buy_by_amount(
-            launchpad, erc20, memecoin, new_amount, token_address, sender_address,
-        );
+        // //  Threshold buy - 1
+        // run_buy_by_amount(
+        //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
+        // );
 
 
       

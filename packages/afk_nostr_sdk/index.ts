@@ -12,4 +12,4 @@ export  * from "./src/store"
 // export default {hooks, NostrContext, TanstackProvider , 
 //     NDKEvent, NDKKind, NDKUser,
 //     AFK_RELAYS
-// };
+// }
