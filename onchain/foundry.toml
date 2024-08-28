@@ -2,7 +2,7 @@
 src = "solidity_contracts/src"
 test = "solidity_contracts/test"
 out = "out"
-libs = ["solidity_contracts/lib"]
+libs = ["solidity_contracts/lib", "lib/kakarot-rpc"]
 
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

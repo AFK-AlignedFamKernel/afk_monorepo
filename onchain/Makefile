@@ -12,7 +12,7 @@ start:
 	$(MAKE) -C $(RPC_PATH) local-rpc-up
 
 deploy-l1: copy-env
-	yarn hardhat run scripts/deploy.ts --network l1Rpc
+	pnpm hardhat run scripts/deploy.ts --network l1Rpc
 
 copy-env:
 	@echo "Updating .env file with keys from Kakarot RPC container..."
@@ -68,4 +68,4 @@ whitelist-contract: copy-env
 
 test: copy-env build
 	@echo "Running tests..."
-	yarn hardhat test
+	pnpm hardhat test
