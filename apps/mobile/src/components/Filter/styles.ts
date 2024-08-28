@@ -46,7 +46,7 @@ export default ThemedStyleSheet((theme) => ({
   closeButton: {
     paddingVertical: Spacing.small,
     paddingHorizontal: Spacing.large,
-    backgroundColor: theme.colors.primary,
+    // backgroundColor: theme.colors.primary,
     borderRadius: 8,
     marginTop: Spacing.small,
   },

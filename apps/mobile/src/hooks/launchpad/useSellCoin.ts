@@ -1,6 +1,6 @@
 import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
 import {LAUNCHPAD_ADDRESS} from 'common';
-import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
+import {AccountInterface, CallData, constants, RpcProvider, uint256} from 'starknet';
 
 import {TokenQuoteBuyKeys} from '../../types/keys';
 import {formatFloatToUint256} from '../../utils/format';
@@ -20,7 +20,7 @@ export const useSellCoin = () => {
     contractAddress?: string,
   ) => {
     if (!account) return;
-    const addressContract = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract = contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     // console.log('addressContract', addressContract);
     // let launchpad_contract = await prepareAndConnectContract(
     //     provider,
@@ -28,7 +28,7 @@ export const useSellCoin = () => {
     //     account
     // );
 
-    const amountUint256 = formatFloatToUint256(amount);
+    let amountUint256 = formatFloatToUint256(amount);
     // amountUint256 = uint256.bnToUint256(BigInt('0x' + amount));
 
     const sellKeysParams = {
@@ -40,7 +40,7 @@ export const useSellCoin = () => {
 
     const call = {
       contractAddress: addressContract,
-      entrypoint: 'sell_keys',
+      entrypoint: 'sell_coin',
       calldata: CallData.compile({
         user_address: sellKeysParams.user_address,
         amount: sellKeysParams.amount,

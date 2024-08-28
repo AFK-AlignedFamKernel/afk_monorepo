@@ -12,6 +12,7 @@ import {
 
 import {useStyles} from '../../hooks';
 import stylesheet from './styles';
+import { SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
 
 interface IFilterMenuProps {
   visible: boolean;
@@ -30,10 +31,17 @@ const NDK_KIND_OPTIONS = [
   {label: 'Metadata', value: NDKKind.Metadata},
 ];
 
+
+// const SORT_OPTIONS = [
+//   {label: 'Time', value: 'time'},
+//   {label: 'For You', value: 'forYou'},
+//   {label: 'Trending', value: 'trending'},
+// ];
+
 const SORT_OPTIONS = [
-  {label: 'Time', value: 'time'},
-  {label: 'For You', value: 'forYou'},
-  {label: 'Trending', value: 'trending'},
+  {label: 'Time', value: SORT_OPTION_EVENT_NOSTR.TIME},
+  {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
+  {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
 ];
 
 const FilterMenu: React.FC<IFilterMenuProps> = ({
@@ -70,8 +78,8 @@ const FilterMenu: React.FC<IFilterMenuProps> = ({
               {SORT_OPTIONS.map((option) => (
                 <Pressable
                   key={option.value}
-                  style={[styles.button, activeSortBy === option.value && styles.activeButton]}
-                  onPress={() => onSortChange(option.value)}
+                  style={[styles.button, activeSortBy === option.value.toString() && styles.activeButton]}
+                  onPress={() => onSortChange(option.value.toString())}
                 >
                   <Text style={styles.buttonText}>{option.label}</Text>
                 </Pressable>
