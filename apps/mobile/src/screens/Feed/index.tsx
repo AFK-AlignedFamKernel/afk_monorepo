@@ -17,10 +17,6 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles();
   const [search, setSearch] = useState<string | undefined>(undefined);
-  // const notes = useRootNotes();
-  const [isAllKinds, setIsAllKinds] = useState(false);
-  const [isFilterOpen, setISFilterOpen] = useState(false);
-  const [isOpenProfile, setIsOpenProfile] = useState(false);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
     NDKKind.ChannelCreation,
@@ -28,96 +24,60 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
   ]);
+
   const notes = useSearchNotes({
-    // search: search,
     kinds,
   });
 
+  // Filter profiles based on the search query
   const profilesSearch =
-    profiles?.data?.pages?.flat().map((item) => {
-      item?.content?.includes(search) && search && search?.length > 0;
-    }) ?? [];
+    profiles?.data?.pages
+      ?.flat()
+      .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
+    [];
+
+  // Filter notes based on the search query
+  const filteredNotes = notes.data?.pages
+    .flat()
+    .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true));
 
   return (
     <View style={styles.container}>
       <Image
         style={styles.backgroundImage}
-        // source={require('../../assets/feed-background.png')}
         source={require('../../assets/feed-background-afk.png')}
         resizeMode="cover"
       />
 
-      {/* <Header /> */}
-
-      {/* <View
-        style={{
-          alignItems: 'center', // Ensure the tabs are vertically centered
-          paddingVertical: 5,
-          flexDirection: 'row',
-        }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.stories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {profilesSearch.map((item, i) => {
-            console.log('item profile', item);
-            console.log('search', search);
-            if (search && search?.length > 0 && item?.content?.includes(search)) {
-              return <BubbleUser key={i} event={item} />;
-            } else if (!search || search?.length == 0) {
-              return <BubbleUser key={i} event={item} />;
-            }
-            return <></>;
-          })}
-        </ScrollView>
-      </View> */}
-
-      <SearchComponent setSearchQuery={setSearch} searchQuery={search}></SearchComponent>
-
-      {/* Todo todo filter for trending, latest etc */}
+      <SearchComponent
+        setSearchQuery={setSearch}
+        searchQuery={search ?? ''}
+        kinds={kinds}
+        setKinds={setKinds}
+        contactList={profilesSearch.map((item) => item?.id)}
+      />
 
       <FlatList
-        ListHeaderComponent={
-          <FlatList
-            contentContainerStyle={styles.stories}
-            horizontal
-            data={profiles.data?.pages.flat()}
-            showsHorizontalScrollIndicator={false}
-            onEndReached={() => profiles.fetchNextPage()}
-            refreshControl={
-              <RefreshControl
-                refreshing={profiles.isFetching}
-                onRefresh={() => profiles.refetch()}
-              />
-            }
-            // data={stories}
-            ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({item}) => {
-              if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
-              return (
-                <BubbleUser
-                  // name={item.name}
-                  // image={item.img}
-                  event={item}
-                />
-              );
-            }}
-          />
+        contentContainerStyle={styles.stories}
+        horizontal
+        data={profilesSearch}
+        showsHorizontalScrollIndicator={false}
+        onEndReached={() => profiles.fetchNextPage()}
+        refreshControl={
+          <RefreshControl refreshing={profiles.isFetching} onRefresh={() => profiles.refetch()} />
         }
+        ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
+        renderItem={({item}) => <BubbleUser event={item} />}
+      />
+
+      <FlatList
         contentContainerStyle={styles.flatListContent}
-        data={notes.data?.pages.flat()}
+        data={filteredNotes}
         keyExtractor={(item) => item?.id}
         renderItem={({item}) => {
-          if (!item?.content?.includes(search) && search && search?.length > 0) return <></>;
-          if (item?.kind == NDKKind.ChannelCreation || item?.kind == NDKKind.ChannelMetadata) {
+          if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
-          }
-          // else if (item?.kind == NDKKind.Metadata) {
-          //   return <UserCard event={item} />;
-          // }
-          else if (item?.kind == NDKKind.Text) {
+          } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
           }
           return <></>;
