@@ -34,11 +34,14 @@ export default function DecodeTokenDeploy({ header, events }) {
     if (!event.data || !event.keys) return;
 
     const transactionHash = transaction.meta.hash;
-    const [caller, token_address, name, symbol] = event.keys;
+    const [caller, token_address,
+      // name, symbol
+    ] = event.keys;
 
     const [
-      initial_supply_low, initial_supply_high, 
+      initial_supply_low, initial_supply_high,
       total_supply_low, total_supply_high,
+      symbol, name
     ] = event.data;
 
     const initial_supply = uint256.uint256ToBN({ low: initial_supply_low, high: initial_supply_high }).toString();
