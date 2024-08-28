@@ -66,6 +66,7 @@ pub struct TokenLaunch {
     pub initial_key_price: u256,
     pub price: u256,
     pub available_supply: u256,
+    pub initial_pool_supply: u256,
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,

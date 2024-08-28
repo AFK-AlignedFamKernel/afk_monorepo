@@ -498,9 +498,9 @@ mod LaunchpadMarketplace {
             //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
             // }
 
-            if amount > pool_coin.available_supply {
-                amount = pool_coin.available_supply;
-            }
+            // if amount > pool_coin.available_supply {
+            //     amount = pool_coin.available_supply;
+            // }
             // let mut amount = self
             // ._get_coin_amount_by_quote_amount(coin_address, total_price, false);
             // println!("quote_amount {:?}", quote_amount);
@@ -896,7 +896,7 @@ mod LaunchpadMarketplace {
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
 
-            let (slope, _) = self._calculate_pricing(total_supply - liquidity_supply);
+            let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
             // let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
             // println!("slope key price {:?}",slope);
             // println!("ini_price key price {:?}",ini_price);
@@ -919,13 +919,14 @@ mod LaunchpadMarketplace {
                 token_quote: token_to_use.clone(),
                 initial_key_price: initial_key_price.clone(),
                 // initial_key_price: token_to_use.initial_key_price,
-                price: 0,
-                liquidity_raised: 0,
-                token_holded: 0,
+                // price: 0_u256,
+                price:init_price,
+                liquidity_raised: 0_u256,
+                token_holded: 0_u256,
                 is_liquidity_launch: false,
                 slope: slope,
-                threshold_liquidity: threshold
-            // token_holded:1
+                threshold_liquidity: threshold,
+                initial_pool_supply: liquidity_supply,
             };
             // Send supply need to launch your coin
             let amount_needed = total_supply.clone();

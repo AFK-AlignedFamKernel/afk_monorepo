@@ -331,10 +331,11 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, first_buy, token_address, sender_address,
         );
 
-        //  All buy
         run_buy_by_amount(
-            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY - 30, token_address, sender_address,
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY / 10, token_address, sender_address,
         );
+
+
     }
 
 

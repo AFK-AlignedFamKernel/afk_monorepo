@@ -43,7 +43,9 @@ export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: "",
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x5cf19613d54ae5e7c229c87cc26322f2ff6c473d2183723010676b8337c0af3",
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x19084523bd7307c2169ee32a336be3f9d9eb6bf24197156cb6fc7a42feb7a5"
-  [constants.StarknetChainId.SN_SEPOLIA]:"0x29a532e6933a6d6f9939e59469d96b52b7c38561745331302e1a29f035e4dd0"
+  // [constants.StarknetChainId.SN_SEPOLIA]:"0x29a532e6933a6d6f9939e59469d96b52b7c38561745331302e1a29f035e4dd0",
+  [constants.StarknetChainId.SN_SEPOLIA]:"0x3798921000573bfc442d8153fc088db97bd3794f5ed19ea8c0846db5378f4af",
+  
   
 }
 
