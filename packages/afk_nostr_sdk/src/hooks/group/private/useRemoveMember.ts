@@ -1,17 +1,17 @@
-import {useMutation} from '@tanstack/react-query';
-import {useNostrContext} from '../../../context/NostrContext';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useAuth} from '../../../store';
-import {checkGroupPermission} from './useGetPermission';
-import {AdminGroupPermission} from './useAddPermissions';
+import {useMutation} from '@tanstack/react-query';
 
-// TODO
+import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
+import {AdminGroupPermission} from './useAddPermissions';
+import {checkGroupPermission} from './useGetPermission';
+
 export const useRemoveMember = () => {
   const {ndk} = useNostrContext();
   const {publicKey: pubkey} = useAuth();
 
   return useMutation({
-    mutationKey: ['removeMemberGroup', ndk],
+    mutationKey: ['removeMemberGroup'],
     mutationFn: async (data: {pubkey: string; groupId: string}) => {
       const hasPermission = checkGroupPermission({
         groupId: data.groupId,

@@ -1,6 +1,7 @@
-import {useMutation, useQuery} from '@tanstack/react-query';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useMutation} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../../context/NostrContext';
-import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 
 export enum AdminGroupPermission {
   AddMember = 'add-user',
@@ -12,6 +13,7 @@ export enum AdminGroupPermission {
   EditGroupStatus = 'edit-group-status',
   DeleteGroup = 'delete-group',
 }
+type IAdminGroupPermission = `${AdminGroupPermission}`;
 
 export const useAddPermissions = () => {
   const {ndk} = useNostrContext();
@@ -20,14 +22,14 @@ export const useAddPermissions = () => {
     mutationKey: ['addPermissions', ndk],
     mutationFn: async (data: {
       pubkey: string;
-      permissionName: AdminGroupPermission[];
+      permissionName: IAdminGroupPermission[];
       groupId: string;
     }) => {
       const event = new NDKEvent(ndk);
-      event.kind = 9003 // NDKKind.GroupAdminAddPermission;
+      event.kind = 9003; // NDKKind.GroupAdminAddPermission;
       event.tags = [
+        // ['h', data.groupId],
         ['h', data.groupId],
-        ['d', data.groupId],
         ['p', data.pubkey, ...data.permissionName],
       ];
       return event.publish();

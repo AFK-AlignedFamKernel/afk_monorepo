@@ -21,6 +21,9 @@ export const LightTheme = {
     messageCard: '#FFFFFF',
     messageCardText: '#14142C',
 
+    messageReplyCard: '#E0E0E0',
+    messageReplyCardText: '#14142C',
+
     // primary: '#EC796B',
     primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
@@ -75,6 +78,9 @@ export const DarkTheme = {
 
     messageCard: '#2C2C2C',
     messageCardText: '#FFFFFF',
+
+    messageReplyCard: '#1F1F1F',
+    messageReplyCardText: '#E0E0E0',
 
     // primary: '#EC796B',
     primary: '#4FA89B',

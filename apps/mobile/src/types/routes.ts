@@ -27,8 +27,8 @@ export type MainStackParams = {
   CreatePost: undefined;
   Profile: {publicKey: string};
   PostDetail: {postId: string; post?: NDKEvent};
-  GroupChat: {groupId: string; post?: NDKEvent};
-  GroupChatDetail: {groupId: string; post?: NDKEvent};
+  GroupChat: {groupId: string; post?: NDKEvent; groupName: string};
+  GroupChatDetail: {groupId: string; groupName: string; post?: NDKEvent};
   EditProfile: undefined;
   Search: undefined;
   CreateChannel: undefined;
@@ -56,7 +56,7 @@ export type MainStackParams = {
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
   Whatever: undefined;
-  RightDrawer:undefined;
+  RightDrawer: undefined;
 };
 
 export type DegensAppStackParams = {
