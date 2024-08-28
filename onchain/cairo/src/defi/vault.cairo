@@ -4,13 +4,16 @@ use starknet::ContractAddress;
 // TODO
 // Create the as a Vault component
 #[starknet::contract]
-mod Vault {
+pub mod Vault {
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
-    // use afk::interfaces::erc20_mintable::{IERC20Mintable};
+    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
+    use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
+    use starknet::event::EventEmitter;
 
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
@@ -28,15 +31,12 @@ mod Vault {
         AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
 
-    // TODO Change interface of IERC20 Mintable
-    // Fix dispatcher
-    // use afk::tokens::erc20_mintable::{ IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-
     #[storage]
     struct Storage {
         token_address: ContractAddress,
         is_mintable_paused: bool,
         token_permitted: LegacyMap<ContractAddress, TokenPermitted>,
+        is_token_permitted: LegacyMap<ContractAddress, bool>,
         deposit_by_user: LegacyMap<ContractAddress, DepositUser>,
         deposit_by_user_by_token: LegacyMap::<(ContractAddress, ContractAddress), DepositUser>,
         #[substorage(v0)]
@@ -59,7 +59,7 @@ mod Vault {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         MintDepositEvent: MintDepositEvent,
         WithdrawDepositEvent: WithdrawDepositEvent,
         #[flat]
@@ -76,22 +76,56 @@ mod Vault {
         // Used the specify ratio. Burn the token. Check the pooling withdraw
         fn mint_by_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
             let caller = get_caller_address();
-        // Check if token valid
 
-        // Sent token to deposit
+            // Check if token valid
+            assert(self.is_token_permitted(token_address), 'Non permited token');
 
-        // let token_deposited= IERC20MintableDispatcher{ token_address};
-        // token_deposited.transfer_from(caller, get_contract_address, amount);
+            // Sent token to deposit
+            let token_deposited = IERC20Dispatcher { contract_address: token_address };
+            token_deposited.approve(caller, amount);
+            token_deposited.transfer_from(caller, get_contract_address(), amount);
 
-        // Mint token and send it to the receiver
+            // Mint token and send it to the receiver
+            let token_mintable = IERC20MintableDispatcher {
+                contract_address: self.token_address.read()
+            };
+            let _token = self.token_permitted.read(token_address);
 
-        // let token_mintable= IERC20MintableDispatcher{ token_address};
+            //TODO Calculate the ratio if 1:1, less or more
+            // let amount_ratio = token.ratio_mint * amount;
 
-        // Calculate the ratio if 1:1, less or more
-        // let amount_ratio=1;
-        // // let ratio =;
-        // token_mintable.mint(caller, amount_ratio);
+            token_mintable.mint(caller, amount);
 
+            // update user deposit state
+            let mut old_deposit_user = self.deposit_by_user.read(caller);
+
+            let mut deposit_user = old_deposit_user.clone();
+            if old_deposit_user.token_address.is_zero() {
+                deposit_user =
+                    DepositUser {
+                        token_address: token_address,
+                        deposited: amount,
+                        minted: amount,
+                        withdraw: 0,
+                    };
+            } else {
+                deposit_user.deposited += amount;
+                deposit_user.minted += amount;
+            }
+
+            self.deposit_by_user.write(caller, deposit_user);
+            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+
+            // emit event
+            self
+                .emit(
+                    MintDepositEvent {
+                        caller: caller,
+                        token_deposited: token_address,
+                        amount_deposit: amount,
+                        mint_receive: amount
+                    }
+                );
         }
 
         //  Withdraw a coin
@@ -101,23 +135,68 @@ mod Vault {
             ref self: ContractState, token_address: ContractAddress, amount: u256
         ) {
             let caller = get_caller_address();
-        // Check if token valid
+            // Check if token valid
+            assert(self.is_token_permitted(token_address), 'Non permited token');
 
-        // Receive/burn token minted
+            // Receive/burn token minted
+            let token_mintable = IERC20MintableDispatcher {
+                contract_address: self.token_address.read()
+            };
+            token_mintable.burn(caller, amount);
 
-        // Resend amount of coin deposit by user
+            // Resend amount of coin deposit by user
+            let token_deposited = IERC20Dispatcher { contract_address: token_address };
+            //TODO calculate ratio
+            // let amount_ratio = amount / self.token_permitted.read(token_address).ratio_mint;
+            token_deposited.transfer(caller, amount);
 
+            // update user withdraw state
+            let mut deposit_user = self.deposit_by_user.read(caller);
+
+            deposit_user.withdraw += amount;
+
+            self.deposit_by_user.write(caller, deposit_user);
+            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+
+            // emit event
+            self
+                .emit(
+                    WithdrawDepositEvent {
+                        caller: caller,
+                        token_deposited: self.token_address.read(),
+                        amount_deposit: amount,
+                        mint_receive: amount,
+                        mint_to_get_after_poolin: 0,
+                        pooling_interval: self.token_permitted.read(token_address).pooling_timestamp
+                    }
+                );
         }
 
         // Set token permitted
         fn set_token_permitted(
             ref self: ContractState,
             token_address: ContractAddress,
-            ratio: u256,
+            // ratio: u256,
             ratio_mint: u256,
             is_available: bool,
             pooling_timestamp: u64
-        ) {}
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            let token_permitted = TokenPermitted {
+                token_address, ratio_mint, is_available, pooling_timestamp,
+            };
+            self.token_permitted.write(token_address, token_permitted);
+            self.is_token_permitted.write(token_address, true);
+        }
+
+        fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {
+            self.is_token_permitted.read(token_address)
+        }
+
+        fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {
+            assert(self.is_token_permitted(token_address), 'Non permited token');
+            self.token_permitted.read(token_address).ratio_mint
+        }
     }
 // Admin
 // Add OPERATOR role to the Vault escrow
