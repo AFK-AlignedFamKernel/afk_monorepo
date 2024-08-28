@@ -40,7 +40,7 @@ func (b *Backend) Start(port int) {
 
 func (b *Backend) GetBackendUrl() string {
 	if b.BackendConfig.Production {
-		return "https://api.art-peace.net"
+		return "https://backend-pixel.onrender.com/"
 	} else {
 		return fmt.Sprintf("http://%s:%d", b.BackendConfig.Host, b.BackendConfig.Port)
 	}

@@ -16,9 +16,9 @@ COPY ./tests/integration/docker/ .
 
 # Copy over the app
 WORKDIR /app
-COPY ./backend/go.mod ./backend/go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
-COPY ./backend .
+COPY ./ .
 
 # Argument for Redis host and port
 ARG REDIS_HOST
@@ -32,12 +32,14 @@ ENV REDIS_PORT=${REDIS_PORT}
 ARG POSTGRES_HOST
 ARG POSTGRES_PORT
 ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
 ARG POSTGRES_DATABASE
 
 # Set Postgres host, port, user, and database environment variables
 ENV POSTGRES_HOST=${POSTGRES_HOST}
 ENV POSTGRES_PORT=${POSTGRES_PORT}
 ENV POSTGRES_USER=${POSTGRES_USER}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
 
 # Build the app & run it

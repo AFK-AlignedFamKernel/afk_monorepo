@@ -7,9 +7,9 @@ COPY ./configs/prod-backend.config.json ./backend.config.json
 
 # Copy over the app
 WORKDIR /app
-COPY ./backend/go.mod ./backend/go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
-COPY ./backend .
+COPY ./ .
 
 # Argument for Redis host and port
 ARG REDIS_HOST
