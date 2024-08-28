@@ -4,3 +4,6 @@
 [submodule "solidity/solidity_contracts/lib/forge-std"]
 	path = solidity/solidity_contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "onchain/lib/kakarot-rpc"]
+	path = onchain/lib/kakarot-rpc
+	url = https://github.com/kkrt-labs/kakarot-rpc
