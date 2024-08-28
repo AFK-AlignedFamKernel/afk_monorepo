@@ -23,6 +23,16 @@ export const AdminIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+export const EditIcon: React.FC<SvgProps> = (props) => (
+  <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M3 17.25V21h3.75l12.452-12.452-3.75-3.75L3 17.25zM22.707 7.293a1.004 1.004 0 00-.293-.707l-3.75-3.75a1.004 1.004 0 00-.707-.293 1.004 1.004 0 00-.707.293l-2.5 2.5 4.457 4.457 2.5-2.5a1.004 1.004 0 00.293-.707z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
 export const CrownIcon: React.FC<SvgProps> = (props) => (
   <Svg
     viewBox="0 0 24 24"

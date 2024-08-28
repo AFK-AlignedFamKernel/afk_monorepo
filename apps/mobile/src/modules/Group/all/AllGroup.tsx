@@ -12,6 +12,7 @@ export default function AllGroupListComponent() {
   const data = useGetGroupList({
     pubKey,
   });
+
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -24,7 +25,9 @@ export default function AllGroupListComponent() {
         data={data.data.pages.flat()}
         renderItem={({item}: any) => (
           <TouchableOpacity
-            onPress={() => navigation.navigate('GroupChat', {groupId: item.id})}
+            onPress={() =>
+              navigation.navigate('GroupChat', {groupId: item.id, groupName: item.content})
+            }
             style={styles.groupItem}
           >
             <View style={styles.groupInfo}>

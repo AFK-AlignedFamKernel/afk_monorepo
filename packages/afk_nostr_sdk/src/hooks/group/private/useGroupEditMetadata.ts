@@ -13,7 +13,6 @@ type UpdateMetaData = {
   picture?: string;
 };
 
-// TODO
 export const useGroupEditMetadata = () => {
   const {ndk} = useNostrContext();
   const {publicKey: pubkey} = useAuth();
@@ -31,6 +30,7 @@ export const useGroupEditMetadata = () => {
       if (!hasPermission) {
         throw new Error('You do not have permission to edit metadata');
       }
+
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminEditMetadata;
       event.tags = [['d', data.groupId], objectToTagArray(data.meta)[0]];

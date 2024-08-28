@@ -25,7 +25,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
     },
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
-        kinds: [NDKKind.GroupAdminCreateGroup, GroupAdminDeleteGroup],
+        kinds: [NDKKind.GroupAdminCreateGroup, GroupAdminDeleteGroup, 39000],
         authors: [options.pubKey],
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,

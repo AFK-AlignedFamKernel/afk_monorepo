@@ -1,5 +1,11 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {useAuth, useGetGroupMessages, useProfile, useSendGroupMessages} from 'afk_nostr_sdk';
+import {
+  useAuth,
+  useGetGroupMemberList,
+  useGetGroupMessages,
+  useProfile,
+  useSendGroupMessages,
+} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {FlatList, Modal, Pressable, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 
@@ -10,11 +16,11 @@ import {useToast} from '../../../hooks/modals';
 import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
 
-const groupName = 'Project Team';
-const memberCount = 15;
-
 const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
   const {publicKey} = useAuth();
+  const datas = useGetGroupMemberList({
+    groupId: route.params.groupId,
+  });
   const profile = useProfile({publicKey});
   const [menuVisible, setMenuVisible] = useState(false);
   const [replyToId, setReplyToId] = useState(null);
@@ -27,8 +33,6 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
     authors: publicKey,
   });
   const {mutate} = useSendGroupMessages();
-
-  console.log(messageData, 'data');
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
 
@@ -81,11 +85,17 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
           <BackIcon stroke="gray" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{groupName}</Text>
-          <Text style={styles.headerSubtitle}>{memberCount} members</Text>
+          <Text style={styles.headerTitle}>{route.params.groupName}</Text>
+
+          <Text style={styles.headerSubtitle}>{datas.data.pages.flat().length} members</Text>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('GroupChatDetail', {groupId: route.params.groupId})}
+          onPress={() =>
+            navigation.navigate('GroupChatDetail', {
+              groupId: route.params.groupId,
+              groupName: route.params.groupName,
+            })
+          }
           style={styles.headerButton}
         >
           <MenuIcons stroke="gray" />
@@ -139,7 +149,6 @@ const MessageCard = ({
     ? item?.reply.tags.find((tag: any) => tag[0] === 'name')?.[1]
     : '';
 
-  // item.sender === 'You' ? styles.yourMessage : styles.otherMessage,
   return (
     <Pressable onLongPress={() => handleLongPress(item.id, item.content)} delayLongPress={500}>
       <View style={styles.messageBubble}>

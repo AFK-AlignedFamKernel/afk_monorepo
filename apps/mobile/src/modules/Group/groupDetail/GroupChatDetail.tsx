@@ -3,12 +3,13 @@ import {useAuth, useDeleteGroup, useGetGroupMemberList} from 'afk_nostr_sdk';
 import React, {useRef, useState} from 'react';
 import {FlatList, Pressable, SafeAreaView, TouchableOpacity, View} from 'react-native';
 
-import {AddPostIcon, BackIcon, TrashIcon, UserPlusIcon} from '../../../assets/icons';
+import {AddPostIcon, BackIcon, EditIcon, TrashIcon, UserPlusIcon} from '../../../assets/icons';
 import {IconButton, Modalize, Text} from '../../../components';
 import {useStyles, useTheme} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {GroupChatDetailScreenProps} from '../../../types';
 import AddMemberView from '../memberAction/addMember';
+import {EditGroup} from '../memberAction/editGroup';
 import GroupAdminActions from '../memberAction/groupAction';
 import stylesheet from './styles';
 
@@ -20,14 +21,13 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const datas = useGetGroupMemberList({
     groupId: route.params.groupId,
   });
-  console.log(datas.data, 'ddd');
   const {mutate} = useDeleteGroup();
   const modalizeRef = useRef<Modalize>(null);
   const addMemberModalizeRef = useRef<Modalize>(null);
+  const editGroupModalizeRef = useRef<Modalize>(null);
   const menuModalizeRef = useRef<Modalize>(null);
   const styles = useStyles(stylesheet);
   const [selectedMember, setSelectedMember] = useState();
-  const [groupName] = useState('Project Team');
 
   const onOpen = (selected: any) => {
     modalizeRef.current?.open();
@@ -36,6 +36,10 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 
   const onOpenAddMember = () => {
     addMemberModalizeRef.current?.open();
+    menuModalizeRef.current?.close();
+  };
+  const onOpenEditGroup = () => {
+    editGroupModalizeRef.current?.open();
     menuModalizeRef.current?.close();
   };
 
@@ -53,6 +57,12 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
             handleClose={() => modalizeRef.current?.close()}
           />
         </Modalize>
+        <Modalize ref={editGroupModalizeRef}>
+          <EditGroup
+            handleClose={() => editGroupModalizeRef.current?.close()}
+            groupId={route.params.groupId ? route.params.groupId : ''}
+          />
+        </Modalize>
         <Modalize ref={addMemberModalizeRef}>
           <AddMemberView
             handleClose={() => addMemberModalizeRef.current?.close()}
@@ -62,6 +72,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 
         <Modalize ref={menuModalizeRef}>
           <MenuBubble
+            onEditGroup={onOpenEditGroup}
             onDeleteGroup={() => {
               mutate(
                 {
@@ -91,12 +102,17 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.navigate('GroupChat', {groupId: route.params.groupId})}
+              onPress={() =>
+                navigation.navigate('GroupChat', {
+                  groupId: route.params.groupId,
+                  groupName: route.params.groupName,
+                })
+              }
             >
               <BackIcon width={24} height={24} stroke="gray" />
             </TouchableOpacity>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.groupName}>{groupName}</Text>
+              <Text style={styles.groupName}>{route.params.groupName}</Text>
               <Text style={styles.memberCount}>{datas.data.pages.flat().length} members</Text>
             </View>
           </View>
@@ -117,12 +133,13 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 };
 
 const MemberCard = ({item, handleOpen}: {item: any; handleOpen: () => void}) => {
+  const pub = item?.tags.find((tag: any) => tag[0] === 'p')?.[1];
   const styles = useStyles(stylesheet);
   return (
     <View style={styles.memberItem}>
       <View style={styles.memberInfo}>
         <Text numberOfLines={1} ellipsizeMode="middle" style={styles.memberName}>
-          {item.tags[1][1]}
+          {pub}
         </Text>
         <Text style={styles.memberRole}>{item.role}</Text>
       </View>
@@ -139,9 +156,11 @@ const MemberCard = ({item, handleOpen}: {item: any; handleOpen: () => void}) => 
 const MenuBubble = ({
   onOpenAddMember,
   onDeleteGroup,
+  onEditGroup,
 }: {
   onOpenAddMember: () => void;
   onDeleteGroup: () => void;
+  onEditGroup: () => void;
 }) => {
   const styles = useStyles(stylesheet);
   const theme = useTheme();
@@ -152,6 +171,10 @@ const MenuBubble = ({
       <TouchableOpacity style={styles.actionButton} onPress={onOpenAddMember}>
         <UserPlusIcon width={24} height={24} color={theme.theme.colors.primary} />
         <Text style={styles.actionText}>Add Member</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.actionButton} onPress={onEditGroup}>
+        <EditIcon width={24} height={24} color={theme.theme.colors.white} />
+        <Text style={styles.actionText}>Edit Group</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.actionButton} onPress={onDeleteGroup}>
         <TrashIcon width={24} height={24} color={theme.theme.colors.red} />

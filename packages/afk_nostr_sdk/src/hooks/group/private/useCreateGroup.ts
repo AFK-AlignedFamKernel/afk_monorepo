@@ -13,7 +13,7 @@ export const useCreateGroup = () => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminCreateGroup;
       event.content = data.groupName;
-      event.tags = [[data.groupType || 'private']];
+      event.tags = [[data.groupType || 'private'], ['name', data.groupName]];
       return event.publish();
     },
   });
