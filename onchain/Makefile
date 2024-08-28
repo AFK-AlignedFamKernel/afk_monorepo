@@ -1,5 +1,5 @@
 RPC_PATH := lib/kakarot-rpc
-CAIRO_CONTRACTS_PATH := cairo_contracts
+CAIRO_CONTRACTS_PATH := cairo
 SOL_CONTRACTS_PATH := solidity_contracts
 LOCAL_ENV_PATH := .env
 MAKE := make

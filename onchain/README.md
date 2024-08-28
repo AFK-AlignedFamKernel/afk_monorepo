@@ -84,10 +84,10 @@ As Kakarot is an EVM-L2 using the Starknet Stack, you can natively interact with
 
 ### Deploying a Cairo Contract
 
-Once scarb is installed in version `2.5.4`, `cd` into the `cairo_contracts` directory and build the `Counter` cairo contract:
+Once scarb is installed in version `2.6.5`, `cd` into the `cairo` directory and build the `Counter` cairo contract:
 
 ```
-cd cairo_contracts && scarb build && ../
+cd cairo && scarb build && ../
 ```
 
 Once built, you can deploy the contract using the `starkli`. First, set an account up (using the default Katana private key, no password):
@@ -96,7 +96,7 @@ Once built, you can deploy the contract using the `starkli`. First, set an accou
 export STARKNET_KEYSTORE="katana.key.json"
 export STARKNET_ACCOUNT="katana.account.json"
 export STARKNET_RPC="http://127.0.0.1:5050"
-starkli declare cairo_contracts/target/dev/cairo_contracts_Counter.contract_class.json
+starkli declare cairo/target/dev/afk_Counter.contract_class.json
 ```
 
 This will output the contract's class hash. You can use this hash to deploy the contract:
@@ -150,7 +150,7 @@ The `DualVMToken` contract demonstrates how one can deploy a token that is able 
 Let's deploy the `DualVMToken` Cairo contract:
 
 ```sh
-starkli declare cairo_contracts/target/dev/cairo_contracts_DualVMToken.contract_class.json
+starkli declare cairo/target/dev/afk_DualVMToken.contract_class.json
 starkli deploy 0x007cadcf5c04b02dae809a2700b85ff87aca8a3117e67e9aec24c5513730b1c1 100 0 0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca --salt 1
 ```
 
