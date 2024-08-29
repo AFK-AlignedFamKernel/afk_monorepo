@@ -23,12 +23,11 @@ func isFlagSet(name string) bool {
 
 func main() {
 	err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-	
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 	production := flag.Bool("production", false, "Production mode")
 	admin := flag.Bool("admin", false, "Admin mode")
 
@@ -44,7 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	backendConfig, err := config.LoadBackendConfig(*backendConfigFilename)
+	backendConfig, err := config.LoadBackendConfig()
 	if err != nil {
 		panic(err)
 	}

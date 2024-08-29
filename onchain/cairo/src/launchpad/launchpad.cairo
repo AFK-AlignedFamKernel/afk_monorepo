@@ -396,17 +396,6 @@ mod LaunchpadMarketplace {
             self._launch_token(coin_address, caller);
         }
 
-         // Launch liquidity if threshold ok
-         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
-
-            let pool = self.launched_coins.read(coin_address);
-
-            assert!(pool.liquidity_raised >= pool.threshold_liquidity, "no threshold raised");
-            assert!(pool.is_liquidity_launch == false, "liquidity already launch");
-
-            self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-
-        }
 
 
         // Buy coin by quote amount
@@ -507,7 +496,22 @@ mod LaunchpadMarketplace {
             // println!("amount to buy {:?}", amount);
             // println!("total_price {:?}", total_price);
 
-            // Update share and key stats
+            // Change the Stats of pool:
+            // Liquidity raised
+            // Available supply
+            // Token holded
+            pool_coin.liquidity_raised = pool_coin.liquidity_raised + total_price;
+            // pool_coin.total_supply += amount;
+            pool_coin.token_holded += amount;
+            pool_coin.price = total_price;
+
+            if amount > pool_coin.available_supply {
+                pool_coin.available_supply = 0;
+            } else {
+                pool_coin.available_supply -= amount;
+            }
+
+            // Update share and coin stats for an user
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
             // println!("old_share {:?}", old_share.owner);
 
@@ -532,14 +536,7 @@ mod LaunchpadMarketplace {
             }
             // pool_coin.price = total_price;
             // pool_coin.price = total_price / amount;
-            pool_coin.liquidity_raised = pool_coin.liquidity_raised + total_price;
-            // pool_coin.total_supply += amount;
-            pool_coin.token_holded += amount;
-            if amount > pool_coin.available_supply {
-                pool_coin.available_supply = 0;
-            } else {
-                pool_coin.available_supply -= amount;
-            }
+
             // pool_coin.available_supply-=amount;
 
             // TODO  // ENABLE if direct launch coin
@@ -639,17 +636,15 @@ mod LaunchpadMarketplace {
             assert!(old_pool.total_supply >= quote_amount, "above supply");
 
             // TODO erc20 token transfer
-            // let token = old_pool.token_quote.clone();
             let total_supply = old_pool.total_supply;
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
-            // let mut amount = self
-            // ._get_amount_by_type_of_coin_or_quote(coin_address, quote_amount, false, true);
-
             // TODO fix this function
             let mut amount = self
                 ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
+
+            assert!(share_user.amount_owned >= amount, "above supply");
 
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
@@ -678,32 +673,31 @@ mod LaunchpadMarketplace {
             assert!( old_pool.liquidity_raised >= remain_liquidity, "pool_update.liquidity_raised <= remain_liquidity");
 
             // TODO fix amount owned and sellable.
-            // Update share user key
-            // share_user.amount_owned -= amount;
-            // share_user.amount_sell += amount;
+            // Update share user coin
+            share_user.amount_owned -= amount;
+            share_user.amount_sell += amount;
 
             // Transfer to Liquidity, Creator and Protocol
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-            // erc20.transfer(get_caller_address(), remain_liquidity);
+            erc20.transfer(get_caller_address(), remain_liquidity);
             // // println!("transfer protocol fee {}", amount_protocol_fee.clone());
-            // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
             // let memecoin = IERC20Dispatcher { contract_address: coin_address };
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount);
 
-            // pool_update.price = total_price;
-
-            // key.total_supply -= amount;
             // TODO check reetrancy guard
 
             // TODO finish update state
-            // pool_update.price = total_price;
-            // pool_update.total_supply = pool_update.total_supply - amount;
-            // pool_update.liquidity_raised = pool_update.liquidity_raised - remain_liquidity;
+            pool_update.price = total_price;
+            pool_update.liquidity_raised = pool_update.liquidity_raised - total_price;
+            pool_update.token_holded -= amount;
+            pool_update.available_supply += amount;
+
             self
                 .shares_by_users
                 .write((get_caller_address(), coin_address.clone()), share_user.clone());
@@ -724,7 +718,23 @@ mod LaunchpadMarketplace {
                 );
         }
 
+
+         // TODO finish check
+        //  Launch liquidity if threshold ok
+         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
+
+            let pool = self.launched_coins.read(coin_address);
+
+            assert!(pool.liquidity_raised >= pool.threshold_liquidity, "no threshold raised");
+            assert!(pool.is_liquidity_launch == false, "liquidity already launch");
+
+            self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+
+        }
+
         // TODO Finish this function
+        // Claim coin if liquidity is sent
+        // Check and modify the share of user
         fn claim_coin_buy(ref self: ContractState, coin_address: ContractAddress, amount: u256) {}
 
 
