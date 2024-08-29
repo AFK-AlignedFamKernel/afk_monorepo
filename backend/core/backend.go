@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -40,7 +41,7 @@ func (b *Backend) Start(port int) {
 
 func (b *Backend) GetBackendUrl() string {
 	if b.BackendConfig.Production {
-		return "https://backend-pixel.onrender.com/"
+		return os.Getenv("BACKEND_URL")
 	} else {
 		return fmt.Sprintf("http://%s:%d", b.BackendConfig.Host, b.BackendConfig.Port)
 	}

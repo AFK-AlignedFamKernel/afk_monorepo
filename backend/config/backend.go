@@ -57,6 +57,11 @@ func LoadBackendConfig() (*BackendConfig, error) {
 		return nil, fmt.Errorf("invalid BACKEND_PORT: %v", err)
 	}
 
+	production, err := strconv.ParseBool(os.Getenv("PRODUCTION"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid PRODUCTION mode: %v", err)
+	}
+
 	config := BackendConfig{
 		Host:         os.Getenv("BACKEND_HOST"),
 		Port:         backendPort,
@@ -79,7 +84,7 @@ func LoadBackendConfig() (*BackendConfig, error) {
 			AddFactionTemplateDevnet:    "../scripts/add_faction_template.sh",
 			RemoveFactionTemplateDevnet: "../scripts/remove_faction_template.sh",
 		},
-		Production: false,
+		Production: production,
 		WebSocket: WebSocketConfig{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
