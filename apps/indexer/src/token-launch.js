@@ -49,7 +49,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }) {
 
     const name_decoded = shortString.decodeShortString(name.replace(/0x0+/, '0x'))
     const symbol_decoded = shortString.decodeShortString(symbol.replace(/0x0+/, '0x'))
-    const quote_token_decoded = quote_token ? shortString.decodeShortString(quote_token.replace(/0x0+/, '0x')) : '';
+    const quote_token_decoded = token_address ? shortString.decodeShortString(token_address.replace(/0x0+/, '0x')) : '';
     const exchange_name_decoded = exchange_name ? shortString.decodeShortString(exchange_name.replace(/0x0+/, '0x')) : '';
     const price_decoded = price ? shortString.decodeShortString(price.replace(/0x0+/, '0x')) : '';
     const liquidity_raised_decoded = liquidity_raised ? uint256.uint256ToBN({ low: liquidity_raised, high: 0 }).toString() : '0';
