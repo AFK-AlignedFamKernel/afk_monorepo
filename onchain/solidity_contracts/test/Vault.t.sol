@@ -48,7 +48,7 @@ contract ABTCVaultTest is Test {
     }
 
     function testSetWrappedBTCToken() public {
-        vault.setWrappedBTCToken(address(wbtc), true, block.timestamp);
+        vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
         (bool isPermitted, uint256 poolingTimestamp) = vault.wrappedBTCTokens(
             address(wbtc)
         );
