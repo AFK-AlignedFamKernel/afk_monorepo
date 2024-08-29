@@ -55,8 +55,7 @@ export default function AddMemberView({
                 groupId,
               },
               {
-                onSuccess(data) {
-                  console.log(data);
+                onSuccess() {
                   showToast({type: 'success', title: 'Member Added successfully'});
                   queryClient.invalidateQueries({queryKey: ['getAllGroupMember']});
                   handleClose();

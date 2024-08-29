@@ -1,15 +1,23 @@
+import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
 import {useGroupEditMetadata} from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {Button, Input, SquareInput} from '../../../components';
+import {Button, Input, Picker, SquareInput} from '../../../components';
 import {useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import stylesheet from '../addGroup/styles';
 
-export const EditGroup = ({groupId, handleClose}: {groupId: string; handleClose: () => void}) => {
+export const EditGroup = ({
+  groupId,
+  handleClose,
+}: {
+  groupId: string;
+  handleClose: () => void;
+  metaData: NDKEvent;
+}) => {
   const styles = useStyles(stylesheet);
   const {showToast} = useToast();
   const queryClient = useQueryClient();
@@ -18,6 +26,7 @@ export const EditGroup = ({groupId, handleClose}: {groupId: string; handleClose:
   const initialValues = {
     name: '',
     about: '',
+    access: 'private',
   };
 
   return (
@@ -31,6 +40,7 @@ export const EditGroup = ({groupId, handleClose}: {groupId: string; handleClose:
               meta: {
                 name: values.name,
                 about: values.about,
+                access: values.access,
               },
             },
             {
@@ -49,7 +59,7 @@ export const EditGroup = ({groupId, handleClose}: {groupId: string; handleClose:
           );
         }}
       >
-        {({handleChange, handleBlur, handleSubmit, values}) => (
+        {({handleChange, handleBlur, handleSubmit, setFieldValue, values}) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Edit Group</Text>
@@ -63,6 +73,14 @@ export const EditGroup = ({groupId, handleClose}: {groupId: string; handleClose:
                 onBlur={handleBlur('name')}
                 onChangeText={handleChange('name')}
               />
+              <Picker
+                selectedValue={values.access}
+                onValueChange={(itemValue) => setFieldValue('access', itemValue)}
+                label=""
+              >
+                <Picker.Item label="Private" value="private" />
+                <Picker.Item label="Public" value="public" />
+              </Picker>
               <SquareInput
                 multiline
                 style={styles.input}

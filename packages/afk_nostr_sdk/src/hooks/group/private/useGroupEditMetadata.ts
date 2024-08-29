@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
@@ -10,8 +10,16 @@ import {objectToTagArray} from './util';
 type UpdateMetaData = {
   name?: string;
   about?: string;
+  access?: string;
   picture?: string;
 };
+
+interface UseGetGroupMetaData {
+  pubKey: string;
+  search?: string;
+  limit?: number;
+  groupId: string;
+}
 
 export const useGroupEditMetadata = () => {
   const {ndk} = useNostrContext();
@@ -30,12 +38,31 @@ export const useGroupEditMetadata = () => {
       if (!hasPermission) {
         throw new Error('You do not have permission to edit metadata');
       }
+      const editedTag = objectToTagArray(data.meta);
 
       const event = new NDKEvent(ndk);
+      event.content = data.meta.name;
       event.kind = NDKKind.GroupAdminEditMetadata;
-      event.tags = [['d', data.groupId], objectToTagArray(data.meta)[0]];
+      event.tags = [['h', data.groupId], ['d', data.groupId], ...editedTag];
 
       return event.publish();
+    },
+  });
+};
+
+export const useGetGroupMetadata = (options: UseGetGroupMetaData) => {
+  const {ndk} = useNostrContext();
+
+  return useQuery({
+    queryKey: ['getGroupMetaData', options.pubKey, options.groupId],
+    queryFn: async () => {
+      const events = await ndk.fetchEvent({
+        kinds: [NDKKind.GroupAdminEditMetadata],
+        authors: [options.pubKey],
+        '#d': [options.groupId],
+      });
+
+      return events ?? null;
     },
   });
 };

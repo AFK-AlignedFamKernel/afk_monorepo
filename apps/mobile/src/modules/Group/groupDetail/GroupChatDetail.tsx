@@ -1,5 +1,5 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {useAuth, useDeleteGroup, useGetGroupMemberList} from 'afk_nostr_sdk';
+import {useAuth, useDeleteGroup, useGetGroupMemberList, useGetGroupMetadata} from 'afk_nostr_sdk';
 import React, {useRef, useState} from 'react';
 import {FlatList, Pressable, SafeAreaView, TouchableOpacity, View} from 'react-native';
 
@@ -18,9 +18,12 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const {publicKey: pubKey} = useAuth();
   const queryClient = useQueryClient();
   const {showToast} = useToast();
+
+  const {data: groupMetaData} = useGetGroupMetadata({groupId: route.params.groupId, pubKey});
   const memberListData = useGetGroupMemberList({
     groupId: route.params.groupId,
   });
+
   const {mutate} = useDeleteGroup();
   const modalizeRef = useRef<Modalize>(null);
   const addMemberModalizeRef = useRef<Modalize>(null);
@@ -59,6 +62,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
         </Modalize>
         <Modalize ref={editGroupModalizeRef}>
           <EditGroup
+            metaData={groupMetaData as any}
             handleClose={() => editGroupModalizeRef.current?.close()}
             groupId={route.params.groupId ? route.params.groupId : ''}
           />

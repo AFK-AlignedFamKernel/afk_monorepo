@@ -18,7 +18,7 @@ export const CreateGroup: React.FC = () => {
 
   const initialValues = {
     groupName: '',
-    groupType: 'private',
+    access: 'private',
   };
 
   return (
@@ -28,7 +28,7 @@ export const CreateGroup: React.FC = () => {
         onSubmit={(values) => {
           mutate(
             {
-              groupType: 'private',
+              groupType: values.access as any,
               groupName: values.groupName,
             },
             {
@@ -46,7 +46,7 @@ export const CreateGroup: React.FC = () => {
           );
         }}
       >
-        {({handleChange, handleBlur, handleSubmit, values}) => (
+        {({handleChange, handleBlur, setFieldValue, handleSubmit, values}) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Create a New Group</Text>
@@ -62,12 +62,12 @@ export const CreateGroup: React.FC = () => {
                 onChangeText={handleChange('groupName')}
               />
               <Picker
-                selectedValue={values.groupType}
-                onValueChange={(itemValue) => handleChange('groupType')}
+                selectedValue={values.access}
+                onValueChange={(itemValue) => setFieldValue('access', itemValue)}
                 label=""
               >
-                <Picker.Item label="Public" value="public" />
                 <Picker.Item label="Private" value="private" />
+                <Picker.Item label="Public" value="public" />
               </Picker>
             </View>
             <Button onPress={() => handleSubmit()}>Create Group</Button>

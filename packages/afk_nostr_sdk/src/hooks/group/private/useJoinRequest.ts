@@ -8,11 +8,14 @@ export const useJoinGroupRequest = () => {
 
   return useMutation({
     mutationKey: ['joinGroupRequest', ndk],
-    mutationFn: async (data: {groupId: string; content?: string}) => {
+    mutationFn: async (data: {groupId: string; content?: string; pubkey: string}) => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminRequestJoin;
       event.content = data?.content || '';
-      event.tags = [['h', data.groupId]];
+      event.tags = [
+        ['h', data.groupId],
+        ['p', data.pubkey],
+      ];
       return event.publish();
     },
   });

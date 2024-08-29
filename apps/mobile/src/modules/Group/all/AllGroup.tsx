@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import {useAuth, useGetGroupList} from 'afk_nostr_sdk';
+import {useAuth, useGetAllGroupList, useGetGroupList} from 'afk_nostr_sdk';
 import {FlatList, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 
 import {PadlockIcon, SlantedArrowIcon} from '../../../assets/icons';
@@ -9,9 +9,16 @@ import stylesheet from './styles';
 
 export default function AllGroupListComponent() {
   const {publicKey: pubKey} = useAuth();
+
   const data = useGetGroupList({
     pubKey,
   });
+  const allGroup = useGetAllGroupList({
+    pubKey,
+  });
+
+  console.log(allGroup.data, 'AllGroup');
+  console.log(data.data, 'AllGroup2');
 
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -26,7 +33,10 @@ export default function AllGroupListComponent() {
         renderItem={({item}: any) => (
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('GroupChat', {groupId: item.id, groupName: item.content})
+              navigation.navigate('GroupChat', {
+                groupId: item.originalGroupId,
+                groupName: item.content,
+              })
             }
             style={styles.groupItem}
           >
@@ -34,7 +44,9 @@ export default function AllGroupListComponent() {
               <Text style={styles.groupName}>{item.content || 'No Name'}</Text>
               <View style={styles.groupType}>
                 <PadlockIcon stroke="gray" />
-                <Text style={styles.groupTypeText}>Private</Text>
+                <Text style={styles.groupTypeText}>
+                  {item?.tags.find((tag: any) => tag[0] === 'access')?.[1]}
+                </Text>
               </View>
             </View>
             <View>
