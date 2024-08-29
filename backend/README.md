@@ -12,6 +12,7 @@ REDIS_PORT=your_redis_port
 POSTGRES_HOST=your_postgres_host
 POSTGRES_PORT=your_postgres_port
 POSTGRES_USER=your_postgres_user
+POSTGRES_PASSWORD=your_postgres_password
 POSTGRES_DATABASE=your_postgres_database
 
 ```
@@ -37,13 +38,13 @@ go build
 Build the image
 
 ```sh
-docker build -f Dockerfile.consumer.prod -t afk-backend .
+docker build -f Dockerfile.consumer.prod -t consumer-app .
 ```
 
 Run the container
 
 ```sh
-docker run --env-file .env -d -p 8082:8082 --name afk-backend afk-backend
+docker run --env-file .env -d -p 8081:8081 --name consumer-app consumer-app
 ```
 
 ## TODO 
