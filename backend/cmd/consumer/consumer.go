@@ -58,7 +58,6 @@ func main() {
 	core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, false)
 
 	routes.InitBaseRoutes()
-	routes.InitColorsRoutes()
 	indexer.InitIndexerRoutes()
 	routes.InitWebsocketRoutes()
 	routes.InitNFTStaticRoutes()
