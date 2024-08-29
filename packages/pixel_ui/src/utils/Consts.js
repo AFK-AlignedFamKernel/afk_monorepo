@@ -1,14 +1,15 @@
 import backendConfig from '../configs/backend.config.json';
 
 /** TODO fix url */
-export const backendUrl = 'https://' + backendConfig.host;
+// TODO used REACT_APP_NODE_ENV
+
+// export const backendUrl = 'https://' + backendConfig.host;
+export const backendUrl =  backendConfig.host;
 // export const backendUrl = 'https://' + backendConfig.host + ':' + backendConfig.port;
 
 // export const backendUrl = backendConfig.production
 //   ? 'https://' + backendConfig.host
 //   : 'http://' + backendConfig.host + ':' + backendConfig.port;
-
-
 
 export const wsUrl = backendConfig.production
   ? 'wss://' + backendConfig.host + '/ws'
@@ -22,8 +23,8 @@ export const templateUrl = backendConfig.production
   ? 'https://' + backendConfig.host
   : 'http://' + backendConfig.host + ':' + backendConfig.port;
 
+// TODO used REACT_APP_NODE_ENV
 export const devnetMode = backendConfig.production === false;
-
 export const convertUrl = (url) => {
   if (!url) {
     return url;

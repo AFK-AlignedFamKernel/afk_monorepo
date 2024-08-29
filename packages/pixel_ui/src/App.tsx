@@ -22,9 +22,17 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
-import useMediaQuery from './hooks/useMediaQuery';
+import useMediaQuery from './hooks/useMediaQuery.js';
+// import { useMediaQuery } from 'react-responsive';
 
-function App() {
+interface IApp {
+  contractAddress?: string;
+  canvasAddress?: string;
+  nftAddress?: string;
+  factoryAddress?: string;
+}
+
+function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IApp) {
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -255,7 +263,7 @@ function App() {
         return;
       }
       const time = new Date(response.data);
-      setLastPlacedTime(time);
+      setLastPlacedTime(time?.getTime());
     }
 
     fetchGetLastPlacedPixel();
@@ -303,7 +311,7 @@ function App() {
           continue;
         }
         let lastPlacedTime = new Date(chainFactionPixelsData[i].lastPlacedTime);
-        let timeSinceLastPlacement = Date.now() - lastPlacedTime;
+        let timeSinceLastPlacement = Date.now() - lastPlacedTime?.getTime();
         let chainFactionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
         if (chainFactionPixelAvailable) {
@@ -342,7 +350,7 @@ function App() {
           continue;
         }
         let lastPlacedTime = new Date(factionPixelsData[i].lastPlacedTime);
-        let timeSinceLastPlacement = Date.now() - lastPlacedTime;
+        let timeSinceLastPlacement = Date.now() - lastPlacedTime?.getTime();
         let factionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
         if (factionPixelAvailable) {
@@ -379,9 +387,9 @@ function App() {
     }
     setAvailablePixels(
       (basePixelUp ? 1 : 0) +
-        totalChainFactionPixels +
-        totalFactionPixels +
-        extraPixels
+      totalChainFactionPixels +
+      totalFactionPixels +
+      extraPixels
     );
   }, [basePixelUp, chainFactionPixels, factionPixels, extraPixels]);
 
@@ -653,7 +661,7 @@ function App() {
           setLastPlacedTime={setLastPlacedTime}
         />
         {(!isMobile || activeTab === tabs[0]) && (
-          <img src={logo} alt='logo' className='App__logo--mobile' />
+          <img src={logo?.src} alt='logo' className='App__logo--mobile' />
         )}
         <div
           className={
@@ -797,7 +805,7 @@ function App() {
                   setFooterExpanded(!footerExpanded);
                 }}
               >
-                <img src={Hamburger} alt='Tabs' className='ExpandTabs__icon' />
+                <img src={Hamburger?.src} alt='Tabs' className='ExpandTabs__icon' />
               </div>
             )}
             {isFooterSplit && footerExpanded && (
