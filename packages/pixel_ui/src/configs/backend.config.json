@@ -1,6 +1,8 @@
 {
   "host_local": "localhost",
-  "host": "https://backend-pixel.onrender.com/",
+  "host_prod": "https://backend-pixel.onrender.com/",
+  "host": "http://localhost:8082",
+  "host_test": "http://localhost:8082",
   "port": 8082,
   "scripts": {
     "place_pixel_devnet": "../tests/integration/local/place_pixel.sh",

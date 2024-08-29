@@ -21,7 +21,8 @@ export const PixelPeace: React.FC = () => {
       {Platform.OS == "web" && process.env.EXPO_PUBLIC_PIXEL_URL &&
         <>
           <iframe src={process.env.EXPO_PUBLIC_PIXEL_URL}
-            height={isDesktop ? 750 : 550}
+            // height={isDesktop ? 750 : 550}
+            height={550}
             width={"100%"}
           ></iframe>
 
