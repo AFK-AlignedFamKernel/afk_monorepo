@@ -55,8 +55,8 @@ CREATE TABLE token_transactions (
     current_supply TEXT,
     liquidity_raised TEXT,
     price TEXT,
+    protocol_fee TEXT,
     amount TEXT,
-    time_stamp timestamp,
     _cursor bigint,
     transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell'))
 

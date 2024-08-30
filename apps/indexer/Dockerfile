@@ -11,8 +11,8 @@ FROM quay.io/apibara/sink-postgres:0.7.0-x86_64
 WORKDIR /app
 COPY ./src/* /app
 
-ARG DATABASE_CONN_STRING
+ARG POSTGRES_CONNECTION_STRING
 
-ENV DATABASE_CONN_STRING=${DATABASE_CONN_STRING}
+ENV POSTGRES_CONNECTION_STRING=${POSTGRES_CONNECTION_STRING}
 
 ENTRYPOINT ["/nix/store/rh1g8pb7wfnyr527jfmkkc5lm3sa1f0l-apibara-sink-postgres-0.7.0/bin/apibara-sink-postgres"]
