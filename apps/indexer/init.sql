@@ -12,10 +12,8 @@ create table token_launch(
     current_supply text,
     liquidity_raised text,
     price text,
-    _cursor bigint
-    timestamp TIMESTAMP,
-
-
+    _cursor bigint,
+    time_stamp timestamp
 );
 
 create table token_deploy(
@@ -32,8 +30,8 @@ create table token_deploy(
     initial_supply text,
     total_supply text,
     created_at timestamp default current_timestamp,
-    _cursor bigint
-    timestamp TIMESTAMP,
+    _cursor bigint,
+    time_stamp TIMESTAMP
 
 
 );
@@ -58,9 +56,9 @@ CREATE TABLE token_transactions (
     liquidity_raised TEXT,
     price TEXT,
     amount TEXT,
-    timestamp TIMESTAMP,
+    time_stamp timestamp,
     _cursor bigint,
-    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),, 
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell'))
 
 );
 
