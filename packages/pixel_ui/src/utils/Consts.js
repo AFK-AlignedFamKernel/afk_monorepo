@@ -1,10 +1,15 @@
-import backendConfig from '../configs/backend.config.json';
-
+import backendConfigProd from '../configs/backend.config.json';
+import backendConfigDev from '../configs/backend.dev.config.json';
+const isProduction = process.env.REACT_APP_NODE_ENV == "true" ? true : false
 /** TODO add ENV and config for prod and test */
 /** TODO fix url */
+
+// const backendConfig = isProduction ? backendConfigProd : backendConfigDev
+const backendConfig = backendConfigProd
+// const backendConfig =  backendConfigDev
+
 // TODO used REACT_APP_NODE_ENV
-// const isProduction = process.env.REACT_APP_NODE_ENV == "true" ? true : false
-const isProduction = true
+// const isProduction = true
 // export const backendUrl = 'https://' + backendConfig.host;
 console.log("isProduction", isProduction)
 console.log("REACT_APP_BACKEND_URL", process.env.REACT_APP_BACKEND_URL)

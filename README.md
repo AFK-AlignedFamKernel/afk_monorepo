@@ -239,6 +239,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/manlikeHB"><img src="https://avatars.githubusercontent.com/u/109147010?v=4?s=100" width="100px;" alt="Yusuf Habib"/><br /><sub><b>Yusuf Habib</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=manlikeHB" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://isaaconyemaechi.tech/"><img src="https://avatars.githubusercontent.com/u/116242877?v=4?s=100" width="100px;" alt="Isaac Onyemaechi Ugwu"/><br /><sub><b>Isaac Onyemaechi Ugwu</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=Dprof-in-tech" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/EjembiEmmanuel"><img src="https://avatars.githubusercontent.com/u/83036156?v=4?s=100" width="100px;" alt="Oche"/><br /><sub><b>Oche</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=EjembiEmmanuel" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://poulav.vercel.app/"><img src="https://avatars.githubusercontent.com/u/133862694?v=4?s=100" width="100px;" alt="Poulav Bhowmick"/><br /><sub><b>Poulav Bhowmick</b></sub></a><br /><a href="https://github.com/AFK-AlignedFamKernel/afk_monorepo/commits?author=PoulavBhowmick03" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

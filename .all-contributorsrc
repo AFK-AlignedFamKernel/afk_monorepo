@@ -108,6 +108,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "PoulavBhowmick03",
+      "name": "Poulav Bhowmick",
+      "avatar_url": "https://avatars.githubusercontent.com/u/133862694?v=4",
+      "profile": "https://poulav.vercel.app/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

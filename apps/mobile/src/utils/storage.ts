@@ -65,16 +65,24 @@ export const retrieveAndDecryptPrivateKey = async (password: string): Promise<fa
   }
 };
 
+/** TODO add security for password retrieve in Web view? */
 export const storePassword = async (password: string) => {
   if (isSecureStoreAvailable) {
     return SecureStore.setItemAsync('password', password, {requireAuthentication: true});
   }
+  // else {
+  //   return await AsyncStorage.setItem('password', password);
+  // }
 };
 
+/** TODO add security for password retrieve in Web view? */
 export const retrievePassword = async () => {
   if (isSecureStoreAvailable) {
     return SecureStore.getItemAsync('password', {requireAuthentication: true});
   }
+  // else {
+  //   return await AsyncStorage.getItem('password');
+  // }
 
   return null;
 };
