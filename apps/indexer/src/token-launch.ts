@@ -26,7 +26,7 @@ export const config = {
   filter,
   sinkType: "postgres",
   sinkOptions: {
-    connectionString: "",
+    connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
     tableName: "token_launch"
   }
 };
@@ -38,66 +38,49 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
     if (!event.data) return;
 
     const transactionHash = transaction.meta.hash;
-    console.log("event data", event?.data);
 
-    const [owner, token_address] = event.keys!;
+    const [caller, token_address] = event.keys!;
     const [
-      name,
-      symbol,
-      initial_supply_low,
-      initial_supply_high,
+      amount_low,
+      amount_high,
+      price,
       total_supply_low,
-      total_supply_high
+      total_supply_high,
+      slope_low,
+      slope_high,
+      threshold_liquidity_low,
+      threshold_liquidity_high
     ] = event.data;
-    console.log("owner", owner);
-    console.log("token_address", token_address);
-    console.log("name", name);
-    console.log("symbol", symbol);
-    console.log("initial_supply_low", initial_supply_low);
-    console.log("total_supply_low", total_supply_low);
 
-    const name_decoded = shortString.decodeShortString(
-      name.replace(/0x0+/, "0x")
-    );
-    const symbol_decoded = shortString.decodeShortString(
-      symbol.replace(/0x0+/, "0x")
-    );
-    const quote_token_decoded = token_address
-      ? shortString.decodeShortString(token_address.replace(/0x0+/, "0x"))
-      : "";
-    const exchange_name_decoded = exchange_name
-      ? shortString.decodeShortString(exchange_name.replace(/0x0+/, "0x"))
-      : "";
+    const amount = uint256
+      .uint256ToBN({ low: amount_low, high: amount_high })
+      .toString();
     const price_decoded = price
       ? shortString.decodeShortString(price.replace(/0x0+/, "0x"))
       : "";
-    const liquidity_raised_decoded = liquidity_raised
-      ? uint256.uint256ToBN({ low: liquidity_raised, high: 0 }).toString()
-      : "0";
-
-    let total_supply = cairo.uint256(0);
-    if (total_supply_high && total_supply_low) {
-      total_supply = uint256
-        .uint256ToBN({ low: total_supply_low, high: total_supply_high })
-        .toString();
-    }
-    console.log("total_supply", total_supply);
+    const total_supply = uint256
+      .uint256ToBN({ low: total_supply_low, high: total_supply_high })
+      .toString();
+    const slope = uint256
+      .uint256ToBN({ low: slope_low, high: slope_high })
+      .toString();
+    const threshold_liquidity = uint256
+      .uint256ToBN({
+        low: threshold_liquidity_low,
+        high: threshold_liquidity_high
+      })
+      .toString();
 
     return {
+      memecoin_address: token_address,
       network: "starknet-sepolia",
       block_hash: blockHash,
       block_number: Number(blockNumber),
       block_timestamp: timestamp,
       transaction_hash: transactionHash,
-      memecoin_address: token_address,
-      quote_token: quote_token_decoded,
-      exchange_name: exchange_name_decoded,
-      created_at: new Date().toISOString(),
       total_supply,
-      current_supply,
-      liquidity_raised: liquidity_raised_decoded,
       price: price_decoded,
-      timestamp: new Date(Number(timestamp) * 1000).toISOString()
+      time_stamp: timestamp
     };
   });
 }
