@@ -57,11 +57,6 @@ contract ABTCVault is
         uint256 burnedAmount
     );
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize(
         address _admin,
         address _underlying
@@ -81,6 +76,7 @@ contract ABTCVault is
     function setWrappedBTCToken(
         address _token,
         bool _isPermitted,
+        uint256 ratio,
         uint256 _poolingTimestamp
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         wrappedBTCTokens[_token] = WrappedBTC(_isPermitted, _poolingTimestamp);

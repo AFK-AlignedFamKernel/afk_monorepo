@@ -27,6 +27,7 @@ contract ABTCVaultTest is Test {
         wbtc = new MockWrappedBTC("Wrapped BTC", "WBTC");
         tbtc = new MockWrappedBTC("tBTC", "TBTC");
 
+        // vault = new ABTCVault();
         vault = new ABTCVault();
         vault.initialize(admin, address(wbtc));
 
@@ -48,7 +49,7 @@ contract ABTCVaultTest is Test {
     }
 
     function testSetWrappedBTCToken() public {
-        vault.setWrappedBTCToken(address(wbtc), true, block.timestamp);
+        vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
         (bool isPermitted, uint256 poolingTimestamp) = vault.wrappedBTCTokens(
             address(wbtc)
         );

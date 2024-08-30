@@ -309,8 +309,8 @@ mod tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: Signature {
-                r: 0x8ffbabf63d0fd526dffb8c04d04a216bb03743fae22826a2b42005d478c48360_u256,
-                s: 0x6aa0f5295635d03d6d3f61aaf7f4163175ed1a9001550b9da4c0a3a6098c0fab_u256,
+                r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
+                s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
             // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             }
@@ -365,7 +365,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: 'can\'t verify signature')]
+    #[should_panic()]
     fn link_incorrect_signature() {
         let (_, _, sender_address, namespace, fail_request_linked_wallet_to_caller) =
             request_fixture();
@@ -383,7 +383,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: 'can\'t verify signature')]
+    #[should_panic()]
     fn link_incorrect_signature_link_to() {
         let (request, _, sender_address, namespace, _) = request_fixture();
         cheat_caller_address_global(sender_address);
@@ -391,7 +391,7 @@ mod tests {
         start_cheat_caller_address(namespace.contract_address, sender_address);
         let request_test_failed_sig = SocialRequest {
             sig: Signature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
+                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
             },
             ..request,

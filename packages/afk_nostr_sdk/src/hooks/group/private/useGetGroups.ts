@@ -4,7 +4,7 @@ import {useInfiniteQuery} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
 
 interface UseGetActiveGroupListOptions {
-  pubKey: string;
+  pubKey?: string | undefined;
   search?: string;
   limit?: number;
 }
@@ -37,7 +37,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
           GroupAdminDeleteGroup,
           NDKKind.GroupAdminEditMetadata,
         ],
-        authors: [options.pubKey],
+        // authors: options?.pubKey ? [options.pubKey]: [],
         until: pageParam || Math.round(Date.now() / 1000),
       });
       [...events]
@@ -104,3 +104,34 @@ export const useGetAllGroupList = (options: UseGetActiveGroupListOptions) => {
     placeholderData: {pages: [], pageParams: []},
   });
 };
+
+/**
+ * This hooks returns all groups added by admin.
+ * @param options
+ * @returns
+ */
+export const useGetAllGroupListByMemberAdded = (options: UseGetActiveGroupListOptions) => {
+  const {ndk} = useNostrContext();
+
+  return useInfiniteQuery({
+    queryKey: ['getAllGroupLists', options.pubKey, options?.search],
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      if (!lastPage?.length) return undefined;
+
+      const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+      if (!pageParam || pageParam === lastPageParam) return undefined;
+      return pageParam;
+    },
+    queryFn: async ({pageParam}) => {
+      const events = await ndk.fetchEvents({
+        kinds: [NDKKind.GroupAdminAddUser],
+        until: pageParam || Math.round(Date.now() / 1000),
+      });
+
+      return [...events];
+    },
+    placeholderData: {pages: [], pageParams: []},
+  });
+};
+
