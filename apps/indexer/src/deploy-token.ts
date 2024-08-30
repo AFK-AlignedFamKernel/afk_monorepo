@@ -22,7 +22,7 @@ export const config = {
   filter,
   sinkType: "postgres",
   sinkOptions: {
-    connectionString: "",
+    connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
     tableName: "token_deploy"
   }
 };
@@ -34,44 +34,58 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
     if (!event.data || !event.keys) return;
 
     const transactionHash = transaction.meta.hash;
-    const [
-      caller,
-      token_address
-      // name, symbol
-    ] = event.keys;
+    const [caller, token_address] = event.keys;
 
     const [
+      symbol,
+      name,
       initial_supply_low,
       initial_supply_high,
       total_supply_low,
-      total_supply_high,
-      symbol,
-      name
+      total_supply_high
     ] = event.data;
 
+    const symbol_decoded = token_address
+      ? shortString.decodeShortString(symbol.replace(/0x0+/, "0x"))
+      : "";
+    const name_decoded = name
+      ? shortString.decodeShortString(name.replace(/0x0+/, "0x"))
+      : "";
     const initial_supply = uint256
       .uint256ToBN({ low: initial_supply_low, high: initial_supply_high })
       .toString();
     const total_supply = uint256
       .uint256ToBN({ low: total_supply_low, high: total_supply_high })
       .toString();
-    const name_decoded = shortString.decodeShortString(name);
-    const symbol_decoded = shortString.decodeShortString(symbol);
 
-    return {
+    console.log({
+      memecoin_address: token_address,
       network: "starknet-sepolia",
       block_hash: blockHash,
       block_number: Number(blockNumber),
       block_timestamp: timestamp,
       transaction_hash: transactionHash,
-      memecoin_address: token_address,
       owner_address: caller,
       name: name_decoded,
       symbol: symbol_decoded,
       initial_supply,
       total_supply,
-      created_at: new Date().toISOString(),
-      timestamp: new Date(Number(timestamp) * 1000).toISOString()
+      time_stamp: timestamp
+    });
+
+    return {
+      memecoin_address: token_address,
+      network: "starknet-sepolia",
+      block_hash: blockHash,
+      block_number: Number(blockNumber),
+      block_timestamp: timestamp,
+      transaction_hash: transactionHash,
+      owner_address: caller,
+      name: name_decoded,
+      symbol: symbol_decoded,
+      initial_supply,
+      total_supply,
+      time_stamp: timestamp
     };
   });
 }
