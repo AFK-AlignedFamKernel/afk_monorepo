@@ -1,4 +1,4 @@
-import { useReposts, useRootNotes, useSearch } from 'afk_nostr_sdk';
+import { useBookmark, useReposts, useRootNotes, useSearch } from 'afk_nostr_sdk';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
 import { useStyles } from '../../hooks';
@@ -22,6 +22,11 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   const notesSearch = useRootNotes({ authors: [publicKey] });
   const search = useSearch({ authors: [publicKey], kinds: kindFilter });
   const reposts = useReposts({ authors: [publicKey] });
+  const { bookmarksWithNotes } = useBookmark(publicKey);
+
+  const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+    ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
+    : search.data?.pages.flat();
 
   return (
     <View style={styles.container}>
@@ -57,7 +62,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
             </ScrollView>
           </>
         }
-        data={search.data?.pages.flat()}
+        data={getData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           if (ndkKinds.includes(NDKKind.Repost)) {
