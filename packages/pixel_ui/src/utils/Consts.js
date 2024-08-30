@@ -5,8 +5,8 @@ const isProduction = process.env.REACT_APP_NODE_ENV == "true" ? true : false
 /** TODO fix url */
 
 // const backendConfig = isProduction ? backendConfigProd : backendConfigDev
-// const backendConfig = backendConfigProd
-const backendConfig =  backendConfigDev
+const backendConfig = backendConfigProd
+// const backendConfig =  backendConfigDev
 
 // TODO used REACT_APP_NODE_ENV
 // const isProduction = true
