@@ -22,7 +22,7 @@ export const config = {
   filter,
   sinkType: "postgres",
   sinkOptions: {
-    connectionString: Deno.env.get("DATABASE_CONN_STRING"),
+    connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
     tableName: "unrugmeme_launch"
   }
 };
