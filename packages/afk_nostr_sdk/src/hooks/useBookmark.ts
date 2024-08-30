@@ -22,20 +22,89 @@ export const useBookmark = (userPublicKey: string) => {
     }
     const filter = { kinds: [NDKKind.BookmarkList, NDKKind.BookmarkSet], authors: [userPublicKey] };
     const events = await ndk.fetchEvents(filter);
-    return Array.from(events);
+
+    const eventsArray = Array.from(events);
+
+    // Fetch full content for each bookmarked event
+    const fullEvents = await Promise.all(eventsArray.map(async (event) => {
+      const fullEvent = await ndk.fetchEvent(event.id);
+      return fullEvent;
+    }));
+
+    return fullEvents;
   };
 
-  const getBookmarks = useQuery({
+  const bookmarks = useQuery({
     queryKey: ['bookmarks', userPublicKey],
     queryFn: fetchBookmarks,
     enabled: !!userPublicKey,
   });
 
+  const extractNoteIds = (bookmarks: NDKEvent[]) => {
+    const noteIds: Set<string> = new Set();
+  
+    bookmarks.forEach(bookmark => {
+      bookmark.tags.forEach(tag => {
+        if (tag[0] === 'e') {
+          noteIds.add(tag[1]); // Collect note IDs
+        }
+      });
+    });
+  
+    return Array.from(noteIds);
+  };
+
+  const fetchNotesByIds = async (noteIds: string[]) => {
+    if (!ndk.signer) {
+      throw new Error('No signer available');
+    }
+  
+    const filter = { ids: noteIds };
+    const events = await ndk.fetchEvents(filter);
+    return Array.from(events);
+  };
+
+  const fetchBookmarksWithNotes = async () => {
+    const bookmarks = await fetchBookmarks();
+    const noteIds = extractNoteIds(bookmarks);
+    const notes = await fetchNotesByIds(noteIds);
+  
+    // Create a mapping of note ID to note event
+    const noteMap = new Map(notes.map(note => [note.id, note]));
+  
+    // Combine bookmarks with note data
+    const bookmarksWithNotes = bookmarks.map(bookmark => {
+      const bookmarkedNotes = bookmark.tags
+        .filter(tag => tag[0] === 'e')
+        .map(tag => noteMap.get(tag[1]));
+  
+      return {
+        bookmarkEvent: bookmark,
+        notes: bookmarkedNotes,
+      };
+    });
+  
+    return bookmarksWithNotes;
+  };
+
+  const bookmarksWithNotesQuery = useQuery({
+    queryKey: ['bookmarksWithNotes', userPublicKey],
+    queryFn: fetchBookmarksWithNotes,
+    enabled: !!userPublicKey,
+  });
+  
+  
   const bookmarkNote = useMutation({
     mutationKey: ['bookmark', ndk],
     mutationFn: async ({ event, category }: BookmarkParams) => {
+      if (!event) {
+        throw new Error('No event provided for bookmark');
+      }
+
       let bookmarks = await fetchBookmarks();
       let bookmarkEvent = bookmarks.find((e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
+
+      console.log('bookmarkEvent', bookmarkEvent);
 
       if (!bookmarkEvent) {
         bookmarkEvent = new NDKEvent(ndk);
@@ -111,7 +180,8 @@ export const useBookmark = (userPublicKey: string) => {
   return {
     bookmarkNote: bookmarkNote.mutateAsync,
     removeBookmark: removeBookmark.mutateAsync,
-    getBookmarks: getBookmarks.data,
-    isFetchingBookmarks: getBookmarks.isFetching,
+    bookmarks: bookmarks.data,
+    isFetchingBookmarks: bookmarks.isFetching,
+    bookmarksWithNotes: bookmarksWithNotesQuery.data
   };
 };

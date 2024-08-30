@@ -1,4 +1,4 @@
-import { useReposts, useRootNotes, useSearch, useSearchNotes } from 'afk_nostr_sdk';
+import { useReposts, useRootNotes, useSearch } from 'afk_nostr_sdk';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
 import { useStyles } from '../../hooks';
@@ -8,19 +8,19 @@ import { ProfileInfo } from './Info';
 import stylesheet from './styles';
 import { useMemo, useState } from 'react';
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import { Button, Text } from '../../components';
+import { Text } from '../../components';
 
 export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   const { publicKey } = route.params ?? {};
   const styles = useStyles(stylesheet);
-  const [ndkKind, setNdkKind] = useState<NDKKind>(NDKKind.Text)
+  const [ndkKinds, setNdkKind] = useState<NDKKind[]>([NDKKind.Text]);
 
   const kindFilter = useMemo(() => {
-    return ndkKind
-  }, [ndkKind])
+    return ndkKinds
+  }, [ndkKinds])
 
   const notesSearch = useRootNotes({ authors: [publicKey] });
-  const search = useSearch({ authors: [publicKey], kind: kindFilter });
+  const search = useSearch({ authors: [publicKey], kinds: kindFilter });
   const reposts = useReposts({ authors: [publicKey] });
 
   return (
@@ -33,28 +33,26 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingVertical: 5,
-                paddingHorizontal:5,
-                flexDirection: 'row',
-                rowGap: 3,
-                gap: 3,
-                columnGap: 3
-              }}
-              style={{
-                paddingHorizontal:5,
-                paddingVertical: 5,
-                flexDirection: 'row',
-                rowGap: 3,
-                gap: 3,
-                columnGap: 3
-              }}
+              contentContainerStyle={styles.optionsContentContainer}
+              style={styles.optionsContainer}
             >
-              <Pressable onPress={() => setNdkKind(NDKKind.Text)}>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.Text])}
+                style={[styles.option, ndkKinds.includes(NDKKind.Text) && styles.selected]}
+              >
                 <Text>Notes</Text>
               </Pressable>
-              <Pressable onPress={() => setNdkKind(NDKKind.Repost)}>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.Repost])}
+                style={[styles.option, ndkKinds.includes(NDKKind.Repost) && styles.selected]}
+              >
                 <Text>Repost</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.BookmarkList, NDKKind.BookmarkSet])}
+                style={[styles.option, ndkKinds.includes(NDKKind.BookmarkList) && styles.selected]}
+              >
+                <Text>Bookmarks</Text>
               </Pressable>
             </ScrollView>
           </>
@@ -62,8 +60,8 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
         data={search.data?.pages.flat()}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
-          if (ndkKind == NDKKind.Repost) {
-            const itemReposted = JSON.parse(item?.content)
+          if (ndkKinds.includes(NDKKind.Repost)) {
+            const itemReposted = JSON.parse(item?.content);
             return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />
           }
           return <PostCard key={item?.id} event={item} />
