@@ -4,8 +4,8 @@ export {
   uint256,
   shortString,
   cairo
-} from "https://esm.sh/starknet@5.14";
-export { formatUnits } from "https://esm.sh/viem@1.4";
+} from "https://esm.sh/starknet@5.14.1";
+export { formatUnits } from "https://esm.sh/viem@1.4.2";
 export type {
   Block,
   FieldElement,

@@ -22,29 +22,34 @@ export const config = {
   filter,
   sinkType: "postgres",
   sinkOptions: {
-    connectionString: "", // Your PostgreSQL connection string
+    connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"), // Your PostgreSQL connection string
     tableName: "token_transactions" // Using the same table for buy and sell
   }
 };
 
 export default function DecodeSellToken({ header, events }: Block) {
-  const { blockNumber, blockHash, timestamp } = header!;
+  const { blockNumber, blockHash, timestamp: block_timestamp } = header!;
 
   return (events ?? []).map(({ event, transaction }) => {
     if (!event.data) return;
 
     const transactionHash = transaction.meta.hash;
+    const transfer_id = `${transactionHash}_${event.index}`;
+
+    const [caller, token_address] = event.keys!;
+
     const [
-      seller,
-      token_address,
       amount_low,
       amount_high,
       price_low,
       price_high,
       protocol_fee_low,
       protocol_fee_high,
-      total_supply_low,
-      total_supply_high
+      last_price_low,
+      last_price_high,
+      timestamp,
+      quote_amount_low,
+      quote_amount_high
     ] = event.data;
 
     const amount = uint256
@@ -56,28 +61,29 @@ export default function DecodeSellToken({ header, events }: Block) {
     const protocol_fee = uint256
       .uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high })
       .toString();
-    const total_supply = uint256
-      .uint256ToBN({ low: total_supply_low, high: total_supply_high })
+    const last_price = uint256
+      .uint256ToBN({ low: last_price_low, high: last_price_high })
+      .toString();
+    const quote_amount = uint256
+      .uint256ToBN({ low: quote_amount_low, high: quote_amount_high })
       .toString();
 
     return {
-      transaction_type: "sell",
+      transfer_id,
       network: "starknet-sepolia",
       block_hash: blockHash,
       block_number: Number(blockNumber),
-      block_timestamp: timestamp,
+      block_timestamp: block_timestamp,
       transaction_hash: transactionHash,
       memecoin_address: token_address,
-      owner_address: seller,
-      last_price: price,
-      quote_amount: "",
-      coin_received: "",
-      initial_supply: "",
-      total_supply,
+      owner_address: caller,
+      last_price,
+      quote_amount,
       price,
       amount,
-      timestamp: new Date(Number(timestamp) * 1000).toISOString(),
-      created_at: new Date().toISOString()
+      protocol_fee,
+      time_stamp: timestamp,
+      transaction_type: "sell"
     };
   });
 }
