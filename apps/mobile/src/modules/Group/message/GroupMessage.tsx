@@ -235,7 +235,7 @@ const NoAccessScreen = ({
               },
               {
                 onSuccess() {
-                  showToast({type: 'success', title: 'Request Sent Sucessfully'});
+                  showToast({type: 'success', title: 'Request Sent successfully'});
                   queryClient.invalidateQueries({queryKey: ['getGroupRequest', groupId]});
                 },
                 onError() {
