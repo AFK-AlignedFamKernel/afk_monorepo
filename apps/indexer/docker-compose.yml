@@ -28,18 +28,19 @@ services:
       - backend
     restart: on-failure
 
-  # unruggableMemecoin-launch-indexer:
-  #   environment:
-  #     - AUTH_TOKEN=${AUTH_TOKEN}
-  #   image: quay.io/apibara/sink-postgres:latest
-  #   command: 'run ./indexer/unruggableMemecoin-launch.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
-  #   volumes:
-  #     - ./src:/indexer
-  #   depends_on:
-  #     - postgres
-  #   networks:
-  #     - backend
-  #   restart: on-failure
+  unruggableMemecoin-launch-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - DATABASE_CONN_STRING=${DATABASE_CONN_STRING}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./indexer/unruggableMemecoin-launch.indexer.ts --allow-env-from-env AUTH_TOKEN,DATABASE_CONN_STRING -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/indexer
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    restart: on-failure
 
   # unruggableMemecoin-transfers-indexer:
   #   environment:
