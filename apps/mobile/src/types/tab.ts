@@ -33,9 +33,9 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     tab: SelectedTab.TIPS,
   },
   {
-    title: 'Messages',
-    screen: 'Messages',
-    tab: SelectedTab.MESSAGES,
+    title: 'All Group',
+    screen: 'AllGroup',
+    tab: SelectedTab.ALL_GROUP,
   },
   {
     title: 'Channels',
@@ -43,9 +43,9 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     tab: SelectedTab.CHANNELS,
   },
   {
-    title: 'All Group',
-    screen: 'AllGroup',
-    tab: SelectedTab.ALL_GROUP,
+    title: 'Messages',
+    screen: 'Messages',
+    tab: SelectedTab.MESSAGES,
   },
   // {
   //   title: 'Messages',

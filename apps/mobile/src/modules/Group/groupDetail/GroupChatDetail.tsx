@@ -1,6 +1,6 @@
 import {useQueryClient} from '@tanstack/react-query';
 import {useAuth, useDeleteGroup, useGetGroupMemberList, useGetGroupMetadata} from 'afk_nostr_sdk';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, Pressable, SafeAreaView, TouchableOpacity, View} from 'react-native';
 
 import {AddPostIcon, BackIcon, EditIcon, TrashIcon, UserPlusIcon} from '../../../assets/icons';
@@ -31,6 +31,12 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const menuModalizeRef = useRef<Modalize>(null);
   const styles = useStyles(stylesheet);
   const [selectedMember, setSelectedMember] = useState();
+
+  /** Todo check if user is already added as a member */
+  useEffect(() => {
+
+  },[])
+
 
   const onOpen = (selected: any) => {
     modalizeRef.current?.open();

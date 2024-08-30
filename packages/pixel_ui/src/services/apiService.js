@@ -4,6 +4,7 @@ export const fetchWrapper = async (url, options = {}) => {
   const controller = new AbortController();
   const signal = controller.signal;
   try {
+    console.log("backendUrl",backendUrl)
     const response = await fetch(`${backendUrl}/${url}`, {
       mode: 'cors',
       signal,

@@ -18,7 +18,7 @@ services:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.ts --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -31,7 +31,7 @@ services:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-launch.indexer.ts --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-launch.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -44,7 +44,7 @@ services:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-transfers.indexer.ts --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-transfers.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -52,6 +52,61 @@ services:
     networks:
       - backend
     restart: on-failure
+
+  buy-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./indexer/buy-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/indexer
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    restart: on-failure
+
+
+  sell-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./indexer/sell-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/indexer
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    restart: on-failure
+
+  token-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./indexer/token-launch.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/indexer
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    restart: on-failure
+
+  deploy-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./indexer/deploy-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/indexer
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    restart: on-failure
+
+
 
 networks:
   backend:

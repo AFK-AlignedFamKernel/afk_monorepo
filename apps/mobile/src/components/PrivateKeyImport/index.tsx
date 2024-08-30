@@ -37,11 +37,13 @@ export const PrivateKeyImport: React.FC = () => {
       showToast({type: 'error', title: 'Password is required'});
       return;
     }
-    const passwordRetrieve = await retrievePassword();
-    if (password != passwordRetrieve) {
-      showToast({type: 'error', title: 'Invalid password'});
-      return;
-    }
+
+    /** TODO fix in web */
+    // const passwordRetrieve = await retrievePassword();
+    // if (password != passwordRetrieve) {
+    //   showToast({type: 'error', title: 'Invalid password'});
+    //   return;
+    // }
     const privateKey = await retrieveAndDecryptPrivateKey(password);
     if (!privateKey || privateKey.length !== 32) {
       showToast({type: 'error', title: 'Invalid password'});
