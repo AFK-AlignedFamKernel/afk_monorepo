@@ -46,7 +46,7 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-import RightSidebar from '../modules/Layout/RightSideBar';
+import RightSidebar from '../components/RightSideBar';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -267,7 +267,7 @@ const MainNavigator: React.FC = () => {
       <View style={{ flex: 1 }}>
         <Feed navigation={useNavigation()} route={useRoute()} />
       </View>
-      <View style={{ width: 300, backgroundColor: theme.theme.colors.surface }}>
+      <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
         <RightSidebar />
       </View>
     </View>
