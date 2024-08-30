@@ -1,6 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
-import {useAuth, useGetAllGroupList, useGetGroupList} from 'afk_nostr_sdk';
-import {ActivityIndicator, FlatList, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
+import {useGetGroupList} from 'afk_nostr_sdk';
+import {
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import {PadlockIcon, SlantedArrowIcon} from '../../../assets/icons';
 import {useStyles} from '../../../hooks';
@@ -8,18 +15,7 @@ import {MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
 
 export default function AllGroupListComponent() {
-  const {publicKey: pubKey} = useAuth();
-
-  const data = useGetGroupList({
-    // pubKey,
-  });
-  // const allGroup = useGetAllGroupList({
-  //   pubKey,
-  // });
-
-  // console.log("AllGroup", allGroup.data);
-  console.log("AllGroup", data.data);
-  // console.log(data.data, 'AllGroup2');
+  const {data, isPending} = useGetGroupList({});
 
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -30,15 +26,20 @@ export default function AllGroupListComponent() {
         <Text style={styles.headerTitle}>My Groups</Text>
       </View>
 
-      {data?.data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>}
+      {isPending ? (
+        <ActivityIndicator></ActivityIndicator>
+      ) : (
+        data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>
+      )}
       <FlatList
-        data={data.data.pages.flat()}
+        data={data.pages.flat()}
         renderItem={({item}: any) => (
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('GroupChat', {
                 groupId: item.originalGroupId,
                 groupName: item.content,
+                groupAccess: item?.tags.find((tag: any) => tag[0] === 'access')?.[1] || 'public',
               })
             }
             style={styles.groupItem}

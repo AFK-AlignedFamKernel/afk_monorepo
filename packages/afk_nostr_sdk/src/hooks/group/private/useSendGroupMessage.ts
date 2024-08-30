@@ -3,10 +3,13 @@ import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
+import {AdminGroupPermission} from './useAddPermissions';
+import {checkGroupPermission} from './useGetPermission';
 
 // TODO
 export const useSendGroupMessages = () => {
   const {ndk} = useNostrContext();
+  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
     mutationKey: ['sendGroupMessage', ndk],
@@ -17,24 +20,35 @@ export const useSendGroupMessages = () => {
       name?: string;
       replyId: string;
     }) => {
-      const event = new NDKEvent(ndk);
-      event.content = data.content;
-      // Set the kind based on whether it's a reply or not
-      event.kind = data.replyId ? NDKKind.GroupReply : NDKKind.GroupNote; // Using literal kind values
+      const hasPermission = await checkGroupPermission({
+        groupId: data.groupId,
+        ndk,
+        pubkey,
+        action: AdminGroupPermission.ViewAccess,
+      });
 
-      // Base tags
-      event.tags = [
-        ['h', data.groupId],
-        ['p', data.pubkey],
-        ['name', data.name],
-      ];
+      if (!hasPermission) {
+        throw new Error('You do not have permission to send message');
+      } else {
+        const event = new NDKEvent(ndk);
+        event.content = data.content;
+        // Set the kind based on whether it's a reply or not
+        event.kind = data.replyId ? NDKKind.GroupReply : NDKKind.GroupNote; // Using literal kind values
 
-      // Check if it's a reply and append NIP-10 markers
-      if (data.replyId) {
-        event.tags.push(['e', data.replyId, '', 'reply']);
+        // Base tags
+        event.tags = [
+          ['h', data.groupId],
+          ['p', data.pubkey],
+          ['name', data.name],
+        ];
+
+        // Check if it's a reply and append NIP-10 markers
+        if (data.replyId) {
+          event.tags.push(['e', data.replyId, '', 'reply']);
+        }
+
+        return event.publish();
       }
-
-      return event.publish();
     },
   });
 };

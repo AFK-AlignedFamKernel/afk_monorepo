@@ -20,7 +20,7 @@ export const useGroupEditStatus = () => {
   return useMutation({
     mutationKey: ['editGroupStatus', ndk],
     mutationFn: async (data: {groupId: string; status: GroupStatus}) => {
-      const hasPermission = checkGroupPermission({
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey,
@@ -29,11 +29,12 @@ export const useGroupEditStatus = () => {
 
       if (!hasPermission) {
         throw new Error('You do not have permission to edit status');
+      } else {
+        const event = new NDKEvent(ndk);
+        event.kind = NDKKind.GroupAdminEditStatus;
+        event.tags = [['d', data.groupId], objectToTagArray(data.status)[0]];
+        return event.publish();
       }
-      const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminEditStatus;
-      event.tags = [['d', data.groupId], objectToTagArray(data.status)[0]];
-      return event.publish();
     },
   });
 };

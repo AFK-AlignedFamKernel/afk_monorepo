@@ -20,7 +20,12 @@ export {useRootNotes} from './useRootNotes';
 export {useSearchNotes} from './useSearchNotes';
 export {useSendNote} from './useSendNote';
 export {useAddMember} from './group/private/useAddMember';
-export {useGetGroupMemberList, useGetGroupRequest, useGetGroupMemberListPubkey} from './group/private/useGetGroupMember';
+export {
+  useGetGroupMemberList,
+  useGetGroupRequest,
+  useGetGroupMemberListPubkey,
+} from './group/private/useGetGroupMember';
+export {useGetGroupPermission} from './group/private/useGetPermission';
 export {useAddPermissions, AdminGroupPermission} from './group/private/useAddPermissions';
 export {useCreateGroup} from './group/private/useCreateGroup';
 export {useGetGroupList, useGetAllGroupList} from './group/private/useGetGroups';

@@ -1,5 +1,11 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {useCreateGroup} from 'afk_nostr_sdk';
+import {
+  AdminGroupPermission,
+  useAddMember,
+  useAddPermissions,
+  useAuth,
+  useCreateGroup,
+} from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -12,9 +18,12 @@ import stylesheet from './styles';
 
 export const CreateGroup: React.FC = () => {
   const styles = useStyles(stylesheet);
+  const {publicKey: pubkey} = useAuth();
   const {showToast} = useToast();
   const queryClient = useQueryClient();
   const {mutate} = useCreateGroup();
+  const {mutate: addMember} = useAddMember();
+  const {mutate: addPermission} = useAddPermissions();
 
   const initialValues = {
     groupName: '',
@@ -32,9 +41,60 @@ export const CreateGroup: React.FC = () => {
               groupName: values.groupName,
             },
             {
-              onSuccess() {
-                showToast({type: 'success', title: 'Group Created successfully'});
-                queryClient.invalidateQueries({queryKey: ['getAllGroups']});
+              onSuccess(data) {
+                // After Group Creation, first add permissions for the admin
+                addPermission(
+                  {
+                    groupId: data.id,
+                    pubkey,
+                    permissionName: [
+                      AdminGroupPermission.AddMember,
+                      AdminGroupPermission.AddPermission,
+                      AdminGroupPermission.DeleteEvent,
+                      AdminGroupPermission.DeleteGroup,
+                      AdminGroupPermission.EditGroupStatus,
+                      AdminGroupPermission.EditMetadata,
+                      AdminGroupPermission.RemovePermission,
+                      AdminGroupPermission.RemoveUser,
+                      AdminGroupPermission.ViewAccess,
+                    ],
+                  },
+                  {
+                    onSuccess() {
+                      // After adding permissions, add the admin as a member
+                      addMember(
+                        {
+                          groupId: data.id,
+                          pubkey,
+                        },
+                        {
+                          onSuccess() {
+                            showToast({type: 'success', title: 'Group Created successfully'});
+                            queryClient.invalidateQueries({
+                              queryKey: ['getAllGroups'],
+                            });
+                            queryClient.invalidateQueries({
+                              queryKey: ['getPermissionsByUserConnected', data.id],
+                            });
+                          },
+                          onError() {
+                            showToast({
+                              type: 'error',
+                              title:
+                                'Error! Admin could not be added as a member. Please try again later.',
+                            });
+                          },
+                        },
+                      );
+                    },
+                    onError() {
+                      showToast({
+                        type: 'error',
+                        title: 'Error! Admin permissions could not be set. Please try again later.',
+                      });
+                    },
+                  },
+                );
               },
               onError() {
                 showToast({

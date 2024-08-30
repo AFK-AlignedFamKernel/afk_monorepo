@@ -6,7 +6,6 @@ import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
 import {checkGroupPermission} from './useGetPermission';
 
-// TODO
 export const useAddMember = () => {
   const {ndk} = useNostrContext();
   const {publicKey} = useAuth();
@@ -14,20 +13,24 @@ export const useAddMember = () => {
   return useMutation({
     mutationKey: ['addMemberGroup', ndk],
     mutationFn: async (data: {pubkey: string; groupId: string}) => {
-      const hasPermission = checkGroupPermission({
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey: publicKey,
-        action: AdminGroupPermission.DeleteEvent,
+        action: AdminGroupPermission.AddMember,
       });
 
-      const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminAddUser;
-      event.tags = [
-        ['d', data.groupId],
-        ['p', data.pubkey],
-      ];
-      return event.publish();
+      if (!hasPermission) {
+        throw new Error('You do not have permission to add a member to this group');
+      } else {
+        const event = new NDKEvent(ndk);
+        event.kind = NDKKind.GroupAdminAddUser;
+        event.tags = [
+          ['d', data.groupId],
+          ['p', data.pubkey],
+        ];
+        return event.publish();
+      }
     },
   });
 };

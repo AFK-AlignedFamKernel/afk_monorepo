@@ -14,7 +14,7 @@ export const useDeleteGroup = () => {
   return useMutation({
     mutationKey: ['deleteGroup', ndk],
     mutationFn: async (data: {groupId: string}) => {
-      const hasPermission = checkGroupPermission({
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey,
@@ -23,11 +23,12 @@ export const useDeleteGroup = () => {
 
       if (!hasPermission) {
         throw new Error('You do not have permission to delete group');
+      } else {
+        const event = new NDKEvent(ndk);
+        event.kind = 9008; // NDKKind.GroupAdminDeleteGroup;
+        event.tags = [['d', data.groupId]];
+        return event.publish();
       }
-      const event = new NDKEvent(ndk);
-      event.kind = 9008; // NDKKind.GroupAdminDeleteGroup;
-      event.tags = [['d', data.groupId]];
-      return event.publish();
     },
   });
 };

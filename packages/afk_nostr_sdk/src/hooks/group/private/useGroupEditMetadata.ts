@@ -37,15 +37,16 @@ export const useGroupEditMetadata = () => {
 
       if (!hasPermission) {
         throw new Error('You do not have permission to edit metadata');
+      } else {
+        const editedTag = objectToTagArray(data.meta);
+
+        const event = new NDKEvent(ndk);
+        event.content = data.meta.name;
+        event.kind = NDKKind.GroupAdminEditMetadata;
+        event.tags = [['h', data.groupId], ['d', data.groupId], ...editedTag];
+
+        return event.publish();
       }
-      const editedTag = objectToTagArray(data.meta);
-
-      const event = new NDKEvent(ndk);
-      event.content = data.meta.name;
-      event.kind = NDKKind.GroupAdminEditMetadata;
-      event.tags = [['h', data.groupId], ['d', data.groupId], ...editedTag];
-
-      return event.publish();
     },
   });
 };

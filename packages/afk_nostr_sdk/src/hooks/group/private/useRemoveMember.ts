@@ -13,7 +13,7 @@ export const useRemoveMember = () => {
   return useMutation({
     mutationKey: ['removeMemberGroup'],
     mutationFn: async (data: {pubkey: string; groupId: string}) => {
-      const hasPermission = checkGroupPermission({
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey,
@@ -22,14 +22,18 @@ export const useRemoveMember = () => {
 
       if (!hasPermission) {
         throw new Error('You do not have permission to remove member');
+      } else {
+        const event = new NDKEvent(ndk);
+        event.kind = NDKKind.GroupAdminRemoveUser;
+        event.tags = [
+          ['h', data.groupId],
+          ['d', data.groupId],
+          ['p', data.pubkey],
+        ];
+
+        event.publish();
+        return event;
       }
-      const event = new NDKEvent(ndk);
-      event.kind = NDKKind.GroupAdminRemoveUser;
-      event.tags = [
-        ['d', data.groupId],
-        ['p', data.pubkey],
-      ];
-      return event.publish();
     },
   });
 };

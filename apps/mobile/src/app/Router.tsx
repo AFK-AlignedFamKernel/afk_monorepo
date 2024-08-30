@@ -45,6 +45,7 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
+import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -308,6 +309,8 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Games" component={Games} />
       <DrawerStack.Screen name="GroupChat" component={GroupChat} />
       <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
+      <DrawerStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
+
       <DrawerStack.Screen name="Tips" component={Tips} />
       <DrawerStack.Screen name="Settings" component={Settings} />
       <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />

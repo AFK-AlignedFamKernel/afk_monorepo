@@ -2,6 +2,7 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
 
 /**
  * Access means if a group is PRIVATE OR PUBLIC
@@ -14,6 +15,7 @@ enum GroupEnum {
 // TODO
 export const useCreateGroup = () => {
   const {ndk} = useNostrContext();
+  const {publicKey} = useAuth();
 
   return useMutation({
     mutationKey: ['createGroup', ndk],
@@ -25,8 +27,11 @@ export const useCreateGroup = () => {
         [GroupEnum.GROUP_ACCESS, data.groupType],
         [GroupEnum.GROUP_VIEW, 'open'],
         ['name', data.groupName],
+        ['p', publicKey],
       ];
-      return event.publish();
+
+      event.publish();
+      return event;
     },
   });
 };

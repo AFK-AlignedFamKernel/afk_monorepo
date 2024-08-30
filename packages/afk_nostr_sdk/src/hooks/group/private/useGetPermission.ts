@@ -1,4 +1,4 @@
-import NDK, {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import NDK, {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
@@ -12,39 +12,38 @@ type PermissionMeta = {
   pubkey: string;
   groupId: string;
 };
+
 type CheckPermissionMeta = PermissionMeta & {action: Permission};
 
-export const useGetPermissionsByUserConnected = (groupId: string) => {
-  const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
-  return useQuery({
-    queryKey: ['getPermissionsByUserConnected', groupId],
-    queryFn: () =>
-      fetchPermissions({
-        ndk,
-        groupId,
-        pubkey: publicKey,
-      }),
-  });
-};
-
-// Function for fetching permissions
+/**
+ * Util Fetch for hook permission check
+ * @param param0
+ * @returns
+ */
 export const fetchPermissions = async ({
   ndk,
   groupId,
   pubkey,
 }: PermissionMeta): Promise<NDKEvent | null> => {
-  const events = await ndk.fetchEvent({
-    kinds: [NDKKind.GroupAdmins],
-    '#d': [groupId],
+  const events = await ndk.fetchEvents({
+    kinds: [9003],
+    '#h': [groupId],
     '#p': [pubkey],
-    limit: 1,
   });
 
-  return events ?? null;
+  if (!events || events.size === 0) return null;
+
+  const sortedEvents = [...events].sort((a, b) => b.created_at - a.created_at);
+
+  // Return the latest event
+  return sortedEvents[0];
 };
 
-// Function for checking permissions
+/**
+ * Util Fetch for hook permission check
+ * @param param0
+ * @returns
+ */
 export const checkGroupPermission = async ({ndk, groupId, pubkey, action}: CheckPermissionMeta) => {
   const event = await fetchPermissions({
     ndk,
@@ -63,9 +62,47 @@ export const checkGroupPermission = async ({ndk, groupId, pubkey, action}: Check
     return false; // User not found in the admin event
   }
 
-  // Get the user's permissions (all elements after the label)
-  const userPermissions = userTag.length > 3 ? userTag.slice(3) : [];
+  // Get the user's permissions (all elements after the pubkey)
+  const userPermissions = userTag.slice(2);
 
   // Check if the user has the required permission
   return userPermissions.includes(action);
+};
+
+/* *********************** */
+/**
+ * UI side Util Hook
+ * @param groupId
+ * @returns
+ */
+export const useGetGroupPermission = (groupId: string) => {
+  const {ndk} = useNostrContext();
+  const {publicKey} = useAuth();
+
+  return useQuery({
+    queryKey: ['getPermissionsByUserConnected', groupId],
+    queryFn: async () => {
+      const events = await ndk.fetchEvents({
+        kinds: [9003],
+        '#h': [groupId],
+        '#p': [publicKey],
+      });
+
+      if (!events || events.size === 0) return [];
+
+      // Sort events by creation time (descending) to get the latest
+      const sortedEvents = [...events].sort((a, b) => b.created_at - a.created_at);
+
+      // Get the latest event
+      const latestEvent = sortedEvents[0];
+
+      // Find the tag for this specific user
+      const userTag = latestEvent.tags.find((tag) => tag[0] === 'p' && tag[1] === publicKey);
+
+      if (!userTag) return [];
+
+      // Return the user's permissions (all elements after the pubkey)
+      return userTag.slice(2);
+    },
+  });
 };

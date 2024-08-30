@@ -1,84 +1,68 @@
-import { useQueryClient } from '@tanstack/react-query';
+import {useQueryClient} from '@tanstack/react-query';
 import {
   AdminGroupPermission,
   useAuth,
   useGetGroupMemberList,
-  useGetGroupMemberListPubkey,
   useGetGroupMessages,
+  useGetGroupPermission,
   useJoinGroupRequest,
-  useNostrContext,
   useProfile,
   useSendGroupMessages,
 } from 'afk_nostr_sdk';
-import React, { useEffect, useState } from 'react';
-import { FlatList, Modal, Pressable, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import React, {useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-import { BackIcon, MenuIcons } from '../../../assets/icons';
-import { IconButton, Input, KeyboardFixedView } from '../../../components';
-import { useStyles } from '../../../hooks';
-import { useToast } from '../../../hooks/modals';
-import { GroupChatScreenProps } from '../../../types';
+import {BackIcon, MenuIcons} from '../../../assets/icons';
+import {Button, IconButton, Input, KeyboardFixedView} from '../../../components';
+import {useStyles} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
+import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
-import { checkGroupPermission } from 'afk_nostr_sdk/src/hooks/group/private/useGetPermission';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
 
-const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
-  const { publicKey } = useAuth();
-  const ndk = useNostrContext()
-  const groupdId = route.params.groupId
-
-  const memberListData = useGetGroupMemberListPubkey({
-    groupId: route.params.groupId,
-  });
-
-  const joinRequest = useJoinGroupRequest()
-  const profile = useProfile({ publicKey });
+const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
+  const {publicKey} = useAuth();
+  const groupId = route.params.groupId;
+  const memberListData = useGetGroupMemberList({groupId});
+  const profile = useProfile({publicKey});
   const [menuVisible, setMenuVisible] = useState(false);
-  const [isUserMember, setIsUserMember] = useState(false);
   const [replyToId, setReplyToId] = useState(null);
   const [replyToContent, setReplyToContent] = useState('');
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const { data: messageData } = useGetGroupMessages({
-    groupId: route.params.groupId,
-    authors: publicKey,
-  });
-  const { mutate } = useSendGroupMessages();
+  const {showToast} = useToast();
+  const {data: messageData} = useGetGroupMessages({groupId, authors: publicKey});
+  const {mutate} = useSendGroupMessages();
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
+  const {data: permissionData, isPending: permissionLoading} = useGetGroupPermission(
+    route.params.groupId,
+  );
 
-  /** Todo check if user is a member */
-  useEffect(() => {
-
-    const getUserIsMember = () => {
-      let isMember = memberListData?.data?.pages?.flat().find((e: NDKEvent) => {
-        console.log("e", e)
-        const pubkey = e?.tags?.find((tag: string[]) => tag[0] === 'p')?.[1];
-        console.log("pubKey", pubkey)
-        if (pubkey == publicKey) {
-          console.log("pubkey == publicKey", pubkey == publicKey)
-
-          return e
-        }
-        return undefined;
-      })
-      if (isMember) setIsUserMember(true)
-    }
-
-    getUserIsMember()
-
-  }, [memberListData])
+  // const isMember = memberListData?.data?.pages?.flat().some((e: NDKEvent) => {
+  //   const pubkey = e?.tags?.find((tag: string[]) => tag[0] === 'p')?.[1];
+  //   return pubkey === publicKey;
+  // });
 
   const handleLongPress = (messageId: any, messageContent: string) => {
     setSelectedMessageId(messageId);
     setReplyToContent(messageContent);
     setMenuVisible(true);
   };
+
   const handleReply = () => {
     setReplyToId(selectedMessageId);
     setMenuVisible(false);
   };
+
   const cancelReply = () => {
     setReplyToId(null);
     setReplyToContent('');
@@ -89,18 +73,17 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
     mutate(
       {
         content: message,
-        groupId: route.params.groupId,
+        groupId,
         pubkey: publicKey,
         name: profile.data?.nip05,
         replyId: replyToId ?? (null as any),
       },
       {
         onSuccess() {
-          showToast({ type: 'success', title: 'Message sent successfully' });
-          queryClient.invalidateQueries({ queryKey: ['getGroupMessages', route.params.groupId] });
+          showToast({type: 'success', title: 'Message sent successfully'});
+          queryClient.invalidateQueries({queryKey: ['getGroupMessages', groupId]});
           setMessage('');
-          setReplyToId(null);
-          setReplyToContent('');
+          cancelReply();
         },
         onError() {
           showToast({
@@ -112,22 +95,34 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
     );
   };
 
-  const requestToJoin = () => {
+  if (memberListData.data.pages.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator />
+      </SafeAreaView>
+    );
+  }
 
-    joinRequest.mutateAsync({
-      groupId: groupdId,
+  if (permissionLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator />
+      </SafeAreaView>
+    );
+  }
 
-
-
-    },
-      {
-        onSuccess: () => {
-
-        },
-      },
-    )
-
-  };
+  if (
+    !permissionData?.includes(AdminGroupPermission.ViewAccess) &&
+    route.params.groupAccess === 'private'
+  ) {
+    return (
+      <NoAccessScreen
+        navigation={navigation}
+        groupId={route.params.groupId}
+        groupName={route.params.groupName}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,16 +132,18 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{route.params.groupName}</Text>
-
           <Text style={styles.headerSubtitle}>
             {memberListData.data.pages.flat().length} members
           </Text>
         </View>
+
+        {/* If you user have any other permission apart from view then show this menu*/}
         <TouchableOpacity
           onPress={() =>
             navigation.navigate('GroupChatDetail', {
               groupId: route.params.groupId,
               groupName: route.params.groupName,
+              groupAccess: route.params.groupAccess,
             })
           }
           style={styles.headerButton}
@@ -155,32 +152,17 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {isUserMember &&
-        <FlatList
-          data={messageData.pages.flat()}
-          renderItem={({ item }: any) => <MessageCard handleLongPress={handleLongPress} item={item} />}
-          keyExtractor={(item: any) => item.id}
-          contentContainerStyle={styles.messageList}
-          inverted
-        />
-      }
-
-      {!isUserMember &&
-
-        <View>
-
-          <Text>You are not a member</Text>
-          <Text>Request to join the group</Text>
-
-          <IconButton onPress={() => requestToJoin()} icon="SendIcon" size={24} />
-
-        </View>
-      }
-
+      <FlatList
+        data={messageData.pages.flat()}
+        renderItem={({item}: any) => <MessageCard handleLongPress={handleLongPress} item={item} />}
+        keyExtractor={(item: any) => item.id}
+        contentContainerStyle={styles.messageList}
+        inverted
+      />
 
       {replyToId && <ReplyIndicator message={replyToContent} onCancel={cancelReply} />}
 
-      <KeyboardFixedView containerProps={{ style: styles.inputContainer }}>
+      <KeyboardFixedView containerProps={{style: styles.inputContainer}}>
         <View style={styles.inputContent}>
           <Input
             multiline
@@ -195,6 +177,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
           <IconButton onPress={() => sendMessage()} icon="SendIcon" size={24} />
         </View>
       </KeyboardFixedView>
+
       <LongPressMenu
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
@@ -204,7 +187,74 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
   );
 };
 
-// TODO: MOVE TO COMPONENT
+const NoAccessScreen = ({
+  navigation,
+  groupName,
+  groupId,
+}: {
+  navigation: any;
+  groupName: string;
+  groupId: string;
+}) => {
+  const {showToast} = useToast();
+  const queryClient = useQueryClient();
+  const {mutate: joinRequest} = useJoinGroupRequest();
+  const styles = useStyles(stylesheet);
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+          <BackIcon stroke="gray" />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>{groupName || 'Group'}</Text>
+        </View>
+        <View style={styles.headerButton} />
+      </View>
+      <View
+        style={{
+          marginTop: 10,
+          padding: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 7,
+        }}
+      >
+        <Text style={styles.headerTitle}>No Access</Text>
+        <Text style={styles.headerSubtitle}>You are not a member of this group.</Text>
+        <Button
+          style={{
+            marginTop: 10,
+          }}
+          onPress={() =>
+            //Do A check to see if the pubkey have already requested
+            joinRequest(
+              {
+                groupId,
+                content: '',
+              },
+              {
+                onSuccess() {
+                  showToast({type: 'success', title: 'Request Sent Sucessfully'});
+                  queryClient.invalidateQueries({queryKey: ['getGroupRequest', groupId]});
+                },
+                onError() {
+                  showToast({
+                    type: 'error',
+                    title: 'Error! Request could not be sent. Please try again.',
+                  });
+                },
+              },
+            )
+          }
+        >
+          Request to Join
+        </Button>
+      </View>
+    </SafeAreaView>
+  );
+};
+
 const MessageCard = ({
   item,
   handleLongPress,
@@ -238,7 +288,7 @@ const MessageCard = ({
   );
 };
 
-const ReplyIndicator = ({ message, onCancel }: { onCancel: () => void; message: string }) => {
+const ReplyIndicator = ({message, onCancel}: {onCancel: () => void; message: string}) => {
   const styles = useStyles(stylesheet);
   return (
     <View style={styles.replyIndicator}>
@@ -269,7 +319,7 @@ const LongPressMenu = ({
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <View style={styles.menuContainer}>
           <Pressable style={styles.menuItem} onPress={onReply}>
-            <Text style={{ color: 'white' }}>Reply Message</Text>
+            <Text style={{color: 'white'}}>Reply Message</Text>
           </Pressable>
         </View>
       </Pressable>
