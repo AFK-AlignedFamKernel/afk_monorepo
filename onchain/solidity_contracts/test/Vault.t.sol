@@ -28,7 +28,7 @@ contract ABTCVaultTest is Test {
         tbtc = new MockWrappedBTC("tBTC", "TBTC");
 
         // vault = new ABTCVault();
-        vault = new ABTCVault(admin, address(wbtc));
+        vault = new ABTCVault();
         vault.initialize(admin, address(wbtc));
 
         vm.label(address(vault), "ABTCVault");

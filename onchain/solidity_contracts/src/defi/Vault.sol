@@ -57,11 +57,6 @@ contract ABTCVault is
         uint256 burnedAmount
     );
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize(
         address _admin,
         address _underlying
