@@ -27,7 +27,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   ]);
 
   const contacts = useContacts()
-  console.log("contacts", contacts)
+  // console.log("contacts", contacts)
   const notes = useSearch({
     // search: search,
     kinds,
@@ -63,10 +63,11 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         setKinds={setKinds}
         setSortBy={setSortBy}
         sortBy={activeSortBy}
-        contactList={contacts?.data?.map((item) => item)}
+        // contactList={contacts?.data?.map((item) => item)}
       />
 
       {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
+      {notes?.data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>}
 
       <FlatList
         ListHeaderComponent={<>

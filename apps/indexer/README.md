@@ -5,16 +5,15 @@
 ## Install Postgres and Init the tables
 
 ```
-docker run --name afk-indexer -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 -v /afk-indexer:/docker-entrypoint-initdb.d postgres:16
+docker run --name afk-indexer -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=admin -e POSTGRES_DB=indexer -d -p 5432:5432 -v ./:/docker-entrypoint-initdb.d postgres:latest
 ```
 
 # Test
 
-unrugmeme_deploy
+buy-token deploy
 
 ```
-apibara run ./src/pump-buy-coin.js -A dna_XXX
-
+apibara run ./src/buy-token.ts --allow-env .env -A dna_xxx
 
 ```
 
@@ -27,4 +26,4 @@ apibara run ./src/pump-buy-coin.js -A dna_XXX
 ```
 
  ### Run it
- docker run -it --env-file ./.env afk-indexer run /app/pump-deploy-coin.js --tls-accept-invalid-certificates=true --connection-string POSTGRES:INDEXER_DATABASE_URL
+ docker run -it --env-file ./.env afk-indexer run /app/buy-token.ts --tls-accept-invalid-certificates=true --allow-env-from-env POSTGRES_CONNECTION_STRING

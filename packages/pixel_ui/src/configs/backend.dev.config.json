@@ -1,5 +1,5 @@
 {
-  "host": "backend-pixel.onrender.com",
+  "host": "localhost",
   "port": 8082,
   "consumer_port": 8081,
   "scripts": {
