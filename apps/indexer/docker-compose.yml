@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: indexer
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
     ports:
       - '5432:5432'
     volumes:
@@ -17,8 +17,9 @@ services:
   unruggableMemecoin-deploy-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -30,8 +31,9 @@ services:
   unruggableMemecoin-launch-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-launch.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-launch.indexer.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -43,8 +45,9 @@ services:
   unruggableMemecoin-transfers-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-transfers.indexer.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-transfers.indexer.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -56,8 +59,9 @@ services:
   buy-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/buy-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/buy-token.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -70,8 +74,9 @@ services:
   sell-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/sell-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/sell-token.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -83,8 +88,9 @@ services:
   token-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/token-launch.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/token-launch.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
@@ -96,8 +102,9 @@ services:
   deploy-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/deploy-token.js --connection-string postgresql://admin:password@postgres:5432/indexer -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/deploy-token.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
