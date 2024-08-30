@@ -1,40 +1,81 @@
+import {useQueryClient} from '@tanstack/react-query';
+import {
+  useAuth,
+  useGetGroupMemberList,
+  useGetGroupMessages,
+  useProfile,
+  useSendGroupMessages,
+} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
-import {FlatList, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
+import {FlatList, Modal, Pressable, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 
 import {BackIcon, MenuIcons} from '../../../assets/icons';
 import {IconButton, Input, KeyboardFixedView} from '../../../components';
 import {useStyles} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
 import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
 
-const data = [
-  {id: '1', text: 'Hello everyone!', sender: 'Alice'},
-  {id: '2', text: 'Hi Alice, how are you?', sender: 'Bob'},
-  {id: '3', text: 'Im doing great, thanks!', sender: 'Alice'},
-  {
-    id: '4',
-    text: 'Whats the plan for today? Whats the plan for today Whats the plan for todayWhats the plan for today',
-    sender: 'Charlie',
-  },
-  {id: '5', text: 'Whats the plan for today?', sender: 'Charlie'},
-  {id: '6', text: 'Whats the plan for today?', sender: 'Charlie'},
-  {id: '7', text: 'Whats the plan for today?', sender: 'Charlie'},
-  {id: '8', text: 'Whats the plan for today?', sender: 'Charlie'},
-  {id: '9', text: 'Whats the plan for today?', sender: 'Charlie'},
-];
-
-const groupName = 'Project Team';
-const memberCount = 15;
-
 const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
+  const {publicKey} = useAuth();
+  const memberListData = useGetGroupMemberList({
+    groupId: route.params.groupId,
+  });
+  const profile = useProfile({publicKey});
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [replyToId, setReplyToId] = useState(null);
+  const [replyToContent, setReplyToContent] = useState('');
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
+  const queryClient = useQueryClient();
+  const {showToast} = useToast();
+  const {data: messageData} = useGetGroupMessages({
+    groupId: route.params.groupId,
+    authors: publicKey,
+  });
+  const {mutate} = useSendGroupMessages();
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState(data);
+
+  const handleLongPress = (messageId: any, messageContent: string) => {
+    setSelectedMessageId(messageId);
+    setReplyToContent(messageContent);
+    setMenuVisible(true);
+  };
+  const handleReply = () => {
+    setReplyToId(selectedMessageId);
+    setMenuVisible(false);
+  };
+  const cancelReply = () => {
+    setReplyToId(null);
+    setReplyToContent('');
+  };
 
   const sendMessage = () => {
-    if (message.trim() === '') return;
-    setMessages([...messages, {id: Date.now().toString(), text: message, sender: 'You'}]);
-    setMessage('');
+    if (!message) return;
+    mutate(
+      {
+        content: message,
+        groupId: route.params.groupId,
+        pubkey: publicKey,
+        name: profile.data?.nip05,
+        replyId: replyToId ?? (null as any),
+      },
+      {
+        onSuccess() {
+          showToast({type: 'success', title: 'Message sent successfully'});
+          queryClient.invalidateQueries({queryKey: ['getGroupMessages', route.params.groupId]});
+          setMessage('');
+          setReplyToId(null);
+          setReplyToContent('');
+        },
+        onError() {
+          showToast({
+            type: 'error',
+            title: 'Error! Comment could not be sent. Please try again later.',
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -44,53 +85,128 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
           <BackIcon stroke="gray" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{groupName}</Text>
-          <Text style={styles.headerSubtitle}>{memberCount} members</Text>
+          <Text style={styles.headerTitle}>{route.params.groupName}</Text>
+
+          <Text style={styles.headerSubtitle}>
+            {memberListData.data.pages.flat().length} members
+          </Text>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('GroupChatDetail', {groupId: route.params.groupId})}
+          onPress={() =>
+            navigation.navigate('GroupChatDetail', {
+              groupId: route.params.groupId,
+              groupName: route.params.groupName,
+            })
+          }
           style={styles.headerButton}
         >
           <MenuIcons stroke="gray" />
         </TouchableOpacity>
       </View>
       <FlatList
-        data={messages}
-        renderItem={({item}) => <MessageCard item={item} />}
-        keyExtractor={(item) => item.id}
+        data={messageData.pages.flat()}
+        renderItem={({item}: any) => <MessageCard handleLongPress={handleLongPress} item={item} />}
+        keyExtractor={(item: any) => item.id}
         contentContainerStyle={styles.messageList}
         inverted
       />
 
+      {replyToId && <ReplyIndicator message={replyToContent} onCancel={cancelReply} />}
+
       <KeyboardFixedView containerProps={{style: styles.inputContainer}}>
         <View style={styles.inputContent}>
           <Input
-            // value={comment}
-            // onChangeText={setComment}
+            multiline
+            numberOfLines={2}
+            value={message}
+            onChangeText={setMessage}
+            inputStyle={styles.input}
             containerStyle={styles.input}
-            placeholder="Send Message"
+            placeholder={replyToId ? 'Type your reply...' : 'Type your message...'}
           />
 
-          <IconButton icon="SendIcon" size={24} />
+          <IconButton onPress={() => sendMessage()} icon="SendIcon" size={24} />
         </View>
       </KeyboardFixedView>
+      <LongPressMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onReply={handleReply}
+      />
     </SafeAreaView>
   );
 };
 
 // TODO: MOVE TO COMPONENT
-const MessageCard = ({item}: {item: (typeof data)[0]}) => {
+const MessageCard = ({
+  item,
+  handleLongPress,
+}: {
+  item: any;
+  handleLongPress: (val: any, content: string) => void;
+}) => {
+  const styles = useStyles(stylesheet);
+  const memberNip = item?.tags.find((tag: any) => tag[0] === 'name')?.[1];
+  const replymemberNip = item?.reply
+    ? item?.reply.tags.find((tag: any) => tag[0] === 'name')?.[1]
+    : '';
+
+  return (
+    <Pressable onLongPress={() => handleLongPress(item.id, item.content)} delayLongPress={500}>
+      <View style={styles.messageBubble}>
+        {item.reply && <Text style={styles.senderName}>{memberNip || 'Nil'}</Text>}
+        {item.reply && (
+          <View style={styles.replyContainer}>
+            <Text style={styles.replySender}>{replymemberNip || 'Nil'}</Text>
+            <Text style={styles.replyContentHighlight} numberOfLines={1}>
+              {item.reply.content}
+            </Text>
+          </View>
+        )}
+        {!item.reply && <Text style={styles.senderName}>{memberNip || 'Nil'}</Text>}
+
+        <Text style={styles.messageText}>{item.content}</Text>
+      </View>
+    </Pressable>
+  );
+};
+
+const ReplyIndicator = ({message, onCancel}: {onCancel: () => void; message: string}) => {
   const styles = useStyles(stylesheet);
   return (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender === 'You' ? styles.yourMessage : styles.otherMessage,
-      ]}
-    >
-      <Text style={styles.senderName}>{item.sender}</Text>
-      <Text style={styles.messageText}>{item.text}</Text>
+    <View style={styles.replyIndicator}>
+      <View style={styles.replyContent}>
+        <Text style={styles.replyText} numberOfLines={1}>
+          Replying to: {message}
+        </Text>
+      </View>
+      <Pressable onPress={onCancel} style={styles.cancelButton}>
+        <Text style={styles.cancelButtonText}>✕</Text>
+      </Pressable>
     </View>
+  );
+};
+
+const LongPressMenu = ({
+  visible,
+  onClose,
+  onReply,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onReply: any;
+}) => {
+  const styles = useStyles(stylesheet);
+  return (
+    <Modal transparent={true} visible={visible} onRequestClose={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <View style={styles.menuContainer}>
+          <Pressable style={styles.menuItem} onPress={onReply}>
+            <Text style={{color: 'white'}}>Reply Message</Text>
+          </Pressable>
+        </View>
+      </Pressable>
+    </Modal>
   );
 };
 

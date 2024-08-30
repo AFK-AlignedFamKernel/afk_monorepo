@@ -43,9 +43,9 @@ export default ThemedStyleSheet((theme) => ({
   },
   groupName: {
     color: theme.colors.text,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 7,
   },
   groupType: {
     color: theme.colors.text,

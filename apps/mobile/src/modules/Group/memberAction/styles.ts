@@ -3,8 +3,8 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    padding: Spacing.medium,
+    // backgroundColor: theme.colors.background,
+    padding: Spacing.small,
   },
   card: {
     backgroundColor: theme.colors.background,
@@ -65,5 +65,17 @@ export default ThemedStyleSheet((theme) => ({
   },
   switchThumbActive: {
     backgroundColor: theme.colors.buttonDisabledBackground,
+  },
+
+  //Add Member Styles
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: Spacing.xsmall,
+  },
+  text: {
+    fontSize: 14,
+    color: theme.colors.text,
   },
 }));
