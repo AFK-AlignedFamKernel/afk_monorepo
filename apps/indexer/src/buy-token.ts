@@ -82,7 +82,7 @@ export default function DecodeBuyToken({ header, events }: Block) {
       price,
       amount,
       protocol_fee,
-      timestamp: timestamp,
+      time_stamp: timestamp,
       transaction_type: "buy"
     };
   });
