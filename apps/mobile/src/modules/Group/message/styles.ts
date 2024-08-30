@@ -41,12 +41,32 @@ export default ThemedStyleSheet((theme) => ({
     paddingBottom: 10,
   },
   messageBubble: {
-    maxWidth: '90%',
+    maxWidth: '70%',
     color: theme.colors.messageCardText,
     backgroundColor: theme.colors.messageCard,
     padding: 10,
     borderRadius: 10,
     marginVertical: 5,
+  },
+  replyContainer: {
+    backgroundColor: theme.colors.messageReplyCard,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    padding: 10,
+    marginVertical: 5,
+    borderLeftColor: theme.colors.blue,
+    borderLeftWidth: 3,
+  },
+  replySender: {
+    fontWeight: 'bold',
+    fontSize: 12,
+    color: theme.colors.messageReplyCardText,
+    marginBottom: 2,
+  },
+  replyContentHighlight: {
+    fontSize: 12,
+    color: theme.colors.messageReplyCardText,
   },
   yourMessage: {
     alignSelf: 'flex-end',
@@ -82,6 +102,7 @@ export default ThemedStyleSheet((theme) => ({
   input: {
     flex: 1,
     width: 'auto',
+    paddingTop: 10,
   },
   sendButton: {
     justifyContent: 'center',
@@ -96,4 +117,54 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
   },
   //End of All Group Styling
+
+  // Long Press Menu
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Keeping this as a non-theme-based color for overlay
+  },
+  menuContainer: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.text,
+    borderRadius: Spacing.xsmall,
+    color: theme.colors.text,
+    padding: Spacing.small,
+    minWidth: '70%',
+  },
+  menuItem: {
+    padding: Spacing.small,
+    color: theme.colors.text,
+  },
+
+  // Reply Indicator
+  replyIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.messageCard,
+    padding: Spacing.small,
+    borderRadius: Spacing.xsmall,
+    marginBottom: Spacing.small,
+    borderWidth: 1,
+    borderColor: theme.colors.text,
+    margin: Spacing.small,
+  },
+  replyContent: {
+    flex: 1,
+    color: theme.colors.text,
+  },
+  replyText: {
+    fontSize: 14,
+    color: theme.colors.text,
+  },
+  cancelButton: {
+    marginLeft: Spacing.small,
+    padding: Spacing.xsmall,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: theme.colors.text,
+  },
 }));

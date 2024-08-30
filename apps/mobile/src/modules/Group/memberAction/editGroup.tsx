@@ -1,23 +1,31 @@
+import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
-import {useCreateGroup} from 'afk_nostr_sdk';
+import {useGroupEditMetadata} from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {Picker} from '../../../components';
-import {Button, Input} from '../../../components';
+import {Button, Input, Picker, SquareInput} from '../../../components';
 import {useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
-import stylesheet from './styles';
+import stylesheet from '../addGroup/styles';
 
-export const CreateGroup: React.FC = () => {
+export const EditGroup = ({
+  groupId,
+  handleClose,
+}: {
+  groupId: string;
+  handleClose: () => void;
+  metaData: NDKEvent;
+}) => {
   const styles = useStyles(stylesheet);
   const {showToast} = useToast();
   const queryClient = useQueryClient();
-  const {mutate} = useCreateGroup();
+  const {mutate} = useGroupEditMetadata();
 
   const initialValues = {
-    groupName: '',
+    name: '',
+    about: '',
     access: 'private',
   };
 
@@ -28,38 +36,42 @@ export const CreateGroup: React.FC = () => {
         onSubmit={(values) => {
           mutate(
             {
-              groupType: values.access as any,
-              groupName: values.groupName,
+              groupId,
+              meta: {
+                name: values.name,
+                about: values.about,
+                access: values.access,
+              },
             },
             {
               onSuccess() {
-                showToast({type: 'success', title: 'Group Created successfully'});
+                showToast({type: 'success', title: 'Group Edited successfully'});
                 queryClient.invalidateQueries({queryKey: ['getAllGroups']});
+                handleClose();
               },
               onError() {
                 showToast({
                   type: 'error',
-                  title: 'Error! Group could not be created. Please try again later.',
+                  title: 'Error! Group could not be edited. Please try again later.',
                 });
               },
             },
           );
         }}
       >
-        {({handleChange, handleBlur, setFieldValue, handleSubmit, values}) => (
+        {({handleChange, handleBlur, handleSubmit, setFieldValue, values}) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Create a New Group</Text>
-              <Text style={styles.cardDescription}>Add a new group and set its privacy level.</Text>
+              <Text style={styles.cardTitle}>Edit Group</Text>
             </View>
             <View style={styles.cardContent}>
               <Input
                 style={styles.input}
                 placeholderTextColor={styles.input as unknown as string}
                 placeholder="Enter group name"
-                value={values.groupName}
-                onBlur={handleBlur('groupName')}
-                onChangeText={handleChange('groupName')}
+                value={values.name}
+                onBlur={handleBlur('name')}
+                onChangeText={handleChange('name')}
               />
               <Picker
                 selectedValue={values.access}
@@ -69,8 +81,17 @@ export const CreateGroup: React.FC = () => {
                 <Picker.Item label="Private" value="private" />
                 <Picker.Item label="Public" value="public" />
               </Picker>
+              <SquareInput
+                multiline
+                style={styles.input}
+                placeholderTextColor={styles.input as unknown as string}
+                placeholder="About"
+                value={values.about}
+                onBlur={handleBlur('about')}
+                onChangeText={handleChange('about')}
+              />
             </View>
-            <Button onPress={() => handleSubmit()}>Create Group</Button>
+            <Button onPress={() => handleSubmit()}>Edit Group</Button>
           </View>
         )}
       </Formik>

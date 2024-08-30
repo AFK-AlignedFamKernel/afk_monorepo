@@ -23,6 +23,16 @@ export const AdminIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+export const EditIcon: React.FC<SvgProps> = (props) => (
+  <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M3 17.25V21h3.75l12.452-12.452-3.75-3.75L3 17.25zM22.707 7.293a1.004 1.004 0 00-.293-.707l-3.75-3.75a1.004 1.004 0 00-.707-.293 1.004 1.004 0 00-.707.293l-2.5 2.5 4.457 4.457 2.5-2.5a1.004 1.004 0 00.293-.707z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
 export const CrownIcon: React.FC<SvgProps> = (props) => (
   <Svg
     viewBox="0 0 24 24"
@@ -34,6 +44,24 @@ export const CrownIcon: React.FC<SvgProps> = (props) => (
     strokeLinejoin="round"
   >
     <Path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+  </Svg>
+);
+
+export const TrashIcon: React.FC<SvgProps> = (props) => (
+  <Svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <Path d="M19 6l-2 14H7L5 6h14z" />
+    <Path d="M10 11v6" />
+    <Path d="M14 11v6" />
+    <Path d="M9 3h6a2 2 0 0 1 2 2H7a2 2 0 0 1 2-2z" />
   </Svg>
 );
 
