@@ -1,9 +1,7 @@
 #[starknet::contract]
 pub mod AuthorityQuest {
-    use afk::pixel::templates::interfaces::{
-        ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait
-    };
-    use afk::quests::{IAuthorityQuest, IQuest};
+    use afk::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
+    use afk::interfaces::quests::{IAuthorityQuest, IQuest};
 
     use starknet::{ContractAddress, get_caller_address};
 
@@ -48,7 +46,7 @@ pub mod AuthorityQuest {
     }
 
     #[abi(embed_v0)]
-    impl AuthorityQuest of IQuest<ContractState> {
+    impl AuthorityQuestTemplateImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

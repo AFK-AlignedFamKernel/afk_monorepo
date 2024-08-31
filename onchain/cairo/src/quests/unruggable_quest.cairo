@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod UnruggableQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{
         IQuest, IUnruggableQuest, IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait
     };
 
@@ -34,7 +34,7 @@ pub mod UnruggableQuest {
     }
 
     #[abi(embed_v0)]
-    impl UnruggableQuest of IQuest<ContractState> {
+    impl UnruggableQuestImplGeneric of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod NFTMintQuest {
-    use afk::pixel::nfts::interfaces::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
-    use afk::quests::IQuest;
+    use afk::interfaces::nfts::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
+    use afk::interfaces::quests::IQuest;
 
     use starknet::{ContractAddress, get_caller_address};
 
@@ -34,7 +34,7 @@ pub mod NFTMintQuest {
     }
 
     #[abi(embed_v0)]
-    impl NFTMintQuest of IQuest<ContractState> {
+    impl NFTMintQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

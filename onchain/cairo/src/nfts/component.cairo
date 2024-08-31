@@ -1,6 +1,6 @@
 #[starknet::component]
 pub mod CanvasNFTStoreComponent {
-    use afk::nfts::interfaces::{ICanvasNFTStore, NFTMetadata};
+    use afk::interfaces::nfts::{ICanvasNFTStore, NFTMetadata};
 
     #[storage]
     struct Storage {

@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod HodlQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IQuest};
     use core::traits::TryInto;
     use starknet::{ContractAddress, get_caller_address};
 
@@ -29,7 +29,7 @@ pub mod HodlQuest {
     }
 
     #[abi(embed_v0)]
-    impl HodlQuest of IQuest<ContractState> {
+    impl HodlQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

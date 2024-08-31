@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod RainbowQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest, IRainbowQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IQuest, IRainbowQuest};
 
     use starknet::{ContractAddress, get_caller_address};
 
@@ -32,7 +32,7 @@ pub mod RainbowQuest {
     }
 
     #[abi(embed_v0)]
-    impl RainbowQuest of IQuest<ContractState> {
+    impl RainbowQuestImplGeneric of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

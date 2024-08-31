@@ -1,7 +1,8 @@
 #[starknet::contract]
 pub mod FactionQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IAuthorityQuest, IQuest};
+
 
     use starknet::{ContractAddress, get_caller_address};
 
@@ -26,7 +27,7 @@ pub mod FactionQuest {
 
 
     #[abi(embed_v0)]
-    impl FactionQuest of IQuest<ContractState> {
+    impl FactionQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod VoteQuest {
-    use afk::pixel::{quests::IQuest};
-    use afk::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IQuest};
     use starknet::{ContractAddress, get_caller_address};
 
     #[storage]
@@ -27,7 +27,7 @@ pub mod VoteQuest {
     }
 
     #[abi(embed_v0)]
-    impl VoteQuest of IQuest<ContractState> {
+    impl VoteQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }
