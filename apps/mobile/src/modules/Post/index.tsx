@@ -65,6 +65,7 @@ export const Post: React.FC<PostProps> = ({
   const queryClient = useQueryClient();
   const repostMutation = useRepost({event});
   const {bookmarkNote, removeBookmark} = useBookmark(publicKey);
+  const [noteBookmarked, setNoteBookmarked] = useState(isBookmarked);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -151,7 +152,7 @@ export const Post: React.FC<PostProps> = ({
   const handleBookmark = async () => {
     if (!event) return;
     try {
-      if (isBookmarked) {
+      if (noteBookmarked) {
         await removeBookmark({eventId: event.id});
         showToast({title: 'Post removed from bookmarks', type: 'success'});
       } else {
@@ -161,6 +162,7 @@ export const Post: React.FC<PostProps> = ({
       // Invalidate the queries to refetch data
       queryClient.invalidateQueries({ queryKey: ['search', { authors: [event.pubkey] }] });
       queryClient.invalidateQueries({ queryKey: ['bookmarksWithNotes', event.pubkey] });
+      setNoteBookmarked((prev) => !prev);
     } catch (error) {
       console.error('Bookmark error:', error);
       showToast({title: 'Failed to bookmark', type: 'error'});
@@ -318,9 +320,9 @@ export const Post: React.FC<PostProps> = ({
 
             <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
               <Icon
-                name={isBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
+                name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
                 size={20}
-                title={isBookmarked ? 'Bookmarked' : 'Bookmark'}
+                title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
               />
             </Pressable>
           </View>
