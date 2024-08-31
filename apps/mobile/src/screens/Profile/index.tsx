@@ -19,9 +19,9 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
     return ndkKinds
   }, [ndkKinds])
 
-  const notesSearch = useRootNotes({ authors: [publicKey] });
+  // const notesSearch = useRootNotes({ authors: [publicKey] });
   const search = useSearch({ authors: [publicKey], kinds: kindFilter });
-  const reposts = useReposts({ authors: [publicKey] });
+  // const reposts = useReposts({ authors: [publicKey] });
   const { bookmarksWithNotes } = useBookmark(publicKey);
 
   // Extract all bookmarked note IDs
@@ -40,12 +40,22 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   // Function to check if a note is bookmarked
   const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
 
-  const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
-    ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
-    : search.data?.pages.flat();
+  // const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+  //   ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
+  //   : search.data?.pages.flat();
+
+  // console.log("getData", getData)
+
+
+  const getData =  search.data?.pages.flat();
+
+  console.log("getData", getData)
+
 
   return (
     <View style={styles.container}>
+
+
 
       <FlatList
         ListHeaderComponent={
@@ -81,6 +91,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
         data={getData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
+          if (!item) return <></>
           if (ndkKinds.includes(NDKKind.Repost)) {
             const itemReposted = JSON.parse(item?.content);
             return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />
@@ -91,6 +102,8 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
           <RefreshControl refreshing={search.isFetching} onRefresh={() => search.refetch()} />
         }
       />
+
+      {search?.isPending && <ActivityIndicator></ActivityIndicator>}
 
       {search?.isLoading && <ActivityIndicator />}
     </View>

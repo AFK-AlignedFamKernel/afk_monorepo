@@ -15,7 +15,7 @@ import stylesheet from './styles';
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const profiles = useAllProfiles();
+  const profiles = useAllProfiles({limit:10});
   const [activeSortBy, setSortBy] = useState<string | undefined>()
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [kinds, setKinds] = useState<NDKKind[]>([
@@ -26,11 +26,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     NDKKind.Metadata,
   ]);
 
-  const contacts = useContacts()
+  // const contacts = useContacts()
   // console.log("contacts", contacts)
   const notes = useSearch({
     // search: search,
     kinds,
+    limit:10,
     // authors: activeSortBy && contacts?.data?.?? [],
     // sortBy: activeSortBy,
   });
