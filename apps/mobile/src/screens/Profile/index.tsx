@@ -24,6 +24,22 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   const reposts = useReposts({ authors: [publicKey] });
   const { bookmarksWithNotes } = useBookmark(publicKey);
 
+  // Extract all bookmarked note IDs
+  const bookmarkedNoteIds = useMemo(() => {
+    if (!bookmarksWithNotes) return new Set<string>();
+
+    const ids = new Set<string>();
+    bookmarksWithNotes.forEach(bookmark => {
+      bookmark.notes.forEach(note => {
+        ids.add(note?.id || '');
+      });
+    });
+    return ids;
+  }, [bookmarksWithNotes]);
+
+  // Function to check if a note is bookmarked
+  const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
+
   const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
     ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
     : search.data?.pages.flat();
@@ -69,7 +85,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
             const itemReposted = JSON.parse(item?.content);
             return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />
           }
-          return <PostCard key={item?.id} event={item} />
+          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />
         }}
         refreshControl={
           <RefreshControl refreshing={search.isFetching} onRefresh={() => search.refetch()} />
