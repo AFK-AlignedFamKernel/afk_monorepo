@@ -32,6 +32,10 @@ pub mod interfaces {
     pub mod erc20_mintable;
     pub mod jediswap;
     pub mod vault;
+    pub mod pixel;
+    pub mod pixel_template;
+    pub mod quests;
+    pub mod nfts;
 }
 
 pub mod afk_id {
@@ -65,19 +69,21 @@ pub mod tokens {
 }
 
 // TODO upgrade to correct OZ version
-pub mod nfts { // pub mod canvas_nft;
-// pub mod component;
-// pub mod interfaces;
+pub mod nfts {
+    pub mod component;
+    pub mod canvas_nft;
 }
 
 
-// pub mod pixel {
-//     // pub mod art_peace;
-//     pub mod interfaces;
+pub mod templates {
+    pub mod template;
+}
+pub mod pixel {
+    pub mod art_peace;
+    // pub mod templates;
+// use art_peace::ArtPeace;
 
-//     // use art_peace::ArtPeace;
-
-// }
+}
 
 #[cfg(test)]
 pub mod tests {

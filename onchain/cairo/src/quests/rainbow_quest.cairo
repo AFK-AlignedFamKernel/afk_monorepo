@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod RainbowQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest, IRainbowQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IQuest, IRainbowQuest};
 
     use starknet::{ContractAddress, get_caller_address};
 

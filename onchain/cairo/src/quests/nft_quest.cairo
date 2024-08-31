@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod NFTMintQuest {
-    use afk::pixel::nfts::interfaces::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
-    use afk::quests::IQuest;
+    use afk::interfaces::nfts::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
+    use afk::interfaces::quests::IQuest;
 
     use starknet::{ContractAddress, get_caller_address};
 

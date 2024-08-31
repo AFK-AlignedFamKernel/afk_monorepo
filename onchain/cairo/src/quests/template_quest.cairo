@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod TemplateQuest {
-    use afk::pixel::templates::interfaces::{
+    use afk::interfaces::pixel_template::{
         ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait
     };
     use afk::quests::IQuest;

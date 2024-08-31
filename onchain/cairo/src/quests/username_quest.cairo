@@ -1,9 +1,9 @@
 #[starknet::contract]
 pub mod UsernameQuest {
-    use afk::pixel::username_store::interfaces::{
+    use afk::interface:::username_store::{
         IUsernameStoreDispatcher, IUsernameStoreDispatcherTrait,
     };
-    use afk::quests::{IQuest};
+    use afk::interfaces::quests::{IQuest};
     use starknet::{ContractAddress, get_caller_address};
 
     #[storage]

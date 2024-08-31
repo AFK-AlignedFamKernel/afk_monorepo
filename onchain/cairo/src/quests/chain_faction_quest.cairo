@@ -1,7 +1,8 @@
 #[starknet::contract]
 pub mod ChainFactionQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IAuthorityQuest, IQuest};
+
 
     use starknet::{ContractAddress, get_caller_address};
 

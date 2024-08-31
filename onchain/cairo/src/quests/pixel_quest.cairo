@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod PixelQuest {
-    use afk::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::quests::{IQuest, IPixelQuest};
+    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::intefaces::quests::{IQuest, IPixelQuest};
 
     use starknet::{ContractAddress, get_caller_address};
 
