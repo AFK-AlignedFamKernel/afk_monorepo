@@ -87,7 +87,6 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
         </Modalize>
         <Modalize ref={addMemberModalizeRef}>
           <AddMemberView
-            permissionData={permissionData as any}
             handleClose={() => addMemberModalizeRef.current?.close()}
             groupId={route.params.groupId ? route.params.groupId : ''}
           />
@@ -103,7 +102,6 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
               mutate(
                 {
                   groupId: route.params.groupId,
-                  permissionData: permissionData as any,
                 },
                 {
                   onSuccess: () => {

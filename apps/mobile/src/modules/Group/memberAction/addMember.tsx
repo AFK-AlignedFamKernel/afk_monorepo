@@ -16,11 +16,9 @@ import stylesheet from './styles';
 export default function AddMemberView({
   groupId,
   handleClose,
-  permissionData,
 }: {
   groupId: string;
   handleClose: () => void;
-  permissionData: AdminGroupPermission[];
 }) {
   const groupMembers = useGetGroupMemberList({
     groupId,
@@ -61,7 +59,6 @@ export default function AddMemberView({
               {
                 pubkey: values.pubKey,
                 groupId,
-                permissionData: permissionData as any,
               },
               {
                 onSuccess() {

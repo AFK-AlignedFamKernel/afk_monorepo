@@ -94,7 +94,6 @@ const GroupAdminActions = ({
       {
         groupId,
         pubkey: memberPubKey,
-        permissionData: permissionData as any,
       },
       {
         onSuccess: () => {

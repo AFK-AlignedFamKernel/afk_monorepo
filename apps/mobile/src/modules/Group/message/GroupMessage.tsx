@@ -75,7 +75,6 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
         pubkey: publicKey,
         name: profile.data?.nip05,
         replyId: replyToId ?? (null as any),
-        permissionData: permissionData as any,
       },
       {
         onSuccess() {

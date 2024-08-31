@@ -29,6 +29,7 @@ export const fetchPermissions = async ({
     kinds: [9003],
     '#h': [groupId],
     '#p': [pubkey],
+    since: 0,
   });
 
   if (!events || events.size === 0) return null;

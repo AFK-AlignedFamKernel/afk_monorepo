@@ -13,7 +13,6 @@ import stylesheet from '../addGroup/styles';
 export const EditGroup = ({
   groupId,
   handleClose,
-  permissionData,
 }: {
   groupId: string;
   handleClose: () => void;
@@ -39,7 +38,7 @@ export const EditGroup = ({
           mutate(
             {
               groupId,
-              permissionData: permissionData as any,
+
               meta: {
                 name: values.name,
                 about: values.about,
