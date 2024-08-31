@@ -8,9 +8,10 @@ import { useState } from 'react';
 export type PostCardProps = {
   event?: NDKEvent;
   isRepostProps?:boolean;
+  isBookmarked?:boolean;
 };
 
-export const PostCard: React.FC<PostCardProps> = ({ event, isRepostProps }) => {
+export const PostCard: React.FC<PostCardProps> = ({ event, isRepostProps, isBookmarked }) => {
   const styles = useStyles(stylesheet);
 
   let repostedEvent = undefined;
@@ -21,7 +22,7 @@ export const PostCard: React.FC<PostCardProps> = ({ event, isRepostProps }) => {
   }
   return (
     <View style={styles.container}>
-      <Post event={event} repostedEventProps={repostedEvent} isRepost={isRepost}/>
+      <Post event={event} repostedEventProps={repostedEvent} isRepost={isRepost} isBookmarked={isBookmarked} />
     </View>
   );
 };

@@ -16,77 +16,157 @@ export const useBookmark = (userPublicKey: string) => {
   const { ndk } = useNostrContext();
   const queryClient = useQueryClient();
 
+  const fetchBookmarks = async () => {
+    if (!ndk.signer) {
+      throw new Error('No signer available');
+    }
+    const filter = { kinds: [NDKKind.BookmarkList, NDKKind.BookmarkSet], authors: [userPublicKey] };
+    const events = await ndk.fetchEvents(filter);
+
+    const eventsArray = Array.from(events);
+
+    // Fetch full content for each bookmarked event
+    const fullEvents = await Promise.all(eventsArray.map(async (event) => {
+      const fullEvent = await ndk.fetchEvent(event.id);
+      return fullEvent;
+    }));
+
+    return fullEvents;
+  };
+
+  const bookmarks = useQuery({
+    queryKey: ['bookmarks', userPublicKey],
+    queryFn: fetchBookmarks,
+    enabled: !!userPublicKey,
+  });
+
+  const extractNoteIds = (bookmarks: NDKEvent[]) => {
+    const noteIds: Set<string> = new Set();
+  
+    bookmarks.forEach(bookmark => {
+      bookmark.tags.forEach(tag => {
+        if (tag[0] === 'e') {
+          noteIds.add(tag[1]); // Collect note IDs
+        }
+      });
+    });
+  
+    return Array.from(noteIds);
+  };
+
+  const fetchNotesByIds = async (noteIds: string[]) => {
+    if (!ndk.signer) {
+      throw new Error('No signer available');
+    }
+  
+    const filter = { ids: noteIds };
+    const events = await ndk.fetchEvents(filter);
+    return Array.from(events);
+  };
+
+  const fetchBookmarksWithNotes = async () => {
+    const bookmarks = await fetchBookmarks();
+    const noteIds = extractNoteIds(bookmarks);
+    const notes = await fetchNotesByIds(noteIds);
+  
+    // Create a mapping of note ID to note event
+    const noteMap = new Map(notes.map(note => [note.id, note]));
+  
+    // Combine bookmarks with note data
+    const bookmarksWithNotes = bookmarks.map(bookmark => {
+      const bookmarkedNotes = bookmark.tags
+        .filter(tag => tag[0] === 'e')
+        .map(tag => noteMap.get(tag[1]));
+  
+      return {
+        bookmarkEvent: bookmark,
+        notes: bookmarkedNotes,
+      };
+    });
+  
+    return bookmarksWithNotes;
+  };
+
+  const bookmarksWithNotesQuery = useQuery({
+    queryKey: ['bookmarksWithNotes', userPublicKey],
+    queryFn: fetchBookmarksWithNotes,
+    enabled: !!userPublicKey,
+  });
+  
+  
   const bookmarkNote = useMutation({
-    mutationKey: ["bookmark", ndk],
+    mutationKey: ['bookmark', ndk],
     mutationFn: async ({ event, category }: BookmarkParams) => {
       if (!event) {
         throw new Error('No event provided for bookmark');
       }
 
-      const bookmarkEvent = new NDKEvent(ndk);
+      let bookmarks = await fetchBookmarks();
+      let bookmarkEvent = bookmarks.find((e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
 
-      if (category) {
-        bookmarkEvent.kind = NDKKind.BookmarkSet; 
-        bookmarkEvent.tags = [
-          ['d', category],  
-          ['e', event.id, event.relay?.url || ''], 
-          ['p', event.pubkey],  
-        ];
-      } else {
-        bookmarkEvent.kind = 10003;  
-        bookmarkEvent.tags = [
-          ['e', event.id, event.relay?.url || ''],
-          ['p', event.pubkey],
-        ];
+      console.log('bookmarkEvent', bookmarkEvent);
+
+      if (!bookmarkEvent) {
+        bookmarkEvent = new NDKEvent(ndk);
+        bookmarkEvent.kind = category ? NDKKind.BookmarkSet : NDKKind.BookmarkList;
+        bookmarkEvent.content = '';
+        bookmarkEvent.tags = [];
       }
 
-      await bookmarkEvent.publish();
-      return bookmarkEvent;
+      // Resetting the id and created_at to avoid conflicts
+      bookmarkEvent.id = undefined as any;
+      bookmarkEvent.created_at = undefined;
+
+      // If there's a specific category, add it
+      if (category) {
+        const existingTagIndex = bookmarkEvent.tags.findIndex(tag => tag[0] === 'd' && tag[1] === category);
+        if (existingTagIndex === -1) {
+          bookmarkEvent.tags.push(['d', category]);
+        }
+      }
+
+      const existingEventIndex = bookmarkEvent.tags.findIndex(tag => tag[0] === 'e' && tag[1] === event.id);
+      if (existingEventIndex === -1) {
+        bookmarkEvent.tags.push(['e', event.id, event.relay?.url || '']);
+        bookmarkEvent.tags.push(['p', event.pubkey]);
+      }
+
+      await bookmarkEvent.sign();
+      return bookmarkEvent.publish();
+
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarks', userPublicKey] });
     },
     onError: (error) => {
       console.error('Failed to bookmark note:', error);
     },
   });
 
-  const getBookmarks = useQuery({
-    queryKey: ['bookmarks', userPublicKey],
-    queryFn: async () => {
-      if (!ndk.signer) {
-        throw new Error('No signer available');
-      }
-      const filter = { kinds: [10003, 30003], authors: [userPublicKey] };
-      const events = await ndk.fetchEvents(filter);
-      return Array.from(events);
-    },
-  });
-
   const removeBookmark = useMutation({
-    mutationKey: ["bookmark", ndk],
+    mutationKey: ['bookmarks', ndk],
     mutationFn: async ({ eventId, category }: RemoveBookmarkParams) => {
-      const existingBookmarks = getBookmarks.data;
+      let bookmarks = await fetchBookmarks();
+      let bookmarkEvent = bookmarks.find((e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
 
-      if (!existingBookmarks) {
-        throw new Error('No existing bookmarks found');
+      if (!bookmarkEvent) {
+        throw new Error('Bookmark not found');
       }
 
-      const bookmarkEvent = existingBookmarks.find((event) => {
-        const isMatchingCategory = category
-          ? event.tags.some(tag => tag[0] === 'd' && tag[1] === category)
-          : true;
+      // Resetting the id and created_at to avoid conflicts
+      bookmarkEvent.id = undefined as any;
+      bookmarkEvent.created_at = undefined;
 
-        return isMatchingCategory && event.tags.some(tag => tag[0] === 'e' && tag[1] === eventId);
-      });
+      if (category) {
+        bookmarkEvent.tags = bookmarkEvent.tags.filter(tag => !(tag[0] === 'd' && tag[1] === category));
+      }
 
-      if (bookmarkEvent) {
-        bookmarkEvent.tags = bookmarkEvent.tags.filter(tag => !(tag[0] === 'e' && tag[1] === eventId));
-        if (bookmarkEvent.tags.length > 0) {
-          await bookmarkEvent.publish(); 
-        }
-      } else {
-        throw new Error('Bookmark not found');
+      // Remove the specific event
+      bookmarkEvent.tags = bookmarkEvent.tags.filter(tag => !(tag[0] === 'e' && tag[1] === eventId));
+
+      if (bookmarkEvent.tags.length > 0) {
+        await bookmarkEvent.sign();
+        await bookmarkEvent.publish();
       }
     },
     onSuccess: () => {
@@ -100,7 +180,8 @@ export const useBookmark = (userPublicKey: string) => {
   return {
     bookmarkNote: bookmarkNote.mutateAsync,
     removeBookmark: removeBookmark.mutateAsync,
-    getBookmarks: getBookmarks.data,
-    isFetchingBookmarks: getBookmarks.isFetching,
+    bookmarks: bookmarks.data,
+    isFetchingBookmarks: bookmarks.isFetching,
+    bookmarksWithNotes: bookmarksWithNotesQuery.data
   };
 };

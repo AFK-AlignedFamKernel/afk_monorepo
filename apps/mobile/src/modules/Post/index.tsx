@@ -4,7 +4,7 @@ import {useQueryClient} from '@tanstack/react-query';
 import {useProfile, useReact, useReactions, useReplyNotes, useRepost, useBookmark} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, Image, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
@@ -28,10 +28,11 @@ export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;
   repostedEventProps?:string;
-  isRepost?:boolean
+  isRepost?:boolean;
+  isBookmarked?:boolean;
 };
 
-export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost}) => {
+export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost, isBookmarked = false}) => {
   const repostedEvent = repostedEventProps  ?? undefined;
 
   const {theme} = useTheme();
@@ -50,7 +51,7 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
   const react = useReact();
   const queryClient = useQueryClient();
   const repostMutation = useRepost({ event });
-  const { bookmarkNote } = useBookmark(publicKey);  
+  const { bookmarkNote, removeBookmark } = useBookmark(publicKey);  
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -137,11 +138,16 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
   const handleBookmark = async () => {
     if (!event) return;
     try {
-      await bookmarkNote({ event });
-      showToast({title: 'Post bookmarked successfully', type: 'success'});
+      if (isBookmarked) {
+        await removeBookmark({ eventId: event.id });
+        showToast({ title: 'Post removed from bookmarks', type: 'success' });
+      } else {
+        await bookmarkNote({ event });
+        showToast({ title: 'Post bookmarked successfully', type: 'success' });
+      }
     } catch (error) {
       console.error('Bookmark error:', error);
-      showToast({title: 'Failed to bookmark', type: 'error'});
+      showToast({ title: 'Failed to bookmark', type: 'error' });
     }
   };
 
@@ -296,7 +302,10 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
               style={{marginHorizontal: 3}}
               onPress={handleBookmark}
             >
-              <Icon name="BookmarkIcon" size={20} title="Bookmark" />
+              <Icon
+                name={isBookmarked ? "BookmarkFillIcon" : "BookmarkIcon"}
+                size={20}
+                title={isBookmarked ? "Bookmarked" : "Bookmark"} />
             </Pressable>
           </View>
 
