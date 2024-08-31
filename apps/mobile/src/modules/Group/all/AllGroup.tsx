@@ -10,6 +10,7 @@ import {
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   SafeAreaView,
   Text,
   TouchableOpacity,
@@ -22,7 +23,7 @@ import {MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
 
 export default function AllGroupListComponent() {
-  const {data, isPending} = useGetGroupList({});
+  const {data, isPending, isFetching, refetch, fetchNextPage} = useGetGroupList({});
   const {mutate: addMember} = useAddMember();
   const queryClient = useQueryClient();
   const {mutate: addPermission} = useAddPermissions();
@@ -114,6 +115,8 @@ export default function AllGroupListComponent() {
         )}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => refetch()} />}
+        onEndReached={() => fetchNextPage()}
       />
     </SafeAreaView>
   );

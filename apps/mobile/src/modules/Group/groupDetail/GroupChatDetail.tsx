@@ -74,10 +74,12 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
             groupId={route.params.groupId}
             selectedMember={selectedMember}
             handleClose={() => modalizeRef.current?.close()}
+            permissionData={permissionData as any}
           />
         </Modalize>
         <Modalize ref={editGroupModalizeRef}>
           <EditGroup
+            permissionData={permissionData as any}
             metaData={groupMetaData as any}
             handleClose={() => editGroupModalizeRef.current?.close()}
             groupId={route.params.groupId ? route.params.groupId : ''}
@@ -85,6 +87,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
         </Modalize>
         <Modalize ref={addMemberModalizeRef}>
           <AddMemberView
+            permissionData={permissionData as any}
             handleClose={() => addMemberModalizeRef.current?.close()}
             groupId={route.params.groupId ? route.params.groupId : ''}
           />
@@ -92,6 +95,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 
         <Modalize ref={menuModalizeRef}>
           <MenuBubble
+            permissionData={permissionData as any}
             groupId={route.params.groupId}
             onOpenViewRequest={onOpenViewRequest}
             onEditGroup={onOpenEditGroup}
@@ -198,16 +202,15 @@ const MenuBubble = ({
   onDeleteGroup,
   onEditGroup,
   onOpenViewRequest,
-  groupId,
+  permissionData,
 }: {
   onOpenAddMember: () => void;
   onDeleteGroup: () => void;
   onEditGroup: () => void;
   onOpenViewRequest: () => void;
+  permissionData: AdminGroupPermission[];
   groupId: string;
 }) => {
-  const {data: permissionData, isPending: permissionLoading} = useGetGroupPermission(groupId);
-
   const styles = useStyles(stylesheet);
   const theme = useTheme();
 

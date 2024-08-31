@@ -43,9 +43,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
   const {mutate} = useSendGroupMessages();
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
-  const {data: permissionData, isPending: permissionLoading} = useGetGroupPermission(
-    route.params.groupId,
-  );
+  const {data: permissionData} = useGetGroupPermission(route.params.groupId);
 
   // const isMember = memberListData?.data?.pages?.flat().some((e: NDKEvent) => {
   //   const pubkey = e?.tags?.find((tag: string[]) => tag[0] === 'p')?.[1];
@@ -103,14 +101,6 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
       </SafeAreaView>
     );
   }
-
-  // if (permissionLoading) {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <ActivityIndicator />
-  //     </SafeAreaView>
-  //   );
-  // }
 
   if (
     !permissionData?.includes(AdminGroupPermission.ViewAccess) &&

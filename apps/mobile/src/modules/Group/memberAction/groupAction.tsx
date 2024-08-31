@@ -1,10 +1,5 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {
-  AdminGroupPermission,
-  useAddPermissions,
-  useGetGroupPermission,
-  useRemoveMember,
-} from 'afk_nostr_sdk';
+import {AdminGroupPermission, useAddPermissions, useRemoveMember} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {ScrollView, Switch, Text, TouchableOpacity, View} from 'react-native';
 
@@ -29,12 +24,13 @@ const GroupAdminActions = ({
   selectedMember,
   handleClose,
   groupId,
+  permissionData,
 }: {
   selectedMember: any;
   handleClose: () => void;
   groupId: string;
+  permissionData: AdminGroupPermission[];
 }) => {
-  const {data: permissionData} = useGetGroupPermission(groupId);
   const {mutate: removeMember} = useRemoveMember();
   const {mutate: addPermissions} = useAddPermissions();
   const queryClient = useQueryClient();

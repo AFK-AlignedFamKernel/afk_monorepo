@@ -19,6 +19,7 @@ export const useSendGroupMessages = () => {
       permissionData: AdminGroupPermission[];
     }) => {
       if (data.permissionData && !data.permissionData.includes(AdminGroupPermission.ViewAccess)) {
+        console.log('Hit here');
         throw new Error('You do not have permission to send message');
       } else {
         const event = new NDKEvent(ndk);

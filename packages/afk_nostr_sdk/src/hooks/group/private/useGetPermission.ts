@@ -81,6 +81,7 @@ export const useGetGroupPermission = (groupId: string) => {
 
   return useQuery({
     queryKey: ['getPermissionsByUserConnected', groupId],
+    enabled: !!groupId,
     queryFn: async () => {
       const events = await ndk.fetchEvents({
         kinds: [9003],
