@@ -107,8 +107,8 @@ mod LaunchpadMarketplace {
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams, LiquidityCreated,
-        LiquidityCanBeAdded
+        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
+        LiquidityCreated, LiquidityCanBeAdded
     };
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -201,7 +201,7 @@ mod LaunchpadMarketplace {
         SetJediwapV2Factory: SetJediwapV2Factory,
         SetJediwapNFTRouterV2: SetJediwapNFTRouterV2,
         LiquidityCreated: LiquidityCreated,
-        LiquidityCanBeAdded:LiquidityCanBeAdded,
+        LiquidityCanBeAdded: LiquidityCanBeAdded,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -397,7 +397,6 @@ mod LaunchpadMarketplace {
         }
 
 
-
         // Buy coin by quote amount
         // Get amount of coin receive based on token IN
         fn buy_coin_by_quote_amount(
@@ -574,30 +573,28 @@ mod LaunchpadMarketplace {
 
             // TODO finish test and fix
             if pool_coin.liquidity_raised >= threshold {
-
                 self
-                .emit(
-                    LiquidityCanBeAdded { 
-                        pool:pool_coin.token_address.clone(),
-                        asset:pool_coin.token_address.clone(),
-                        quote_token_address:pool_coin.token_quote.token_address.clone(),
-                    
-                     }
-                );
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+                    .emit(
+                        LiquidityCanBeAdded {
+                            pool: pool_coin.token_address.clone(),
+                            asset: pool_coin.token_address.clone(),
+                            quote_token_address: pool_coin.token_quote.token_address.clone(),
+                        }
+                    );
+            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
             if mc >= threshold_mc {
                 // println!("mc >= threshold_mc");
                 self
-                .emit(
-                    LiquidityCanBeAdded { 
-                        pool:pool_coin.token_address.clone(),
-                        asset:pool_coin.token_address.clone(),
-                        quote_token_address:pool_coin.token_quote.token_address.clone(),
-                     }
-                );
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+                    .emit(
+                        LiquidityCanBeAdded {
+                            pool: pool_coin.token_address.clone(),
+                            asset: pool_coin.token_address.clone(),
+                            quote_token_address: pool_coin.token_quote.token_address.clone(),
+                        }
+                    );
+            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
             // TODO check reetrancy guard
@@ -657,7 +654,10 @@ mod LaunchpadMarketplace {
             // assert!(old_share.amount_owned >= amount, "share to sell > supply");
             // println!("amount{:?}", amount);
             // assert!(total_supply >= quote_amount, "share to sell > supply");
-            assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
+            assert!(
+                old_pool.liquidity_raised >= quote_amount,
+                "pool_update.liquidity_raised <= quote_amount"
+            );
             // assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
 
             let old_price = old_pool.price.clone();
@@ -670,7 +670,10 @@ mod LaunchpadMarketplace {
             // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
             let remain_liquidity = total_price - amount_protocol_fee;
             // let remain_liquidity = total_price ;
-            assert!( old_pool.liquidity_raised >= remain_liquidity, "pool_update.liquidity_raised <= remain_liquidity");
+            assert!(
+                old_pool.liquidity_raised >= remain_liquidity,
+                "pool_update.liquidity_raised <= remain_liquidity"
+            );
 
             // TODO fix amount owned and sellable.
             // Update share user coin
@@ -719,17 +722,15 @@ mod LaunchpadMarketplace {
         }
 
 
-         // TODO finish check
+        // TODO finish check
         //  Launch liquidity if threshold ok
-         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
-
+        fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
             let pool = self.launched_coins.read(coin_address);
 
             assert!(pool.liquidity_raised >= pool.threshold_liquidity, "no threshold raised");
             assert!(pool.is_liquidity_launch == false, "liquidity already launch");
 
             self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-
         }
 
         // TODO Finish this function
@@ -1131,7 +1132,7 @@ mod LaunchpadMarketplace {
 
             let k_max = total_supply * threshold_liquidity;
 
-            if is_decreased  == true {
+            if is_decreased == true {
                 let pool_coin = self.launched_coins.read(coin_address);
                 let qa = pool_coin.liquidity_raised;
                 let qb_init_supply = pool_coin.total_supply / LIQUIDITY_RATIO;
@@ -1140,17 +1141,16 @@ mod LaunchpadMarketplace {
                 // let k = pool_qty * INITIAL_SUPPLY;
                 let k = pool_qty * qb_init_supply;
                 let qb = pool_coin.token_holded.clone();
-    
+
                 let q_out = qa + pool_qty / LIQUIDITY_RATIO - k / (qb + quote_amount);
                 return q_out;
+            // let k = current_supply * pool_coin.liquidity_raised;
+            // let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
+            //  let q_out = (total_supply - liquidity_ratio) + (k / (quote_amount));
+            // return q_out;
+            // let q_in = (k / (total_supply - quote_amount)) - (k_max / total_supply);
+            // return q_in;
 
-                // let k = current_supply * pool_coin.liquidity_raised;
-                // let liquidity_ratio = total_supply / LIQUIDITY_RATIO;
-                //  let q_out = (total_supply - liquidity_ratio) + (k / (quote_amount));
-                // return q_out;
-                // let q_in = (k / (total_supply - quote_amount)) - (k_max / total_supply);
-                // return q_in;
-               
             }
             // let mut current_price = self
             //     ._get_linear_price(pool_coin.initial_key_price, pool_coin.slope, current_supply);
