@@ -198,8 +198,8 @@ const AuthNavigator: React.FC = () => {
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
-        headerShown: false,
+        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
@@ -280,7 +280,8 @@ const MainNavigator: React.FC = () => {
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
+        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
