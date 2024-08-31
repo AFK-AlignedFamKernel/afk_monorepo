@@ -28,10 +28,10 @@ export const useGetGroupMessages = (options: UseGetActiveGroupListOptions) => {
       const events = await ndk.fetchEvents({
         '#h': [options.groupId],
         kinds: [NDKKind.GroupNote, NDKKind.GroupReply],
-        authors: [options?.authors],
+        // authors: [options?.authors],
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
-        limit: options?.limit || 20,
+        limit: options?.limit || 100,
       });
 
       const eventMap = new Map();

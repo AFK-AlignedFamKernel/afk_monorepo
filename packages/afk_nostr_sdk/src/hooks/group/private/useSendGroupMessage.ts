@@ -3,13 +3,16 @@ import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
+import {AdminGroupPermission} from './useAddPermissions';
+import {checkGroupPermission} from './useGetPermission';
 
 // TODO
 export const useSendGroupMessages = () => {
   const {ndk} = useNostrContext();
+  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
-    mutationKey: ['sendGroupMessage', ndk],
+    mutationKey: ['sendGroupMessage'],
     mutationFn: async (data: {
       pubkey: string;
       content: string;
@@ -18,6 +21,18 @@ export const useSendGroupMessages = () => {
       replyId: string;
     }) => {
       const event = new NDKEvent(ndk);
+
+      const hasPermission = await checkGroupPermission({
+        groupId: data.groupId,
+        ndk,
+        pubkey,
+        action: AdminGroupPermission.ViewAccess,
+      });
+
+      if (!hasPermission) {
+        throw new Error('You do not have permission to send message');
+      }
+
       event.content = data.content;
       // Set the kind based on whether it's a reply or not
       event.kind = data.replyId ? NDKKind.GroupReply : NDKKind.GroupNote; // Using literal kind values
@@ -33,7 +48,6 @@ export const useSendGroupMessages = () => {
       if (data.replyId) {
         event.tags.push(['e', data.replyId, '', 'reply']);
       }
-
       return event.publish();
     },
   });

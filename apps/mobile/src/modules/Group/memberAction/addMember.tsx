@@ -1,5 +1,10 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {useAddMember, useGetGroupMemberList} from 'afk_nostr_sdk';
+import {
+  AdminGroupPermission,
+  useAddMember,
+  useAddPermissions,
+  useGetGroupMemberList,
+} from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
 
@@ -18,7 +23,9 @@ export default function AddMemberView({
   const groupMembers = useGetGroupMemberList({
     groupId,
   });
-  const {mutate} = useAddMember();
+  const {mutate: addMember} = useAddMember();
+  const {mutate: addPermission} = useAddPermissions();
+
   const queryClient = useQueryClient();
   const {showToast} = useToast();
   const styles = useStyles(stylesheet);
@@ -42,23 +49,49 @@ export default function AddMemberView({
       <Formik
         initialValues={initialValues}
         onSubmit={(values) => {
-          //Check if the pubKey that wants to be added exist
           if (checkIfMemberExists(values.pubKey)) {
             showToast({
               type: 'error',
               title: 'Error! This public key is already a member of the group.',
             });
           } else {
-            mutate(
+            addMember(
               {
                 pubkey: values.pubKey,
                 groupId,
               },
               {
                 onSuccess() {
-                  showToast({type: 'success', title: 'Member Added successfully'});
-                  queryClient.invalidateQueries({queryKey: ['getAllGroupMember']});
-                  handleClose();
+                  // After successfully adding external member by pubkey, give them default view access.
+                  addPermission(
+                    {
+                      groupId,
+                      pubkey: values.pubKey,
+                      permissionName: [AdminGroupPermission.ViewAccess],
+                    },
+                    {
+                      onSuccess() {
+                        showToast({
+                          type: 'success',
+                          title: 'Member added and permissions set successfully',
+                        });
+                        queryClient.invalidateQueries({queryKey: ['getAllGroupMember']});
+                        queryClient.invalidateQueries({
+                          queryKey: ['getPermissionsByUserConnected', groupId],
+                        });
+                        handleClose();
+                      },
+                      onError() {
+                        showToast({
+                          type: 'error',
+                          title:
+                            'Member added but permissions could not be set. Please set permissions manually.',
+                        });
+                        queryClient.invalidateQueries({queryKey: ['getAllGroupMember']});
+                        handleClose();
+                      },
+                    },
+                  );
                 },
                 onError() {
                   showToast({

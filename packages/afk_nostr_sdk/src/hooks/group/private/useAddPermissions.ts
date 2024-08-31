@@ -12,6 +12,7 @@ export enum AdminGroupPermission {
   RemovePermission = 'remove-permission',
   EditGroupStatus = 'edit-group-status',
   DeleteGroup = 'delete-group',
+  ViewAccess = 'view-access',
 }
 type IAdminGroupPermission = `${AdminGroupPermission}`;
 
@@ -27,6 +28,7 @@ export const useAddPermissions = () => {
     }) => {
       const event = new NDKEvent(ndk);
       event.kind = 9003; // NDKKind.GroupAdminAddPermission;
+
       event.tags = [
         ['h', data.groupId],
         ['p', data.pubkey, ...data.permissionName],

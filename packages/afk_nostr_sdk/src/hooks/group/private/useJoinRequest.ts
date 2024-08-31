@@ -2,11 +2,11 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
-import { useAuth } from '../../../store';
+import {useAuth} from '../../../store';
 
 export const useJoinGroupRequest = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
 
   return useMutation({
     mutationKey: ['joinGroupRequest', ndk],

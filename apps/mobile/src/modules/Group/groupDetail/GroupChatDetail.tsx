@@ -1,6 +1,13 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {useAuth, useDeleteGroup, useGetGroupMemberList, useGetGroupMetadata} from 'afk_nostr_sdk';
-import React, {useEffect, useRef, useState} from 'react';
+import {
+  AdminGroupPermission,
+  useAuth,
+  useDeleteGroup,
+  useGetGroupMemberList,
+  useGetGroupMetadata,
+  useGetGroupPermission,
+} from 'afk_nostr_sdk';
+import React, {useRef, useState} from 'react';
 import {FlatList, Pressable, SafeAreaView, TouchableOpacity, View} from 'react-native';
 
 import {AddPostIcon, BackIcon, EditIcon, TrashIcon, UserPlusIcon} from '../../../assets/icons';
@@ -18,7 +25,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const {publicKey: pubKey} = useAuth();
   const queryClient = useQueryClient();
   const {showToast} = useToast();
-
+  const {data: permissionData} = useGetGroupPermission(route.params.groupId);
   const {data: groupMetaData} = useGetGroupMetadata({groupId: route.params.groupId, pubKey});
   const memberListData = useGetGroupMemberList({
     groupId: route.params.groupId,
@@ -31,12 +38,6 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const menuModalizeRef = useRef<Modalize>(null);
   const styles = useStyles(stylesheet);
   const [selectedMember, setSelectedMember] = useState();
-
-  /** Todo check if user is already added as a member */
-  useEffect(() => {
-
-  },[])
-
 
   const onOpen = (selected: any) => {
     modalizeRef.current?.open();
@@ -51,6 +52,14 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
     editGroupModalizeRef.current?.open();
     menuModalizeRef.current?.close();
   };
+  const onOpenViewRequest = () => {
+    navigation.navigate('GroupChatMemberRequest', {
+      groupId: route.params.groupId,
+      groupName: route.params.groupName,
+      groupAccess: route.params.groupAccess,
+    });
+    menuModalizeRef.current?.close();
+  };
 
   const onOpenMenu = (selected: any) => {
     setSelectedMember(selected);
@@ -62,12 +71,15 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
       <SafeAreaView style={styles.container}>
         <Modalize ref={modalizeRef}>
           <GroupAdminActions
+            groupId={route.params.groupId}
             selectedMember={selectedMember}
             handleClose={() => modalizeRef.current?.close()}
+            permissionData={permissionData as any}
           />
         </Modalize>
         <Modalize ref={editGroupModalizeRef}>
           <EditGroup
+            permissionData={permissionData as any}
             metaData={groupMetaData as any}
             handleClose={() => editGroupModalizeRef.current?.close()}
             groupId={route.params.groupId ? route.params.groupId : ''}
@@ -82,6 +94,9 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 
         <Modalize ref={menuModalizeRef}>
           <MenuBubble
+            permissionData={permissionData as any}
+            groupId={route.params.groupId}
+            onOpenViewRequest={onOpenViewRequest}
             onEditGroup={onOpenEditGroup}
             onDeleteGroup={() => {
               mutate(
@@ -91,9 +106,8 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
                 {
                   onSuccess: () => {
                     showToast({type: 'success', title: 'Group Deleted Successfully'});
-                    queryClient.invalidateQueries({queryKey: ['getAllGroups', pubKey]});
+                    queryClient.invalidateQueries({queryKey: ['getAllGroups']});
                     menuModalizeRef.current?.close();
-                    navigation.navigate('Tips');
                   },
                   onError: () => {
                     showToast({
@@ -116,6 +130,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
                 navigation.navigate('GroupChat', {
                   groupId: route.params.groupId,
                   groupName: route.params.groupName,
+                  groupAccess: route.params.groupAccess,
                 })
               }
             >
@@ -145,14 +160,29 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
 };
 
 const MemberCard = ({item, handleOpen}: {item: any; handleOpen: () => void}) => {
+  const {publicKey} = useAuth();
   const pub = item?.tags.find((tag: any) => tag[0] === 'p')?.[1];
   const styles = useStyles(stylesheet);
   return (
     <View style={styles.memberItem}>
       <View style={styles.memberInfo}>
-        <Text numberOfLines={1} ellipsizeMode="middle" style={styles.memberName}>
-          {pub}
-        </Text>
+        {publicKey === pub ? (
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="middle"
+            style={{
+              ...styles.memberName,
+              color: 'blue',
+            }}
+          >
+            {pub}
+          </Text>
+        ) : (
+          <Text numberOfLines={1} ellipsizeMode="middle" style={styles.memberName}>
+            {pub}
+          </Text>
+        )}
+
         <Text style={styles.memberRole}>{item.role}</Text>
       </View>
 
@@ -169,10 +199,15 @@ const MenuBubble = ({
   onOpenAddMember,
   onDeleteGroup,
   onEditGroup,
+  onOpenViewRequest,
+  permissionData,
 }: {
   onOpenAddMember: () => void;
   onDeleteGroup: () => void;
   onEditGroup: () => void;
+  onOpenViewRequest: () => void;
+  permissionData: AdminGroupPermission[];
+  groupId: string;
 }) => {
   const styles = useStyles(stylesheet);
   const theme = useTheme();
@@ -180,18 +215,34 @@ const MenuBubble = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Member Actions</Text>
-      <TouchableOpacity style={styles.actionButton} onPress={onOpenAddMember}>
-        <UserPlusIcon width={24} height={24} color={theme.theme.colors.primary} />
-        <Text style={styles.actionText}>Add Member</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={onEditGroup}>
-        <EditIcon width={24} height={24} color={theme.theme.colors.white} />
-        <Text style={styles.actionText}>Edit Group</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={onDeleteGroup}>
-        <TrashIcon width={24} height={24} color={theme.theme.colors.red} />
-        <Text style={[styles.actionText, styles.deleteText]}>Delete Group</Text>
-      </TouchableOpacity>
+
+      {permissionData && permissionData.includes(AdminGroupPermission.AddMember) && (
+        <TouchableOpacity style={styles.actionButton} onPress={onOpenAddMember}>
+          <UserPlusIcon width={24} height={24} color={theme.theme.colors.primary} />
+          <Text style={styles.actionText}>Add Member</Text>
+        </TouchableOpacity>
+      )}
+
+      {permissionData && permissionData.includes(AdminGroupPermission.EditMetadata) && (
+        <TouchableOpacity onPress={onEditGroup} style={styles.actionButton}>
+          <EditIcon width={24} height={24} color={theme.theme.colors.white} />
+          <Text style={styles.actionText}>Edit Group</Text>
+        </TouchableOpacity>
+      )}
+
+      {permissionData && permissionData.includes(AdminGroupPermission.AddMember) && (
+        <TouchableOpacity style={styles.actionButton} onPress={() => onOpenViewRequest()}>
+          <EditIcon width={24} height={24} color={theme.theme.colors.white} />
+          <Text style={styles.actionText}>View Request</Text>
+        </TouchableOpacity>
+      )}
+
+      {permissionData && permissionData.includes(AdminGroupPermission.DeleteGroup) && (
+        <TouchableOpacity style={styles.actionButton} onPress={onDeleteGroup}>
+          <TrashIcon width={24} height={24} color={theme.theme.colors.red} />
+          <Text style={[styles.actionText, styles.deleteText]}>Delete Group</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

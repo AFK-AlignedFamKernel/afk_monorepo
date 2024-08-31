@@ -27,7 +27,12 @@ export const useGroupEditMetadata = () => {
 
   return useMutation({
     mutationKey: ['editGroupMetadata', ndk],
-    mutationFn: async (data: {groupId: string; meta: UpdateMetaData}) => {
+    mutationFn: async (data: {
+      groupId: string;
+      meta: UpdateMetaData;
+      permissionData?: AdminGroupPermission[];
+    }) => {
+      const event = new NDKEvent(ndk);
       const hasPermission = checkGroupPermission({
         groupId: data.groupId,
         ndk,
@@ -40,7 +45,6 @@ export const useGroupEditMetadata = () => {
       }
       const editedTag = objectToTagArray(data.meta);
 
-      const event = new NDKEvent(ndk);
       event.content = data.meta.name;
       event.kind = NDKKind.GroupAdminEditMetadata;
       event.tags = [['h', data.groupId], ['d', data.groupId], ...editedTag];
