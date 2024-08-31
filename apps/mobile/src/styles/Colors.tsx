@@ -45,6 +45,7 @@ export const LightTheme = {
     onSecondary: '#FFFFFF',
 
     divider: '#e4e4e7',
+    sidebarDivider: '#e4e4e7',
 
     bottomBarActive: '#14142C',
     bottomBarInactive: 'rgba(30, 47, 61, 0.5)',
@@ -103,6 +104,7 @@ export const DarkTheme = {
     onSecondary: '#FFFFFF',
 
     divider: '#1b1b18',
+    sidebarDivider: '#FFFFFF',
 
     bottomBarActive: '#8F979E',
     bottomBarInactive: 'rgb(105,105,105, 0.5)',

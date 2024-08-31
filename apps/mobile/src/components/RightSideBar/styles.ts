@@ -8,6 +8,8 @@ export default ThemedStyleSheet((theme) => ({
     padding: 20,
     gap: 1,
     color: theme.colors.text,
+    borderLeftWidth: 1,
+    borderLeftColor: theme.colors.sidebarDivider,
   },
   tabContainer: {
     flexDirection: 'row',
