@@ -7,19 +7,19 @@ export default ThemedStyleSheet((theme) => ({
   },
   optionsContentContainer: {
     paddingVertical: 5,
-    paddingHorizontal:5,
+    paddingHorizontal: 5,
     flexDirection: 'row',
     rowGap: 3,
     gap: 3,
     columnGap: 15,
   },
   optionsContainer: {
-    paddingHorizontal:5,
+    paddingHorizontal: 5,
     paddingVertical: 5,
     flexDirection: 'row',
     rowGap: 3,
     gap: 3,
-    columnGap: 3
+    columnGap: 3,
   },
   option: {
     paddingVertical: 10,
@@ -32,6 +32,6 @@ export default ThemedStyleSheet((theme) => ({
   },
   selected: {
     backgroundColor: theme.colors.primary,
-    color: theme.colors.text
-  }
+    color: theme.colors.text,
+  },
 }));

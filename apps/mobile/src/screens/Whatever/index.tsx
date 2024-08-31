@@ -1,6 +1,7 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount, useProvider} from '@starknet-react/core';
+import {useNostrContext} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {View} from 'react-native';
 import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
@@ -17,7 +18,6 @@ import {ChannelComponent} from '../../modules/ChannelCard';
 import {MainStackNavigationProps} from '../../types';
 import {TipsComponent} from '../Tips/TipsComponent';
 import stylesheet from './styles';
-import { useNostrContext } from 'afk_nostr_sdk';
 
 enum SelectedTab {
   TIPS,

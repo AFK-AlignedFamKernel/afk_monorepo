@@ -1,22 +1,22 @@
-import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useAllProfiles, useContacts, useSearch, useSearchNotes } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useAllProfiles, useSearch} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
 
-import { AddPostIcon } from '../../assets/icons';
-import { BubbleUser } from '../../components/BubbleUser';
+import {AddPostIcon} from '../../assets/icons';
+import {BubbleUser} from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import { useStyles, useTheme } from '../../hooks';
-import { ChannelComponent } from '../../modules/ChannelCard';
-import { PostCard } from '../../modules/PostCard';
-import { FeedScreenProps } from '../../types';
+import {useStyles, useTheme} from '../../hooks';
+import {ChannelComponent} from '../../modules/ChannelCard';
+import {PostCard} from '../../modules/PostCard';
+import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
 
-export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
-  const { theme } = useTheme();
+export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const profiles = useAllProfiles({limit:10});
-  const [activeSortBy, setSortBy] = useState<string | undefined>()
+  const profiles = useAllProfiles({limit: 10});
+  const [activeSortBy, setSortBy] = useState<string | undefined>();
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
@@ -31,23 +31,23 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const notes = useSearch({
     // search: search,
     kinds,
-    limit:10,
+    limit: 10,
     // authors: activeSortBy && contacts?.data?.?? [],
     // sortBy: activeSortBy,
   });
 
-
   // Filter profiles based on the search query
   const profilesSearch =
-    profiles?.data?.pages
-      ?.flat()
+    profiles?.data?.pages?.flat() ??
     //   .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
-    ?? [];
+    [];
 
   // Filter notes based on the search query
-  const filteredNotes = notes.data?.pages
-    .flat()
-    .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ?? [];
+  const filteredNotes =
+    notes.data?.pages
+      .flat()
+      .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
+    [];
 
   return (
     <View style={styles.container}>
@@ -71,30 +71,34 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       {notes?.data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>}
 
       <FlatList
-        ListHeaderComponent={<>
-          <FlatList
-            contentContainerStyle={styles.stories}
-            horizontal
-            data={profilesSearch}
-            showsHorizontalScrollIndicator={false}
-            onEndReached={() => profiles.fetchNextPage()}
-            refreshControl={
-              <RefreshControl refreshing={profiles.isFetching} onRefresh={() => profiles.refetch()} />
-            }
-            ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-            renderItem={({ item }) => <BubbleUser event={item} />}
-          /></>}
+        ListHeaderComponent={
+          <>
+            <FlatList
+              contentContainerStyle={styles.stories}
+              horizontal
+              data={profilesSearch}
+              showsHorizontalScrollIndicator={false}
+              onEndReached={() => profiles.fetchNextPage()}
+              refreshControl={
+                <RefreshControl
+                  refreshing={profiles.isFetching}
+                  onRefresh={() => profiles.refetch()}
+                />
+              }
+              ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
+              renderItem={({item}) => <BubbleUser event={item} />}
+            />
+          </>
+        }
         contentContainerStyle={styles.flatListContent}
         data={filteredNotes}
         keyExtractor={(item) => item?.id}
-        renderItem={({ item }) => {
+        renderItem={({item}) => {
           if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
-          } 
-          else if (item.kind === NDKKind.ChannelMessage) {
+          } else if (item.kind === NDKKind.ChannelMessage) {
             return <PostCard event={item} />;
-          } 
-          else if (item.kind === NDKKind.Text) {
+          } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
           }
           return <></>;
@@ -107,7 +111,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       <Pressable
         style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
       </Pressable>

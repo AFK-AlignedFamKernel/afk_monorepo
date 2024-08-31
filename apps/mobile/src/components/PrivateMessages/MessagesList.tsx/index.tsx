@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { Message } from '../../../types/messages';
+import {FlatList, Text, View} from 'react-native';
+
+import {useStyles} from '../../../hooks';
+import {Message} from '../../../types/messages';
 import stylesheet from './styles';
-import { useStyles } from '../../../hooks';
 
 export type MessagesListProps = {
-	messages: Message[];
+  messages: Message[];
 };
 
-export const MessagesList: React.FC<MessagesListProps> = ({ messages }) => {
+export const MessagesList: React.FC<MessagesListProps> = ({messages}) => {
   const styles = useStyles(stylesheet);
 
-  const renderItem = ({ item }: { item: Message }) => (
+  const renderItem = ({item}: {item: Message}) => (
     <View style={[styles.messageContainer, item.isUser ? styles.userMessage : styles.otherMessage]}>
       <Text style={styles.messageText}>{item.message}</Text>
     </View>

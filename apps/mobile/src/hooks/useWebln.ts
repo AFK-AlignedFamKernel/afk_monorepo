@@ -1,21 +1,16 @@
-import { WebLNProvider } from '@webbtc/webln-types';
-
-
-
 export const useWebln = () => {
-
-
-
   const handleWebln = async () => {
     if (window.webln) {
       try {
         await window.webln.enable();
-        const invoice = await window.webln.makeInvoice({ amount: 1000, defaultMemo: "React Native Zap" });
-      } catch (error) {
-      }
+        const invoice = await window.webln.makeInvoice({
+          amount: 1000,
+          defaultMemo: 'React Native Zap',
+        });
+      } catch (error) {}
     } else {
     }
-  }
+  };
 
   const handleGetBalance = async () => {
     if (window.webln) {
@@ -26,26 +21,27 @@ export const useWebln = () => {
 
         // }
         // const invoice = await window?.webln?.getBalance();
-      } catch (error) {
-      }
+      } catch (error) {}
     } else {
     }
-  }
+  };
 
-  const handleMakeInvoice = async (amount:number, memo?:string) => {
+  const handleMakeInvoice = async (amount: number, memo?: string) => {
     if (window.webln) {
       try {
         await window.webln.enable();
-        const invoice = await window.webln.makeInvoice({ amount: amount ?? 1000, defaultMemo: memo?? "React Native Zap" });
-      } catch (error) {
-      }
+        const invoice = await window.webln.makeInvoice({
+          amount: amount ?? 1000,
+          defaultMemo: memo ?? 'React Native Zap',
+        });
+      } catch (error) {}
     } else {
     }
-  }
+  };
 
-  return{
+  return {
     handleGetBalance,
     handleMakeInvoice,
-    handleWebln
-  }
-}
+    handleWebln,
+  };
+};

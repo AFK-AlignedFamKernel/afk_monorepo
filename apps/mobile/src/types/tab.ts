@@ -23,7 +23,6 @@ export enum SelectedTab {
   ALL_GROUP,
   GROUP_MESSAGE,
   PIXEL_PEACE,
-
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -150,7 +149,7 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'Slink',
     tab: SelectedTab.SLINK,
   },
-  
+
   {
     title: '?',
     screen: '?',

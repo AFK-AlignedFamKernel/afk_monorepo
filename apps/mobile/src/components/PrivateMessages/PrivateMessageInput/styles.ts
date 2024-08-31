@@ -1,7 +1,7 @@
-import { Spacing, ThemedStyleSheet } from "../../../styles";
+import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-	commentInputContainer: {
+  commentInputContainer: {
     backgroundColor: theme.colors.surface,
   },
   commentInputContent: {

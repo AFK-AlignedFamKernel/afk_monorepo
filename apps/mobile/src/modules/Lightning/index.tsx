@@ -1,40 +1,33 @@
 import '../../../applyGlobalPolyfills';
 
-import { init, launchModal, requestProvider } from '@getalby/bitcoin-connect-react';
-import { LightningAddress } from '@getalby/lightning-tools';
-import { webln } from '@getalby/sdk';
-import React, { useRef } from 'react';
-import { Platform, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
-import WebView, { WebViewMessageEvent } from 'react-native-webview';
+import {init, launchModal, requestProvider} from '@getalby/bitcoin-connect-react';
+import {LightningAddress} from '@getalby/lightning-tools';
+import {webln} from '@getalby/sdk';
+import React, {useRef} from 'react';
+import {Platform, ScrollView, Text, TextInput, View} from 'react-native';
+import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { WebLNProvider } from '@webbtc/webln-types';
-
-import { Button, Input } from '../../components';
-import { useStyles } from '../../hooks';
+import {Button, Input} from '../../components';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 export const LightningNetworkWalletView: React.FC = () => {
   const styles = useStyles(stylesheet);
   return (
     // <SafeAreaView style={styles.safeArea}>
     <ScrollView>
-
       <PolyfillCrypto />
 
       <LightningNetworkWallet />
-
     </ScrollView>
 
     // </SafeAreaView>
-
   );
 };
 
 function LightningNetworkWallet() {
-
-
   const styles = useStyles(stylesheet);
-  const [amountSats, setAmountSats] = React.useState<string | undefined>("1")
+  const [amountSats, setAmountSats] = React.useState<string | undefined>('1');
 
   const [nwcUrl, setNwcUrl] = React.useState('');
   const [pendingNwcUrl, setPendingNwcUrl] = React.useState('');
@@ -47,7 +40,7 @@ function LightningNetworkWallet() {
   const webviewRef = useRef<WebView>(null);
 
   const onMessage = (event: WebViewMessageEvent) => {
-    const { data } = event.nativeEvent;
+    const {data} = event.nativeEvent;
     console.log('Received message from WebView:', data);
 
     // Handle messages sent from the WebView, e.g., invoice payment status
@@ -173,7 +166,7 @@ function LightningNetworkWallet() {
   // }
 
   const handleRequest = async () => {
-    let modal = launchModal();
+    const modal = launchModal();
     const provider = await requestProvider();
     // let send_payment = await provider.sendPayment('lnbc...');
     return;
@@ -181,7 +174,6 @@ function LightningNetworkWallet() {
 
   return (
     <ScrollView>
-
       {/* <View>
         {
           Platform.OS == "web" ?
@@ -200,21 +192,20 @@ function LightningNetworkWallet() {
         }
       </View> */}
 
-      <ScrollView style={{ marginVertical: 5 }}>
-        {
-          Platform.OS == 'web' ? (
-            <>
-              <iframe src={nwcAuthUrl} height="350" width="100%"
-              />
+      <ScrollView style={{marginVertical: 5}}>
+        {Platform.OS == 'web' ? (
+          <>
+            <iframe src={nwcAuthUrl} height="350" width="100%" />
 
-              <a href={nwcAuthUrl} target='_blank'>Go to</a>
-            </>
-
-          ) : (
-            <WebView
-              source={{ uri: nwcAuthUrl }}
-              javaScriptEnabled={true}
-              injectedJavaScriptBeforeContentLoaded={`
+            <a href={nwcAuthUrl} target="_blank" rel="noreferrer">
+              Go to
+            </a>
+          </>
+        ) : (
+          <WebView
+            source={{uri: nwcAuthUrl}}
+            javaScriptEnabled={true}
+            injectedJavaScriptBeforeContentLoaded={`
               // TODO: remove once NWC also posts messages to the window
               window.opener = window;
               // Listen for window messages
@@ -222,18 +213,17 @@ function LightningNetworkWallet() {
                 window.ReactNativeWebView.postMessage(event.data?.type);
               });
             `}
-              onMessage={(event) => {
-                if (event.nativeEvent.data === 'nwc:success') {
-                  setNwcAuthUrl('');
-                  setNwcUrl(pendingNwcUrl);
-                }
-              }}
-            />
-          )
-        }
+            onMessage={(event) => {
+              if (event.nativeEvent.data === 'nwc:success') {
+                setNwcAuthUrl('');
+                setNwcUrl(pendingNwcUrl);
+              }
+            }}
+          />
+        )}
       </ScrollView>
 
-      <ScrollView style={{ marginVertical: 5 }}>
+      <ScrollView style={{marginVertical: 5}}>
         <Text style={styles.text}>Paste NWC URL</Text>
         <TextInput
           onChangeText={(text) => setNwcUrl(text)}
@@ -251,8 +241,8 @@ function LightningNetworkWallet() {
       </ScrollView>
 
       <View
-        style={{ marginVertical: 5 }}
-      // style={{ margin: 5 }}
+        style={{marginVertical: 5}}
+        // style={{ margin: 5 }}
       >
         <Button onPress={handleRequest}>
           <Text>Handle</Text>
@@ -265,19 +255,18 @@ function LightningNetworkWallet() {
           <Text style={styles.text}>Pay an invoice</Text>
           <Text style={styles.text}>{paymentRequest ?? 'Loading...'}</Text>
           {paymentRequest && (
-
             <View>
               <Input
-                keyboardType='numeric'
+                keyboardType="numeric"
                 value={amountSats}
                 onChangeText={setAmountSats}
-                placeholder="Amount Sats" />
+                placeholder="Amount Sats"
+              />
 
               <Button onPress={payInvoice}>
                 <Text>Pay invoice ({amountSats} sats)</Text>
               </Button>
             </View>
-
           )}
           <Text style={styles.text}>{preimage ? `PAID: ${preimage}` : 'Not paid yet'}</Text>
         </>

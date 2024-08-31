@@ -1,7 +1,7 @@
 import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet(
-  (theme, error: boolean, left: boolean, right: boolean, paddingRight: boolean = true) => ({
+  (theme, error: boolean, left: boolean, right: boolean, paddingRight = true) => ({
     container: {
       width: '100%',
     },

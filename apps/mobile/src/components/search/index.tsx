@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import useSearch from 'afk_nostr_sdk/src/hooks/search/useSearch'; // Import useSearch
+// Import useSearch
 import React, {useEffect, useState} from 'react';
 import {Pressable, Text, TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
@@ -14,9 +14,8 @@ interface ISearchComponent {
   kinds?: NDKKind[];
   setKinds?: (kinds: NDKKind[]) => void;
   contactList?: string[];
-  setSortBy?: (sort:string) => void;
-  sortBy?:string;
-
+  setSortBy?: (sort: string) => void;
+  sortBy?: string;
 }
 
 const SearchComponent: React.FC<ISearchComponent> = ({
@@ -26,16 +25,16 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   setKinds = () => {},
   contactList,
   sortBy,
-  setSortBy
+  setSortBy,
 }) => {
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
-  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? "trending");
+  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'trending');
 
   const handleSortChange = (sortBy: string) => {
     setActiveSortBy(sortBy);
-    setSortBy
+    setSortBy;
   };
 
   useEffect(() => {

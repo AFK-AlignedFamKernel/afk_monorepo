@@ -11,6 +11,9 @@ export {Modal} from './Modal';
 export {Modalize} from './Modalize';
 export {Picker} from './Picker';
 export {PickerContainer} from './PickerContainer';
+export {Chat} from './PrivateMessages/Chat';
+export {Conversation} from './PrivateMessages/Conversation';
+export {FormPrivateMessage} from './PrivateMessages/FormPrivateMessage';
 export {InputAccessoryView} from './Skeleton/InputAccessoryView';
 export {KeyboardFixedView} from './Skeleton/KeyboardFixedView';
 export {RootScreenContainer} from './Skeleton/RootScreenContainer';
@@ -18,6 +21,3 @@ export {SquareInput} from './SquareInput';
 export {Text} from './Text';
 export {TextButton} from './TextButton';
 export {Toast} from './Toast';
-export {Conversation} from './PrivateMessages/Conversation'
-export {Chat} from './PrivateMessages/Chat'
-export {FormPrivateMessage} from './PrivateMessages/FormPrivateMessage'

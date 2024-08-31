@@ -2,10 +2,10 @@ import {Image, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {useStyles, useTheme} from '../../hooks';
+import {Spacing} from '../../styles';
+import {Divider} from '../Divider';
 import {Text} from '../Text';
 import stylesheet from './styles';
-import {Divider} from '../Divider';
-import {Spacing} from '../../styles';
 
 export type HeaderProps = {
   showLogo?: boolean;
