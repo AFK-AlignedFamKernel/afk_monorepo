@@ -33,29 +33,23 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
 
   // Extract all bookmarked note IDs
   const bookmarkedNoteIds = useMemo(() => {
-    if (!bookmarksWithNotes) return new Set<string>();
+    if (!bookmarksWithNotes.data) return new Set<string>();
 
     const ids = new Set<string>();
-    bookmarksWithNotes.forEach((bookmark) => {
+    bookmarksWithNotes.data.forEach((bookmark) => {
       bookmark.notes.forEach((note) => {
         ids.add(note?.id || '');
       });
     });
     return ids;
-  }, [bookmarksWithNotes]);
+  }, [bookmarksWithNotes.data]);
 
   // Function to check if a note is bookmarked
   const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
 
-  // const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
-  //   ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
-  //   : search.data?.pages.flat();
-
-  // console.log("getData", getData)
-
-  const getData = search.data?.pages.flat();
-
-  console.log('getData', getData);
+  const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+    ? bookmarksWithNotes?.data?.map((bookmark) => bookmark.notes)?.flat() || []
+    : search.data?.pages.flat();
 
   return (
     <View style={styles.container}>
@@ -101,13 +95,10 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
           return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />;
         }}
         refreshControl={
-          <RefreshControl refreshing={search.isFetching} onRefresh={() => search.refetch()} />
+          <RefreshControl refreshing={search.isFetching || bookmarksWithNotes.isFetching} onRefresh={() => {search.refetch(); bookmarksWithNotes.refetch()}} />
         }
       />
-
-      {search?.isPending && <ActivityIndicator></ActivityIndicator>}
-
-      {search?.isLoading && <ActivityIndicator />}
+      {(search?.isPending || bookmarksWithNotes?.isPending || search?.isLoading || bookmarksWithNotes?.isLoading) && <ActivityIndicator />}
     </View>
   );
 };

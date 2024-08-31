@@ -417,7 +417,7 @@ export const BookmarkIcon: React.FC<SvgProps> = (props) => (
     <Path
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
+      strokeWidth="2"
       d="M4 2C2.343 2 1 3.343 1 5v15l7-4 7 4V5c0-1.657-1.343-3-3-3H4z"
     />
   </Svg>

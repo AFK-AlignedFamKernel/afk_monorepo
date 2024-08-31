@@ -158,6 +158,9 @@ export const Post: React.FC<PostProps> = ({
         await bookmarkNote({event});
         showToast({title: 'Post bookmarked successfully', type: 'success'});
       }
+      // Invalidate the queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['search', { authors: [event.pubkey] }] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarksWithNotes', event.pubkey] });
     } catch (error) {
       console.error('Bookmark error:', error);
       showToast({title: 'Failed to bookmark', type: 'error'});
