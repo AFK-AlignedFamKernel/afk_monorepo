@@ -11,9 +11,14 @@ export const useDeleteEvent = () => {
   const {ndk} = useNostrContext();
   const {publicKey: pubkey} = useAuth();
   return useMutation({
-    mutationKey: ['deleteEventGroup', ndk],
-    mutationFn: async (data: {id: string; groupId: string}) => {
-      const hasPermission = checkGroupPermission({
+    mutationKey: ['deleteEventGroup'],
+    mutationFn: async (data: {
+      id: string;
+      groupId: string;
+      permissionData?: AdminGroupPermission[];
+    }) => {
+      const event = new NDKEvent(ndk);
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey,
@@ -23,7 +28,6 @@ export const useDeleteEvent = () => {
       if (!hasPermission) {
         throw new Error('You do not have permission to delete this event');
       }
-      const event = new NDKEvent(ndk);
       event.kind = 9005; //NDKKind.GroupAdminDeleteEvent;
       event.tags = [
         ['d', data.groupId],

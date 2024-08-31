@@ -1,4 +1,4 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
@@ -18,10 +18,9 @@ interface UseGetGroupListOptions {
 
 export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
 
   return useInfiniteQuery({
-    queryKey: ['getAllGroupMember', publicKey, options.search, options.groupId],
+    queryKey: ['getAllGroupMember', options.search, options.groupId],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
@@ -32,7 +31,6 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminAddUser, NDKKind.GroupAdminRemoveUser],
-        authors: [publicKey],
         '#d': [options.groupId],
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,
@@ -69,10 +67,9 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
 
 export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
-
+  const memberListQuery = useGetGroupMemberList(options);
   return useInfiniteQuery({
-    queryKey: ['getGroupRequest', publicKey, options.search, options.groupId],
+    queryKey: ['getGroupRequest', options.search, options.groupId],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
@@ -82,21 +79,43 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
     },
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
-        kinds: [9021],
-        authors: [publicKey],
+        kinds: [NDKKind.GroupAdminRequestJoin],
         '#h': [options.groupId],
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,
-        search: options?.search,
+      });
+      // Wait for the member list to be available
+      await memberListQuery.refetch();
+
+      const memberPubkeys = new Set(
+        memberListQuery.data?.pages
+          .flatMap((page) => page.map((member) => member.tags.find((tag) => tag[0] === 'p')?.[1]))
+          .filter(Boolean),
+      );
+
+      // Use a Map to keep track of the latest request from each user
+      const latestRequests = new Map<string, NDKEvent>();
+
+      [...events].forEach((event) => {
+        const requestPubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
+        if (requestPubkey && !memberPubkeys.has(requestPubkey)) {
+          const existingRequest = latestRequests.get(requestPubkey);
+          if (!existingRequest || event.created_at > existingRequest.created_at) {
+            latestRequests.set(requestPubkey, event);
+          }
+        }
       });
 
-      return [...events];
+      // Convert the Map values to an array and sort by creation time (newest first)
+      const uniqueFilteredEvents = Array.from(latestRequests.values()).sort(
+        (a, b) => b.created_at - a.created_at,
+      );
+
+      return uniqueFilteredEvents;
     },
     placeholderData: {pages: [], pageParams: []},
   });
 };
-
-
 
 export const useGetGroupMemberListPubkey = (options: UseGetGroupListOptions) => {
   const {ndk} = useNostrContext();
