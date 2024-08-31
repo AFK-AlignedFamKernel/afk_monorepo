@@ -2,26 +2,16 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
-import {checkGroupPermission} from './useGetPermission';
 
 // TODO
 export const useDeleteGroup = () => {
   const {ndk} = useNostrContext();
-  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
     mutationKey: ['deleteGroup', ndk],
-    mutationFn: async (data: {groupId: string}) => {
-      const hasPermission = await checkGroupPermission({
-        groupId: data.groupId,
-        ndk,
-        pubkey,
-        action: AdminGroupPermission.DeleteGroup,
-      });
-
-      if (!hasPermission) {
+    mutationFn: async (data: {groupId: string; permissionData: AdminGroupPermission[]}) => {
+      if (data.permissionData && !data.permissionData.includes(AdminGroupPermission.DeleteGroup)) {
         throw new Error('You do not have permission to delete group');
       } else {
         const event = new NDKEvent(ndk);

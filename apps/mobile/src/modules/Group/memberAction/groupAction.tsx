@@ -34,7 +34,7 @@ const GroupAdminActions = ({
   handleClose: () => void;
   groupId: string;
 }) => {
-  const {data: permissionData, isPending: permissionLoading} = useGetGroupPermission(groupId);
+  const {data: permissionData} = useGetGroupPermission(groupId);
   const {mutate: removeMember} = useRemoveMember();
   const {mutate: addPermissions} = useAddPermissions();
   const queryClient = useQueryClient();
@@ -98,6 +98,7 @@ const GroupAdminActions = ({
       {
         groupId,
         pubkey: memberPubKey,
+        permissionData: permissionData as any,
       },
       {
         onSuccess: () => {

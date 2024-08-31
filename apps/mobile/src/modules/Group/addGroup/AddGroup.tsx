@@ -5,8 +5,10 @@ import {
   useAddPermissions,
   useAuth,
   useCreateGroup,
+  useGetGroupPermission,
 } from 'afk_nostr_sdk';
 import {Formik} from 'formik';
+import {useState} from 'react';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -18,6 +20,9 @@ import stylesheet from './styles';
 
 export const CreateGroup: React.FC = () => {
   const styles = useStyles(stylesheet);
+  const [groupId, setGroupId] = useState();
+  const {data: permissionData} = useGetGroupPermission(groupId as any);
+
   const {publicKey: pubkey} = useAuth();
   const {showToast} = useToast();
   const queryClient = useQueryClient();
@@ -42,6 +47,7 @@ export const CreateGroup: React.FC = () => {
             },
             {
               onSuccess(data) {
+                setGroupId(groupId);
                 // After Group Creation, first add permissions for the admin
                 addPermission(
                   {
@@ -66,12 +72,16 @@ export const CreateGroup: React.FC = () => {
                         {
                           groupId: data.id,
                           pubkey,
+                          permissionData: permissionData as any,
                         },
                         {
                           onSuccess() {
                             showToast({type: 'success', title: 'Group Created successfully'});
                             queryClient.invalidateQueries({
                               queryKey: ['getAllGroups'],
+                            });
+                            queryClient.invalidateQueries({
+                              queryKey: ['getAllGroupMember'],
                             });
                             queryClient.invalidateQueries({
                               queryKey: ['getPermissionsByUserConnected', data.id],

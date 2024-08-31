@@ -77,6 +77,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
         pubkey: publicKey,
         name: profile.data?.nip05,
         replyId: replyToId ?? (null as any),
+        permissionData: permissionData as any,
       },
       {
         onSuccess() {
@@ -103,13 +104,13 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
     );
   }
 
-  if (permissionLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator />
-      </SafeAreaView>
-    );
-  }
+  // if (permissionLoading) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <ActivityIndicator />
+  //     </SafeAreaView>
+  //   );
+  // }
 
   if (
     !permissionData?.includes(AdminGroupPermission.ViewAccess) &&

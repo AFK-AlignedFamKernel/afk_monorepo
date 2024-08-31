@@ -2,14 +2,11 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
-import {checkGroupPermission} from './useGetPermission';
 
 // TODO
 export const useSendGroupMessages = () => {
   const {ndk} = useNostrContext();
-  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
     mutationKey: ['sendGroupMessage', ndk],
@@ -19,15 +16,9 @@ export const useSendGroupMessages = () => {
       groupId: string;
       name?: string;
       replyId: string;
+      permissionData: AdminGroupPermission[];
     }) => {
-      const hasPermission = await checkGroupPermission({
-        groupId: data.groupId,
-        ndk,
-        pubkey,
-        action: AdminGroupPermission.ViewAccess,
-      });
-
-      if (!hasPermission) {
+      if (data.permissionData && !data.permissionData.includes(AdminGroupPermission.ViewAccess)) {
         throw new Error('You do not have permission to send message');
       } else {
         const event = new NDKEvent(ndk);

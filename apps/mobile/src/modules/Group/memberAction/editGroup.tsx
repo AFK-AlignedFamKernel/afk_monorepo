@@ -1,6 +1,6 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
-import {useGroupEditMetadata} from 'afk_nostr_sdk';
+import {useGetGroupPermission, useGroupEditMetadata} from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ export const EditGroup = ({
   const {showToast} = useToast();
   const queryClient = useQueryClient();
   const {mutate} = useGroupEditMetadata();
+  const {data: permissionData} = useGetGroupPermission(groupId);
 
   const initialValues = {
     name: '',
@@ -37,6 +38,7 @@ export const EditGroup = ({
           mutate(
             {
               groupId,
+              permissionData: permissionData as any,
               meta: {
                 name: values.name,
                 about: values.about,

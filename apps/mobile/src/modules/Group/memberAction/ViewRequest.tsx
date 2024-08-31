@@ -4,6 +4,7 @@ import {
   useAddMember,
   useAddPermissions,
   useGetGroupMemberList,
+  useGetGroupPermission,
   useGetGroupRequest,
 } from 'afk_nostr_sdk';
 import React, {useRef, useState} from 'react';
@@ -20,12 +21,12 @@ const GroupChatGroupRequest: React.FC<GroupChatMemberRequestScreenProps> = ({
   navigation,
   route,
 }) => {
-  const theme = useTheme();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<any>();
   const {showToast} = useToast();
   const {mutate} = useAddMember();
   const {mutate: addPermission} = useAddPermissions();
+  const {data: permissionData} = useGetGroupPermission(route.params.groupId as any);
   const viewGroupRequest = useGetGroupRequest({
     groupId: route.params.groupId,
   });
@@ -67,6 +68,7 @@ const GroupChatGroupRequest: React.FC<GroupChatMemberRequestScreenProps> = ({
                   {
                     pubkey: selected?.tags.find((tag: any) => tag[0] === 'p')?.[1],
                     groupId: route.params.groupId,
+                    permissionData: permissionData as any,
                   },
                   {
                     onSuccess() {

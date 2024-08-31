@@ -4,6 +4,7 @@ import {
   useAddMember,
   useAddPermissions,
   useGetGroupMemberList,
+  useGetGroupPermission,
 } from 'afk_nostr_sdk';
 import {Formik} from 'formik';
 import {Text, View} from 'react-native';
@@ -25,6 +26,7 @@ export default function AddMemberView({
   });
   const {mutate: addMember} = useAddMember();
   const {mutate: addPermission} = useAddPermissions();
+  const {data: permissionData} = useGetGroupPermission(groupId as any);
   const queryClient = useQueryClient();
   const {showToast} = useToast();
   const styles = useStyles(stylesheet);
@@ -58,6 +60,7 @@ export default function AddMemberView({
               {
                 pubkey: values.pubKey,
                 groupId,
+                permissionData: permissionData as any,
               },
               {
                 onSuccess() {

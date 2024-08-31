@@ -25,7 +25,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
   const {publicKey: pubKey} = useAuth();
   const queryClient = useQueryClient();
   const {showToast} = useToast();
-
+  const {data: permissionData} = useGetGroupPermission(route.params.groupId);
   const {data: groupMetaData} = useGetGroupMetadata({groupId: route.params.groupId, pubKey});
   const memberListData = useGetGroupMemberList({
     groupId: route.params.groupId,
@@ -99,6 +99,7 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
               mutate(
                 {
                   groupId: route.params.groupId,
+                  permissionData: permissionData as any,
                 },
                 {
                   onSuccess: () => {

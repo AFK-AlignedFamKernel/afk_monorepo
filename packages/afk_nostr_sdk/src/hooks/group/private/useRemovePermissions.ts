@@ -4,7 +4,6 @@ import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
-import {checkGroupPermission} from './useGetPermission';
 
 // TODO
 export const useRemovePermissions = () => {
@@ -15,17 +14,14 @@ export const useRemovePermissions = () => {
     mutationKey: ['removePermissions', ndk],
     mutationFn: async (data: {
       pubkey: string;
+      permissionData: AdminGroupPermission[];
       permissionName: AdminGroupPermission[];
       groupId: string;
     }) => {
-      const hasPermission = await checkGroupPermission({
-        groupId: data.groupId,
-        ndk,
-        pubkey,
-        action: AdminGroupPermission.DeleteGroup,
-      });
-
-      if (!hasPermission) {
+      if (
+        data.permissionData &&
+        !data.permissionData.includes(AdminGroupPermission.RemovePermission)
+      ) {
         throw new Error('You do not have access to remove permission');
       } else {
         const event = new NDKEvent(ndk);

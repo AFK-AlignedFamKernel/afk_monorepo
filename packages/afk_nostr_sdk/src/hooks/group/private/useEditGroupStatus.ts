@@ -2,9 +2,7 @@ import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
-import {useAuth} from '../../../store';
 import {AdminGroupPermission} from './useAddPermissions';
-import {checkGroupPermission} from './useGetPermission';
 import {objectToTagArray} from './util';
 
 type GroupStatus = {
@@ -15,19 +13,18 @@ type GroupStatus = {
 // TODO
 export const useGroupEditStatus = () => {
   const {ndk} = useNostrContext();
-  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
     mutationKey: ['editGroupStatus', ndk],
-    mutationFn: async (data: {groupId: string; status: GroupStatus}) => {
-      const hasPermission = await checkGroupPermission({
-        groupId: data.groupId,
-        ndk,
-        pubkey,
-        action: AdminGroupPermission.EditGroupStatus,
-      });
-
-      if (!hasPermission) {
+    mutationFn: async (data: {
+      groupId: string;
+      status: GroupStatus;
+      permissionData: AdminGroupPermission[];
+    }) => {
+      if (
+        data.permissionData &&
+        !data.permissionData.includes(AdminGroupPermission.EditGroupStatus)
+      ) {
         throw new Error('You do not have permission to edit status');
       } else {
         const event = new NDKEvent(ndk);
