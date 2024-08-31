@@ -163,7 +163,6 @@ pub trait IArtPeace<TContractState> {
 }
 
 
-
 #[derive(Drop, starknet::Event)]
 pub struct ColorAdded {
     #[key]

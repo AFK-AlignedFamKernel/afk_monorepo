@@ -4,38 +4,19 @@ pub mod ArtPeace {
         IArtPeaceNFTMinter, NFTMetadata, NFTMintParams, ICanvasNFTAdditionalDispatcher,
         ICanvasNFTAdditionalDispatcherTrait
     };
-    use afk::interfaces::quests::{IQuestDispatcher, IQuestDispatcherTrait};
-    use afk::templates::template::TemplateStoreComponent;
+    use afk::interfaces::pixel::{
+        IArtPeace, Pixel, Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay, CanvasScaled,
+        PixelPlaced, BasicPixelPlaced, FactionPixelsPlaced, ChainFactionPixelsPlaced,
+        ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
+        FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
+        ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
+        ChainFactionTemplateRemoved, InitParams,
+    };
     use afk::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
     };
-    use afk::interfaces::pixel::{IArtPeace, Pixel, Faction, ChainFaction, MemberMetadata,
-        ColorAdded,
-        NewDay,
-        CanvasScaled,
-        PixelPlaced,
-        BasicPixelPlaced,
-        FactionPixelsPlaced,
-        ChainFactionPixelsPlaced,
-        ExtraPixelsPlaced,
-        DailyQuestClaimed,
-        MainQuestClaimed,
-        VoteColor,
-        VotableColorAdded,
-        FactionCreated,
-        FactionLeaderChanged,
-        ChainFactionCreated,
-        FactionJoined,
-        FactionLeft,
-        ChainFactionJoined,
-        FactionTemplateAdded,
-        FactionTemplateRemoved,
-        ChainFactionTemplateAdded,
-        ChainFactionTemplateRemoved,
-        InitParams,
-
-    
-    };
+    use afk::interfaces::quests::{IQuestDispatcher, IQuestDispatcherTrait};
+    use afk::templates::template::TemplateStoreComponent;
     use core::dict::Felt252DictTrait;
     use core::hash::{HashStateTrait, HashStateExTrait};
     use core::poseidon::PoseidonTrait;

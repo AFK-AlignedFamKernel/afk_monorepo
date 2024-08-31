@@ -1,8 +1,6 @@
 #[starknet::contract]
 pub mod AuthorityQuest {
-    use afk::interfaces::pixel_template::{
-        ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait
-    };
+    use afk::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
     use afk::interfaces::quests::{IAuthorityQuest, IQuest};
 
     use starknet::{ContractAddress, get_caller_address};

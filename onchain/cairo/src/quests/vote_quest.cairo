@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod VoteQuest {
-    use afk::interfaces::quests::{IQuest};
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk::interfaces::quests::{IQuest};
     use starknet::{ContractAddress, get_caller_address};
 
     #[storage]

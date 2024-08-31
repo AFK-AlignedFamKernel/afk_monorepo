@@ -6,30 +6,30 @@ pub mod sha256;
 pub mod social;
 pub mod utils;
 pub mod quests {
-    pub mod tap;
     pub mod authority_quest;
-    pub mod pixel_quest;
+    pub mod chain_faction_quest;
+    pub mod faction_quest;
     pub mod hodl_quest;
-    pub mod vote_quest;
+    pub mod nft_quest;
+    pub mod pixel_quest;
+    pub mod rainbow_quest;
+    pub mod tap;
+    pub mod template_quest;
     pub mod unruggable_quest;
     pub mod username_quest;
-    pub mod rainbow_quest;
-    pub mod template_quest;
-    pub mod nft_quest;
-    pub mod faction_quest;
-    pub mod chain_faction_quest;
+    pub mod vote_quest;
 }
 
 pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod jediswap;
-    pub mod vault;
+    pub mod nfts;
     pub mod pixel;
     pub mod pixel_template;
     pub mod quests;
-    pub mod nfts;
     pub mod username_store;
+    pub mod vault;
 }
 
 pub mod afk_id {
@@ -64,8 +64,8 @@ pub mod tokens {
 
 // TODO upgrade to correct OZ version
 pub mod nfts {
-    pub mod component;
     pub mod canvas_nft;
+    pub mod component;
 }
 
 
@@ -74,7 +74,7 @@ pub mod templates {
 }
 pub mod pixel {
     pub mod art_peace;
-    // pub mod templates;
+// pub mod templates;
 // use art_peace::ArtPeace;
 
 }
