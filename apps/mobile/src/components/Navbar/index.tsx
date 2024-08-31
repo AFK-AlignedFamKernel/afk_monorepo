@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 
-import { useStyles, useWindowDimensions } from '../../hooks';
-import { Icon } from '../Icon';
+import {useStyles, useWindowDimensions} from '../../hooks';
+import {Icon} from '../Icon';
 import stylesheet from './styles';
 interface CustomHeaderInterface {
   title?: string;
   navigation?: any;
   showLogo?: boolean;
 }
-export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) => {
+export const Navbar = ({title, navigation, showLogo}: CustomHeaderInterface) => {
   const styles = useStyles(stylesheet);
   const dimensions = useWindowDimensions();
   const isDesktop = React.useMemo(() => {
@@ -27,18 +27,17 @@ export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) =
       )}
       <Text style={styles.headerTitle}>{title}</Text>
 
-      {!isDesktop &&
+      {!isDesktop && (
         <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>
           <Icon name="MenuIcon" size={25} />
         </TouchableOpacity>
-      }
+      )}
 
       {/* {isDesktop &&
         <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>
           <Icon name="MenuIcon" size={25} />
         </TouchableOpacity>
       } */}
-
     </View>
   );
 };

@@ -34,7 +34,7 @@ export default function AllGroupListComponent() {
   return (
     <SafeAreaView style={styles.groupContainers}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Groups</Text>
+        <Text style={styles.headerTitle}>All Groups</Text>
       </View>
 
       {isPending ? (

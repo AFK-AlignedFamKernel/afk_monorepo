@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 
 import {useStyles} from '../../hooks';
+import {SORT_OPTION_EVENT_NOSTR} from '../../types/nostr';
 import stylesheet from './styles';
-import { SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
 
 interface IFilterMenuProps {
   visible: boolean;
@@ -30,7 +30,6 @@ const NDK_KIND_OPTIONS = [
   {label: 'Channel Message', value: NDKKind.ChannelMessage},
   {label: 'Metadata', value: NDKKind.Metadata},
 ];
-
 
 // const SORT_OPTIONS = [
 //   {label: 'Time', value: 'time'},
@@ -78,7 +77,10 @@ const FilterMenu: React.FC<IFilterMenuProps> = ({
               {SORT_OPTIONS.map((option) => (
                 <Pressable
                   key={option.value}
-                  style={[styles.button, activeSortBy === option.value.toString() && styles.activeButton]}
+                  style={[
+                    styles.button,
+                    activeSortBy === option.value.toString() && styles.activeButton,
+                  ]}
                   onPress={() => onSortChange(option.value.toString())}
                 >
                   <Text style={styles.buttonText}>{option.label}</Text>

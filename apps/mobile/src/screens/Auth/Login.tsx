@@ -169,12 +169,14 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
       <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
 
       <View
-        style={{
-          // display: 'flex',
-          // flex: 1,
-          // flexDirection: 'row',
-          // rowGap: 3,
-        }}
+        style={
+          {
+            // display: 'flex',
+            // flex: 1,
+            // flexDirection: 'row',
+            // rowGap: 3,
+          }
+        }
       >
         <TextButton onPress={handleImportAccount}>Import Account</TextButton>
         <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>

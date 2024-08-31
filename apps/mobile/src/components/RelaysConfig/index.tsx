@@ -115,8 +115,10 @@ export const RelaysConfig: React.FC = () => {
                           fontSize: 12,
                         }}
                         onPress={() => removeRelay(r)}
-                        children="Remove"
-                      />
+                        // children="Remove"
+                      >
+                        <Text>Remove</Text>
+                      </Button>
                     </View>
                   </pre>
                 );
@@ -138,8 +140,10 @@ export const RelaysConfig: React.FC = () => {
                     fontSize: 12,
                   }}
                   onPress={() => addRelay(relayToAdd)}
-                  children="+"
-                />
+                  // children="+"
+                >
+                  +
+                </Button>
               }
               paddingRight={false}
               value={relayToAdd}

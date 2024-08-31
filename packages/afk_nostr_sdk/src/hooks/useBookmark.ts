@@ -164,10 +164,13 @@ export const useBookmark = (userPublicKey: string) => {
       // Remove the specific event
       bookmarkEvent.tags = bookmarkEvent.tags.filter(tag => !(tag[0] === 'e' && tag[1] === eventId));
 
-      if (bookmarkEvent.tags.length > 0) {
-        await bookmarkEvent.sign();
-        await bookmarkEvent.publish();
-      }
+
+      await bookmarkEvent.sign();
+      await bookmarkEvent.publish();
+      // if (bookmarkEvent.tags.length > 0) {
+      //   await bookmarkEvent.sign();
+      //   await bookmarkEvent.publish();
+      // }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks', userPublicKey] });

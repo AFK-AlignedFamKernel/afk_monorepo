@@ -1,10 +1,17 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
-import {useProfile, useReact, useReactions, useReplyNotes, useRepost, useBookmark} from 'afk_nostr_sdk';
+import {
+  useBookmark,
+  useProfile,
+  useReact,
+  useReactions,
+  useReplyNotes,
+  useRepost,
+} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {ActivityIndicator, Image, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
@@ -27,13 +34,19 @@ import stylesheet from './styles';
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;
-  repostedEventProps?:string;
-  isRepost?:boolean;
-  isBookmarked?:boolean;
+  repostedEventProps?: string;
+  isRepost?: boolean;
+  isBookmarked?: boolean;
 };
 
-export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps, isRepost, isBookmarked = false}) => {
-  const repostedEvent = repostedEventProps  ?? undefined;
+export const Post: React.FC<PostProps> = ({
+  asComment,
+  event,
+  repostedEventProps,
+  isRepost,
+  isBookmarked = false,
+}) => {
+  const repostedEvent = repostedEventProps ?? undefined;
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -50,8 +63,8 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
   const comments = useReplyNotes({noteId: event?.id});
   const react = useReact();
   const queryClient = useQueryClient();
-  const repostMutation = useRepost({ event });
-  const { bookmarkNote, removeBookmark } = useBookmark(publicKey);  
+  const repostMutation = useRepost({event});
+  const {bookmarkNote, removeBookmark} = useBookmark(publicKey);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -139,15 +152,15 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
     if (!event) return;
     try {
       if (isBookmarked) {
-        await removeBookmark({ eventId: event.id });
-        showToast({ title: 'Post removed from bookmarks', type: 'success' });
+        await removeBookmark({eventId: event.id});
+        showToast({title: 'Post removed from bookmarks', type: 'success'});
       } else {
-        await bookmarkNote({ event });
-        showToast({ title: 'Post bookmarked successfully', type: 'success' });
+        await bookmarkNote({event});
+        showToast({title: 'Post bookmarked successfully', type: 'success'});
       }
     } catch (error) {
       console.error('Bookmark error:', error);
-      showToast({ title: 'Failed to bookmark', type: 'error' });
+      showToast({title: 'Failed to bookmark', type: 'error'});
     }
   };
 
@@ -156,12 +169,14 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
 
   return (
     <View style={styles.container}>
-      {repostedEvent || event?.kind == NDKKind.Repost || isRepost && (
-        <View style={styles.repost}>
-          <RepostIcon color={theme.colors.textLight} height={18} />
-          <Text color="textLight">Reposted</Text>
-        </View>
-      )}
+      {repostedEvent ||
+        event?.kind == NDKKind.Repost ||
+        (isRepost && (
+          <View style={styles.repost}>
+            <RepostIcon color={theme.colors.textLight} height={18} />
+            <Text color="textLight">Reposted</Text>
+          </View>
+        ))}
 
       <View style={styles.info}>
         <View style={styles.infoUser}>
@@ -298,14 +313,12 @@ export const Post: React.FC<PostProps> = ({asComment, event, repostedEventProps,
               {repostMutation.isPending && <ActivityIndicator size="small" />}
             </Pressable>
 
-            <Pressable
-              style={{marginHorizontal: 3}}
-              onPress={handleBookmark}
-            >
+            <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
               <Icon
-                name={isBookmarked ? "BookmarkFillIcon" : "BookmarkIcon"}
+                name={isBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
                 size={20}
-                title={isBookmarked ? "Bookmarked" : "Bookmark"} />
+                title={isBookmarked ? 'Bookmarked' : 'Bookmark'}
+              />
             </Pressable>
           </View>
 

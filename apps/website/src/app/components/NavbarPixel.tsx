@@ -5,7 +5,6 @@ import React, {useState} from 'react';
 import {createPortal} from 'react-dom';
 
 import {MobileNavBar} from './MobileNavBar';
-import {NavigationLinks} from './NavigationLinks';
 
 export function NavbarPixel() {
   const [toggleNav, setToggleNav] = useState(false);

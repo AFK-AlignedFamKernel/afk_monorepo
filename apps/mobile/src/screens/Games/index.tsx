@@ -5,13 +5,13 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {TextButton} from '../../components';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
+import {PixelPeace} from '../../modules/PixelPeace';
 import {GameSreenProps} from '../../types';
 import {SelectedTab, TABS_MENU} from '../../types/tab';
 import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
 import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
 import stylesheet from './styles';
-import { PixelPeace } from '../../modules/PixelPeace';
 
 export const Games: React.FC<GameSreenProps> = ({navigation}) => {
   const theme = useTheme();
@@ -41,8 +41,7 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
         ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
           <ScrollView>
-
-          {selectedTab == SelectedTab.PIXEL_PEACE && (
+            {selectedTab == SelectedTab.PIXEL_PEACE && (
               <>
                 <PixelPeace></PixelPeace>
               </>

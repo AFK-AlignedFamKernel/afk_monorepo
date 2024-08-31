@@ -10,6 +10,7 @@ import {Icon} from '../components';
 import {Navbar} from '../components/Navbar';
 import {useStyles, useTheme} from '../hooks';
 import GroupChatDetail from '../modules/Group/groupDetail/GroupChatDetail';
+import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import DegensSidebar from '../modules/Layout/degens-sidebar';
@@ -45,7 +46,6 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();

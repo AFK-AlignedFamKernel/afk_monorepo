@@ -1,36 +1,43 @@
-import { useBookmark, useReposts, useRootNotes, useSearch } from 'afk_nostr_sdk';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useBookmark, useSearch} from 'afk_nostr_sdk';
+import {useMemo, useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 
-import { useStyles } from '../../hooks';
-import { PostCard } from '../../modules/PostCard';
-import { ProfileScreenProps } from '../../types';
-import { ProfileInfo } from './Info';
+import {Text} from '../../components';
+import {useStyles} from '../../hooks';
+import {PostCard} from '../../modules/PostCard';
+import {ProfileScreenProps} from '../../types';
+import {ProfileInfo} from './Info';
 import stylesheet from './styles';
-import { useMemo, useState } from 'react';
-import { NDKKind } from '@nostr-dev-kit/ndk';
-import { Text } from '../../components';
 
-export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
-  const { publicKey } = route.params ?? {};
+export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
+  const {publicKey} = route.params ?? {};
   const styles = useStyles(stylesheet);
   const [ndkKinds, setNdkKind] = useState<NDKKind[]>([NDKKind.Text]);
 
   const kindFilter = useMemo(() => {
-    return ndkKinds
-  }, [ndkKinds])
+    return ndkKinds;
+  }, [ndkKinds]);
 
-  const notesSearch = useRootNotes({ authors: [publicKey] });
-  const search = useSearch({ authors: [publicKey], kinds: kindFilter });
-  const reposts = useReposts({ authors: [publicKey] });
-  const { bookmarksWithNotes } = useBookmark(publicKey);
+  // const notesSearch = useRootNotes({ authors: [publicKey] });
+  const search = useSearch({authors: [publicKey], kinds: kindFilter});
+  // const reposts = useReposts({ authors: [publicKey] });
+  const {bookmarksWithNotes} = useBookmark(publicKey);
 
   // Extract all bookmarked note IDs
   const bookmarkedNoteIds = useMemo(() => {
     if (!bookmarksWithNotes) return new Set<string>();
 
     const ids = new Set<string>();
-    bookmarksWithNotes.forEach(bookmark => {
-      bookmark.notes.forEach(note => {
+    bookmarksWithNotes.forEach((bookmark) => {
+      bookmark.notes.forEach((note) => {
         ids.add(note?.id || '');
       });
     });
@@ -40,13 +47,18 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   // Function to check if a note is bookmarked
   const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
 
-  const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
-    ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
-    : search.data?.pages.flat();
+  // const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+  //   ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
+  //   : search.data?.pages.flat();
+
+  // console.log("getData", getData)
+
+  const getData = search.data?.pages.flat();
+
+  console.log('getData', getData);
 
   return (
     <View style={styles.container}>
-
       <FlatList
         ListHeaderComponent={
           <>
@@ -80,17 +92,20 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
         }
         data={getData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
+        renderItem={({item}) => {
+          if (!item) return <></>;
           if (ndkKinds.includes(NDKKind.Repost)) {
             const itemReposted = JSON.parse(item?.content);
-            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />
+            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />;
           }
-          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />
+          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />;
         }}
         refreshControl={
           <RefreshControl refreshing={search.isFetching} onRefresh={() => search.refetch()} />
         }
       />
+
+      {search?.isPending && <ActivityIndicator></ActivityIndicator>}
 
       {search?.isLoading && <ActivityIndicator />}
     </View>

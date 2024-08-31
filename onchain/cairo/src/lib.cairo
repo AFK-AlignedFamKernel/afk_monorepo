@@ -7,6 +7,24 @@ pub mod social;
 pub mod utils;
 pub mod quests {
     pub mod tap;
+// TODO upgrade to correct OZ version
+// pub use interfaces::{
+//     IQuest, IAuthorityQuest, IPixelQuest, IRainbowQuest, IUnruggableQuest, IQuestDispatcher,
+//     IQuestDispatcherTrait, IUnruggableMemecoin, IUnruggableMemecoinDispatcher,
+//     IUnruggableMemecoinDispatcherTrait
+// };
+// pub mod authority_quest;
+// pub mod interfaces;
+// pub mod pixel_quest;
+// pub mod username_quest;
+// pub mod rainbow_quest;
+// pub mod template_quest;
+// pub mod unruggable_quest;
+// pub mod nft_quest;
+// pub mod hodl_quest;
+// pub mod faction_quest;
+// pub mod chain_faction_quest;
+// pub mod vote_quest;
 }
 
 pub mod interfaces {
@@ -45,6 +63,21 @@ pub mod tokens {
     pub mod erc20_mintable;
     pub mod token;
 }
+
+// TODO upgrade to correct OZ version
+pub mod nfts { // pub mod canvas_nft;
+// pub mod component;
+// pub mod interfaces;
+}
+
+
+// pub mod pixel {
+//     // pub mod art_peace;
+//     pub mod interfaces;
+
+//     // use art_peace::ArtPeace;
+
+// }
 
 #[cfg(test)]
 pub mod tests {

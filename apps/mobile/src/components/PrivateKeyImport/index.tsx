@@ -5,18 +5,14 @@ import {useState} from 'react';
 import {TouchableOpacity, View} from 'react-native';
 
 import {CopyIconStack, LockIcon} from '../../assets/icons';
+import {useWindowDimensions} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {getPublicKeyFromSecret} from '../../utils/keypair';
-import {
-  retrieveAndDecryptPrivateKey,
-  retrievePassword,
-  retrievePublicKey,
-} from '../../utils/storage';
+import {retrieveAndDecryptPrivateKey, retrievePublicKey} from '../../utils/storage';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {Text} from '../Text';
 import styles from './styles';
-import {useWindowDimensions} from '../../hooks';
 
 export const PrivateKeyImport: React.FC = () => {
   const {publicKey, isExtension, privateKey, setAuth} = useAuth();

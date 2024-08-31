@@ -320,24 +320,16 @@ mod launchpad_tests {
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
-
         //  All buy
-        let mut first_buy=10_u256;
-        run_buy_by_amount(
-            launchpad, erc20, memecoin, first_buy, token_address, sender_address,
-        );
+        let mut first_buy = 10_u256;
+        run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
 
-        run_buy_by_amount(
-            launchpad, erc20, memecoin, first_buy, token_address, sender_address,
-        );
+        run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
 
         run_buy_by_amount(
             launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY / 10, token_address, sender_address,
         );
-
-
     }
-
 
 
     #[test]
@@ -405,19 +397,16 @@ mod launchpad_tests {
         );
         // let mut total_amount_buy = amount_first_buy;
 
-        let new_amount=THRESHOLD_LIQUIDITY - amount_first_buy;
+        let new_amount = THRESHOLD_LIQUIDITY - amount_first_buy;
         // //  First sell with 10 quote token
         run_sell_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
+    // //  Threshold buy - 1
+    // run_buy_by_amount(
+    //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
+    // );
 
-        // //  Threshold buy - 1
-        // run_buy_by_amount(
-        //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
-        // );
-
-
-      
     }
 
 
@@ -518,7 +507,6 @@ mod launchpad_tests {
         run_buy_by_amount(
             launchpad, erc20, memecoin, amount_second, token_address, sender_address,
         );
-   
     }
 
 
@@ -625,7 +613,6 @@ mod launchpad_tests {
             launchpad, amount_to_buy, token_address, sender_address, true, true
         );
         println!("amount_coin_sell {:?}", amount_coin_sell);
-        assert!(amount_coin_get==amount_coin_sell, "amount incorrect");
-
+        assert!(amount_coin_get == amount_coin_sell, "amount incorrect");
     }
 }
