@@ -21,6 +21,7 @@ model token_deploy {
   total_supply     String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
+  quote_token      String?
 }
 
 model token_launch {
@@ -103,4 +104,26 @@ model unrugmeme_transfers {
   amount           String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
+}
+
+model token_transactions {
+  transfer_id      String?
+  network          String?
+  block_hash       String?
+  block_number     String?
+  block_timestamp  String?
+  memecoin_address String?
+  transaction_hash String  @id
+  time_stamp       String?
+  last_price       String?
+  current_supply   String?
+  total_supply     String?
+  coin_received    String?
+  initial_supply   String?
+  protocol_fee     String?
+  liquidity_raised String?
+  price            String?
+  amount           String?
+  transaction_type String?
+  cursor           BigInt? @map("_cursor")
 }

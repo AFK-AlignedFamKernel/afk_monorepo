@@ -27,7 +27,7 @@ pub mod ChainFactionQuest {
 
 
     #[abi(embed_v0)]
-    impl ChainFactionQuest of IQuest<ContractState> {
+    impl ChainFactionQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

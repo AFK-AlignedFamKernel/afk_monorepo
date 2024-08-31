@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod UsernameQuest {
-    use afk::interface:::username_store::{
+    use afk::interfaces::username_store::{
         IUsernameStoreDispatcher, IUsernameStoreDispatcherTrait,
     };
     use afk::interfaces::quests::{IQuest};
@@ -32,7 +32,7 @@ pub mod UsernameQuest {
     }
 
     #[abi(embed_v0)]
-    impl UsernameQuest of IQuest<ContractState> {
+    impl UsernameQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

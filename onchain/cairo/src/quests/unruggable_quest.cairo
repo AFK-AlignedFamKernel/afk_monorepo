@@ -34,7 +34,7 @@ pub mod UnruggableQuest {
     }
 
     #[abi(embed_v0)]
-    impl UnruggableQuest of IQuest<ContractState> {
+    impl UnruggableQuestImplGeneric of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }

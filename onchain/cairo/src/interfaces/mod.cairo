@@ -7,4 +7,5 @@ pub mod interfaces {
     pub mod pixel;
     pub mod pixel_template;
     pub mod nfts;
+    pub mod username_store;
 }

@@ -27,7 +27,7 @@ pub mod FactionQuest {
 
 
     #[abi(embed_v0)]
-    impl FactionQuest of IQuest<ContractState> {
+    impl FactionQuestImpl of IQuest<ContractState> {
         fn get_reward(self: @ContractState) -> u32 {
             self.reward.read()
         }
