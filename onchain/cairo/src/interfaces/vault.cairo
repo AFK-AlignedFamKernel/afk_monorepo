@@ -20,4 +20,5 @@ pub trait IERCVault<TContractState> {
     );
 
     fn get_token_ratio(ref self: TContractState, token_address: ContractAddress) -> u256;
+    fn mint_quest_token_reward(ref self: TContractState, user: ContractAddress, amount: u32);
 }
