@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+import {CairoLib} from "kakarot-lib/CairoLib.sol";
+
+using CairoLib for uint256;
+
 contract LaunchpadPumpDualVM {
     /// @dev The address of the cairo contract to call
     uint256 immutable starknetLaunchpad;
@@ -69,20 +73,57 @@ contract LaunchpadPumpDualVM {
     function getLaunchPump(uint256 tokenAddress) public {
 
         uint256[] memory tokenAddressCalldata = new uint256[](1);
-        tokenAddressCalldata[0] = uint256(uint160(from));
+        tokenAddressCalldata[0] = uint256(uint160(tokenAddress));
         uint256 tokenStarknetAddress =
-            abi.decode(kakarot.staticcallCairo("compute_starknet_address", tokenAddressCalldata), (uint256));
+            abi.decode(starknetLaunchpad.staticcallCairo("compute_starknet_address", tokenAddressCalldata), (uint256));
 
         // call launch that sent struct
         // todo how do it?
     }
 
-    function createToken() public {
+
+    /** */
+    function createToken(address recipient,
+     bytes calldata symbol,
+        bytes calldata name,
+       uint256 initialSupply,
+        bytes calldata contractAddressSalt
+    ) public {
+
+        uint256[] memory recipientAddressCalldata = new uint256[](1);
+        recipientAddressCalldata[0] = uint256(uint160(recipient));
+        uint256 recipientStarknetAddress =
+            abi.decode(starknetLaunchpad.staticcallCairo("compute_starknet_address", recipientAddressCalldata), (uint256));
+
+        uint128 amountLow = uint128(initialSupply);
+        uint128 amountHigh = uint128(initialSupply >> 128);
+
+        uint256[] memory createTokenCallData = new uint256[](6);
+        createTokenCallData[0] = recipientStarknetAddress;
+        // Decode the first 32 bytes (a uint256 is 32 bytes)
+        uint256 symbolResult = abi.decode(symbol, (uint256));
+        uint256 nameResult = abi.decode(name, (uint256));
+        uint256 contractAddressSaltResult = abi.decode(contractAddressSalt, (uint256));
+
+        createTokenCallData[1] = uint(symbolResult);
+        createTokenCallData[2] = uint(nameResult);
+        createTokenCallData[3] = uint256(amountLow);
+        createTokenCallData[4] = uint256(amountHigh);
+        createTokenCallData[5] = uint256(contractAddressSaltResult);
+
+        starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN, createTokenCallData);
 
     }
 
 
-    function createAndLaunchToken() public {
+    function createAndLaunchToken(
+        address recipient,
+         bytes calldata symbol,
+         bytes calldata name,
+        uint256 initialSupply,
+         bytes calldata contractAddressSalt
+        ) public {
+
 
     }
 

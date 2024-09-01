@@ -1,17 +1,32 @@
-import {useMutation} from '@tanstack/react-query';
-import {useNostrContext} from '../../../context/NostrContext';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import { useAuth } from '../../../store';
+import {useMutation} from '@tanstack/react-query';
 
-// TODO
+import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
+import {AdminGroupPermission} from './useAddPermissions';
+import {checkGroupPermission} from './useGetPermission';
+
 export const useAddMember = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
+  const {publicKey: pubkey} = useAuth();
 
   return useMutation({
     mutationKey: ['addMemberGroup', ndk],
-    mutationFn: async (data: {pubkey: string; groupId: string}) => {
+    mutationFn: async (data: {
+      pubkey: string;
+      groupId: string;
+      permissionData?: AdminGroupPermission[];
+    }) => {
       const event = new NDKEvent(ndk);
+      const hasPermission = await checkGroupPermission({
+        groupId: data.groupId,
+        ndk,
+        pubkey,
+        action: AdminGroupPermission.AddMember,
+      });
+      if (!hasPermission) {
+        throw new Error('You do not have permission to add a member to this group');
+      }
       event.kind = NDKKind.GroupAdminAddUser;
       event.tags = [
         ['d', data.groupId],

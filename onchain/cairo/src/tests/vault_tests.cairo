@@ -108,7 +108,7 @@ mod vault_test {
         let mut spy = spy_events(SpyOn::One(vault_dispatcher.contract_address));
         let amount = 200;
 
-        // set permited token
+        // set permitted token
         start_cheat_caller_address(vault_dispatcher.contract_address, ADMIN());
         vault_dispatcher.set_token_permitted(wbtc_dispatcher.contract_address, 2_u256, true, 1_64);
 
@@ -185,7 +185,7 @@ mod vault_test {
     }
 
     #[test]
-    #[should_panic(expected: ('Non permited token',))]
+    #[should_panic(expected: ('Non permitted token',))]
     fn test_mint_by_token_with_non_permitted_token() {
         let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
 
@@ -194,7 +194,7 @@ mod vault_test {
     }
 
     #[test]
-    #[should_panic(expected: ('Non permited token',))]
+    #[should_panic(expected: ('Non permitted token',))]
     fn test_withdraw_coin_by_token_with_non_permitted_token() {
         let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
 
@@ -217,7 +217,7 @@ mod vault_test {
     }
 
     #[test]
-    #[should_panic(expected: ('Non permited token',))]
+    #[should_panic(expected: ('Non permitted token',))]
     fn test_get_token_ratio_with_non_permitted_token() {
         let (vault_dispatcher, _, abtc_dispatcher,) = setup();
 

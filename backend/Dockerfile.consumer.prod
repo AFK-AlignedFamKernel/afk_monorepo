@@ -2,9 +2,6 @@ FROM --platform=linux/amd64 golang:1.22.2-alpine
 
 RUN apk add --no-cache bash curl git jq
 
-# Copy over the configs
-COPY ./configs/prod-backend.config.json ./backend.config.json
-
 # Copy over the app
 WORKDIR /app
 COPY ./go.mod ./go.sum ./
@@ -19,21 +16,33 @@ ARG REDIS_PORT
 ENV REDIS_HOST=${REDIS_HOST}
 ENV REDIS_PORT=${REDIS_PORT}
 
-# Argument for Postgres host, port, user, and database
+# Argument for Postgres host, port, user, password, and database
 ARG POSTGRES_HOST
 ARG POSTGRES_PORT
 ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
 ARG POSTGRES_DATABASE
 
-# Set Postgres host, port, user, and database environment variables
+# Set Postgres host, port, user, password and database environment variables
 ENV POSTGRES_HOST=${POSTGRES_HOST}
 ENV POSTGRES_PORT=${POSTGRES_PORT}
 ENV POSTGRES_USER=${POSTGRES_USER}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
+
+# Argument for Backend host, port, and consumer port
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+ARG CONSUMER_PORT
+
+# Set Backend host, port, and consumer port environment variables
+ENV BACKEND_HOST=${BACKEND_HOST}
+ENV BACKEND_PORT=${BACKEND_PORT}
+ENV CONSUMER_PORT=${CONSUMER_PORT}
 
 # Build the app & run it
 RUN go build -o consumer ./cmd/consumer/consumer.go
 
-EXPOSE 8082
+EXPOSE 8081
 
 CMD ["./consumer"]

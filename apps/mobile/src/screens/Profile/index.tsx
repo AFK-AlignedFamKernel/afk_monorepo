@@ -1,31 +1,64 @@
-import { useReposts, useRootNotes, useSearch, useSearchNotes } from 'afk_nostr_sdk';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useBookmark, useSearch} from 'afk_nostr_sdk';
+import {useMemo, useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 
-import { useStyles } from '../../hooks';
-import { PostCard } from '../../modules/PostCard';
-import { ProfileScreenProps } from '../../types';
-import { ProfileInfo } from './Info';
+import {Text} from '../../components';
+import {useStyles} from '../../hooks';
+import {PostCard} from '../../modules/PostCard';
+import {ProfileScreenProps} from '../../types';
+import {ProfileInfo} from './Info';
 import stylesheet from './styles';
-import { useMemo, useState } from 'react';
-import { NDKKind } from '@nostr-dev-kit/ndk';
-import { Button, Text } from '../../components';
 
-export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
-  const { publicKey } = route.params ?? {};
+export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
+  const {publicKey} = route.params ?? {};
   const styles = useStyles(stylesheet);
-  const [ndkKind, setNdkKind] = useState<NDKKind>(NDKKind.Text)
+  const [ndkKinds, setNdkKind] = useState<NDKKind[]>([NDKKind.Text]);
 
   const kindFilter = useMemo(() => {
-    return ndkKind
-  }, [ndkKind])
+    return ndkKinds;
+  }, [ndkKinds]);
 
-  const notesSearch = useRootNotes({ authors: [publicKey] });
-  const search = useSearch({ authors: [publicKey], kind: kindFilter });
-  const reposts = useReposts({ authors: [publicKey] });
+  // const notesSearch = useRootNotes({ authors: [publicKey] });
+  const search = useSearch({authors: [publicKey], kinds: kindFilter});
+  // const reposts = useReposts({ authors: [publicKey] });
+  const {bookmarksWithNotes} = useBookmark(publicKey);
+
+  // Extract all bookmarked note IDs
+  const bookmarkedNoteIds = useMemo(() => {
+    if (!bookmarksWithNotes) return new Set<string>();
+
+    const ids = new Set<string>();
+    bookmarksWithNotes.forEach((bookmark) => {
+      bookmark.notes.forEach((note) => {
+        ids.add(note?.id || '');
+      });
+    });
+    return ids;
+  }, [bookmarksWithNotes]);
+
+  // Function to check if a note is bookmarked
+  const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
+
+  // const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+  //   ? bookmarksWithNotes?.map(bookmark => bookmark.notes).flat() || []
+  //   : search.data?.pages.flat();
+
+  // console.log("getData", getData)
+
+  const getData = search.data?.pages.flat();
+
+  console.log('getData', getData);
 
   return (
     <View style={styles.container}>
-
       <FlatList
         ListHeaderComponent={
           <>
@@ -33,45 +66,46 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingVertical: 5,
-                paddingHorizontal:5,
-                flexDirection: 'row',
-                rowGap: 3,
-                gap: 3,
-                columnGap: 3
-              }}
-              style={{
-                paddingHorizontal:5,
-                paddingVertical: 5,
-                flexDirection: 'row',
-                rowGap: 3,
-                gap: 3,
-                columnGap: 3
-              }}
+              contentContainerStyle={styles.optionsContentContainer}
+              style={styles.optionsContainer}
             >
-              <Pressable onPress={() => setNdkKind(NDKKind.Text)}>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.Text])}
+                style={[styles.option, ndkKinds.includes(NDKKind.Text) && styles.selected]}
+              >
                 <Text>Notes</Text>
               </Pressable>
-              <Pressable onPress={() => setNdkKind(NDKKind.Repost)}>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.Repost])}
+                style={[styles.option, ndkKinds.includes(NDKKind.Repost) && styles.selected]}
+              >
                 <Text>Repost</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setNdkKind([NDKKind.BookmarkList, NDKKind.BookmarkSet])}
+                style={[styles.option, ndkKinds.includes(NDKKind.BookmarkList) && styles.selected]}
+              >
+                <Text>Bookmarks</Text>
               </Pressable>
             </ScrollView>
           </>
         }
-        data={search.data?.pages.flat()}
+        data={getData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          if (ndkKind == NDKKind.Repost) {
-            const itemReposted = JSON.parse(item?.content)
-            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />
+        renderItem={({item}) => {
+          if (!item) return <></>;
+          if (ndkKinds.includes(NDKKind.Repost)) {
+            const itemReposted = JSON.parse(item?.content);
+            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />;
           }
-          return <PostCard key={item?.id} event={item} />
+          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />;
         }}
         refreshControl={
           <RefreshControl refreshing={search.isFetching} onRefresh={() => search.refetch()} />
         }
       />
+
+      {search?.isPending && <ActivityIndicator></ActivityIndicator>}
 
       {search?.isLoading && <ActivityIndicator />}
     </View>

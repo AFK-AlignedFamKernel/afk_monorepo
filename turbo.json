@@ -20,7 +20,9 @@
     "TELEGRAM_WEB_APP",
     "TG_ADMIN_CHAT_ID",
     "TELEGRAM_MOBILE_APP",
-    "EXPO_PUBLIC_PIXEL_URL"
+    "EXPO_PUBLIC_PIXEL_URL",
+    "REACT_APP_BACKEND_URL",
+    "REACT_APP_NODE_ENV"
   ],
   "pipeline": {
     "build": {
@@ -44,7 +46,9 @@
         "TELEGRAM_WEB_APP",
         "INDEXER_DATABASE_URL",
         "TELEGRAM_MOBILE_APP",
-        "EXPO_PUBLIC_PIXEL_URL"
+        "EXPO_PUBLIC_PIXEL_URL",
+            "REACT_APP_BACKEND_URL",
+    "REACT_APP_NODE_ENV"
       ]
     },
     "run": {
@@ -58,7 +62,9 @@
         "NEXT_PUBLIC_PINATA_JWT",
         "APP_URL",
         "NEXT_PUBLIC_WALLET_CONNECT_ID",
-        "EXPO_PUBLIC_PIXEL_URL"
+        "EXPO_PUBLIC_PIXEL_URL",
+        "REACT_APP_BACKEND_URL",
+        "REACT_APP_NODE_ENV"
       ]
     },
     "deploy": {

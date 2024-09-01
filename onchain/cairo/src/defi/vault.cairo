@@ -78,7 +78,7 @@ pub mod Vault {
             let caller = get_caller_address();
 
             // Check if token valid
-            assert(self.is_token_permitted(token_address), 'Non permited token');
+            assert(self.is_token_permitted(token_address), 'Non permitted token');
 
             // Sent token to deposit
             let token_deposited = IERC20Dispatcher { contract_address: token_address };
@@ -136,7 +136,7 @@ pub mod Vault {
         ) {
             let caller = get_caller_address();
             // Check if token valid
-            assert(self.is_token_permitted(token_address), 'Non permited token');
+            assert(self.is_token_permitted(token_address), 'Non permitted token');
 
             // Receive/burn token minted
             let token_mintable = IERC20MintableDispatcher {
@@ -194,7 +194,7 @@ pub mod Vault {
         }
 
         fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {
-            assert(self.is_token_permitted(token_address), 'Non permited token');
+            assert(self.is_token_permitted(token_address), 'Non permitted token');
             self.token_permitted.read(token_address).ratio_mint
         }
 

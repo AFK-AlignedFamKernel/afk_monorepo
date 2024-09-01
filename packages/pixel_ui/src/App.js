@@ -23,7 +23,6 @@ import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery';
-// import { useMediaQuery } from 'react-responsive';
 
 function App() {
   // Window management

@@ -21,6 +21,9 @@ export const LightTheme = {
     messageCard: '#FFFFFF',
     messageCardText: '#14142C',
 
+    messageReplyCard: '#E0E0E0',
+    messageReplyCardText: '#14142C',
+
     // primary: '#EC796B',
     primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
@@ -42,6 +45,7 @@ export const LightTheme = {
     onSecondary: '#FFFFFF',
 
     divider: '#e4e4e7',
+    sidebarDivider: '#e4e4e7',
 
     bottomBarActive: '#14142C',
     bottomBarInactive: 'rgba(30, 47, 61, 0.5)',
@@ -76,6 +80,9 @@ export const DarkTheme = {
     messageCard: '#2C2C2C',
     messageCardText: '#FFFFFF',
 
+    messageReplyCard: '#1F1F1F',
+    messageReplyCardText: '#E0E0E0',
+
     // primary: '#EC796B',
     primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
@@ -97,6 +104,7 @@ export const DarkTheme = {
     onSecondary: '#FFFFFF',
 
     divider: '#1b1b18',
+    sidebarDivider: '#FFFFFF',
 
     bottomBarActive: '#8F979E',
     bottomBarInactive: 'rgb(105,105,105, 0.5)',

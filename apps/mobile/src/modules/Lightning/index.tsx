@@ -1,29 +1,33 @@
 import '../../../applyGlobalPolyfills';
 
-import { init, launchModal } from '@getalby/bitcoin-connect-react';
-import { LightningAddress } from '@getalby/lightning-tools';
-import { webln } from '@getalby/sdk';
-import React from 'react';
-import { Platform, SafeAreaView, Text, TextInput, View } from 'react-native';
-import WebView from 'react-native-webview';
+import {init, launchModal, requestProvider} from '@getalby/bitcoin-connect-react';
+import {LightningAddress} from '@getalby/lightning-tools';
+import {webln} from '@getalby/sdk';
+import React, {useRef} from 'react';
+import {Platform, ScrollView, Text, TextInput, View} from 'react-native';
+import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, Input } from '../../components';
-import { useStyles } from '../../hooks';
+import {Button, Input} from '../../components';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 export const LightningNetworkWalletView: React.FC = () => {
   const styles = useStyles(stylesheet);
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // <SafeAreaView style={styles.safeArea}>
+    <ScrollView>
       <PolyfillCrypto />
+
       <LightningNetworkWallet />
-    </SafeAreaView>
+    </ScrollView>
+
+    // </SafeAreaView>
   );
 };
 
 function LightningNetworkWallet() {
   const styles = useStyles(stylesheet);
-  const [amountSats, setAmountSats] = React.useState<string | undefined>("1")
+  const [amountSats, setAmountSats] = React.useState<string | undefined>('1');
 
   const [nwcUrl, setNwcUrl] = React.useState('');
   const [pendingNwcUrl, setPendingNwcUrl] = React.useState('');
@@ -33,6 +37,30 @@ function LightningNetworkWallet() {
   const [nostrWebLN, setNostrWebLN] = React.useState<webln.NostrWebLNProvider | undefined>(
     undefined,
   );
+  const webviewRef = useRef<WebView>(null);
+
+  const onMessage = (event: WebViewMessageEvent) => {
+    const {data} = event.nativeEvent;
+    console.log('Received message from WebView:', data);
+
+    // Handle messages sent from the WebView, e.g., invoice payment status
+  };
+
+  const injectJavaScript = `
+  (async function() {
+    if (window.webln) {
+      try {
+        await window.webln.enable();
+        const invoice = await window.webln.makeInvoice({ amount: 1000, memo: "React Native Zap" });
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: "invoice", data: invoice }));
+      } catch (error) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: "error", message: error.message }));
+      }
+    } else {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: "error", message: "WebLN not available" }));
+    }
+  })();
+`;
 
   const [balance, setBalance] = React.useState<number | undefined>();
   React.useEffect(() => {
@@ -96,6 +124,7 @@ function LightningNetworkWallet() {
   async function connectWithAlby() {
     const nwc = webln.NostrWebLNProvider.withNewSecret({
       //authorizationUrl: "http://192.168.1.102:8080",
+      // authorizationUrl:nwcAuthUrl
     });
     console.log('nwc', nwc);
 
@@ -137,23 +166,44 @@ function LightningNetworkWallet() {
   // }
 
   const handleRequest = async () => {
-    let modal = launchModal();
-    // const provider = await requestProvider();
+    const modal = launchModal();
+    const provider = await requestProvider();
     // let send_payment = await provider.sendPayment('lnbc...');
     return;
   };
+
   return (
-    <View>
+    <ScrollView>
+      {/* <View>
+        {
+          Platform.OS == "web" ?
+            <iframe src={nwcAuthUrl} height="250" width="100%"
 
+            />
+            :
+            <WebView
+              ref={webviewRef}
+              source={{ uri: nwcAuthUrl ?? 'https://example.com' }} // Your Lightning wallet-enabled web page
+              onMessage={onMessage}
+              injectedJavaScript={injectJavaScript}
+              javaScriptEnabled={true}
+              originWhitelist={['*']}
+            />
+        }
+      </View> */}
 
-      {
-        Platform.OS == 'web' ? (
-          <iframe src={nwcAuthUrl} height="250" width="100%"
+      <ScrollView style={{marginVertical: 5}}>
+        {Platform.OS == 'web' ? (
+          <>
+            <iframe src={nwcAuthUrl} height="350" width="100%" />
 
-          />
+            <a href={nwcAuthUrl} target="_blank" rel="noreferrer">
+              Go to
+            </a>
+          </>
         ) : (
           <WebView
-            source={{ uri: nwcAuthUrl }}
+            source={{uri: nwcAuthUrl}}
             javaScriptEnabled={true}
             injectedJavaScriptBeforeContentLoaded={`
               // TODO: remove once NWC also posts messages to the window
@@ -170,9 +220,10 @@ function LightningNetworkWallet() {
               }
             }}
           />
-        )
-      }
-      <View style={{ marginVertical: 5 }}>
+        )}
+      </ScrollView>
+
+      <ScrollView style={{marginVertical: 5}}>
         <Text style={styles.text}>Paste NWC URL</Text>
         <TextInput
           onChangeText={(text) => setNwcUrl(text)}
@@ -187,11 +238,11 @@ function LightningNetworkWallet() {
         <Button onPress={connectWithAlby}>
           <Text>Connect with Alby NWC</Text>
         </Button>
-      </View>
+      </ScrollView>
 
       <View
-        style={{ marginVertical: 5 }}
-      // style={{ margin: 5 }}
+        style={{marginVertical: 5}}
+        // style={{ margin: 5 }}
       >
         <Button onPress={handleRequest}>
           <Text>Handle</Text>
@@ -204,23 +255,22 @@ function LightningNetworkWallet() {
           <Text style={styles.text}>Pay an invoice</Text>
           <Text style={styles.text}>{paymentRequest ?? 'Loading...'}</Text>
           {paymentRequest && (
-
             <View>
-              <Input 
-              keyboardType='numeric'
-              value={amountSats} 
-              onChangeText={setAmountSats} 
-              placeholder="Amount Sats" />
+              <Input
+                keyboardType="numeric"
+                value={amountSats}
+                onChangeText={setAmountSats}
+                placeholder="Amount Sats"
+              />
 
               <Button onPress={payInvoice}>
                 <Text>Pay invoice ({amountSats} sats)</Text>
               </Button>
             </View>
-
           )}
           <Text style={styles.text}>{preimage ? `PAID: ${preimage}` : 'Not paid yet'}</Text>
         </>
       )}
-    </View>
+    </ScrollView>
   );
 }

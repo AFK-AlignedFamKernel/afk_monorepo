@@ -23,7 +23,6 @@ export enum SelectedTab {
   ALL_GROUP,
   GROUP_MESSAGE,
   PIXEL_PEACE,
-
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -33,9 +32,9 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     tab: SelectedTab.TIPS,
   },
   {
-    title: 'Messages',
-    screen: 'Messages',
-    tab: SelectedTab.MESSAGES,
+    title: 'All Group',
+    screen: 'AllGroup',
+    tab: SelectedTab.ALL_GROUP,
   },
   {
     title: 'Channels',
@@ -43,9 +42,9 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
     tab: SelectedTab.CHANNELS,
   },
   {
-    title: 'All Group',
-    screen: 'AllGroup',
-    tab: SelectedTab.ALL_GROUP,
+    title: 'Messages',
+    screen: 'Messages',
+    tab: SelectedTab.MESSAGES,
   },
   // {
   //   title: 'Messages',
@@ -150,7 +149,7 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'Slink',
     tab: SelectedTab.SLINK,
   },
-  
+
   {
     title: '?',
     screen: '?',

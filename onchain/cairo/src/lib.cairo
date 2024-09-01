@@ -7,7 +7,18 @@ pub mod social;
 pub mod utils;
 pub mod quests {
     pub mod factory;
+    pub mod authority_quest;
+    pub mod chain_faction_quest;
+    pub mod faction_quest;
+    pub mod hodl_quest;
+    pub mod nft_quest;
+    pub mod pixel_quest;
+    pub mod rainbow_quest;
     pub mod tap;
+    pub mod template_quest;
+    pub mod unruggable_quest;
+    pub mod username_quest;
+    pub mod vote_quest;
 }
 
 pub mod interfaces {
@@ -15,6 +26,11 @@ pub mod interfaces {
     pub mod erc20_mintable;
     pub mod jediswap;
     pub mod quest;
+    pub mod nfts;
+    pub mod pixel;
+    pub mod pixel_template;
+    pub mod quests;
+    pub mod username_store;
     pub mod vault;
 }
 
@@ -48,6 +64,23 @@ pub mod tokens {
     pub mod erc20_mintable;
     pub mod quest_nft;
     pub mod token;
+}
+
+// TODO upgrade to correct OZ version
+pub mod nfts {
+    pub mod canvas_nft;
+    pub mod component;
+}
+
+
+pub mod templates {
+    pub mod template;
+}
+pub mod pixel {
+    pub mod art_peace;
+// pub mod templates;
+// use art_peace::ArtPeace;
+
 }
 
 #[cfg(test)]

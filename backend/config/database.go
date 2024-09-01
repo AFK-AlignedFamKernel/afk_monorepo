@@ -1,39 +1,26 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
-	"fmt"
 )
 
 type RedisConfig struct {
-	Host string `json:"host"`
-	Port int    `json:"port"`
+	Host string
+	Port int
 }
 
 type PostgresConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Database string `json:"database"`
+	Host     string
+	Port     int
+	User     string
+	Database string
 }
 
 type DatabaseConfig struct {
-	Redis    RedisConfig    `json:"redis"`
-	Postgres PostgresConfig `json:"postgres"`
-}
-
-var DefaultDatabaseConfig = DatabaseConfig{
-	Redis: RedisConfig{
-		Host: "localhost",
-		Port: 6379,
-	},
-	Postgres: PostgresConfig{
-		Host:     "localhost",
-		Port:     5432,
-		User:     "afk-user",
-		Database: "afk-db",
-	},
+	Redis    RedisConfig
+	Postgres PostgresConfig
 }
 
 func LoadDatabaseConfig() (*DatabaseConfig, error) {
@@ -49,8 +36,8 @@ func LoadDatabaseConfig() (*DatabaseConfig, error) {
 
 	config := DatabaseConfig{
 		Redis: RedisConfig{
-		Host: os.Getenv("REDIS_HOST"),
-		Port: redisPort,
+			Host: os.Getenv("REDIS_HOST"),
+			Port: redisPort,
 		},
 		Postgres: PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),

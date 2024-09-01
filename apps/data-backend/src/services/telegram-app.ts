@@ -33,7 +33,7 @@ export function launchBot(token:string) {
         // Handle stop events
         enableGracefulStop(bot)
 
-        return bot
+        // return bot
     } catch (e) {
         console.log("launchBot error", e)
     }

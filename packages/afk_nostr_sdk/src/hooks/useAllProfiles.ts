@@ -6,6 +6,7 @@ import {useNostrContext} from '../context/NostrContext';
 export type UseRootProfilesOptions = {
   authors?: string[];
   search?: string;
+  limit?:number;
 };
 
 export const useAllProfiles = (options?: UseRootProfilesOptions) => {
@@ -28,7 +29,7 @@ export const useAllProfiles = (options?: UseRootProfilesOptions) => {
         authors: options?.authors,
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
-        limit: 20,
+        limit: options?.limit ?? 20,
       });
 
       return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));

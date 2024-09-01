@@ -1,19 +1,20 @@
-import {useMutation} from '@tanstack/react-query';
-import {useNostrContext} from '../../../context/NostrContext';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useAuth} from '../../../store';
-import {checkGroupPermission} from './useGetPermission';
-import {AdminGroupPermission} from './useAddPermissions';
+import {useMutation} from '@tanstack/react-query';
 
-// TODO
+import {useNostrContext} from '../../../context/NostrContext';
+import {useAuth} from '../../../store';
+import {AdminGroupPermission} from './useAddPermissions';
+import {checkGroupPermission} from './useGetPermission';
+
 export const useRemoveMember = () => {
   const {ndk} = useNostrContext();
   const {publicKey: pubkey} = useAuth();
 
   return useMutation({
-    mutationKey: ['removeMemberGroup', ndk],
+    mutationKey: ['removeMemberGroup'],
     mutationFn: async (data: {pubkey: string; groupId: string}) => {
-      const hasPermission = checkGroupPermission({
+      const event = new NDKEvent(ndk);
+      const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
         ndk,
         pubkey,
@@ -23,13 +24,15 @@ export const useRemoveMember = () => {
       if (!hasPermission) {
         throw new Error('You do not have permission to remove member');
       }
-      const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminRemoveUser;
       event.tags = [
+        ['h', data.groupId],
         ['d', data.groupId],
         ['p', data.pubkey],
       ];
-      return event.publish();
+
+      event.publish();
+      return event;
     },
   });
 };
