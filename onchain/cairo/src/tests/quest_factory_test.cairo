@@ -44,11 +44,16 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
 
     fn setup() -> (IQuestFactoryDispatcher, ContractAddress, IERC721Dispatcher, IERC20Dispatcher) {
         let (vault_dispatcher, token_address) = deploy_and_setup_vault();
-        let quest_nft_addr = deploy_quest_nft("QUEST NFT", "QNFT");
+        let quest_nft_addr = deploy_quest_nft("QUEST NFT", "QNFT", ADMIN());
         let factory_dispatcher = deploy_factory_quest(
             quest_nft_addr, vault_dispatcher.contract_address
         );
         let tap_quest_addr = deploy_tap_quest();
+
+        // set minter role for quest nft
+        start_cheat_caller_address(quest_nft_addr, ADMIN());
+        IQuestNFTDispatcher{contract_address:quest_nft_addr }.set_role(factory_dispatcher.contract_address, MINTER_ROLE, true);
+        stop_cheat_caller_address(quest_nft_addr);
 
         (factory_dispatcher, tap_quest_addr, IERC721Dispatcher {contract_address: quest_nft_addr}, IERC20Dispatcher {contract_address: token_address})
     }
@@ -77,11 +82,12 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         IQuestFactoryDispatcher { contract_address: factory_address }
     }
 
-    fn deploy_quest_nft(name: ByteArray, symbol: ByteArray) -> ContractAddress {
+    fn deploy_quest_nft(name: ByteArray, symbol: ByteArray, owner: ContractAddress) -> ContractAddress {
         let class = declare("QuestNFT").unwrap();
         let mut calldata = array![];
         name.serialize(ref calldata);
         symbol.serialize(ref calldata);
+        owner.serialize(ref calldata);
 
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
