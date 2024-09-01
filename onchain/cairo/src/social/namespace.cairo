@@ -59,6 +59,10 @@ pub trait INamespace<TContractState> {
     fn linked_nostr_default_account(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>
     );
+    // Compute Starknet address
+    fn compute_starknet_address(
+        self: @TContractState, nostr_public_key: NostrPublicKey
+    ) -> ContractAddress;
 // // External call protocol
 // fn protocol_linked_nostr_default_account(
 //     ref self: TContractState,
@@ -192,6 +196,11 @@ pub mod Namespace {
             self.sn_to_nostr.read(starknet_address)
         }
 
+        fn compute_starknet_address(
+            self: @ContractState, nostr_public_key: NostrPublicKey
+        ) -> ContractAddress {
+            self.nostr_to_sn.read(nostr_public_key)
+        }
 
         // Create list getter
 
