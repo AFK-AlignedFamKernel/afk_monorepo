@@ -4,6 +4,8 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    paddingVertical: Spacing.xxxsmall,
+    paddingHorizontal: Spacing.normal,
   },
 
   flatListContent: {

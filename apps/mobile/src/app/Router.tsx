@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createDrawerNavigator} from '@react-navigation/drawer';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useNavigation, useRoute} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useMemo, useState} from 'react';
@@ -46,6 +46,7 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
+import RightSidebar from '../components/RightSideBar';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -197,8 +198,8 @@ const AuthNavigator: React.FC = () => {
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
-        headerShown: false,
+        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
@@ -261,6 +262,17 @@ const MainNavigator: React.FC = () => {
 
   const theme = useTheme();
 
+  const FeedWithSidebar: React.FC = () => (
+    <View style={{ flexDirection: 'row', flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <Feed navigation={useNavigation()} route={useRoute()} />
+      </View>
+      <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
+        <RightSidebar />
+      </View>
+    </View>
+  );
+
   return (
     <DrawerStack.Navigator
       // screenOptions={{ headerShown: false }}
@@ -268,7 +280,8 @@ const MainNavigator: React.FC = () => {
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
+        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
@@ -284,10 +297,11 @@ const MainNavigator: React.FC = () => {
         },
       })}
     >
+
       {!isDesktop ? (
         <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
       ) : (
-        <DrawerStack.Screen name="Feed" component={Feed} />
+        <DrawerStack.Screen name="Feed" component={FeedWithSidebar} />
       )}
       {isDesktop && (
         <DrawerStack.Screen

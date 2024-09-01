@@ -5,19 +5,19 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     // backgroundColor: '#f0f0f0',
-    background: theme.colors.background,
+    backgroundColor: theme.colors.background,
     color: theme.colors.text,
     borderRadius: 20,
     marginHorizontal: 10,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 20,
   },
   iconContainer: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    background: theme.colors.background,
+    backgroundColor: theme.colors.background,
     borderColor: theme.colors.background,
 
     color: theme.colors.text,

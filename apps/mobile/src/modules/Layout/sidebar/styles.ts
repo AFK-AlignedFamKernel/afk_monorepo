@@ -16,6 +16,12 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
   logo: {
     width: 40,
     height: 40,
