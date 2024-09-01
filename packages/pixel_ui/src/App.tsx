@@ -72,13 +72,13 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [connected, setConnected] = useState(false); // TODO: change to only devnet
   useEffect(() => {
     if (devnetMode) {
-      if (connected) {
-        setQueryAddress(
-          '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-        );
-      } else {
-        setQueryAddress('0');
-      }
+      // if (connected) {
+      //   setQueryAddress(
+      //     '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
+      //   );
+      // } else {
+      //   setQueryAddress('0');
+      // }
     } else {
       if (!address) {
         setQueryAddress('0');

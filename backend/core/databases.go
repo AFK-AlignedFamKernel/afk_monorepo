@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -24,14 +25,29 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 	d := &Databases{}
 	d.DatabaseConfig = databaseConfig
 
+	// Define a context
+	ctx := context.Background()
+
+	address := databaseConfig.Redis.Host + ":" + strconv.Itoa(databaseConfig.Redis.Port)
+	fmt.Println("Redis address:", address)
+
 	// Connect to Redis
 	d.Redis = redis.NewClient(&redis.Options{
-		Addr:     databaseConfig.Redis.Host + ":" + strconv.Itoa(databaseConfig.Redis.Port),
-		Password: "", // TODO: Read from env
+		Addr:     address,
+		Password: os.Getenv("REDIS_PASSWORD"), // TODO: Read from env
 		DB:       0,
 	})
 
+	// Test the connection
+	pong, err := d.Redis.Ping(ctx).Result()
+	if err != nil {
+		fmt.Println("Failed to connect to Redis:", err)
+		// return
+	}
+	fmt.Println("Redis connection established:", pong)
+
 	// Connect to Postgres
+	// Define a context
 	postgresConnString := "postgresql://" + databaseConfig.Postgres.User + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + databaseConfig.Postgres.Host + ":" + strconv.Itoa(databaseConfig.Postgres.Port) + "/" + databaseConfig.Postgres.Database
 	// TODO: crd_audit?sslmode=disable
 	pgPool, err := pgxpool.New(context.Background(), postgresConnString)
@@ -39,6 +55,8 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 		panic(err)
 	}
 	d.Postgres = pgPool
+
+	// Test and ping PG connection to DB
 
 	return d
 }

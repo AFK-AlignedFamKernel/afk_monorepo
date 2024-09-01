@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
@@ -29,7 +30,17 @@ func main() {
 
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
 	production := flag.Bool("production", false, "Production mode")
-	admin := flag.Bool("admin", false, "Admin mode")
+	// admin := flag.Bool("admin", false, "Admin mode")
+
+	admin_res := os.Getenv("ADMIN_BACKEND")
+	admin := false
+	if err != nil {
+		admin = false
+	}
+
+	if admin_res == "true" {
+		admin = true
+	}
 
 	flag.Parse()
 
@@ -55,7 +66,8 @@ func main() {
 	databases := core.NewDatabases(databaseConfig)
 	defer databases.Close()
 
-	core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, *admin)
+	core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, admin)
+	// core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, *admin)
 
 	routes.InitRoutes()
 
