@@ -185,6 +185,6 @@ export const useBookmark = (userPublicKey: string) => {
     removeBookmark: removeBookmark.mutateAsync,
     bookmarks: bookmarks.data,
     isFetchingBookmarks: bookmarks.isFetching,
-    bookmarksWithNotes: bookmarksWithNotesQuery.data
+    bookmarksWithNotes: bookmarksWithNotesQuery
   };
 };
