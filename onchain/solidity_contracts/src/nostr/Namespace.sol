@@ -14,15 +14,15 @@ contract Namespace {
         namespaceAddress = _namespaceAddress;
     }
 
-    // Get Nostr address by Starknet address
+    // Get nostr address by starknet address
     function getNostrAddressByStarknetAddress(uint256 userAddress) public returns (uint256) {
-        uint256;
-        kakarotCallData[0] = userAddress;
+        uint256[] memory kakarotCallData = new uint256[](1);
+        kakarotCallData[0] = uint256(uint160(userAddress));
 
         uint256 userStarknetAddress =
             abi.decode(namespaceAddress.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
     
-        uint256;
+        uint256[] memory addressOfCallData = new uint256[](1);
         addressOfCallData[0] = userStarknetAddress;
         bytes memory returnData = namespaceAddress.staticcallCairo("get_nostr_by_sn_default", addressOfCallData);
         
@@ -31,13 +31,13 @@ contract Namespace {
 
     // Get Starknet address by Nostr address
     function getStarknetAddressByNostrAddress(uint256 nostrAddress) public returns (uint256) {
-        uint256;
-        kakarotCallData[0] = nostrAddress;
+        uint256[] memory kakarotCallData = new uint256[](1);
+        kakarotCallData[0] = uint256(uint160(nostrAddress));
 
         uint256 userStarknetAddress =
             abi.decode(namespaceAddress.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
     
-        uint256;
+        uint256[] memory addressOfCallData = new uint256[](1);
         addressOfCallData[0] = userStarknetAddress;
         bytes memory returnData = namespaceAddress.staticcallCairo("get_sn_by_nostr_default", addressOfCallData);
         
@@ -46,7 +46,7 @@ contract Namespace {
 
     // Link Nostr address
     function linkNostrAddress(uint256 nostrAddress, uint256 starknetAddress) public {
-        uint256;
+        uint256[] memory kakarotCallData = new uint256[](2);
         kakarotCallData[0] = nostrAddress;
         kakarotCallData[1] = starknetAddress;
 
