@@ -50,7 +50,7 @@ pub mod Vault {
     fn constructor(
         ref self: ContractState, token_address: ContractAddress, admin: ContractAddress
     ) {
-        // Give MINTER role to the Vault for the token used 
+        // Give MINTER role to the Vault for the token used
         self.token_address.write(token_address);
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
@@ -196,6 +196,13 @@ pub mod Vault {
         fn get_token_ratio(ref self: ContractState, token_address: ContractAddress) -> u256 {
             assert(self.is_token_permitted(token_address), 'Non permited token');
             self.token_permitted.read(token_address).ratio_mint
+        }
+
+        fn mint_quest_token_reward(ref self: ContractState, user: ContractAddress, amount: u32) {
+            let token_mintable = IERC20MintableDispatcher {
+                contract_address: self.token_address.read()
+            };
+            token_mintable.mint(user, amount.into());
         }
     }
 // Admin

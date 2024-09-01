@@ -1,26 +1,35 @@
-use afk::types::tap_types::{TapUserStats, TapDailyEvent};
-use starknet::{ContractAddress, ClassHash};
-
-#[starknet::interface]
-pub trait ITapQuests<T> {
-    fn get_tap_user_stats(self: @T, user: ContractAddress) -> TapUserStats;
-    fn handle_tap_daily(ref self: T);
-}
 
 #[starknet::contract]
 mod TapQuests {
     use core::num::traits::Zero;
+
+    use afk::interfaces::quest::{ITapQuests, IQuest};
+    use afk::types::tap_types::{TapUserStats, TapDailyEvent};
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
-    use super::{TapUserStats, TapDailyEvent};
 
     const DAILY_TIMESTAMP_SECONDS: u64 = 60 * 60 * 24;
 
     #[storage]
     struct Storage {
-        tap_by_users: LegacyMap<ContractAddress, TapUserStats>
+        tap_by_users: LegacyMap<ContractAddress, TapUserStats>,
+        token_reward: u32,
+        claimed: LegacyMap<ContractAddress, bool>,
+        is_claimable: LegacyMap<ContractAddress, bool>,
+        is_reward_nft: bool,
+        is_reward_token: bool,
+    }
+
+
+    #[constructor]
+    fn constructor(
+        ref self: ContractState, token_reward: u32, is_reward_nft: bool, is_reward_token: bool
+    ) {
+        self.token_reward.write(token_reward);
+        self.is_reward_nft.write(is_reward_nft);
+        self.is_reward_token.write(is_reward_token);
     }
 
     #[event]
@@ -30,7 +39,7 @@ mod TapQuests {
     }
 
     #[abi(embed_v0)]
-    impl TapQuestImpl of super::ITapQuests<ContractState> {
+    impl TapQuestImpl of ITapQuests<ContractState> {
         fn get_tap_user_stats(self: @ContractState, user: ContractAddress) -> TapUserStats {
             self.tap_by_users.read(user)
         }
@@ -42,18 +51,39 @@ mod TapQuests {
             if tap_old.owner.is_zero() {
                 let tap = TapUserStats { owner: caller, last_tap: timestamp, total_tap: 1 };
                 self.tap_by_users.write(caller, tap);
+                self.is_claimable.write(caller, true);
                 self.emit(TapDailyEvent { owner: caller, last_tap: timestamp, total_tap: 1 });
             } else {
-                let mut tap = tap_old.clone();
-                // let last_tap = tap.last_tap.clone();
-                // TODO Check assert in tests
-                // assert!(timestamp - last_tap < DAILY_TIMESTAMP_SECONDS, "too early");
-                tap.last_tap = timestamp;
-                let total = tap_old.total_tap + 1;
+                let mut tap = self.tap_by_users.read(caller);
+                let last_tap = tap.last_tap.clone();
+
+                assert(timestamp >= last_tap + DAILY_TIMESTAMP_SECONDS, 'too early');
+
+                tap.last_tap = get_block_timestamp();
+                let total = tap.total_tap + 1;
                 tap.total_tap = total.clone();
                 self.tap_by_users.write(caller, tap);
+                self.is_claimable.write(caller, true);
                 self.emit(TapDailyEvent { owner: caller, last_tap: timestamp, total_tap: total });
             }
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl TapQuest of IQuest<ContractState> {
+        fn get_reward(self: @ContractState) -> (u32, bool) {
+            if self.is_reward_token.read() && self.is_reward_nft.read() {
+                return (self.token_reward.read(), true);
+            } else if self.is_reward_token.read() {
+                return (self.token_reward.read(), false);
+            } else {
+                (0, true)
+            }
+        }
+
+        fn is_claimable(self: @ContractState, user: ContractAddress) -> bool {
+            //TODO self.is_claimable.read(user)
+            true
         }
     }
 }
