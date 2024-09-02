@@ -7,8 +7,9 @@ import (
 )
 
 type RedisConfig struct {
-	Host string
-	Port int
+	Host     string
+	Port     int
+	Password string
 }
 
 type PostgresConfig struct {
@@ -36,8 +37,9 @@ func LoadDatabaseConfig() (*DatabaseConfig, error) {
 
 	config := DatabaseConfig{
 		Redis: RedisConfig{
-			Host: os.Getenv("REDIS_HOST"),
-			Port: redisPort,
+			Host:     os.Getenv("REDIS_HOST"),
+			Port:     redisPort,
+			Password: os.Getenv("REDIS_PASSWORD"),
 		},
 		Postgres: PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
