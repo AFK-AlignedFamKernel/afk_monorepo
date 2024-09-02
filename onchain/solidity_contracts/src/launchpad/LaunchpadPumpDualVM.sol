@@ -9,7 +9,10 @@ contract LaunchpadPumpDualVM {
     /// @dev The address of the cairo contract to call
     uint256 immutable starknetLaunchpad;
 
-   /// @dev The cairo function selector to call - `create_token`
+    /// @dev The address of the kakarot starknet contract to call
+    uint256 immutable kakarot;
+
+    /// @dev The cairo function selector to call - `create_token`
     uint256 constant FUNCTION_SELECTOR_CREATE_TOKEN = uint256(keccak256("create_token")) % 2 ** 250;
 
    /// @dev The cairo function selector to call - `create_and_launch_token`
@@ -66,7 +69,10 @@ contract LaunchpadPumpDualVM {
     }
 
 
-    constructor(uint256 _starknetLaunchpad) {
+    constructor(
+        uint256 _kakarot,
+        uint256 _starknetLaunchpad) {
+        kakarot = _kakarot;
         starknetLaunchpad = _starknetLaunchpad;
     }
 
@@ -82,6 +88,16 @@ contract LaunchpadPumpDualVM {
     }
 
 
+   function bytesToUint256(bytes calldata b) internal pure returns (uint256) {
+        require(b.length <= 32, "Byte array should be no longer than 32 bytes");
+        uint256 bytesInt;
+        assembly {
+            bytesInt := mload(add(b.offset, 32))
+        }
+        return bytesInt;
+
+    }
+
     /** */
     function createToken(address recipient,
       bytes calldata symbol,
@@ -92,26 +108,38 @@ contract LaunchpadPumpDualVM {
 
         uint256[] memory recipientAddressCalldata = new uint256[](1);
         recipientAddressCalldata[0] = uint256(uint160(recipient));
+
         uint256 recipientStarknetAddress =
-            abi.decode(starknetLaunchpad.staticcallCairo("compute_starknet_address", recipientAddressCalldata), (uint256));
+            abi.decode(kakarot.staticcallCairo("compute_starknet_address", recipientAddressCalldata), (uint256));
+
+
+        // uint256 recipientStarknetAddress =
+        //     abi.decode(starknetLaunchpad.staticcallCairo("compute_starknet_address", recipientAddressCalldata), (uint256));
 
         uint128 amountLow = uint128(initialSupply);
         uint128 amountHigh = uint128(initialSupply >> 128);
+        // Decode the first 32 bytes (a uint256 is 32 bytes)
+        // uint256 symbolResult = abi.decode(symbol, (uint256));
+        // uint256 nameResult = abi.decode(name, (uint256));
+
+        // uint256 contractAddressSaltResult = abi.decode(contractAddressSalt, (uint256));
+
+        uint256 symbolAsUint = bytesToUint256(symbol);
+        uint256 nameAsUint = bytesToUint256(name);
+        uint256 contractAddressSaltResult = bytesToUint256(contractAddressSalt);
 
         uint256[] memory createTokenCallData = new uint256[](6);
         createTokenCallData[0] = recipientStarknetAddress;
-        // Decode the first 32 bytes (a uint256 is 32 bytes)
-        uint256 symbolResult = abi.decode(symbol, (uint256));
-        uint256 nameResult = abi.decode(name, (uint256));
-        uint256 contractAddressSaltResult = abi.decode(contractAddressSalt, (uint256));
-
-        createTokenCallData[1] = uint(symbolResult);
-        createTokenCallData[2] = uint(nameResult);
+        // createTokenCallData[1] = uint(symbolResult);
+        // createTokenCallData[2] = uint(nameResult);
+        createTokenCallData[1] = uint(symbolAsUint);
+        createTokenCallData[2] = uint(nameAsUint);
         createTokenCallData[3] = uint256(amountLow);
         createTokenCallData[4] = uint256(amountHigh);
         createTokenCallData[5] = uint256(contractAddressSaltResult);
 
         starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN, createTokenCallData);
+        // starknetLaunchpad.staticcallCairo("create_token", createTokenCallData);
 
     }
 
@@ -135,17 +163,21 @@ contract LaunchpadPumpDualVM {
             uint256[] memory createLaunchTokenCallData = new uint256[](6);
             createLaunchTokenCallData[0] = recipientStarknetAddress;
             // Decode the first 32 bytes (a uint256 is 32 bytes)
-            uint256 symbolResult = abi.decode(symbol, (uint256));
-            uint256 nameResult = abi.decode(name, (uint256));
-            uint256 contractAddressSaltResult = abi.decode(contractAddressSalt, (uint256));
+            uint256 symbolAsUint = bytesToUint256(symbol);
+            uint256 nameAsUint = bytesToUint256(name);
+            uint256 contractAddressSaltResult = bytesToUint256(contractAddressSalt);
 
-            createLaunchTokenCallData[1] = uint(symbolResult);
-            createLaunchTokenCallData[2] = uint(nameResult);
+            createLaunchTokenCallData[0] = recipientStarknetAddress;
+            // createTokenCallData[1] = uint(symbolResult);
+            // createTokenCallData[2] = uint(nameResult);
+            createLaunchTokenCallData[1] = uint(symbolAsUint);
+            createLaunchTokenCallData[2] = uint(nameAsUint);
             createLaunchTokenCallData[3] = uint256(amountLow);
             createLaunchTokenCallData[4] = uint256(amountHigh);
             createLaunchTokenCallData[5] = uint256(contractAddressSaltResult);
 
-            starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN, createLaunchTokenCallData);
+            starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN_AND_LAUNCH, createLaunchTokenCallData);
+            // starknetLaunchpad.staticcallCairo("create_and_launch_token", createLaunchTokenCallData);
 
 
     }
