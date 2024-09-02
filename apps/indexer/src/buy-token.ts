@@ -1,5 +1,17 @@
-import { Block, hash, uint256 } from "./deps.ts";
+import { Block, hash, uint256, Pool } from "./deps.ts";
 import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
+
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const pool = new Pool(ConnectionString, 1, true);
+const connection = await pool.connect();
+
+try {
+  await connection.queryObject`
+    DELETE FROM token_transactions WHERE transaction_type = 'buy'
+  `;
+} finally {
+  connection.release();
+}
 
 const filter = {
   header: {

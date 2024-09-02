@@ -1,5 +1,17 @@
 import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
-import { Block, hash, uint256, shortString } from "./deps.ts";
+import { Block, hash, uint256, shortString, Pool } from "./deps.ts";
+
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const pool = new Pool(ConnectionString, 1, true);
+const connection = await pool.connect();
+
+try {
+  await connection.queryObject`
+    DELETE FROM token_deploy
+  `;
+} finally {
+  connection.release();
+}
 
 const filter = {
   header: {

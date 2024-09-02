@@ -1,48 +1,48 @@
 create table token_launch(
-    memecoin_address text,
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text primary key,
-    quote_token text,
-    exchange_name text,
-    created_at timestamp default current_timestamp,
-    total_supply text,
-    current_supply text,
-    liquidity_raised text,
-    price text,
-    _cursor bigint,
+    memecoin_address TEXT,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT PRIMARY KEY,
+    quote_token TEXT,
+    exchange_name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_supply TEXT,
+    current_supply TEXT,
+    liquidity_raised TEXT,
+    price TEXT,
+    _cursor BIGINT,
     time_stamp TEXT
 );
 
 create table token_deploy(
-    memecoin_address text,
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text primary key,
+    memecoin_address TEXT,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT PRIMARY KEY,
 
-    owner_address text,
-    name text,
-    symbol text,
-    initial_supply text,
-    total_supply text,
-    created_at timestamp default current_timestamp,
-    _cursor bigint,
+    owner_address TEXT,
+    name TEXT,
+    symbol TEXT,
+    initial_supply TEXT,
+    total_supply TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT,
     time_stamp TEXT
 
 
 );
 
 CREATE TABLE token_transactions (
-    transfer_id text,
+    transfer_id TEXT PRIMARY KEY,
     network TEXT,
     block_hash TEXT,
     block_number BIGINT,
     block_timestamp TIMESTAMP,
-    transaction_hash text primary key,
+    transaction_hash TEXT,
 
     memecoin_address TEXT,
     owner_address TEXT,
@@ -60,49 +60,55 @@ CREATE TABLE token_transactions (
     _cursor BIGINT,
     transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),
     time_stamp TEXT
+);
 
+CREATE TABLE IF NOT EXISTS token_transactions_checkpoint (
+  id TEXT PRIMARY KEY,
+  transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),
+  last_processed_block BIGINT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
 create table unrugmeme_transfers(
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text,
-    transfer_id text unique primary key,
-    from_address text,
-    to_address text,
-    memecoin_address text,
-    amount text,
-    created_at timestamp default current_timestamp,
-    _cursor bigint
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT,
+    transfer_id TEXT unique PRIMARY KEY,
+    from_address TEXT,
+    to_address TEXT,
+    memecoin_address TEXT,
+    amount TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT
 );
 
 create table unrugmeme_deploy(
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text,
-    memecoin_address text unique primary key,
-    owner_address text,
-    name text,
-    symbol text,
-    initial_supply text,
-    created_at timestamp default current_timestamp,
-    _cursor bigint
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT,
+    memecoin_address TEXT unique PRIMARY KEY,
+    owner_address TEXT,
+    name TEXT,
+    symbol TEXT,
+    initial_supply TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT
 );
 
 create table unrugmeme_launch(
-    network text,
-    block_hash text,
-    block_number bigint,
-    block_timestamp timestamp,
-    transaction_hash text,
-    memecoin_address text unique primary key,
-    quote_token text,
-    exchange_name text,
-    created_at timestamp default current_timestamp,
-    _cursor bigint
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT,
+    memecoin_address TEXT unique PRIMARY KEY,
+    quote_token TEXT,
+    exchange_name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT
 );
