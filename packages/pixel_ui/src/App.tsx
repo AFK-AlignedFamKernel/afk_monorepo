@@ -164,7 +164,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
 
   // Colors
   const staticColors = canvasConfig.colors;
-  const [colors, setColors] = useState([]);
+  const [colors, setColors] = useState<any[]>([]);
 
   const [notificationMessage, setNotificationMessage] = useState('');
 
