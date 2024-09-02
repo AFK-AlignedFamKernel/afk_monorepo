@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useAuth, useProfile } from 'afk_nostr_sdk';
-import { useQueryAllCoins } from '../../hooks/launchpad/useQueryAllCoins';
-import { useStyles, useTheme } from '../../hooks';
+import { useQueryAllCoins } from '../../../hooks/launchpad/useQueryAllCoins';
+import { useStyles, useTheme } from '../../../hooks';
 import stylesheet from './styles';
-import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
-import { TokenLaunchInterface } from '../../types/keys';
+import { TokenLaunchDetail } from '../../../components/pump/TokenLaunchDetail';
+import { TokenLaunchInterface } from '../../../types/keys';
 
-const tabs = ['Trending', 'Quests'];
+const tabs = ['Trending', "New", 'Quests'];
 
 const RightSidebar = () => {
   const { theme } = useTheme();
@@ -25,7 +25,7 @@ const RightSidebar = () => {
 
   const renderListItem = ({ item }: { item: TokenLaunchInterface }) => (
     <View style={styles.itemContainer}>
-      <TokenLaunchDetail launch={item} isViewDetailDisabled={true} />
+      <TokenLaunchDetail launch={item} isViewDetailDisabled={true} isDisabledInfo={true} />
     </View>
   );
 
@@ -62,8 +62,29 @@ const RightSidebar = () => {
             )}
           </>
         )}
+
+        {activeTab === 'New' && (
+          <>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={theme.colors.text} />
+            ) : error ? (
+              <Text style={{ color: theme.colors.text }}>Failed to load coins</Text>
+            ) : (
+              <FlatList
+                data={coins}
+                renderItem={renderListItem}
+                keyExtractor={(item) => item.token_address.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                ListEmptyComponent={<Text style={{ color: theme.colors.text }}>No coins available</Text>}
+                ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+              />
+            )}
+          </>
+        )}
         {activeTab === 'Quests' && (
           <>
+            <Text>Questing coming soon</Text>
             {profile ? (
               <Text style={{ color: theme.colors.text }}>NIP05: {profile.nip05}</Text>
             ) : (
