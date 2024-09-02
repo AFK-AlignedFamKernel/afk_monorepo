@@ -1,5 +1,17 @@
-import { Block, hash, shortString, uint256 } from "./deps.ts";
+import { Block, hash, shortString, uint256, Pool } from "./deps.ts";
 import { FACTORY_ADDRESS, STARTING_BLOCK } from "./constants.ts";
+
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const pool = new Pool(ConnectionString, 1, true);
+const connection = await pool.connect();
+
+try {
+  await connection.queryObject`
+    DELETE FROM unrugmeme_deploy
+  `;
+} finally {
+  connection.release();
+}
 
 const filter = {
   header: {

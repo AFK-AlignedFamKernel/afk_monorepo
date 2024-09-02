@@ -13,7 +13,7 @@ docker run --name afk-indexer -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=adm
 buy-token deploy
 
 ```
-apibara run ./src/buy-token.ts --allow-env .env -A dna_xxx
+apibara run ./src/buy-token.ts --allow-env .env --allow-net=localhost -A dna_xxx
 
 ```
 
