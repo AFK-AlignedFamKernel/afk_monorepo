@@ -12,11 +12,7 @@ export const useAddMember = () => {
 
   return useMutation({
     mutationKey: ['addMemberGroup', ndk],
-    mutationFn: async (data: {
-      pubkey: string;
-      groupId: string;
-      permissionData?: AdminGroupPermission[];
-    }) => {
+    mutationFn: async (data: {pubkey: string; groupId: string}) => {
       const event = new NDKEvent(ndk);
       const hasPermission = await checkGroupPermission({
         groupId: data.groupId,
@@ -27,6 +23,23 @@ export const useAddMember = () => {
       if (!hasPermission) {
         throw new Error('You do not have permission to add a member to this group');
       }
+      event.kind = NDKKind.GroupAdminAddUser;
+      event.tags = [
+        ['d', data.groupId],
+        ['p', data.pubkey],
+      ];
+      return event.publish();
+    },
+  });
+};
+
+export const useAddPublicMember = () => {
+  const {ndk} = useNostrContext();
+
+  return useMutation({
+    mutationKey: ['addPublicMemberGroup', ndk],
+    mutationFn: async (data: {pubkey: string; groupId: string}) => {
+      const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminAddUser;
       event.tags = [
         ['d', data.groupId],
