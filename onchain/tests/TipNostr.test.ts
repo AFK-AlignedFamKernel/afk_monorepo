@@ -12,15 +12,17 @@ import {
 } from "../scripts/config";
 import dotenv from "dotenv";
 import {
-  byteArray,
   cairo,
   constants,
   DeclareDeployUDCResponse,
   Contract as StarknetContract,
-  uint256,
 } from "starknet";
-import { DualVMToken, LaunchpadPumpDualVM, TipNostr } from "../typechain-types";
-import { formatFloatToUint256, LAUNCHPAD_ADDRESS, CLASS_HASH, TOKENS_ADDRESS, ACCOUNT_TEST_PROFILE } from "common";
+import {
+  // TipNostr,
+  DepositEscrowNostr,
+  DualVMToken
+} from "../typechain-types";
+import { TOKENS_ADDRESS, ACCOUNT_TEST_PROFILE } from "common";
 import { finalizeEvent } from "nostr-tools"
 dotenv.config();
 
@@ -29,30 +31,30 @@ if (KAKAROT_ADDRESS === "") {
   throw new Error("KAKAROT_ADDRESS is not set in .env");
 }
 
-describe("TipNostr", function () {
+describe("TipNostr Test", function () {
   this.timeout(0);
-  let tipNostr: TipNostr;
+  let tipNostr: DepositEscrowNostr;
   let owner: HardhatEthersSigner;
   let ownerStarknet: string;
   let addr1: HardhatEthersSigner;
   let addr2: HardhatEthersSigner;
-  let dualVMToken: DualVMToken;
-
 
   const starknetDepositEscrowSierra = readContractSierra("DepositEscrow");
   const starknetDepositEscrowCasm = readContractSierraCasm("DepositEscrow");
 
+  const provider = getTestProvider();
+  const account = getTestAccount(provider);
   const starknetTokenSierra = readContractSierra("ERC20");
   const starknetTokenCasm = readContractSierraCasm("ERC20");
   let starknetToken: StarknetContract;
+  let dualVMToken: DualVMToken;
 
-  const provider = getTestProvider();
-  const account = getTestAccount(provider);
   let dd: DeclareDeployUDCResponse;
   let ddToken: DeclareDeployUDCResponse;
   let starknetDeposit: StarknetContract;
 
   const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
+  const TOKEN_QUOTE_ADDRESS_KAKAROT = TOKENS_ADDRESS.KAKAROT[constants.StarknetChainId.SN_SEPOLIA].ETH;
 
   // Nostr account
   let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
@@ -90,27 +92,41 @@ describe("TipNostr", function () {
 
       /** Deploy the contract */
       // Deploy the starknetToken
-      // console.log("deploy token class hash")
-      // ddToken = await account.declareAndDeploy({
-      //   contract: starknetTokenSierra,
-      //   casm: starknetTokenCasm,
-      //   constructorCalldata: [
-      //     cairo.felt("TEST_SYMBOL"),
-      //     cairo.felt("TEST"),
-      //     cairo.uint256(100_000_000),
-      //     ownerStarknet,
-      //     18],
-      // });
-      // ddToken = await account.declareAndDeploy({
-      //   contract: starknetTokenSierra,
-      //   casm: starknetTokenCasm,
-      //   constructorCalldata: [100_000_000, 0, ownerStarknet],
-      // });
-      // starknetToken = new StarknetContract(
-      //   starknetTokenSierra.abi,
-      //   ddToken.deploy.contract_address,
-      //   account
-      // );
+      console.log("deploy token class hash")
+      ddToken = await account.declareAndDeploy({
+        contract: starknetTokenSierra,
+        casm: starknetTokenCasm,
+        constructorCalldata: [
+          cairo.felt("TEST_SYMBOL"),
+          cairo.felt("TEST"),
+          cairo.uint256(100_000_000),
+          ownerStarknet,
+          18],
+      });
+      starknetToken = new StarknetContract(
+        starknetTokenSierra.abi,
+        ddToken.deploy.contract_address,
+        account
+      );
+
+      // Deploy the DualVMToken contract
+      const DualVMTokenFactory = await hre.ethers.getContractFactory(
+        "DualVMToken"
+      );
+      dualVMToken = await DualVMTokenFactory.deploy(
+        KAKAROT_ADDRESS,
+        TOKEN_QUOTE_ADDRESS
+        // starknetToken.address
+      ).then((c) => c.waitForDeployment());
+
+      // Whitelist the Duam Token contract to call Cairo contracts
+      await account.execute([
+        {
+          contractAddress: KAKAROT_ADDRESS,
+          calldata: [await dualVMToken.getAddress(), true],
+          entrypoint: "set_authorized_cairo_precompile_caller",
+        },
+      ]);
 
       // Deploy the starknetDeposit
       console.log("deploy deposit escrow")
@@ -131,7 +147,7 @@ describe("TipNostr", function () {
       console.log("deploy solidity tip nostr")
 
       const tipNostrFactory = await hre.ethers.getContractFactory(
-        "TipNostr"
+        "DepositEscrowNostr"
       );
       tipNostr = await tipNostrFactory.deploy(
         KAKAROT_ADDRESS,
@@ -157,11 +173,20 @@ describe("TipNostr", function () {
   describe("depositTo", function () {
     it("Should deposit to a Nostr user", async function () {
 
+      await dualVMToken
+        .connect(addr1)
+        .approve(addr2.address, 100)
+        .then((tx) => tx.wait());
+      expect(
+        await dualVMToken.allowance(await addr1.address, addr2.address)
+      ).to.equal(100);
+
       await tipNostr
         .connect(addr1)
         .depositTo(
           1n,
-          TOKEN_QUOTE_ADDRESS,
+          // await dualVMToken.getAddress(),
+          TOKEN_QUOTE_ADDRESS_KAKAROT,
           alicePublicKeyUint256,
           0
         )
@@ -172,27 +197,42 @@ describe("TipNostr", function () {
   describe("claim", function () {
     it("Should deposit to a Nostr user", async function () {
 
+      await dualVMToken
+        .connect(addr1)
+        .approve(addr2.address, 100)
+        .then((tx) => tx.wait());
+      expect(
+        await dualVMToken.allowance(await addr1.address, addr2.address)
+      ).to.equal(100);
+
+
       await tipNostr
         .connect(addr1)
         .depositTo(
-          1,
-          TOKEN_QUOTE_ADDRESS,
+          1n,
+          TOKEN_QUOTE_ADDRESS_KAKAROT,
+          // await dualVMToken.getAddress(),
           alicePublicKeyUint256,
           0
         )
         .then((tx) => tx.wait());
 
+      // await tipNostr
+      //   .connect(addr1)
+      //   .depositTo(
+      //     1,
+      //     TOKEN_QUOTE_ADDRESS,
+      //     alicePublicKeyUint256,
+      //     0
+      //   )
+      //   .then((tx) => tx.wait());
 
-      /** Start claim with Nostr event */
+      // /** Start claim with Nostr event */
 
       const content = `claim: ${cairo.felt(0)},${cairo.felt(
         ownerStarknet!,
       )},${cairo.felt(TOKEN_QUOTE_ADDRESS)},${BigInt(1).toString()}`;
-
-
       const timestamp = new Date().getTime()
-
-
       let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
       let privateKey = privateKeyAlice
 
@@ -219,21 +259,17 @@ describe("TipNostr", function () {
       console.log("signatureS", signatureS);
       let public_key = BigInt("0x" + alicePublicKey)
 
-
       /** @TODO fix conversion */
       const claimParams = {
         public_key: public_key,
         created_at: new Date().getTime(),
         kind: 1,
         tags: ethers.toUtf8Bytes("[]"), // tags
-        // tags: byteArray.byteArrayFromString("[]"), // tags
-        // content: content, // currentId in felt
-        // content: cairo.felt(depositId),
         content: {
-          deposit_id: ethers.toUtf8Bytes("0").slice(0,31),
+          deposit_id: ethers.toUtf8Bytes("0").slice(0, 31),
           starknet_recipient: ownerStarknet,
           gas_token_address: TOKEN_QUOTE_ADDRESS,
-          gas_amount:BigInt(0),
+          gas_amount: BigInt(0),
         },
         sig: {
           r: signatureR,

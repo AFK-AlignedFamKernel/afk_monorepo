@@ -5,7 +5,7 @@ import {CairoLib} from "kakarot-lib/CairoLib.sol";
 
 using CairoLib for uint256;
 
-contract TipNostr {
+contract DepositEscrowNostr {
 
     /// @dev The address of the starknet token to call
     uint256 immutable depositAddress;
@@ -64,7 +64,7 @@ contract TipNostr {
         uint256 tokenStarknetAddress =
             abi.decode(kakarot.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
 
-        // Split amount in [low, high]
+        // // Split amount in [low, high]
         uint128 amountLow = uint128(amount);
         uint128 amountHigh = uint128(amount >> 128);
 
@@ -76,11 +76,12 @@ contract TipNostr {
         depositCallData[0] = amountLow;
         depositCallData[1] = amountHigh;
         depositCallData[2] = tokenStarknetAddress;
-        depositCallData[3] = nostrAddressLow;
-        depositCallData[4] = nostrAddressHigh;
-        depositCallData[5] = timelock;
+        depositCallData[3] = uint(nostrAddressLow);
+        depositCallData[4] = uint(nostrAddressHigh);
+        depositCallData[5] = uint(timelock);
         bytes memory returnData = depositAddress.staticcallCairo("deposit", depositCallData);
         return abi.decode(returnData, (uint256));
+        // return tokenStarknetAddress;
 
 
     }

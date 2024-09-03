@@ -222,17 +222,14 @@ describe("NamespaceDualVM", function () {
         console.log("signatureR", signatureR);
         console.log("signatureS", signatureS);
         let public_key = BigInt("0x" + alicePublicKey)
-  
+        // let public_key = alicePublicKey
   
         /** @TODO fix conversion */
         const linkParams = {
           public_key: public_key,
-          created_at: new Date().getTime(),
+          created_at: timestamp,
           kind: 1,
           tags: ethers.toUtf8Bytes("[]"), // tags
-          // tags: byteArray.byteArrayFromString("[]"), // tags
-          // content: content, // currentId in felt
-          // content: cairo.felt(depositId),
           content: {
             nostr_address: public_key,
             starknet_address: ownerStarknet,
@@ -240,8 +237,6 @@ describe("NamespaceDualVM", function () {
           sig: {
             r: signatureR,
             s: signatureS,
-            // r: BigInt("0x"+signatureR),
-            // s: BigInt("0x"+signatureS),
           },
         };
   
@@ -260,6 +255,14 @@ describe("NamespaceDualVM", function () {
           alicePublicKeyUint256
         )
         .then((tx) => tx.wait());
+
+
+      await namespace
+      .connect(addr1)
+      .getNostrAddressByStarknetAddress(
+        addr1.address,
+      )
+      .then((tx) => tx.wait());
 
     })
   })
