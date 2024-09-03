@@ -216,7 +216,7 @@ describe("PumpDualVM", function () {
         .then((tx) => tx.wait());
     })
   })
-
+  /** @TODO fix infinite timeout */
   // describe("createToken", function () {
   //   it("Should create token", async function () {
   //      timestampBytes = ethers.toUtf8Bytes(new Date().getTime().toString()).slice(0, 31)
@@ -231,13 +231,10 @@ describe("PumpDualVM", function () {
   //         timestampBytes,
   //       )
   //       .then((tx) => tx.wait());
-
   //   })
 
   // })
-
  
-
 
   describe("buyCoin", function () {
     it("Buy coin with address and quote amount", async function () {

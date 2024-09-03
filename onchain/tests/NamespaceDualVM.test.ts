@@ -13,11 +13,13 @@ import {
 import dotenv from "dotenv";
 import {
   cairo,
+  constants,
   DeclareDeployUDCResponse,
   Contract as StarknetContract,
 } from "starknet";
 import { DualVMToken, NamespaceNostr } from "../typechain-types";
-import { ACCOUNT_TEST_PROFILE } from "common";
+import { ACCOUNT_TEST_PROFILE, TOKENS_ADDRESS } from "common";
+import { finalizeEvent } from "nostr-tools";
 
 dotenv.config();
 
@@ -55,6 +57,7 @@ describe("NamespaceDualVM", function () {
   let dd: DeclareDeployUDCResponse;
   let ddToken: DeclareDeployUDCResponse;
   let starknetNamespace: StarknetContract;
+  const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
 
   this.beforeAll(async function () {
     try {
@@ -154,6 +157,7 @@ describe("NamespaceDualVM", function () {
 
   });
 
+
   describe("Get Nostr address of a Starknet user", function () {
     it("Get Nostr address of a Starknet user", async function () {
 
@@ -169,6 +173,86 @@ describe("NamespaceDualVM", function () {
 
   describe("Get Starknet address", function () {
     it("Get Starknet address by Nostr user" , async function () {
+
+      await namespace
+        .connect(addr1)
+        .getStarknetAddressByNostrAddress(
+          alicePublicKeyUint256
+        )
+        .then((tx) => tx.wait());
+
+    })
+  })
+
+
+  describe("Linked nostr address", function () {
+    it("Link nostr address" , async function () {
+
+
+        /** Start claim with Nostr event */
+
+        // const content = `link to ${alicePublicKey}`;
+        const content = `link to ${cairo.felt(ownerStarknet)}`;
+  
+        const timestamp = new Date().getTime()
+  
+  
+        let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
+        let privateKey = privateKeyAlice
+  
+        // Sign Nostr event
+        const event = finalizeEvent(
+          {
+            kind: 1,
+            tags: [],
+            content: content,
+            created_at: timestamp,
+          },
+          privateKey
+        );
+  
+        console.log(
+          "event",
+          event
+        );
+        const signature = event.sig;
+        const signatureR = "0x" + signature.slice(0, signature.length / 2);
+        const signatureS = "0x" + signature.slice(signature.length / 2);
+        console.log("signature", signature);
+        console.log("signatureR", signatureR);
+        console.log("signatureS", signatureS);
+        let public_key = BigInt("0x" + alicePublicKey)
+  
+  
+        /** @TODO fix conversion */
+        const linkParams = {
+          public_key: public_key,
+          created_at: new Date().getTime(),
+          kind: 1,
+          tags: ethers.toUtf8Bytes("[]"), // tags
+          // tags: byteArray.byteArrayFromString("[]"), // tags
+          // content: content, // currentId in felt
+          // content: cairo.felt(depositId),
+          content: {
+            nostr_address: public_key,
+            starknet_address: ownerStarknet,
+          },
+          sig: {
+            r: signatureR,
+            s: signatureS,
+            // r: BigInt("0x"+signatureR),
+            // s: BigInt("0x"+signatureS),
+          },
+        };
+  
+
+      await namespace
+        .connect(addr1)
+        .linkNostrAddress(
+          linkParams
+        )
+        .then((tx) => tx.wait());
+
 
       await namespace
         .connect(addr1)

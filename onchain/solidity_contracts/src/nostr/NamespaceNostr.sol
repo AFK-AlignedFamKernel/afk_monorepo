@@ -14,7 +14,6 @@ contract NamespaceNostr {
     /// @dev The address of the starknet token to call
     uint256 immutable kakarot;
 
-
     struct SocialRequestLink {
         uint256 public_key;
         uint64 created_at;

@@ -68,7 +68,6 @@ contract LaunchpadPumpDualVM {
         
     }
 
-
     constructor(
         uint256 _kakarot,
         uint256 _starknetLaunchpad) {
@@ -108,40 +107,6 @@ contract LaunchpadPumpDualVM {
 
     }
 
-       // Function to cast `bytes` to `bytes31`
-    function bytesToBytes31(bytes memory b) internal pure returns (bytes31) {
-        require(b.length == 31, "Invalid bytes length for bytes31");
-
-        bytes31 result;
-        assembly {
-            result := mload(add(b, 31))
-        }
-
-        return result;
-    }
-
-    // Function to convert `bytes31` to `uint256`
-    function bytes31ToUint256(bytes31 input) internal pure returns (uint256) {
-        uint256 result;
-        assembly {
-            result := mload(add(input, 31)) // Read 31 bytes as uint256
-        }
-        return result;
-    }
-
-
-  // Function to convert `bytes calldata` to `bytes31` and then to uint256
-    function convertBytesToUint256(bytes calldata input) internal pure returns (uint256) {
-        require(input.length == 31, "Input must be exactly 31 bytes long");
-
-        // Convert `bytes calldata` to `bytes31`
-        bytes31 fixedBytes = bytes31(bytesToBytes31(input));
-
-        // Convert `bytes31` to `uint256`
-        uint256 result = bytes31ToUint256(fixedBytes);
-
-        return result;
-    }
 
     /** */
     function createToken(address recipient,
@@ -176,12 +141,14 @@ contract LaunchpadPumpDualVM {
         createTokenCallData[4] = uint256(amountHigh);
         createTokenCallData[5] = uint256(contractAddressSaltResult);
 
+        // TODO change to create token only
         starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN, createTokenCallData);
+        // starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN_AND_LAUNCH, createTokenCallData);
+
         // starknetLaunchpad.callCairo("create_token", createTokenCallData);
         // starknetLaunchpad.staticcallCairo("create_token", createTokenCallData);
 
     }
-
 
     function createAndLaunchToken(
          address recipient,
@@ -263,6 +230,40 @@ contract LaunchpadPumpDualVM {
         sellTokenCalldata[0] = coinStarknetAddress;
         starknetLaunchpad.callCairo(FUNCTION_SELECTOR_SELL_COIN, sellTokenCalldata);
 
+    }
+
+    // Function to cast `bytes` to `bytes31`
+    function bytesToBytes31(bytes memory b) internal pure returns (bytes31) {
+        require(b.length == 31, "Invalid bytes length for bytes31");
+
+        bytes31 result;
+        assembly {
+            result := mload(add(b, 31))
+        }
+
+        return result;
+    }
+
+    // Function to convert `bytes31` to `uint256`
+    function bytes31ToUint256(bytes31 input) internal pure returns (uint256) {
+        uint256 result;
+        assembly {
+            result := mload(add(input, 31)) // Read 31 bytes as uint256
+        }
+        return result;
+    }
+
+    // Function to convert `bytes calldata` to `bytes31` and then to uint256
+    function convertBytesToUint256(bytes calldata input) internal pure returns (uint256) {
+        require(input.length == 31, "Input must be exactly 31 bytes long");
+
+        // Convert `bytes calldata` to `bytes31`
+        bytes31 fixedBytes = bytes31(bytesToBytes31(input));
+
+        // Convert `bytes31` to `uint256`
+        uint256 result = bytes31ToUint256(fixedBytes);
+
+        return result;
     }
     
 }
