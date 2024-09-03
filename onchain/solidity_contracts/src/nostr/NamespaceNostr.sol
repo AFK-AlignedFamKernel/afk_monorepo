@@ -6,45 +6,50 @@ import {CairoLib} from "kakarot-lib/CairoLib.sol";
 
 using CairoLib for uint256;
 
-contract Namespace {
+contract NamespaceNostr {
 
     /// @dev The address of the starknet token to call
     uint256 immutable namespaceAddress;
 
-    constructor(uint256 _namespaceAddress) {
+    /// @dev The address of the starknet token to call
+    uint256 immutable kakarot;
+
+    constructor(
+        uint256 _kakarot,
+        uint256 _namespaceAddress) {
+        kakarot = _kakarot;
         namespaceAddress = _namespaceAddress;
     }
 
 
     // Get nostr address by starknet address
-    function getNostrAddressByStarknetAddress(uint256 userAddress) public {
+    function getNostrAddressByStarknetAddress(uint256 userAddress) public returns(uint256) {
 
-        uint256[] memory kakarotCallData = new uint256[](1);
-        kakarotCallData[0] = uint256(uint160(userAddress));
+        // Split amount in [low, high]
+        uint128 addressLow = uint128(userAddress);
+        uint128 addressHigh = uint128(userAddress >> 128);
 
-        uint256 userStarknetAddress =
-            abi.decode(namespaceAddress.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
-    
-        uint256[] memory addressOfCallData = new uint256[](1);
-        addressOfCallData[0] = userStarknetAddress;
+        uint256[] memory addressOfCallData = new uint256[](2);
+        addressOfCallData[0] = addressLow;
+        addressOfCallData[1] = addressHigh;
         bytes memory returnData = namespaceAddress.staticcallCairo("get_nostr_by_sn_default", addressOfCallData);
-        // return abi.decode(returnData, (uint256));
+        return abi.decode(returnData, (uint256));
     }
 
 
     // Get Starknet address namespace with
-    function getStarknetAddressByNostrAddress(uint256 nostrAddress) public {
+    function getStarknetAddressByNostrAddress(uint256 nostrAddress) public returns(uint256) {
 
         uint256[] memory kakarotCallData = new uint256[](1);
         kakarotCallData[0] = uint256(uint160(nostrAddress));
 
         uint256 userStarknetAddress =
-            abi.decode(namespaceAddress.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
+            abi.decode(kakarot.staticcallCairo("compute_starknet_address", kakarotCallData), (uint256));
     
         uint256[] memory addressOfCallData = new uint256[](1);
         addressOfCallData[0] = userStarknetAddress;
         bytes memory returnData = namespaceAddress.staticcallCairo("get_sn_by_nostr_default", addressOfCallData);
-        // return abi.decode(returnData, (uint256));
+        return abi.decode(returnData, (uint256));
     }
 
     function linkNostrAddress() public {

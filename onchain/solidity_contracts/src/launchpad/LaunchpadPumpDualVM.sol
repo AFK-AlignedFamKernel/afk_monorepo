@@ -160,13 +160,13 @@ contract LaunchpadPumpDualVM {
         uint128 amountLow = uint128(initialSupply);
         uint128 amountHigh = uint128(initialSupply >> 128);
         // Decode the first 32 bytes (a uint256 is 32 bytes)
-        // uint256 symbolAsUint = bytesFeltToUint256(symbol);
-        // uint256 nameAsUint = bytesFeltToUint256(name);
-        // uint256 contractAddressSaltResult = bytesFeltToUint256(contractAddressSalt);
+        uint256 symbolAsUint = bytesFeltToUint256(symbol);
+        uint256 nameAsUint = bytesFeltToUint256(name);
+        uint256 contractAddressSaltResult = bytesFeltToUint256(contractAddressSalt);
 
-        uint256 symbolAsUint = convertBytesToUint256(symbol);
-        uint256 nameAsUint = convertBytesToUint256(name);
-        uint256 contractAddressSaltResult = convertBytesToUint256(contractAddressSalt);
+        // uint256 symbolAsUint = convertBytesToUint256(symbol);
+        // uint256 nameAsUint = convertBytesToUint256(name);
+        // uint256 contractAddressSaltResult = convertBytesToUint256(contractAddressSalt);
 
         uint256[] memory createTokenCallData = new uint256[](6);
         createTokenCallData[0] = recipientStarknetAddress;
