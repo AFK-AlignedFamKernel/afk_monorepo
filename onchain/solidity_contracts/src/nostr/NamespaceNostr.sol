@@ -14,6 +14,25 @@ contract NamespaceNostr {
     /// @dev The address of the starknet token to call
     uint256 immutable kakarot;
 
+
+    struct SocialRequestLink {
+        uint256 public_key;
+        uint64 created_at;
+        uint16 kind;
+        bytes tags;
+        Content content;
+        Signature sig;
+    }
+    
+    struct Content {
+        uint256 nostr_address;
+        uint256 starknet_address;
+    }
+    struct Signature {
+        uint256 r;
+        uint256 s;
+    }
+
     constructor(
         uint256 _kakarot,
         uint256 _namespaceAddress) {
@@ -52,7 +71,7 @@ contract NamespaceNostr {
         return abi.decode(returnData, (uint256));
     }
 
-    function linkNostrAddress() public {
+    function linkNostrAddress(SocialRequestLink memory request) public {
 
     }
     
