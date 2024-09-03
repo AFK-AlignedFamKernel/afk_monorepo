@@ -160,12 +160,6 @@ contract LaunchpadPumpDualVM {
         uint128 amountLow = uint128(initialSupply);
         uint128 amountHigh = uint128(initialSupply >> 128);
         // Decode the first 32 bytes (a uint256 is 32 bytes)
-        // uint256 symbolResult = abi.decode(symbol, (uint256));
-        // uint256 nameResult = abi.decode(name, (uint256));
-
-        // uint256 contractAddressSaltResult = abi.decode(contractAddressSalt, (uint256));
-
-
         // uint256 symbolAsUint = bytesFeltToUint256(symbol);
         // uint256 nameAsUint = bytesFeltToUint256(name);
         // uint256 contractAddressSaltResult = bytesFeltToUint256(contractAddressSalt);
