@@ -9,7 +9,14 @@ const Router = express.Router()
 
 Router.get('/', async (req, res) => {
   try {
-    const launches = await prisma.token_launch.findMany({})
+    const launches = await prisma.token_launch.findMany({
+      select:{
+        memecoin_address:true,
+        price:true,
+        total_supply:true,
+        network:true,
+      }
+    })
     res.status(HTTPStatus.OK).json({
       data:launches
     })

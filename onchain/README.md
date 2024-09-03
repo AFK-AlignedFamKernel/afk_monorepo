@@ -191,3 +191,9 @@ To run the hardhat test suite, you can run:
 ```sh
 make test
 ```
+
+To run test without build cairo contracts again
+
+```sh
+make test-speed
+```
