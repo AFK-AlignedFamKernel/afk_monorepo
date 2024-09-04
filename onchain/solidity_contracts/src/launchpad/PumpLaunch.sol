@@ -11,9 +11,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../tokens/ERC20Launch.sol";
-import "uniswap-v2-core/contracts/interfaces/IUniswapV2Factory.sol";
-import "uniswap-v2-core/contracts/interfaces/IUniswapV2Pair.sol";
-import "uniswap-v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+// import "uniswap-v2-core/contracts/interfaces/IUniswapV2Factory.sol";
+// import "uniswap-v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+// import "uniswap-v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 // Import Foundry's console library
 import "forge-std/console.sol";
@@ -37,7 +37,9 @@ contract PumpLaunch is
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint256 constant LIQUIDITY_RATIO = 5;
-    IUniswapV2Router02 public uniswapRouter;
+
+    // @TODO uncomment and fix
+    // IUniswapV2Router02 public uniswapRouter;
 
     struct SharesTokenUser {
         address owner;
@@ -152,7 +154,7 @@ contract PumpLaunch is
             feeAddress: _admin
         });
         paramsPump = params;
-        uniswapRouter = IUniswapV2Router02(_routerAddress);
+        // uniswapRouter = IUniswapV2Router02(_routerAddress);
         _grantRole(MINTER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
@@ -494,6 +496,9 @@ contract PumpLaunch is
         return q_out;
     }
 
+    // TODO fix and uncomment
+
+    // Add liquidity in DEX V2
     function _addLiquidity(
         address tokenA,
         address tokenB,
@@ -504,25 +509,25 @@ contract PumpLaunch is
         address to,
         uint256 deadline
     ) internal {
-         // Transfer tokens from the sender to this contract
-        IERC20(tokenA).transferFrom(msg.sender, address(this), amountADesired);
-        IERC20(tokenB).transferFrom(msg.sender, address(this), amountBDesired);
+        //  // Transfer tokens from the sender to this contract
+        // IERC20(tokenA).transferFrom(msg.sender, address(this), amountADesired);
+        // IERC20(tokenB).transferFrom(msg.sender, address(this), amountBDesired);
 
-        // Approve the Uniswap V2 Router to spend the tokens
-        IERC20(tokenA).approve(address(uniswapRouter), amountADesired);
-        IERC20(tokenB).approve(address(uniswapRouter), amountBDesired);
+        // // Approve the Uniswap V2 Router to spend the tokens
+        // IERC20(tokenA).approve(address(uniswapRouter), amountADesired);
+        // IERC20(tokenB).approve(address(uniswapRouter), amountBDesired);
 
-        // Add liquidity to the Uniswap pool
-        (amountA, amountB, liquidity) = uniswapRouter.addLiquidity(
-            tokenA,
-            tokenB,
-            amountADesired,
-            amountBDesired,
-            amountAMin,
-            amountBMin,
-            to,
-            deadline
-        );
+        // // Add liquidity to the Uniswap pool
+        // (amountA, amountB, liquidity) = uniswapRouter.addLiquidity(
+        //     tokenA,
+        //     tokenB,
+        //     amountADesired,
+        //     amountBDesired,
+        //     amountAMin,
+        //     amountBMin,
+        //     to,
+        //     deadline
+        // );
     }
 
     /** ADMINS */
