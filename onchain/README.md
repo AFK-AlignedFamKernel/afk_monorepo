@@ -26,6 +26,10 @@ git submodule add https://github.com/kkrt-labs/kakarot-lib solidity_contracts/li
 
 git submodule add https://github.com/foundry-rs/forge-std solidity_contracts/lib/forge-std
 
+git submodule add https://github.com/Uniswap/v2-core solidity_contracts/lib/uniswap-v2-core
+
+git submodule add https://github.com/Uniswap/v2-periphery solidity_contracts/lib/uniswap-v2-periphery
+
 pnpm i .  && cp .env.example .env
 ```
 
