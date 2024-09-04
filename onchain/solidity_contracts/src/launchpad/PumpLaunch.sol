@@ -161,7 +161,7 @@ contract PumpLaunch  is
 
         address tokenAddress= _createToken(recipient, msg.sender, symbol, name, initialSupply);
 
-        // _launchToken(coinAddress);
+        _launchToken(tokenAddress, msg.sender);
 
 
     }
@@ -176,6 +176,90 @@ contract PumpLaunch  is
 
     }
 
+    function buyToken(
+        address coinAddress,
+        uint256 quoteAmount
+    ) public {
+
+        TokenLaunch memory launch = launchCreated[coinAddress];
+
+        // assert check if launch
+        // check threshold and liquidity raised
+        // Transfer quote amount
+        IERC20 erc20 = IERC20(coinAddress);
+        // Call the totalSupply() function of the ERC20 token
+        bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount);
+
+        // Calculate price of token bought with quote
+        uint256 coinAmount= _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
+        launch.available_supply-=coinAmount;
+
+        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
+
+        if(share.owner == address(0)) {
+
+            share.owner=msg.sender;
+            share.total_paid=quoteAmount;
+
+            share.token_address=coinAddress;
+            share.amount_owned=coinAmount;
+            share.amount_sell=0;
+            share.amount_buy=coinAmount;
+
+        } else {
+            share.total_paid+=quoteAmount;
+
+            share.amount_owned+=coinAmount;
+            share.amount_buy+=coinAmount;
+            
+        }
+
+        // Check if add liquidity to DEX
+
+    }
+
+    function sellToken(
+        address coinAddress,
+        uint256 quoteAmount
+
+    ) public {
+
+        TokenLaunch memory launch = launchCreated[coinAddress];
+
+        // assert check if launch
+
+        // check threshold and liquidity raised
+        // Calculate price of token to sell with quote
+        uint256 coinAmount= _getSellAmountCoinByQuote(coinAddress, quoteAmount);
+        launch.available_supply+=coinAmount;
+
+        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
+        require(share.owner != address(0), "not init");
+
+        require(share.amount_owned >= coinAmount, "above balance");
+
+
+        share.amount_owned-=coinAmount;
+        share.amount_buy-=coinAmount;
+        share.total_paid-=quoteAmount;
+        share.amount_sell+=coinAmount;
+
+    }
+
+    /** PUBLIC VIEW */
+
+
+    function getShareOfUser(address user, address coinAddress) public view returns(SharesTokenUser memory) {
+        return shareUserByToken[user][coinAddress];
+    }
+
+    function getLaunch(address coinAddress) public view returns(TokenLaunch memory) {
+        return launchCreated[coinAddress];
+    }
+
+    function getToken(address coinAddress) public view returns(Token memory) {
+        return tokensCreated[coinAddress];
+    }
 
     /** INTERNAL */
 
@@ -211,12 +295,15 @@ contract PumpLaunch  is
     function _launchToken(address coinAddress, address caller) internal {
         Token memory token = tokensCreated[coinAddress];
 
+
         address tokenAddress = token.token_address;
-      // Create an instance of the IERC20 token
+        // Create an instance of the IERC20 token
         IERC20 erc20 = IERC20(tokenAddress);
+        uint256 totalSupply = erc20.totalSupply();
+
+        bool transfer= erc20.transferFrom(caller, address(this), totalSupply);
 
         // Call the totalSupply() function of the ERC20 token
-        uint256 totalSupply = erc20.totalSupply();
         uint256 availableSupply= totalSupply / LIQUIDITY_RATIO;
 
         TokenLaunch memory launch = TokenLaunch({
@@ -235,63 +322,9 @@ contract PumpLaunch  is
             created_at:block.timestamp// change date
         });
 
+
+
         launchCreated[tokenAddress] = launch;
-
-    }
-
-    function buyToken(
-        address coinAddress,
-        uint256 quoteAmount
-    ) public {
-
-
-        TokenLaunch memory launch = launchCreated[coinAddress];
-
-
-
-        // assert check if launch
-
-
-        // check threshold and liquidity raised
-        // Transfer quote amount
-        IERC20 erc20 = IERC20(coinAddress);
-        // Call the totalSupply() function of the ERC20 token
-        bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount);
-
-        // Calculate price of token bought with quote
-        uint256 coinAmount= _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
-        launch.available_supply-=coinAmount;
-
-        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
-
-        if(share.owner == address(0)) {
-
-            share.owner=msg.sender;
-            share.token_address=coinAddress;
-            share.amount_owned=coinAmount;
-            share.amount_sell=0;
-            share.total_paid=coinAmount;
-            share.amount_buy=coinAmount;
-
-        } else {
-            share.amount_owned+=coinAmount;
-            share.total_paid+=coinAmount;
-            share.amount_buy+=coinAmount;
-            
-        }
-
-
-        // Check if add liquidity to DEX
-
-
-
-    }
-
-    function sellToken(
-        address coinAddress,
-        uint256 quoteAmount
-
-    ) public {
 
     }
 
