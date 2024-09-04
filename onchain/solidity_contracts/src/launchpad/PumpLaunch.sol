@@ -53,8 +53,10 @@ contract PumpLaunch  is
         uint256 total_supply;
         uint256 initial_key_price;
         uint256 liquidity_raised;
+        uint256 threshold_liquidity;
         uint256 token_holded;
         bool is_liquidity_launch;
+        address quote_address;
         uint256 slop;
         // uint64 created_at;
         uint256 created_at;
@@ -80,12 +82,14 @@ contract PumpLaunch  is
         
     }
 
-    ParamsPool public paramsPump;
 
+    /** TODO Opti mapping */
     mapping(uint256 => Token) public tokens;
     mapping(address => Token) public tokensCreated;
     mapping(uint256 => TokenLaunch) public launchs;
+    mapping(address => TokenLaunch) public launchCreated;
 
+    ParamsPool public paramsPump;
 
     // constructor(
     //     address _admin,
@@ -195,7 +199,8 @@ contract PumpLaunch  is
 
         });
 
-        // Add mapping
+        // TODO Add mapping
+        tokensCreated[tokenAddress] = tokenCreated;
 
         return address(token);
     }
@@ -214,15 +219,19 @@ contract PumpLaunch  is
             owner:token.owner,
             token_address:token.token_address,
             price:0, // calculate
-            available_supply:totalSupply,
-            total_supply:availableSupply,
+            available_supply:availableSupply,
+            total_supply:totalSupply,
             is_liquidity_launch:false,
             token_holded:0,
             liquidity_raised:0,
+            quote_address:paramsPump.quoteAddress,
+            threshold_liquidity:paramsPump.thresholdLiquidity,
             initial_key_price:0,
             slop:0, // calculate
             created_at:block.timestamp// change date
         });
+
+        launchCreated[tokenAddress] = launch;
 
     }
 
@@ -237,6 +246,56 @@ contract PumpLaunch  is
     ) public {
 
     }
+
+
+    // @TODO verify bonding curve calcul 
+    /** Buy amount bonding curve */
+    function getBuyAmountCoinByQuote(address coinAddress,
+    uint256 quoteAmount
+
+    
+    ) public returns(uint256) {
+
+        TokenLaunch memory launch = launchCreated[coinAddress];
+
+        // Assert and check
+        // TODO verify calcul and data init
+        uint256 tokenHold= launch.token_holded;
+        uint256 liqRaised= launch.liquidity_raised;
+        uint256 k = tokenHold* liqRaised;
+        uint256 totalSupply= launch.total_supply;
+
+        uint256 q_in= (totalSupply - availableSupply) - (k/quoteAmount);
+
+        return q_in;
+
+    }
+
+    // @TODO verify bonding curve calcul 
+    /** Sell amount bonding curve */
+    function getSellAmountCoinByQuote(address coinAddress,
+        uint256 quoteAmount
+    
+    ) public returns(uint256) {
+
+        TokenLaunch memory launch = launchCreated[coinAddress];
+
+        // Assert and check
+        // TODO verify calcul and data init
+        uint256 liqRaised= launch.liquidity_raised;
+        uint256 initSupplyPool=availableSupply;
+        uint256 supplyToBuy= launch.liquidity_raised;
+        uint256 thresholdLiquidity= launch.threshold_liquidity;
+
+        uint256 k = thresholdLiquidity * initSupplyPool;
+
+        uint256 tokenHold= launch.token_holded;
+
+        uint256 q_out= liqRaised + thresholdLiquidity / LIQUIDITY_RATIO - k / (tokenHold + quoteAmount);
+
+        return q_out;
+    }
+
 
 
     /** ADMINS */
