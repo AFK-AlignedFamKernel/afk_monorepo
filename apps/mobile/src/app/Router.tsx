@@ -5,7 +5,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useMemo, useState} from 'react';
 import {Dimensions, Platform, StyleSheet, useWindowDimensions, View} from 'react-native';
-
 import {Icon} from '../components';
 import {Navbar} from '../components/Navbar';
 import {useStyles, useTheme} from '../hooks';
@@ -198,7 +197,8 @@ const AuthNavigator: React.FC = () => {
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        header: () =>
+          !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
@@ -263,11 +263,11 @@ const MainNavigator: React.FC = () => {
   const theme = useTheme();
 
   const FeedWithSidebar: React.FC = () => (
-    <View style={{ flexDirection: 'row', flex: 1 }}>
-      <View style={{ flex: 1 }}>
+    <View style={{flexDirection: 'row', flex: 1}}>
+      <View style={{flex: 1}}>
         <Feed navigation={useNavigation()} route={useRoute()} />
       </View>
-      <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
+      <View style={{width: 250, backgroundColor: theme.theme.colors.surface}}>
         <RightSidebar />
       </View>
     </View>
@@ -280,7 +280,8 @@ const MainNavigator: React.FC = () => {
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({navigation}) => ({
         // headerShown:false,
-        header: () => (!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null),
+        header: () =>
+          !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
@@ -297,7 +298,6 @@ const MainNavigator: React.FC = () => {
         },
       })}
     >
-
       {!isDesktop ? (
         <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
       ) : (

@@ -1,63 +1,180 @@
 import {Platform, StatusBar} from 'react-native';
 
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   safeArea: {
     flex: 1,
-    padding: 5,
     backgroundColor: theme.colors.background,
-    color: theme.colors.text,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  text: {
-    color: theme.colors.text,
+  scrollView: {
+    flexGrow: 1,
   },
-  secondaryButton: {
-    backgroundColor: theme.colors.buttonDisabledBackground,
-  },
-  secondaryButtonText: {
-    color: theme.colors.text,
-  },
-  iconButton: {
-    backgroundColor: theme.colors.buttonDisabledBackground,
-    padding: Spacing.small,
-  },
-  buttonIcon: {
-    marginRight: Spacing.xxsmall,
-  },
-
-  info: {
+  container: {
+    width: '100%',
+    maxWidth: 500,
     padding: Spacing.medium,
+    borderRadius: 10,
+    backgroundColor: theme.colors.surface,
   },
-
-  usernameContainer: {
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 10,
+    padding: Spacing.medium,
+    marginBottom: Spacing.medium,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: Spacing.medium,
+    color: theme.colors.text,
+  },
+  content: {
+    borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xsmall,
-  },
-  username: {
-    maxWidth: '50%',
-    marginRight: Spacing.medium,
-  },
-  publicKey: {
-    flex: 1,
-    maxWidth: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  publicKeyText: {
-    flex: 1,
-    color: theme.colors.primary,
-  },
-
-  bio: {
+    gap: Spacing.small,
+    backgroundColor: theme.colors.transparent,
+    height: 56,
     marginBottom: Spacing.medium,
   },
-
-  connections: {
-    flexDirection: 'row',
+  input: {
+    borderWidth: 1,
+    borderRadius: 999,
+    borderColor: theme.colors.inputBorder,
+    flex: 1,
+    height: '100%',
+    paddingHorizontal: Spacing.large,
+    paddingVertical: Spacing.large,
+    color: theme.colors.inputText,
+    backgroundColor: theme.colors.inputBackground,
+    fontSize: 15,
+  },
+  button: {
+    backgroundColor: theme.colors.primary,
+    padding: Spacing.medium,
+    borderRadius: 999,
     alignItems: 'center',
-    gap: Spacing.xsmall,
+    marginTop: Spacing.small,
+  },
+  buttonText: {
+    color: theme.colors.onPrimary,
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  orText: {
+    textAlign: 'center',
+    marginVertical: Spacing.small,
+    color: theme.colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    padding: Spacing.large,
+    marginTop: 'auto',
+    borderRadius: 10,
+    width: '100%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: Spacing.medium,
+    color: theme.colors.text,
+  },
+  closeButton: {
+    marginTop: Spacing.medium,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+  },
+  errorText: {
+    marginTop: 3,
+    color: theme.colors.errorDark,
+  },
+
+  //Wallet Info
+  walletcontainer: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 10,
+    padding: Spacing.medium,
+    marginBottom: Spacing.medium,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    width: '100%',
+  },
+  infoSection: {
+    marginBottom: Spacing.medium,
+  },
+  paymentSection: {
+    marginBottom: Spacing.medium,
+  },
+  zapSection: {
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: Spacing.small,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.small,
+  },
+  infoLabel: {
+    ...Typography.regular,
+    color: theme.colors.textSecondary,
+  },
+  infoValue: {
+    ...Typography.semiBold,
+    color: theme.colors.text,
+  },
+  paymentRequest: {
+    marginBottom: Spacing.small,
+  },
+  paymentRequestLabel: {
+    ...Typography.regular,
+    color: theme.colors.textSecondary,
+    marginBottom: Spacing.xsmall,
+  },
+  paymentRequestValue: {
+    ...Typography.regular,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.messageCard,
+    padding: Spacing.small,
+    borderRadius: 5,
+  },
+
+  zapButton: {
+    backgroundColor: theme.colors.secondary,
+    padding: Spacing.medium,
+    borderRadius: 999,
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  paymentStatus: {
+    ...Typography.regular,
+    color: theme.colors.text,
+    textAlign: 'center',
   },
 }));
