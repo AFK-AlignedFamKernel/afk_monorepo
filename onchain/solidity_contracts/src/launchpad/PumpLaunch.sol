@@ -136,8 +136,8 @@ contract PumpLaunch is
         uint256 _thresholdLiquidity,
         uint256 _thresholdMarketCap,
         uint256 _liquidityPercentage,
-        uint256 _protocolFee,
-        address _routerAddress
+        uint256 _protocolFee
+        // address _routerAddress
     ) public initializer {
         __AccessControl_init();
         __Pausable_init();

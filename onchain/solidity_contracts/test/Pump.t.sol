@@ -33,6 +33,7 @@ contract PumpLaunchTest is Test {
             10000,              // thresholdMarketCap
             2000,// 20% liquidityPercentage:
             100 // 1% protocol fee
+            // address(0)
         );
 
         // Deploy a test ERC20 token to interact with (TestToken)
