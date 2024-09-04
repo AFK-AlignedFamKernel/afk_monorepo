@@ -67,7 +67,7 @@ contract ABTCVault is
         __UUPSUpgradeable_init();
         __Pausable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        // _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(MINTER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
