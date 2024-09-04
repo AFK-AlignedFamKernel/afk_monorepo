@@ -11,6 +11,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../tokens/ERC20Launch.sol";
+
+// Import Foundry's console library
+import "forge-std/console.sol";
+
 // contract PumpLaunch  is
 //     ERC20Upgradeable,
 //     OwnableUpgradeable,
@@ -79,6 +83,7 @@ contract PumpLaunch  is
         uint256 stepIncreaseLinear;
         uint256 thresholdLiquidity;
         uint256 thresholdMarketCap;
+        uint256 liquidityPercentage;
         
     }
 
@@ -88,34 +93,9 @@ contract PumpLaunch  is
     mapping(address => Token) public tokensCreated;
     mapping(uint256 => TokenLaunch) public launchs;
     mapping(address => TokenLaunch) public launchCreated;
-
-
     mapping(address => mapping(address => SharesTokenUser)) public shareUserByToken;
 
-
     ParamsPool public paramsPump;
-
-    // constructor(
-    //     address _admin,
-    //     uint256 _initialKeyPrice,
-    //     address _quoteAddress,
-    //     uint256 _stepIncreaseLinear,
-    //     uint256 _thresholdLiquidity,
-    //     uint256 _thresholdMarketCap ) {
-
-    //     ParamsPool memory params=  ParamsPool ({
-    //        initialKeyPrice: _initialKeyPrice,
-    //        quoteAddress:_quoteAddress,
-    //        stepIncreaseLinear:_stepIncreaseLinear,
-    //        thresholdLiquidity:_thresholdLiquidity,
-    //        thresholdMarketCap:_thresholdMarketCap
-    //     });
-    //     paramsPump=params;
-    //     _grantRole(DEFAULT_ADMIN_ROLE, _admin);
-    //     _grantRole(MINTER_ROLE, _admin);
-    //     _grantRole(UPGRADER_ROLE, _admin);
-    //     _grantRole(PAUSER_ROLE, _admin);
-    // }
 
     function initialize(
         address _admin,
@@ -123,30 +103,47 @@ contract PumpLaunch  is
         address _quoteAddress,
         uint256 _stepIncreaseLinear,
         uint256 _thresholdLiquidity,
-        uint256 _thresholdMarketCap 
+        uint256 _thresholdMarketCap,
+        uint256 _liquidityPercentage
     ) public initializer {
         __AccessControl_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
+
+        ParamsPool memory params=  ParamsPool ({
+           initialKeyPrice: _initialKeyPrice,
+           quoteAddress:_quoteAddress,
+           stepIncreaseLinear:_stepIncreaseLinear,
+           thresholdLiquidity:_thresholdLiquidity,
+           thresholdMarketCap:_thresholdMarketCap,
+           liquidityPercentage:_liquidityPercentage
+        });
+        paramsPump=params;
         _grantRole(MINTER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
         _grantRole(PAUSER_ROLE, _admin);
     }
 
+    function calculatePercentage(uint256 amount, uint256 percentage) public pure returns (uint256) {
+        // Ensure the percentage is provided in basis points (1% = 100, 20% = 2000)
+        return (amount * percentage) / 10000;
+    }
 
-    function getLaunchPump(uint256 tokenAddress) public {
+
+
+    function getParamsPump() public returns (ParamsPool memory) {
 
     }
 
     /** */
-    function createToken(address recipient,
+    function createToken(
+    address recipient,
       string calldata symbol,
       string calldata name,
-      uint256 initialSupply,
-      bytes calldata contractAddressSalt
+      uint256 initialSupply
     ) public returns(address) {
-        address tokenAddress= _createToken(recipient, msg.sender,  symbol, name, initialSupply);
+        address tokenAddress= _createToken(msg.sender, msg.sender,  symbol, name, initialSupply);
 
         return tokenAddress;
 
@@ -159,10 +156,11 @@ contract PumpLaunch  is
          uint256 initialSupply
         ) public returns (address) {
 
-        address tokenAddress= _createToken(recipient, msg.sender, symbol, name, initialSupply);
+        address tokenAddress= _createToken(address(this), msg.sender, symbol, name, initialSupply);
 
         _launchToken(tokenAddress, msg.sender);
 
+        return tokenAddress;
 
     }
 
@@ -182,17 +180,26 @@ contract PumpLaunch  is
     ) public {
 
         TokenLaunch memory launch = launchCreated[coinAddress];
+        require(launch.owner != address(0),"no launch");
 
         // assert check if launch
         // check threshold and liquidity raised
         // Transfer quote amount
-        IERC20 erc20 = IERC20(coinAddress);
+        IERC20 erc20 = IERC20(launch.quote_address);
+
+        // require(launch.liquidity_raised+quoteAmount<=launch.threshold_liquidity,"above liq thres");
+
         // Call the totalSupply() function of the ERC20 token
         bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount);
 
         // Calculate price of token bought with quote
         uint256 coinAmount= _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
-        launch.available_supply-=coinAmount;
+        // TODO fix available supply and assert
+        // require(launch.available_supply>=coinAmount,"no token for sell");
+
+        // TODO update state of launch and share
+        // launch.available_supply-=coinAmount;
+        launch.liquidity_raised+=quoteAmount;
 
         SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
 
@@ -225,24 +232,34 @@ contract PumpLaunch  is
     ) public {
 
         TokenLaunch memory launch = launchCreated[coinAddress];
+        require(launch.owner != address(0),"no launch");
 
         // assert check if launch
+        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
+
+        require(share.owner != address(0), "not init");
+
+        // Calculate price of token bought with quote
+        uint256 coinAmount= _getSellAmountCoinByQuote(coinAddress, quoteAmount);
+        
+        
+        require(share.amount_owned >= coinAmount, "above balance");
+        require(share.amount_buy >= coinAmount, "above balance");
+
+        // TODO update state of launch and share
+        // launch.available_supply+=coinAmount;
 
         // check threshold and liquidity raised
         // Calculate price of token to sell with quote
-        uint256 coinAmount= _getSellAmountCoinByQuote(coinAddress, quoteAmount);
-        launch.available_supply+=coinAmount;
+        // Transfer quote amount
+        // IERC20 erc20 = IERC20(launch.quote_address);
+        // Call the totalSupply() function of the ERC20 token
+        // bool transfer = erc20.transfer(msg.sender, quoteAmount);
 
-        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
-        require(share.owner != address(0), "not init");
-
-        require(share.amount_owned >= coinAmount, "above balance");
-
-
-        share.amount_owned-=coinAmount;
-        share.amount_buy-=coinAmount;
-        share.total_paid-=quoteAmount;
-        share.amount_sell+=coinAmount;
+        // share.amount_owned-=coinAmount;
+        // share.amount_buy-=coinAmount;
+        // share.total_paid-=quoteAmount;
+        // share.amount_sell+=coinAmount;
 
     }
 
@@ -260,6 +277,14 @@ contract PumpLaunch  is
     function getToken(address coinAddress) public view returns(Token memory) {
         return tokensCreated[coinAddress];
     }
+
+    // function getBuyCoinAmountByTokenAndQuote(address coinAddress, uint256 quoteAmount) public view returns(uint256) {
+    //     return _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
+    // }
+
+    // function getSellCoinAmountByTokenAndQuote(address coinAddress, uint256 quoteAmount) public view returns(uint256) {
+    //     return _getSellAmountCoinByQuote(coinAddress, quoteAmount);
+    // }
 
     /** INTERNAL */
 
@@ -290,22 +315,31 @@ contract PumpLaunch  is
         // TODO Add mapping
         tokensCreated[tokenAddress] = tokenCreated;
 
-        return address(token);
+        return tokenAddress;
     }
     function _launchToken(address coinAddress, address caller) internal {
-        Token memory token = tokensCreated[coinAddress];
+        Token storage token = tokensCreated[coinAddress];
 
-
+        require(token.token_address != address(0), "no coin");
         address tokenAddress = token.token_address;
         // Create an instance of the IERC20 token
         IERC20 erc20 = IERC20(tokenAddress);
         uint256 totalSupply = erc20.totalSupply();
 
-        bool transfer= erc20.transferFrom(caller, address(this), totalSupply);
+        // bool transfer= erc20.transferFrom(caller, address(this), totalSupply);
 
         // Call the totalSupply() function of the ERC20 token
-        uint256 availableSupply= totalSupply / LIQUIDITY_RATIO;
+        // uint256 liquiditySupply= totalSupply / (LIQUIDITY_RATIO);
+        uint256 liquiditySupply= calculatePercentage(totalSupply, paramsPump.liquidityPercentage);
 
+
+     // Log the current value
+        console.log("liquiditySupply:", liquiditySupply);
+        // uint256 liquiditySupply= totalSupply / (LIQUIDITY_RATIO*10**18);
+        uint256 availableSupply= totalSupply - liquiditySupply;
+
+             // Log the current value
+        console.log("availableSupply:", availableSupply);
         TokenLaunch memory launch = TokenLaunch({
             owner:token.owner,
             token_address:token.token_address,
@@ -322,8 +356,6 @@ contract PumpLaunch  is
             created_at:block.timestamp// change date
         });
 
-
-
         launchCreated[tokenAddress] = launch;
 
     }
@@ -331,10 +363,10 @@ contract PumpLaunch  is
 
     // @TODO verify bonding curve calcul 
     /** Buy amount bonding curve */
-    function _getBuyAmountCoinByQuote(address coinAddress,
-    uint256 quoteAmount
+    function _getBuyAmountCoinByQuote(
+        address coinAddress,
+        uint256 quoteAmount
 
-    
     ) internal returns(uint256) {
 
         TokenLaunch memory launch = launchCreated[coinAddress];
@@ -366,15 +398,23 @@ contract PumpLaunch  is
         // TODO verify calcul and data init
         uint256 availableSupply= launch.available_supply;
         uint256 liqRaised= launch.liquidity_raised;
-        uint256 initSupplyPool=availableSupply;
         uint256 supplyToBuy= launch.liquidity_raised;
         uint256 thresholdLiquidity= launch.threshold_liquidity;
 
-        uint256 k = thresholdLiquidity * initSupplyPool;
+        // uint256 k = thresholdLiquidity * 100;
+            // Log the current value
+        console.log("availableSupply:", availableSupply);
+
+        // uint256 k = thresholdLiquidity * availableSupply;
+        // @TODO fix overflow issue if not divided
+        // Check availaible supply percentage etc
+        uint256 k = thresholdLiquidity * availableSupply/10**18;
 
         uint256 tokenHold= launch.token_holded;
 
+        // TODO fix overflow
         uint256 q_out= liqRaised + thresholdLiquidity / LIQUIDITY_RATIO - k / (tokenHold + quoteAmount);
+        // uint256 q_out= (liqRaised + thresholdLiquidity) / (LIQUIDITY_RATIO - k) / (tokenHold + quoteAmount);
 
         return q_out;
     }
