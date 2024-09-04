@@ -69,3 +69,8 @@ whitelist-contract: copy-env
 test: copy-env build
 	@echo "Running tests..."
 	pnpm hardhat test
+
+
+test-speed: copy-env  
+	@echo "Running tests..."
+	pnpm hardhat test

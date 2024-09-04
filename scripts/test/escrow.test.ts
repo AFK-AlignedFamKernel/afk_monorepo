@@ -22,9 +22,10 @@ let escrow_address: string | undefined = ESCROW_ADDRESS[constants.StarknetChainI
 let escrow_address_default: string = ESCROW_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as any // change default address
 let token_used_address = TOKENS_ADDRESS.DEVNET.ETH;
 
-describe("Escrow End to end test", () => {
+describe("Escrow End to end test", function () {
+  this.timeout(0); // Disable timeout for this test
+
   it("Deploy Escrow", async function () {
-    this.timeout(0); // Disable timeout for this test
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
@@ -124,8 +125,8 @@ describe("Escrow End to end test", () => {
       timestamp,
       alicePublicKey,
       privateKey: privateKeyAlice,
-      token_address_used:token_used_address,
-      user_connected:accountAddress0
+      token_address_used: token_used_address,
+      user_connected: accountAddress0
     })
     console.log("tx claim", txClaim)
   });
