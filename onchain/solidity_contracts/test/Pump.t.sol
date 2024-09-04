@@ -31,7 +31,8 @@ contract PumpLaunchTest is Test {
             10,                 // stepIncreaseLinear
             1000*10**18,               // thresholdLiquidity or 10**18
             10000,              // thresholdMarketCap
-            2000 // 20% liquidityPercentage:
+            2000,// 20% liquidityPercentage:
+            100 // 1% protocol fee
         );
 
         // Deploy a test ERC20 token to interact with (TestToken)
@@ -144,10 +145,34 @@ contract PumpLaunchTest is Test {
         // assertEq(amountOwned, 20 * 10**18); // 50 bought initially - 30 sold
     }
 
-    function testFailSellTokenWithoutBalance() public {
+    function testFailSellTokenNoInit() public {
         // Attempt to sell tokens without balance should fail
         vm.expectRevert();
         vm.prank(user);
         pumpLaunch.sellToken(address(testToken), 10 * 10**18);
     }
+
+
+    function testFailSellTokenWithoutBalance() public {
+        
+               // Admin launches token
+        vm.prank(admin);
+        address tokenAddress = pumpLaunch.createAndLaunchToken(
+            admin, 
+            "TEST", 
+            "TestToken", 
+            // 1000 * 10**18
+            100000 * 10**18
+        );
+
+        vm.prank(admin);
+        pumpLaunch.launchToken(tokenAddress);
+        // Attempt to sell tokens without balance should fail
+        vm.expectRevert();
+        vm.prank(user);
+        pumpLaunch.sellToken(address(testToken), 10 * 10**18);
+    }
+
+
+
 }

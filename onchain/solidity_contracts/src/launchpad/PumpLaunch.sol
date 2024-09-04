@@ -77,6 +77,8 @@ contract PumpLaunch  is
         uint256 created_at;
     }
 
+ 
+
     struct ParamsPool {
         address quoteAddress;
         uint256 initialKeyPrice;
@@ -84,8 +86,36 @@ contract PumpLaunch  is
         uint256 thresholdLiquidity;
         uint256 thresholdMarketCap;
         uint256 liquidityPercentage;
-        
+        uint256 protocolFee;
+        address feeAddress;
     }
+
+    event BuyToken(
+        address indexed caller,
+        address indexed token,
+        uint256 quote_amount,
+        uint256 coin_amount,
+        uint256 protocol_fee
+    );
+    event SellToken(
+        address indexed caller,
+        address indexed token,
+        uint256 quote_amount,
+        uint256 coin_amount,
+        uint256 protocol_fee
+    );
+    event CreateToken(
+        address indexed user,
+        address indexed token,
+        uint256 total_supply
+    );
+
+    event LaunchToken(
+        address indexed user,
+        address indexed token,
+        uint256 total_supply
+    );
+
 
 
     /** TODO Opti mapping */
@@ -104,12 +134,12 @@ contract PumpLaunch  is
         uint256 _stepIncreaseLinear,
         uint256 _thresholdLiquidity,
         uint256 _thresholdMarketCap,
-        uint256 _liquidityPercentage
+        uint256 _liquidityPercentage,
+        uint256 _protocolFee
     ) public initializer {
         __AccessControl_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
-
 
         ParamsPool memory params=  ParamsPool ({
            initialKeyPrice: _initialKeyPrice,
@@ -117,7 +147,9 @@ contract PumpLaunch  is
            stepIncreaseLinear:_stepIncreaseLinear,
            thresholdLiquidity:_thresholdLiquidity,
            thresholdMarketCap:_thresholdMarketCap,
-           liquidityPercentage:_liquidityPercentage
+           liquidityPercentage:_liquidityPercentage,
+           protocolFee:_protocolFee,
+           feeAddress:_admin
         });
         paramsPump=params;
         _grantRole(MINTER_ROLE, _admin);
@@ -190,7 +222,13 @@ contract PumpLaunch  is
         // require(launch.liquidity_raised+quoteAmount<=launch.threshold_liquidity,"above liq thres");
 
         // Call the totalSupply() function of the ERC20 token
-        bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount);
+
+
+        uint256 feeProtocol = calculatePercentage(quoteAmount, paramsPump.protocolFee);
+
+        bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount- feeProtocol);
+        // @TODO protocol fee
+        bool transferFee  = erc20.transferFrom(msg.sender, paramsPump.feeAddress, feeProtocol);
 
         // Calculate price of token bought with quote
         uint256 coinAmount= _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
@@ -223,6 +261,10 @@ contract PumpLaunch  is
 
         // Check if add liquidity to DEX
 
+
+        emit BuyToken(msg.sender, share.token_address, quoteAmount, coinAmount, paramsPump.protocolFee);
+
+
     }
 
     function sellToken(
@@ -247,19 +289,24 @@ contract PumpLaunch  is
         require(share.amount_buy >= coinAmount, "above balance");
 
         // TODO update state of launch and share
-        // launch.available_supply+=coinAmount;
+        launch.available_supply+=coinAmount;
 
         // check threshold and liquidity raised
         // Calculate price of token to sell with quote
         // Transfer quote amount
-        // IERC20 erc20 = IERC20(launch.quote_address);
+        IERC20 erc20 = IERC20(launch.quote_address);
         // Call the totalSupply() function of the ERC20 token
-        // bool transfer = erc20.transfer(msg.sender, quoteAmount);
 
-        // share.amount_owned-=coinAmount;
-        // share.amount_buy-=coinAmount;
-        // share.total_paid-=quoteAmount;
-        // share.amount_sell+=coinAmount;
+        // @TODO protocol fee
+        uint256 feeProtocol = calculatePercentage(quoteAmount, paramsPump.protocolFee);
+
+        bool transfer = erc20.transfer(msg.sender, quoteAmount-feeProtocol);
+
+        share.amount_owned-=coinAmount;
+        share.amount_buy-=coinAmount;
+        share.total_paid-=quoteAmount;
+        share.amount_sell+=coinAmount;
+        emit SellToken(msg.sender, share.token_address, quoteAmount, coinAmount, paramsPump.protocolFee);
 
     }
 
