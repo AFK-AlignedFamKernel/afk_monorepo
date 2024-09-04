@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import {webln} from '@getalby/sdk';
-import {useNostrContext, useSendZap} from 'afk_nostr_sdk';
+import {useSendZap} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {SetStateAction, useEffect, useState} from 'react';
 import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
@@ -14,7 +14,7 @@ import {useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import stylesheet from './styles';
 
-// Get Lightining Address:
+// Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
 // await lightningAddress.fetch();
 // const invoice = await lightningAddress.requestInvoice({
