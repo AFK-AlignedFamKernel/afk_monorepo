@@ -57,7 +57,7 @@ contract DepositEscrowNostr {
         uint256 nostrAddress,
         uint64 timelock) public returns(uint256) {
 
-        // Get token addresss
+        // Get token address
         uint256[] memory kakarotCallData = new uint256[](1);
         kakarotCallData[0] = uint256(uint160(tokenAddress));
 
