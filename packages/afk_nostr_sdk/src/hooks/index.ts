@@ -19,7 +19,7 @@ export {useReposts} from './useReposts';
 export {useRootNotes} from './useRootNotes';
 export {useSearchNotes} from './useSearchNotes';
 export {useSendNote} from './useSendNote';
-export {useAddMember} from './group/private/useAddMember';
+export {useAddMember, useAddPublicMember} from './group/private/useAddMember';
 export {
   useGetGroupMemberList,
   useGetGroupRequest,
@@ -44,3 +44,4 @@ export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
 export {useMyMessagesSent} from './messages/useMyMessagesSent';
 export {useBookmark} from './useBookmark';
+export {useSendZap} from './zap/useZap';
