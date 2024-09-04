@@ -89,6 +89,10 @@ contract PumpLaunch  is
     mapping(uint256 => TokenLaunch) public launchs;
     mapping(address => TokenLaunch) public launchCreated;
 
+
+    mapping(address => mapping(address => SharesTokenUser)) public shareUserByToken;
+
+
     ParamsPool public paramsPump;
 
     // constructor(
@@ -236,13 +240,57 @@ contract PumpLaunch  is
     }
 
     function buyToken(
-        address coinAddress
+        address coinAddress,
+        uint256 quoteAmount
     ) public {
+
+
+        TokenLaunch memory launch = launchCreated[coinAddress];
+
+
+
+        // assert check if launch
+
+
+        // check threshold and liquidity raised
+        // Transfer quote amount
+        IERC20 erc20 = IERC20(coinAddress);
+        // Call the totalSupply() function of the ERC20 token
+        bool transfer = erc20.transferFrom(msg.sender, address(this), quoteAmount);
+
+        // Calculate price of token bought with quote
+        uint256 coinAmount= _getBuyAmountCoinByQuote(coinAddress, quoteAmount);
+        launch.available_supply-=coinAmount;
+
+        SharesTokenUser storage share = shareUserByToken[msg.sender][coinAddress];
+
+        if(share.owner == address(0)) {
+
+            share.owner=msg.sender;
+            share.token_address=coinAddress;
+            share.amount_owned=coinAmount;
+            share.amount_sell=0;
+            share.total_paid=coinAmount;
+            share.amount_buy=coinAmount;
+
+        } else {
+            share.amount_owned+=coinAmount;
+            share.total_paid+=coinAmount;
+            share.amount_buy+=coinAmount;
+            
+        }
+
+
+        // Check if add liquidity to DEX
+
+
 
     }
 
     function sellToken(
-        address coinAddress
+        address coinAddress,
+        uint256 quoteAmount
+
     ) public {
 
     }
@@ -250,11 +298,11 @@ contract PumpLaunch  is
 
     // @TODO verify bonding curve calcul 
     /** Buy amount bonding curve */
-    function getBuyAmountCoinByQuote(address coinAddress,
+    function _getBuyAmountCoinByQuote(address coinAddress,
     uint256 quoteAmount
 
     
-    ) public returns(uint256) {
+    ) internal returns(uint256) {
 
         TokenLaunch memory launch = launchCreated[coinAddress];
 
@@ -264,6 +312,7 @@ contract PumpLaunch  is
         uint256 liqRaised= launch.liquidity_raised;
         uint256 k = tokenHold* liqRaised;
         uint256 totalSupply= launch.total_supply;
+        uint256 availableSupply= launch.available_supply;
 
         uint256 q_in= (totalSupply - availableSupply) - (k/quoteAmount);
 
@@ -273,15 +322,16 @@ contract PumpLaunch  is
 
     // @TODO verify bonding curve calcul 
     /** Sell amount bonding curve */
-    function getSellAmountCoinByQuote(address coinAddress,
+    function _getSellAmountCoinByQuote(address coinAddress,
         uint256 quoteAmount
     
-    ) public returns(uint256) {
+    ) internal returns(uint256) {
 
         TokenLaunch memory launch = launchCreated[coinAddress];
 
         // Assert and check
         // TODO verify calcul and data init
+        uint256 availableSupply= launch.available_supply;
         uint256 liqRaised= launch.liquidity_raised;
         uint256 initSupplyPool=availableSupply;
         uint256 supplyToBuy= launch.liquidity_raised;
