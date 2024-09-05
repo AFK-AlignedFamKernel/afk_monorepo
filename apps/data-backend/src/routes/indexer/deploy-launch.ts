@@ -38,6 +38,12 @@ Router.get("/:launch", async (req, res) => {
     const tokenData = await prisma.token_launch.findMany({
       where: {
         memecoin_address: launch
+      },
+      select: {
+        memecoin_address: true,
+        price: true,
+        total_supply: true,
+        network: true
       }
     });
     res.status(HTTPStatus.OK).json({
@@ -61,6 +67,12 @@ Router.get("/stats/:launch", async (req, res) => {
     const tokensData = await prisma.token_launch.findMany({
       where: {
         memecoin_address: launch
+      },
+      select: {
+        memecoin_address: true,
+        price: true,
+        total_supply: true,
+        network: true
       }
     });
 
