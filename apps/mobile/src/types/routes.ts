@@ -61,6 +61,7 @@ export type MainStackParams = {
   Auth: NavigatorScreenParams<AuthStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
+  Cashu: undefined;
   Whatever: undefined;
   RightDrawer: undefined;
 };
@@ -86,6 +87,7 @@ export type DegensAppStackParams = {
   Login: undefined;
   CreateAccount: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
+  Cashu: undefined;
 
   SaveKeys: {
     privateKey: string;
@@ -140,6 +142,8 @@ export type HomeBottomStackParams = {
   Main: NavigatorScreenParams<MainStackParams>;
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
+  Cashu: undefined;
+
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -310,6 +314,12 @@ export type PrivateGroupScreenProps = CompositeScreenProps<
 
 export type LightningNetworkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Lightning'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+
+export type CashuWalletScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Cashu'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
