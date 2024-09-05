@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
 
 export function NavigationLinks() {
   return (
@@ -11,7 +11,12 @@ export function NavigationLinks() {
       <li>
         <Link href="/pixel">Pixel </Link>
       </li>
-      <ConnectButton></ConnectButton>
+      {/* <li>
+        <CustomConnectButtonWallet
+        // width={ "100px" }
+        ></CustomConnectButtonWallet>
+      </li> */}
+      {/* <ConnectButton></ConnectButton> */}
     </ul>
   );
 }

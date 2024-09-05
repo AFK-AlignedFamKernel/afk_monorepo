@@ -32,11 +32,17 @@ export function HeroSection() {
           Decentralized social built with Nostr and powered by Starknet account abstraction.
         </p>
         <div className="flex desktop:flex-row flex-col items-center gap-y-4 gap-x-6 text-[18px] leading-[21px]">
-          <button className="desktop:py-5 text-sm desktop:text-base py-3 px-4 bg-black w-[200px] border-white border-[1px] border-solid desktop:border-none">
-            <a href="https://afk-community.xyz" target="_blank">
+          <button className="bg:brand.primary desktop:py-5 text-sm desktop:text-base py-3 px-4 bg-black w-[200px] border-white border-[1px] border-solid desktop:border-none">
+            <a href="https://afk-community.xyz" 
+            target="_blank"
+            className="bg:brand.primary"
+            
+            >
               Sign up
             </a>
           </button>
+
+
           {/* <button className="desktop:py-5 text-sm text-black desktop:text-base py-3 px-4 bg-white w-[200px]">
             <a href="https://afk-community.xyz" target="_blank">
               Download App

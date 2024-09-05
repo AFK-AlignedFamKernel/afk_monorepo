@@ -56,7 +56,7 @@ export const CustomConnectButtonWallet: React.FC<ICustomConnectButtonWallet> = (
                     bg={{ base: "brand.primary" }}
                     width={"100%"}
                   >
-                    Connect
+                    Connect EVM
                   </Button>
                 );
               }
