@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
@@ -220,6 +221,8 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error setting pixel on redis")
 		return
 	}
+
+	fmt.Println("Error redis insert pixel", err.Error())
 
 	routeutils.WriteResultJson(w, "Pixel placed on redis")
 }

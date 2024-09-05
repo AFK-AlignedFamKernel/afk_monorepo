@@ -6,7 +6,8 @@ import {createPortal} from 'react-dom';
 
 import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
-
+import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   return (
@@ -22,6 +23,7 @@ export function Navbar() {
         </Link>
       </div>
       <NavigationLinks />
+      <CustomConnectButtonWallet></CustomConnectButtonWallet>
       <div className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
         <button className="py-[15px] px-[48px] bg-white">
           <a href="https://afk-community.xyz" target="_blank">

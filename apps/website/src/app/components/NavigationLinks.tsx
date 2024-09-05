@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 export function NavigationLinks() {
   return (
@@ -10,6 +11,7 @@ export function NavigationLinks() {
       <li>
         <Link href="/pixel">Pixel </Link>
       </li>
+      <ConnectButton></ConnectButton>
     </ul>
   );
 }
