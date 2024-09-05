@@ -8,17 +8,17 @@ const Router = express.Router();
 Router.get("/", async (req, res) => {
   try {
     const buyTokens = await prisma.token_transactions.findMany({
-      where: { transaction_type: "buy" }
+      where: { transaction_type: "buy" },
+      select: {
+        memecoin_address: true,
+        price: true,
+        total_supply: true,
+        network: true
+      }
     });
 
-    const data = buyTokens.map((item) => ({
-      ...item,
-      block_number: item.block_number ? Number(item.block_number) : null,
-      cursor: item.cursor ? Number(item.cursor) : null
-    }));
-
     res.status(HTTPStatus.OK).json({
-      data: data
+      data: buyTokens
     });
   } catch (error) {
     console.error("Error fetching buy tokens:", error);
