@@ -7,16 +7,17 @@ const Router = express.Router();
 
 Router.get("/", async (req, res) => {
   try {
-    const launches = await prisma.token_launch.findMany({});
-
-    const data = launches.map((item) => ({
-      ...item,
-      block_number: item.block_number ? Number(item.block_number) : null,
-      cursor: item.cursor ? Number(item.cursor) : null
-    }));
+    const launches = await prisma.token_launch.findMany({
+      select: {
+        memecoin_address: true,
+        price: true,
+        total_supply: true,
+        network: true
+      }
+    });
 
     res.status(HTTPStatus.OK).json({
-      data: data
+      data: launches
     });
   } catch (error) {
     console.log(error);
