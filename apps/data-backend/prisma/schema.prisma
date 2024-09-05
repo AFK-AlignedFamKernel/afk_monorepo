@@ -62,7 +62,7 @@ model token_transactions {
   liquidity_raised String?
   price            String?
   protocol_fee     String?
-  amount           String?
+  amount           Decimal?  @db.Decimal
   cursor           BigInt?   @map("_cursor")
   transaction_type String
   time_stamp       String?
