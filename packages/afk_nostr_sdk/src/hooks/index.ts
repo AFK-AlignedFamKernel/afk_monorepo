@@ -45,3 +45,4 @@ export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
 export {useMyMessagesSent} from './messages/useMyMessagesSent';
 export {useBookmark} from './useBookmark';
 export {useSendZap} from './zap/useZap';
+export {useCashu} from "./cashu/useCashu"

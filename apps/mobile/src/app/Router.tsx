@@ -46,6 +46,7 @@ import {
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
 import RightSidebar from '../components/RightSideBar';
+import { CashuScreen } from '../screens/Cashu';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -331,6 +332,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Auth" component={AuthNavigator} />
       <DrawerStack.Screen name="Login" component={Login} />
       <DrawerStack.Screen name="Lightning" component={LightningNetworkScreen} />
+      <DrawerStack.Screen name="Cashu" component={CashuScreen} />
     </DrawerStack.Navigator>
   );
 };
