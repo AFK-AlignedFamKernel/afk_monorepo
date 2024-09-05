@@ -1,19 +1,24 @@
-import express from 'express'
-// import prisma from 'indexer-prisma';
-const { prisma } = require("indexer-prisma");
+import express from "express";
+import { prisma } from "indexer-prisma";
 
-import { HTTPStatus } from '../../utils/http';
+import { HTTPStatus } from "../../utils/http";
 
-const Router = express.Router()
+const Router = express.Router();
 
-Router.get('/', async (req, res) => {
+Router.get("/", async (req, res) => {
   try {
     const buyTokens = await prisma.token_transactions.findMany({
-      where: { transaction_type: 'buy' }
+      where: { transaction_type: "buy" }
     });
-    console.log("Fetched Buy Tokens:", buyTokens);
+
+    const data = buyTokens.map((item) => ({
+      ...item,
+      block_number: item.block_number ? Number(item.block_number) : null,
+      cursor: item.cursor ? Number(item.cursor) : null
+    }));
+
     res.status(HTTPStatus.OK).json({
-      data: buyTokens
+      data: data
     });
   } catch (error) {
     console.error("Error fetching buy tokens:", error);
@@ -21,5 +26,4 @@ Router.get('/', async (req, res) => {
   }
 });
 
-
-export default Router
+export default Router;

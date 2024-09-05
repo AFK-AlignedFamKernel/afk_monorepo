@@ -1,63 +1,78 @@
-import express from 'express'
-// import prisma from 'indexer-prisma';
-const { prisma } = require("indexer-prisma");
+import express from "express";
+import { prisma } from "indexer-prisma";
+import { HTTPStatus } from "../../utils/http";
+import { isValidStarknetAddress } from "../../utils/starknet";
 
-import { HTTPStatus } from '../../utils/http';
-import { isValidStarknetAddress } from '../../utils/starknet';
+const Router = express.Router();
 
-const Router = express.Router()
-
-Router.get('/', async (req, res) => {
+Router.get("/", async (req, res) => {
   try {
-    const launches = await prisma.token_launch.findMany({})
+    const launches = await prisma.token_launch.findMany({});
+
+    const data = launches.map((item) => ({
+      ...item,
+      block_number: item.block_number ? Number(item.block_number) : null,
+      cursor: item.cursor ? Number(item.cursor) : null
+    }));
+
     res.status(HTTPStatus.OK).json({
-      data:launches
-    })
+      data: data
+    });
   } catch (error) {
-    res.status(HTTPStatus.InternalServerError).send(error)
+    console.log(error);
+    res.status(HTTPStatus.InternalServerError).send(error);
   }
-})
+});
 
-Router.get('/:launch', async (req, res) => {
+Router.get("/:launch", async (req, res) => {
   try {
-      const { launch } = req.params
-      if (!isValidStarknetAddress(launch)) {
-          res.status(HTTPStatus.BadRequest).send({ code: HTTPStatus.BadRequest, message: 'Invalid token address' })
-          return
+    const { launch } = req.params;
+    if (!isValidStarknetAddress(launch)) {
+      res.status(HTTPStatus.BadRequest).send({
+        code: HTTPStatus.BadRequest,
+        message: "Invalid token address"
+      });
+      return;
+    }
+    const tokenData = await prisma.token_launch.findMany({
+      where: {
+        memecoin_address: launch
       }
-      const tokenData = await prisma.token_launch.findMany({where:{
-          memecoin_address:launch
-      }})
-      res.status(HTTPStatus.OK).json({
-          data: tokenData
-      })
+    });
+    res.status(HTTPStatus.OK).json({
+      data: tokenData
+    });
   } catch (error) {
-      res.status(HTTPStatus.InternalServerError).send(error)
+    res.status(HTTPStatus.InternalServerError).send(error);
   }
-})
+});
 
-Router.get('/stats/:launch', async (req, res) => {
+Router.get("/stats/:launch", async (req, res) => {
   try {
-      const { launch } = req.params
-      if (!isValidStarknetAddress(launch)) {
-          res.status(HTTPStatus.BadRequest).send({ code: HTTPStatus.BadRequest, message: 'Invalid token address' })
-          return
+    const { launch } = req.params;
+    if (!isValidStarknetAddress(launch)) {
+      res.status(HTTPStatus.BadRequest).send({
+        code: HTTPStatus.BadRequest,
+        message: "Invalid token address"
+      });
+      return;
+    }
+    const tokensData = await prisma.token_launch.findMany({
+      where: {
+        memecoin_address: launch
       }
-      const tokensData = await prisma.token_launch.findMany({where:{
-          memecoin_address:launch
-      }})
+    });
 
-      let statsLaunch=tokensData[0]
-      for(let launch of tokensData) {
-
-        // statsLaunch
-      }
-      res.status(HTTPStatus.OK).json({
-          data: statsLaunch
-      })
+    let statsLaunch = tokensData[0];
+    for (let launch of tokensData) {
+      // statsLaunch
+    }
+    res.status(HTTPStatus.OK).json({
+      data: statsLaunch
+    });
   } catch (error) {
-      res.status(HTTPStatus.InternalServerError).send(error)
+    res.status(HTTPStatus.InternalServerError).send(error);
   }
-})
+});
 
-export default Router
+export default Router;
