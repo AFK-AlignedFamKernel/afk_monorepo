@@ -5,8 +5,55 @@ import "@nomicfoundation/hardhat-foundry";
 import dotenv from "dotenv";
 dotenv.config();
 
-const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+const config = {
+  // const config: HardhatUserConfig = {
+  solidity: {
+    compilers:[
+      
+      {
+        version: "0.8.0", // Specify the second compiler version
+        // settings: {
+        //   // optimizer: {
+        //   //   enabled: true,
+        //   //   runs: 200,
+        //   // },
+        //   evmVersion: "cancun",  
+        // },
+      },
+      {
+        version: "0.8.24", // Specify the second compiler version
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "cancun",  
+        },
+      },
+      // {
+      //   version: "0.8.0", // Specify the first compiler version
+      //   settings: {
+      //     optimizer: {
+      //       enabled: true,
+      //       runs: 200,
+      //     },
+      //   },
+      //   evmVersion: "cancun",  
+
+      // },
+      // {
+      //   version: "0.8.20", // Specify the second compiler version
+      //   settings: {
+      //     optimizer: {
+      //       enabled: true,
+      //       runs: 200,
+      //     },
+      //     evmVersion: "cancun",  
+      //   },
+      // },
+    
+    ]
+  },
   networks: {
     kakarotRpc: {
       url: "http://127.0.0.1:3030",
@@ -33,6 +80,7 @@ const config: HardhatUserConfig = {
     tests: "./tests",
     cache: "./cache_hardhat",
     artifacts: "./artifacts",
+    // libraries: "./solidity_contracts/lib"
   },
 };
 

@@ -7,3 +7,12 @@
 [submodule "solidity_contracts/lib/kakarot-lib"]
 	path = solidity_contracts/lib/kakarot-lib
 	url = https://github.com/kkrt-labs/kakarot-lib
+
+[submodule "solidity_contracts/lib/uniswap-v2-core"]
+	path = solidity_contracts/lib/uniswap-v2-core
+	url = https://github.com/Uniswap/v2-core
+
+
+[submodule "solidity_contracts/lib/uniswap-v2-periphery"]
+	path = solidity_contracts/lib/uniswap-v2-periphery
+	url = https://github.com/Uniswap/v2-periphery

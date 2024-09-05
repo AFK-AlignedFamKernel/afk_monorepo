@@ -15,7 +15,6 @@ Router.get("/", async (req, res) => {
         network: true
       }
     });
-
     res.status(HTTPStatus.OK).json({
       data: launches
     });

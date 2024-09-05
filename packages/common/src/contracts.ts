@@ -76,6 +76,15 @@ export const TOKENS_ADDRESS = {
         TEST: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
         STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     },
+
+    KAKAROT: {
+      [constants.StarknetChainId.SN_SEPOLIA]:{
+        ETH:"0x761612F0C8bdf8cF10e6F10045E2Ca7cbffBa8A3",
+        USDc:"0x1B4C0bc8703D3af59322849bE01559fdb920c904",
+        USDt:"0x2BF1004D9e80ca087BD1e089d75bc8c471995aC1",
+      }
+
+    }
 };
 
 export const CLASS_HASH = {
