@@ -36,7 +36,13 @@ Router.get("/:token", async (req, res) => {
 
   try {
     const tokenData = await prisma.token_deploy.findMany({
-      where: { memecoin_address: token }
+      where: { memecoin_address: token },
+      select: {
+        memecoin_address: true,
+        name: true,
+        total_supply: true,
+        network: true
+      }
     });
     res.status(HTTPStatus.OK).json({
       data: tokenData
