@@ -68,7 +68,6 @@ const GroupChatGroupRequest: React.FC<GroupChatMemberRequestScreenProps> = ({
                   {
                     pubkey: selected?.tags.find((tag: any) => tag[0] === 'p')?.[1],
                     groupId: route.params.groupId,
-                    permissionData: permissionData as any,
                   },
                   {
                     onSuccess() {

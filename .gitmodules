@@ -13,3 +13,9 @@
 [submodule "onchain/solidity_contracts/lib/openzeppelin-contracts"]
 	path = onchain/solidity_contracts/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "onchain/solidity_contracts/lib/uniswap-v2-core"]
+	path = onchain/solidity_contracts/lib/uniswap-v2-core
+	url = https://github.com/Uniswap/v2-core
+[submodule "onchain/solidity_contracts/lib/uniswap-v2-periphery"]
+	path = onchain/solidity_contracts/lib/uniswap-v2-periphery
+	url = https://github.com/Uniswap/v2-periphery

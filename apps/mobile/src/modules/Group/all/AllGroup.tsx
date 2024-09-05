@@ -2,8 +2,8 @@ import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {
   AdminGroupPermission,
-  useAddMember,
   useAddPermissions,
+  useAddPublicMember,
   useAuth,
   useGetGroupList,
 } from 'afk_nostr_sdk';
@@ -24,7 +24,7 @@ import stylesheet from './styles';
 
 export default function AllGroupListComponent() {
   const {data, isPending, isFetching, refetch, fetchNextPage} = useGetGroupList({});
-  const {mutate: addMember} = useAddMember();
+  const {mutate: addMember} = useAddPublicMember();
   const queryClient = useQueryClient();
   const {mutate: addPermission} = useAddPermissions();
   const {publicKey} = useAuth();

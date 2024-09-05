@@ -72,7 +72,6 @@ export const CreateGroup: React.FC = () => {
                         {
                           groupId: data.id,
                           pubkey,
-                          permissionData: permissionData as any,
                         },
                         {
                           onSuccess() {
