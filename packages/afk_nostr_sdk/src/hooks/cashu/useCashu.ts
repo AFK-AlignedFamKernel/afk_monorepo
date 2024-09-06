@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '../../store';
 
 export const useCashu = () => {
+
+
     const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
     const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))
@@ -19,6 +21,23 @@ export const useCashu = () => {
     const wallet = useMemo(() => {
         return walletCashu
     }, [walletCashu])
+
+
+    const getKeys = () => {
+        const keys = mint?.getKeys();
+
+        console.log("keys", keys)
+        return keys;
+    }
+
+    const getKeySets = () => {
+        const keyssets = mint?.getKeySets();
+
+        console.log("keyssets", keyssets)
+        return keyssets;
+    }
+
+
     const connectCashMint = (mintUrl: string) => {
         const mintCashu = new CashuMint(mintUrl)
         setMint(mintCashu)
@@ -31,7 +50,7 @@ export const useCashu = () => {
         return wallet;
     }
 
-    const mintQuote = async (nb: number) => {
+    const requestMintQuote = async (nb: number) => {
 
         try {
 
@@ -65,6 +84,27 @@ export const useCashu = () => {
         return proofs;
     }
 
+    const getFeesForExternalInvoice = async(externalInvoice:string) => {
+		const fee = (await wallet.createMeltQuote(externalInvoice)).fee_reserve;
+  
+        return fee
+    }
+
+
+    const meltTokens = async (invoice: string) => {
+
+        const meltQuote = await wallet.createMeltQuote(invoice);
+        const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
+
+        // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
+        // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
+        const { returnChange: proofsToKeep, send: proofsToSend } = await wallet.send(amountToSend, proofs);
+        // store proofsToKeep in wallet ..
+
+        const meltResponse = await wallet.meltTokens(meltQuote, proofsToSend);
+
+        return meltResponse;
+    }
 
     const payLnInvoice = async (amount: number, request: MintQuoteResponse, proofs: Proof[]) => {
 
@@ -87,11 +127,13 @@ export const useCashu = () => {
     }
 
 
+
+
     const sendP2PK = async (tokensProofs: Proof[], pubkeyRecipient: Uint8Array, mintUrl: string) => {
         const { send } = await wallet.send(64, tokensProofs, { pubkey: bytesToHex(pubkeyRecipient) });
         const encoded = getEncodedToken({
             token: [{ mint: mintUrl, proofs: send }]
-        });
+        })
 
         return {
             send,
@@ -107,17 +149,53 @@ export const useCashu = () => {
 
         return proofs;
     }
+    
+    const payExternalInvoice = async (amount: number, fee:number, externalInvoice:string, request: MintQuoteResponse, proofs: Proof[]) => {
+
+
+
+        // get the quote from the mint
+		const quote_ = await wallet.checkMeltQuote(request.quote);
+		expect(quote_).toBeDefined();
+
+		const sendResponse = await wallet.send(2000 + fee, proofs);
+		const response = await wallet.payLnInvoice(externalInvoice, sendResponse.send, quote_);
+
+		expect(response).toBeDefined();
+		// expect that we have not received the fee back, since it was external
+		expect(response.change.reduce((a, b) => a + b.amount, 0)).toBeLessThan(fee);
+
+		// check states of spent and kept proofs after payment
+		const sentProofsSpent = await wallet.checkProofsSpent(sendResponse.send);
+		expect(sentProofsSpent).toBeDefined();
+		// expect that all proofs are spent, i.e. sendProofsSpent == sendResponse.send
+		expect(sentProofsSpent).toEqual(sendResponse.send);
+		// expect none of the sendResponse.returnChange to be spent
+		const returnChangeSpent = await wallet.checkProofsSpent(sendResponse.returnChange);
+        return {
+            response,
+            sentProofsSpent,
+            returnChangeSpent
+        }
+    }
+
 
     return {
         wallet,
         mint,
         connectCashMint,
         connectCashWallet,
-        mintQuote,
+        requestMintQuote,
         mintTokens,
         payLnInvoice,
         sendP2PK,
-        receiveP2PK
+        receiveP2PK,
+        meltTokens,
+        getKeySets,
+        getKeys,
+        getFeesForExternalInvoice,
+        payExternalInvoice
+
     }
 
 
