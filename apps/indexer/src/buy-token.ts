@@ -1,7 +1,7 @@
 import { Block, hash, uint256, Pool } from "./deps.ts";
 import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -92,7 +92,7 @@ export default function DecodeBuyToken({ header, events }: Block) {
       last_price,
       quote_amount,
       price,
-      amount,
+      amount: Number(amount),
       protocol_fee,
       time_stamp: timestamp,
       transaction_type: "buy"
