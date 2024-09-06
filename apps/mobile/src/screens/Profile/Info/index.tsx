@@ -1,44 +1,45 @@
-import {useNavigation} from '@react-navigation/native';
-import {useAccount} from '@starknet-react/core';
-import {useQueryClient} from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import { useAccount } from '@starknet-react/core';
+import { useQueryClient } from '@tanstack/react-query';
 // import {useAuth} from '../../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {useContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
+import { useAuth } from 'afk_nostr_sdk';
+import { useContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {useState} from 'react';
-import {Pressable, View} from 'react-native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-import {UserPlusIcon} from '../../../assets/icons';
-import {Button, IconButton, Menu, Text} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
-import {useTipModal, useToast} from '../../../hooks/modals';
-import {ProfileScreenProps} from '../../../types';
-import {ProfileHead} from '../Head';
+import { UserPlusIcon } from '../../../assets/icons';
+import { Button, IconButton, Menu, Text } from '../../../components';
+import { useNostrAuth, useStyles, useTheme } from '../../../hooks';
+import { useTipModal, useToast } from '../../../hooks/modals';
+import { ProfileScreenProps } from '../../../types';
+import { ProfileHead } from '../Head';
 import stylesheet from './styles';
 
 export type ProfileInfoProps = {
   publicKey: string;
 };
 
-export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKey}) => {
-  const {theme} = useTheme();
+export const ProfileInfo: React.FC<ProfileInfoProps> = ({ publicKey: userPublicKey }) => {
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<ProfileScreenProps['navigation']>();
 
-  const {data: profile} = useProfile({publicKey: userPublicKey});
+  const { data: profile } = useProfile({ publicKey: userPublicKey });
 
   const [menuOpen, setMenuOpen] = useState(false);
   const publicKey = useAuth((state) => state.publicKey);
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const userContacts = useContacts({authors: [userPublicKey]});
-  const contacts = useContacts({authors: [publicKey]});
+  const userContacts = useContacts({ authors: [userPublicKey] });
+  const contacts = useContacts({ authors: [publicKey] });
   const editContacts = useEditContacts();
-  const {show: showTipModal} = useTipModal();
+  const { show: showTipModal } = useTipModal();
   // const {show: showKeyModal} = useKeyModal();
   const account = useAccount();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
 
   const isSelf = publicKey === userPublicKey;
   const isConnected = contacts.data?.includes(userPublicKey);
@@ -47,12 +48,14 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
     navigation.navigate('EditProfile');
   };
 
-  const onConnectionPress = () => {
+  const onConnectionPress = async () => {
+
+    const isNostrConnect = await handleCheckNostrAndSendConnectDialog()
     editContacts.mutateAsync(
-      {pubkey: userPublicKey, type: isConnected ? 'remove' : 'add'},
+      { pubkey: userPublicKey, type: isConnected ? 'remove' : 'add' },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['contacts']});
+          queryClient.invalidateQueries({ queryKey: ['contacts'] });
         },
         onError: () => {
           showToast({
@@ -74,7 +77,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
 
   const handleCopyPublicKey = async () => {
     await Clipboard.setStringAsync(userPublicKey);
-    showToast({type: 'info', title: 'Public key copied to the clipboard'});
+    showToast({ type: 'info', title: 'Public key copied to the clipboard' });
   };
   const handleSettings = () => {
     navigation.navigate('Settings');
@@ -82,8 +85,8 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
   return (
     <View>
       <ProfileHead
-        profilePhoto={profile?.image ? {uri: profile.image} : undefined}
-        coverPhoto={profile?.banner ? {uri: profile.banner} : undefined}
+        profilePhoto={profile?.image ? { uri: profile.image } : undefined}
+        coverPhoto={profile?.banner ? { uri: profile.banner } : undefined}
         showSettingsButton={isSelf}
         buttons={
           isSelf ? (
@@ -172,7 +175,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
                   label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
                   icon="CoinIcon"
                   onPress={() => {
-                    showTipModal({pubkey: userPublicKey} as any);
+                    showTipModal({ pubkey: userPublicKey } as any);
                     setMenuOpen(false);
                   }}
                 />

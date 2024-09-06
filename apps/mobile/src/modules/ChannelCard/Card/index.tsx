@@ -17,7 +17,7 @@ import {
 
 import {CommentIcon} from '../../../assets/icons';
 import {IconButton, Menu, Text} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
+import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {IChannelsMetadata} from '../../../types/channels';
@@ -35,6 +35,7 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<MainStackNavigationProps>();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
 
   const [channelInfo, setChannelInfo] = useState<undefined | IChannelsMetadata>();
   useEffect(() => {
@@ -109,6 +110,7 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
 
   const toggleLike = async () => {
     if (!event?.id) return;
+    await handleCheckNostrAndSendConnectDialog()
 
     await react.mutateAsync(
       {event, type: isLiked ? 'dislike' : 'like'},

@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useStyles} from '../../hooks';
+import {useNostrAuth, useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Post} from '../../modules/Post';
 import {PrivateGroupScreenProps} from '../../types';
@@ -12,6 +12,7 @@ import stylesheet from './styles';
 
 export const PrivateGroupDetail: React.FC<PrivateGroupScreenProps> = ({navigation, route}) => {
   const {postId, post} = route.params;
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
 
   const styles = useStyles(stylesheet);
   const [comment, setComment] = useState('');

@@ -27,6 +27,7 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
     <View style={styles.container}>
       <Post
         event={event}
+        asComment={false}
         repostedEventProps={repostedEvent}
         isRepost={isRepost}
         isBookmarked={isBookmarked}

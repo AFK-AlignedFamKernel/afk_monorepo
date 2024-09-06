@@ -4,3 +4,4 @@ export {useTheme} from './useTheme';
 export {useTips} from './useTips';
 export {useWaitConnection} from './useWaitConnection';
 export {useWindowDimensions} from './useWindowDimensions';
+export {useNostrAuth} from './useNostrAuth';
