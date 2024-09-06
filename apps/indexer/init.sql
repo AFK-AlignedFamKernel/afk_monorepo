@@ -43,7 +43,6 @@ CREATE TABLE token_transactions (
     block_number BIGINT,
     block_timestamp TIMESTAMP,
     transaction_hash TEXT,
-
     memecoin_address TEXT,
     owner_address TEXT,
     last_price TEXT,
@@ -56,17 +55,10 @@ CREATE TABLE token_transactions (
     liquidity_raised TEXT,
     price TEXT,
     protocol_fee TEXT,
-    amount TEXT,
+    amount NUMERIC,
     _cursor BIGINT,
     transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),
     time_stamp TEXT
-);
-
-CREATE TABLE IF NOT EXISTS token_transactions_checkpoint (
-  id TEXT PRIMARY KEY,
-  transaction_type TEXT NOT NULL CHECK (transaction_type IN ('buy', 'sell')),
-  last_processed_block BIGINT,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
