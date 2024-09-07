@@ -1,5 +1,5 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useProfile} from 'afk_nostr_sdk';
+import {useProfile, useSendZap, useSendZapNote} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -33,6 +33,9 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const {data: profile} = useProfile({publicKey: event?.pubkey});
   const {showToast} = useToast();
   const isActive = !!amount;
+
+  const {} = useSendZap()
+  const {mutate:mutateSendZapNote} = useSendZapNote()
 
   const onTipPress = () => {
     showToast({title: 'ZAP coming soon', type: 'info'});

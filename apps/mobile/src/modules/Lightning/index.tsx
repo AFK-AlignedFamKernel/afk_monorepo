@@ -14,6 +14,9 @@ import { useStyles } from '../../hooks';
 import { useToast } from '../../hooks/modals';
 import stylesheet from './styles';
 import { SendPaymentResponse } from '@webbtc/webln-types';
+import { ZapUserView } from './ZapUserView';
+import { LNWalletInfo } from './LNWalletInfo';
+import { LNPayInfo } from './LNPayInfo';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -36,7 +39,7 @@ export const LightningNetworkWalletView: React.FC = () => {
   );
 };
 
-enum ZAPType {
+export enum ZAPType {
   INVOICE,
   NOSTR
 }
@@ -50,7 +53,7 @@ export const LightningNetworkWallet = () => {
   const [nwcAuthUrl, setNwcAuthUrl] = useState('');
   const [paymentRequest, setPaymentRequest] = useState('');
   const [preimage, setPreimage] = useState('');
-  const [resultPayment, setResultPayment] = useState<SendPaymentResponse|undefined>();
+  const [resultPayment, setResultPayment] = useState<SendPaymentResponse | undefined>();
   const [nostrWebLN, setNostrWebLN] = useState<webln.NostrWebLNProvider | undefined>(undefined);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
@@ -122,7 +125,7 @@ export const LightningNetworkWallet = () => {
           console.log("result", result);
           setPreimage(result.preimage);
           setResultPayment(result)
-          showToast({title:"Zap payment success", type:"success"})
+          showToast({ title: "Zap payment success", type: "success" })
           return result;
         }
 
@@ -288,23 +291,22 @@ export const LightningNetworkWallet = () => {
           {connectionStatus !== 'connected' ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Connect to Lightning Wallet</Text>
-              {isExtensionAvailable ? (
+              <>
+                <View style={styles.content}>
+                  <TextInput
+                    placeholder="Paste NWC URL"
+                    value={nwcUrl}
+                    onChangeText={setNwcUrl}
+                    style={styles.input}
+                  />
+                </View>
+                <TouchableOpacity style={styles.button} onPress={handleConnectWithUrl}>
+                  <Text style={styles.buttonText}>Connect with URL</Text>
+                </TouchableOpacity>
+                <Text style={styles.orText}>or</Text>
+              </>
+              {isExtensionAvailable && (
                 <Text style={styles.infoValue}>Alby extension detected!</Text>
-              ) : (
-                <>
-                  <View style={styles.content}>
-                    <TextInput
-                      placeholder="Paste NWC URL"
-                      value={nwcUrl}
-                      onChangeText={setNwcUrl}
-                      style={styles.input}
-                    />
-                  </View>
-                  <TouchableOpacity style={styles.button} onPress={handleConnectWithUrl}>
-                    <Text style={styles.buttonText}>Connect with URL</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.orText}>or</Text>
-                </>
               )}
               <Button
                 style={[styles.button, isLoading && styles.disabledButton]}
@@ -321,7 +323,7 @@ export const LightningNetworkWallet = () => {
               </Button>
             </View>
           ) : (
-            <WalletInfo
+            <LNWalletInfo
               setIsInvoiceModalVisible={setIsInvoiceModalVisible}
               balance={balance}
               connectionData={connectionData}
@@ -362,7 +364,7 @@ export const LightningNetworkWallet = () => {
             visible={isInvoiceModalVisible}
             onRequestClose={() => setIsInvoiceModalVisible(false)}
           >
-            <PayInfo
+            <LNPayInfo
               setInvoiceMemo={setInvoiceMemo}
               setInvoiceAmount={setInvoiceAmount}
               invoiceMemo={invoiceMemo}
@@ -377,227 +379,3 @@ export const LightningNetworkWallet = () => {
     </SafeAreaView>
   );
 };
-
-function WalletInfo({
-  connectionData,
-  balance,
-  paymentRequest,
-  preimage,
-  payInvoice,
-  handleCopyInvoice,
-  setIsZapModalVisible,
-  setIsInvoiceModalVisible,
-  isLoading,
-}: {
-  connectionData: any;
-  balance: any;
-  paymentRequest: any;
-  handleCopyInvoice: () => void;
-  preimage: any;
-  payInvoice: any;
-  setIsZapModalVisible: any;
-  setIsInvoiceModalVisible: any;
-  isLoading: boolean;
-}) {
-  const styles = useStyles(stylesheet);
-
-  if (isLoading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-  return (
-    <View style={styles.walletcontainer}>
-      <View style={styles.infoSection}>
-        <Text style={styles.sectionTitle}>Wallet Details</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Connected to:</Text>
-          <Text style={styles.infoValue}>{connectionData?.node?.alias || 'Unknown'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Network:</Text>
-          <Text style={styles.infoValue}>{connectionData?.node?.network || 'Unknown'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Balance:</Text>
-          <Text style={styles.infoValue}>{balance ?? 'Loading...'} sats</Text>
-        </View>
-      </View>
-
-      {paymentRequest ? (
-        <View style={styles.paymentSection}>
-          <View style={styles.paymentRequest}>
-            <Text style={{ ...styles.paymentRequestLabel, fontWeight: 'bold' }}>
-              Payment Request:
-            </Text>
-
-            <Pressable>
-              <Text style={styles.paymentRequestValue} numberOfLines={1} ellipsizeMode="middle">
-                {paymentRequest ?? 'Loading...'}
-              </Text>
-              <Text>
-                <IconButton
-                  onPress={handleCopyInvoice}
-                  size={16}
-                  icon="CopyIconStack"
-                  color="primary"
-                />
-              </Text>
-            </Pressable>
-          </View>
-          <Text style={styles.paymentStatus}>
-            {preimage ? `PAID: ${preimage}` : 'Not paid yet'}
-          </Text>
-        </View>
-      ) : (
-        <Text></Text>
-      )}
-      <Pressable style={styles.button} onPress={() => setIsInvoiceModalVisible(true)}>
-        <Text style={styles.buttonText}>Receive Payment</Text>
-      </Pressable>
-
-      <View style={{ marginTop: 10, ...styles.zapSection }}>
-        <Pressable style={styles.zapButton} onPress={() => setIsZapModalVisible(true)}>
-          <Text style={styles.buttonText}>Zap a User</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-function PayInfo({
-  setIsInvoiceModalVisible,
-  setInvoiceAmount,
-  setInvoiceMemo,
-  invoiceAmount,
-  invoiceMemo,
-  isLoading,
-  generateInvoice,
-}: {
-  setIsInvoiceModalVisible: any;
-  invoiceMemo: string;
-  setInvoiceMemo: any;
-  setInvoiceAmount: any;
-  invoiceAmount: string;
-  isLoading?: boolean;
-  generateInvoice: () => void;
-}) {
-  const styles = useStyles(stylesheet);
-
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Receive Satoshi</Text>
-        <View style={styles.content}>
-          <TextInput
-            placeholder="Amount (sats)"
-            value={invoiceAmount}
-            keyboardType="numeric"
-            onChangeText={setInvoiceAmount}
-            style={styles.input}
-          />
-        </View>
-        <View style={styles.content}>
-          <TextInput
-            placeholder="Notes"
-            value={invoiceMemo}
-            onChangeText={setInvoiceMemo}
-            style={styles.input}
-          />
-        </View>
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.disabledButton]}
-          onPress={generateInvoice}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? 'Processing...' : 'Generate Invoice'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => setIsInvoiceModalVisible(false)}
-        >
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
-function ZapUserView({
-  isLoading,
-  setIsZapModalVisible,
-  setZapAmount,
-  setZapRecipient,
-  zapAmount,
-  zapRecipient,
-  handleZap,
-  setNostrLnRecipient,
-  nostrLnRecipient,
-  zapType,
-  setZapType
-}: {
-  zapRecipient: any;
-  nostrLnRecipient: any;
-  zapType: ZAPType;
-  setZapType: React.Dispatch<SetStateAction<any>>;
-  setNostrLnRecipient: React.Dispatch<SetStateAction<any>>;
-  setZapRecipient: React.Dispatch<SetStateAction<any>>;
-  zapAmount: string;
-  setZapAmount: React.Dispatch<SetStateAction<any>>;
-  handleZap: () => void;
-  setIsZapModalVisible: React.Dispatch<SetStateAction<any>>;
-  isLoading: boolean;
-}) {
-  const styles = useStyles(stylesheet);
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Zap a User</Text>
-
-        {zapType == ZAPType.INVOICE ?
-
-          <View style={styles.content}>
-
-            <TextInput
-              placeholder="Invoice"
-              value={zapRecipient}
-              onChangeText={setZapRecipient}
-              style={styles.input}
-            />
-          </View>
-
-          : <View style={styles.content}>
-
-            <TextInput
-              placeholder="Recipient (Nostr address)"
-              value={nostrLnRecipient}
-              onChangeText={setNostrLnRecipient}
-              style={styles.input}
-            />
-          </View>
-
-        }
-
-
-
-        <View style={styles.content}>
-          <TextInput
-            placeholder="Amount (sats)"
-            value={zapAmount}
-            onChangeText={setZapAmount}
-            keyboardType="numeric"
-            style={styles.input}
-          />
-        </View>
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.disabledButton]}
-          onPress={handleZap}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? 'Processing...' : 'Send Zap'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.closeButton} onPress={() => setIsZapModalVisible(false)}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
