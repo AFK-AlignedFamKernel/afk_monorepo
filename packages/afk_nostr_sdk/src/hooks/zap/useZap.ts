@@ -40,7 +40,7 @@ export const useSendZap = () => {
 interface ISendZapNote {
   event: NDKEvent;
   amount: number;
-  options?:{ comment, unit, signer, tags, onLnPay, onCashuPay, onComplete, }
+  options?: { comment, unit, signer, tags, onLnPay, onCashuPay, onComplete, }
 }
 export const useSendZapNote = () => {
   const { ndk } = useNostrContext();
@@ -48,12 +48,19 @@ export const useSendZapNote = () => {
   return useMutation({
     mutationKey: ['useSendZapNote', ndk],
     mutationFn: async ({ event, amount, options }: ISendZapNote) => {
+      try {
+        const zap = await ndk.zap(event, amount, {
 
-      const zap = await ndk.zap(event, amount, {
+        })
+        console.log("zap", zap)
 
-      })
+        return zap;
+      } catch (e) {
+        console.log("issue send zap", e)
 
-      return zap;
+      }
+
+
       //Implement send Zap
     },
   });
@@ -62,7 +69,7 @@ export const useSendZapNote = () => {
 
 export const useConnectNWC = () => {
   const { ndk } = useNostrContext();
-  const {setNWCUrl} = useAuth()
+  const { setNWCUrl } = useAuth()
 
   return useMutation({
     mutationKey: ['useConnectNWC', ndk],
@@ -71,6 +78,7 @@ export const useConnectNWC = () => {
 
       const nwc = await ndk.nwc(nwcUrl);
       setNWCUrl(nwcUrl)
+
       //Implement send Zap
     },
   });

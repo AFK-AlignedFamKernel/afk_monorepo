@@ -1,12 +1,12 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useProfile, useSendZap, useSendZapNote} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useProfile, useSendZap, useSendZapNote } from 'afk_nostr_sdk';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 
-import {Avatar, Button, Input, Modalize, Text} from '../../../components';
-import {useStyles} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {TipSuccessModalProps} from '../../TipSuccessModal';
+import { Avatar, Button, Input, Modalize, Text } from '../../../components';
+import { useStyles } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
 
 export type TipModalLightning = Modalize;
@@ -29,16 +29,31 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 }: FormTipModalLightningProps) => {
   const styles = useStyles(stylesheet);
 
+
+  const { mutate: mutateSendZapNote } = useSendZapNote()
+
   const [amount, setAmount] = useState<string>('');
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const {showToast} = useToast();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { showToast } = useToast();
   const isActive = !!amount;
 
-  const {} = useSendZap()
-  const {mutate:mutateSendZapNote} = useSendZapNote()
+  const { } = useSendZap()
 
-  const onTipPress = () => {
-    showToast({title: 'ZAP coming soon', type: 'info'});
+  const onTipPress = async () => {
+    showToast({ title: 'ZAP coming soon', type: 'info' });
+
+    if (!event) return;
+
+    if (!amount) {
+
+      showToast({ title: "Zap send", type: "error" })
+      return;
+    }
+
+    await mutateSendZapNote({
+      event,
+      amount: Number(amount?.toString())
+    })
   };
 
   return (
