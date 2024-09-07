@@ -1,18 +1,19 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {useSendZap} from 'afk_nostr_sdk';
+import { webln } from '@getalby/sdk';
+import { useAuth, useConnectNWC, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
+import React, { SetStateAction, useEffect, useState } from 'react';
+import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
+import { WebView } from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {Button, IconButton} from '../../components';
-import {useStyles} from '../../hooks';
-import {useToast} from '../../hooks/modals';
+import { Button, IconButton } from '../../components';
+import { useStyles } from '../../hooks';
+import { useToast } from '../../hooks/modals';
 import stylesheet from './styles';
+import { SendPaymentResponse } from '@webbtc/webln-types';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -35,14 +36,21 @@ export const LightningNetworkWalletView: React.FC = () => {
   );
 };
 
+enum ZAPType {
+  INVOICE,
+  NOSTR
+}
+
 export const LightningNetworkWallet = () => {
+  const { publicKey } = useAuth()
   const styles = useStyles(stylesheet);
   const [nwcUrl, setNwcUrl] = useState('');
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const [pendingNwcUrl, setPendingNwcUrl] = useState('');
   const [nwcAuthUrl, setNwcAuthUrl] = useState('');
   const [paymentRequest, setPaymentRequest] = useState('');
   const [preimage, setPreimage] = useState('');
+  const [resultPayment, setResultPayment] = useState<SendPaymentResponse|undefined>();
   const [nostrWebLN, setNostrWebLN] = useState<webln.NostrWebLNProvider | undefined>(undefined);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
@@ -50,13 +58,18 @@ export const LightningNetworkWallet = () => {
   const [isExtensionAvailable, setIsExtensionAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
+  const [zapRecipient, setZapRecipient] = useState<string | undefined>();
+  const [nostrLnRecipient, setNostrLnRecipient] = useState<string | undefined>();
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [generatedInvoice, setGeneratedInvoice] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState('');
-  const [invoiceMemo, setInvoiceMemo] = useState('');
-  const {mutate: mutateSendZap} = useSendZap();
+  const [invoiceMemo, setInvoiceMemo] = useState(publicKey);
+  const { mutate: mutateSendZap } = useSendZap();
+  const { mutate: mutateConnectNDK } = useConnectNWC();
+
+  const { ndk } = useNostrContext()
+  const [zapType, setZapType] = useState<ZAPType>(ZAPType.INVOICE)
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).webln) {
@@ -87,21 +100,56 @@ export const LightningNetworkWallet = () => {
     fetchData();
   }, [nostrWebLN]);
 
-  async function payInvoice() {
+  async function payInvoice(): Promise<SendPaymentResponse | undefined> {
     try {
-      if (!nostrWebLN) throw new Error('No WebLN provider');
-      const result = await nostrWebLN.sendPayment(paymentRequest);
-      setPreimage(result.preimage);
+      if (!nostrWebLN) {
+        showToast({ title: "No WebLN provider", type: "error" })
+        return undefined
+      };
+
+
+      if (zapRecipient) {
+
+        const isValid = validateInvoice(zapRecipient)
+
+        if (!isValid) {
+          showToast({ title: "Invoice is not valid", type: "error" })
+        }
+        // const result = await nostrWebLN.sendPayment(paymentRequest);
+        const result = await nostrWebLN.sendPayment(zapRecipient);
+
+        if (result) {
+          console.log("result", result);
+          setPreimage(result.preimage);
+          setResultPayment(result)
+          showToast({title:"Zap payment success", type:"success"})
+          return result;
+        }
+
+      }
+
+      return undefined;
     } catch (error) {
       console.error(error);
+      return undefined;
     }
   }
+  function validateInvoice(invoice: string): boolean {
+    // A basic check to see if the invoice is too short or doesn't start with 'ln'
+    return invoice.length > 50 && invoice.startsWith('ln');
+  }
+
   const generateInvoice = async () => {
     if (!nostrWebLN || !invoiceAmount) return;
     try {
       setIsLoading(true);
+      // const invoice = await nostrWebLN.makeInvoice({
+      //   amount: parseInt(invoiceAmount, 10),
+      //   defaultMemo: invoiceMemo,
+      // });
       const invoice = await nostrWebLN.makeInvoice({
         amount: parseInt(invoiceAmount, 10),
+        // amount: parseInt(invoiceAmount),
         defaultMemo: invoiceMemo,
       });
       setGeneratedInvoice(invoice.paymentRequest);
@@ -125,7 +173,7 @@ export const LightningNetworkWallet = () => {
       }
     } else {
       const nwc = webln.NostrWebLNProvider.withNewSecret({});
-      const authUrl = nwc.client.getAuthorizationUrl({name: 'React Native NWC demo'});
+      const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
       setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
       setNwcAuthUrl(authUrl.toString());
 
@@ -134,7 +182,7 @@ export const LightningNetworkWallet = () => {
           if (event.data?.type === 'nwc:success') {
             setNwcAuthUrl('');
             setNwcUrl(pendingNwcUrl);
-            setNostrWebLN(new webln.NostrWebLNProvider({nostrWalletConnectUrl: pendingNwcUrl}));
+            setNostrWebLN(new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl }));
           }
         });
       }
@@ -142,9 +190,19 @@ export const LightningNetworkWallet = () => {
     setIsLoading(false);
   }
 
-  const handleConnectWithUrl = () => {
+  const handleConnectWithUrl = async () => {
     if (nwcUrl) {
-      setNostrWebLN(new webln.NostrWebLNProvider({nostrWalletConnectUrl: nwcUrl}));
+      const nwc = new webln.NostrWebLNProvider({
+        nostrWalletConnectUrl: nwcUrl,
+      });
+      await nwc.enable();
+      setNostrWebLN(nwc);
+
+      mutateConnectNDK(nwcUrl, {
+        onSuccess: () => {
+
+        }
+      })
     }
   };
 
@@ -156,9 +214,13 @@ export const LightningNetworkWallet = () => {
       // Here you would implement the actual zap functionality
       // This is a placeholder for the actual implementation
       console.log(`Zapping ${zapAmount} sats to ${zapRecipient}`);
+
+      const result = await payInvoice()
+      console.log("result invoice pay", result)
+
       // Simulating a delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsZapModalVisible(false);
+      // await new Promise((resolve) => setTimeout(resolve, 2000));
+      // setIsZapModalVisible(false);
     } catch (error) {
       console.error('Failed to zap:', error);
     } finally {
@@ -168,8 +230,20 @@ export const LightningNetworkWallet = () => {
 
   const handleCopyInvoice = async () => {
     await Clipboard.setStringAsync(generatedInvoice);
-    showToast({type: 'info', title: 'Invoice copied to the clipboard'});
+    showToast({ type: 'info', title: 'Invoice copied to the clipboard' });
   };
+
+
+  // const handleGenerateNWCUrl = async () => {
+  //   const nwc = webln.NostrWebLNProvider.withNewSecret();
+
+  //   await nwc.initNWC({
+  //     name: "<Your service name here>",
+  //   });
+  //   const url = nwc.getNostrWalletConnectUrl(true);
+
+  //   console.log("nwc", nwc)
+  // }
 
   const renderAuthView = () => {
     if (Platform.OS === 'web') {
@@ -184,7 +258,7 @@ export const LightningNetworkWallet = () => {
     } else if (WebView) {
       return (
         <WebView
-          source={{uri: nwcAuthUrl}}
+          source={{ uri: nwcAuthUrl }}
           injectedJavaScriptBeforeContentLoaded={`
             window.opener = window;
             window.addEventListener("message", (event) => {
@@ -267,7 +341,12 @@ export const LightningNetworkWallet = () => {
             onRequestClose={() => setIsZapModalVisible(false)}
           >
             <ZapUserView
+
+              zapType={zapType}
+              setZapType={setZapType}
               isLoading={isLoading}
+              setNostrLnRecipient={setNostrLnRecipient}
+              nostrLnRecipient={nostrLnRecipient}
               setIsZapModalVisible={setIsZapModalVisible}
               setZapAmount={setZapAmount}
               setZapRecipient={setZapRecipient}
@@ -346,7 +425,7 @@ function WalletInfo({
       {paymentRequest ? (
         <View style={styles.paymentSection}>
           <View style={styles.paymentRequest}>
-            <Text style={{...styles.paymentRequestLabel, fontWeight: 'bold'}}>
+            <Text style={{ ...styles.paymentRequestLabel, fontWeight: 'bold' }}>
               Payment Request:
             </Text>
 
@@ -375,7 +454,7 @@ function WalletInfo({
         <Text style={styles.buttonText}>Receive Payment</Text>
       </Pressable>
 
-      <View style={{marginTop: 10, ...styles.zapSection}}>
+      <View style={{ marginTop: 10, ...styles.zapSection }}>
         <Pressable style={styles.zapButton} onPress={() => setIsZapModalVisible(true)}>
           <Text style={styles.buttonText}>Zap a User</Text>
         </Pressable>
@@ -450,8 +529,16 @@ function ZapUserView({
   zapAmount,
   zapRecipient,
   handleZap,
+  setNostrLnRecipient,
+  nostrLnRecipient,
+  zapType,
+  setZapType
 }: {
   zapRecipient: any;
+  nostrLnRecipient: any;
+  zapType: ZAPType;
+  setZapType: React.Dispatch<SetStateAction<any>>;
+  setNostrLnRecipient: React.Dispatch<SetStateAction<any>>;
   setZapRecipient: React.Dispatch<SetStateAction<any>>;
   zapAmount: string;
   setZapAmount: React.Dispatch<SetStateAction<any>>;
@@ -464,14 +551,33 @@ function ZapUserView({
     <View style={styles.modalOverlay}>
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Zap a User</Text>
-        <View style={styles.content}>
-          <TextInput
-            placeholder="Recipient (Nostr address)"
-            value={zapRecipient}
-            onChangeText={setZapRecipient}
-            style={styles.input}
-          />
-        </View>
+
+        {zapType == ZAPType.INVOICE ?
+
+          <View style={styles.content}>
+
+            <TextInput
+              placeholder="Invoice"
+              value={zapRecipient}
+              onChangeText={setZapRecipient}
+              style={styles.input}
+            />
+          </View>
+
+          : <View style={styles.content}>
+
+            <TextInput
+              placeholder="Recipient (Nostr address)"
+              value={nostrLnRecipient}
+              onChangeText={setNostrLnRecipient}
+              style={styles.input}
+            />
+          </View>
+
+        }
+
+
+
         <View style={styles.content}>
           <TextInput
             placeholder="Amount (sats)"

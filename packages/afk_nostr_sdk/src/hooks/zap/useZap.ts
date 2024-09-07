@@ -1,7 +1,8 @@
-import NDK from '@nostr-dev-kit/ndk';
-import {useMutation, useQuery} from '@tanstack/react-query';
+import NDK, { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
 
 export const useGetZapInfo = (relayUrl: string) => {
   const ndk = new NDK({
@@ -26,7 +27,7 @@ export const useGetZapInfo = (relayUrl: string) => {
 };
 
 export const useSendZap = () => {
-  const {ndk} = useNostrContext();
+  const { ndk } = useNostrContext();
 
   return useMutation({
     mutationKey: ['useSendZap', ndk],
@@ -35,3 +36,43 @@ export const useSendZap = () => {
     },
   });
 };
+
+interface ISendZapNote {
+  event: NDKEvent;
+  amount: number;
+  options?:{ comment, unit, signer, tags, onLnPay, onCashuPay, onComplete, }
+}
+export const useSendZapNote = () => {
+  const { ndk } = useNostrContext();
+
+  return useMutation({
+    mutationKey: ['useSendZapNote', ndk],
+    mutationFn: async ({ event, amount, options }: ISendZapNote) => {
+
+      const zap = await ndk.zap(event, amount, {
+
+      })
+
+      return zap;
+      //Implement send Zap
+    },
+  });
+};
+
+
+export const useConnectNWC = () => {
+  const { ndk } = useNostrContext();
+  const {setNWCUrl} = useAuth()
+
+  return useMutation({
+    mutationKey: ['useConnectNWC', ndk],
+    mutationFn: async (nwcUrl: string) => {
+
+
+      const nwc = await ndk.nwc(nwcUrl);
+      setNWCUrl(nwcUrl)
+      //Implement send Zap
+    },
+  });
+};
+

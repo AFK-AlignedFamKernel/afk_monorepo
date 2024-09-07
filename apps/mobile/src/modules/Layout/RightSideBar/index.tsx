@@ -7,7 +7,7 @@ import stylesheet from './styles';
 import { TokenLaunchDetail } from '../../../components/pump/TokenLaunchDetail';
 import { TokenLaunchInterface } from '../../../types/keys';
 
-const tabs = ['Trending', "New", 'Quests'];
+const tabs = ['Trending', 'Quests'];
 
 const RightSidebar = () => {
   const { theme } = useTheme();
@@ -25,7 +25,12 @@ const RightSidebar = () => {
 
   const renderListItem = ({ item }: { item: TokenLaunchInterface }) => (
     <View style={styles.itemContainer}>
-      <TokenLaunchDetail launch={item} isViewDetailDisabled={true} isDisabledInfo={true} />
+      <TokenLaunchDetail
+        launch={item}
+        // isViewDetailDisabled={true} 
+        isDisabledInfo={true}
+        isDisabledForm={true}
+      />
     </View>
   );
 
@@ -62,29 +67,8 @@ const RightSidebar = () => {
             )}
           </>
         )}
-
-        {activeTab === 'New' && (
-          <>
-            {isLoading ? (
-              <ActivityIndicator size="large" color={theme.colors.text} />
-            ) : error ? (
-              <Text style={{ color: theme.colors.text }}>Failed to load coins</Text>
-            ) : (
-              <FlatList
-                data={coins}
-                renderItem={renderListItem}
-                keyExtractor={(item) => item.token_address.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                ListEmptyComponent={<Text style={{ color: theme.colors.text }}>No coins available</Text>}
-                ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
-              />
-            )}
-          </>
-        )}
         {activeTab === 'Quests' && (
           <>
-            <Text>Questing coming soon</Text>
             {profile ? (
               <Text style={{ color: theme.colors.text }}>NIP05: {profile.nip05}</Text>
             ) : (

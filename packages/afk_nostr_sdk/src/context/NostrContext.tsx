@@ -1,4 +1,4 @@
-import NDK, {NDKNip07Signer, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import NDK, {NDKNip07Signer, NDKNwc, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 
 import {useSettingsStore} from '../store';
@@ -13,6 +13,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const privateKey = useAuth((state) => state.privateKey);
   const publicKey = useAuth((state) => state.publicKey);
   const isExtension = useAuth((state) => state.isExtension);
+  const nwcUrl = useAuth((state) => state.nwcUrl);
   const relays = useSettingsStore((state) => state.relays);
 
   const [ndk, setNdk] = useState<NDK>(
@@ -20,6 +21,8 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
       explicitRelayUrls: relays ?? AFK_RELAYS,
     }),
   );
+
+  const [nwcNdk, setNWCNdk] = useState<NDKNwc>();
 
   const nip07Signer = new NDKNip07Signer();
   const [ndkExtension, setNdkExtension] = useState<NDK>(
@@ -41,6 +44,12 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     newNdk.connect().then(() => {
       setNdk(newNdk);
     });
+    if(nwcUrl) {
+      ndk.nwc(nwcUrl).then((res) => {
+        setNWCNdk(res)
+      })
+    }
+
   }, [privateKey, isExtension]);
 
   return <NostrContext.Provider value={{ndk, nip07Signer}}>{children}</NostrContext.Provider>;

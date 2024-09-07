@@ -6,6 +6,7 @@ type State = {
   publicKey: string;
   privateKey: string;
   isExtension?: boolean;
+  nwcUrl?: string;
 
   // Cashu store auth
   mints?: string[];
@@ -20,6 +21,7 @@ type Action = {
   setIsExtensionConnect: (isExtension: boolean) => void;
   setMints: (mints:string[]) => void;
   setMintsRequests: (mintRequests:string[]) => void;
+  setNWCUrl: (nwcUrl:string) => void;
 };
 
 export const authStore = createStore<State & Action>((set, get) => ({
@@ -27,9 +29,13 @@ export const authStore = createStore<State & Action>((set, get) => ({
   // so we can cast them as strings without hassle in the app
   publicKey: undefined as unknown as string,
   privateKey: undefined as unknown as string,
+  nwcUrl: undefined as unknown as string,
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
+  },
+  setNWCUrl: (nwcUrl) => {
+    set({nwcUrl});
   },
   setPublicKey: (publicKey) => {
     set({publicKey});

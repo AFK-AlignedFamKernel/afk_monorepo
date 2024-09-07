@@ -45,7 +45,7 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-import RightSidebar from '../components/RightSideBar';
+import RightSidebar from '../modules/Layout/RightSideBar'
 import { CashuScreen } from '../screens/Cashu';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
