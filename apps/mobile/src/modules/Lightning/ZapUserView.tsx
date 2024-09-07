@@ -27,7 +27,7 @@ export function ZapUserView({
   setZapRecipient: React.Dispatch<SetStateAction<any>>;
   zapAmount: string;
   setZapAmount: React.Dispatch<SetStateAction<any>>;
-  handleZap: () => void;
+  handleZap: (zapAmount:string, zapRecipient:string) => void;
   setIsZapModalVisible: React.Dispatch<SetStateAction<any>>;
   isLoading: boolean;
 }) {
@@ -74,7 +74,7 @@ export function ZapUserView({
         </View>
         <TouchableOpacity
           style={[styles.button, isLoading && styles.disabledButton]}
-          onPress={handleZap}
+          onPress={() => handleZap(zapAmount, zapRecipient)}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? 'Processing...' : 'Send Zap'}</Text>

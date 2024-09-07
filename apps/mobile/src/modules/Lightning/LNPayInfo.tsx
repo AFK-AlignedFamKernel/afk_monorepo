@@ -20,7 +20,7 @@ export function LNPayInfo({
   setInvoiceAmount: any;
   invoiceAmount: string;
   isLoading?: boolean;
-  generateInvoice: () => void;
+  generateInvoice: (invoiceAmount?:string) => void;
 }) {
   const styles = useStyles(stylesheet);
 
@@ -47,7 +47,7 @@ export function LNPayInfo({
         </View>
         <TouchableOpacity
           style={[styles.button, isLoading && styles.disabledButton]}
-          onPress={generateInvoice}
+          onPress={() => generateInvoice(invoiceAmount)}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? 'Processing...' : 'Generate Invoice'}</Text>

@@ -24,7 +24,11 @@
     "@tanstack/react-query": "^5.40.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@webbtc/webln-types": "^2.1.0",
+    "@getalby/lightning-tools": "^5.0.3",
+    "@getalby/sdk": "^3.6.1"
+
   },
   "peerDependencies": {
     "@nostr-dev-kit/ndk": "^2.8.2",
