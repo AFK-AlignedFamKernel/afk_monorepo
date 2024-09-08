@@ -4,6 +4,7 @@ import deployLaunchRoute from "./routes/indexer/deploy-launch";
 import deployTokenRoute from "./routes/indexer/deploy-token";
 import graphRoute from "./routes/indexer/graph";
 import holdingsRoute from "./routes/indexer/holdings";
+import tokenStatsRoute from "./routes/indexer/token_stats";
 
 function declareRoutes(fastify: FastifyInstance) {
   fastify.register(buyCoinRoute);
@@ -11,6 +12,7 @@ function declareRoutes(fastify: FastifyInstance) {
   fastify.register(deployTokenRoute);
   fastify.register(graphRoute);
   fastify.register(holdingsRoute);
+  fastify.register(tokenStatsRoute);
 }
 
 export default declareRoutes;
