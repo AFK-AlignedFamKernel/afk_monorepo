@@ -24,8 +24,6 @@ async function buyCoinRoute(fastify: FastifyInstance, options: RouteOptions) {
         .status(HTTPStatus.InternalServerError)
         .send({ message: "Internal server error." });
     }
-
-    return { hello: "world" };
   });
 }
 
