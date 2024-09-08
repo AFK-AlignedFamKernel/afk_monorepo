@@ -1,4 +1,9 @@
-import { CashuMint, CashuWallet, getEncodedToken, MintQuotePayload, MintQuoteResponse, Proof } from '@cashu/cashu-ts';
+import { CashuMint, CashuWallet, getEncodedToken, MintQuotePayload, MintQuoteResponse, Proof,
+    deriveSeedFromMnemonic,
+    generateNewMnemonic,
+
+
+} from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../store';
@@ -10,6 +15,8 @@ export const useCashu = () => {
 
     const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))
     const { privateKey } = useAuth()
+    const [mnemonic,setMnemonic] = useState<string|undefined>()
+    const [seed,setSeed] = useState<Uint8Array|undefined>()
 
     const cashuMint = useMemo(() => {
         return mint;
@@ -22,6 +29,20 @@ export const useCashu = () => {
         return walletCashu
     }, [walletCashu])
 
+
+
+    /** TODO saved in secure store */
+    const generateMnemonic = () => {
+
+        const words = generateNewMnemonic()
+        setMnemonic(words)
+    }
+    /** TODO saved in secure store */
+    const derivedSeedFromMnenomicAndSaved = (mnemonic:string) => {
+
+        const seed = deriveSeedFromMnemonic(mnemonic)
+        setSeed(seed)
+    }
 
     const getKeys = () => {
         const keys = mint?.getKeys();
@@ -45,7 +66,9 @@ export const useCashu = () => {
     }
 
     const connectCashWallet = (cashuMint: CashuMint) => {
-        const wallet = new CashuWallet(cashuMint)
+        const wallet = new CashuWallet(cashuMint, {
+            mnemonicOrSeed:seed ?? mnemonic
+        })
         setWallet(wallet)
         return wallet;
     }
@@ -182,6 +205,7 @@ export const useCashu = () => {
     return {
         wallet,
         mint,
+        generateMnemonic,
         connectCashMint,
         connectCashWallet,
         requestMintQuote,

@@ -86,3 +86,48 @@ export const retrievePassword = async () => {
 
   return null;
 };
+
+
+
+export const storeCashuMnemonic = async (privateKeyHex: string, password: string) => {
+  try {
+    const encryptedCashuMnemonic = JSON.stringify(pbkdf2Encrypt(privateKeyHex, password));
+
+    if (isSecureStoreAvailable) {
+      await SecureStore.setItemAsync('encryptedCashuMnemonic', encryptedCashuMnemonic);
+    } else {
+      await AsyncStorage.setItem('encryptedCashuMnemonic', encryptedCashuMnemonic);
+    }
+
+    return encryptedCashuMnemonic;
+  } catch (error) {
+    // We shouldn't throw the original error for security reasons
+    throw new Error('Error storing private key');
+  }
+};
+
+export const retrieveAndDecryptCashuMnemonic = async (password: string): Promise<false | Buffer> => {
+  try {
+    const encryptedCashuMnemonic = isSecureStoreAvailable
+      ? await SecureStore.getItemAsync('encryptedCashuMnemonic')
+      : await AsyncStorage.getItem('encryptedCashuMnemonic');
+
+    if (!encryptedCashuMnemonic) return false;
+
+    let parsedEncryptedMnemonic: PBKDF2EncryptedObject;
+    try {
+      parsedEncryptedMnemonic = JSON.parse(encryptedCashuMnemonic);
+
+      if (!('data' in parsedEncryptedMnemonic)) throw new Error();
+    } catch (e) {
+      // If the encrypted private key is not in the expected format, we should remove it
+      await AsyncStorage.removeItem('encryptedCashuMnemonic');
+      return false;
+    }
+
+    return pbkdf2Decrypt(parsedEncryptedMnemonic, password);
+  } catch (e) {
+    // We shouldn't throw the original error for security reasons
+    throw new Error('Error retrieving and decrypting cashu mnemonic');
+  }
+};
