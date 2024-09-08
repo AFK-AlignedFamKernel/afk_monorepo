@@ -17,15 +17,18 @@ fastify.register(fastifyCors, {
 });
 declareRoutes(fastify);
 
-fastify.listen({ port: 3000 }, function (err, address) {
-  if (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
+fastify.listen(
+  { port: Number(process.env.PORT) || 5050 },
+  function (err, address) {
+    if (err) {
+      fastify.log.error(err);
+      process.exit(1);
+    }
 
-  // try {
-  //   launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
-  // } catch (error) {
-  //   console.error("Error launching bot:", error);
-  // }
-});
+    try {
+      launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
+    } catch (error) {
+      console.error("Error launching bot:", error);
+    }
+  }
+);
