@@ -68,27 +68,26 @@ export const retrieveAndDecryptPrivateKey = async (password: string): Promise<fa
 /** TODO add security for password retrieve in Web view? */
 export const storePassword = async (password: string) => {
   if (isSecureStoreAvailable) {
-    return SecureStore.setItemAsync('password', password, {requireAuthentication: true});
+    return await SecureStore.setItemAsync('password', password, {requireAuthentication: true});
   }
-  // else {
-  //   return await AsyncStorage.setItem('password', password);
-  // }
+  else {
+    return await AsyncStorage.setItem('password', password);
+  }
 };
 
 /** TODO add security for password retrieve in Web view? */
 export const retrievePassword = async () => {
   if (isSecureStoreAvailable) {
-    return SecureStore.getItemAsync('password', {requireAuthentication: true});
+    return await SecureStore.getItemAsync('password', {requireAuthentication: true});
   }
-  // else {
-  //   return await AsyncStorage.getItem('password');
-  // }
-
+  else {
+    return await AsyncStorage.getItem('password');
+  }
   return null;
 };
 
 
-
+/** no password atm */
 export const storeCashuMnemonic = async (privateKeyHex: string, password: string) => {
   try {
     const encryptedCashuMnemonic = JSON.stringify(pbkdf2Encrypt(privateKeyHex, password));
@@ -105,6 +104,23 @@ export const storeCashuMnemonic = async (privateKeyHex: string, password: string
     throw new Error('Error storing private key');
   }
 };
+
+// export const storeCashuMnemonic = async (privateKeyHex: string, password: string) => {
+//   try {
+//     const encryptedCashuMnemonic = JSON.stringify(pbkdf2Encrypt(privateKeyHex, password));
+
+//     if (isSecureStoreAvailable) {
+//       await SecureStore.setItemAsync('encryptedCashuMnemonic', encryptedCashuMnemonic);
+//     } else {
+//       await AsyncStorage.setItem('encryptedCashuMnemonic', encryptedCashuMnemonic);
+//     }
+
+//     return encryptedCashuMnemonic;
+//   } catch (error) {
+//     // We shouldn't throw the original error for security reasons
+//     throw new Error('Error storing private key');
+//   }
+// };
 
 export const retrieveAndDecryptCashuMnemonic = async (password: string): Promise<false | Buffer> => {
   try {

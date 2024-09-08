@@ -9,6 +9,9 @@ type State = {
   nwcUrl?: string;
 
   // Cashu store auth
+  isSeedStorage?: boolean;
+  seed?: Uint8Array;
+  mnemonic?: string;
   mints?: string[];
   mintRequests?: string[];
   useNostr?: boolean;
@@ -19,6 +22,12 @@ type Action = {
   setAuth: (publicKey: string, privateKey: string) => void;
   setPublicKey: (publicKey: string) => void;
   setIsExtensionConnect: (isExtension: boolean) => void;
+
+  // Cashu Wallet
+  setIsSeedStorage:(isSeedStorage:boolean) => void;
+  setMnemonic: (mnemonic:string) => void;
+  setSeed: (seed:Uint8Array) => void;
+
   setMints: (mints:string[]) => void;
   setMintsRequests: (mintRequests:string[]) => void;
   setNWCUrl: (nwcUrl:string) => void;
@@ -30,6 +39,8 @@ export const authStore = createStore<State & Action>((set, get) => ({
   publicKey: undefined as unknown as string,
   privateKey: undefined as unknown as string,
   nwcUrl: undefined as unknown as string,
+  seed: undefined as unknown as Uint8Array,
+  mnemonic: undefined as unknown as string,
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
@@ -44,8 +55,16 @@ export const authStore = createStore<State & Action>((set, get) => ({
     set({isExtension});
   },
 
-
   // Cashu store
+  setIsSeedStorage: (isSeedStorage) => {
+    set({isSeedStorage});
+  },
+  setSeed: (seed) => {
+    set({seed});
+  },
+  setMnemonic: (mnemonic) => {
+    set({mnemonic});
+  },
   setMints: (mints) => {
     set({mints});
   },

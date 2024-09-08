@@ -43,7 +43,7 @@ interface ISendZapNote {
   options?: { comment, unit, signer, tags, onLnPay, onCashuPay, onComplete, }
 }
 export const useSendZapNote = () => {
-  const { ndk } = useNostrContext();
+  const { ndk, nwcNdk } = useNostrContext();
 
   return useMutation({
     mutationKey: ['useSendZapNote', ndk],
@@ -52,6 +52,17 @@ export const useSendZapNote = () => {
         const zap = await ndk.zap(event, amount, {
 
         })
+
+        const zapMethods = await zap?.getZapMethods(ndk, event?.pubkey)
+        console.log("zapMethods", zapMethods)
+
+        //  const config = await ndk.walletConfig
+        //   const invoice = await zap?.getLnInvoice(event, amount, 
+        //   //   {
+
+        //   // }
+        // )
+        // const payLnInvoice = await nwcNdk.payInvoice(invoice)
         console.log("zap", zap)
 
         return zap;

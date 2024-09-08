@@ -1,31 +1,34 @@
-import {useNavigation} from '@react-navigation/native';
-import {useAuth, useNip07Extension} from 'afk_nostr_sdk';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth, useCashu, useNip07Extension } from 'afk_nostr_sdk';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input, TextButton} from '../../components';
-import {useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {AuthLoginScreenProps, MainStackNavigationProps} from '../../types';
-import {getPublicKeyFromSecret} from '../../utils/keypair';
+import { LockIcon } from '../../assets/icons';
+import { Button, Input, TextButton } from '../../components';
+import { useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { Auth } from '../../modules/Auth';
+import { AuthLoginScreenProps, MainStackNavigationProps } from '../../types';
+import { getPublicKeyFromSecret } from '../../utils/keypair';
 import {
+  retrieveAndDecryptCashuMnemonic,
   retrieveAndDecryptPrivateKey,
   retrievePassword,
   retrievePublicKey,
+  storeCashuMnemonic,
 } from '../../utils/storage';
 
-export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
-  const {theme} = useTheme();
+export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
+  const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
 
   const [password, setPassword] = useState('');
 
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
-  const {getPublicKey} = useNip07Extension();
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
+  const { getPublicKey } = useNip07Extension();
+  const { generateMnemonic } = useCashu()
 
   const navigationMain = useNavigation<MainStackNavigationProps>();
 
@@ -42,13 +45,13 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
   const handleLogin = async () => {
     if (!password) {
-      showToast({type: 'error', title: 'Password is required'});
+      showToast({ type: 'error', title: 'Password is required' });
       return;
     }
 
     const privateKey = await retrieveAndDecryptPrivateKey(password);
     if (!privateKey || privateKey.length !== 32) {
-      showToast({type: 'error', title: 'Invalid password'});
+      showToast({ type: 'error', title: 'Invalid password' });
       return;
     }
     const privateKeyHex = privateKey.toString('hex');
@@ -57,8 +60,17 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
     const publicKey = getPublicKeyFromSecret(privateKeyHex);
 
     if (publicKey !== storedPublicKey) {
-      showToast({type: 'error', title: 'Invalid password'});
+      showToast({ type: 'error', title: 'Invalid password' });
       return;
+    }
+
+    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
+    console.log("mnemonicSaved",mnemonicSaved)
+
+    if (!mnemonicSaved) {
+      const mnemonic = await generateMnemonic()
+      console.log("mnemonic",mnemonic)
+      await storeCashuMnemonic(mnemonic, password)
     }
 
     setAuth(publicKey, privateKeyHex);
@@ -82,7 +94,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
             hideDialog();
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
@@ -101,7 +113,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
             hideDialog();
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
@@ -120,14 +132,14 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
             // hideDialog();
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
 
   const handleGoDegenApp = () => {
     // Brind dialog
-    navigation.navigate('DegensStack', {screen: 'Games'});
+    navigation.navigate('DegensStack', { screen: 'Games' });
     // showDialog({
     //   title: 'WARNING',
     //   description:
@@ -158,7 +170,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
 
       <Button
         block
-        style={{width: 'auto', maxWidth: 130}}
+        style={{ width: 'auto', maxWidth: 130 }}
         variant="secondary"
         disabled={!password?.length}
         onPress={handleLogin}

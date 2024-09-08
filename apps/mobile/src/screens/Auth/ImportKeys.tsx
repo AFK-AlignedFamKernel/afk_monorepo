@@ -9,7 +9,8 @@ import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {AuthImportKeysScreenProps} from '../../types';
 import {getPublicKeyFromSecret, isValidNostrPrivateKey} from '../../utils/keypair';
-import {storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
+import {retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
+import { useCashu } from 'afk_nostr_sdk';
 
 export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -18,6 +19,7 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) =>
   const [privateKey, setPrivateKey] = useState('');
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
+  const {generateMnemonic} = useCashu()
 
   const handleImportAccount = async () => {
     if (!password) {
@@ -34,10 +36,23 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) =>
       showToast({type: 'error', title: 'Private key not valid'});
       return;
     }
+
+    
+
+    await storePassword(password);
     await storePrivateKey(privateKey, password);
     const publicKey = getPublicKeyFromSecret(privateKey);
     await storePublicKey(publicKey);
 
+    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
+    console.log("mnemonicSaved",mnemonicSaved)
+
+    if(!mnemonicSaved) {
+      const mnemonic = await generateMnemonic()
+      await storeCashuMnemonic(mnemonic, password)
+    }
+
+    
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
     if (biometySupported) {
       showDialog({

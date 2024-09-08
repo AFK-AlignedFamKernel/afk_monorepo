@@ -8,15 +8,16 @@ import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../store';
 
+// import {NDKCashuWallet} from "@nostr-dev-kit/ndk-wallet"
+
 export const useCashu = () => {
 
+    const { privateKey, setSeed, seed, mnemonic, setMnemonic } = useAuth()
 
     const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-
     const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))
-    const { privateKey } = useAuth()
-    const [mnemonic,setMnemonic] = useState<string|undefined>()
-    const [seed,setSeed] = useState<Uint8Array|undefined>()
+    // const [mnemonic,setMnemonic] = useState<string|undefined>()
+    // const [seed,setSeed] = useState<Uint8Array|undefined>()
 
     const cashuMint = useMemo(() => {
         return mint;
@@ -36,6 +37,9 @@ export const useCashu = () => {
 
         const words = generateNewMnemonic()
         setMnemonic(words)
+
+
+        return words;
     }
     /** TODO saved in secure store */
     const derivedSeedFromMnenomicAndSaved = (mnemonic:string) => {
@@ -206,6 +210,7 @@ export const useCashu = () => {
         wallet,
         mint,
         generateMnemonic,
+        derivedSeedFromMnenomicAndSaved,
         connectCashMint,
         connectCashWallet,
         requestMintQuote,
