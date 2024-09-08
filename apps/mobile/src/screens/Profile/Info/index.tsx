@@ -82,6 +82,10 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ publicKey: userPublicK
   const handleSettings = () => {
     navigation.navigate('Settings');
   };
+
+  const handleDefi = () => {
+    navigation.navigate("Defi");
+  };
   return (
     <View>
       <ProfileHead
@@ -99,6 +103,13 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ publicKey: userPublicK
               >
                 Edit profile
               </Button>
+
+              <IconButton
+                icon="CoinIcon"
+                size={20}
+                // style={styles.backButton}
+                onPress={handleDefi}
+              />
 
               <IconButton
                 icon="SettingsIcon"
@@ -156,6 +167,16 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ publicKey: userPublicK
               >
                 {isConnected ? 'UnFollow' : 'Follow'}
               </Button>
+
+              <IconButton
+                icon="CoinIcon"
+                size={20}
+                // style={styles.backButton}
+                onPress={() => {
+                  showTipModal({ pubkey: userPublicKey } as any);
+                  setMenuOpen(false);
+                }}
+              />
 
               {/* <IconButton icon="DoubleMessageIcon" size={20} style={styles.iconButton} /> */}
 

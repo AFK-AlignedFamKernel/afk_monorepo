@@ -88,6 +88,45 @@ export const LightningNetworkWallet = () => {
 
   } = useLN()
 
+
+
+  async function connectWithAlbyPlatform() {
+    setConnectionStatus('connecting');
+    setIsLoading(true);
+    if (isExtensionAvailable) {
+      try {
+        await (window as any)?.webln.enable();
+        setNostrWebLN((window as any)?.webln);
+      } catch (error) {
+        console.error('Failed to connect to Alby extension:', error);
+      }
+    } else {
+      const nwc = webln.NostrWebLNProvider.withNewSecret({});
+      const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
+      setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
+      setNwcAuthUrl(authUrl.toString());
+
+      if (Platform.OS === 'web') {
+        window.addEventListener('message', (event) => {
+          if (event.data?.type === 'nwc:success') {
+            setNwcAuthUrl('');
+            setNwcUrl(pendingNwcUrl);
+            setNostrWebLN(new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl }));
+          }
+        });
+      }
+    }
+    setIsLoading(false);
+  }
+
+  const handleConnectGetAlby = async () => {
+    const webLn = await connectWithAlby()
+
+    if (webLn) {
+      showToast({ title: "WebLN Connected to ZAP with BTC", type: "success" })
+    }
+  }
+
   const [zapType, setZapType] = useState<ZAPType>(ZAPType.INVOICE)
 
   useEffect(() => {
@@ -145,6 +184,9 @@ export const LightningNetworkWallet = () => {
 
           {nwcAuthUrl && renderAuthView()}
 
+
+
+
           {connectionStatus === "connected" &&
 
             <LNWalletInfo
@@ -196,7 +238,7 @@ export const LightningNetworkWallet = () => {
               )}
               <Button
                 style={[styles.button, isLoading && styles.disabledButton]}
-                onPress={connectWithAlby}
+                onPress={handleConnectGetAlby}
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>

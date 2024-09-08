@@ -23,6 +23,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
 
+
+  const {setIsSeedCashuStorage} = useAuth()
   const [password, setPassword] = useState('');
 
   const { showToast } = useToast();
@@ -66,11 +68,13 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
 
     const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
     console.log("mnemonicSaved",mnemonicSaved)
+    setIsSeedCashuStorage(true)
 
     if (!mnemonicSaved) {
       const mnemonic = await generateMnemonic()
       console.log("mnemonic",mnemonic)
       await storeCashuMnemonic(mnemonic, password)
+      setIsSeedCashuStorage(true)
     }
 
     setAuth(publicKey, privateKeyHex);
