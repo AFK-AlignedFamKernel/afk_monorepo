@@ -55,6 +55,7 @@ export const LightningNetworkWallet = () => {
   const [nostrLnRecipient, setNostrLnRecipient] = useState<string | undefined>();
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
+  const [isViewNewConnection, setIsViewNewConnection] = useState(true);
 
   const { ndk } = useNostrContext()
   const {
@@ -133,15 +134,41 @@ export const LightningNetworkWallet = () => {
     return null;
   };
 
-  if (nwcAuthUrl) {
-    return renderAuthView();
-  }
+  // if (nwcAuthUrl) {
+  //   return renderAuthView();
+  // }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.container}>
-          {connectionStatus !== 'connected' ? (
+
+          {nwcAuthUrl && renderAuthView()}
+
+          {connectionStatus === "connected" &&
+
+            <LNWalletInfo
+              setIsInvoiceModalVisible={setIsInvoiceModalVisible}
+              balance={balance}
+              connectionData={connectionData}
+              payInvoice={payInvoice}
+              handleCopyInvoice={handleCopyInvoice}
+              paymentRequest={generatedInvoice}
+              preimage={preimage}
+              setIsZapModalVisible={setIsZapModalVisible}
+              isLoading={isLoading}
+            />
+          }
+
+          {/* <TouchableOpacity style={styles.button} onPress={() => {
+            setIsViewNewConnection(!isViewNewConnection)
+          }
+          }>
+            <Text style={styles.buttonText}>New connection NWC</Text>
+          </TouchableOpacity> */}
+
+
+          {isViewNewConnection && (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Connect to Lightning Wallet</Text>
               <>
@@ -181,19 +208,9 @@ export const LightningNetworkWallet = () => {
                 </Text>
               </Button>
             </View>
-          ) : (
-            <LNWalletInfo
-              setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-              balance={balance}
-              connectionData={connectionData}
-              payInvoice={payInvoice}
-              handleCopyInvoice={handleCopyInvoice}
-              paymentRequest={generatedInvoice}
-              preimage={preimage}
-              setIsZapModalVisible={setIsZapModalVisible}
-              isLoading={isLoading}
-            />
           )}
+
+
 
           <Modal
             animationType="slide"

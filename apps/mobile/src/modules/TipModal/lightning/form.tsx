@@ -37,7 +37,10 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const { showToast } = useToast();
   const isActive = !!amount;
 
-  const { } = useSendZap()
+  console.log("profile nip", profile)
+  console.log("lud06", profile?.lud06)
+  console.log("lud16", profile?.lud16)
+  console.log("nip", profile?.nip05)
 
   const onTipPress = async () => {
     showToast({ title: 'ZAP coming soon', type: 'info' });
@@ -50,9 +53,20 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       return;
     }
 
+    if(!profile?.lud16) {
+      showToast({title:"This profile doesn't have a lud16 Lightning address", type:"error"})
+      return;
+    }
+
     await mutateSendZapNote({
       event,
-      amount: Number(amount?.toString())
+      amount: Number(amount?.toString()),
+      lud16:profile?.lud16
+    },{
+      onSuccess:() => {
+        showToast({title:"Lightning zap succedd", type:"success"})
+
+      }
     })
   };
 
@@ -82,6 +96,19 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
               )}
             </View>
           </View>
+        </View>
+
+        <View>
+          {profile?.lud16 && (
+            <Text fontSize={11} color="textLight" weight="regular">
+              LN Address: {profile?.lud16}
+            </Text>
+          )}
+        </View>
+
+
+        <View>
+
         </View>
 
         <Text

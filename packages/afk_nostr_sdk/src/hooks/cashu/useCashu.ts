@@ -15,7 +15,7 @@ export const useCashu = () => {
 
 
     const {ndk} = useNostrContext()
-    const { privateKey, setSeed, seed, mnemonic, setMnemonic } = useAuth()
+    const { privateKey, setSeed, seed, mnemonic, setMnemonic, setMints, setMintsRequests,} = useAuth()
 
 
     const [ndkWallet, setNDKWallet] = useState<NDKCashuWallet|undefined>(new NDKCashuWallet(ndk))

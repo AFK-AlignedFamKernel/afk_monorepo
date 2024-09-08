@@ -30,7 +30,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const [ndkCashuWallet, setNDKCashuWallet] = useState<NDKCashuWallet|undefined>(new NDKCashuWallet(ndk))
   const [ndkWallet, setNDKWallet] = useState<NDKWallet|undefined>(new NDKWallet(ndk))
 
-  const [nwcNdk, setNWCNdk] = useState<NDKNwc|undefined>();
+  const [nwcNdk, setNWCNdk] = useState<NDKNwc|undefined>(undefined);
 
   const nip07Signer = new NDKNip07Signer();
   const [ndkExtension, setNdkExtension] = useState<NDK>(

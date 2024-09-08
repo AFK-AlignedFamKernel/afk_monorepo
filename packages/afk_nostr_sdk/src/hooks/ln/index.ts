@@ -1,18 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { webln } from '@getalby/sdk';
 import { SendPaymentResponse } from "@webbtc/webln-types";
 import { useConnectNWC } from "../zap/useZap";
 import { useAuth } from "../../store";
+import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 
-export const useLN =  () => {
+export const useLN = () => {
 
-    const { publicKey, setNWCUrl, nwcUrl:nwlUrlProps} = useAuth()
-    const [nwcUrl, setNwcUrl] = useState(nwlUrlProps);
+    const { publicKey, setNWCUrl, nwcUrl: nwcUrlProps } = useAuth()
+    const [nwcUrl, setNwcUrl] = useState(nwcUrlProps);
     const [pendingNwcUrl, setPendingNwcUrl] = useState('');
     const [nwcAuthUrl, setNwcAuthUrl] = useState('');
     const [paymentRequest, setPaymentRequest] = useState('');
     const [preimage, setPreimage] = useState('');
-    const [nostrWebLN, setNostrWebLN] = useState<webln.NostrWebLNProvider | undefined>(undefined);
+    const [nostrWebLNState, setNostrWebLN] = useState<webln.NostrWebLNProvider | undefined>(undefined);
     const [zapAmount, setZapAmount] = useState('');
     const [zapRecipient, setZapRecipient] = useState<string | undefined>();
     const [nostrLnRecipient, setNostrLnRecipient] = useState<string | undefined>();
@@ -27,6 +28,11 @@ export const useLN =  () => {
     const [generatedInvoice, setGeneratedInvoice] = useState('');
     const [resultPayment, setResultPayment] = useState<SendPaymentResponse | undefined>();
 
+    const nostrWebLN = useMemo(() => {
+        return new webln.NostrWebLNProvider({
+            nostrWalletConnectUrl: nwcUrl ?? nwcUrlProps
+        })
+    }, [nwcUrl, nwcUrlProps])
     useEffect(() => {
         if (!nostrWebLN) return;
 
@@ -35,9 +41,9 @@ export const useLN =  () => {
 
     useEffect(() => {
         if (typeof window !== 'undefined' && (window as any).webln) {
-          setIsExtensionAvailable(true);
+            setIsExtensionAvailable(true);
         }
-      }, [window]);
+    }, [window]);
 
     const fetchData = async () => {
         try {
@@ -58,11 +64,12 @@ export const useLN =  () => {
         }
     };
 
+
     function validateInvoice(invoice: string): boolean {
         // A basic check to see if the invoice is too short or doesn't start with 'ln'
         return invoice.length > 50 && invoice.startsWith('ln');
     }
-    async function payInvoice(zapRecipient:string): Promise<SendPaymentResponse | undefined> {
+    async function payInvoice(zapRecipient: string): Promise<SendPaymentResponse | undefined> {
         try {
             if (!nostrWebLN) {
                 return undefined
@@ -94,7 +101,7 @@ export const useLN =  () => {
         }
     }
 
-    const handleZap = async (zapAmount:string, zapRecipient:string) => {
+    const handleZap = async (zapAmount: string, zapRecipient: string) => {
         if (!nostrWebLN || !zapAmount || !zapRecipient) return;
         //Implement zap user
         try {
@@ -132,6 +139,7 @@ export const useLN =  () => {
             const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
             setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
             setNwcAuthUrl(authUrl.toString());
+            setNWCUrl(nwcUrl)
 
             if (typeof window != "undefined") {
                 window.addEventListener('message', (event) => {
@@ -146,7 +154,7 @@ export const useLN =  () => {
         setIsLoading(false);
     }
 
-    const handleConnectWithUrl = async (nwcUrl:string) => {
+    const handleConnectWithUrl = async (nwcUrl: string) => {
         if (nwcUrl) {
             const nwc = new webln.NostrWebLNProvider({
                 nostrWalletConnectUrl: nwcUrl,
@@ -165,7 +173,7 @@ export const useLN =  () => {
     };
 
 
-    const generateInvoice = async (invoiceAmount?:string) => {
+    const generateInvoice = async (invoiceAmount?: string) => {
         if (!nostrWebLN || !invoiceAmount) return;
         try {
             setIsLoading(true);
@@ -188,6 +196,54 @@ export const useLN =  () => {
 
 
 
+    async function getInvoiceFromLnAddress(lnAddress: string, satoshiAmount: number) {
+
+        const ln = new LightningAddress(lnAddress);
+
+        await ln.fetch();
+        // request an invoice for X satoshis
+        // this returns a new `Invoice` class that can also be used to validate the payment
+        const invoice = await ln.requestInvoice({ satoshi: satoshiAmount });
+
+        console.log(invoice.paymentRequest); // print the payment request
+        console.log(invoice.paymentHash); // print the payment hash
+
+
+        return invoice;
+    }
+
+    async function verifyPayment(invoice: Invoice) {
+
+        // if the LNURL providers supports LNURL-verify:
+        const paidVerify = await invoice.verifyPayment(); // returns true of false
+        if (paidVerify) {
+            console.log(invoice.preimage);
+        }
+
+        // if you have the preimage for example in a WebLN context
+        const response = await nostrWebLN.sendPayment(invoice.paymentRequest);
+        const paid = invoice.validatePreimage(response.preimage); // returns true or false
+        if (paid) {
+            console.log("paid");
+        }
+
+        // or use the convenenice method:
+        await invoice.isPaid();
+    }
+
+    async function generateZap() {
+        // const ln = new LightningAddress("hello@getalby.com");
+        // await ln.fetch();
+        // const zapArgs = {
+        //     satoshi: 1000,
+        //     comment: "Awesome post",
+        //     relays: ["wss://relay.damus.io"],
+        //     e: "44e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245",
+        // };
+
+        // const response = await ln.zap(zapArgs, { nostr: nostrProvider }); // generates a zap invoice
+        // console.log("Preimage", response.preimage); // print the preimage
+    }
 
     return {
         nostrWebLN,
@@ -215,7 +271,9 @@ export const useLN =  () => {
         connectionData,
         setConnectionData,
         isExtensionAvailable,
-        setIsExtensionAvailable
+        setIsExtensionAvailable,
+        getInvoiceFromLnAddress,
+        verifyPayment
 
 
 

@@ -181,16 +181,6 @@ export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] =
 
 export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
-    title: 'BTC Fi',
-    screen: 'BTCVault',
-    tab: SelectedTab.BTC_FI_VAULT,
-  },
-  // {
-  //   title: 'BTC Bridge',
-  //   screen: 'BTCBridge',
-  //   tab: SelectedTab.BTC_BRIDGE,
-  // },
-  {
     title: 'Lightning',
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
@@ -200,6 +190,17 @@ export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] =
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
   },
+  {
+    title: 'BTC Fi',
+    screen: 'BTCVault',
+    tab: SelectedTab.BTC_FI_VAULT,
+  },
+  // {
+  //   title: 'BTC Bridge',
+  //   screen: 'BTCBridge',
+  //   tab: SelectedTab.BTC_BRIDGE,
+  // },
+
 ];
 
 export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[] = [
