@@ -1,90 +1,104 @@
-import express from "express";
+import type { FastifyInstance, RouteOptions } from "fastify";
 import { prisma } from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
-const Router = express.Router();
+interface DeployLaunchParams {
+  launch: string;
+}
 
-Router.get("/", async (req, res) => {
-  try {
-    const launches = await prisma.token_launch.findMany({
-      select: {
-        memecoin_address: true,
-        price: true,
-        total_supply: true,
-        network: true
-      }
-    });
-    res.status(HTTPStatus.OK).json({
-      data: launches
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(HTTPStatus.InternalServerError).send(error);
-  }
-});
-
-Router.get("/:launch", async (req, res) => {
-  try {
-    const { launch } = req.params;
-    if (!isValidStarknetAddress(launch)) {
-      res.status(HTTPStatus.BadRequest).send({
-        code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+async function deployLaunchRoute(
+  fastify: FastifyInstance,
+  options: RouteOptions
+) {
+  fastify.get("/deploy-launch", async (request, reply) => {
+    try {
+      const launches = await prisma.token_launch.findMany({
+        select: {
+          memecoin_address: true,
+          price: true,
+          total_supply: true,
+          network: true
+        }
       });
-      return;
-    }
-    const tokenData = await prisma.token_launch.findMany({
-      where: {
-        memecoin_address: launch
-      },
-      select: {
-        memecoin_address: true,
-        price: true,
-        total_supply: true,
-        network: true
-      }
-    });
-    res.status(HTTPStatus.OK).json({
-      data: tokenData
-    });
-  } catch (error) {
-    res.status(HTTPStatus.InternalServerError).send(error);
-  }
-});
 
-Router.get("/stats/:launch", async (req, res) => {
-  try {
-    const { launch } = req.params;
-    if (!isValidStarknetAddress(launch)) {
-      res.status(HTTPStatus.BadRequest).send({
-        code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+      reply.status(HTTPStatus.OK).send({
+        data: launches
       });
-      return;
+    } catch (error) {
+      console.error("Error deploying launch:", error);
+      reply
+        .status(HTTPStatus.InternalServerError)
+        .send({ message: "Internal server error." });
     }
-    const tokensData = await prisma.token_launch.findMany({
-      where: {
-        memecoin_address: launch
-      },
-      select: {
-        memecoin_address: true,
-        price: true,
-        total_supply: true,
-        network: true
+  });
+
+  fastify.get<{
+    Params: DeployLaunchParams;
+  }>("/deploy-launch/:launch", async (request, reply) => {
+    try {
+      const { launch } = request.params;
+      if (!isValidStarknetAddress(launch)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: "Invalid token address"
+        });
+        return;
       }
-    });
 
-    let statsLaunch = tokensData[0];
-    for (let launch of tokensData) {
-      // statsLaunch
+      const launches = await prisma.token_launch.findMany({
+        select: {
+          memecoin_address: true,
+          price: true,
+          total_supply: true,
+          network: true
+        }
+      });
+      reply.status(HTTPStatus.OK).send({
+        data: launches
+      });
+    } catch (error) {
+      console.error("Error deploying launch:", error);
+      reply
+        .status(HTTPStatus.InternalServerError)
+        .send({ message: "Internal server error." });
     }
-    res.status(HTTPStatus.OK).json({
-      data: statsLaunch
-    });
-  } catch (error) {
-    res.status(HTTPStatus.InternalServerError).send(error);
-  }
-});
+  });
 
-export default Router;
+  fastify.get<{
+    Params: DeployLaunchParams;
+  }>("/deploy-launch/stats/:launch", async (request, reply) => {
+    try {
+      const { launch } = request.params;
+      if (!isValidStarknetAddress(launch)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: "Invalid token address"
+        });
+        return;
+      }
+
+      const launches = await prisma.token_launch.findMany({
+        select: {
+          memecoin_address: true,
+          price: true,
+          total_supply: true,
+          network: true
+        }
+      });
+
+      let statsLaunch = launches[0];
+
+      reply.status(HTTPStatus.OK).send({
+        data: statsLaunch
+      });
+    } catch (error) {
+      console.error("Error deploying launch:", error);
+      reply
+        .status(HTTPStatus.InternalServerError)
+        .send({ message: "Internal server error." });
+    }
+  });
+}
+
+export default deployLaunchRoute;

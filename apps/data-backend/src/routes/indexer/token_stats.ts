@@ -1,43 +1,52 @@
-import express from "express";
+import type { FastifyInstance, RouteOptions } from "fastify";
 import { prisma } from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
-const Router = express.Router();
+interface TokenStatsParams {
+  tokenAddress: string;
+}
 
-// Endpoint to get the latest statistics for a specific token address
-Router.get("/:tokenAddress", async (req, res) => {
-  const { tokenAddress } = req.params;
+async function tokenStatsRoute(
+  fastify: FastifyInstance,
+  options: RouteOptions
+) {
+  fastify.get<{
+    Params: TokenStatsParams;
+  }>("/stats/:tokenAddress", async (request, reply) => {
+    const { tokenAddress } = request.params;
+    if (!isValidStarknetAddress(tokenAddress)) {
+      reply.status(HTTPStatus.BadRequest).send({
+        code: HTTPStatus.BadRequest,
+        message: "Invalid token address"
+      });
+      return;
+    }
 
-  if (!isValidStarknetAddress(tokenAddress)) {
-    return res.status(HTTPStatus.BadRequest).json({
-      error: "Invalid token address format."
-    });
-  }
+    try {
+      // Query the latest price and liquidity raised
+      const stats = await prisma.token_transactions.findFirst({
+        where: { memecoin_address: tokenAddress },
+        orderBy: { created_at: "desc" },
+        select: {
+          price: true,
+          liquidity_raised: true
+        }
+      });
 
-  try {
-    // Query the latest price and liquidity raised
-    const stats = await prisma.token_transactions.findFirst({
-      where: { memecoin_address: tokenAddress },
-      orderBy: { created_at: "desc" },
-      select: {
-        price: true,
-        liquidity_raised: true
+      if (stats) {
+        reply.status(HTTPStatus.OK).send(stats);
+      } else {
+        reply.status(HTTPStatus.NotFound).send({
+          error: "No data found for the specified token address."
+        });
       }
-    });
-
-    if (stats) {
-      res.status(HTTPStatus.OK).json(stats);
-    } else {
-      res.status(HTTPStatus.NotFound).json({
-        error: "No data found for the specified token address."
+    } catch (error) {
+      reply.status(HTTPStatus.InternalServerError).send({
+        error: "Internal Server Error while fetching statistics."
       });
     }
-  } catch (error) {
-    res.status(HTTPStatus.InternalServerError).json({
-      error: "Internal Server Error while fetching statistics."
-    });
-  }
-});
+  });
+}
 
-export default Router;
+export default tokenStatsRoute;
