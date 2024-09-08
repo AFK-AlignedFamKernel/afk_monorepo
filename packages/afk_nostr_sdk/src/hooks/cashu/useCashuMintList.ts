@@ -8,7 +8,8 @@ export type UseCashuMintList = {
   search?: string;
 };
 
-/** Cashu Mint List
+
+/** Cashu Mint List recommender
  */
 export const useCashuMintList = (options?: UseCashuMintList) => {
   const { ndk } = useNostrContext()

@@ -8,11 +8,18 @@ import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../store';
 
-// import {NDKCashuWallet} from "@nostr-dev-kit/ndk-wallet"
+import {NDKCashuWallet} from "@nostr-dev-kit/ndk-wallet"
+import { useNostrContext } from '../../context';
 
 export const useCashu = () => {
 
+
+    const {ndk} = useNostrContext()
     const { privateKey, setSeed, seed, mnemonic, setMnemonic } = useAuth()
+
+
+    const [ndkWallet, setNDKWallet] = useState<NDKCashuWallet|undefined>(new NDKCashuWallet(ndk))
+
 
     const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
     const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))

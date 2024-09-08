@@ -46,31 +46,15 @@ export enum ZAPType {
 
 export const LightningNetworkWallet = () => {
   const { publicKey } = useAuth()
-  // const [nostrWebLN, setNostrWebLN] = useState<webln.NostrWebLNProvider | undefined>(undefined);
-  // const [nwcUrl, setNwcUrl] = useState('');
-  // const [balance, setBalance] = useState<number | undefined>();
-  // const [generatedInvoice, setGeneratedInvoice] = useState('');
-  // const [nwcAuthUrl, setNwcAuthUrl] = useState('');
-
   const styles = useStyles(stylesheet);
   const { showToast } = useToast();
   const [pendingNwcUrl, setPendingNwcUrl] = useState('');
-  const [paymentRequest, setPaymentRequest] = useState('');
-  const [resultPayment, setResultPayment] = useState<SendPaymentResponse | undefined>();
-  // const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [connectionData, setConnectionData] = useState<any>(null);
-
-  // const [isExtensionAvailable, setIsExtensionAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
   const [zapRecipient, setZapRecipient] = useState<string | undefined>();
   const [nostrLnRecipient, setNostrLnRecipient] = useState<string | undefined>();
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
-  // const [invoiceAmount, setInvoiceAmount] = useState('');
-  // const [invoiceMemo, setInvoiceMemo] = useState(publicKey);
-  const { mutate: mutateSendZap } = useSendZap();
-  const { mutate: mutateConnectNDK } = useConnectNWC();
 
   const { ndk } = useNostrContext()
   const {
@@ -81,6 +65,8 @@ export const LightningNetworkWallet = () => {
     invoiceMemo,
     setInvoiceMemo,
     preimage,
+    connectionData,
+    setConnectionData,
     nwcUrl,
     nwcAuthUrl,
     generatedInvoice,
@@ -98,12 +84,9 @@ export const LightningNetworkWallet = () => {
     setConnectionStatus,
     isExtensionAvailable,
     setIsExtensionAvailable
-  
+
   } = useLN()
 
-  // console.log("nwcUrl", nwcUrl)
-  // console.log("nostrWebLN", nostrWebLN)
-  // console.log("balance", balance)
   const [zapType, setZapType] = useState<ZAPType>(ZAPType.INVOICE)
 
   useEffect(() => {
@@ -117,169 +100,6 @@ export const LightningNetworkWallet = () => {
     showToast({ type: 'info', title: 'Invoice copied to the clipboard' });
   };
 
-
-  // const handleGenerateNWCUrl = async () => {
-  //   const nwc = webln.NostrWebLNProvider.withNewSecret();
-
-  //   await nwc.initNWC({
-  //     name: "<Your service name here>",
-  //   });
-  //   const url = nwc.getNostrWalletConnectUrl(true);
-
-  //   console.log("nwc", nwc)
-  // }
-
-
-  // useEffect(() => {
-  //   if (!nostrWebLN) return;
-
-  //   const fetchData = async () => {
-  //     try {
-  //       setIsLoading(true);
-  //       await nostrWebLN.enable();
-  //       const response = await nostrWebLN.getBalance();
-  //       setBalance(response.balance);
-  //       setConnectionStatus('connected');
-
-  //       const info = await nostrWebLN.getInfo();
-  //       setConnectionData(info);
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [nostrWebLN]);
-
-  // async function payInvoice(): Promise<SendPaymentResponse | undefined> {
-  //   try {
-  //     if (!nostrWebLN) {
-  //       showToast({ title: "No WebLN provider", type: "error" })
-  //       return undefined
-  //     };
-
-
-  //     if (zapRecipient) {
-
-  //       const isValid = validateInvoice(zapRecipient)
-
-  //       if (!isValid) {
-  //         showToast({ title: "Invoice is not valid", type: "error" })
-  //       }
-  //       // const result = await nostrWebLN.sendPayment(paymentRequest);
-  //       const result = await nostrWebLN.sendPayment(zapRecipient);
-
-  //       if (result) {
-  //         console.log("result", result);
-  //         setPreimage(result.preimage);
-  //         setResultPayment(result)
-  //         showToast({ title: "Zap payment success", type: "success" })
-  //         return result;
-  //       }
-
-  //     }
-
-  //     return undefined;
-  //   } catch (error) {
-  //     console.error(error);
-  //     return undefined;
-  //   }
-  // }
-  // function validateInvoice(invoice: string): boolean {
-  //   // A basic check to see if the invoice is too short or doesn't start with 'ln'
-  //   return invoice.length > 50 && invoice.startsWith('ln');
-  // }
-
-  // const generateInvoice = async () => {
-  //   if (!nostrWebLN || !invoiceAmount) return;
-  //   try {
-  //     setIsLoading(true);
-  //     // const invoice = await nostrWebLN.makeInvoice({
-  //     //   amount: parseInt(invoiceAmount, 10),
-  //     //   defaultMemo: invoiceMemo,
-  //     // });
-  //     const invoice = await nostrWebLN.makeInvoice({
-  //       amount: parseInt(invoiceAmount, 10),
-  //       // amount: parseInt(invoiceAmount),
-  //       defaultMemo: invoiceMemo,
-  //     });
-  //     setGeneratedInvoice(invoice.paymentRequest);
-  //     setIsInvoiceModalVisible(false);
-  //   } catch (error) {
-  //     console.error('Error generating invoice:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // async function connectWithAlby() {
-  //   setConnectionStatus('connecting');
-  //   setIsLoading(true);
-  //   if (isExtensionAvailable) {
-  //     try {
-  //       await (window as any)?.webln.enable();
-  //       setNostrWebLN((window as any)?.webln);
-  //     } catch (error) {
-  //       console.error('Failed to connect to Alby extension:', error);
-  //     }
-  //   } else {
-  //     const nwc = webln.NostrWebLNProvider.withNewSecret({});
-  //     const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
-  //     setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
-  //     setNwcAuthUrl(authUrl.toString());
-
-  //     if (Platform.OS === 'web') {
-  //       window.addEventListener('message', (event) => {
-  //         if (event.data?.type === 'nwc:success') {
-  //           setNwcAuthUrl('');
-  //           setNwcUrl(pendingNwcUrl);
-  //           setNostrWebLN(new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl }));
-  //         }
-  //       });
-  //     }
-  //   }
-  //   setIsLoading(false);
-  // }
-
-  // const handleConnectWithUrl = async () => {
-  //   if (nwcUrl) {
-  //     const nwc = new webln.NostrWebLNProvider({
-  //       nostrWalletConnectUrl: nwcUrl,
-  //     });
-  //     await nwc.enable();
-  //     setNostrWebLN(nwc);
-
-  //     mutateConnectNDK(nwcUrl, {
-  //       onSuccess: () => {
-
-  //       }
-  //     })
-  //   }
-  // };
-
-  // const handleZap = async () => {
-  //   if (!nostrWebLN || !zapAmount || !zapRecipient) return;
-  //   //Implement zap user
-  //   try {
-  //     setIsLoading(true);
-  //     // Here you would implement the actual zap functionality
-  //     // This is a placeholder for the actual implementation
-  //     console.log(`Zapping ${zapAmount} sats to ${zapRecipient}`);
-
-  //     const result = await payInvoice(zapRecipient)
-  //     console.log("result invoice pay", result)
-
-  //     // Simulating a delay
-  //     // await new Promise((resolve) => setTimeout(resolve, 2000));
-  //     // setIsZapModalVisible(false);
-  //   } catch (error) {
-  //     console.error('Failed to zap:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const renderAuthView = () => {
     if (Platform.OS === 'web') {
@@ -333,8 +153,13 @@ export const LightningNetworkWallet = () => {
                     style={styles.input}
                   />
                 </View>
-                <TouchableOpacity style={styles.button} onPress={() => handleConnectWithUrl(nwcUrl)}>
-                {/* <TouchableOpacity style={styles.button} onPress={handleConnectWithUrl}> */}
+                <TouchableOpacity style={styles.button} onPress={() => {
+                  if (nwcUrl) {
+                    handleConnectWithUrl(nwcUrl)
+                  }
+                }
+                }>
+                  {/* <TouchableOpacity style={styles.button} onPress={handleConnectWithUrl}> */}
                   <Text style={styles.buttonText}>Connect with URL</Text>
                 </TouchableOpacity>
                 <Text style={styles.orText}>or</Text>

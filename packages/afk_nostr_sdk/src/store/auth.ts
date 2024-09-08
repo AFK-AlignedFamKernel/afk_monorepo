@@ -1,6 +1,7 @@
 import {createStore} from 'zustand';
 
 import createBoundedUseStore from './createBoundedUseStore';
+import { Proof } from '@cashu/cashu-ts';
 
 type State = {
   publicKey: string;
@@ -9,11 +10,12 @@ type State = {
   nwcUrl?: string;
 
   // Cashu store auth
-  isSeedStorage?: boolean;
+  isSeedCashuStorage?: boolean;
   seed?: Uint8Array;
   mnemonic?: string;
   mints?: string[];
   mintRequests?: string[];
+  proofs?: Proof[];
   useNostr?: boolean;
   pendingTokens?:string[];
 };
@@ -24,11 +26,12 @@ type Action = {
   setIsExtensionConnect: (isExtension: boolean) => void;
 
   // Cashu Wallet
-  setIsSeedStorage:(isSeedStorage:boolean) => void;
+  setIsSeedCashuStorage:(isSeedStorage:boolean) => void;
   setMnemonic: (mnemonic:string) => void;
   setSeed: (seed:Uint8Array) => void;
 
   setMints: (mints:string[]) => void;
+  setProofs: (proofs:Proof[]) => void;
   setMintsRequests: (mintRequests:string[]) => void;
   setNWCUrl: (nwcUrl:string) => void;
 };
@@ -41,6 +44,9 @@ export const authStore = createStore<State & Action>((set, get) => ({
   nwcUrl: undefined as unknown as string,
   seed: undefined as unknown as Uint8Array,
   mnemonic: undefined as unknown as string,
+  mints: undefined as unknown as string[],
+  mintRequests: undefined as unknown as string[],
+  proofs: undefined as unknown as Proof[],
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
@@ -56,8 +62,9 @@ export const authStore = createStore<State & Action>((set, get) => ({
   },
 
   // Cashu store
-  setIsSeedStorage: (isSeedStorage) => {
-    set({isSeedStorage});
+ 
+  setIsSeedCashuStorage: (isSeedCashuStorage) => {
+    set({isSeedCashuStorage});
   },
   setSeed: (seed) => {
     set({seed});
@@ -70,6 +77,9 @@ export const authStore = createStore<State & Action>((set, get) => ({
   },
   setMintsRequests: (mintRequests) => {
     set({mintRequests});
+  },
+  setProofs: (proofs) => {
+    set({proofs});
   },
 }));
 

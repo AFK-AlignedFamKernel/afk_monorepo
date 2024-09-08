@@ -32,12 +32,82 @@ import { AFK_RELAYS } from '../../utils/relay';
     ]
 }
  */
+
+export const useCreateCashuSendWalletInfo = () => {
+  const { ndk, ndkCashuWallet, ndkWallet } = useNostrContext()
+  const { publicKey, privateKey } = useAuth()
+
+  return useMutation({
+    mutationKey: ['createCashuWallet', ndk],
+    mutationFn: async (data: {
+      content: string;
+      nameWallet:string;
+      amount?: string;
+      symbol?: string;
+      relayUrl?: string,
+      receiverPublicKeyProps?: string,
+      tags?: string[][],
+      isEncrypted?: boolean,
+      encryptedMessage?: string
+    }) => {
+
+      const { 
+        nameWallet,
+        amount,
+        symbol
+      } = data
+
+      const wallet = ndkWallet.createCashuWallet();
+      wallet.name = nameWallet;
+      wallet.relays = ["wss://relay1", "wss://relay2"]
+     
+      const eventPublish = await wallet?.publish()
+      return eventPublish;
+    },
+  });
+}
+
+
 export const useCashuSendWalletInfo = () => {
-  const { ndk } = useNostrContext()
+  const { ndk, ndkCashuWallet, ndkWallet } = useNostrContext()
   const { publicKey, privateKey } = useAuth()
 
   return useMutation({
     mutationKey: ['sendCashuWallet', ndk],
+    mutationFn: async (data: {
+      content: string;
+      nameWallet:string;
+      amount?: string;
+      symbol?: string;
+      relayUrl?: string,
+      receiverPublicKeyProps?: string,
+      tags?: string[][],
+      isEncrypted?: boolean,
+      encryptedMessage?: string
+    }) => {
+
+      const { 
+        nameWallet,
+        amount,
+        symbol
+      } = data
+
+      const wallet = ndkWallet.createCashuWallet();
+      wallet.name = nameWallet;
+      wallet.relays = ["wss://relay1", "wss://relay2"]
+     
+      const eventPublish = await wallet?.publish()
+      return eventPublish;
+    },
+  });
+}
+
+export const useCashuSendWalletInfoManual = () => {
+  const { ndk } = useNostrContext()
+  const { publicKey, privateKey } = useAuth()
+
+  return useMutation({
+    mutationKey: ['sendCashuWalletManual', ndk],
     mutationFn: async (data: {
       content: string;
       amount?: string;
@@ -103,7 +173,7 @@ export const useCashuSendWalletInfo = () => {
       // ]
       // console.log('eventDirectMessage', eventDirectMessage)
 
-   
+
       const eventPublish = await event?.publish()
       return eventPublish;
     },

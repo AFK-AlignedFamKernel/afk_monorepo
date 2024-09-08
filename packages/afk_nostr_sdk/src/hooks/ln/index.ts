@@ -212,10 +212,10 @@ export const useLN =  () => {
         setNostrWebLN,
         setBalance,
         setConnectionStatus,
+        connectionData,
         setConnectionData,
         isExtensionAvailable,
         setIsExtensionAvailable
-
 
 
 

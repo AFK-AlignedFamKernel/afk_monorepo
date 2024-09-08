@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useCashu, useSendZap } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -52,6 +52,9 @@ export const CashuView = () => {
   } = useCashu()
 
 
+  const {isSeedCashuStorage} = useAuth()
+
+
   useEffect(() => {
     (async () => {
       const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
@@ -62,6 +65,8 @@ export const CashuView = () => {
         const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
 
         if (storeSeed) setHasSeedCashu(true)
+
+        if(isSeedCashuStorage) setHasSeedCashu(true)
       }
     })();
   }, []);
@@ -168,7 +173,7 @@ export const CashuView = () => {
             onPress: async () => {
               const mnemonic = await generateMnemonic()
               console.log("mnemonic",mnemonic)
-              
+
               const seedSaved = await storeCashuMnemonic(mnemonic, password)
               console.log("seedSaved",seedSaved)
           
