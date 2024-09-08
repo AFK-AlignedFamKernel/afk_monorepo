@@ -41,7 +41,7 @@ export const CashuView = () => {
 
   const { wallet, connectCashMint,
     connectCashWallet,
-    mintQuote
+    requestMintQuote
 
   } = useCashu()
 
@@ -93,7 +93,7 @@ export const CashuView = () => {
       const cashuMint = await connectCashMint(mintUrl)
       const wallet = await connectCashWallet(cashuMint)
 
-      const quote = await mintQuote(Number(invoiceAmount))
+      const quote = await requestMintQuote(Number(invoiceAmount))
       setQuote(quote?.request)
       console.log("quote", quote)
       setIsLoading(true);

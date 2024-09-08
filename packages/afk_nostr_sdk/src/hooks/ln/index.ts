@@ -6,8 +6,8 @@ import { useAuth } from "../../store";
 
 export const useLN =  () => {
 
-    const { publicKey } = useAuth()
-    const [nwcUrl, setNwcUrl] = useState('');
+    const { publicKey, setNWCUrl, nwcUrl:nwlUrlProps} = useAuth()
+    const [nwcUrl, setNwcUrl] = useState(nwlUrlProps);
     const [pendingNwcUrl, setPendingNwcUrl] = useState('');
     const [nwcAuthUrl, setNwcAuthUrl] = useState('');
     const [paymentRequest, setPaymentRequest] = useState('');
@@ -153,6 +153,8 @@ export const useLN =  () => {
             });
             await nwc.enable();
             setNostrWebLN(nwc);
+
+            setNWCUrl(nwcUrl);
 
             mutateConnectNDK(nwcUrl, {
                 onSuccess: () => {

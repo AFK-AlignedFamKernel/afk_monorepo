@@ -7,6 +7,7 @@ import {AFK_RELAYS} from '../utils/relay';
 export type NostrContextType = {
   ndk: NDK;
   nip07Signer?: NDKNip07Signer;
+  nwcNdk?:NDKNwc
 };
 export const NostrContext = createContext<NostrContextType | null>(null);
 export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
@@ -22,7 +23,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     }),
   );
 
-  const [nwcNdk, setNWCNdk] = useState<NDKNwc>();
+  const [nwcNdk, setNWCNdk] = useState<NDKNwc|undefined>();
 
   const nip07Signer = new NDKNip07Signer();
   const [ndkExtension, setNdkExtension] = useState<NDK>(
@@ -44,15 +45,20 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     newNdk.connect().then(() => {
       setNdk(newNdk);
     });
+
+  }, [privateKey, isExtension]);
+
+  useEffect(() => {
+ 
     if(nwcUrl) {
       ndk.nwc(nwcUrl).then((res) => {
         setNWCNdk(res)
       })
     }
 
-  }, [privateKey, isExtension]);
+  }, [nwcUrl, ndk]);
 
-  return <NostrContext.Provider value={{ndk, nip07Signer}}>{children}</NostrContext.Provider>;
+  return <NostrContext.Provider value={{ndk, nip07Signer, nwcNdk}}>{children}</NostrContext.Provider>;
 };
 
 export const useNostrContext = () => {

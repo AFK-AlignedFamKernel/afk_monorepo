@@ -179,7 +179,6 @@ export const useCashu = () => {
         }
     }
 
-
     return {
         wallet,
         mint,
@@ -197,6 +196,5 @@ export const useCashu = () => {
         payExternalInvoice
 
     }
-
 
 }
