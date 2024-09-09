@@ -9,9 +9,13 @@ export default ThemedStyleSheet((theme) => ({
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scrollView: {
-    flexGrow: 1,
+    flex:1,
+    height:"95%"
+    // flexGrow: 1,
+    // overflow:"scroll",
   },
   container: {
+    // flex:1,
     width: '100%',
     // maxWidth: 500,
     padding: Spacing.medium,

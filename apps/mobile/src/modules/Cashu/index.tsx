@@ -146,46 +146,34 @@ export const CashuView = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+
+
+      <TabSelector
+        activeTab={selectedTab}
+        handleActiveTab={handleTabSelected}
+        buttons={TABS_CASHU}
+        addScreenNavigation={false}
+      ></TabSelector>
+
       <ScrollView contentContainerStyle={styles.scrollView}>
 
-
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_CASHU}
-          addScreenNavigation={false}
-        ></TabSelector>
-
-
-        <TouchableOpacity
-          onPress={() => {
-            connectCashWallet()
-          }}
-        >Connect Cashu</TouchableOpacity>
-
         {selectedTab == SelectedTab?.CASHU_WALLET &&
-          <View>
-            <BalanceCashu></BalanceCashu>
-
-            <MnemonicCashu></MnemonicCashu>
-
+          <ScrollView>
             <GenerateInvoiceCashu></GenerateInvoiceCashu>
-
-          </View>
+          </ScrollView>
         }
 
         {selectedTab == SelectedTab?.CASHU_INVOICES &&
           <View>
             <Text>Invoices</Text>
-
             <InvoicesListCashu></InvoicesListCashu>
-
           </View>
         }
 
         {selectedTab == SelectedTab?.CASHU_HISTORY &&
           <View>
             <Text>History</Text>
+
 
           </View>
         }
@@ -196,6 +184,24 @@ export const CashuView = () => {
             <MintListCashu></MintListCashu>
           </View>
         }
+
+        {selectedTab == SelectedTab.CASHU_SETTINGS &&
+
+          <View>
+
+
+            <TouchableOpacity
+              onPress={() => {
+                connectCashWallet()
+              }}
+            >Connect Cashu</TouchableOpacity>
+
+            <MnemonicCashu></MnemonicCashu>
+
+          </View>
+        }
+
+
 
         <View style={styles.container}>
 
@@ -215,7 +221,6 @@ export const CashuView = () => {
               handleZap={handleZap}
             />
           </Modal>
-
 
           <Modal
             animationType="slide"

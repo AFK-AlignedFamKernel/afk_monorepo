@@ -24,6 +24,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const [ndk, setNdk] = useState<NDK>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
+      
     }),
   );
 

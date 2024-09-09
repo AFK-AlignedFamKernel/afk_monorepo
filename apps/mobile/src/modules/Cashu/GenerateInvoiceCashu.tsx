@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -13,7 +13,7 @@ import { Button, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { MintQuoteResponse } from '@cashu/cashu-ts';
+import { GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
@@ -22,32 +22,21 @@ import { SelectedTab, TABS_CASHU } from '../../types/tab';
 
 export const GenerateInvoiceCashu = () => {
 
+
+  const {ndkCashuWallet, ndkWallet,} = useNostrContext()
   const { wallet, connectCashMint,
     connectCashWallet,
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
+    getMintInfo, mint,
+    mintTokens
 
   } = useCashu()
 
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
-  useEffect(() => {
-    (async () => {
-      const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
-
-      if (biometrySupported) {
-        const password = await retrievePassword()
-        if (!password) return;
-        const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
-
-        if (storeSeed) setHasSeedCashu(true)
-
-        if (isSeedCashuStorage) setHasSeedCashu(true)
-      }
-    })();
-  }, []);
 
 
   const styles = useStyles(stylesheet);
@@ -55,6 +44,7 @@ export const GenerateInvoiceCashu = () => {
 
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
+  const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>()
   const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
@@ -79,29 +69,42 @@ export const GenerateInvoiceCashu = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    if (screen) {
-      // navigation.navigate(screen as any);
-    }
-  };
+  
+  useEffect(() => {
+    (async () => {
+      if(!mintUrl) return;
+      const info = await getMintInfo(mintUrl)
+      setMintInfo(info)
+    })();
 
-  const handleZap = async () => {
-    if (!zapAmount || !zapRecipient) return;
-    //Implement zap user
-    try {
-      setIsLoading(true);
-      // Here you would implement the actual zap functionality
-      // This is a placeholder for the actual implementation
-      console.log(`Zapping ${zapAmount} sats to ${zapRecipient}`);
-      // Simulating a delay
-      setIsZapModalVisible(false);
-    } catch (error) {
-      console.error('Failed to zap:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    
+    (async () => {
+
+      console.log("ndkCashuWallet", ndkCashuWallet)
+      console.log("ndkWallet", ndkWallet)
+
+      const availableTokens = await ndkCashuWallet?.availableTokens;
+      console.log("availableTokens", availableTokens)
+
+      const mintBalances = await ndkCashuWallet?.mintBalances;
+      console.log("mintBalances", mintBalances)
+
+      console.log("mintBalances", mintBalances)
+      const wallets = await ndkWallet?.wallets;
+      console.log("wallets", wallets)
+
+      const balance = await ndkCashuWallet?.balance;
+
+      console.log("balance", balance)
+
+      if (mint) {
+        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
+        console.log("mintBalance", mintBalance)
+      }
+
+    })();
+  }, []);
+
 
   const generateInvoice = async () => {
     if (!mintUrl || !invoiceAmount) return;
@@ -138,62 +141,13 @@ export const GenerateInvoiceCashu = () => {
     showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
-
-  const handleGenerateAndSavedMnemonic = async () => {
-
-
-    const password = await retrievePassword()
-    console.log("password", password)
-
-    if (!password) return;
-
-    const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
-    console.log("storeSeed", storeSeed)
-
-    if (storeSeed) {
-      showDialog({
-        title: 'Generate a new Cashu Seed',
-        description: 'Take care. You already have a Cashu Seed integrated. Please saved before generate another',
-        buttons: [
-          {
-            type: 'primary',
-            label: 'Yes',
-            onPress: async () => {
-              const mnemonic = await generateMnemonic()
-              console.log("mnemonic", mnemonic)
-
-
-              const seedSaved = await storeCashuMnemonic(mnemonic, password)
-              console.log("seedSaved", seedSaved)
-
-              setNewSeed(seedSaved)
-              setIsSeedCashuStorage(true)
-              setHasSeedCashu(true)
-              showToast({ title: "Seed generate for Cashu Wallet", type: "success" })
-              hideDialog();
-            },
-          },
-          {
-            type: 'default',
-            label: 'No',
-            onPress: hideDialog,
-          },
-        ],
-      });
-    }
-
-
-
-
-  }
-
-
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+      <ScrollView style={styles.container}>
 
-        <View style={styles.container}>
+        <View
+        //  style={styles.container}
+        >
 
 
           <View style={styles.content}>
@@ -207,6 +161,9 @@ export const GenerateInvoiceCashu = () => {
           </View>
 
           <View>
+            <Text>Name: {infoMint?.name}</Text>
+            <Text>Description: {infoMint?.description}</Text>
+            <Text>MOTD: {infoMint?.motd}</Text>
 
           </View>
 
@@ -254,7 +211,6 @@ export const GenerateInvoiceCashu = () => {
             </View>
 
           }
-
 
         </View>
       </ScrollView>

@@ -34,19 +34,19 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
         limit: 20,
       });
 
-      const mintsUrlsUnset= []
+      // const mintsUrlsUnset= []
 
-      mintList.forEach((e) => {
-        e.tags.filter((tag) => {
-          if (tag[0] === 'mint') {
-            mintsUrlsUnset.push(tag[1])
-          }
-        });
-      })
+      // mintList.forEach((e) => {
+      //   e.tags.filter((tag) => {
+      //     if (tag[0] === 'mint') {
+      //       mintsUrlsUnset.push(tag[1])
+      //     }
+      //   });
+      // })
 
-      console.log("mintsUrlsUnset",mintsUrlsUnset)
-      const mintsUrls = new Set(mintsUrlsUnset)
-      console.log("mintsUrls",mintsUrls)
+      // console.log("mintsUrlsUnset",mintsUrlsUnset)
+      // const mintsUrls = new Set(mintsUrlsUnset)
+      // console.log("mintsUrls",mintList)
 
       // return {
       //   urls:mintsUrls,

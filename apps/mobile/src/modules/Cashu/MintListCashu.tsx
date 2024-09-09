@@ -51,50 +51,9 @@ export const MintListCashu = () => {
   }
   useEffect(() => {
 
-    getMintUrls();
+    // getMintUrls();
 
 
-
-    (async () => {
-      const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
-
-      if (biometrySupported) {
-        const password = await retrievePassword()
-        if (!password) return;
-        const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
-
-        if (storeSeed) setHasSeedCashu(true)
-
-        if (isSeedCashuStorage) setHasSeedCashu(true)
-      }
-    })();
-
-    (async () => {
-
-      console.log("ndkCashuWallet", ndkCashuWallet)
-      console.log("ndkWallet", ndkWallet)
-
-
-      const availableTokens = await ndkCashuWallet?.availableTokens;
-      console.log("availableTokens", availableTokens)
-
-      const mintBalances = await ndkCashuWallet?.mintBalances;
-      console.log("mintBalances", mintBalances)
-
-      console.log("mintBalances", mintBalances)
-      const wallets = await ndkWallet?.wallets;
-      console.log("wallets", wallets)
-
-      const balance = await ndkCashuWallet?.balance;
-
-      console.log("balance", balance)
-
-      if (mint) {
-        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-        console.log("mintBalance", mintBalance)
-      }
-
-    })();
   }, []);
 
 
@@ -106,23 +65,17 @@ export const MintListCashu = () => {
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
-
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
-
-  const [generatedInvoice, setGeneratedInvoice] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
   const [invoiceMemo, setInvoiceMemo] = useState('');
   const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>()
 
-  const { showDialog, hideDialog } = useDialog()
 
   const { showToast } = useToast()
 
+
+  console.log("mintList",mintList?.data)
 
   return (
     <SafeAreaView style={styles.safeArea}>
