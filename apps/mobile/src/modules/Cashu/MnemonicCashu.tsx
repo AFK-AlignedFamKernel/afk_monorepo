@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useSendZap } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -31,7 +31,8 @@ export const MnemonicCashu = () => {
   } = useCashu()
 
 
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useAuth()
+  // const { isSeedCashuStorage, setIsSeedCashuStorage } = useAuth()
+  const { isSeedCashuStorage, setIsSeedCashuStorage ,} = useCashuStore()
 
   useEffect(() => {
     (async () => {
@@ -78,13 +79,7 @@ export const MnemonicCashu = () => {
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
-  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
-  const [isZapModalVisible, setIsZapModalVisible] = useState(false);
-  const [hasSeedCashu, setHasSeedCashu] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
+  const [hasSeedCashu, setHasSeedCashu] = useState(isSeedCashuStorage);
 
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
@@ -95,6 +90,18 @@ export const MnemonicCashu = () => {
   const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>()
 
+  useEffect(() => {
+    (async () => {
+      const password = await retrievePassword()
+      if (!password) return;
+      const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
+
+      if (storeSeed) setHasSeedCashu(true)
+
+      if (isSeedCashuStorage) setHasSeedCashu(true)
+   
+    })();
+  }, [isSeedCashuStorage]);
   const { showDialog, hideDialog } = useDialog()
 
   const { showToast } = useToast()
@@ -200,9 +207,9 @@ export const MnemonicCashu = () => {
             right={
               <TouchableOpacity
                 onPress={() => handleCopy('seed')}
-                style={{
-                  marginRight: 10,
-                }}
+                // style={{
+                //   marginRight: 10,
+                // }}
               >
                 <CopyIconStack color={theme.colors.primary} />
               </TouchableOpacity>

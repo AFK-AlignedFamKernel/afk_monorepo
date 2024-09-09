@@ -6,7 +6,7 @@ import { CashuMint, CashuWallet, getEncodedToken, MintQuotePayload, MintQuoteRes
 } from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useMemo, useState } from 'react';
-import { useAuth } from '../../store';
+import { useAuth, useCashuStore } from '../../store';
 
 import {NDKCashuWallet} from "@nostr-dev-kit/ndk-wallet"
 import { useNostrContext } from '../../context';
@@ -15,7 +15,8 @@ export const useCashu = () => {
 
 
     const {ndk} = useNostrContext()
-    const { privateKey, setSeed, seed, mnemonic, setMnemonic, setMints, setMintsRequests,} = useAuth()
+    const { privateKey } = useAuth()
+    const {  setSeed, seed, mnemonic, setMnemonic, setMints, setMintsRequests,} = useCashuStore()
 
 
     const [ndkWallet, setNDKWallet] = useState<NDKCashuWallet|undefined>(new NDKCashuWallet(ndk))
@@ -29,7 +30,9 @@ export const useCashu = () => {
     const cashuMint = useMemo(() => {
         return mint;
     }, [mint])
-    const [walletCashu, setWallet] = useState<CashuWallet | undefined>(new CashuWallet(mint))
+    const [walletCashu, setWallet] = useState<CashuWallet | undefined>(new CashuWallet(mint, {
+        mnemonicOrSeed:seed ?? mnemonic
+    }))
     const [proofs, setProofs] = useState<Proof[]>([])
     const [responseQuote, setResponseQuote] = useState<MintQuoteResponse | undefined>()
 
@@ -76,13 +79,14 @@ export const useCashu = () => {
         return mintCashu;
     }
 
-    const connectCashWallet = (cashuMint: CashuMint) => {
-        const wallet = new CashuWallet(cashuMint, {
+    const connectCashWallet = (cashuMint?: CashuMint) => {
+        const wallet = new CashuWallet(cashuMint ?? mint, {
             mnemonicOrSeed:seed ?? mnemonic
         })
         setWallet(wallet)
         return wallet;
     }
+
 
     const requestMintQuote = async (nb: number) => {
 
@@ -192,7 +196,7 @@ export const useCashu = () => {
 		const quote_ = await wallet.checkMeltQuote(request.quote);
 		expect(quote_).toBeDefined();
 
-		const sendResponse = await wallet.send(2000 + fee, proofs);
+		const sendResponse = await wallet.send(amount + fee, proofs);
 		const response = await wallet.payLnInvoice(externalInvoice, sendResponse.send, quote_);
 
 		expect(response).toBeDefined();

@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useAuth, useCashu, useNip07Extension } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore, useNip07Extension } from 'afk_nostr_sdk';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
@@ -13,18 +13,22 @@ import { AuthLoginScreenProps, MainStackNavigationProps } from '../../types';
 import { getPublicKeyFromSecret } from '../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
+  retrieveAndDecryptCashuSeed,
   retrieveAndDecryptPrivateKey,
   retrievePassword,
   retrievePublicKey,
   storeCashuMnemonic,
+  storeCashuSeed,
 } from '../../utils/storage';
+import { deriveSeedFromMnemonic } from '@cashu/cashu-ts';
 
 export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
 
 
-  const {setIsSeedCashuStorage} = useAuth()
+  // const { setIsSeedCashuStorage } = useAuth()
+  const { setIsSeedCashuStorage, setSeed, setMnemonic } = useCashuStore()
   const [password, setPassword] = useState('');
 
   const { showToast } = useToast();
@@ -67,15 +71,37 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
     }
 
     const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
-    console.log("mnemonicSaved",mnemonicSaved)
+    console.log("mnemonicSaved", mnemonicSaved)
     setIsSeedCashuStorage(true)
 
     if (!mnemonicSaved) {
       const mnemonic = await generateMnemonic()
-      console.log("mnemonic",mnemonic)
+      console.log("mnemonic", mnemonic)
       await storeCashuMnemonic(mnemonic, password)
+      const seed = await deriveSeedFromMnemonic(mnemonic)
+
+      const seedHex = Buffer.from(seed).toString("hex")
+
+      await storeCashuSeed(seedHex, password)
+
+      setMnemonic(mnemonic)
+      setSeed(seed)
       setIsSeedCashuStorage(true)
     }
+
+    const seedSaved = await retrieveAndDecryptCashuSeed(password)
+
+    if(!seedSaved && mnemonicSaved) {
+      const mnemonic = Buffer.from(mnemonicSaved).toString("hex")
+      const seed = await deriveSeedFromMnemonic(mnemonic)
+      const seedHex = Buffer.from(seed).toString("hex")
+      await storeCashuSeed(seedHex, password)
+      setMnemonic(mnemonic)
+      setSeed(seed)
+    }
+
+
+
 
     setAuth(publicKey, privateKeyHex);
 

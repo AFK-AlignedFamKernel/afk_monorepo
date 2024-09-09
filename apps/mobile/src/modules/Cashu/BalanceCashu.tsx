@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -34,7 +34,7 @@ export const BalanceCashu = () => {
   const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useAuth()
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
   useEffect(() => {
     (async () => {
@@ -230,6 +230,10 @@ export const BalanceCashu = () => {
         <View style={styles.container}>
 
 
+          <View>
+            <Text>Connect to</Text>
+
+          </View>
           <View style={styles.content}>
             <TextInput
               placeholder="Mint URL"
@@ -240,9 +244,6 @@ export const BalanceCashu = () => {
 
           </View>
 
-          <View>
-
-          </View>
 
 
 

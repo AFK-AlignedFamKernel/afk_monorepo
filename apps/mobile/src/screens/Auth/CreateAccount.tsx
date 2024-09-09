@@ -1,5 +1,5 @@
 import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {useAuth, useCashu, useNostrContext} from 'afk_nostr_sdk';
+import {useAuth, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';
@@ -20,7 +20,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
   const [password, setPassword] = useState('');
 
   const {ndk} = useNostrContext();
-  const {setIsSeedCashuStorage} = useAuth();
+  const {setIsSeedCashuStorage} = useCashuStore();
   const {generateMnemonic} = useCashu()
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();

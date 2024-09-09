@@ -10,7 +10,7 @@ import { Auth } from '../../modules/Auth';
 import { AuthImportKeysScreenProps } from '../../types';
 import { getPublicKeyFromSecret, isValidNostrPrivateKey } from '../../utils/keypair';
 import { retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey } from '../../utils/storage';
-import { useAuth, useCashu } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore } from 'afk_nostr_sdk';
 
 export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -20,7 +20,7 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({ navigation }) 
   const { showToast } = useToast();
   const { showDialog, hideDialog } = useDialog();
   const { generateMnemonic } = useCashu()
-  const { setIsSeedCashuStorage } = useAuth();
+  const { setIsSeedCashuStorage } = useCashuStore();
 
   const handleImportAccount = async () => {
     if (!password) {

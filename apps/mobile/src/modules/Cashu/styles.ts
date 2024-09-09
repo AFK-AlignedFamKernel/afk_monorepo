@@ -13,10 +13,11 @@ export default ThemedStyleSheet((theme) => ({
   },
   container: {
     width: '100%',
-    maxWidth: 500,
+    // maxWidth: 500,
     padding: Spacing.medium,
     borderRadius: 10,
     backgroundColor: theme.colors.surface,
+    color:theme.colors.text,
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -28,6 +29,7 @@ export default ThemedStyleSheet((theme) => ({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    color:theme.colors.text,
   },
   cardTitle: {
     fontSize: 18,
@@ -43,6 +45,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.transparent,
     height: 56,
     marginBottom: Spacing.medium,
+    color:theme.colors.text,
   },
   input: {
     borderWidth: 1,

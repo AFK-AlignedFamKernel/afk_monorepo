@@ -132,6 +132,7 @@ export const useLN = () => {
                 console.log("isExtensionAvailable",isExtensionAvailable)
                 await (window as any)?.webln.enable();
                 setNostrWebLN((window as any)?.webln);
+                setConnectionStatus('connected');
                 return (window as any)?.webln;
             } catch (error) {
                 console.error('Failed to connect to Alby extension:', error);
@@ -144,12 +145,18 @@ export const useLN = () => {
             setNWCUrl(nwcUrl)
 
             if (typeof window != "undefined") {
-                window.addEventListener('message', (event) => {
+                window.addEventListener('message', async (event) => {
                     if (event.data?.type === 'nwc:success') {
-                        setNwcAuthUrl('');
+                        setNwcAuthUrl(pendingNwcUrl.toString());
+
                         setNwcUrl(pendingNwcUrl);
                         const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
+                        await (window as any)?.webln.enable();
+                        await webLn.enable();
+
                         setNostrWebLN(webLn);
+                        setConnectionStatus('connected');
+
                         return webLn
                     
                     }

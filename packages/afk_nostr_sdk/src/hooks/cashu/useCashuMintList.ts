@@ -25,7 +25,7 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
       const mintList = await ndk.fetchEvents({
         kinds: [NDKKind.CashuMintList],
         authors: options?.authors,
@@ -34,8 +34,26 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
         limit: 20,
       });
 
+      const mintsUrlsUnset= []
+
+      mintList.forEach((e) => {
+        e.tags.filter((tag) => {
+          if (tag[0] === 'mint') {
+            mintsUrlsUnset.push(tag[1])
+          }
+        });
+      })
+
+      console.log("mintsUrlsUnset",mintsUrlsUnset)
+      const mintsUrls = new Set(mintsUrlsUnset)
+      console.log("mintsUrls",mintsUrls)
+
+      // return {
+      //   urls:mintsUrls,
+      //   mintEvents:mintList
+      // };
       return [...mintList];
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 }

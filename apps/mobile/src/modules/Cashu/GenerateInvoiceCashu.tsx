@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useSendZap } from 'afk_nostr_sdk';
+import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -31,7 +31,7 @@ export const GenerateInvoiceCashu = () => {
   } = useCashu()
 
 
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useAuth()
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
   useEffect(() => {
     (async () => {

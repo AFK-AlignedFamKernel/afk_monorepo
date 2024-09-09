@@ -58,6 +58,42 @@ const DegensBottomTabsStack = createBottomTabNavigator<DegensBottomStackParams>(
 
 const DegensAppStack = createDrawerNavigator<DegensAppStackParams>();
 
+const RootNavigator: React.FC = () => {
+  const {publicKey} = useAuth();
+
+  return (
+    <RootStack.Navigator screenOptions={{headerShown: false}}>
+      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
+      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
+      {publicKey ? (
+        <RootStack.Screen name="MainStack" component={MainNavigator} />
+      ) : (
+        <>
+
+          <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="MainStack" component={MainNavigator} />
+
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
+        </>
+      )}
+    </RootStack.Navigator>
+  );
+};
+
+export const Router: React.FC = () => {
+  const isWeb = Platform.OS === 'web';
+  const windowWidth = Dimensions.get('window').width;
+  const shouldShowSidebar = isWeb && windowWidth >= 1024;
+  return (
+    <NavigationContainer linking={linking}>
+      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
+
+      <RootNavigator />
+    </NavigationContainer>
+  );
+};
+
 const HomeBottomTabNavigator: React.FC = () => {
   const styles = useStyles(stylesheet);
 
@@ -573,39 +609,6 @@ const linking = {
       },
     },
   },
-};
-
-const RootNavigator: React.FC = () => {
-  const {publicKey} = useAuth();
-
-  return (
-    <RootStack.Navigator screenOptions={{headerShown: false}}>
-      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
-      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
-      {publicKey ? (
-        <RootStack.Screen name="MainStack" component={MainNavigator} />
-      ) : (
-        <>
-          <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
-        </>
-      )}
-    </RootStack.Navigator>
-  );
-};
-
-export const Router: React.FC = () => {
-  const isWeb = Platform.OS === 'web';
-  const windowWidth = Dimensions.get('window').width;
-  const shouldShowSidebar = isWeb && windowWidth >= 1024;
-  return (
-    <NavigationContainer linking={linking}>
-      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
-
-      <RootNavigator />
-    </NavigationContainer>
-  );
 };
 
 const stylesheet = ThemedStyleSheet((theme) => ({
