@@ -30,6 +30,8 @@ export enum SelectedTab {
   CASHU_PAYMENT,
   CASHU_HISTORY,
   CASHU_INVOICES,
+  PORTFOLIO,
+  STARKNET_PORTFOLIO,
 }
 
 export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
@@ -253,6 +255,41 @@ export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] 
     title: 'Invoices',
     screen: 'Invoices',
     tab: SelectedTab.CASHU_INVOICES,
+  },
+
+];
+
+
+export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab }[] = [
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+  {
+    title: 'Cashu',
+    screen: 'Cashu',
+    tab: SelectedTab.CASHU_WALLET,
+  },
+
+];
+
+
+export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
+  {
+    title: 'Portfolio',
+    screen: 'Portfolio',
+    tab: SelectedTab.PORTFOLIO,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+  {
+    title: 'Cashu',
+    screen: 'Cashu',
+    tab: SelectedTab.CASHU_WALLET,
   },
 
 ];

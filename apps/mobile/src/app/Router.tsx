@@ -47,6 +47,7 @@ import {
 import {retrievePublicKey} from '../utils/storage';
 import RightSidebar from '../modules/Layout/RightSideBar'
 import { CashuScreen } from '../screens/Cashu';
+import { WalletBTC } from '../screens/Wallet';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -333,6 +334,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Login" component={Login} />
       <DrawerStack.Screen name="Lightning" component={LightningNetworkScreen} />
       <DrawerStack.Screen name="Cashu" component={CashuScreen} />
+      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
     </DrawerStack.Navigator>
   );
 };
@@ -480,7 +482,9 @@ const DegensAppNavigator: React.FC = () => {
       <DrawerStack.Screen name="GroupChat" component={GroupChat} />
       <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
       <DrawerStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
-      <DrawerStack.Screen name="Tips" component={Tips} />
+
+      {/* Degens */}
+      <DegensAppStack.Screen name="Tips" component={Tips} />
       <DegensAppStack.Screen name="CreatePost" component={CreatePost} />
       <DegensAppStack.Screen name="CreateForm" component={CreateForm} />
       <DegensAppStack.Screen name="Settings" component={Settings} />
@@ -489,6 +493,8 @@ const DegensAppNavigator: React.FC = () => {
 
       <DegensAppStack.Screen name="Lightning" component={LightningNetworkScreen} />
       <DrawerStack.Screen name="Cashu" component={CashuScreen} />
+      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
+
     </DegensAppStack.Navigator>
   );
 };
