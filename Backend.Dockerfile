@@ -42,14 +42,6 @@ RUN pnpm install --force
 # Copy the entire repository into the Docker container
 COPY . .
 
-# Build the indexer-prisma package
-RUN pnpm --filter indexer-prisma build
-
-
-# Build the data-backend package
-RUN pnpm --filter data-backend build
-
-
 # Use a smaller production base image
 FROM node:18-alpine AS production
 
@@ -64,6 +56,12 @@ COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
 COPY apps/data-backend/package.json ./
+
+# Build the indexer-prisma package
+RUN pnpm --filter indexer-prisma build
+
+# Build the data-backend package
+RUN pnpm --filter data-backend build
 
 RUN pnpm install --force
 
