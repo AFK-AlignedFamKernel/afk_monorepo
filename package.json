@@ -15,7 +15,7 @@
     "build:mobile":"cd apps/mobile && pnpm run build",
     "dev:mobile":"cd apps/mobile && pnpm run start",
     "build:nostr_sdk":"cd packages/afk_nostr_sdk && pnpm run build",
-    "build:indexer-prisma":"cd packages/indexer-prisma && pnpm pull && pnpm generate",
+    "build:indexer-prisma":"cd packages/indexer-prisma && pnpm install && pnpm pull && pnpm generate",
     "build:backend":"cd apps/data-backend && pnpm run build",
     "build:backend:all":"pnpm run build:indexer-prisma && cd apps/data-backend && pnpm install && pnpm run build",
     "run:backend":"cd apps/data-backend && pnpm run start",
