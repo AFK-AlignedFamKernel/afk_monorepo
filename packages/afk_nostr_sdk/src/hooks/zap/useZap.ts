@@ -54,6 +54,7 @@ export const useSendZapNote = () => {
     mutationKey: ['useSendZapNote', ndk, nwcNdk],
     mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
       try {
+
         const zap = await ndk.zap(event, amount, {
 
         })
@@ -83,12 +84,7 @@ export const useSendZapNote = () => {
 
         let paymentResponse: undefined | SendPaymentResponse;
         console.log("nostrWebLN", nostrWebLN)
-
-        if (nwcNdk && invoice?.paymentRequest) {
-          payLnInvoice = await nwcNdk.payInvoice(invoice?.paymentRequest)
-          console.log("payLnInvoice", payLnInvoice)
-        }
-        else if (nostrWebLN && invoice?.paymentRequest) {
+        if (nostrWebLN && invoice?.paymentRequest) {
 
           console.log("nostrWebLN", nostrWebLN)
 
@@ -96,6 +92,11 @@ export const useSendZapNote = () => {
           console.log("paymentResponse", paymentResponse)
 
         }
+        else if (nwcNdk && invoice?.paymentRequest) {
+          payLnInvoice = await nwcNdk.payInvoice(invoice?.paymentRequest)
+          console.log("payLnInvoice", payLnInvoice)
+        }
+         
 
         return { zap, invoice, preimage: payLnInvoice?.result?.preimage, paymentResponse };
       } catch (e) {

@@ -97,6 +97,7 @@ export const LightningNetworkWallet = () => {
       try {
         await (window as any)?.webln.enable();
         setNostrWebLN((window as any)?.webln);
+        return (window as any)?.webln;
       } catch (error) {
         console.error('Failed to connect to Alby extension:', error);
       }
@@ -111,7 +112,12 @@ export const LightningNetworkWallet = () => {
           if (event.data?.type === 'nwc:success') {
             setNwcAuthUrl('');
             setNwcUrl(pendingNwcUrl);
-            setNostrWebLN(new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl }));
+
+
+            const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
+            setNostrWebLN(webLn);
+            return (window as any)?.webln;
+
           }
         });
       }
@@ -120,6 +126,8 @@ export const LightningNetworkWallet = () => {
   }
 
   const handleConnectGetAlby = async () => {
+
+    // const webLn = await connectWithAlbyPlatform()
     const webLn = await connectWithAlby()
 
     if (webLn) {

@@ -1,5 +1,5 @@
 import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useProfile, useSendZap, useSendZapNote } from 'afk_nostr_sdk';
+import { useLN, useProfile, useSendZap, useSendZapNote } from 'afk_nostr_sdk';
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
@@ -33,6 +33,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const { mutate: mutateSendZapNote } = useSendZapNote()
 
   const [amount, setAmount] = useState<string>('');
+  const { handleZap, getInvoiceFromLnAddress, payInvoice} = useLN()
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const { showToast } = useToast();
   const isActive = !!amount;
@@ -53,21 +54,30 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       return;
     }
 
-    if(!profile?.lud16) {
-      showToast({title:"This profile doesn't have a lud16 Lightning address", type:"error"})
+    if (!profile?.lud16) {
+      showToast({ title: "This profile doesn't have a lud16 Lightning address", type: "error" })
       return;
     }
 
-    await mutateSendZapNote({
-      event,
-      amount: Number(amount?.toString()),
-      lud16:profile?.lud16
-    },{
-      onSuccess:() => {
-        showToast({title:"Lightning zap succedd", type:"success"})
+    const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount))
+    console.log("invoice",invoice)
+    const zapExtension = await handleZap(amount, invoice?.paymentRequest)
+    // const zapExtension = await payInvoice(invoice?.paymentRequest)
+    console.log("zapExtension",zapExtension)
 
-      }
-    })
+    // if(!zapExtension) {
+    //   await mutateSendZapNote({
+    //     event,
+    //     amount: Number(amount?.toString()),
+    //     lud16: profile?.lud16
+    //   }, {
+    //     onSuccess: () => {
+    //       showToast({ title: "Lightning zap succedd", type: "success" })
+  
+    //     }
+    //   })
+    // }
+  
   };
 
   return (

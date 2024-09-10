@@ -29,10 +29,10 @@ export const useLN = () => {
     const [resultPayment, setResultPayment] = useState<SendPaymentResponse | undefined>();
 
     const nostrWebLN = useMemo(() => {
-        return new webln.NostrWebLNProvider({
+        return nostrWebLNState ?? new webln.NostrWebLNProvider({
             nostrWalletConnectUrl: nwcUrl ?? nwcUrlProps
         })
-    }, [nwcUrl, nwcUrlProps])
+    }, [nwcUrl, nwcUrlProps, nostrWebLNState])
     useEffect(() => {
         if (!nostrWebLN) return;
 
@@ -81,9 +81,10 @@ export const useLN = () => {
                 const isValid = validateInvoice(zapRecipient)
 
                 if (!isValid) {
+                    return;
                 }
                 // const result = await nostrWebLN.sendPayment(paymentRequest);
-                const result = await nostrWebLN.sendPayment(zapRecipient);
+                const result = await nostrWebLN?.sendPayment(zapRecipient);
 
                 if (result) {
                     console.log("result", result);
@@ -113,6 +114,8 @@ export const useLN = () => {
             const result = await payInvoice(zapRecipient)
             console.log("result invoice pay", result)
 
+            return result;
+
             // Simulating a delay
             // await new Promise((resolve) => setTimeout(resolve, 2000));
             // setIsZapModalVisible(false);
@@ -127,6 +130,8 @@ export const useLN = () => {
     async function connectWithAlby() {
         setConnectionStatus('connecting');
         setIsLoading(true);
+        console.log("isExtensionAvailable",isExtensionAvailable)
+
         if (isExtensionAvailable) {
             try {
                 console.log("isExtensionAvailable",isExtensionAvailable)
@@ -138,25 +143,36 @@ export const useLN = () => {
                 console.error('Failed to connect to Alby extension:', error);
             }
         } else {
-            const nwc = webln.NostrWebLNProvider.withNewSecret({});
+            // const nwc = webln.NostrWebLNProvider.withNewSecret({});
+            const nwc = webln.NostrWebLNProvider.withNewSecret();
             const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
-            setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
+            const pendingNwc = nwc.client.getNostrWalletConnectUrl(true)
+            console.log("pendingNwc",pendingNwc)
+            setPendingNwcUrl(pendingNwc);
             setNwcAuthUrl(authUrl.toString());
             setNWCUrl(nwcUrl)
+            console.log("authUrl",authUrl)
+            console.log("nwc",nwc)
 
             if (typeof window != "undefined") {
                 window.addEventListener('message', async (event) => {
                     if (event.data?.type === 'nwc:success') {
-                        setNwcAuthUrl(pendingNwcUrl.toString());
+               
+                        // const url= webLn.client.getNostrWalletConnectUrl(true);
 
-                        setNwcUrl(pendingNwcUrl);
                         const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
                         await (window as any)?.webln.enable();
+                        // webLn.client.secret= nwc.client.secret;
+
                         await webLn.enable();
 
                         setNostrWebLN(webLn);
                         setConnectionStatus('connected');
+                        setNwcAuthUrl(pendingNwcUrl.toString());
 
+                        await handleConnectWithUrl(nwcUrl)
+
+                        setNwcUrl(pendingNwcUrl);
                         return webLn
                     
                     }
@@ -193,7 +209,8 @@ export const useLN = () => {
             //   amount: parseInt(invoiceAmount, 10),
             //   defaultMemo: invoiceMemo,
             // });
-            const invoice = await nostrWebLN.makeInvoice({
+            
+            const invoice = await nostrWebLN?.makeInvoice({
                 amount: parseInt(invoiceAmount, 10),
                 // amount: parseInt(invoiceAmount),
                 defaultMemo: invoiceMemo,

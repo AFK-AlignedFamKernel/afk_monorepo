@@ -11,7 +11,7 @@ export default ThemedStyleSheet((theme) => ({
     paddingHorizontal: Spacing.medium,
   },
   leftContainer: {
-    position: 'absolute',
+    // position: 'absolute',
   },
 
   logoContainer: {
