@@ -16,12 +16,19 @@ ARG INDEXER_DATABASE_URL
 # Set the environment variable
 ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL}
 
-
 # Add an argument for Telegram webapp
 ARG TELEGRAM_WEB_APP
 
 # Set the environment variable
 ENV TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
+
+ARG BACKEND_DATABASE_URL
+
+ENV BACKEND_DATABASE_URL=${BACKEND_DATABASE_URL}
+
+ARG PORT
+
+ENV PORT=${PORT}
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
@@ -50,13 +57,15 @@ FROM node:18-alpine AS production
 WORKDIR /app
 
 # Copy the node_modules and built files from the base stage
-COPY --from=base /app/node_modules ./node_modules
+# COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
 COPY apps/data-backend/package.json ./
+
+RUN pnpm install --force
 
 # Set the environment variable to production
 ENV NODE_ENV=production
