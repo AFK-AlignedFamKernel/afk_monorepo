@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
+import {useNostrAuth, useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {IChannelsMetadata} from '../../types/channels';
 import {ChannelInfo} from '../ChannelCard/Card/ChannelInfo';
@@ -30,6 +30,8 @@ export const ChannelDetailComponent: React.FC<IChannelDetailComponent> = ({navig
   const notes = useMessagesChannels({noteId: note?.id});
   const queryClient = useQueryClient();
   const {showToast} = useToast();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
+
 
   const [channelInfo, setChannelInfo] = useState<undefined | IChannelsMetadata>();
   useEffect(() => {
@@ -55,6 +57,8 @@ export const ChannelDetailComponent: React.FC<IChannelDetailComponent> = ({navig
     if (selectedReply && note?.id) {
       tags = [['e', note?.id ?? selectedReply ?? '', '', 'reply', note?.pubkey ?? '']];
     }
+
+    await handleCheckNostrAndSendConnectDialog()
 
     sendNote.mutate(
       {

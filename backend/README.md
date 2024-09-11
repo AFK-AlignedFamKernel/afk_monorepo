@@ -15,7 +15,15 @@ POSTGRES_USER=your_postgres_user
 POSTGRES_PASSWORD=your_postgres_password
 POSTGRES_DATABASE=your_postgres_database
 
+
+
 ```
+
+## Install
+Go install: https://go.dev/doc/install
+
+
+export PATH=$PATH:/usr/local/go/bin
 
 ## Running
 

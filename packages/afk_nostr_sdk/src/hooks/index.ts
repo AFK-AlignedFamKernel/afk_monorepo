@@ -45,4 +45,9 @@ export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
 export {useMyMessagesSent} from './messages/useMyMessagesSent';
 export {useBookmark} from './useBookmark';
 export {useSendZap} from './zap/useZap';
-export {useCashu} from "./cashu/useCashu"
+export {useConnectNWC} from './zap/useZap';
+export {useSendZapNote} from './zap/useZap';
+export {useLN} from "./ln";
+
+export {useCashu, useCashuMintList, useCashuSendWalletInfo, useCashuSpendingToken, useCashuTokenSend} from "./cashu"
+

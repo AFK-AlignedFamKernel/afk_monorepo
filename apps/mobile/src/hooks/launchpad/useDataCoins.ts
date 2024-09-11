@@ -12,7 +12,7 @@ export const prepareAndConnectContract = async (
   account?: AccountInterface,
 ) => {
   // read abi of Test contract
-  console.log('contractAddress', contractAddress);
+  // console.log('contractAddress', contractAddress);
   // console.log("provider",await provider.getChainId())
 
   const {abi: testAbi} = await provider.getClassAt(contractAddress);
@@ -64,14 +64,14 @@ export const useDataCoins = () => {
 
   /** Indexer with Key contract event */
   const getAllCoins = async (account?: AccountInterface, contractAddress?: string) => {
-    console.log('getAllCoins');
+    // console.log('getAllCoins');
     const addressContract =
       contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const contract = await prepareAndConnectContract(provider, addressContract, account);
     // if (!account) return;
     // console.log('get key all keys');
     const all_keys = await contract.get_all_launch();
-    console.log('allkeys', all_keys);
+    // console.log('allkeys', all_keys);
     return all_keys;
   };
 

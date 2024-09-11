@@ -15,7 +15,7 @@ import { CashuView, CashuWalletView } from '../../modules/Cashu';
 
 export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.BTC_FI_VAULT);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -63,7 +63,7 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
 
           {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
             <View>
-              <Text style={styles.text}>Zap coming soon</Text>
+              <Text style={styles.text}>Zap, Lightning wallet and NWC</Text>
               <LightningNetworkWalletView></LightningNetworkWalletView>
             </View>
           )}

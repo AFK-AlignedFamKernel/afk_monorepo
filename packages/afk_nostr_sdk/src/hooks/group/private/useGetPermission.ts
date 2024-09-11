@@ -26,7 +26,7 @@ export const fetchPermissions = async ({
   pubkey,
 }: PermissionMeta): Promise<NDKEvent | null> => {
   const events = await ndk.fetchEvents({
-    kinds: [9003],
+    kinds: [9003 as number],
     '#h': [groupId],
     '#p': [pubkey],
     since: 0,

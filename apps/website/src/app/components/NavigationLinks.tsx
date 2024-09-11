@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
 
 export function NavigationLinks() {
   return (
@@ -10,6 +11,12 @@ export function NavigationLinks() {
       <li>
         <Link href="/pixel">Pixel </Link>
       </li>
+      {/* <li>
+        <CustomConnectButtonWallet
+        // width={ "100px" }
+        ></CustomConnectButtonWallet>
+      </li> */}
+      {/* <ConnectButton></ConnectButton> */}
     </ul>
   );
 }

@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
 import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useStyles} from '../../hooks';
+import {useNostrAuth, useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Post} from '../../modules/Post';
 import {PostDetailScreenProps} from '../../types';
@@ -16,6 +16,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
   const styles = useStyles(stylesheet);
 
   const [comment, setComment] = useState('');
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
 
   const sendNote = useSendNote();
   const {data: note = post} = useNote({noteId: postId});
@@ -28,6 +29,8 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
       showToast({type: 'error', title: 'Please write your comment'});
       return;
     }
+    await handleCheckNostrAndSendConnectDialog()
+
 
     sendNote.mutate(
       {content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']]},
