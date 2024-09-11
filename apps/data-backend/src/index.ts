@@ -18,7 +18,7 @@ fastify.register(fastifyCors, {
 declareRoutes(fastify);
 
 fastify.listen(
-  { port: Number(process.env.PORT) || 5050 },
+  { port: Number(process.env.PORT) || 5050, host: "0.0.0.0" },
   function (err, address) {
     if (err) {
       fastify.log.error(err);
