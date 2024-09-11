@@ -25,10 +25,10 @@ fastify.listen(
       process.exit(1);
     }
 
-    try {
-      launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
-    } catch (error) {
-      console.error("Error launching bot:", error);
-    }
+    // try {
+    //   launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
+    // } catch (error) {
+    //   console.error("Error launching bot:", error);
+    // }
   }
 );
