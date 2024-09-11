@@ -1,12 +1,12 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useProfile} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useLN, useProfile, useSendZap, useSendZapNote } from 'afk_nostr_sdk';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 
-import {Avatar, Button, Input, Modalize, Text} from '../../../components';
-import {useStyles} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {TipSuccessModalProps} from '../../TipSuccessModal';
+import { Avatar, Button, Input, Modalize, Text } from '../../../components';
+import { useStyles } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
 
 export type TipModalLightning = Modalize;
@@ -29,13 +29,55 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 }: FormTipModalLightningProps) => {
   const styles = useStyles(stylesheet);
 
+
+  const { mutate: mutateSendZapNote } = useSendZapNote()
+
   const [amount, setAmount] = useState<string>('');
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const {showToast} = useToast();
+  const { handleZap, getInvoiceFromLnAddress, payInvoice} = useLN()
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { showToast } = useToast();
   const isActive = !!amount;
 
-  const onTipPress = () => {
-    showToast({title: 'ZAP coming soon', type: 'info'});
+  console.log("profile nip", profile)
+  console.log("lud06", profile?.lud06)
+  console.log("lud16", profile?.lud16)
+  console.log("nip", profile?.nip05)
+
+  const onTipPress = async () => {
+    showToast({ title: 'ZAP coming soon', type: 'info' });
+
+    if (!event) return;
+
+    if (!amount) {
+
+      showToast({ title: "Zap send", type: "error" })
+      return;
+    }
+
+    if (!profile?.lud16) {
+      showToast({ title: "This profile doesn't have a lud16 Lightning address", type: "error" })
+      return;
+    }
+
+    const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount))
+    console.log("invoice",invoice)
+    const zapExtension = await handleZap(amount, invoice?.paymentRequest)
+    // const zapExtension = await payInvoice(invoice?.paymentRequest)
+    console.log("zapExtension",zapExtension)
+
+    // if(!zapExtension) {
+    //   await mutateSendZapNote({
+    //     event,
+    //     amount: Number(amount?.toString()),
+    //     lud16: profile?.lud16
+    //   }, {
+    //     onSuccess: () => {
+    //       showToast({ title: "Lightning zap succedd", type: "success" })
+  
+    //     }
+    //   })
+    // }
+  
   };
 
   return (
@@ -64,6 +106,19 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
               )}
             </View>
           </View>
+        </View>
+
+        <View>
+          {profile?.lud16 && (
+            <Text fontSize={11} color="textLight" weight="regular">
+              LN Address: {profile?.lud16}
+            </Text>
+          )}
+        </View>
+
+
+        <View>
+
         </View>
 
         <Text

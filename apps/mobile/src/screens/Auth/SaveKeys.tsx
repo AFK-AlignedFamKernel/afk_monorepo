@@ -7,7 +7,7 @@ import {CopyIconStack} from '../../assets/icons';
 import {InfoIcon} from '../../assets/icons';
 import {Button, Input, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
+import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {AuthSaveKeysScreenProps} from '../../types';
 import stylesheet from './styles';
@@ -19,6 +19,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   const styles = useStyles(stylesheet);
   const setAuth = useAuth((state) => state.setAuth);
   const {showToast} = useToast();
+  const {showDialog, hideDialog} = useDialog();
 
   const handleCopy = async (type: 'privateKey' | 'publicKey') => {
     await Clipboard.setStringAsync(type === 'privateKey' ? privateKey : publicKey);
@@ -26,7 +27,35 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   };
 
   const handleContinue = () => {
-    setAuth(publicKey, privateKey);
+    showDialog({
+      title: 'Saved your Private key',
+      description: 'Please send your Nostr private key somewhere safe.',
+      buttons: [
+        {
+          type: 'primary',
+          label: 'Copy private key',
+          onPress: async () => {
+            handleCopy("privateKey")
+            hideDialog();
+          },
+        },
+        {
+          type: 'primary',
+          label: "Yes",
+          onPress: async () => {
+            setAuth(publicKey, privateKey);
+
+            hideDialog();
+          },
+        },
+        {
+          type: 'default',
+          label: 'No',
+          onPress: hideDialog,
+        },
+      ],
+    });
+
   };
 
   return (

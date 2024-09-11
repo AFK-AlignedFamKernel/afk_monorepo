@@ -1,7 +1,7 @@
 // import { useAuth } from '../../../store/auth';
 import {useAuth, useNostrContext} from 'afk_nostr_sdk';
 import React, {useEffect, useMemo} from 'react';
-import {Pressable, Text, View, Image} from 'react-native';
+import {Pressable, Text, View, Image, ScrollView} from 'react-native';
 
 import {Icon} from '../../../components/Icon';
 import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
@@ -59,7 +59,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   // }
 
   return (
-    <View style={styles.sidebar}>
+    <ScrollView style={styles.sidebar}>
       <View style={styles.rowContainer}>
         { isDesktop && <Image style={styles.logo} source={require('./../../../assets/pepe-logo.png')} />}
         <Text style={styles.sidebarText}>AFK</Text>
@@ -119,7 +119,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
           <Text style={styles.textItem}>Login</Text>
         </Pressable>
       )}
-    </View>
+    </ScrollView>
   );
 };
 

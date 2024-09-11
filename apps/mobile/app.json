@@ -1,5 +1,6 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "AFK-Community",
     "slug": "AFK-Community",
     "version": "1.0.0",
@@ -15,14 +16,17 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
+          "jsEngine": "jsc",
       "supportsTablet": true
     },
     "android": {
+      "jsEngine": "hermes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.test_afk"
+      "package": "com.test_afk",
+      "permissions":["android.permission.WRITE_EXTERNAL_STORAGE", "INTERNET"]
     },
     "web": {
       "favicon": "./assets/favicon.png",

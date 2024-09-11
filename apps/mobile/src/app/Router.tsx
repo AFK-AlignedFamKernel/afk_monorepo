@@ -45,8 +45,9 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-import RightSidebar from '../components/RightSideBar';
+import RightSidebar from '../modules/Layout/RightSideBar'
 import { CashuScreen } from '../screens/Cashu';
+import { WalletBTC } from '../screens/Wallet';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
@@ -56,6 +57,42 @@ const HomeBottomTabsStack = createBottomTabNavigator<HomeBottomStackParams>();
 const DegensBottomTabsStack = createBottomTabNavigator<DegensBottomStackParams>();
 
 const DegensAppStack = createDrawerNavigator<DegensAppStackParams>();
+
+const RootNavigator: React.FC = () => {
+  const {publicKey} = useAuth();
+
+  return (
+    <RootStack.Navigator screenOptions={{headerShown: false}}>
+      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
+      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
+      {publicKey ? (
+        <RootStack.Screen name="MainStack" component={MainNavigator} />
+      ) : (
+        <>
+
+          <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+          <RootStack.Screen name="MainStack" component={MainNavigator} />
+
+          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
+        </>
+      )}
+    </RootStack.Navigator>
+  );
+};
+
+export const Router: React.FC = () => {
+  const isWeb = Platform.OS === 'web';
+  const windowWidth = Dimensions.get('window').width;
+  const shouldShowSidebar = isWeb && windowWidth >= 1024;
+  return (
+    <NavigationContainer linking={linking}>
+      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
+
+      <RootNavigator />
+    </NavigationContainer>
+  );
+};
 
 const HomeBottomTabNavigator: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -333,6 +370,7 @@ const MainNavigator: React.FC = () => {
       <DrawerStack.Screen name="Login" component={Login} />
       <DrawerStack.Screen name="Lightning" component={LightningNetworkScreen} />
       <DrawerStack.Screen name="Cashu" component={CashuScreen} />
+      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
     </DrawerStack.Navigator>
   );
 };
@@ -466,17 +504,33 @@ const DegensAppNavigator: React.FC = () => {
       })}
     >
       {!isDesktop && <DegensAppStack.Screen name="Home" component={DegensBottomTabNavigator} />}
+      <DrawerStack.Screen name="Feed" component={Feed} />
+
+      <DegensAppStack.Screen name="Login" component={Login} />
+      <DrawerStack.Screen name="Auth" component={AuthNavigator} />
+      <DrawerStack.Screen name="ChannelDetail" component={ChannelDetail} />
+      <DrawerStack.Screen name="CreateChannel" component={CreateChannel} />
+      <DrawerStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
+      <DegensAppStack.Screen name="Profile" component={Profile} />
+      <DrawerStack.Screen name="PostDetail" component={PostDetail} />
       <DegensAppStack.Screen name="Games" component={Games} />
       <DegensAppStack.Screen name="Defi" component={Defi} />
-      <DegensAppStack.Screen name="Profile" component={Profile} />
+      <DrawerStack.Screen name="GroupChat" component={GroupChat} />
+      <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
+      <DrawerStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
+
+      {/* Degens */}
+      <DegensAppStack.Screen name="Tips" component={Tips} />
       <DegensAppStack.Screen name="CreatePost" component={CreatePost} />
       <DegensAppStack.Screen name="CreateForm" component={CreateForm} />
-      <DegensAppStack.Screen name="Tips" component={Tips} />
       <DegensAppStack.Screen name="Settings" component={Settings} />
       <DegensAppStack.Screen name="LaunchDetail" component={LaunchDetail} />
-      {/* <DegensAppStack.Screen name="Auth" component={AuthNavigator} /> */}
-      <DegensAppStack.Screen name="Login" component={Login} />
+   
+
       <DegensAppStack.Screen name="Lightning" component={LightningNetworkScreen} />
+      <DrawerStack.Screen name="Cashu" component={CashuScreen} />
+      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
+
     </DegensAppStack.Navigator>
   );
 };
@@ -555,39 +609,6 @@ const linking = {
       },
     },
   },
-};
-
-const RootNavigator: React.FC = () => {
-  const {publicKey} = useAuth();
-
-  return (
-    <RootStack.Navigator screenOptions={{headerShown: false}}>
-      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
-      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
-      {publicKey ? (
-        <RootStack.Screen name="MainStack" component={MainNavigator} />
-      ) : (
-        <>
-          <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
-        </>
-      )}
-    </RootStack.Navigator>
-  );
-};
-
-export const Router: React.FC = () => {
-  const isWeb = Platform.OS === 'web';
-  const windowWidth = Dimensions.get('window').width;
-  const shouldShowSidebar = isWeb && windowWidth >= 1024;
-  return (
-    <NavigationContainer linking={linking}>
-      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
-
-      <RootNavigator />
-    </NavigationContainer>
-  );
 };
 
 const stylesheet = ThemedStyleSheet((theme) => ({

@@ -1,4 +1,4 @@
-import { Spacing, ThemedStyleSheet } from '../../../styles';
+import { Spacing, ThemedStyleSheet } from "../../../styles";
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -35,7 +35,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
   },
   itemContainer: {
-    maxWidth: 200,
+    maxWidth: 170,
   },
   itemText: {
     color: theme.colors.text,

@@ -1,37 +1,110 @@
-import { CashuMint, CashuWallet, getEncodedToken, MintQuotePayload, MintQuoteResponse, Proof } from '@cashu/cashu-ts';
+import {
+    CashuMint, CashuWallet, getEncodedToken, MintQuotePayload, MintQuoteResponse, Proof,
+    deriveSeedFromMnemonic,
+    generateNewMnemonic,
+} from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useMemo, useState } from 'react';
-import { useAuth } from '../../store';
+import { useAuth, useCashuStore } from '../../store';
+
+import { NDKCashuToken, NDKCashuWallet } from "@nostr-dev-kit/ndk-wallet"
+import { useNostrContext } from '../../context';
 
 export const useCashu = () => {
-    const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
-    const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))
+
+    const { ndk, ndkCashuWallet, ndkWallet } = useNostrContext()
     const { privateKey } = useAuth()
+    const { setSeed, seed, mnemonic, setMnemonic, setMints, setMintsRequests, } = useCashuStore()
+
+
+
+    const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+    const [mint, setMint] = useState<CashuMint | undefined>(new CashuMint(mintUrl))
+    // const [mnemonic,setMnemonic] = useState<string|undefined>()
+    // const [seed,setSeed] = useState<Uint8Array|undefined>()
 
     const cashuMint = useMemo(() => {
         return mint;
     }, [mint])
-    const [walletCashu, setWallet] = useState<CashuWallet | undefined>(new CashuWallet(mint))
+    const [walletCashu, setWallet] = useState<CashuWallet | undefined>(new CashuWallet(mint, {
+        mnemonicOrSeed: seed ?? mnemonic
+    }))
     const [proofs, setProofs] = useState<Proof[]>([])
     const [responseQuote, setResponseQuote] = useState<MintQuoteResponse | undefined>()
 
     const wallet = useMemo(() => {
         return walletCashu
     }, [walletCashu])
+
+
+    /** TODO saved in secure store */
+    const generateMnemonic = () => {
+
+        const words = generateNewMnemonic()
+        setMnemonic(words)
+        return words;
+    }
+    /** TODO saved in secure store */
+    const derivedSeedFromMnenomicAndSaved = (mnemonic: string) => {
+
+        const seed = deriveSeedFromMnemonic(mnemonic)
+        setSeed(seed)
+        return seed;
+    }
+
+    const getKeys = async () => {
+        const keys = await mint?.getKeys();
+
+        console.log("keys", keys)
+        console.log("wallet.keys", wallet.keys)
+        return keys;
+    }
+
+    const getProofsSpents = async (proofs: Proof[]) => {
+
+        const proofsCheck = await wallet.checkProofsSpent([...proofs]);
+
+        console.log("proofsCheck", proofsCheck)
+        return proofsCheck;
+    }
+    const getProofs = async (tokens: NDKCashuToken[]) => {
+
+        const proofsCheck = await ndkCashuWallet.checkProofs([...tokens]);
+
+        console.log("proofsCheck", proofsCheck)
+        return proofsCheck;
+    }
+    const getKeySets = async () => {
+        const keyssets = await mint?.getKeySets();
+
+        console.log("keyssets", keyssets)
+        return keyssets;
+    }
+
+
     const connectCashMint = (mintUrl: string) => {
         const mintCashu = new CashuMint(mintUrl)
         setMint(mintCashu)
         return mintCashu;
     }
 
-    const connectCashWallet = (cashuMint: CashuMint) => {
-        const wallet = new CashuWallet(cashuMint)
+    const getMintInfo = async (mintUrl: string) => {
+        const mintCashu = new CashuMint(mintUrl)
+        const info = await mintCashu.getInfo();
+        return info;
+    }
+
+    const connectCashWallet = (cashuMint?: CashuMint) => {
+        const wallet = new CashuWallet(cashuMint ?? mint, {
+            mnemonicOrSeed: seed ?? mnemonic
+        })
         setWallet(wallet)
         return wallet;
     }
 
-    const mintQuote = async (nb: number) => {
+
+    const requestMintQuote = async (nb: number) => {
 
         try {
 
@@ -65,6 +138,27 @@ export const useCashu = () => {
         return proofs;
     }
 
+    const getFeesForExternalInvoice = async (externalInvoice: string) => {
+        const fee = (await wallet.createMeltQuote(externalInvoice)).fee_reserve;
+
+        return fee
+    }
+
+
+    const meltTokens = async (invoice: string) => {
+
+        const meltQuote = await wallet.createMeltQuote(invoice);
+        const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
+
+        // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
+        // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
+        const { returnChange: proofsToKeep, send: proofsToSend } = await wallet.send(amountToSend, proofs);
+        // store proofsToKeep in wallet ..
+
+        const meltResponse = await wallet.meltTokens(meltQuote, proofsToSend);
+
+        return meltResponse;
+    }
 
     const payLnInvoice = async (amount: number, request: MintQuoteResponse, proofs: Proof[]) => {
 
@@ -87,11 +181,13 @@ export const useCashu = () => {
     }
 
 
+
+
     const sendP2PK = async (tokensProofs: Proof[], pubkeyRecipient: Uint8Array, mintUrl: string) => {
         const { send } = await wallet.send(64, tokensProofs, { pubkey: bytesToHex(pubkeyRecipient) });
         const encoded = getEncodedToken({
             token: [{ mint: mintUrl, proofs: send }]
-        });
+        })
 
         return {
             send,
@@ -108,17 +204,56 @@ export const useCashu = () => {
         return proofs;
     }
 
+    const payExternalInvoice = async (amount: number, fee: number, externalInvoice: string, request: MintQuoteResponse, proofs: Proof[]) => {
+
+
+
+        // get the quote from the mint
+        const quote_ = await wallet.checkMeltQuote(request.quote);
+        expect(quote_).toBeDefined();
+
+        const sendResponse = await wallet.send(amount + fee, proofs);
+        const response = await wallet.payLnInvoice(externalInvoice, sendResponse.send, quote_);
+
+        expect(response).toBeDefined();
+        // expect that we have not received the fee back, since it was external
+        expect(response.change.reduce((a, b) => a + b.amount, 0)).toBeLessThan(fee);
+
+        // check states of spent and kept proofs after payment
+        const sentProofsSpent = await wallet.checkProofsSpent(sendResponse.send);
+        expect(sentProofsSpent).toBeDefined();
+        // expect that all proofs are spent, i.e. sendProofsSpent == sendResponse.send
+        expect(sentProofsSpent).toEqual(sendResponse.send);
+        // expect none of the sendResponse.returnChange to be spent
+        const returnChangeSpent = await wallet.checkProofsSpent(sendResponse.returnChange);
+        return {
+            response,
+            sentProofsSpent,
+            returnChangeSpent
+        }
+    }
+
     return {
         wallet,
         mint,
+        generateMnemonic,
+        derivedSeedFromMnenomicAndSaved,
         connectCashMint,
         connectCashWallet,
-        mintQuote,
+        requestMintQuote,
         mintTokens,
         payLnInvoice,
         sendP2PK,
-        receiveP2PK
-    }
+        receiveP2PK,
+        meltTokens,
+        getKeySets,
+        getKeys,
+        getProofs,
+        getFeesForExternalInvoice,
+        payExternalInvoice,
+        getProofsSpents,
+        getMintInfo
 
+    }
 
 }

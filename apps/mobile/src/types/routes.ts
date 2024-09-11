@@ -64,6 +64,7 @@ export type MainStackParams = {
   Cashu: undefined;
   Whatever: undefined;
   RightDrawer: undefined;
+  WalletBTC: undefined;
 };
 
 export type DegensAppStackParams = {
@@ -323,6 +324,10 @@ export type CashuWalletScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
+export type WalletScreenBTC = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'WalletBTC'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 // export type TipsMainScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<MainStackParams, 'Tips'>,
 //   NativeStackScreenProps<RootStackParams>

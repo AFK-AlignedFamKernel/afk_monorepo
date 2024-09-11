@@ -47,6 +47,9 @@ async function deployLaunchRoute(
       }
 
       const launches = await prisma.token_launch.findMany({
+        where:{
+          memecoin_address:launch
+        },
         select: {
           memecoin_address: true,
           price: true,

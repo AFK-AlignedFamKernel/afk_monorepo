@@ -1,6 +1,6 @@
 import {useMyGiftWrapMessages, useMyMessagesSent} from 'afk_nostr_sdk';
 import React, {useEffect, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList, View, Text} from 'react-native';
 
 import {Conversation as ConversationPreview} from '../../components';
 import {Chat} from '../../components/PrivateMessages/Chat';
@@ -32,6 +32,8 @@ export const DirectMessages: React.FC = () => {
 
   return (
     <>
+
+    <Text>Private message coming soon</Text>
       <FormPrivateMessage></FormPrivateMessage>
 
       {selectedConversation ? (
