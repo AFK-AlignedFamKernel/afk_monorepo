@@ -243,6 +243,11 @@ export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] 
     tab: SelectedTab.CASHU_WALLET,
   },
   {
+    title: 'Invoices',
+    screen: 'Invoices',
+    tab: SelectedTab.CASHU_INVOICES,
+  },
+  {
     title: 'Mints',
     screen: 'Mints',
     tab: SelectedTab.CASHU_MINT,
@@ -251,11 +256,6 @@ export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] 
     title: 'History',
     screen: 'History',
     tab: SelectedTab.CASHU_HISTORY,
-  },
-  {
-    title: 'Invoices',
-    screen: 'Invoices',
-    tab: SelectedTab.CASHU_INVOICES,
   },
 
 ];

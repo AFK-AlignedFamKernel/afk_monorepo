@@ -70,10 +70,8 @@ const RootNavigator: React.FC = () => {
         <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (
         <>
-
           <RootStack.Screen name="AuthStack" component={AuthNavigator} />
           <RootStack.Screen name="MainStack" component={MainNavigator} />
-
           <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
         </>
       )}
@@ -335,6 +333,7 @@ const MainNavigator: React.FC = () => {
           width: 250, // Adjust width or other styling as necessary
         },
       })}
+      initialRouteName='Home'
     >
       {!isDesktop ? (
         <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
@@ -567,11 +566,18 @@ const linking = {
   config: {
     screens: {
       Home: 'home',
-      MainStack: 'app',
+      MainStack: {
+        path:'app',
+        // screens:{
+
+        // } 
+      },
       DegensStack: 'degens',
       Menu: 'menu',
       Search: 'search',
-      AuthStack: 'auth',
+      AuthStack: {
+        path:'auth'
+      },
       Feed: 'feed',
       ImportKeys: 'import-keys',
       KeysMarketplace: 'keys-marketplace',
@@ -581,7 +587,10 @@ const linking = {
       Launchpad: 'launchpad',
       LaunchToken: 'launch-token',
       Games: 'games',
-      Defi: 'defi',
+      Defi: {
+        path:"defi",
+        // screens:{}
+      },
       Settings: 'settings',
       Tips: 'Tips',
       ChannelDetail: {

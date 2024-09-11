@@ -51,6 +51,8 @@ async function deployTokenRoute(
         select: {
           memecoin_address: true,
           name: true,
+          symbol:true,
+          initial_supply:true,
           total_supply: true,
           network: true
         }
