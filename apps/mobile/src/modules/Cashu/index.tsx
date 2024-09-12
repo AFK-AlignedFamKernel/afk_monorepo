@@ -145,103 +145,104 @@ export const CashuView = () => {
 
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
 
 
       <TabSelector
-        activeTab={selectedTab}
-        handleActiveTab={handleTabSelected}
-        buttons={TABS_CASHU}
-        addScreenNavigation={false}
-      ></TabSelector>
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={TABS_CASHU}
+            addScreenNavigation={false}
+          ></TabSelector>
 
-      <ScrollView contentContainerStyle={styles.scrollView}>
+        <ScrollView contentContainerStyle={styles.scrollView}>
 
-        {selectedTab == SelectedTab?.CASHU_WALLET &&
-          <ScrollView>
-            <GenerateInvoiceCashu></GenerateInvoiceCashu>
-          </ScrollView>
-        }
+          {selectedTab == SelectedTab?.CASHU_WALLET &&
+            <>
+              <BalanceCashu></BalanceCashu>
+              <GenerateInvoiceCashu></GenerateInvoiceCashu>
+            </>
+          }
 
-        {selectedTab == SelectedTab?.CASHU_INVOICES &&
-          <View>
-            <Text>Invoices</Text>
-            <InvoicesListCashu></InvoicesListCashu>
+          {selectedTab == SelectedTab?.CASHU_INVOICES &&
+            <View>
+              <Text>Invoices</Text>
+              <InvoicesListCashu></InvoicesListCashu>
+            </View>
+          }
+
+          {selectedTab == SelectedTab?.CASHU_HISTORY &&
+            <View>
+              <Text>History</Text>
+
+
+            </View>
+          }
+
+          {selectedTab == SelectedTab?.CASHU_MINT &&
+            <View>
+              <Text>Cashu mints</Text>
+              <MintListCashu></MintListCashu>
+            </View>
+          }
+
+          {selectedTab == SelectedTab.CASHU_SETTINGS &&
+
+            <View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  connectCashWallet()
+                }}
+              >Connect Cashu</TouchableOpacity>
+
+              <MnemonicCashu></MnemonicCashu>
+
+            </View>
+          }
+
+          <View style={styles.container}>
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isZapModalVisible}
+              onRequestClose={() => setIsZapModalVisible(false)}
+            >
+              <ZapUserView
+                isLoading={isLoading}
+                setIsZapModalVisible={setIsZapModalVisible}
+                setZapAmount={setZapAmount}
+                setZapRecipient={setZapRecipient}
+                zapAmount={zapAmount}
+                zapRecipient={zapRecipient}
+                handleZap={handleZap}
+              />
+            </Modal>
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isInvoiceModalVisible}
+              onRequestClose={() => setIsInvoiceModalVisible(false)}
+            >
+
+              <PayInfo
+                setInvoiceMemo={setInvoiceMemo}
+                setInvoiceAmount={setInvoiceAmount}
+                invoiceMemo={invoiceMemo}
+                invoiceAmount={invoiceAmount}
+                setIsInvoiceModalVisible={setIsInvoiceModalVisible}
+                generateInvoice={generateInvoice}
+                isLoading={isLoading}
+              />
+            </Modal>
           </View>
-        }
+        </ScrollView>
+      </SafeAreaView>
+    </View>
 
-        {selectedTab == SelectedTab?.CASHU_HISTORY &&
-          <View>
-            <Text>History</Text>
-
-
-          </View>
-        }
-
-        {selectedTab == SelectedTab?.CASHU_MINT &&
-          <View>
-            <Text>Cashu mints</Text>
-            <MintListCashu></MintListCashu>
-          </View>
-        }
-
-        {selectedTab == SelectedTab.CASHU_SETTINGS &&
-
-          <View>
-
-
-            <TouchableOpacity
-              onPress={() => {
-                connectCashWallet()
-              }}
-            >Connect Cashu</TouchableOpacity>
-
-            <MnemonicCashu></MnemonicCashu>
-
-          </View>
-        }
-
-
-
-        <View style={styles.container}>
-
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isZapModalVisible}
-            onRequestClose={() => setIsZapModalVisible(false)}
-          >
-            <ZapUserView
-              isLoading={isLoading}
-              setIsZapModalVisible={setIsZapModalVisible}
-              setZapAmount={setZapAmount}
-              setZapRecipient={setZapRecipient}
-              zapAmount={zapAmount}
-              zapRecipient={zapRecipient}
-              handleZap={handleZap}
-            />
-          </Modal>
-
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isInvoiceModalVisible}
-            onRequestClose={() => setIsInvoiceModalVisible(false)}
-          >
-
-            <PayInfo
-              setInvoiceMemo={setInvoiceMemo}
-              setInvoiceAmount={setInvoiceAmount}
-              invoiceMemo={invoiceMemo}
-              invoiceAmount={invoiceAmount}
-              setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-              generateInvoice={generateInvoice}
-              isLoading={isLoading}
-            />
-          </Modal>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
   );
 };
 

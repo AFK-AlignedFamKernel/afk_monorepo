@@ -13,7 +13,7 @@ import { Button, Divider, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { CashuMint, MintQuoteResponse } from '@cashu/cashu-ts';
+import { CashuMint, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
@@ -30,7 +30,10 @@ export const InvoicesListCashu = () => {
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     getKeySets,
-    getKeys
+    getKeys,
+    checkMeltQuote,
+    checkMintQuote,
+    checkProofSpent
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
@@ -120,13 +123,9 @@ export const InvoicesListCashu = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
   const [zapRecipient, setZapRecipient] = useState('');
-
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
 
-  const [generatedInvoice, setGeneratedInvoice] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
-  const [invoiceMemo, setInvoiceMemo] = useState('');
   const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>()
 
@@ -136,67 +135,107 @@ export const InvoicesListCashu = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    if (screen) {
-      // navigation.navigate(screen as any);
+
+  const handleVerifyQuote = async (quote?: string) => {
+
+    if (!quote) {
+      return showToast({ title: "Use a valid quote string", type: "info" })
     }
-  };
+    const check = await checkMintQuote(quote)
+    console.log("check", check)
 
+    if (check) {
 
-  const handleVerifyQuote = () => {
+      if (check?.state == MintQuoteState.PAID) {
+        return showToast({
+          title: "Quote paid",
+          type: "success"
+        })
+      }
+      else if (check?.state == MintQuoteState.UNPAID) {
+        return showToast({
+          title: "Quote unpaid",
+          type: "info"
+        })
+      }
+      else if (check?.state == MintQuoteState.ISSUED) {
+        return showToast({
+          title: "Quote issued",
+          type: "info"
+        })
+      }
 
-    showToast({
+    }
+    return showToast({
       title: "Verify coming soon",
       type: "error"
     })
   }
 
+  const handleCopy = async (bolt11?: string) => {
+    if (!bolt11) return;
+    await Clipboard.setStringAsync(bolt11);
+
+    showToast({
+      title: "Your invoice is copied",
+      type: "info"
+    })
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+    // <SafeAreaView style={styles.safeArea}>
+    <ScrollView contentContainerStyle={styles.scrollView}>
+      <View style={styles.container}>
 
-        <View style={styles.container}>
+        <FlatList
+          ItemSeparatorComponent={() => <Divider></Divider>}
+          data={invoices?.flat().reverse()}
+          contentContainerStyle={styles.flatListContent}
 
-          <FlatList
-            ItemSeparatorComponent={() => <Divider></Divider>}
+          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+          renderItem={({ item }) => {
+            const date = item?.date && new Date(item?.date)?.toISOString()
+            return (<View style={styles.card}>
+              <View>
 
-            // contentContainerStyle={styles.flatListContent}
-            data={invoices?.flat()}
-            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-            renderItem={({ item }) => {
+                <Input
+                  value={item?.bolt11}
+                  editable={false}
+                  right={
+                    <TouchableOpacity
+                      onPress={() => handleCopy(item?.bolt11)}
+                      style={{
+                        marginRight: 10,
+                      }}
+                    >
+                      <CopyIconStack color={theme.colors.primary} />
+                    </TouchableOpacity>
+                  }
+                />
+                <Text>Amount: {item?.amount}</Text>
+                <Text>Mint: {item?.mint}</Text>
+                <Text>Status: {item?.state}</Text>
+                {date &&
+                  <Text>Date: {date}</Text>}
 
-              const date = item?.date && new Date(item?.date)?.toISOString()
-
-              // setMintUrls(mintsUrls)
-              return (<View style={styles.card}>
-                <View>
-                  <Text>Bolt11: {item?.bolt11}</Text>
-                  <Text>Amount: {item?.amount}</Text>
-                  <Text>Mint: {item?.mint}</Text>
-                  <Text>Status: {item?.state}</Text>
-                  {date &&
-                    <Text>Date: {date}</Text>}
-
-                </View>
-
-
-                <View>
-                  <Button
-                    onPress={handleVerifyQuote}
-                  >Verify</Button>
-
-                </View>
-
-              </View>)
-            }}
-          />
+              </View>
 
 
+              <View>
+                <Button
+                  onPress={() => handleVerifyQuote(item?.quote)}
+                >Verify</Button>
 
-        </View>
-      </ScrollView>
-    </SafeAreaView >
+              </View>
+
+            </View>)
+          }}
+        />
+
+
+
+      </View>
+    </ScrollView>
+    // </SafeAreaView >
   );
 };
