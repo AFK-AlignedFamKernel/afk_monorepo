@@ -197,6 +197,7 @@ export const useCashu = () => {
     }
 
     const receiveP2PK = async (encoded: string) => {
+
         const privateKeyHex = new Uint8Array(Buffer.from(privateKey, 'utf-8'));
 
         const proofs = await wallet.receive(encoded, { privkey: bytesToHex(privateKeyHex) });
@@ -233,6 +234,31 @@ export const useCashu = () => {
         }
     }
 
+    const checkMeltQuote = async (quote:string) => {
+       const checkMeltQuote = await  wallet.checkMintQuote(quote)
+
+       console.log("checkMeltQuote",checkMeltQuote)
+
+       return checkMeltQuote;
+    }
+
+    const checkProofSpent= async (proofs:{
+        secret:string;
+    }[]) => {
+        const checkProofSpent = await  wallet.checkProofsSpent(proofs)
+ 
+        console.log("checkProofSpent",checkProofSpent)
+ 
+        return checkProofSpent;
+     }
+
+
+     const checkMintQuote= async (quote:string) => {
+        const resCheckMintQuote = await  wallet.checkMintQuote(quote)
+        console.log("resCheckMintQuote",resCheckMintQuote)
+ 
+        return resCheckMintQuote;
+     }
     return {
         wallet,
         mint,
@@ -252,7 +278,10 @@ export const useCashu = () => {
         getFeesForExternalInvoice,
         payExternalInvoice,
         getProofsSpents,
-        getMintInfo
+        getMintInfo,
+        checkMeltQuote,
+        checkMintQuote,
+        checkProofSpent
 
     }
 

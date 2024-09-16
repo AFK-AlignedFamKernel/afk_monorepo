@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TextButton } from '../../components';
@@ -31,52 +31,56 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
           Cancel
         </TextButton>
       </SafeAreaView>
+      <ScrollView>
 
-      <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_DEFI}
-          addScreenNavigation={false}
-        ></TabSelector>
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-          {/* <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text> */}
+        <KeyboardAvoidingView behavior="padding" style={styles.content}>
+          <TabSelector
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={TABS_DEFI}
+            addScreenNavigation={false}
+          ></TabSelector>
+          <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+            {/* <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text> */}
 
-          {selectedTab == SelectedTab.BTC_FI_VAULT && (
-            <View style={{ display: 'flex', alignItems: 'center' }}>
-              <Swap
-                tokensIns={TOKENSMINT}
-                tokenOut={TOKENSMINT.WBTC}
-                onPress={() => console.log('pressed!')}
-                calculRewardCallback={function (): void {
-                  console.log('Calcul rewards');
-                }}
-              />
-            </View>
-          )}
-          {/* 
+            {selectedTab == SelectedTab.BTC_FI_VAULT && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <Swap
+                  tokensIns={TOKENSMINT}
+                  tokenOut={TOKENSMINT.WBTC}
+                  onPress={() => console.log('pressed!')}
+                  calculRewardCallback={function (): void {
+                    console.log('Calcul rewards');
+                  }}
+                />
+              </View>
+            )}
+            {/* 
           {selectedTab == SelectedTab.BTC_BRIDGE && (
             <View>
               <Text style={styles.text}>Bridge coming soon</Text>
             </View>
           )} */}
 
-          {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
-            <View>
-              <Text style={styles.text}>Zap, Lightning wallet and NWC</Text>
-              <LightningNetworkWalletView></LightningNetworkWalletView>
-            </View>
-          )}
+            {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
+              <View>
+                <Text style={styles.text}>Zap, Lightning wallet and NWC</Text>
+                <LightningNetworkWalletView></LightningNetworkWalletView>
+              </View>
+            )}
 
 
-          {selectedTab == SelectedTab.CASHU_WALLET && (
-            <View>
-              <Text style={styles.text}>Cashu wallet coming soon</Text>
-              <CashuWalletView></CashuWalletView>
-            </View>
-          )}
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+            {selectedTab == SelectedTab.CASHU_WALLET && (
+              <View>
+                <Text style={styles.text}>Cashu wallet coming soon</Text>
+                <CashuWalletView></CashuWalletView>
+              </View>
+            )}
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+
+      </ScrollView>
+
     </View>
   );
 };

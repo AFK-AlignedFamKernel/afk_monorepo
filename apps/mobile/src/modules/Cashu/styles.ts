@@ -1,39 +1,52 @@
-import {Platform, StatusBar} from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 
-import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
+import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  scrollView: {
-    flex:1,
-    height:"95%"
-    // flexGrow: 1,
-    // overflow:"scroll",
-  },
+  // container: {
+  //   position: 'relative',
+  //   flex: 1,
+  //   backgroundColor: theme.colors.background,
+  // },
+
   container: {
     // flex:1,
     width: '100%',
     // maxWidth: 500,
     padding: Spacing.medium,
     borderRadius: 10,
+    position: 'relative',
+    flex: 1,
+    // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
-    color:theme.colors.text,
+    color: theme.colors.text,
   },
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  scrollView: {
+    flex: 1,
+    height: "95%"
+    // flexGrow: 1,
+    // overflow:"scroll",
+  },
+  flatListContent: {
+    paddingVertical: Spacing.large,
+  },
+
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    color:theme.colors.text,
+    color: theme.colors.text,
   },
   cardTitle: {
     fontSize: 18,
@@ -49,7 +62,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.transparent,
     height: 56,
     marginBottom: Spacing.medium,
-    color:theme.colors.text,
+    color: theme.colors.text,
   },
   input: {
     borderWidth: 1,
@@ -121,7 +134,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
