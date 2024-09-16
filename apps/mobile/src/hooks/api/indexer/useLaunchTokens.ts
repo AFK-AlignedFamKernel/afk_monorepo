@@ -2,17 +2,18 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
 
-export const useGetTokenLaunch = () => {
+export const useGetTokenLaunch = (launch: string) => {
   return useQuery({
-    // mutationKey: ['token_launch'],
-    // queryFn: () => {
-    //   return ApiIndexerInstance.get('/deploy-launch', {});
-    // },
-    queryKey: ['token_launch'],
+    queryKey: launch ? ['deploy_launch', launch] : ['deploy_launch'],
     queryFn: async () => {
-      const res = await ApiIndexerInstance.get('/deploy-launch');
-      // console.log("res get launch",res)
-      return res;
+      const endpoint = launch ? `/deploy-launch/${launch}` : '/deploy-launch';
+      const res = await ApiIndexerInstance.get(endpoint);
+
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch deploy token');
+      }
+
+      return res.data;
     },
   });
 };
