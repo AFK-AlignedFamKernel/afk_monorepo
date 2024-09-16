@@ -10,7 +10,7 @@ export const useGetTokenLaunch = (launch: string) => {
       const res = await ApiIndexerInstance.get(endpoint);
 
       if (res.status !== 200) {
-        throw new Error('Failed to fetch deploy token');
+        throw new Error('Failed to fetch token launch');
       }
 
       return res.data;
