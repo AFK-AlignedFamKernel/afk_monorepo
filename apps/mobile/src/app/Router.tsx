@@ -174,7 +174,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarIcon: ({ focused }) => (
             <View style={styles.tabBarIcon}>
               <Icon
-                name="WalletIcon"
+                name="PortfolioWallet"
                 size={24}
                 color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
               />
