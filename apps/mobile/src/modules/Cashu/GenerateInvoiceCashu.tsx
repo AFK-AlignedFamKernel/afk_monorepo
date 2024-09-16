@@ -18,12 +18,14 @@ import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
+import { ICashuInvoice } from '../../types/wallet';
+import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
 
 
 export const GenerateInvoiceCashu = () => {
 
 
-  const {ndkCashuWallet, ndkWallet,} = useNostrContext()
+  const { ndkCashuWallet, ndkWallet, } = useNostrContext()
   const { wallet, connectCashMint,
     connectCashWallet,
     requestMintQuote,
@@ -69,15 +71,15 @@ export const GenerateInvoiceCashu = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
-  
+
   useEffect(() => {
     (async () => {
-      if(!mintUrl) return;
+      if (!mintUrl) return;
       const info = await getMintInfo(mintUrl)
       setMintInfo(info)
     })();
 
-    
+
     (async () => {
 
       console.log("ndkCashuWallet", ndkCashuWallet)
@@ -119,6 +121,34 @@ export const GenerateInvoiceCashu = () => {
       console.log("quote", quote)
       setIsLoading(true);
       setIsInvoiceModalVisible(false);
+
+
+      const invoicesLocal = await getInvoices()
+
+
+      const cashuInvoice: ICashuInvoice = {
+        bolt11: quote?.request?.request,
+        quote: quote?.request?.quote,
+        state: quote?.request?.state,
+        date: new Date().getTime(),
+        amount:invoiceAmount,
+        mint:mintUrl,
+      }
+
+      if (invoicesLocal) {
+        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
+
+        console.log("invoices",invoices)
+        storeInvoices([...invoices, cashuInvoice])
+
+
+      } else {
+        console.log("no old invoicesLocal",invoicesLocal)
+
+        storeInvoices([cashuInvoice])
+
+      }
+
     } catch (error) {
       console.error('Error generating invoice:', error);
     } finally {
