@@ -32,6 +32,7 @@
   },
   "peerDependencies": {
     "@nostr-dev-kit/ndk": "^2.8.2",
+    "@nostr-dev-kit/ndk-wallet": "^0.2.0",
     "@tanstack/react-query": "^5.40.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -50,6 +51,7 @@
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@nostr-dev-kit/ndk": "^2.8.2",
+    "@nostr-dev-kit/ndk-wallet": "^0.2.0",
     "@tanstack/react-query": "^5.40.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",

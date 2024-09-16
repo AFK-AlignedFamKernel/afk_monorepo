@@ -13,7 +13,7 @@ export type WalletModalProps = {
   hide: () => void;
 };
 
-export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
+export const WalletEVMModal: React.FC<WalletModalProps> = ({hide}) => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
@@ -72,18 +72,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
             </Pressable>
           );
         })}
-      </View>
-
-      <View style={styles.connectors}>
-        <Text>EVM</Text>
-        <Pressable
-              onPress={() => {
-                hide();
-              }}
-              style={styles.connector}
-            >
-              <Text weight="semiBold">{"Connect EVM"}</Text>
-            </Pressable>
       </View>
 
       <Button variant="default" onPress={hide}>
