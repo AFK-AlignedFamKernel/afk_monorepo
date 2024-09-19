@@ -290,7 +290,7 @@ export const useCashu = () => {
         try {
             if (!wallet) return undefined;
 
-            const checkMeltQuote = await wallet.checkMintQuote(quote)
+            const checkMeltQuote = await wallet.checkMeltQuote(quote)
 
             console.log("checkMeltQuote", checkMeltQuote)
 
