@@ -212,11 +212,12 @@ export const InvoicesListCashu = () => {
                     </TouchableOpacity>
                   }
                 />
-                <Text>Amount: {item?.amount}</Text>
-                <Text>Mint: {item?.mint}</Text>
-                <Text>Status: {item?.state}</Text>
+                <Text style={styles.text}>Amount: {item?.amount}</Text>
+                <Text style={styles.text}>Mint: {item?.mint}</Text>
+                <Text style={styles.text}>Status: {item?.state}</Text>
                 {date &&
-                  <Text>Date: {date}</Text>}
+                  <Text
+                  style={styles.text}>Date: {date}</Text>}
 
               </View>
 

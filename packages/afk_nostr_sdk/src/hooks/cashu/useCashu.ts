@@ -372,6 +372,8 @@ export const useCashu = () => {
     return {
         wallet,
         mint,
+        mintUrl,
+        setMintUrl,
         generateMnemonic,
         derivedSeedFromMnenomicAndSaved,
         connectCashMint,

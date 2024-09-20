@@ -32,7 +32,9 @@ export const GenerateInvoiceCashu = () => {
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     getMintInfo, mint,
-    mintTokens
+    mintTokens,
+    mintUrl,
+    setMintUrl
 
   } = useCashu()
 
@@ -42,7 +44,7 @@ export const GenerateInvoiceCashu = () => {
 
 
   const styles = useStyles(stylesheet);
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
@@ -114,7 +116,7 @@ export const GenerateInvoiceCashu = () => {
 
 
       const cashuMint = await connectCashMint(mintUrl)
-      const wallet = await connectCashWallet(cashuMint)
+      const wallet = await connectCashWallet(cashuMint?.mint)
 
       const quote = await requestMintQuote(Number(invoiceAmount))
       setQuote(quote?.request)
@@ -131,19 +133,19 @@ export const GenerateInvoiceCashu = () => {
         quote: quote?.request?.quote,
         state: quote?.request?.state,
         date: new Date().getTime(),
-        amount:invoiceAmount,
-        mint:mintUrl,
+        amount: invoiceAmount,
+        mint: mintUrl,
       }
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
 
-        console.log("invoices",invoices)
+        console.log("invoices", invoices)
         storeInvoices([...invoices, cashuInvoice])
 
 
       } else {
-        console.log("no old invoicesLocal",invoicesLocal)
+        console.log("no old invoicesLocal", invoicesLocal)
 
         storeInvoices([cashuInvoice])
 
@@ -172,15 +174,20 @@ export const GenerateInvoiceCashu = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+    <SafeAreaView
+    // style={styles.safeArea}
+
+    >
+      <View
+      // style={styles.container}
+      >
 
         <View
         //  style={styles.container}
         >
 
 
-          <View style={styles.content}>
+          {/* <View style={styles.content}>
             <TextInput
               placeholder="Mint URL"
               value={mintUrl}
@@ -188,12 +195,20 @@ export const GenerateInvoiceCashu = () => {
               style={styles.input}
             />
 
-          </View>
+          </View> */}
 
-          <View>
-            <Text>Name: {infoMint?.name}</Text>
-            <Text>Description: {infoMint?.description}</Text>
-            <Text>MOTD: {infoMint?.motd}</Text>
+          <View
+          // style={styles.text}
+          >
+            <Text
+              style={styles.text}
+            >Name: {infoMint?.name}</Text>
+            <Text
+              style={styles.text}
+            >Description: {infoMint?.description}</Text>
+            <Text
+              style={styles.text}
+            >MOTD: {infoMint?.motd}</Text>
 
           </View>
 
@@ -222,7 +237,7 @@ export const GenerateInvoiceCashu = () => {
               }}
             >
 
-              <Text style={styles.content}>Invoice address</Text>
+              <Text style={styles.text}>Invoice address</Text>
 
               <Input
                 value={quote?.request}
@@ -243,7 +258,7 @@ export const GenerateInvoiceCashu = () => {
           }
 
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

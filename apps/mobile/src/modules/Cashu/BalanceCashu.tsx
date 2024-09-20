@@ -29,13 +29,14 @@ export const BalanceCashu = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
+    mintUrl, setMintUrl
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
 
 
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
@@ -125,8 +126,10 @@ export const BalanceCashu = () => {
 
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+    // <SafeAreaView style={styles.safeArea}>
+      <View
+      // contentContainerStyle={styles.scrollView}
+      >
 
         <View style={styles.container}>
 
@@ -155,7 +158,7 @@ export const BalanceCashu = () => {
           </View>
         */}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    // </SafeAreaView>
   );
 };

@@ -53,8 +53,9 @@ export const CashuView = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
-
-
+    mint,
+    mintUrl,
+    setMintUrl
 
   } = useCashu()
 
@@ -79,7 +80,7 @@ export const CashuView = () => {
 
 
   const styles = useStyles(stylesheet);
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
@@ -122,25 +123,25 @@ export const CashuView = () => {
     }
   };
 
-  const generateInvoice = async () => {
-    if (!mintUrl || !invoiceAmount) return;
-    try {
+  // const generateInvoice = async () => {
+  //   if (!mintUrl || !invoiceAmount) return;
+  //   try {
 
 
-      const cashuMint = await connectCashMint(mintUrl)
-      const wallet = await connectCashWallet(cashuMint)
+  //     // const cashuMint = await connectCashMint(mintUrl)
+  //     // const wallet = await connectCashWallet(cashuMint?.mint)
 
-      const quote = await requestMintQuote(Number(invoiceAmount))
-      setQuote(quote?.request)
-      console.log("quote", quote)
-      setIsLoading(true);
-      setIsInvoiceModalVisible(false);
-    } catch (error) {
-      console.error('Error generating invoice:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     // const quote = await requestMintQuote(Number(invoiceAmount))
+  //     // setQuote(quote?.request)
+  //     console.log("quote", quote)
+  //     setIsLoading(true);
+  //     setIsInvoiceModalVisible(false);
+  //   } catch (error) {
+  //     console.error('Error generating invoice:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
 
 
@@ -149,12 +150,7 @@ export const CashuView = () => {
       <SafeAreaView style={styles.safeArea}>
 
 
-      <TabSelector
-            activeTab={selectedTab}
-            handleActiveTab={handleTabSelected}
-            buttons={TABS_CASHU}
-            addScreenNavigation={false}
-          ></TabSelector>
+
 
         <ScrollView contentContainerStyle={styles.scrollView}>
 
@@ -164,6 +160,13 @@ export const CashuView = () => {
               <GenerateInvoiceCashu></GenerateInvoiceCashu>
             </>
           }
+
+          <TabSelector
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={TABS_CASHU}
+            addScreenNavigation={false}
+          ></TabSelector>
 
           {selectedTab == SelectedTab?.CASHU_INVOICES &&
             <View>
@@ -193,7 +196,7 @@ export const CashuView = () => {
 
               <TouchableOpacity
                 onPress={() => {
-                  connectCashWallet()
+                  connectCashWallet(mint,)
                 }}
               >Connect Cashu</TouchableOpacity>
 
@@ -210,7 +213,7 @@ export const CashuView = () => {
               visible={isZapModalVisible}
               onRequestClose={() => setIsZapModalVisible(false)}
             >
-              <ZapUserView
+              {/* <ZapUserView
                 isLoading={isLoading}
                 setIsZapModalVisible={setIsZapModalVisible}
                 setZapAmount={setZapAmount}
@@ -218,7 +221,7 @@ export const CashuView = () => {
                 zapAmount={zapAmount}
                 zapRecipient={zapRecipient}
                 handleZap={handleZap}
-              />
+              /> */}
             </Modal>
 
             <Modal
@@ -228,7 +231,7 @@ export const CashuView = () => {
               onRequestClose={() => setIsInvoiceModalVisible(false)}
             >
 
-              <PayInfo
+              {/* <PayInfo
                 setInvoiceMemo={setInvoiceMemo}
                 setInvoiceAmount={setInvoiceAmount}
                 invoiceMemo={invoiceMemo}
@@ -236,7 +239,7 @@ export const CashuView = () => {
                 setIsInvoiceModalVisible={setIsInvoiceModalVisible}
                 generateInvoice={generateInvoice}
                 isLoading={isLoading}
-              />
+              /> */}
             </Modal>
           </View>
         </ScrollView>

@@ -95,6 +95,10 @@ export default ThemedStyleSheet((theme) => ({
     marginVertical: Spacing.small,
     color: theme.colors.text,
   },
+  text: {
+    // textAlign: 'center',
+    color: theme.colors.text,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
