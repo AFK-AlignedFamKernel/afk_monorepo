@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -18,7 +18,7 @@ import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { ICashuInvoice } from '../../types/wallet';
+
 import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
 
 
@@ -127,14 +127,22 @@ export const GenerateInvoiceCashu = () => {
 
       const invoicesLocal = await getInvoices()
 
+      if(!quote?.request) {
+        return showToast({
+          title:"Quote not created",
+          type:"error"
+        })
+      }
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
-        quote: quote?.request?.quote,
-        state: quote?.request?.state,
+        // quote: quote?.request?.quote,
+        // state: quote?.request?.state,
         date: new Date().getTime(),
         amount: invoiceAmount,
         mint: mintUrl,
+        quoteResponse: quote?.request,
+        ...quote?.request
       }
 
       if (invoicesLocal) {

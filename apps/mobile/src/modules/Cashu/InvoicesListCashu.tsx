@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { getProofs, ICashuInvoice, storeProofs, storeTransactions, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { FlatList, Platform, Pressable, RefreshControl, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -13,13 +13,13 @@ import { Button, Divider, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { CashuMint, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
+import { CashuMint, getEncodedToken, MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { getInvoices } from '../../utils/storage_cashu';
-import { ICashuInvoice } from '../../types/wallet';
+import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
+import { TypeToast } from '../../context/Toast/ToastContext';
 
 
 export const InvoicesListCashu = () => {
@@ -33,13 +33,16 @@ export const InvoicesListCashu = () => {
     getKeys,
     checkMeltQuote,
     checkMintQuote,
-    checkProofSpent
+    checkProofSpent,
+    receiveP2PK, mintTokens,
+    mint,
+    mintUrl
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-  const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
   const [invoices, setInvoices] = useState<ICashuInvoice[] | undefined>([])
@@ -172,6 +175,107 @@ export const InvoicesListCashu = () => {
     })
   }
 
+
+  const handleVerify = async (quote?: string) => {
+    try {
+
+      console.log("handleVerify")
+      if (!quote) return;
+      console.log("quote", quote)
+      const check = await checkMintQuote(quote)
+      console.log("check", check)
+      if (check?.state === MintQuoteState.UNPAID) {
+        showToast({ title: "Unpaid", type: "success" })
+      }
+      else if (check?.state === MintQuoteState.PAID) {
+        showToast({ title: "Invoice is paid. Try to issued", type: "success" })
+        const invoice = invoices?.find((i) => i?.quote == quote)
+
+        const invoicesUpdated = invoices?.map((i) => {
+          if (i?.quote === quote) {
+            i.state = MintQuoteState.PAID
+
+            return i;
+          }
+          return i;
+        }) ?? []
+
+        storeInvoices(invoicesUpdated)
+        storeTransactions(invoicesUpdated)
+
+        if (invoice && invoice?.quote) {
+          console.log("invoice", invoice)
+
+          const received = await handleReceivePaymentPaid(invoice)
+          console.log("received", received)
+
+          if (received) {
+            showToast({ title: "Payment received", type: "success" })
+          }
+
+        }
+      }
+      else if (check?.state === MintQuoteState.ISSUED) {
+        showToast({ title: "Invoice is paid", type: "success" })
+        const invoice = invoices?.find((i) => i?.quote == quote)
+        const invoicesUpdated = invoices?.map((i) => {
+          if (i?.quote === quote) {
+            i.state = MintQuoteState.PAID
+            return i;
+          }
+          return i;
+        }) ?? []
+        storeInvoices(invoicesUpdated)
+        storeTransactions(invoicesUpdated)
+        if (invoice && invoice?.quote) {
+          const received = await handleReceivePaymentPaid(invoice)
+          if (received) {
+            showToast({ title: "Received", type: "success" })
+          }
+        }
+      }
+    } catch (e) {
+      console.log("handleVerify", e)
+    }
+
+
+  }
+
+  const handleReceivePaymentPaid = async (invoice: ICashuInvoice) => {
+    try {
+      if (invoice?.amount && invoice?.quoteResponse) {
+        const receive = await mintTokens(Number(invoice?.amount), invoice)
+        console.log("receive", receive)
+
+        const encoded = getEncodedToken({
+          token: [{ mint: mint?.mintUrl, proofs: receive?.proofs as Proof[] }]
+        });
+        // const response = await wallet?.receive(encoded);
+        const response = await receiveP2PK(encoded);
+        console.log("response", response)
+        const proofsLocal = await getProofs()
+        if (!proofsLocal) {
+          setInvoices(invoices)
+          await storeProofs([...receive?.proofs as Proof[], ...response as Proof[]])
+          return response;
+        } else {
+          const proofs: Proof[] = JSON.parse(proofsLocal)
+          console.log("invoices", invoices)
+          setInvoices(invoices)
+          console.log("receive", receive)
+          await storeProofs([...proofs, ...receive?.proofs as Proof[], ...response as Proof[]])
+          return response;
+        }
+
+      }
+
+      return undefined;
+    } catch (e) {
+      console.log("Error handleReceivePaymentPaid", e)
+    }
+
+  }
+
   const handleCopy = async (bolt11?: string) => {
     if (!bolt11) return;
     await Clipboard.setStringAsync(bolt11);
@@ -217,14 +321,14 @@ export const InvoicesListCashu = () => {
                 <Text style={styles.text}>Status: {item?.state}</Text>
                 {date &&
                   <Text
-                  style={styles.text}>Date: {date}</Text>}
+                    style={styles.text}>Date: {date}</Text>}
 
               </View>
 
 
               <View>
                 <Button
-                  onPress={() => handleVerifyQuote(item?.quote)}
+                  onPress={() => handleVerify(item?.quote)}
                 >Verify</Button>
 
               </View>

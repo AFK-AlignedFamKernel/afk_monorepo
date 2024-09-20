@@ -55,10 +55,13 @@ export const CashuView = () => {
     derivedSeedFromMnenomicAndSaved,
     mint,
     mintUrl,
-    setMintUrl
+    setMintUrl,
+
 
   } = useCashu()
 
+
+  const { setMnemonic, } = useCashuStore()
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
@@ -69,9 +72,18 @@ export const CashuView = () => {
       if (biometrySupported) {
         const password = await retrievePassword()
         if (!password) return;
-        const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
+        const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
 
-        if (storeSeed) setHasSeedCashu(true)
+        if(!storeMnemonic) {
+          return;
+        }
+        if (storeMnemonic) setHasSeedCashu(true)
+
+
+        const decoder = new TextDecoder();
+        // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
+        const decryptedPrivateKey = Buffer.from(storeMnemonic).toString("hex");
+        setMnemonic(decryptedPrivateKey)
 
         if (isSeedCashuStorage) setHasSeedCashu(true)
       }
@@ -170,7 +182,7 @@ export const CashuView = () => {
 
           {selectedTab == SelectedTab?.CASHU_INVOICES &&
             <View>
-              <Text>Invoices</Text>
+              <Text style={styles.text}>Invoices</Text>
               <InvoicesListCashu></InvoicesListCashu>
             </View>
           }
