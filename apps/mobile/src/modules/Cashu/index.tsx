@@ -3,13 +3,13 @@ import '../../../applyGlobalPolyfills';
 import { webln } from '@getalby/sdk';
 import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
+import React, { SetStateAction, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, IconButton, Input } from '../../components';
+import { Button, IconButton, Input, Modalize } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
@@ -24,6 +24,8 @@ import { BalanceCashu } from './BalanceCashu';
 import { MnemonicCashu } from './MnemonicCashu';
 import { InvoicesListCashu } from './InvoicesListCashu';
 import { MintListCashu } from './MintListCashu';
+import { useModal } from '../../hooks/modals/useModal';
+import { ReceiveEcash } from './ReceiveEcash';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -74,7 +76,7 @@ export const CashuView = () => {
         if (!password) return;
         const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
 
-        if(!storeMnemonic) {
+        if (!storeMnemonic) {
           return;
         }
         if (storeMnemonic) setHasSeedCashu(true)
@@ -98,6 +100,8 @@ export const CashuView = () => {
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
+  const { show } = useModal()
+
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
   const [zapRecipient, setZapRecipient] = useState('');
@@ -118,6 +122,16 @@ export const CashuView = () => {
     }
   };
 
+  const sendModalizeRef = useRef<Modalize>(null);
+
+  const onOpenSendModal = () => {
+    sendModalizeRef.current?.open();
+    show((
+      <>
+        <ReceiveEcash></ReceiveEcash>
+      </>
+    ))
+  };
   const handleZap = async () => {
     if (!zapAmount || !zapRecipient) return;
     //Implement zap user
@@ -218,6 +232,22 @@ export const CashuView = () => {
           }
 
           <View style={styles.container}>
+
+            <Pressable
+              onPress={onOpenSendModal}
+            >
+              Receive
+            </Pressable>
+            {/* 
+            <Modalize ref={sendModalizeRef}>
+              <Modal
+              >
+                <Text>LFG</Text>
+
+              </Modal>
+
+
+            </Modalize> */}
 
             <Modal
               animationType="slide"
