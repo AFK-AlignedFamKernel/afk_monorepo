@@ -26,6 +26,7 @@ import { InvoicesListCashu } from './InvoicesListCashu';
 import { MintListCashu } from './MintListCashu';
 import { useModal } from '../../hooks/modals/useModal';
 import { ReceiveEcash } from './ReceiveEcash';
+import { SendEcash } from './SendEcash';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -125,6 +126,20 @@ export const CashuView = () => {
   const sendModalizeRef = useRef<Modalize>(null);
 
   const onOpenSendModal = () => {
+    sendModalizeRef.current?.close();
+
+    sendModalizeRef.current?.open();
+    show((
+      <>
+        <SendEcash></SendEcash>
+      </>
+    ))
+  };
+
+
+  const onOpenReceiveModal = () => {
+    sendModalizeRef.current?.close();
+
     sendModalizeRef.current?.open();
     show((
       <>
@@ -183,9 +198,70 @@ export const CashuView = () => {
           {selectedTab == SelectedTab?.CASHU_WALLET &&
             <>
               <BalanceCashu></BalanceCashu>
-              <GenerateInvoiceCashu></GenerateInvoiceCashu>
+              {/* <GenerateInvoiceCashu></GenerateInvoiceCashu> */}
             </>
           }
+
+
+          <View style={styles.container}>
+
+            <Button
+              onPress={onOpenSendModal}
+            >
+              Send
+            </Button>
+
+            <Button
+              onPress={onOpenReceiveModal}
+            >
+              Receive
+            </Button>
+            {/* 
+<Modalize ref={sendModalizeRef}>
+  <Modal
+  >
+    <Text>LFG</Text>
+
+  </Modal>
+
+
+</Modalize> */}
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isZapModalVisible}
+              onRequestClose={() => setIsZapModalVisible(false)}
+            >
+              {/* <ZapUserView
+    isLoading={isLoading}
+    setIsZapModalVisible={setIsZapModalVisible}
+    setZapAmount={setZapAmount}
+    setZapRecipient={setZapRecipient}
+    zapAmount={zapAmount}
+    zapRecipient={zapRecipient}
+    handleZap={handleZap}
+  /> */}
+            </Modal>
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isInvoiceModalVisible}
+              onRequestClose={() => setIsInvoiceModalVisible(false)}
+            >
+
+              {/* <PayInfo
+    setInvoiceMemo={setInvoiceMemo}
+    setInvoiceAmount={setInvoiceAmount}
+    invoiceMemo={invoiceMemo}
+    invoiceAmount={invoiceAmount}
+    setIsInvoiceModalVisible={setIsInvoiceModalVisible}
+    generateInvoice={generateInvoice}
+    isLoading={isLoading}
+  /> */}
+            </Modal>
+          </View>
 
           <TabSelector
             activeTab={selectedTab}
@@ -231,59 +307,6 @@ export const CashuView = () => {
             </View>
           }
 
-          <View style={styles.container}>
-
-            <Pressable
-              onPress={onOpenSendModal}
-            >
-              Receive
-            </Pressable>
-            {/* 
-            <Modalize ref={sendModalizeRef}>
-              <Modal
-              >
-                <Text>LFG</Text>
-
-              </Modal>
-
-
-            </Modalize> */}
-
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isZapModalVisible}
-              onRequestClose={() => setIsZapModalVisible(false)}
-            >
-              {/* <ZapUserView
-                isLoading={isLoading}
-                setIsZapModalVisible={setIsZapModalVisible}
-                setZapAmount={setZapAmount}
-                setZapRecipient={setZapRecipient}
-                zapAmount={zapAmount}
-                zapRecipient={zapRecipient}
-                handleZap={handleZap}
-              /> */}
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isInvoiceModalVisible}
-              onRequestClose={() => setIsInvoiceModalVisible(false)}
-            >
-
-              {/* <PayInfo
-                setInvoiceMemo={setInvoiceMemo}
-                setInvoiceAmount={setInvoiceAmount}
-                invoiceMemo={invoiceMemo}
-                invoiceAmount={invoiceAmount}
-                setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-                generateInvoice={generateInvoice}
-                isLoading={isLoading}
-              /> */}
-            </Modal>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </View>

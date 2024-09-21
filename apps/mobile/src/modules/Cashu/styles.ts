@@ -15,7 +15,7 @@ export default ThemedStyleSheet((theme) => ({
     // maxWidth: 500,
     padding: Spacing.medium,
     borderRadius: 10,
-    position: 'relative',
+    // position: 'relative',
     flex: 1,
     // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
