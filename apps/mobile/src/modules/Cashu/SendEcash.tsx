@@ -117,6 +117,13 @@ export const SendEcash = () => {
 
     if(!invoiceAmount) return;
     const ecash = await handleGenerateEcash(Number(invoiceAmount))
+
+    if(!ecash) {
+      return showToast({
+        title:"Ecash token can't be generated",
+        type:"error"
+      })
+    }
     setGeneratedInvoice(ecash)
   }
 

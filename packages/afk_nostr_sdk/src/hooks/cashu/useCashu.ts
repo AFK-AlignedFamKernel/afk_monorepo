@@ -337,6 +337,7 @@ export const useCashu = () => {
     return {
         wallet,
         mint,
+        setMint,
         mintUrl,
         setMintUrl,
         generateMnemonic,
@@ -363,7 +364,7 @@ export const useCashu = () => {
         receiveEcash,
         handleReceivedPayment,
         balance,
-        setBalance
+        setBalance,
 
     }
 

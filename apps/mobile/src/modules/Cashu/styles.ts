@@ -21,6 +21,18 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
   },
+  tabSelector: {
+    // flex:1,
+    // maxWidth: 500,
+    padding: Spacing.medium,
+    borderRadius: 10,
+    // position: 'relative',
+    flex: 1,
+    flexDirection:"row",
+    // backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,

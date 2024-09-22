@@ -9,7 +9,7 @@ export const usePayment = () => {
     const handlePayInvoice = async (invoice?: string) => {
 
 
-        if (!invoice) return;
+        if (!invoice) return undefined;
         const proofsLocalStr = getProofs()
 
         /** TODO add tx history for paid invoice/ecash */
@@ -56,6 +56,8 @@ export const usePayment = () => {
             return tokens;
 
         }
+
+        return []
 
     }
 
@@ -119,7 +121,7 @@ export const usePayment = () => {
 
                     const cashuToken = getEncodedToken(token)
                     console.log("cashuToken", cashuToken)
-                    setCashuTokenCreated(cashuToken)
+                    // setCashuTokenCreated(cashuToken)
 
                     showToast({ title: "Cashu created", type: "success" })
 

@@ -203,7 +203,7 @@ export const CashuView = () => {
           }
 
 
-          <View style={styles.container}>
+          <View style={styles.tabSelector}>
 
             <Button
               onPress={onOpenSendModal}
