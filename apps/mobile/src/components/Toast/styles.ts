@@ -28,8 +28,10 @@ export default ThemedStyleSheet((theme, type: 'success' | 'info' | 'error') => (
   },
 
   closeIcon: {
-    backgroundColor: theme.colors.transparent,
-    color: theme.colors.text,
+    // backgroundColor: theme.colors.transparent,
+    backgroundColor: theme.colors.background,
+    // color: theme.colors.text,
+    color: theme.colors.background,
     padding: Spacing.none,
   },
 }));

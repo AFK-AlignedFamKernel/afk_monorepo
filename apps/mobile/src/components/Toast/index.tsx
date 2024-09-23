@@ -5,9 +5,10 @@ import {useStyles, useTheme} from '../../hooks';
 import {IconButton} from '../IconButton';
 import {Text} from '../Text';
 import stylesheet from './styles';
+import { TypeToast } from '../../context/Toast/ToastContext';
 
 export type ToastProps = {
-  type: 'success' | 'info' | 'error';
+  type: 'success' | 'info' | 'error' ;
   title: string;
 };
 
@@ -24,7 +25,7 @@ export const Toast: React.FC<ToastProps & {onDismiss?: () => void}> = ({
       success: 'successDark',
       info: 'infoDark',
       error: 'errorDark',
-    } as const
+    } as const 
   )[type];
 
   const Icon = (

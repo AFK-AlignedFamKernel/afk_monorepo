@@ -5,6 +5,7 @@ module.exports = function (api) {
       // "module:metro-react-native-babel-preset"
     ],
     plugins: ['@babel/plugin-proposal-export-namespace-from', 'react-native-reanimated/plugin',
+      'module-resolver',
       // ["@babel/plugin-transform-runtime", {
       //   "helpers": true,
       //   "regenerator": true

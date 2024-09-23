@@ -52,6 +52,8 @@ export const LightTheme = {
 
     inputBackground: '#FCFCFF',
     inputText: '#14142C',
+    // inputText: '#8F979E',
+
     inputBorder: '#DDDDEE',
     inputPlaceholder: '#A1A1C7',
 
@@ -111,6 +113,8 @@ export const DarkTheme = {
 
     inputBackground: '#272727',
     inputText: '#8F979E',
+    // inputText: '#14142C',
+
     inputBorder: '#222211',
     inputPlaceholder: '#A1A1C7',
 

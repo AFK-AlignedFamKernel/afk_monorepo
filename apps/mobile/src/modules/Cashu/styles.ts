@@ -15,8 +15,20 @@ export default ThemedStyleSheet((theme) => ({
     // maxWidth: 500,
     padding: Spacing.medium,
     borderRadius: 10,
-    position: 'relative',
+    // position: 'relative',
     flex: 1,
+    // backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+  },
+  tabSelector: {
+    // flex:1,
+    // maxWidth: 500,
+    padding: Spacing.medium,
+    borderRadius: 10,
+    // position: 'relative',
+    flex: 1,
+    flexDirection:"row",
     // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
@@ -93,6 +105,10 @@ export default ThemedStyleSheet((theme) => ({
   orText: {
     textAlign: 'center',
     marginVertical: Spacing.small,
+    color: theme.colors.text,
+  },
+  text: {
+    // textAlign: 'center',
     color: theme.colors.text,
   },
   modalOverlay: {

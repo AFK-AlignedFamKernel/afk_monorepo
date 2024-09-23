@@ -4,7 +4,7 @@ import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from 'afk_nostr_sdk';
 import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Dimensions, Linking, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon } from '../components';
 import { Navbar } from '../components/Navbar';
 import { useStyles, useTheme } from '../hooks';
@@ -61,6 +61,19 @@ const DegensAppStack = createDrawerNavigator<DegensAppStackParams>();
 const RootNavigator: React.FC = () => {
   const { publicKey } = useAuth();
 
+  const navigator = useNavigation<MainStackParams>()
+
+  useEffect(() => {
+    // Linking.getInitialURL().then(async (url) => {
+    //   if (url) {
+    //     console.log("url",url)
+    //     Linking.openURL(url);
+    //     // here I navigate based on the url via standard NavigationActions
+    //   }
+    // }).catch(err => console.error('An error occurred', err));
+  })
+
+
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
@@ -84,7 +97,9 @@ export const Router: React.FC = () => {
   const windowWidth = Dimensions.get('window').width;
   const shouldShowSidebar = isWeb && windowWidth >= 1024;
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer 
+    linking={linking}
+    >
       {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
 
       <RootNavigator />
@@ -576,6 +591,8 @@ const DegensAppNavigator: React.FC = () => {
 
 const linking = {
   prefixes: [
+    // "http://localhost:8081",
+    // "https://afk-community.xyz",
     'home',
     'search',
     'profile/:publicKey',
@@ -585,8 +602,10 @@ const linking = {
   config: {
     screens: {
       Home: 'home',
+
       MainStack: {
         path: 'app',
+        // screen:MainStack
         // screens:{
 
         // } 

@@ -189,15 +189,16 @@ export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] =
 ];
 
 export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
-  {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
+
   {
     title: 'Cashu',
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
   {
     title: 'BTC Fi',

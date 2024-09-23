@@ -191,7 +191,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   }, []);
 
   useEffect(() => {
-    const processMessage = async (message) => {
+    const processMessage = async (message:any) => {
       if (message) {
         // Check the message type and handle accordingly
         if (message.messageType === 'colorPixel') {
@@ -218,18 +218,24 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const width = canvasConfig.canvas.width;
   const height = canvasConfig.canvas.height;
 
-  const canvasRef = useRef(null);
-  const extraPixelsCanvasRef = useRef(null);
-
-  const colorPixel = (position, color) => {
+  // const canvasRef = useRef(null);
+  // const extraPixelsCanvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const extraPixelsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const colorPixel = (position:number, color:number) => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
     const x = position % width;
     const y = Math.floor(position / width);
     const colorIdx = color;
     const colorHex = `#${colors[colorIdx]}FF`;
-    context.fillStyle = colorHex;
-    context.fillRect(x, y, 1, 1);
+    if(canvas && canvasRef?.current) {
+      const context = canvas.getContext('2d');
+      if(context) {
+        context.fillStyle = colorHex;
+        context.fillRect(x, y, 1, 1);
+      }
+    }
+ 
   };
 
   // Pixel selection data
@@ -241,14 +247,14 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
 
   const [lastPlacedTime, setLastPlacedTime] = useState(0);
   const [basePixelUp, setBasePixelUp] = useState(false);
-  const [chainFactionPixelsData, setChainFactionPixelsData] = useState([]);
-  const [chainFactionPixels, setChainFactionPixels] = useState([]);
-  const [factionPixelsData, setFactionPixelsData] = useState([]);
-  const [factionPixels, setFactionPixels] = useState([]);
+  const [chainFactionPixelsData, setChainFactionPixelsData] = useState<any[]>([]);
+  const [chainFactionPixels, setChainFactionPixels] = useState<any[]>([]);
+  const [factionPixelsData, setFactionPixelsData] = useState<any[]>([]);
+  const [factionPixels, setFactionPixels] = useState<any[]>([]);
   const [extraPixels, setExtraPixels] = useState(0);
   const [availablePixels, setAvailablePixels] = useState(0);
   const [availablePixelsUsed, setAvailablePixelsUsed] = useState(0);
-  const [extraPixelsData, setExtraPixelsData] = useState([]);
+  const [extraPixelsData, setExtraPixelsData] = useState<any[]>([]);
 
   const [selectorMode, setSelectorMode] = useState(false);
 
@@ -298,13 +304,17 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     return () => clearInterval(interval);
   }, [lastPlacedTime]);
 
-  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState([]);
+  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateChainFactionPixelTimers = () => {
       let newChainFactionPixelTimers = [];
       let newChainFactionPixels = [];
       for (let i = 0; i < chainFactionPixelsData.length; i++) {
-        let memberPixels = chainFactionPixelsData[i].memberPixels;
+        let memberPixels = chainFactionPixelsData[i]?.memberPixels;
+
+        if(!memberPixels) {
+
+        }
         if (memberPixels !== 0) {
           newChainFactionPixelTimers.push('00:00');
           newChainFactionPixels.push(memberPixels);
@@ -337,7 +347,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     return () => clearInterval(interval);
   }, [chainFactionPixelsData]);
 
-  const [factionPixelTimers, setFactionPixelTimers] = useState([]);
+  const [factionPixelTimers, setFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateFactionPixelTimers = () => {
       let newFactionPixelTimers = [];
@@ -439,7 +449,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     setPixelPlacedBy('');
   };
 
-  const setPixelSelection = (x, y) => {
+  const setPixelSelection = (x: any, y: any) => {
     setSelectedPositionX(x);
     setSelectedPositionY(y);
     setPixelSelectedMode(true);
@@ -450,27 +460,37 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     setAvailablePixelsUsed(0);
     setExtraPixelsData([]);
 
-    const canvas = extraPixelsCanvasRef.current;
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, width, height);
+    const canvas = extraPixelsCanvasRef?.current;
+    if(canvas) {
+      const context = canvas.getContext('2d');
+      if(context) {
+      context.clearRect(0, 0, width, height);
+      }
+    }
+
   }, [width, height]);
 
   const clearExtraPixel = useCallback(
-    (index) => {
+    (index: number) => {
       setAvailablePixelsUsed(availablePixelsUsed - 1);
       setExtraPixelsData(extraPixelsData.filter((_, i) => i !== index));
-      const canvas = extraPixelsCanvasRef.current;
-      const context = canvas.getContext('2d');
+      const canvas = extraPixelsCanvasRef?.current;
       const pixel = extraPixelsData[index];
       const x = pixel.x;
       const y = pixel.y;
-      context.clearRect(x, y, 1, 1);
+      if(canvas) {
+        const context = canvas.getContext('2d');
+        if(context) {
+          context.clearRect(x, y, 1, 1);
+        }
+      }
+
     },
     [extraPixelsData, availablePixelsUsed]
   );
 
   const addExtraPixel = useCallback(
-    (x, y) => {
+    (x: any, y: any) => {
       // Overwrite pixel if already placed
       const existingPixelIndex = extraPixelsData.findIndex(
         (pixel) => pixel.x === x && pixel.y === y
@@ -541,7 +561,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
 
   // Account
   const { connect, connectors } = useConnect();
-  const connectWallet = async (connector) => {
+  const connectWallet = async (connector:any) => {
     if (devnetMode) {
       setConnected(true);
       return;

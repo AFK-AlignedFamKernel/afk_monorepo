@@ -19,6 +19,7 @@ import { WalletModalProvider } from '../context/WalletModal';
 import App from './App';
 import { StarknetProvider } from './StarknetProvider';
 import { EVMProvider } from './EVMProvider';
+import { ModalParentProvider } from '../context/modal/ModalParent';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
@@ -31,7 +32,11 @@ const ModalProviders = ({ children }: { children: React.ReactNode }) => {
           <TipModalProvider>
             <TipModalStarknetProvider>
               <TokenCreateModalProvider>
-                <KeyModalProvider>{children}</KeyModalProvider>
+                <KeyModalProvider>
+                  <ModalParentProvider>
+                    {children}
+                  </ModalParentProvider>
+                </KeyModalProvider>
               </TokenCreateModalProvider>
             </TipModalStarknetProvider>
           </TipModalProvider>
@@ -60,7 +65,6 @@ export const Wrapper: React.FC = () => {
                           <App />
                         </ModalProviders>
                       {/* </EVMProvider> */}
-
                     </StarknetProvider>
                   </DialogProvider>
                 </PortalizeProvider>

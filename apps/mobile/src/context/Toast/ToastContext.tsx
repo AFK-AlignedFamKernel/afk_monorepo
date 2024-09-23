@@ -8,6 +8,11 @@ import {useStyles} from '../../hooks';
 import {AnimatedToast} from './AnimatedToast';
 import stylesheet from './styles';
 
+export enum TypeToast {
+  "success",
+  "error", "warning"
+
+}
 export type ToastConfig = ToastProps & {
   key: string;
   timeout?: number;

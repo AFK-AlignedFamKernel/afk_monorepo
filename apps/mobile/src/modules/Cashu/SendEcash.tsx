@@ -1,9 +1,9 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { addProofs, ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
+import React, { ChangeEvent, SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -13,17 +13,18 @@ import { Button, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
 
 import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
+import { usePayment } from '../../hooks/usePayment';
+import TabSelector from '../../components/TabSelector';
 
 
-export const GenerateInvoiceCashu = () => {
-
+export const SendEcash = () => {
 
   const { ndkCashuWallet, ndkWallet, } = useNostrContext()
   const { wallet, connectCashMint,
@@ -37,22 +38,18 @@ export const GenerateInvoiceCashu = () => {
     setMintUrl
 
   } = useCashu()
-
-
+  const [ecash, setEcash] = useState<string | undefined>()
+  const [invoice, setInvoice] = useState<string | undefined>()
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
-
-
 
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>()
   const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
-  const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
@@ -62,18 +59,24 @@ export const GenerateInvoiceCashu = () => {
   const [connectionData, setConnectionData] = useState<any>(null);
 
   const [generatedInvoice, setGeneratedInvoice] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
+  const [generatedEcash, setGenerateEcash] = useState('');
+  const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
   const [invoiceMemo, setInvoiceMemo] = useState('');
   const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>()
 
   const { showDialog, hideDialog } = useDialog()
+  const { handleGenerateEcash, handlePayInvoice } = usePayment()
 
   const { showToast } = useToast()
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
+  const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setEcash(value);
 
+  };
   useEffect(() => {
     (async () => {
       if (!mintUrl) return;
@@ -110,77 +113,42 @@ export const GenerateInvoiceCashu = () => {
   }, []);
 
 
-  const generateInvoice = async () => {
-    if (!mintUrl || !invoiceAmount) return;
-    try {
+  const handleEcash = async () => {
 
+    if(!invoiceAmount) return;
+    const ecash = await handleGenerateEcash(Number(invoiceAmount))
 
-      const cashuMint = await connectCashMint(mintUrl)
-      const wallet = await connectCashWallet(cashuMint?.mint)
+    if(!ecash) {
+      return showToast({
+        title:"Ecash token can't be generated",
+        type:"error"
+      })
+    }
+    setGeneratedInvoice(ecash)
+  }
 
-      const quote = await requestMintQuote(Number(invoiceAmount))
-      setQuote(quote?.request)
-      console.log("quote", quote)
-      setIsLoading(true);
-      setIsInvoiceModalVisible(false);
-
-
-      const invoicesLocal = await getInvoices()
-
-      if(!quote?.request) {
-        return showToast({
-          title:"Quote not created",
-          type:"error"
-        })
-      }
-
-      const cashuInvoice: ICashuInvoice = {
-        bolt11: quote?.request?.request,
-        // quote: quote?.request?.quote,
-        // state: quote?.request?.state,
-        date: new Date().getTime(),
-        amount: invoiceAmount,
-        mint: mintUrl,
-        quoteResponse: quote?.request,
-        ...quote?.request
-      }
-
-      if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
-
-        console.log("invoices", invoices)
-        storeInvoices([...invoices, cashuInvoice])
-
-
-      } else {
-        console.log("no old invoicesLocal", invoicesLocal)
-
-        storeInvoices([cashuInvoice])
-
-      }
-
-    } catch (error) {
-      console.error('Error generating invoice:', error);
-    } finally {
-      setIsLoading(false);
+  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
+    setSelectedTab(tab as any);
+    if (screen) {
+      // navigation.navigate(screen as any);
     }
   };
 
-  const handleCopy = async (type: 'lnbc' | "seed") => {
+  const handleCopy = async (type: 'ecash' ) => {
 
-    if (!quote?.request) return;
-    if (type == "lnbc") {
-      await Clipboard.setStringAsync(type === 'lnbc' ? quote?.request?.toString() : quote?.request?.toString());
-
-    } else if (type == "seed") {
-      if (newSeed) {
-        await Clipboard.setStringAsync(newSeed);
-      }
+    if (!generatedEcash) return;
+    if (type == "ecash") {
+      await Clipboard.setStringAsync(generatedEcash);
 
     }
+    //  else if (type == "seed") {
+    //   if (newSeed) {
+    //     await Clipboard.setStringAsync(newSeed);
+    //   }
+
+    // }
     showToast({ type: 'info', title: 'Copied to clipboard' });
   };
-
   return (
     <SafeAreaView
     // style={styles.safeArea}
@@ -189,6 +157,19 @@ export const GenerateInvoiceCashu = () => {
       <View
       // style={styles.container}
       >
+
+        <TabSelector
+          activeTab={selectedTab}
+          handleActiveTab={handleTabSelected}
+          buttons={[
+            {
+              title: "Lightning",
+              tab: undefined
+            }
+          ]}
+          addScreenNavigation={false}
+        ></TabSelector>
+
 
         <View
         //  style={styles.container}
@@ -202,7 +183,6 @@ export const GenerateInvoiceCashu = () => {
               onChangeText={setMintUrl}
               style={styles.input}
             />
-
           </View> */}
 
           <View
@@ -221,6 +201,22 @@ export const GenerateInvoiceCashu = () => {
           </View>
 
           <TextInput
+            placeholder="Invoice to paid"
+            value={invoice}
+            onChangeText={setInvoice}
+            style={styles.input}
+          >
+          </TextInput>
+
+          <Button
+            onPress={() => handlePayInvoice(invoice)}
+          >
+
+            Pay invoice
+
+          </Button>
+
+          <TextInput
             placeholder="Amount"
             keyboardType="numeric"
             value={invoiceAmount}
@@ -230,10 +226,10 @@ export const GenerateInvoiceCashu = () => {
 
 
           <Button
-            onPress={generateInvoice}
+            onPress={() => invoiceAmount && handleGenerateEcash(Number(invoiceAmount))}
           >
 
-            Generate invoice
+            Generate eCash
 
           </Button>
 
@@ -252,9 +248,9 @@ export const GenerateInvoiceCashu = () => {
                 editable={false}
                 right={
                   <TouchableOpacity
-                    onPress={() => handleCopy('lnbc')}
+                    onPress={() => handleCopy("ecash")}
                     style={{
-                      marginRight: 10,
+                      // marginRight: 10,
                     }}
                   >
                     <CopyIconStack color={theme.colors.primary} />

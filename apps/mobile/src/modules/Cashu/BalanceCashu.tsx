@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { addProofsSpent, getProofs, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -13,7 +13,7 @@ import { Button, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { CashuMint, MintQuoteResponse } from '@cashu/cashu-ts';
+import { CashuMint, MintQuoteResponse, Proof } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
@@ -29,13 +29,16 @@ export const BalanceCashu = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
+    mintUrl, setMintUrl,
+    balance,
+    setBalance
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
 
 
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
@@ -58,8 +61,8 @@ export const BalanceCashu = () => {
   const [zapAmount, setZapAmount] = useState('');
   const [zapRecipient, setZapRecipient] = useState('');
 
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [connectionData, setConnectionData] = useState<any>(null);
+  // const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  // const [connectionData, setConnectionData] = useState<any>(null);
 
   const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>()
@@ -74,6 +77,31 @@ export const BalanceCashu = () => {
     const wallet = await ndkWallet?.createCashuWallet()
 
     console.log('wallet', wallet)
+
+
+  }
+
+  const getProofsWalletAndBalance = async () => {
+    const proofsLocal = getProofs()
+    if (proofsLocal) {
+      /** TODO clean proofs */
+      let proofs: Proof[] = JSON.parse(proofsLocal)
+      const proofsSpent = await wallet?.checkProofsSpent(proofs)
+      // console.log("proofsSpent", proofsSpent)
+      proofs = proofs?.filter((p) => {
+        if (!proofsSpent?.includes(p)) {
+          return p;
+        }
+      })
+
+      if (proofsSpent) {
+        await addProofsSpent(proofsSpent)
+      }
+      const totalAmount = proofs.reduce((s, t) => (s += t.amount), 0);
+      console.log("totalAmount", totalAmount)
+      setBalance(totalAmount)
+
+    }
 
 
   }
@@ -119,32 +147,49 @@ export const BalanceCashu = () => {
       }
 
     })();
+
+    getProofsWalletAndBalance()
   }, []);
 
 
 
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+    // <SafeAreaView style={styles.safeArea}>
+    <View
+    // contentContainerStyle={styles.scrollView}
+    >
 
-        <View style={styles.container}>
+      <View style={styles.container}>
 
-          <View>
-            <Text>Connect to</Text>
+        <View>
 
-          </View>
-          <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
+          <Text
+            style={styles.text}
+          >Your balance</Text>
 
-          </View>
+          <Text
+            style={styles.text}
+          >{balance}</Text>
+        </View>
 
-          {/* 
+
+        <View>
+          <Text
+            style={styles.text}>Connect to</Text>
+
+        </View>
+        <View style={styles.content}>
+          <TextInput
+            placeholder="Mint URL"
+            value={mintUrl}
+            onChangeText={setMintUrl}
+            style={styles.input}
+          />
+
+        </View>
+
+        {/* 
           <View>
             <Text>You have {lenWallet} ecash wallets</Text>
             <Button 
@@ -154,8 +199,8 @@ export const BalanceCashu = () => {
             >Generate wallet</Button> 
           </View>
         */}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
+    // </SafeAreaView>
   );
 };

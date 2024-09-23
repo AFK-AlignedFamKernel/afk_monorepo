@@ -3,13 +3,13 @@ import '../../../applyGlobalPolyfills';
 import { webln } from '@getalby/sdk';
 import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
+import React, { SetStateAction, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, IconButton, Input } from '../../components';
+import { Button, IconButton, Input, Modalize } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
@@ -24,6 +24,9 @@ import { BalanceCashu } from './BalanceCashu';
 import { MnemonicCashu } from './MnemonicCashu';
 import { InvoicesListCashu } from './InvoicesListCashu';
 import { MintListCashu } from './MintListCashu';
+import { useModal } from '../../hooks/modals/useModal';
+import { ReceiveEcash } from './ReceiveEcash';
+import { SendEcash } from './SendEcash';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -53,11 +56,15 @@ export const CashuView = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
-
+    mint,
+    mintUrl,
+    setMintUrl,
 
 
   } = useCashu()
 
+
+  const { setMnemonic, } = useCashuStore()
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
@@ -68,9 +75,18 @@ export const CashuView = () => {
       if (biometrySupported) {
         const password = await retrievePassword()
         if (!password) return;
-        const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
+        const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
 
-        if (storeSeed) setHasSeedCashu(true)
+        if (!storeMnemonic) {
+          return;
+        }
+        if (storeMnemonic) setHasSeedCashu(true)
+
+
+        const decoder = new TextDecoder();
+        // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
+        const decryptedPrivateKey = Buffer.from(storeMnemonic).toString("hex");
+        setMnemonic(decryptedPrivateKey)
 
         if (isSeedCashuStorage) setHasSeedCashu(true)
       }
@@ -79,11 +95,13 @@ export const CashuView = () => {
 
 
   const styles = useStyles(stylesheet);
-  const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
+  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
+
+  const { show } = useModal()
 
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
@@ -105,6 +123,30 @@ export const CashuView = () => {
     }
   };
 
+  const sendModalizeRef = useRef<Modalize>(null);
+
+  const onOpenSendModal = () => {
+    sendModalizeRef.current?.close();
+
+    sendModalizeRef.current?.open();
+    show((
+      <>
+        <SendEcash></SendEcash>
+      </>
+    ))
+  };
+
+
+  const onOpenReceiveModal = () => {
+    sendModalizeRef.current?.close();
+
+    sendModalizeRef.current?.open();
+    show((
+      <>
+        <ReceiveEcash></ReceiveEcash>
+      </>
+    ))
+  };
   const handleZap = async () => {
     if (!zapAmount || !zapRecipient) return;
     //Implement zap user
@@ -122,25 +164,25 @@ export const CashuView = () => {
     }
   };
 
-  const generateInvoice = async () => {
-    if (!mintUrl || !invoiceAmount) return;
-    try {
+  // const generateInvoice = async () => {
+  //   if (!mintUrl || !invoiceAmount) return;
+  //   try {
 
 
-      const cashuMint = await connectCashMint(mintUrl)
-      const wallet = await connectCashWallet(cashuMint)
+  //     // const cashuMint = await connectCashMint(mintUrl)
+  //     // const wallet = await connectCashWallet(cashuMint?.mint)
 
-      const quote = await requestMintQuote(Number(invoiceAmount))
-      setQuote(quote?.request)
-      console.log("quote", quote)
-      setIsLoading(true);
-      setIsInvoiceModalVisible(false);
-    } catch (error) {
-      console.error('Error generating invoice:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     // const quote = await requestMintQuote(Number(invoiceAmount))
+  //     // setQuote(quote?.request)
+  //     console.log("quote", quote)
+  //     setIsLoading(true);
+  //     setIsInvoiceModalVisible(false);
+  //   } catch (error) {
+  //     console.error('Error generating invoice:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
 
 
@@ -149,25 +191,88 @@ export const CashuView = () => {
       <SafeAreaView style={styles.safeArea}>
 
 
-      <TabSelector
-            activeTab={selectedTab}
-            handleActiveTab={handleTabSelected}
-            buttons={TABS_CASHU}
-            addScreenNavigation={false}
-          ></TabSelector>
+
 
         <ScrollView contentContainerStyle={styles.scrollView}>
 
           {selectedTab == SelectedTab?.CASHU_WALLET &&
             <>
               <BalanceCashu></BalanceCashu>
-              <GenerateInvoiceCashu></GenerateInvoiceCashu>
+              {/* <GenerateInvoiceCashu></GenerateInvoiceCashu> */}
             </>
           }
 
+
+          <View style={styles.tabSelector}>
+
+            <Button
+              onPress={onOpenSendModal}
+            >
+              Send
+            </Button>
+
+            <Button
+              onPress={onOpenReceiveModal}
+            >
+              Receive
+            </Button>
+            {/* 
+<Modalize ref={sendModalizeRef}>
+  <Modal
+  >
+    <Text>LFG</Text>
+
+  </Modal>
+
+
+</Modalize> */}
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isZapModalVisible}
+              onRequestClose={() => setIsZapModalVisible(false)}
+            >
+              {/* <ZapUserView
+    isLoading={isLoading}
+    setIsZapModalVisible={setIsZapModalVisible}
+    setZapAmount={setZapAmount}
+    setZapRecipient={setZapRecipient}
+    zapAmount={zapAmount}
+    zapRecipient={zapRecipient}
+    handleZap={handleZap}
+  /> */}
+            </Modal>
+
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isInvoiceModalVisible}
+              onRequestClose={() => setIsInvoiceModalVisible(false)}
+            >
+
+              {/* <PayInfo
+    setInvoiceMemo={setInvoiceMemo}
+    setInvoiceAmount={setInvoiceAmount}
+    invoiceMemo={invoiceMemo}
+    invoiceAmount={invoiceAmount}
+    setIsInvoiceModalVisible={setIsInvoiceModalVisible}
+    generateInvoice={generateInvoice}
+    isLoading={isLoading}
+  /> */}
+            </Modal>
+          </View>
+
+          <TabSelector
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={TABS_CASHU}
+            addScreenNavigation={false}
+          ></TabSelector>
+
           {selectedTab == SelectedTab?.CASHU_INVOICES &&
             <View>
-              <Text>Invoices</Text>
+              <Text style={styles.text}>Invoices</Text>
               <InvoicesListCashu></InvoicesListCashu>
             </View>
           }
@@ -193,7 +298,7 @@ export const CashuView = () => {
 
               <TouchableOpacity
                 onPress={() => {
-                  connectCashWallet()
+                  connectCashWallet(mint,)
                 }}
               >Connect Cashu</TouchableOpacity>
 
@@ -202,43 +307,6 @@ export const CashuView = () => {
             </View>
           }
 
-          <View style={styles.container}>
-
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isZapModalVisible}
-              onRequestClose={() => setIsZapModalVisible(false)}
-            >
-              <ZapUserView
-                isLoading={isLoading}
-                setIsZapModalVisible={setIsZapModalVisible}
-                setZapAmount={setZapAmount}
-                setZapRecipient={setZapRecipient}
-                zapAmount={zapAmount}
-                zapRecipient={zapRecipient}
-                handleZap={handleZap}
-              />
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isInvoiceModalVisible}
-              onRequestClose={() => setIsInvoiceModalVisible(false)}
-            >
-
-              <PayInfo
-                setInvoiceMemo={setInvoiceMemo}
-                setInvoiceAmount={setInvoiceAmount}
-                invoiceMemo={invoiceMemo}
-                invoiceAmount={invoiceAmount}
-                setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-                generateInvoice={generateInvoice}
-                isLoading={isLoading}
-              />
-            </Modal>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
