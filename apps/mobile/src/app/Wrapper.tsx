@@ -60,11 +60,11 @@ export const Wrapper: React.FC = () => {
                 <PortalizeProvider>
                   <DialogProvider>
                     <StarknetProvider>
-                      {/* <EVMProvider> */}
-                      <ModalProviders>
-                        <App />
-                      </ModalProviders>
-                      {/* </EVMProvider> */}
+                      <EVMProvider>
+                        <ModalProviders>
+                          <App />
+                        </ModalProviders>
+                      </EVMProvider>
 
                     </StarknetProvider>
                   </DialogProvider>
