@@ -1,14 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, {useState} from 'react';
+import {createPortal} from 'react-dom';
 
-import { MobileNavBar } from './MobileNavBar';
-import { NavigationLinks } from './NavigationLinks';
-import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import MenuNav from './MenuNav';
+import {MobileNavBar} from './MobileNavBar';
+import {NavigationLinks} from './NavigationLinks';
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
@@ -26,8 +24,6 @@ export function Navbar() {
       </div>
       <NavigationLinks />
 
-
-
       {/* <button
         onClick={() => {
           setToggleParamsNav(true);
@@ -36,7 +32,6 @@ export function Navbar() {
       >
         <img src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" />
       </button> */}
-
 
       <MenuNav></MenuNav>
       {/* {toggleParamsNav &&
@@ -54,7 +49,7 @@ export function Navbar() {
         className="flex desktop:hidden"
         onClick={() => {
           setToggleNav(true);
-          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
         }}
       >
         <img src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" />

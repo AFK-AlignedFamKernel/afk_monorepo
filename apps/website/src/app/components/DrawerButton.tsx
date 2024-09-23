@@ -38,7 +38,6 @@ export function DrawerButton({setToggle, toggle}: Props) {
           <img src="/assets/cancel-icon.svg" alt="" />
         </div>
 
-
         <motion.div
           variants={parentAnimationVariants}
           initial="init"

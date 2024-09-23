@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
 
 export function NavigationLinks() {
   return (

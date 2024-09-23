@@ -1,9 +1,7 @@
 import './index.css';
 import '@rainbow-me/rainbowkit/styles.css';
+
 import type {Metadata} from 'next';
-
-import StarknetProvider from '@/context/StarknetProvider';
-
 export const metadata: Metadata = {
   title: 'afk community portal',
   description: 'afk community portal',
@@ -14,9 +12,7 @@ import Providers from './providers';
 function MyApp({Component, pageProps}: AppProps) {
   return (
     <Providers>
-      <StarknetProvider>
-        <Component {...pageProps} />
-      </StarknetProvider>
+      <Component {...pageProps} />
     </Providers>
   );
 }
