@@ -6,16 +6,18 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
+import {TokenHolderDetail} from '../../components/holders/TokenHolderDetail';
 import {LaunchActionsForm} from '../../components/LaunchActionsForm';
 import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme, useWaitConnection} from '../../hooks';
+import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
 import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useDataCoins} from '../../hooks/launchpad/useDataCoins';
 import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
 import {useWalletModal} from '../../hooks/modals';
 import {LaunchDetailScreenProps} from '../../types';
-import {TokenLaunchInterface} from '../../types/keys';
+import {TokenHoldersInterface, TokenLaunchInterface} from '../../types/keys';
 import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import {feltToAddress} from '../../utils/format';
 import stylesheet from './styles';
@@ -30,9 +32,12 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const account = useAccount();
   const {coinAddress, launch: launchParams} = route.params;
   const [launch, setLaunch] = useState<TokenLaunchInterface | undefined>(launchParams);
+  const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
   const {getCoinLaunchByAddress} = useDataCoins();
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
+
+  const {data: holdingsData} = useGetHoldings(feltToAddress(BigInt(launch?.token_address || '')));
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
@@ -63,6 +68,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
       getData();
     }
   }, [coinAddress]);
+
+  useEffect(() => {
+    setHoldings(holdingsData);
+  }, [holdingsData]);
 
   const onConnect = async () => {
     if (!account.address) {
@@ -148,6 +157,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
               <>
                 <TokenLaunchDetail isViewDetailDisabled={true} launch={launch}></TokenLaunchDetail>
+              </>
+            )}
+            {selectedTab == SelectedTab.LAUNCH_HOLDERS && holdings && (
+              <>
+                <TokenHolderDetail holders={holdings}></TokenHolderDetail>
               </>
             )}
           </ScrollView>

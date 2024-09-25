@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
 
-export const useGetTokenLaunch = (launch: string) => {
+export const useGetTokenLaunch = (launch?: string) => {
   return useQuery({
     queryKey: launch ? ['deploy_launch', launch] : ['deploy_launch'],
     queryFn: async () => {

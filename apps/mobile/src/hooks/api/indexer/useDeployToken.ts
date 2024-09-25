@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
 
-export const useGetDeployToken = (token: string) => {
+export const useGetDeployToken = (token?: string) => {
   return useQuery({
     queryKey: token ? ['deploy_token', token] : ['deploy_token'],
     queryFn: async () => {

@@ -27,6 +27,18 @@ export interface TokenLaunchInterface {
   slope?: Uint256;
 }
 
+export interface TokenHoldersInterface {
+  data: {
+    _sum: {
+      amount: string;
+    };
+    _count: {
+      owner_address: number;
+    };
+    owner_address: string;
+  }[];
+}
+
 export interface Token {
   owner: string;
   token_address: string;
