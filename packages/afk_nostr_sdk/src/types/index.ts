@@ -1,15 +1,7 @@
 import { NDKUserProfile } from "@nostr-dev-kit/ndk";
+import { MintQuoteResponse, MintQuoteState, Proof } from "@cashu/cashu-ts";
 
-export interface Transaction {
-    id: number;
-    amount: number;
-    date: Date;
-    description: string;
-    status: "completed" | "pending" | "failed";
-    recipient?: string;
-    sender?: string;
-    fee?: number;
-}
+
 export interface Contact extends NDKUserProfile {
     handle?: string;
     avatarUrl?: string;
@@ -25,15 +17,22 @@ export interface Notification {
     read: boolean;
 }
 
-import { MintQuoteResponse, MintQuoteState } from "@cashu/cashu-ts";
 
-export interface ICashuInvoice extends MintQuoteResponse {
+export interface ICashuInvoice {
   bolt11?: string;
-//   quote?: string;
-  amount?: string;
+  quote?: string;
+  amount: number;
   date?: number;
   mint?: string;
   unit?: string;
+  state?: string | MintQuoteState;
   direction?: "in" | "out"; // receive or send
   quoteResponse?:MintQuoteResponse;
+  type?:"ecash"|"lightning"
+}
+
+
+
+export interface ProofInvoice extends Proof, ICashuInvoice {
+  
 }

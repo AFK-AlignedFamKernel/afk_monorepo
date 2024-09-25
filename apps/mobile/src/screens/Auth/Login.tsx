@@ -71,39 +71,44 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
     }
 
     const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
-    console.log("mnemonicSaved", mnemonicSaved)
+    // console.log("mnemonicSaved", mnemonicSaved)
     setIsSeedCashuStorage(true)
-
-    if (!mnemonicSaved) {
-      const mnemonic = await generateMnemonic()
-      console.log("mnemonic", mnemonic)
-      await storeCashuMnemonic(mnemonic, password)
-      const seed = await deriveSeedFromMnemonic(mnemonic)
-
-      const seedHex = Buffer.from(seed).toString("hex")
-
-      await storeCashuSeed(seedHex, password)
-
-      setMnemonic(mnemonic)
-      setSeed(seed)
-      setIsSeedCashuStorage(true)
-    }
-
-    const seedSaved = await retrieveAndDecryptCashuSeed(password)
-
-    if(!seedSaved && mnemonicSaved) {
-      const mnemonic = Buffer.from(mnemonicSaved).toString("hex")
-      const seed = await deriveSeedFromMnemonic(mnemonic)
-      const seedHex = Buffer.from(seed).toString("hex")
-      await storeCashuSeed(seedHex, password)
-      setMnemonic(mnemonic)
-      setSeed(seed)
-    }
-
-
-
-
     setAuth(publicKey, privateKeyHex);
+
+    try {
+      if (!mnemonicSaved) {
+        const mnemonic = await generateMnemonic()
+        console.log("mnemonic", mnemonic)
+        await storeCashuMnemonic(mnemonic, password)
+        const seed = await deriveSeedFromMnemonic(mnemonic)
+
+        const seedHex = Buffer.from(seed).toString("hex")
+
+        await storeCashuSeed(seedHex, password)
+
+        setMnemonic(mnemonic)
+        setSeed(seed)
+        setIsSeedCashuStorage(true)
+      }
+
+      const seedSaved = await retrieveAndDecryptCashuSeed(password)
+
+      if (!seedSaved && mnemonicSaved) {
+        const mnemonic = Buffer.from(mnemonicSaved).toString("hex")
+        console.log("mnemonic", mnemonic)
+
+        const seed = await deriveSeedFromMnemonic(mnemonic)
+        const seedHex = Buffer.from(seed).toString("hex")
+        console.log("seedHex", seedHex)
+
+        await storeCashuSeed(seedHex, password)
+        setMnemonic(mnemonic)
+        setSeed(seed)
+      }
+    } catch (e) {
+      console.log("Error mnemonic", e)
+    }
+
 
     if (publicKey && privateKeyHex) {
       navigationMain.navigate('Feed');

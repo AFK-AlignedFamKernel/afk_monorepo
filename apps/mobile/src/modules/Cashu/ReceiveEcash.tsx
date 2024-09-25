@@ -134,10 +134,8 @@ export const ReceiveEcash = () => {
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
-        // quote: quote?.request?.quote,
-        // state: quote?.request?.state,
         date: new Date().getTime(),
-        amount: invoiceAmount,
+        amount: Number(invoiceAmount),
         mint: mintUrl,
         quoteResponse: quote?.request,
         ...quote?.request
@@ -145,14 +143,11 @@ export const ReceiveEcash = () => {
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
-
         console.log("invoices", invoices)
         storeInvoices([...invoices, cashuInvoice])
 
-
       } else {
         console.log("no old invoicesLocal", invoicesLocal)
-
         storeInvoices([cashuInvoice])
 
       }

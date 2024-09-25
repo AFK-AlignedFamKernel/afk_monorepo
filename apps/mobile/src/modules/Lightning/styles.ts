@@ -11,6 +11,9 @@ export default ThemedStyleSheet((theme) => ({
   scrollView: {
     flexGrow: 1,
   },
+  text:{
+    color:theme.colors.text
+  },
   container: {
     width: '100%',
     maxWidth: 500,

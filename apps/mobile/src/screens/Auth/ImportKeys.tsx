@@ -51,12 +51,9 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({ navigation }) 
     if (!mnemonicSaved) {
       const mnemonic = await generateMnemonic()
       console.log("mnemonic", mnemonic)
-
       await storeCashuMnemonic(mnemonic, password)
       setIsSeedCashuStorage(true)
-
     }
-
 
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
     if (biometySupported) {
