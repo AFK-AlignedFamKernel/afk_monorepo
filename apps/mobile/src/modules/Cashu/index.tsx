@@ -197,10 +197,10 @@ export const CashuView = () => {
 
           {selectedTab == SelectedTab?.CASHU_WALLET &&
             <>
-              <BalanceCashu></BalanceCashu>
               {/* <GenerateInvoiceCashu></GenerateInvoiceCashu> */}
             </>
           }
+          <BalanceCashu></BalanceCashu>
 
 
           <View style={styles.tabSelector}>
@@ -250,7 +250,7 @@ export const CashuView = () => {
               transparent={true}
               visible={isInvoiceModalVisible}
               onRequestClose={() => setIsInvoiceModalVisible(false)}
-              style={{ zIndex: 100 }}
+              style={{ zIndex: 10 }}
 
             >
 
