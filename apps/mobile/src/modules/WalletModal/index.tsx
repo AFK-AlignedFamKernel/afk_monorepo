@@ -21,7 +21,9 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
   const {showDialog, hideDialog} = useDialog();
 
   return (
-    <Modal>
+    <Modal
+    style={{zIndex:100}}
+    >
       <Text fontSize={16} weight="semiBold">
         Please choose a wallet to connect
       </Text>

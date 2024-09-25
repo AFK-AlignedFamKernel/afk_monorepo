@@ -228,6 +228,7 @@ export const CashuView = () => {
 </Modalize> */}
 
             <Modal
+              style={{ zIndex: 10 }}
               animationType="slide"
               transparent={true}
               visible={isZapModalVisible}
@@ -249,6 +250,8 @@ export const CashuView = () => {
               transparent={true}
               visible={isInvoiceModalVisible}
               onRequestClose={() => setIsInvoiceModalVisible(false)}
+              style={{ zIndex: 100 }}
+
             >
 
               {/* <PayInfo
