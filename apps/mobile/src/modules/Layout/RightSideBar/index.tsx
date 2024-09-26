@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, ScrollView } from 'react-native';
 import { useAuth, useProfile } from 'afk_nostr_sdk';
 import { useQueryAllCoins } from '../../../hooks/launchpad/useQueryAllCoins';
 import { useStyles, useTheme } from '../../../hooks';
@@ -7,7 +7,7 @@ import stylesheet from './styles';
 import { TokenLaunchDetail } from '../../../components/pump/TokenLaunchDetail';
 import { TokenLaunchInterface } from '../../../types/keys';
 
-const tabs = ['Trending', 'Quests'];
+const tabs = ['Pump','Trending', 'Quests'];
 
 const RightSidebar = () => {
   const { theme } = useTheme();
@@ -35,7 +35,7 @@ const RightSidebar = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.tabContainer}>
         {tabs.map((tab) => (
           <TouchableOpacity
@@ -48,22 +48,36 @@ const RightSidebar = () => {
         ))}
       </View>
       <View>
-        {activeTab === 'Trending' && (
+
+        {activeTab === "Trending" &&
+        (
+          <View>
+            <Text style={{ color: theme.colors.text }}>Trending coming soon</Text>
+            {/* TODO trending note NIP */}
+
+          </View>
+        )
+        
+        }
+        {activeTab === 'Pump' && (
           <>
             {isLoading ? (
               <ActivityIndicator size="large" color={theme.colors.text} />
             ) : error ? (
               <Text style={{ color: theme.colors.text }}>Failed to load coins</Text>
             ) : (
-              <FlatList
-                data={coins}
-                renderItem={renderListItem}
-                keyExtractor={(item) => item.token_address.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                ListEmptyComponent={<Text style={{ color: theme.colors.text }}>No coins available</Text>}
-                ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
-              />
+              <ScrollView>
+                <FlatList
+                  data={coins}
+                  renderItem={renderListItem}
+                  keyExtractor={(item) => item.token_address.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  ListEmptyComponent={<Text style={{ color: theme.colors.text }}>No coins available</Text>}
+                  ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+                />
+              </ScrollView>
+
             )}
           </>
         )}
@@ -77,7 +91,7 @@ const RightSidebar = () => {
           </>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

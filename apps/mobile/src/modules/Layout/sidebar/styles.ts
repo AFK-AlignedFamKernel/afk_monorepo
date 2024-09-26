@@ -6,7 +6,7 @@ export default ThemedStyleSheet((theme) => ({
     width: '100%',
     height: '100%',
     backgroundColor: theme.colors.background,
-    padding: 20,
+    paddingHorizontal: 20,
     gap: 1,
     color: theme.colors.text,
 

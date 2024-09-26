@@ -89,7 +89,6 @@ export const LightningNetworkWallet = () => {
   } = useLN()
 
 
-
   async function connectWithAlbyPlatform() {
     setConnectionStatus('connecting');
     setIsLoading(true);
@@ -269,7 +268,6 @@ export const LightningNetworkWallet = () => {
             onRequestClose={() => setIsZapModalVisible(false)}
           >
             <ZapUserView
-
               zapType={zapType}
               setZapType={setZapType}
               isLoading={isLoading}
@@ -281,6 +279,7 @@ export const LightningNetworkWallet = () => {
               zapAmount={zapAmount}
               zapRecipient={zapRecipient}
               handleZap={handleZap}
+              generatedInvoice={generatedInvoice}
             />
           </Modal>
 
@@ -298,6 +297,7 @@ export const LightningNetworkWallet = () => {
               setIsInvoiceModalVisible={setIsInvoiceModalVisible}
               generateInvoice={generateInvoice}
               isLoading={isLoading}
+              invoiceGenerated={generatedInvoice}
             />
           </Modal>
         </View>

@@ -4,3 +4,4 @@ export {useCashuSendWalletInfo, useCreateCashuSendWalletInfo} from "./useCashuSe
 export {useCashuSpendingToken} from "./useCashuSpendingToken"
 export {useCashuTokenSend} from "./useCashuTokenSend"
 export {useGetCashuWalletsInfo} from "./useGetCashuWalletsInfo"
+export {useCashuBalance} from "./useCashuBalance"

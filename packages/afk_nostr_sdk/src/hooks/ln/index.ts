@@ -29,9 +29,11 @@ export const useLN = () => {
     const [resultPayment, setResultPayment] = useState<SendPaymentResponse | undefined>();
 
     const nostrWebLN = useMemo(() => {
-        return nostrWebLNState ?? new webln.NostrWebLNProvider({
-            nostrWalletConnectUrl: nwcUrl ?? nwcUrlProps
-        })
+        return nostrWebLNState
+        // return nostrWebLNState ?? new webln.NostrWebLNProvider({
+        // return nwcUrlProps && new webln.NostrWebLNProvider({
+        //     nostrWalletConnectUrl: nwcUrlProps
+        // })
     }, [nwcUrl, nwcUrlProps, nostrWebLNState])
     useEffect(() => {
         if (!nostrWebLN) return;
@@ -128,76 +130,83 @@ export const useLN = () => {
 
 
     async function connectWithAlby() {
-        setConnectionStatus('connecting');
-        setIsLoading(true);
-        console.log("isExtensionAvailable",isExtensionAvailable)
+        try {
+            setConnectionStatus('connecting');
+            setIsLoading(true);
+            console.log("isExtensionAvailable", isExtensionAvailable)
 
-        if (isExtensionAvailable) {
-            try {
-                console.log("isExtensionAvailable",isExtensionAvailable)
-                await (window as any)?.webln.enable();
-                setNostrWebLN((window as any)?.webln);
-                setConnectionStatus('connected');
-                return (window as any)?.webln;
-            } catch (error) {
-                console.error('Failed to connect to Alby extension:', error);
+            if (isExtensionAvailable) {
+                try {
+                    console.log("isExtensionAvailable", isExtensionAvailable)
+                    await (window as any)?.webln.enable();
+                    setNostrWebLN((window as any)?.webln);
+                    setConnectionStatus('connected');
+                    return (window as any)?.webln;
+                } catch (error) {
+                    console.error('Failed to connect to Alby extension:', error);
+                }
+            } else {
+                // const nwc = webln.NostrWebLNProvider.withNewSecret({});
+                const nwc = webln.NostrWebLNProvider.withNewSecret();
+                const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
+                const pendingNwc = nwc.client.getNostrWalletConnectUrl(true)
+                console.log("pendingNwc", pendingNwc)
+                setPendingNwcUrl(pendingNwc);
+                setNwcAuthUrl(authUrl.toString());
+                setNWCUrl(nwcUrl)
+                console.log("authUrl", authUrl)
+                console.log("nwc", nwc)
+
+                if (typeof window != "undefined") {
+                    window.addEventListener('message', async (event) => {
+                        if (event.data?.type === 'nwc:success') {
+
+                            // const url= webLn.client.getNostrWalletConnectUrl(true);
+                            const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
+                            await (window as any)?.webln.enable();
+                            // webLn.client.secret= nwc.client.secret;
+                            await webLn.enable();
+                            setNostrWebLN(webLn);
+                            setConnectionStatus('connected');
+                            setNwcAuthUrl(pendingNwcUrl.toString());
+
+                            await handleConnectWithUrl(pendingNwcUrl)
+
+                            setNwcUrl(pendingNwcUrl);
+                            return webLn
+
+                        }
+                    });
+                }
             }
-        } else {
-            // const nwc = webln.NostrWebLNProvider.withNewSecret({});
-            const nwc = webln.NostrWebLNProvider.withNewSecret();
-            const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
-            const pendingNwc = nwc.client.getNostrWalletConnectUrl(true)
-            console.log("pendingNwc",pendingNwc)
-            setPendingNwcUrl(pendingNwc);
-            setNwcAuthUrl(authUrl.toString());
-            setNWCUrl(nwcUrl)
-            console.log("authUrl",authUrl)
-            console.log("nwc",nwc)
-
-            if (typeof window != "undefined") {
-                window.addEventListener('message', async (event) => {
-                    if (event.data?.type === 'nwc:success') {
-               
-                        // const url= webLn.client.getNostrWalletConnectUrl(true);
-
-                        const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
-                        await (window as any)?.webln.enable();
-                        // webLn.client.secret= nwc.client.secret;
-
-                        await webLn.enable();
-
-                        setNostrWebLN(webLn);
-                        setConnectionStatus('connected');
-                        setNwcAuthUrl(pendingNwcUrl.toString());
-
-                        await handleConnectWithUrl(nwcUrl)
-
-                        setNwcUrl(pendingNwcUrl);
-                        return webLn
-                    
-                    }
-                });
-            }
+            setIsLoading(false);
+        } catch (e) {
+            console.log("Error connectWithAlby", e)
         }
-        setIsLoading(false);
+
     }
 
     const handleConnectWithUrl = async (nwcUrl: string) => {
-        if (nwcUrl) {
-            const nwc = new webln.NostrWebLNProvider({
-                nostrWalletConnectUrl: nwcUrl,
-            });
-            await nwc.enable();
-            setNostrWebLN(nwc);
+        try {
+            if (nwcUrl) {
+                const nwc = new webln.NostrWebLNProvider({
+                    nostrWalletConnectUrl: nwcUrl,
+                });
+                await nwc.enable();
+                setNostrWebLN(nwc);
 
-            setNWCUrl(nwcUrl);
+                setNWCUrl(nwcUrl);
 
-            mutateConnectNDK(nwcUrl, {
-                onSuccess: () => {
+                mutateConnectNDK(nwcUrl, {
+                    onSuccess: () => {
 
-                }
-            })
+                    }
+                })
+            }
+        } catch (e) {
+            console.log("handleConnectWithUrl", e)
         }
+
     };
 
 
@@ -209,7 +218,7 @@ export const useLN = () => {
             //   amount: parseInt(invoiceAmount, 10),
             //   defaultMemo: invoiceMemo,
             // });
-            
+
             const invoice = await nostrWebLN?.makeInvoice({
                 amount: parseInt(invoiceAmount, 10),
                 // amount: parseInt(invoiceAmount),
@@ -226,38 +235,49 @@ export const useLN = () => {
 
 
     async function getInvoiceFromLnAddress(lnAddress: string, satoshiAmount: number) {
+        try {
 
-        const ln = new LightningAddress(lnAddress);
+            const ln = new LightningAddress(lnAddress);
 
-        await ln.fetch();
-        // request an invoice for X satoshis
-        // this returns a new `Invoice` class that can also be used to validate the payment
-        const invoice = await ln.requestInvoice({ satoshi: satoshiAmount });
+            await ln.fetch();
+            // request an invoice for X satoshis
+            // this returns a new `Invoice` class that can also be used to validate the payment
+            const invoice = await ln.requestInvoice({ satoshi: satoshiAmount });
 
-        console.log(invoice.paymentRequest); // print the payment request
-        console.log(invoice.paymentHash); // print the payment hash
+            console.log(invoice.paymentRequest); // print the payment request
+            console.log(invoice.paymentHash); // print the payment hash
 
 
-        return invoice;
+            return invoice;
+        } catch (e) {
+            console.log("Error getInvoiceFromLnAddress", e)
+        }
+
     }
 
     async function verifyPayment(invoice: Invoice) {
 
-        // if the LNURL providers supports LNURL-verify:
-        const paidVerify = await invoice.verifyPayment(); // returns true of false
-        if (paidVerify) {
-            console.log(invoice.preimage);
+        try {
+
+            // if the LNURL providers supports LNURL-verify:
+            const paidVerify = await invoice.verifyPayment(); // returns true of false
+            if (paidVerify) {
+                console.log(invoice.preimage);
+            }
+
+            // if you have the preimage for example in a WebLN context
+            const response = await nostrWebLN.sendPayment(invoice.paymentRequest);
+            const paid = invoice.validatePreimage(response.preimage); // returns true or false
+            if (paid) {
+                console.log("paid");
+            }
+
+            // or use the convenenice method:
+            await invoice.isPaid();
+        } catch (e) {
+            console.log("verifyPayment", e)
         }
 
-        // if you have the preimage for example in a WebLN context
-        const response = await nostrWebLN.sendPayment(invoice.paymentRequest);
-        const paid = invoice.validatePreimage(response.preimage); // returns true or false
-        if (paid) {
-            console.log("paid");
-        }
-
-        // or use the convenenice method:
-        await invoice.isPaid();
     }
 
     async function generateZap() {

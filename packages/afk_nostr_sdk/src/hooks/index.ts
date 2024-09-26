@@ -49,5 +49,4 @@ export {useConnectNWC} from './zap/useZap';
 export {useSendZapNote} from './zap/useZap';
 export {useLN} from "./ln";
 
-export {useCashu, useCashuMintList, useCashuSendWalletInfo, useCashuSpendingToken, useCashuTokenSend} from "./cashu"
-
+export {useCashu, useCashuMintList, useCashuSendWalletInfo, useCashuSpendingToken, useCashuTokenSend, useCashuBalance} from "./cashu"
