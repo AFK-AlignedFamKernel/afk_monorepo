@@ -1,9 +1,9 @@
 import '../../../applyGlobalPolyfills';
 
 import { webln } from '@getalby/sdk';
-import { ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import { addProofs, ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
+import React, { ChangeEvent, SetStateAction, useEffect, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -13,7 +13,7 @@ import { Button, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
@@ -22,8 +22,7 @@ import { SelectedTab, TABS_CASHU } from '../../types/tab';
 import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
 
 
-export const GenerateInvoiceCashu = () => {
-
+export const MintInfo = () => {
 
   const { ndkCashuWallet, ndkWallet, } = useNostrContext()
   const { wallet, connectCashMint,
@@ -37,22 +36,17 @@ export const GenerateInvoiceCashu = () => {
     setMintUrl
 
   } = useCashu()
-
-
+  const [ecash, setEcash] = useState<string | undefined>()
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
-
-
 
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>()
   const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
-  const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
@@ -73,7 +67,11 @@ export const GenerateInvoiceCashu = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
 
+  const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setEcash(value);
 
+  };
   useEffect(() => {
     (async () => {
       if (!mintUrl) return;
@@ -81,32 +79,6 @@ export const GenerateInvoiceCashu = () => {
       setMintInfo(info)
     })();
 
-
-    // (async () => {
-
-    //   console.log("ndkCashuWallet", ndkCashuWallet)
-    //   console.log("ndkWallet", ndkWallet)
-
-    //   const availableTokens = await ndkCashuWallet?.availableTokens;
-    //   console.log("availableTokens", availableTokens)
-
-    //   const mintBalances = await ndkCashuWallet?.mintBalances;
-    //   console.log("mintBalances", mintBalances)
-
-    //   console.log("mintBalances", mintBalances)
-    //   const wallets = await ndkWallet?.wallets;
-    //   console.log("wallets", wallets)
-
-    //   const balance = await ndkCashuWallet?.balance;
-
-    //   console.log("balance", balance)
-
-    //   if (mint) {
-    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-    //     console.log("mintBalance", mintBalance)
-    //   }
-
-    // })();
   }, []);
 
 
@@ -127,17 +99,15 @@ export const GenerateInvoiceCashu = () => {
 
       const invoicesLocal = await getInvoices()
 
-      if(!quote?.request) {
+      if (!quote?.request) {
         return showToast({
-          title:"Quote not created",
-          type:"error"
+          title: "Quote not created",
+          type: "error"
         })
       }
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
-        // quote: quote?.request?.quote,
-        // state: quote?.request?.state,
         date: new Date().getTime(),
         amount: Number(invoiceAmount),
         mint: mintUrl,
@@ -147,14 +117,11 @@ export const GenerateInvoiceCashu = () => {
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
-
         console.log("invoices", invoices)
         storeInvoices([...invoices, cashuInvoice])
 
-
       } else {
         console.log("no old invoicesLocal", invoicesLocal)
-
         storeInvoices([cashuInvoice])
 
       }
@@ -186,25 +153,7 @@ export const GenerateInvoiceCashu = () => {
     // style={styles.safeArea}
 
     >
-      <View
-      // style={styles.container}
-      >
-
-        <View
-        //  style={styles.container}
-        >
-
-
-          {/* <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
-
-          </View> */}
-
+   
           <View
           // style={styles.text}
           >
@@ -219,54 +168,6 @@ export const GenerateInvoiceCashu = () => {
             >MOTD: {infoMint?.motd}</Text>
 
           </View>
-
-          <TextInput
-            placeholder="Amount"
-            keyboardType="numeric"
-            value={invoiceAmount}
-            onChangeText={setInvoiceAmount}
-            style={styles.input}
-          />
-
-
-          <Button
-            onPress={generateInvoice}
-          >
-
-            Generate invoice
-
-          </Button>
-
-          {quote?.request &&
-
-            <View
-              style={{
-                marginVertical: 3
-              }}
-            >
-
-              {/* <Text style={styles.text}>Invoice address</Text> */}
-
-              <Input
-                value={quote?.request}
-                editable={false}
-                right={
-                  <TouchableOpacity
-                    onPress={() => handleCopy('lnbc')}
-                    style={{
-                      marginRight: 10,
-                    }}
-                  >
-                    <CopyIconStack color={theme.colors.primary} />
-                  </TouchableOpacity>
-                }
-              />
-            </View>
-
-          }
-
-        </View>
-      </View>
     </SafeAreaView>
   );
 };

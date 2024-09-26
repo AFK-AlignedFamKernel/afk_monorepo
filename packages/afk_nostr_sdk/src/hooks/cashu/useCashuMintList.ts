@@ -9,6 +9,34 @@ export type UseCashuMintList = {
 };
 
 
+
+export const countMintRecommenderMapping = (mintList: NDKEvent[] | any[]) => {
+  const mintsUrlsMap: Map<string, number> = new Map()
+  const mintsUrls: string[] = []
+  mintList.forEach((e) => {
+    e?.tags?.filter((tag: string[]) => {
+      if (tag[0] === 'mint') {
+        const isExist = mintsUrlsMap.has(tag[1])
+        if (isExist) {
+          const counter = mintsUrlsMap.get(tag[1]) ?? 0
+          mintsUrlsMap.set(tag[1], counter + 1)
+        } else {
+          mintsUrlsMap.set(tag[1],1)
+        }
+        mintsUrls.push(tag[1])
+
+      }
+    });
+  })
+  const mintsUrlsSet = new Set(mintsUrls)
+
+  return {
+    urls: mintsUrls,
+    urlsSet: mintsUrlsSet,
+    mintEvents: mintList,
+    mintsUrlsMap
+  };
+}
 /** Cashu Mint List recommender
  */
 export const useCashuMintList = (options?: UseCashuMintList) => {
@@ -52,7 +80,7 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
       //   urls:mintsUrls,
       //   mintEvents:mintList
       // };
-      return [...mintList];
+      return [mintList];
     },
     placeholderData: { pages: [], pageParams: [] },
   });

@@ -7,6 +7,9 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.xxxsmall,
     paddingHorizontal: Spacing.normal,
   },
+  text:{
+    color:theme.colors.text
+  },
 
   flatListContent: {
     paddingHorizontal: Spacing.pagePadding,
