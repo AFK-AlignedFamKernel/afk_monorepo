@@ -16,9 +16,10 @@
     "react-scripts": "5.0.1",
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
-    "starknet": "^5.29.0",
+    "starknet": "^6.9.0",
     "@argent/x-sessions": "^6.7.4",
-    "@argent/x-shared": "^1.32.1"
+    "@argent/x-shared": "^1.32.1",
+    "starknetkit-next": "npm:starknetkit@2.3.0"
   },
   "scripts": {
     "start": "react-scripts start",

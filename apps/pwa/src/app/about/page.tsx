@@ -11,12 +11,19 @@ import {HeroSection} from './components/landing/HeroSection';
 import {Navbar} from './components/Navbar';
 import { NavbarPixel } from './components/NavbarPixel';
 
-export default function App() {
+export default function About() {
   return (
     <div className="min-h-screen w-full relative bg-black">
       <Navbar />
-      {typeof window !== 'undefined' && <AppRender></AppRender>}
-      {/* <Footer /> */}
+      <HeroSection />
+      <About />
+      <DescriptionSection />
+      <div className="flex flex-col desktop:gap-y-[80px] gap-y-[50px] mt-[50px] desktop:mt-[180px]">
+        <ContributeSection />
+        <DownloadSection />
+        <Faq />
+      </div>
+      <Footer />
     </div>
   );
 }

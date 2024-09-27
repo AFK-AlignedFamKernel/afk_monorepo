@@ -33,10 +33,10 @@ pub struct MemberMetadata {
 #[starknet::interface]
 pub trait IArtPeace<TContractState> {
     // Get canvas info
-    // fn get_pixel(self: @TContractState, pos: u128) -> Pixel;
-    // fn get_pixel_color(self: @TContractState, pos: u128) -> u8;
-    // fn get_pixel_owner(self: @TContractState, pos: u128) -> starknet::ContractAddress;
-    // fn get_pixel_xy(self: @TContractState, x: u128, y: u128) -> Pixel;
+    fn get_pixel(self: @TContractState, pos: u128) -> Pixel;
+    fn get_pixel_color(self: @TContractState, pos: u128) -> u8;
+    fn get_pixel_owner(self: @TContractState, pos: u128) -> starknet::ContractAddress;
+    fn get_pixel_xy(self: @TContractState, x: u128, y: u128) -> Pixel;
     fn get_width(self: @TContractState) -> u128;
     fn get_height(self: @TContractState) -> u128;
     fn get_total_pixels(self: @TContractState) -> u128;

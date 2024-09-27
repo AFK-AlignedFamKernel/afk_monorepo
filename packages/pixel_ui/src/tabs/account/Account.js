@@ -13,7 +13,12 @@ import EditIcon from '../../resources/icons/Edit.png';
 import SearchIcon from '../../resources/icons/Search.png';
 import ArgentIcon from '../../resources/icons/Argent.png';
 import BraavosIcon from '../../resources/icons/Braavos.png';
-
+import {
+  useAccount,
+  useContract,
+  useNetwork,
+  useConnect
+} from '@starknet-react/core';
 const Account = (props) => {
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
@@ -24,6 +29,7 @@ const Account = (props) => {
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
   const [accountRankImg, setAccountRankImg] = useState(null);
+  const [isOpenConnector, setIsOpenConnector] = useState(false);
 
   const [usernameSaved, setUsernameSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -88,7 +94,9 @@ const Account = (props) => {
   };
 
   // TODO: Connect wallet page if no connectors
-  let [availableConnectors, setAvailableConnectors] = useState([]);
+  const { connect, connectors } = useConnect();
+
+  let [availableConnectors, setAvailableConnectors] = useState(connectors);
 
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
@@ -200,11 +208,11 @@ const Account = (props) => {
   };
 
   useEffect(() => {
-    if (!props.connectors) return;
-    if (devnetMode) {
-      setAvailableConnectors(props.connectors);
-      return;
-    }
+    // if (!props.connectors) return;
+    // if (devnetMode) {
+    //   setAvailableConnectors(props.connectors);
+    //   return;
+    // }
 
     const checkIfAvailable = async () => {
       let availableConnectors = [];
@@ -393,11 +401,44 @@ const Account = (props) => {
           <div className='Account__login'>
             <div
               className='Text__medium Button__primary Account__login__button'
-              onClick={props.connectWallet}
+              onClick={() => {
+                // props.connectWallet
+
+                console.log("try connect")
+                // connect()
+                setIsOpenConnector(!isOpenConnector)
+              }
+
+              }
             >
               Starknet Login
             </div>
           </div>
+          {isOpenConnector &&
+
+            <>
+              {availableConnectors.map((connector) => {
+                return (
+                  <div
+                    className='Text__medium Button__primary Account__walletlogin__button'
+                    key={connector.id}
+                    onClick={() => props.connectWallet(connector)}
+                  >
+                    {connectorLogo(connector.name) && (
+                      <img
+                        className='Account__wallet__icon'
+                        src={connectorLogo(connector.name)}
+                        alt='wallet'
+                      />
+                    )}
+                    <p>{connectorName(connector.name)}</p>
+                  </div>
+                );
+              })}
+
+            </>
+          }
+
           <div
             className={
               'Account__wallet__select' +

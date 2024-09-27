@@ -179,23 +179,23 @@ pub mod ArtPeace {
 
     #[abi(embed_v0)]
     impl ArtPeaceImpl of IArtPeace<ContractState> {
-        // fn get_pixel(self: @ContractState, pos: u128) -> Pixel {
-        //     self.canvas.read(pos)
-        // }
+        fn get_pixel(self: @ContractState, pos: u128) -> Pixel {
+            self.canvas.read(pos)
+        }
 
-        // fn get_pixel_color(self: @ContractState, pos: u128) -> u8 {
-        //     self.canvas.read(pos).color
-        // }
+        fn get_pixel_color(self: @ContractState, pos: u128) -> u8 {
+            self.canvas.read(pos).color
+        }
 
-        // fn get_pixel_owner(self: @ContractState, pos: u128) -> ContractAddress {
-        //     self.canvas.read(pos).owner
-        // }
+        fn get_pixel_owner(self: @ContractState, pos: u128) -> ContractAddress {
+            self.canvas.read(pos).owner
+        }
 
-        // fn get_pixel_xy(self: @ContractState, x: u128, y: u128) -> Pixel {
-        //     let pos = x + y * self.canvas_width.read();
+        fn get_pixel_xy(self: @ContractState, x: u128, y: u128) -> Pixel {
+            let pos = x + y * self.canvas_width.read();
 
-        //     self.canvas.read(pos)
-        // }
+            self.canvas.read(pos)
+        }
 
         fn get_width(self: @ContractState) -> u128 {
             self.canvas_width.read()
