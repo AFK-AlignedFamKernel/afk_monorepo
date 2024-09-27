@@ -316,7 +316,7 @@ const CanvasContainer = (props) => {
     if (props.selectedColorId !== -1) {
       props.setSelectedColorId(-1);
       props.colorPixel(position, colorId);
-      const response = await fetchWrapper(`place-pixel-devnet`, {
+      const response = await fetchWrapper(`place-pixel-redis`, {
         mode: 'cors',
         method: 'POST',
         body: JSON.stringify({

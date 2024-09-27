@@ -1,3 +1,4 @@
+import { ec, RpcProvider, constants } from 'starknet';
 import backendConfigProd from '../configs/backend.config.json';
 import backendConfigDev from '../configs/backend.dev.config.json';
 const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" ? true : false
@@ -61,3 +62,8 @@ export const convertUrl = (url) => {
   }
   return url.replace('$BACKEND_URL', backendUrl);
 };
+
+export const provider = new RpcProvider({
+  nodeUrl: NODE_URL,
+  chainId: STARKNET_CHAIN_ID
+});
