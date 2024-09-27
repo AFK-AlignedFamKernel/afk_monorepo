@@ -8,7 +8,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
       - name: Scarb version
         run: scarb --version
@@ -17,12 +17,12 @@ jobs:
         run: scarb fmt --check
         working-directory: onchain/cairo
       - name: Build cairo programs
-        run: scarb build
+        run: scarb build --verbose || (echo "Build failed"; exit 1)
         working-directory: onchain/cairo
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
       - name: Scarb version
         run: scarb --version
@@ -32,5 +32,5 @@ jobs:
         with:
           starknet-foundry-version: '0.25.0'
       - name: Run cairo tests
-        run: snforge test
+        run: snforge test --verbose || (echo "Tests failed"; exit 1)
         working-directory: onchain/cairo
