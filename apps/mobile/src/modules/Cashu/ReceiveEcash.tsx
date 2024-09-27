@@ -13,7 +13,7 @@ import { Button, IconButton, Input } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import { getDecodedToken, GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
 import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
@@ -91,10 +91,31 @@ export const ReceiveEcash = () => {
       const wallet = await connectCashWallet(cashuMint?.mint)
 
       const quote = await requestMintQuote(Number(invoiceAmount))
-      // setQuote(quote?.request)
+      setQuote(quote?.request)
       console.log("quote", quote)
       setIsLoading(true);
       setIsInvoiceModalVisible(false);
+      const invoicesLocal = await getInvoices()
+
+      const cashuInvoice: ICashuInvoice = {
+        bolt11: quote?.request?.request,
+        quote: quote?.request?.quote,
+        state: quote?.request?.state ?? MintQuoteState.UNPAID,
+        date: new Date().getTime(),
+        amount: Number(invoiceAmount),
+        mint: mintUrl,
+        quoteResponse: quote?.request,
+      }
+  
+      if (invoicesLocal) {
+        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
+        console.log("invoices", invoices)
+        storeInvoices([...invoices, cashuInvoice])
+  
+      } else {
+        console.log("no old invoicesLocal", invoicesLocal)
+        storeInvoices([cashuInvoice])
+      }
     } catch (error) {
       console.error('Error generating invoice:', error);
     } finally {
