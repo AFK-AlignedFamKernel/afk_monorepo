@@ -74,7 +74,7 @@ export const useBookmark = (userPublicKey: string) => {
   
     // Combine bookmarks with note data
     const bookmarksWithNotes = bookmarks.map(bookmark => {
-      const bookmarkedNotes = bookmark.tags
+      const bookmarkedNotes = bookmark?.tags
         .filter(tag => tag[0] === 'e')
         .map(tag => noteMap.get(tag[1]));
   
@@ -102,7 +102,7 @@ export const useBookmark = (userPublicKey: string) => {
       }
 
       let bookmarks = await fetchBookmarks();
-      let bookmarkEvent = bookmarks.find((e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
+      let bookmarkEvent = bookmarks.find((e) => e?.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
 
       console.log('bookmarkEvent', bookmarkEvent);
 
@@ -147,7 +147,7 @@ export const useBookmark = (userPublicKey: string) => {
     mutationKey: ['bookmarks', ndk],
     mutationFn: async ({ eventId, category }: RemoveBookmarkParams) => {
       let bookmarks = await fetchBookmarks();
-      let bookmarkEvent = bookmarks.find((e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
+      let bookmarkEvent = bookmarks.find((e) => e?.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList));
 
       if (!bookmarkEvent) {
         throw new Error('Bookmark not found');

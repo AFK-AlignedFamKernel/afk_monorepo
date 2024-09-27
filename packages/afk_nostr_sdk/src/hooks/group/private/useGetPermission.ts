@@ -93,7 +93,7 @@ export const useGetGroupPermission = (groupId: string) => {
       if (!events || events.size === 0) return [];
 
       // Sort events by creation time (descending) to get the latest
-      const sortedEvents = [...events].sort((a, b) => b.created_at - a.created_at);
+      const sortedEvents = [...events].sort((a, b) => b?.created_at - a?.created_at);
 
       // Get the latest event
       const latestEvent = sortedEvents[0];

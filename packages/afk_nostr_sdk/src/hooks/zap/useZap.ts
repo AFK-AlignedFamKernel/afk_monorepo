@@ -44,6 +44,7 @@ interface ISendZapNote {
   event: NDKEvent;
   amount: number;
   lud16?: string;
+  // @ts-ignore: Suppress implicit any for options object
   options?: { comment, unit, signer, tags, onLnPay, onCashuPay, onComplete, }
 }
 export const useSendZapNote = () => {

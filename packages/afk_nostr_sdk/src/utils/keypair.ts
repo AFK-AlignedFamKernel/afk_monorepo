@@ -34,6 +34,7 @@ export const generateRandomBytes = () => {
 
 
 // Generate a shared secret from the private key of one party and the public key of the other
+// @ts-ignore: Suppress implicit any for options object
 export function generateSharedSecret(privateKey, publicKey) {
     // Ensure the keys are in the correct format (hex string for secp256k1)
     const sharedSecret = getSharedSecret(privateKey, publicKey);

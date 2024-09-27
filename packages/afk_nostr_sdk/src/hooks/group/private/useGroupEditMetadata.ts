@@ -45,7 +45,7 @@ export const useGroupEditMetadata = () => {
       }
       const editedTag = objectToTagArray(data.meta);
 
-      event.content = data.meta.name;
+      event.content = data?.meta?.name || '';
       event.kind = NDKKind.GroupAdminEditMetadata;
       event.tags = [['h', data.groupId], ['d', data.groupId], ...editedTag];
 
