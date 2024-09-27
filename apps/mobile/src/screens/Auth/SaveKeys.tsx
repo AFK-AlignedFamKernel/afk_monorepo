@@ -35,13 +35,13 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
           type: 'primary',
           label: 'Copy private key',
           onPress: async () => {
-            handleCopy("privateKey")
+            handleCopy('privateKey');
             hideDialog();
           },
         },
         {
           type: 'primary',
-          label: "Yes",
+          label: 'Yes',
           onPress: async () => {
             setAuth(publicKey, privateKey);
 
@@ -55,7 +55,6 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
         },
       ],
     });
-
   };
 
   return (

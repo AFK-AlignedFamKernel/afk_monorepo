@@ -57,7 +57,7 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
   const comments = useReplyNotes({noteId: event?.id});
   const react = useReact();
   const queryClient = useQueryClient();
-  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -97,7 +97,7 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
   const toggleLike = async () => {
     if (!event?.id) return;
 
-    await handleCheckNostrAndSendConnectDialog()
+    await handleCheckNostrAndSendConnectDialog();
 
     await react.mutateAsync(
       {event, type: isLiked ? 'dislike' : 'like'},

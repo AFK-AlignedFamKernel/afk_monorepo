@@ -32,8 +32,7 @@ export const DirectMessages: React.FC = () => {
 
   return (
     <>
-
-    <Text>Private message coming soon</Text>
+      <Text>Private message coming soon</Text>
       <FormPrivateMessage></FormPrivateMessage>
 
       {selectedConversation ? (

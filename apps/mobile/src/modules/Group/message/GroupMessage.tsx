@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import {useQueryClient} from '@tanstack/react-query';
 import {
   AdminGroupPermission,
   useAuth,
@@ -9,7 +9,7 @@ import {
   useProfile,
   useSendGroupMessages,
 } from 'afk_nostr_sdk';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,30 +21,30 @@ import {
   View,
 } from 'react-native';
 
-import { BackIcon, MenuIcons } from '../../../assets/icons';
-import { Button, IconButton, Input, KeyboardFixedView } from '../../../components';
-import { useNostrAuth, useStyles } from '../../../hooks';
-import { useToast } from '../../../hooks/modals';
-import { GroupChatScreenProps } from '../../../types';
+import {BackIcon, MenuIcons} from '../../../assets/icons';
+import {Button, IconButton, Input, KeyboardFixedView} from '../../../components';
+import {useNostrAuth, useStyles} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
+import {GroupChatScreenProps} from '../../../types';
 import stylesheet from './styles';
 
-const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
-  const { publicKey } = useAuth();
+const GroupChat: React.FC<GroupChatScreenProps> = ({navigation, route}) => {
+  const {publicKey} = useAuth();
   const groupId = route.params.groupId;
-  const memberListData = useGetGroupMemberList({ groupId });
-  const profile = useProfile({ publicKey });
+  const memberListData = useGetGroupMemberList({groupId});
+  const profile = useProfile({publicKey});
   const [menuVisible, setMenuVisible] = useState(false);
   const [replyToId, setReplyToId] = useState(null);
   const [replyToContent, setReplyToContent] = useState('');
   const [selectedMessageId, setSelectedMessageId] = useState(null);
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const { data: messageData } = useGetGroupMessages({ groupId, authors: publicKey });
-  const { mutate, mutateAsync } = useSendGroupMessages();
+  const {showToast} = useToast();
+  const {data: messageData} = useGetGroupMessages({groupId, authors: publicKey});
+  const {mutate, mutateAsync} = useSendGroupMessages();
   const styles = useStyles(stylesheet);
   const [message, setMessage] = useState('');
-  const { data: permissionData } = useGetGroupPermission(route.params.groupId);
-  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
+  const {data: permissionData} = useGetGroupPermission(route.params.groupId);
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   // const isMember = memberListData?.data?.pages?.flat().some((e: NDKEvent) => {
   //   const pubkey = e?.tags?.find((tag: string[]) => tag[0] === 'p')?.[1];
@@ -69,7 +69,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
 
   const sendMessage = async () => {
     if (!message) return;
-    await handleCheckNostrAndSendConnectDialog()
+    await handleCheckNostrAndSendConnectDialog();
 
     await mutateAsync(
       {
@@ -81,8 +81,8 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
       },
       {
         onSuccess() {
-          showToast({ type: 'success', title: 'Message sent successfully' });
-          queryClient.invalidateQueries({ queryKey: ['getGroupMessages', groupId] });
+          showToast({type: 'success', title: 'Message sent successfully'});
+          queryClient.invalidateQueries({queryKey: ['getGroupMessages', groupId]});
           setMessage('');
           cancelReply();
         },
@@ -147,7 +147,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
 
       <FlatList
         data={messageData.pages.flat()}
-        renderItem={({ item }: any) => <MessageCard handleLongPress={handleLongPress} item={item} />}
+        renderItem={({item}: any) => <MessageCard handleLongPress={handleLongPress} item={item} />}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={styles.messageList}
         inverted
@@ -155,7 +155,7 @@ const GroupChat: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
 
       {replyToId && <ReplyIndicator message={replyToContent} onCancel={cancelReply} />}
 
-      <KeyboardFixedView containerProps={{ style: styles.inputContainer }}>
+      <KeyboardFixedView containerProps={{style: styles.inputContainer}}>
         <View style={styles.inputContent}>
           <Input
             multiline
@@ -189,9 +189,9 @@ const NoAccessScreen = ({
   groupName: string;
   groupId: string;
 }) => {
-  const { showToast } = useToast();
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
-  const { mutate: joinRequest } = useJoinGroupRequest();
+  const {mutate: joinRequest} = useJoinGroupRequest();
   const styles = useStyles(stylesheet);
   return (
     <SafeAreaView style={styles.container}>
@@ -228,8 +228,8 @@ const NoAccessScreen = ({
               },
               {
                 onSuccess() {
-                  showToast({ type: 'success', title: 'Request Sent successfully' });
-                  queryClient.invalidateQueries({ queryKey: ['getGroupRequest', groupId] });
+                  showToast({type: 'success', title: 'Request Sent successfully'});
+                  queryClient.invalidateQueries({queryKey: ['getGroupRequest', groupId]});
                 },
                 onError() {
                   showToast({
@@ -281,7 +281,7 @@ const MessageCard = ({
   );
 };
 
-const ReplyIndicator = ({ message, onCancel }: { onCancel: () => void; message: string }) => {
+const ReplyIndicator = ({message, onCancel}: {onCancel: () => void; message: string}) => {
   const styles = useStyles(stylesheet);
   return (
     <View style={styles.replyIndicator}>
@@ -312,7 +312,7 @@ const LongPressMenu = ({
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <View style={styles.menuContainer}>
           <Pressable style={styles.menuItem} onPress={onReply}>
-            <Text style={{ color: 'white' }}>Reply Message</Text>
+            <Text style={{color: 'white'}}>Reply Message</Text>
           </Pressable>
         </View>
       </Pressable>

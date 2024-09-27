@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from 'react';
+import {KeyboardAvoidingView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
-import { Swap } from '../../components/Swap';
+import {TextButton} from '../../components';
+import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import { TOKENSMINT } from '../../constants/tokens';
-import { useStyles } from '../../hooks';
-import { LightningNetworkWalletView } from '../../modules/Lightning';
-import { WalletScreenBTC } from '../../types';
-import { SelectedTab, TABS_DEFI } from '../../types/tab';
+import {TOKENSMINT} from '../../constants/tokens';
+import {useStyles} from '../../hooks';
+import {LightningNetworkWalletView} from '../../modules/Lightning';
+import {WalletScreenBTC} from '../../types';
+import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
-import {
-  CashuWalletView
-} from '../../modules/Cashu';
+import {CashuWalletView} from '../../modules/Cashu';
 
-export const WalletBTC: React.FC<WalletScreenBTC> = ({ navigation }) => {
+export const WalletBTC: React.FC<WalletScreenBTC> = ({navigation}) => {
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.LIGHTNING_NETWORK_WALLET,
+  );
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -45,7 +45,7 @@ export const WalletBTC: React.FC<WalletScreenBTC> = ({ navigation }) => {
           {/* <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text> */}
 
           {selectedTab == SelectedTab.BTC_FI_VAULT && (
-            <View style={{ display: 'flex', alignItems: 'center' }}>
+            <View style={{display: 'flex', alignItems: 'center'}}>
               <Swap
                 tokensIns={TOKENSMINT}
                 tokenOut={TOKENSMINT.WBTC}
@@ -69,7 +69,6 @@ export const WalletBTC: React.FC<WalletScreenBTC> = ({ navigation }) => {
               <LightningNetworkWalletView></LightningNetworkWalletView>
             </View>
           )}
-
 
           {selectedTab == SelectedTab.CASHU_WALLET && (
             <View>

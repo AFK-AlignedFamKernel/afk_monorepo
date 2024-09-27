@@ -1,33 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, ScrollView } from 'react-native';
-import { useAuth, useProfile } from 'afk_nostr_sdk';
-import { useQueryAllCoins } from '../../../hooks/launchpad/useQueryAllCoins';
-import { useStyles, useTheme } from '../../../hooks';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, FlatList, ActivityIndicator, ScrollView} from 'react-native';
+import {useAuth, useProfile} from 'afk_nostr_sdk';
+import {useQueryAllCoins} from '../../../hooks/launchpad/useQueryAllCoins';
+import {useStyles, useTheme} from '../../../hooks';
 import stylesheet from './styles';
-import { TokenLaunchDetail } from '../../../components/pump/TokenLaunchDetail';
-import { TokenLaunchInterface } from '../../../types/keys';
+import {TokenLaunchDetail} from '../../../components/pump/TokenLaunchDetail';
+import {TokenLaunchInterface} from '../../../types/keys';
 
-const tabs = ['Pump','Trending', 'Quests'];
+const tabs = ['Pump', 'Trending', 'Quests'];
 
 const RightSidebar = () => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
   const publicKey = useAuth((state) => state.publicKey);
-  const { data: profile } = useProfile({ publicKey });
+  const {data: profile} = useProfile({publicKey});
 
-  const { data: coins, isLoading, error } = useQueryAllCoins();
+  const {data: coins, isLoading, error} = useQueryAllCoins();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
 
-  const renderListItem = ({ item }: { item: TokenLaunchInterface }) => (
+  const renderListItem = ({item}: {item: TokenLaunchInterface}) => (
     <View style={styles.itemContainer}>
       <TokenLaunchDetail
         launch={item}
-        // isViewDetailDisabled={true} 
+        // isViewDetailDisabled={true}
         isDisabledInfo={true}
         isDisabledForm={true}
       />
@@ -48,23 +48,18 @@ const RightSidebar = () => {
         ))}
       </View>
       <View>
-
-        {activeTab === "Trending" &&
-        (
+        {activeTab === 'Trending' && (
           <View>
-            <Text style={{ color: theme.colors.text }}>Trending coming soon</Text>
+            <Text style={{color: theme.colors.text}}>Trending coming soon</Text>
             {/* TODO trending note NIP */}
-
           </View>
-        )
-        
-        }
+        )}
         {activeTab === 'Pump' && (
           <>
             {isLoading ? (
               <ActivityIndicator size="large" color={theme.colors.text} />
             ) : error ? (
-              <Text style={{ color: theme.colors.text }}>Failed to load coins</Text>
+              <Text style={{color: theme.colors.text}}>Failed to load coins</Text>
             ) : (
               <ScrollView>
                 <FlatList
@@ -73,20 +68,21 @@ const RightSidebar = () => {
                   keyExtractor={(item) => item.token_address.toString()}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  ListEmptyComponent={<Text style={{ color: theme.colors.text }}>No coins available</Text>}
+                  ListEmptyComponent={
+                    <Text style={{color: theme.colors.text}}>No coins available</Text>
+                  }
                   ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
                 />
               </ScrollView>
-
             )}
           </>
         )}
         {activeTab === 'Quests' && (
           <>
             {profile ? (
-              <Text style={{ color: theme.colors.text }}>NIP05: {profile.nip05}</Text>
+              <Text style={{color: theme.colors.text}}>NIP05: {profile.nip05}</Text>
             ) : (
-              <Text style={{ color: theme.colors.text }}>...</Text>
+              <Text style={{color: theme.colors.text}}>...</Text>
             )}
           </>
         )}

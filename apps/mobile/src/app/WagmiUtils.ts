@@ -1,4 +1,4 @@
-import { CreateConfigParameters } from 'wagmi';
+import {CreateConfigParameters} from 'wagmi';
 import {
   arbitrum,
   mainnet,
@@ -11,7 +11,7 @@ import {
   base,
   celo,
   aurora,
-  sepolia
+  sepolia,
 } from 'wagmi/chains';
 
 export const chains = [
@@ -26,5 +26,5 @@ export const chains = [
   base,
   celo,
   aurora,
-  sepolia
+  sepolia,
 ] as CreateConfigParameters['chains'];
