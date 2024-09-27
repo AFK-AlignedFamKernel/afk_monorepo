@@ -1,10 +1,9 @@
-import {useAuth, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
-import {ColorProp, ThemeColorNames} from '../styles';
-import {useTheme} from './useTheme';
-import {useMemo} from 'react';
-import {useDialog} from './modals';
-import {MainStackNavigationProps} from '../types';
 import {useNavigation} from '@react-navigation/native';
+import {useAuth, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
+import {useMemo} from 'react';
+
+import {MainStackNavigationProps} from '../types';
+import {useDialog} from './modals';
 
 export const useNostrAuth = () => {
   const {publicKey} = useAuth();

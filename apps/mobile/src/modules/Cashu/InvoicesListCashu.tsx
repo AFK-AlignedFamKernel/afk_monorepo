@@ -1,54 +1,29 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
+import {getEncodedToken, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
 import {
   getProofs,
   ICashuInvoice,
   storeProofs,
   storeTransactions,
-  useAuth,
   useCashu,
   useCashuStore,
   useNostrContext,
-  useSendZap,
 } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import React, {useEffect, useState} from 'react';
+import {FlatList, Platform, ScrollView, TouchableOpacity, View} from 'react-native';
+import {Text} from 'react-native';
 
-import {Button, Divider, IconButton, Input} from '../../components';
+import {CopyIconStack} from '../../assets/icons';
+import {Button, Divider, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {
-  CashuMint,
-  getEncodedToken,
-  MintQuoteResponse,
-  MintQuoteState,
-  Proof,
-} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import {SelectedTab} from '../../types/tab';
+import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
-import {TypeToast} from '../../context/Toast/ToastContext';
+import stylesheet from './styles';
 
 export const InvoicesListCashu = () => {
   const {

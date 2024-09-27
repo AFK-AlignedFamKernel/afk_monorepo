@@ -1,36 +1,27 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {useAuth, useCashu, useCashuStore, useSendZap} from 'afk_nostr_sdk';
-import * as Clipboard from 'expo-clipboard';
+import {MintQuoteResponse} from '@cashu/cashu-ts';
+import {useCashu, useCashuStore} from 'afk_nostr_sdk';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
 import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {Button, IconButton, Input, Modalize} from '../../components';
+import {Button, IconButton, Modalize} from '../../components';
+import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import TabSelector from '../../components/TabSelector';
+import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
-import {GenerateInvoiceCashu} from './GenerateInvoiceCashu';
+import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import {BalanceCashu} from './BalanceCashu';
-import {MnemonicCashu} from './MnemonicCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
 import {MintListCashu} from './MintListCashu';
-import {useModal} from '../../hooks/modals/useModal';
+import {MnemonicCashu} from './MnemonicCashu';
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
+import stylesheet from './styles';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');

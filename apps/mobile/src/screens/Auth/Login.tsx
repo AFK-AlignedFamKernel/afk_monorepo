@@ -1,3 +1,4 @@
+import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
 import {useNavigation} from '@react-navigation/native';
 import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
@@ -20,7 +21,6 @@ import {
   storeCashuMnemonic,
   storeCashuSeed,
 } from '../../utils/storage';
-import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
 
 export const Login: React.FC<AuthLoginScreenProps> = ({navigation}) => {
   const {theme} = useTheme();

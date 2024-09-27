@@ -1,39 +1,20 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {
-  addProofs,
-  ICashuInvoice,
-  useAuth,
-  useCashu,
-  useCashuStore,
-  useNostrContext,
-  useSendZap,
-} from 'afk_nostr_sdk';
+import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
+import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
+import React, {ChangeEvent, useEffect, useState} from 'react';
+import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Text, TextInput} from 'react-native';
 
-import {Button, IconButton, Input} from '../../components';
+import {CopyIconStack} from '../../assets/icons';
+import {Button, Input} from '../../components';
+import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {getDecodedToken, GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
-
-import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import {usePayment} from '../../hooks/usePayment';
-import TabSelector from '../../components/TabSelector';
+import {SelectedTab} from '../../types/tab';
+import stylesheet from './styles';
 
 export const SendEcash = () => {
   const {ndkCashuWallet, ndkWallet} = useNostrContext();

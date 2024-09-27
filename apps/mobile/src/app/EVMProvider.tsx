@@ -1,12 +1,13 @@
 import '@walletconnect/react-native-compat';
-import {WagmiProvider} from 'wagmi';
-import {mainnet, polygon, optimism, arbitrum, base, sepolia} from 'wagmi/chains';
-import {QueryClientProvider, QueryClient} from '@tanstack/react-query';
-import {Chain} from 'viem';
-import {createAppKit, defaultWagmiConfig, AppKit} from '@reown/appkit-wagmi-react-native';
+
 import {authConnector} from '@reown/appkit-auth-wagmi-react-native';
+import {createAppKit, defaultWagmiConfig} from '@reown/appkit-wagmi-react-native';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 // import { siweConfig } from './SiweUtils';
 import * as Clipboard from 'expo-clipboard';
+import {Chain} from 'viem';
+import {WagmiProvider} from 'wagmi';
+import {mainnet, sepolia} from 'wagmi/chains';
 
 const queryClient = new QueryClient();
 

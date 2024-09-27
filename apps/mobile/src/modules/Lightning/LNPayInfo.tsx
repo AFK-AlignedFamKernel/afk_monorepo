@@ -1,13 +1,15 @@
 import '../../../applyGlobalPolyfills';
+
+import * as Clipboard from 'expo-clipboard';
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
-import {useStyles, useTheme} from '../../hooks';
-import stylesheet from './styles';
-import {Input} from '../../components';
-import {useToast} from '../../hooks/modals';
-import * as Clipboard from 'expo-clipboard';
+
 import {CopyIconStack} from '../../assets/icons';
+import {Input} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import stylesheet from './styles';
 
 export function LNPayInfo({
   setIsInvoiceModalVisible,

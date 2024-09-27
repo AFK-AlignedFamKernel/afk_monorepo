@@ -9,6 +9,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {RootScreenContainer} from '../components';
 import {DialogProvider} from '../context/Dialog';
 import {KeyModalProvider} from '../context/KeysModal';
+import {ModalParentProvider} from '../context/modal/ModalParent';
 import {ThemeProvider} from '../context/Theme';
 import {TipModalProvider} from '../context/TipModal';
 import {TipModalStarknetProvider} from '../context/TipModalStarknet';
@@ -18,8 +19,6 @@ import {TransactionModalProvider} from '../context/TransactionModal';
 import {WalletModalProvider} from '../context/WalletModal';
 import App from './App';
 import {StarknetProvider} from './StarknetProvider';
-import {EVMProvider} from './EVMProvider';
-import {ModalParentProvider} from '../context/modal/ModalParent';
 const queryClient = new QueryClient({
   defaultOptions: {queries: {retry: 2}},
 });

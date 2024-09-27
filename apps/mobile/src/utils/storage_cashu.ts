@@ -1,9 +1,8 @@
+import {MeltQuoteResponse, Proof, Token} from '@cashu/cashu-ts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import {Platform} from 'react-native';
 
-import {pbkdf2Decrypt, pbkdf2Encrypt, PBKDF2EncryptedObject} from './encryption';
-import {MeltQuoteResponse, Proof, Token} from '@cashu/cashu-ts';
 import {ICashuInvoice} from '../types/wallet';
 
 const isSecureStoreAvailable = Platform.OS === 'android' || Platform.OS === 'ios';

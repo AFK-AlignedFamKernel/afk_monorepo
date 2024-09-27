@@ -3,21 +3,21 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {Fraction} from '@uniswap/sdk-core';
 import {useProfile} from 'afk_nostr_sdk';
+import {useState} from 'react';
 import {ImageSourcePropType, View} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useWalletModal} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenLaunchInterface} from '../../../types/keys';
 import {feltToAddress} from '../../../utils/format';
 import {decimalsScale} from '../../../utils/helpers';
 import {Button} from '../../Button';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import {LaunchActionsForm} from '../../LaunchActionsForm';
-import {useState} from 'react';
-import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
-import {useWalletModal} from '../../../hooks/modals';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;

@@ -4,7 +4,8 @@ import {NavigationContainer, useNavigation, useRoute} from '@react-navigation/na
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useMemo, useState} from 'react';
-import {Dimensions, Linking, Platform, StyleSheet, useWindowDimensions, View} from 'react-native';
+import {Dimensions, Platform, StyleSheet, useWindowDimensions, View} from 'react-native';
+
 import {Icon} from '../components';
 import {Navbar} from '../components/Navbar';
 import {useStyles, useTheme} from '../hooks';
@@ -13,11 +14,13 @@ import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import DegensSidebar from '../modules/Layout/degens-sidebar';
+import RightSidebar from '../modules/Layout/RightSideBar';
 import Sidebar from '../modules/Layout/sidebar';
 import {CreateAccount} from '../screens/Auth/CreateAccount';
 import {ImportKeys} from '../screens/Auth/ImportKeys';
 import {Login} from '../screens/Auth/Login';
 import {SaveKeys} from '../screens/Auth/SaveKeys';
+import {CashuScreen} from '../screens/Cashu';
 import {ChannelDetail} from '../screens/ChannelDetail';
 import {ChannelsFeed} from '../screens/ChannelsFeed';
 import {CreateChannel} from '../screens/CreateChannel';
@@ -34,6 +37,7 @@ import {Profile} from '../screens/Profile';
 import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {Tips} from '../screens/Tips';
+import {WalletBTC} from '../screens/Wallet';
 import {Whatever} from '../screens/Whatever';
 import {ThemedStyleSheet} from '../styles';
 import {
@@ -45,9 +49,6 @@ import {
   RootStackParams,
 } from '../types';
 import {retrievePublicKey} from '../utils/storage';
-import RightSidebar from '../modules/Layout/RightSideBar';
-import {CashuScreen} from '../screens/Cashu';
-import {WalletBTC} from '../screens/Wallet';
 const DrawerStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();

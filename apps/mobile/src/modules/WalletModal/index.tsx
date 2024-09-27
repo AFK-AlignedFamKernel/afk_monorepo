@@ -82,7 +82,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
           }}
           style={styles.connector}
         >
-          <Text weight="semiBold">{'Connect EVM'}</Text>
+          <Text weight="semiBold">Connect EVM</Text>
         </Pressable>
       </View>
 

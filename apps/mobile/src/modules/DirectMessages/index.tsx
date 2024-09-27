@@ -1,6 +1,6 @@
 import {useMyGiftWrapMessages, useMyMessagesSent} from 'afk_nostr_sdk';
 import React, {useEffect, useState} from 'react';
-import {FlatList, View, Text} from 'react-native';
+import {FlatList, Text, View} from 'react-native';
 
 import {Conversation as ConversationPreview} from '../../components';
 import {Chat} from '../../components/PrivateMessages/Chat';

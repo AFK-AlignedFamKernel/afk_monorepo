@@ -1,5 +1,5 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useLN, useProfile, useSendZap, useSendZapNote} from 'afk_nostr_sdk';
+import {useLN, useProfile, useSendZapNote} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 

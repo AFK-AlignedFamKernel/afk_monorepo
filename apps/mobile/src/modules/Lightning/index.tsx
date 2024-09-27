@@ -1,22 +1,21 @@
 import '../../../applyGlobalPolyfills';
 
 import {webln} from '@getalby/sdk';
-import {useAuth, useConnectNWC, useLN, useNostrContext, useSendZap} from 'afk_nostr_sdk';
+import {useAuth, useLN, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Platform, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {Modal, Text, TextInput} from 'react-native';
 import {WebView} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {Button, IconButton} from '../../components';
+import {Button} from '../../components';
 import {useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {SendPaymentResponse} from '@webbtc/webln-types';
-import {ZapUserView} from './ZapUserView';
-import {LNWalletInfo} from './LNWalletInfo';
 import {LNPayInfo} from './LNPayInfo';
+import {LNWalletInfo} from './LNWalletInfo';
+import stylesheet from './styles';
+import {ZapUserView} from './ZapUserView';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -242,8 +241,8 @@ export const LightningNetworkWallet = () => {
                   {isLoading
                     ? 'Connecting...'
                     : isExtensionAvailable
-                      ? 'Connect with Alby Extension'
-                      : 'Connect with Alby NWC'}
+                    ? 'Connect with Alby Extension'
+                    : 'Connect with Alby NWC'}
                 </Text>
               </Button>
             </View>

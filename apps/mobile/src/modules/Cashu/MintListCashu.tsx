@@ -1,20 +1,11 @@
 import '../../../applyGlobalPolyfills';
 
 import {useCashu, useCashuMintList, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {FlatList, RefreshControl, SafeAreaView, View} from 'react-native';
+import {Text} from 'react-native';
 
-import {useStyles, useTheme} from '../../hooks';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 
 export const MintListCashu = () => {

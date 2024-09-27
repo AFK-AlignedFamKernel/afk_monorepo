@@ -1,3 +1,4 @@
+import {useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';
@@ -16,7 +17,6 @@ import {
   storePrivateKey,
   storePublicKey,
 } from '../../utils/storage';
-import {useAuth, useCashu, useCashuStore} from 'afk_nostr_sdk';
 
 export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
