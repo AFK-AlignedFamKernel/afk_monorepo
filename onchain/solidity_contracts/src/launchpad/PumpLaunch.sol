@@ -121,7 +121,7 @@ contract PumpLaunch is
     /** TODO Opti mapping */
     mapping(uint256 => Token) public tokens;
     mapping(address => Token) public tokensCreated;
-    mapping(uint256 => TokenLaunch) public launchs;
+    mapping(uint256 => TokenLaunch) public launches;
     mapping(address => TokenLaunch) public launchCreated;
     mapping(address => mapping(address => SharesTokenUser))
         public shareUserByToken;
@@ -480,7 +480,7 @@ contract PumpLaunch is
 
         // uint256 k = thresholdLiquidity * availableSupply;
         // @TODO fix overflow issue if not divided
-        // Check availaible supply percentage etc
+        // Check available supply percentage etc
         uint256 k = (thresholdLiquidity * availableSupply) / 10 ** 18;
 
         uint256 tokenHold = launch.token_holded;
