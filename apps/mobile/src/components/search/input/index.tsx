@@ -39,10 +39,10 @@ const SearchInput = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
     borderRadius: 20,
+    flexDirection: 'row',
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
     fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
 });
 

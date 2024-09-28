@@ -13,18 +13,18 @@ export default StyleSheet.create({
     // backgroundColor: '#ddd',
   },
 
-  imageContainer: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 15,
-  },
   image: {
+    borderRadius: 15,
+    height: 35,
     position: 'absolute',
     width: 35,
-    height: 35,
+  },
+  imageContainer: {
+    alignItems: 'center',
     borderRadius: 15,
+    display: 'flex',
+    justifyContent: 'center',
+    position: 'relative',
   },
 
   name: {

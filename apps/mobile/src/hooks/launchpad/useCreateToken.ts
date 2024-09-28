@@ -15,10 +15,10 @@ export type DeployTokenFormValues = {
 export const useCreateToken = () => {
   const deployToken = async (account: AccountInterface, data: DeployTokenFormValues) => {
     const CONTRACT_ADDRESS_SALT_DEFAULT =
-      (data?.contract_address_salt ??
-      (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN)
+      data?.contract_address_salt ??
+      ((await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
         ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
-        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
+        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6');
 
     console.log('deployCall');
 
@@ -51,10 +51,10 @@ export const useCreateToken = () => {
 
   const deployTokenAndLaunch = async (account: AccountInterface, data: DeployTokenFormValues) => {
     const CONTRACT_ADDRESS_SALT_DEFAULT =
-      (data?.contract_address_salt ??
-      (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN)
+      data?.contract_address_salt ??
+      ((await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
         ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
-        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
+        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6');
 
     const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 

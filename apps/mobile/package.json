@@ -12,13 +12,15 @@
     "web": "expo start --web",
     "postinstall": "patch-package",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "format:check": "prettier -c \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:strict": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
-    "lint:fix": "pnpm lint --fix",
+    "lint:no-warnings": "eslint --quiet \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{ts,tsx}\"",
     "ts:check": "tsc --noEmit",
     "check:all": "pnpm check && pnpm format:check && pnpm lint && pnpm ts:check",
-    "check:all-strict": "pnpm check && pnpm format:check && pnpm lint:strict && pnpm ts:check"
+    "check:all-strict": "pnpm check && pnpm format:check && pnpm lint:strict && pnpm ts:check",
+    "fix:all": "prettier --write \"src/**/*.{ts,tsx}\" && eslint --fix \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@babel/runtime": "^7.24.8",
@@ -113,13 +115,13 @@
     "@uniswap/eslint-config": "^1.2.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-native": "^4.1.0",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.3",
     "typescript": "~5.3.3"
   },
   "private": true

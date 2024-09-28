@@ -33,8 +33,8 @@ const TwitterCard = ({tweetId}: TwitterCardInterface) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: Dimensions.get('window').width,
-    height: 300, // Adjust height accordingly
+    height: 300,
+    width: Dimensions.get('window').width, // Adjust height accordingly
   },
 });
 

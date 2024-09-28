@@ -238,11 +238,12 @@ export const LightningNetworkWallet = () => {
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading
-                    ? 'Connecting...'
-                    : isExtensionAvailable
+                  {(() => {
+                    if (isLoading) return 'Connecting...';
+                    return isExtensionAvailable
                       ? 'Connect with Alby Extension'
-                      : 'Connect with Alby NWC'}
+                      : 'Connect with Alby NWC';
+                  })()}
                 </Text>
               </Button>
             </View>

@@ -1,7 +1,11 @@
 require('@uniswap/eslint-config/load');
 
 module.exports = {
-  extends: ['@uniswap/eslint-config/react'],
+  extends: [
+    '@uniswap/eslint-config/react',
+    'plugin:react-native/all',
+    'prettier'
+  ],
 
   env: {
     'react-native/react-native': true,
@@ -10,12 +14,15 @@ module.exports = {
   plugins: ['react', 'react-native', 'react-hooks'],
 
   rules: {
-    'prettier/prettier': [
-      'error',
-      {
-        endOfLine: 'auto',
-      },
-    ],
+    'prettier/prettier': ['error', {
+      // matching .prettierrc
+      "bracketSpacing": false,
+      "singleQuote": true,
+      "trailingComma": "all",
+      "printWidth": 100,
+      "bracketSameLine": false,
+      "endOfLine": "lf"
+    }],
     'no-empty': 'warn',
     '@typescript-eslint/no-empty-function': 'warn',
     'react-hooks/rules-of-hooks': 'error',
@@ -40,6 +47,10 @@ module.exports = {
     'react-native/no-unused-styles': 'off',
     'react-native/no-inline-styles': 'off',
     'react-native/no-color-literals': 'off',
+  },
+
+  settings: {
+    'react-native/style-sheet-object-names': ['StyleSheet', 'ViewStyle', 'TextStyle', 'ImageStyle'],
   },
 
   overrides: [

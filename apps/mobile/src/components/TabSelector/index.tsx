@@ -47,27 +47,27 @@ const TabSelector: React.FC<ITabSelector> = ({
 };
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    height: 50, // Set a fixed height for the tab container
-    backgroundColor: '#f0f0f0', // Optional: background color for the entire tab bar
-  },
-  container: {
-    alignItems: 'center', // Ensure the tabs are vertically centered
-    paddingVertical: 5,
-    flexDirection: 'row',
-  },
-
-  tab: {
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+  active: {
+    borderBottomWidth: 2,
+    borderColor: 'blue',
   },
   button: {
     // padding: 10,
   },
-  active: {
-    borderBottomWidth: 2,
-    borderColor: 'blue',
+
+  container: {
+    alignItems: 'center', // Ensure the tabs are vertically centered
+    flexDirection: 'row',
+    paddingVertical: 5,
+  },
+  tab: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'center',
+  },
+  tabContainer: {
+    backgroundColor: '#f0f0f0', // Optional: background color for the entire tab bar
+    height: 50, // Set a fixed height for the tab container
   },
 });
 
