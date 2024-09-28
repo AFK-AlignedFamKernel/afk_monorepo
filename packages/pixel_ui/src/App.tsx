@@ -106,7 +106,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   // Contracts
   // TODO: Pull addrs from api?
   const { contract: artPeaceContract } = useContract({
-    address: process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
+    address: contractAddress ?? process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS,
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({
@@ -583,11 +583,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
 
   // Account
-  const { 
+  const {
     // connect, 
     connectors
 
-   } = useConnect();
+  } = useConnect();
   // const connectWallet = async (connector:any) => {
   //   if (devnetMode) {
   //     setConnected(true);

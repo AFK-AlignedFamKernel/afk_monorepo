@@ -123,79 +123,146 @@ pub mod ArtPeace {
         TemplateEvent: TemplateStoreComponent::Event,
     }
 
+
     const DAY_IN_SECONDS: u64 = consteval_int!(60 * 60 * 24);
 
     #[constructor]
-    fn constructor(ref self: ContractState, init_params: InitParams) {
-        self.host.write(init_params.host);
+    fn constructor(
+        ref self: ContractState,
+        // host: ContractAddress,
+        canvas_width: u128,
+        canvas_height: u128,
+        time_between_pixels: u64,
+        color_palette: Array<u32>,
+        votable_colors: Array<u32>,
+        daily_new_colors_count: u32,
+        start_time: u64,
+        end_time: u64,
+        daily_quests_count: u32,
+        devmode: bool,
+    ) {
+        let caller= starknet::get_caller_address();
+        self.host.write(caller);
 
-        self.canvas_width.write(init_params.canvas_width);
-        self.canvas_height.write(init_params.canvas_height);
-        self.total_pixels.write(init_params.canvas_width * init_params.canvas_height);
+        self.canvas_width.write(canvas_width);
+        self.canvas_height.write(canvas_height);
+        self.total_pixels.write(canvas_width * canvas_height);
 
-        self.time_between_pixels.write(init_params.time_between_pixels);
-        self.time_between_member_pixels.write(init_params.time_between_pixels);
+        self.time_between_pixels.write(time_between_pixels);
+        self.time_between_member_pixels.write(time_between_pixels);
 
-        let color_count: u8 = init_params.color_palette.len().try_into().unwrap();
+        let color_count: u8 = color_palette.len().try_into().unwrap();
         self.color_count.write(color_count);
         let mut i: u8 = 0;
         while i < color_count {
-            self.color_palette.write(i, *init_params.color_palette.at(i.into()));
+            self.color_palette.write(i, *color_palette.at(i.into()));
             // TODO fix events
-            self.emit(ColorAdded { color_key: i, color: *init_params.color_palette.at(i.into()) });
+            self.emit(ColorAdded { color_key: i, color: *color_palette.at(i.into()) });
             i += 1;
         };
 
-        let votable_colors_count: u8 = init_params.votable_colors.len().try_into().unwrap();
+        let votable_colors_count: u8 = votable_colors.len().try_into().unwrap();
         self.votable_colors_count.write(0, votable_colors_count);
         let mut i: u8 = 0;
         while i < votable_colors_count {
-            let new_color = *init_params.votable_colors.at(i.into());
+            let new_color = *votable_colors.at(i.into());
             self.votable_colors.write((i + 1, 0), new_color);
             self.emit(VotableColorAdded { day: 0, color_key: i + 1, color: new_color });
             i += 1;
         };
-        self.daily_new_colors_count.write(init_params.daily_new_colors_count);
+        self.daily_new_colors_count.write(daily_new_colors_count);
 
         self.creation_time.write(starknet::get_block_timestamp());
-        let mut start_time = init_params.start_time;
+        let mut start_time = start_time;
         if start_time == 0 {
             start_time = starknet::get_block_timestamp();
         }
-        self.end_time.write(init_params.end_time);
+        self.end_time.write(end_time);
         self.day_index.write(0);
         self.emit(NewDay { day_index: 0, start_time: start_time });
 
-        if init_params.devmode {
+        if devmode {
             let test_address = starknet::contract_address_const::<
                 0x328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0
             >();
             self.extra_pixels.write(test_address, 1000);
         }
-        self.devmode.write(init_params.devmode);
+        self.devmode.write(devmode);
 
-        self.daily_quests_count.write(init_params.daily_quests_count);
+        self.daily_quests_count.write(daily_quests_count);
     }
+
+    // #[constructor]
+    // fn constructor(ref self: ContractState, init_params: InitParams) {
+    //     self.host.write(init_params.host);
+
+    //     self.canvas_width.write(init_params.canvas_width);
+    //     self.canvas_height.write(init_params.canvas_height);
+    //     self.total_pixels.write(init_params.canvas_width * init_params.canvas_height);
+
+    //     self.time_between_pixels.write(init_params.time_between_pixels);
+    //     self.time_between_member_pixels.write(init_params.time_between_pixels);
+
+    //     let color_count: u8 = init_params.color_palette.len().try_into().unwrap();
+    //     self.color_count.write(color_count);
+    //     let mut i: u8 = 0;
+    //     while i < color_count {
+    //         self.color_palette.write(i, *init_params.color_palette.at(i.into()));
+    //         // TODO fix events
+    //         self.emit(ColorAdded { color_key: i, color: *init_params.color_palette.at(i.into()) });
+    //         i += 1;
+    //     };
+
+    //     let votable_colors_count: u8 = init_params.votable_colors.len().try_into().unwrap();
+    //     self.votable_colors_count.write(0, votable_colors_count);
+    //     let mut i: u8 = 0;
+    //     while i < votable_colors_count {
+    //         let new_color = *init_params.votable_colors.at(i.into());
+    //         self.votable_colors.write((i + 1, 0), new_color);
+    //         self.emit(VotableColorAdded { day: 0, color_key: i + 1, color: new_color });
+    //         i += 1;
+    //     };
+    //     self.daily_new_colors_count.write(init_params.daily_new_colors_count);
+
+    //     self.creation_time.write(starknet::get_block_timestamp());
+    //     let mut start_time = init_params.start_time;
+    //     if start_time == 0 {
+    //         start_time = starknet::get_block_timestamp();
+    //     }
+    //     self.end_time.write(init_params.end_time);
+    //     self.day_index.write(0);
+    //     self.emit(NewDay { day_index: 0, start_time: start_time });
+
+    //     if init_params.devmode {
+    //         let test_address = starknet::contract_address_const::<
+    //             0x328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0
+    //         >();
+    //         self.extra_pixels.write(test_address, 1000);
+    //     }
+    //     self.devmode.write(init_params.devmode);
+
+    //     self.daily_quests_count.write(init_params.daily_quests_count);
+    // }
 
     #[abi(embed_v0)]
     impl ArtPeaceImpl of IArtPeace<ContractState> {
-        fn get_pixel(self: @ContractState, pos: u128) -> Pixel {
-            self.canvas.read(pos)
-        }
+        // fn get_pixel(self: @ContractState, pos: u128) -> Pixel {
+        //     self.canvas.read(pos)
+        // }
 
-        fn get_pixel_color(self: @ContractState, pos: u128) -> u8 {
-            self.canvas.read(pos).color
-        }
+        // fn get_pixel_color(self: @ContractState, pos: u128) -> u8 {
+        //     self.canvas.read(pos).color
+        // }
 
-        fn get_pixel_owner(self: @ContractState, pos: u128) -> ContractAddress {
-            self.canvas.read(pos).owner
-        }
+        // fn get_pixel_owner(self: @ContractState, pos: u128) -> ContractAddress {
+        //     self.canvas.read(pos).owner
+        // }
 
-        fn get_pixel_xy(self: @ContractState, x: u128, y: u128) -> Pixel {
-            let pos = x + y * self.canvas_width.read();
+        // fn get_pixel_xy(self: @ContractState, x: u128, y: u128) -> Pixel {
+        //     let pos = x + y * self.canvas_width.read();
 
-            self.canvas.read(pos)
-        }
+        //     self.canvas.read(pos)
+        // }
 
         fn get_width(self: @ContractState) -> u128 {
             self.canvas_width.read()

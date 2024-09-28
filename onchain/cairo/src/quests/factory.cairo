@@ -64,15 +64,18 @@ pub mod QuestFactory {
         fn claim_reward(ref self: ContractState, quest_id: u32) {
             let caller = get_caller_address();
             let quest = self.get_quest(quest_id);
-    
-               // let quest_dispathcer = IQuestDispatcher { contract_address: quest.address };
+
+            // let quest_dispathcer = IQuestDispatcher { contract_address: quest.address };
             let quest_nft_dispatcher = IQuestNFTDispatcher {
                 contract_address: self.quest_nft.read()
             };
             let vault_dispatcher = IERCVaultDispatcher { contract_address: self.vault.read() };
 
             // check if caller is eligible to claim reward
-            assert(IQuestDispatcher { contract_address: quest.address }.is_claimable(caller), 'Quest not claimable');
+            assert(
+                IQuestDispatcher { contract_address: quest.address }.is_claimable(caller),
+                'Quest not claimable'
+            );
 
             let (token_reward, nft_reward) = self.get_reward(quest.address);
 
@@ -102,6 +105,7 @@ pub mod QuestFactory {
         }
 
         fn get_user_quest_info(self: @ContractState, quest_id: u32) -> UserQuestInfo {
-            self.user_quest_info.read((get_caller_address(), quest_id))}
+            self.user_quest_info.read((get_caller_address(), quest_id))
+        }
     }
 }
