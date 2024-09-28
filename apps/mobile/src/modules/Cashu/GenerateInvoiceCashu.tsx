@@ -96,7 +96,7 @@ export const GenerateInvoiceCashu = () => {
     })();
   }, []);
 
-  const generateInvoice = async () => {
+  const generateInvoice = async (): Promise<void | any> => {
     if (!mintUrl || !invoiceAmount) return;
     try {
       const cashuMint = await connectCashMint(mintUrl);

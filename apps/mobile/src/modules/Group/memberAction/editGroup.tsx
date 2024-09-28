@@ -68,7 +68,7 @@ export const EditGroup = ({
             </View>
             <View style={styles.cardContent}>
               <Input
-                style={styles.input}
+                inputStyle={styles.input}
                 placeholderTextColor={styles.input as unknown as string}
                 placeholder="Enter group name"
                 value={values.name}
@@ -85,7 +85,7 @@ export const EditGroup = ({
               </Picker>
               <SquareInput
                 multiline
-                style={styles.input}
+                inputStyle={styles.input}
                 placeholderTextColor={styles.input as unknown as string}
                 placeholder="About"
                 value={values.about}

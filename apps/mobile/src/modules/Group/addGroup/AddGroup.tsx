@@ -123,7 +123,7 @@ export const CreateGroup: React.FC = () => {
             </View>
             <View style={styles.cardContent}>
               <Input
-                style={styles.input}
+                inputStyle={styles.input}
                 placeholderTextColor={styles.input as unknown as string}
                 placeholder="Enter group name"
                 value={values.groupName}

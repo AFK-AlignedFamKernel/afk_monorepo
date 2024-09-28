@@ -142,6 +142,7 @@ export const ReceiveEcash = () => {
     } finally {
       setIsLoading(false);
     }
+    return;
   };
 
   const handleCopy = async (type: 'lnbc' | 'seed') => {

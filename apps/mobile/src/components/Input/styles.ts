@@ -24,10 +24,11 @@ export default ThemedStyleSheet(
         paddingLeft: Spacing.small,
       }),
 
-      ...(right &&
-        paddingRight && {
-          paddingRight: Spacing.small,
-        }),
+      ...(right && paddingRight
+        ? {
+            paddingRight: Spacing.small,
+          }
+        : {}),
     },
 
     input: {

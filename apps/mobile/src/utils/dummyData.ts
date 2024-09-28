@@ -1,4 +1,4 @@
-import {Conversation} from '../types/messages';
+import {ConversationType as Conversation} from '../types/messages';
 
 export const conversationsData: Conversation[] = [
   {

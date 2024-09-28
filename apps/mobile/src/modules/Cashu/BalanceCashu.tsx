@@ -74,11 +74,7 @@ export const BalanceCashu = () => {
       let proofs: Proof[] = JSON.parse(proofsLocal);
       const proofsSpent = await wallet?.checkProofsSpent(proofs);
       // console.log("proofsSpent", proofsSpent)
-      proofs = proofs?.filter((p) => {
-        if (!proofsSpent?.includes(p)) {
-          return p;
-        }
-      });
+      proofs = proofs?.filter((p) => !proofsSpent?.includes(p));
 
       if (proofsSpent) {
         await addProofsSpent(proofsSpent);

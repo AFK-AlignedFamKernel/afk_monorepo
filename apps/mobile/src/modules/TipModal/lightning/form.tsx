@@ -59,6 +59,10 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
     const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
     console.log('invoice', invoice);
+    if (!invoice?.paymentRequest) {
+      showToast({title: 'An error occurred. Please try again.', type: 'error'});
+      return;
+    }
     const zapExtension = await handleZap(amount, invoice?.paymentRequest);
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
     console.log('zapExtension', zapExtension);

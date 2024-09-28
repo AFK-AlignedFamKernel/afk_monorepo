@@ -9,7 +9,7 @@ import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 
 export const MintListCashu = () => {
-  const {mintUrl, setMintUrl, mint, setMint} = useCashu();
+  const {mintUrl, setMintUrl, mint} = useCashu();
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
   const mintList = useCashuMintList();
 

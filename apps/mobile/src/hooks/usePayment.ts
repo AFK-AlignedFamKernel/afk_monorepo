@@ -75,11 +75,7 @@ export const usePayment = () => {
         const proofsSpent = await wallet?.checkProofsSpent(proofs);
         console.log('proofsSpent', proofsSpent);
 
-        proofs = proofs?.filter((p) => {
-          if (!proofsSpent?.includes(p)) {
-            return p;
-          }
-        });
+        proofs = proofs?.filter((p) => !proofsSpent?.includes(p));
         console.log('proofs', proofs);
         const proofsToUsed: Proof[] = [];
         const totalAmount = proofs.reduce((s, t) => (s += t.amount), 0);
