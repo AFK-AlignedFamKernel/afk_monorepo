@@ -1,5 +1,0 @@
-afk::social::deposit::tests::deposit_claim
-afk::social::deposit::tests::claim_incorrect_gas_amount
-afk::social::deposit::tests::deposit_claim_gas_fee
-afk::tests::launchpad_tests::launchpad_tests::launchpad_integration
-afk::tests::vault_tests::vault_test::test_mint_by_token
