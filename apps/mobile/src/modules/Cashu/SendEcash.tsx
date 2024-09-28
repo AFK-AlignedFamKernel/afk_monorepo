@@ -114,8 +114,14 @@ export const SendEcash = () => {
 
 
   const handleEcash = async () => {
+    console.log("hanldeEcash")
 
-    if(!invoiceAmount) return;
+    if(!invoiceAmount) {
+      return showToast({
+        title:"Please enter an invoice",
+        type:"error"
+      })
+    }
     const ecash = await handleGenerateEcash(Number(invoiceAmount))
 
     if(!ecash) {
@@ -124,7 +130,9 @@ export const SendEcash = () => {
         type:"error"
       })
     }
+    console.log("ecash",ecash)
     setGeneratedInvoice(ecash)
+    return ecash
   }
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -226,7 +234,8 @@ export const SendEcash = () => {
 
 
           <Button
-            onPress={() => invoiceAmount && handleGenerateEcash(Number(invoiceAmount))}
+            onPress={ handleEcash}
+            // onPress={() =>  handleEcash}
           >
 
             Generate eCash

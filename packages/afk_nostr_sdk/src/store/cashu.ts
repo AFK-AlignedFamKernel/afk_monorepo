@@ -1,13 +1,15 @@
 import {createStore} from 'zustand';
 
-import createBoundedUseStore from './createBoundedUseStore';
 import { Proof } from '@cashu/cashu-ts';
+import createBoundedUseStore from './createBoundedUseStore';
+import { Contact } from '../types';
 
-type State = {
+interface State  {
   publicKey: string;
   privateKey: string;
   isExtension?: boolean;
   nwcUrl?: string;
+  mintUrl?: string;
 
   // Cashu store auth
   isSeedCashuStorage?: boolean;
@@ -18,9 +20,11 @@ type State = {
   proofs?: Proof[];
   useNostr?: boolean;
   pendingTokens?:string[];
+  contacts:Contact[];
+  activeBalance:number;
 };
 
-type Action = {
+interface Action {
   setAuth: (publicKey: string, privateKey: string) => void;
   setPublicKey: (publicKey: string) => void;
   setIsExtensionConnect: (isExtension: boolean) => void;
@@ -34,9 +38,14 @@ type Action = {
   setProofs: (proofs:Proof[]) => void;
   setMintsRequests: (mintRequests:string[]) => void;
   setNWCUrl: (nwcUrl:string) => void;
+
+  setContacts: (contacts:Contact[]) => void;
+  setMintUrl: (mintUrl:string) => void;
+  setActiveBalance:(balance:number) => void;
+
 };
 
-export const cashuStore = createStore<State & Action>((set, get) => ({
+export const cashuStore = createStore<State & Action>((set) => ({
   // publicKey and privateKey are set to undefined but we know they are strings
   // so we can cast them as strings without hassle in the app
   publicKey: undefined as unknown as string,
@@ -47,6 +56,9 @@ export const cashuStore = createStore<State & Action>((set, get) => ({
   mints: undefined as unknown as string[],
   mintRequests: undefined as unknown as string[],
   proofs: undefined as unknown as Proof[],
+  contacts:[] as Contact[],
+  mintUrl: "https://mint.minibits.cash/Bitcoin" as unknown as string,
+  activeBalance:0 as unknown as number,
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
@@ -80,6 +92,15 @@ export const cashuStore = createStore<State & Action>((set, get) => ({
   },
   setProofs: (proofs) => {
     set({proofs});
+  },
+  setContacts: (contacts) => {
+    set({contacts});
+  },
+  setMintUrl: (mintUrl) => {
+    set({mintUrl});
+  },
+  setActiveBalance: (activeBalance) => {
+    set({activeBalance});
   },
 }));
 

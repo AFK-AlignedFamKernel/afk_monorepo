@@ -17,6 +17,7 @@ export function ZapUserView({
   setNostrLnRecipient,
   nostrLnRecipient,
   zapType,
+  generatedInvoice,
   setZapType
 }: {
   zapRecipient: any;
@@ -30,6 +31,7 @@ export function ZapUserView({
   handleZap: (zapAmount:string, zapRecipient:string) => void;
   setIsZapModalVisible: React.Dispatch<SetStateAction<any>>;
   isLoading: boolean;
+  generatedInvoice?:string;
 }) {
   const styles = useStyles(stylesheet);
   return (
@@ -72,6 +74,7 @@ export function ZapUserView({
             style={styles.input}
           />
         </View>
+
         <TouchableOpacity
           style={[styles.button, isLoading && styles.disabledButton]}
           onPress={() => handleZap(zapAmount, zapRecipient)}

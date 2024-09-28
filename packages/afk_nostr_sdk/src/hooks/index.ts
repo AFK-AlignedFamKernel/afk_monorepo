@@ -42,18 +42,12 @@ export {useLeaveGroupRequest} from './group/private/useLeaveRequest';
 export {useRepost} from './useRepost';
 export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useMyGiftWrapMessages} from './messages/useMyGiftWrapMessages';
-export {useMessagesSent, useMyMessagesSent, useRoomMessages} from './messages/useMyMessagesSent';
+export {useMyMessagesSent, useRoomMessages} from './messages/useMyMessagesSent';
 export { useIncomingMessageUsers} from './messages/useMessageSenders';
 export {useBookmark} from './useBookmark';
 export {useSendZap} from './zap/useZap';
 export {useConnectNWC} from './zap/useZap';
 export {useSendZapNote} from './zap/useZap';
-export {useLN} from './ln';
+export {useLN} from "./ln";
 
-export {
-  useCashu,
-  useCashuMintList,
-  useCashuSendWalletInfo,
-  useCashuSpendingToken,
-  useCashuTokenSend,
-} from './cashu';
+export {useCashu, useCashuMintList, useCashuSendWalletInfo, useCashuSpendingToken, useCashuTokenSend, useCashuBalance} from "./cashu"

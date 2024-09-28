@@ -18,7 +18,7 @@ import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { useGetCashuWalletsInfo } from 'afk_nostr_sdk/src/hooks/cashu';
+import { useCashuBalance, useGetCashuWalletsInfo } from 'afk_nostr_sdk/src/hooks/cashu';
 
 
 export const BalanceCashu = () => {
@@ -30,12 +30,12 @@ export const BalanceCashu = () => {
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     mintUrl, setMintUrl,
-    balance,
-    setBalance
+ 
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
+  const {balance, setBalance} = useCashuBalance()
 
 
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")

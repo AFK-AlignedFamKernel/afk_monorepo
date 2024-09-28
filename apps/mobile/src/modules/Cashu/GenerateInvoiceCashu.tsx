@@ -139,7 +139,7 @@ export const GenerateInvoiceCashu = () => {
         // quote: quote?.request?.quote,
         // state: quote?.request?.state,
         date: new Date().getTime(),
-        amount: invoiceAmount,
+        amount: Number(invoiceAmount),
         mint: mintUrl,
         quoteResponse: quote?.request,
         ...quote?.request
@@ -245,7 +245,7 @@ export const GenerateInvoiceCashu = () => {
               }}
             >
 
-              <Text style={styles.text}>Invoice address</Text>
+              {/* <Text style={styles.text}>Invoice address</Text> */}
 
               <Input
                 value={quote?.request}

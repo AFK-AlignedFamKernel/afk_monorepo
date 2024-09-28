@@ -197,10 +197,10 @@ export const CashuView = () => {
 
           {selectedTab == SelectedTab?.CASHU_WALLET &&
             <>
-              <BalanceCashu></BalanceCashu>
               {/* <GenerateInvoiceCashu></GenerateInvoiceCashu> */}
             </>
           }
+          <BalanceCashu></BalanceCashu>
 
 
           <View style={styles.tabSelector}>
@@ -228,6 +228,7 @@ export const CashuView = () => {
 </Modalize> */}
 
             <Modal
+              style={{ zIndex: 10 }}
               animationType="slide"
               transparent={true}
               visible={isZapModalVisible}
@@ -249,6 +250,8 @@ export const CashuView = () => {
               transparent={true}
               visible={isInvoiceModalVisible}
               onRequestClose={() => setIsInvoiceModalVisible(false)}
+              style={{ zIndex: 10 }}
+
             >
 
               {/* <PayInfo
