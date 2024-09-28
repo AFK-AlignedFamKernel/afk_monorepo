@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
+      with:
+          scarb-version: '2.6.5'
       - name: Scarb version
         run: scarb --version
         working-directory: onchain/cairo
@@ -24,6 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: '2.6.5'
       - name: Scarb version
         run: scarb --version
         working-directory: onchain/cairo
