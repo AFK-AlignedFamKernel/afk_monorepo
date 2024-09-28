@@ -102,7 +102,7 @@ export const useSendZapNote = () => {
         return { zap, invoice, preimage: payLnInvoice?.result?.preimage, paymentResponse };
       } catch (e) {
         console.log("issue send zap", e)
-
+        return {};
       }
 
 

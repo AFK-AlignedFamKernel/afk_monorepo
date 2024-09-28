@@ -41,7 +41,7 @@ export const useSendGroupMessages = () => {
       event.tags = [
         ['h', data.groupId],
         ['p', data.pubkey],
-        ['name', data.name],
+        ['name', data.name || ''],
       ];
 
       // Check if it's a reply and append NIP-10 markers

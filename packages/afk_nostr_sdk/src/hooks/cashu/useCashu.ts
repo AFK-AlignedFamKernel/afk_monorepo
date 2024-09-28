@@ -135,6 +135,7 @@ export const useCashu = () => {
             };
         } catch (e) {
             console.log("MintQuote error", e)
+            return;
         }
     }
 
@@ -174,6 +175,7 @@ export const useCashu = () => {
             return meltResponse;
         } catch (e) {
             console.log("Error meltTokens", e)
+            return undefined;
         }
 
     }

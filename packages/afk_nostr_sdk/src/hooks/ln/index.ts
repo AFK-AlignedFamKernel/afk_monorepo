@@ -125,6 +125,7 @@ export const useLN = () => {
             console.error('Failed to zap:', error);
         } finally {
             setIsLoading(false);
+            return undefined;
         }
     };
 
@@ -153,7 +154,7 @@ export const useLN = () => {
                 console.log("pendingNwc", pendingNwc)
                 setPendingNwcUrl(pendingNwc);
                 setNwcAuthUrl(authUrl.toString());
-                setNWCUrl(nwcUrl)
+                setNWCUrl(nwcUrl || '')
                 console.log("authUrl", authUrl)
                 console.log("nwc", nwc)
 
@@ -176,6 +177,7 @@ export const useLN = () => {
                             return webLn
 
                         }
+                        return null;
                     });
                 }
             }
@@ -250,7 +252,8 @@ export const useLN = () => {
 
             return invoice;
         } catch (e) {
-            console.log("Error getInvoiceFromLnAddress", e)
+            console.log("Error getInvoiceFromLnAddress", e);
+            return undefined;
         }
 
     }
@@ -266,8 +269,8 @@ export const useLN = () => {
             }
 
             // if you have the preimage for example in a WebLN context
-            const response = await nostrWebLN.sendPayment(invoice.paymentRequest);
-            const paid = invoice.validatePreimage(response.preimage); // returns true or false
+            const response = await nostrWebLN?.sendPayment(invoice.paymentRequest);
+            const paid = await invoice.validatePreimage(response?.preimage || ''); // returns true or false
             if (paid) {
                 console.log("paid");
             }

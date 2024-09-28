@@ -41,7 +41,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
         until: pageParam || Math.round(Date.now() / 1000),
       });
       [...events]
-        .sort((a, b) => a.created_at - b.created_at)
+        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           let groupId: string;
 
@@ -49,13 +49,13 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
             groupId = event.id;
             groupMap.set(groupId, {event, originalGroupId: groupId});
           } else if (event.kind === NDKKind.GroupAdminEditMetadata) {
-            groupId = event.tags.find((tag) => tag[0] === 'd')?.[1];
+            groupId = event.tags.find((tag) => tag[0] === 'd')?.[1] || '';
             if (groupId && groupMap.has(groupId)) {
               const originalGroupId = groupMap.get(groupId)!.originalGroupId;
               groupMap.set(groupId, {event, originalGroupId});
             }
           } else if (event.kind === GroupAdminDeleteGroup) {
-            groupId = event.tags.find((tag) => tag[0] === 'd')?.[1];
+            groupId = event.tags.find((tag) => tag[0] === 'd')?.[1] || '';
             if (groupId) {
               groupMap.delete(groupId);
             }
@@ -67,7 +67,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
           ...event,
           originalGroupId,
         }))
-        .sort((a, b) => b.created_at - a.created_at);
+        .sort((a, b) => ((b.created_at && a.created_at) ? b.created_at - a.created_at : 0));
 
       return activeGroups;
     },
@@ -87,12 +87,15 @@ export const useGetAllGroupList = (options: UseGetActiveGroupListOptions) => {
     queryKey: ['getAllGroupLists', options.pubKey, options?.search],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
 
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminAddUser],
@@ -117,12 +120,15 @@ export const useGetAllGroupListByMemberAdded = (options: UseGetActiveGroupListOp
     queryKey: ['getAllGroupLists', options.pubKey, options?.search],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
 
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminAddUser],

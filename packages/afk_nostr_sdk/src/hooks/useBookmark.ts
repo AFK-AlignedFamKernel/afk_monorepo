@@ -66,6 +66,7 @@ export const useBookmark = (userPublicKey: string) => {
 
   const fetchBookmarksWithNotes = async () => {
     const bookmarks = await fetchBookmarks();
+    // @ts-ignore
     const noteIds = extractNoteIds(bookmarks);
     const notes = await fetchNotesByIds(noteIds);
   

@@ -33,6 +33,10 @@ export const useSendPrivateMessage = () => {
 
       const { relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content } = data
 
+      if (!receiverPublicKeyProps) {
+        return;
+      }
+
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
       let receiverPublicKey = fixPubKey(receiverPublicKeyProps)
       /** NIP-4 - Encrypted Direct private message  */
