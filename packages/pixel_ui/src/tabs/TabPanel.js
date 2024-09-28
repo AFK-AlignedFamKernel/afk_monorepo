@@ -4,7 +4,8 @@ import React from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
 import { TimerInjector } from '../utils/TimerInjector.js';
-import Account from './account/Account.js';
+// import Account from './account/Account.js';
+import Account from './account/Account.tsx';
 import ExtraPixelsPanel from './canvas/ExtraPixelsPanel.js';
 import SelectedPixelPanel from './canvas/SelectedPixelPanel.js';
 import Factions from './factions/Factions.js';
@@ -267,6 +268,7 @@ const TabPanel = (props) => {
                   isSessionable={props.isSessionable}
                   gameEnded={props.gameEnded}
                   setModal={props.setModal}
+                  wallet={props?.wallet}
                 />
               </div>
             )}

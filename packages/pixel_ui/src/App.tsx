@@ -619,37 +619,39 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     //   return;
     // }
     console.log("try connect wallet")
-    // const { wallet, connectorData, connector } =
-    await connect({
-      modalMode: 'alwaysAsk',
-      // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
-      argentMobileOptions: {
-        dappName: 'afk/pwa',
-        url: window.location.hostname,
-        // chainId: CHAIN_ID,
-        icons: []
-      }
-    });
+    const { wallet, connectorData, connector } =
+      await connect({
+        modalMode: 'alwaysAsk',
+        // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
+        argentMobileOptions: {
+          dappName: 'afk/pwa',
+          url: window.location.hostname,
+          // chainId: CHAIN_ID,
+          icons: []
+        }
+      });
     if (wallet && connectorData
-      //  && connector
+      && connector
 
     ) {
+      console.log("wallet", wallet)
+      console.log("canSession")
       setWallet(wallet);
       setConnectorData(connectorData);
       // setConnector(connector);
       setConnected(true);
-      // let new_account = await connector.account(provider);
+      // let new_account = await connector.account(wallet);
       // setAccount(new_account);
       setIsSessionable(canSession(wallet));
-      console.log('Wallet:', wallet);
+      console.log('canSession(wallet):', canSession(wallet));
     }
   };
 
   const disconnectWallet = async () => {
-    if (devnetMode) {
-      setConnected(false);
-      return;
-    }
+    // if (devnetMode) {
+    //   setConnected(false);
+    //   return;
+    // }
     setWallet(null);
     setConnectorData(null);
     setConnected(false);
@@ -833,6 +835,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
         >
           <TabPanel
             colorPixel={colorPixel}
+            isUsingSess
             address={address}
             queryAddress={queryAddress}
             account={account}
@@ -918,6 +921,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
             connectWallet={connectWallet}
             disconnectWallet={disconnectWallet}
             startSession={startSession}
+            wallet={wallet}
             isSessionable={isSessionable}
             connectors={connectors}
             currentDay={currentDay}
@@ -925,6 +929,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
             isLastDay={isLastDay}
             endTimestamp={endTimestamp}
             host={host}
+            usingSessionKeys={usingSessionKeys}
           />
         </div>
         <div className='App__footer'>
