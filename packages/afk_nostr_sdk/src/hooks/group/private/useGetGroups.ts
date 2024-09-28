@@ -24,12 +24,15 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
     queryKey: ['getAllGroups', options.pubKey, options?.search],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
 
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [

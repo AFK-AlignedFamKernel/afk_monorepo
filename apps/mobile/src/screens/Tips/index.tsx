@@ -50,7 +50,7 @@ export const Tips: React.FC = () => {
       {selectedTab !== SelectedTab.MESSAGES && (
         <Pressable
           style={styles.createPostButton}
-          onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
+          onPress={() => navigation.navigate('CreateForm')}
         >
           <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
         </Pressable>

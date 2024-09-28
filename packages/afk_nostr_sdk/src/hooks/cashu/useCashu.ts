@@ -285,7 +285,7 @@ export const useCashu = () => {
             return checkQuoteMelt;
         } catch (e) {
             console.log("Error checkMeltQuote", e)
-
+            return undefined;
         }
 
     }
@@ -299,6 +299,7 @@ export const useCashu = () => {
             return proofsSpents;
         } catch (e) {
             console.log("Error checkProofSpent", e)
+            return [];
         }
 
     }
@@ -310,7 +311,7 @@ export const useCashu = () => {
             return resCheckMintQuote;
         } catch (e) {
             console.log("Error checkMintQuote", e)
-
+            return undefined;
         }
 
     }

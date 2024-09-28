@@ -23,11 +23,14 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
     queryKey: ['getAllGroupMember', options.search, options.groupId],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminAddUser, NDKKind.GroupAdminRemoveUser],
@@ -40,7 +43,7 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
       const memberMap = new Map<string, any>();
 
       [...events]
-        .sort((a, b) => a.created_at - b.created_at)
+        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           const pubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
           if (!pubkey) return;
@@ -57,7 +60,7 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
 
       const currentMembers = Array.from(memberMap.values())
         .filter((member) => !member.isRemoved)
-        .sort((a, b) => b.created_at - a.created_at);
+        .sort((a, b) => ((a.created_at && b.created_at) ? b.created_at - a.created_at : 0));
 
       return currentMembers;
     },
@@ -72,11 +75,14 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
     queryKey: ['getGroupRequest', options.search, options.groupId],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminRequestJoin],
@@ -89,7 +95,8 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
 
       const memberPubkeys = new Set(
         memberListQuery.data?.pages
-          .flatMap((page) => page.map((member) => member.tags.find((tag) => tag[0] === 'p')?.[1]))
+          // @ts-ignore
+          .flatMap((page) => page.map((member: any) => member.tags.find((tag: any) => tag[0] === 'p')?.[1]))
           .filter(Boolean),
       );
 
@@ -100,7 +107,7 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
         const requestPubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
         if (requestPubkey && !memberPubkeys.has(requestPubkey)) {
           const existingRequest = latestRequests.get(requestPubkey);
-          if (!existingRequest || event.created_at > existingRequest.created_at) {
+          if (!existingRequest || (event.created_at && existingRequest.created_at && event.created_at > existingRequest.created_at)) {
             latestRequests.set(requestPubkey, event);
           }
         }
@@ -108,7 +115,7 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
 
       // Convert the Map values to an array and sort by creation time (newest first)
       const uniqueFilteredEvents = Array.from(latestRequests.values()).sort(
-        (a, b) => b.created_at - a.created_at,
+        (a, b) => ((a.created_at && b.created_at) ? b.created_at - a.created_at : 0),
       );
 
       return uniqueFilteredEvents;
@@ -125,11 +132,14 @@ export const useGetGroupMemberListPubkey = (options: UseGetGroupListOptions) => 
     queryKey: ['getAllGroupMember', publicKey, options.search, options.groupId],
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages, lastPageParam) => {
+      // @ts-ignore
       if (!lastPage?.length) return undefined;
+      // @ts-ignore
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
+    // @ts-ignore
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         kinds: [NDKKind.GroupAdminAddUser, NDKKind.GroupAdminRemoveUser],
@@ -143,7 +153,7 @@ export const useGetGroupMemberListPubkey = (options: UseGetGroupListOptions) => 
       const memberMap = new Map<string, any>();
 
       [...events]
-        .sort((a, b) => a.created_at - b.created_at)
+        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           const pubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
           if (!pubkey) return;

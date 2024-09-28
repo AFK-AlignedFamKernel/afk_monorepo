@@ -42,21 +42,17 @@ export const useCashuBalance = () => {
             const keyssets = await mint?.getKeySets()
             console.log("keyssets", keyssets)
 
-            proofs = proofs?.filter((p) => {
-                if (!proofsSpent?.includes(p)
-                    && keyssets?.keysets?.find((k) => k?.id == p?.id)
-                ) {
-                    return p;
-                }
-            })
+            proofs = proofs?.filter((p) => 
+                !proofsSpent?.includes(p) && keyssets?.keysets?.find((k) => k?.id === p?.id)
+            )
 
             const totalAmount = proofs.reduce((s, t) => (s += t.amount), 0);
             console.log("totalAmount", totalAmount)
             setBalance(totalAmount)
             setActiveBalance(totalAmount)
             return totalAmount;
-
         }
+        return 0;
 
     }
 

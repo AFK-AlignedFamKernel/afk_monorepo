@@ -57,8 +57,9 @@ export const useCreateCashuSendWalletInfo = () => {
         symbol
       } = data
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
+      const wallet = ndkWallet?.createCashuWallet();
+      if (!wallet) return;
+      wallet.name = nameWallet ?? '';
       wallet.relays = ["wss://relay1", "wss://relay2"]
      
       const eventPublish = await wallet?.publish()
@@ -92,8 +93,9 @@ export const useCashuSendWalletInfo = () => {
         symbol
       } = data
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
+      const wallet = ndkWallet?.createCashuWallet();
+      if (!wallet) return;
+      wallet.name = nameWallet ?? '';
       wallet.relays = ["wss://relay1", "wss://relay2"]
      
       const eventPublish = await wallet?.publish()

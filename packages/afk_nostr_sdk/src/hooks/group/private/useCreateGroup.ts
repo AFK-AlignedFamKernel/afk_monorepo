@@ -22,11 +22,11 @@ export const useCreateGroup = () => {
     mutationFn: async (data?: {groupType: 'private' | 'public'; groupName: string}) => {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.GroupAdminCreateGroup;
-      event.content = data?.groupName;
+      event.content = data?.groupName ?? '';
       event.tags = [
-        [GroupEnum.GROUP_ACCESS, data?.groupType],
+        [GroupEnum.GROUP_ACCESS, data?.groupType ?? 'private'],
         [GroupEnum.GROUP_VIEW, 'open'],
-        ['name', data?.groupName],
+        ['name', data?.groupName ?? ''],
         ['p', publicKey],
       ];
 

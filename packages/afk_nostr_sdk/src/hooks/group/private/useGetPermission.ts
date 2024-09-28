@@ -1,4 +1,4 @@
-import NDK, {NDKEvent} from '@nostr-dev-kit/ndk';
+import NDK, {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
@@ -85,7 +85,7 @@ export const useGetGroupPermission = (groupId: string) => {
     enabled: !!groupId,
     queryFn: async () => {
       const events = await ndk.fetchEvents({
-        kinds: [9003],
+        kinds: [9003 as NDKKind],
         '#h': [groupId],
         '#p': [publicKey],
       });
