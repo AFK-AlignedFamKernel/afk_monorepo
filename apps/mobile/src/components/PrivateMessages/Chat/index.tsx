@@ -52,7 +52,7 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
       },
       {
         onSuccess: () => {
-          showToast({title: 'Message sent', type: 'success'});
+          // showToast({title: 'Message sent', type: 'success'});
           queryClient.invalidateQueries({
             queryKey: ['messagesSent'],
           });

@@ -17,7 +17,7 @@ interface ICustomConnectButtonWallet extends ConnectButtonProps {
   isViewBalance?: boolean;
   isViewAddress?: boolean;
   isViewNetwork?: boolean;
-  isViewAccout?: boolean;
+  isViewAccount?: boolean;
 }
 export const CustomConnectButtonWallet: React.FC<ICustomConnectButtonWallet> = (props) => {
   return (
