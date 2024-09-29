@@ -114,7 +114,7 @@ export const SendEcash = () => {
 
 
   const handleEcash = async () => {
-    console.log("hanldeEcash")
+    console.log("handleEcash")
 
     if(!invoiceAmount) {
       return showToast({
