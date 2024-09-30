@@ -249,6 +249,7 @@ export const HistoryTxCashu = () => {
       return undefined;
     } catch (e) {
       console.log('Error handleReceivePaymentPaid', e);
+      return undefined;
     }
   };
 

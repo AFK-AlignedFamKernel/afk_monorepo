@@ -111,8 +111,10 @@ export const MintInfo = () => {
         console.log('no old invoicesLocal', invoicesLocal);
         storeInvoices([cashuInvoice]);
       }
+      return;
     } catch (error) {
       console.error('Error generating invoice:', error);
+      return undefined;
     } finally {
       setIsLoading(false);
     }

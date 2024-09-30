@@ -1,4 +1,4 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
@@ -81,12 +81,13 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
     },
     queryFn: async ({pageParam}) => {
       const giftWraps = await ndk.fetchEvents({
-        kinds: [1059],
-        authors: options.roomParticipants,
+        kinds: [1059 as NDKKind],
+        authors: options?.roomParticipants,
         since: pageParam ? pageParam : undefined,
         limit: options?.limit || 20,
       });
 
+      // @ts-ignore
       const decryptedMessages: DecryptedMessage[] = await Promise.all(
         [...giftWraps].map(async (giftWrap: NDKEvent) => {
           try {

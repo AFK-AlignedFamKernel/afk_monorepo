@@ -1,4 +1,4 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
@@ -28,13 +28,13 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions) => {
     queryFn: async ({pageParam}) => {
       const [incomingGiftWraps, outgoingGiftWraps] = await Promise.all([
         ndk.fetchEvents({
-          kinds: [1059],
+          kinds: [1059 as NDKKind],
           '#p': [publicKey],
           since: pageParam || undefined,
           limit: options?.limit || 20,
         }),
         ndk.fetchEvents({
-          kinds: [1059],
+          kinds: [1059 as NDKKind],
           authors: [publicKey],
           since: pageParam || undefined,
           limit: options?.limit || 20,
@@ -108,7 +108,7 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions) => {
               ? message.receiverPublicKey
               : message.senderPublicKey;
           const existingUser = userMap.get(otherUserPubkey);
-          if (!existingUser || message.created_at > existingUser.lastMessageAt) {
+          if (!existingUser || (message?.created_at && (message.created_at > existingUser.lastMessageAt))) {
             userMap.set(otherUserPubkey, {
               id: message.id,
               pubkey: otherUserPubkey,

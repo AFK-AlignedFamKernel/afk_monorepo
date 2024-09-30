@@ -154,7 +154,7 @@ export const useLN = () => {
                 console.log("pendingNwc", pendingNwc)
                 setPendingNwcUrl(pendingNwc);
                 setNwcAuthUrl(authUrl.toString());
-                setNwcUrlStore(nwcUrl)
+                setNwcUrlStore(nwcUrl || '')
                 setNwcUrl(nwcUrl)
                 console.log("authUrl", authUrl)
                 console.log("nwc", nwc)
@@ -173,7 +173,7 @@ export const useLN = () => {
                             setNwcAuthUrl(pendingNwcUrl.toString());
 
                             await handleConnectWithUrl(pendingNwcUrl)
-                            setNwcUrlStore(nwcUrl)
+                            setNwcUrlStore(nwcUrl || '')
                             setNwcUrl(nwcUrl)
                             setNwcUrl(pendingNwcUrl);
                             return webLn
