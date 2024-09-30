@@ -6,10 +6,10 @@ pub mod sha256;
 pub mod social;
 pub mod utils;
 pub mod quests {
-    pub mod factory;
     pub mod authority_quest;
     pub mod chain_faction_quest;
     pub mod faction_quest;
+    pub mod factory;
     pub mod hodl_quest;
     pub mod nft_quest;
     pub mod pixel_quest;
@@ -25,10 +25,10 @@ pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod jediswap;
-    pub mod quest;
     pub mod nfts;
     pub mod pixel;
     pub mod pixel_template;
+    pub mod quest;
     pub mod quests;
     pub mod username_store;
     pub mod vault;

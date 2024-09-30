@@ -1,11 +1,11 @@
 import './CanvasContainer.css';
 
-import {useContractWrite} from '@starknet-react/core';
-import React, {useEffect, useRef, useState} from 'react';
+import { useContractWrite } from '@starknet-react/core';
+import React, { useEffect, useRef, useState } from 'react';
 
 import canvasConfig from '../configs/canvas.config.json';
-import {fetchWrapper} from '../services/apiService.js';
-import {devnetMode} from '../utils/Consts.js';
+import { fetchWrapper } from '../services/apiService.js';
+import { devnetMode } from '../utils/Consts.js';
 import Canvas from './Canvas';
 import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
@@ -241,7 +241,7 @@ const CanvasContainer = (props) => {
 
   useEffect(() => {
     const placePixel = async () => {
-      if (devnetMode) return;
+      // if (devnetMode) return;
       if (calls.length === 0) return;
       await writeAsync();
       console.log('Place Pixel successful:', data, isPending);
@@ -250,7 +250,7 @@ const CanvasContainer = (props) => {
     placePixel();
   }, [calls]);
 
-  const {writeAsync, data, isPending} = useContractWrite({
+  const { writeAsync, data, isPending } = useContractWrite({
     calls,
   });
 
@@ -304,19 +304,19 @@ const CanvasContainer = (props) => {
 
     const timestamp = Math.floor(Date.now() / 1000);
 
-    if (!devnetMode) {
-      props.setSelectedColorId(-1);
-      props.colorPixel(position, colorId);
-      placePixelCall(position, colorId, timestamp);
-      props.clearPixelSelection();
-      props.setLastPlacedTime(timestamp * 1000);
-      return;
-    }
+    // if (!devnetMode) {
+    props.setSelectedColorId(-1);
+    props.colorPixel(position, colorId);
+    placePixelCall(position, colorId, timestamp);
+    props.clearPixelSelection();
+    props.setLastPlacedTime(timestamp * 1000);
+    // return;
+    // }
 
     if (props.selectedColorId !== -1) {
       props.setSelectedColorId(-1);
       props.colorPixel(position, colorId);
-      const response = await fetchWrapper(`place-pixel-devnet`, {
+      const response = await fetchWrapper(`place-pixel-redis`, {
         mode: 'cors',
         method: 'POST',
         body: JSON.stringify({

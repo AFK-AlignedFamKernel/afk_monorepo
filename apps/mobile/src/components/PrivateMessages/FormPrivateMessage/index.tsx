@@ -16,28 +16,24 @@ interface IFormPrivateMessage {
   publicKey?: string;
   user?: NDKUser;
   receiverPublicKeyProps?: string;
+  handleClose?: () => void;
 }
 export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   user,
   publicKey,
+  handleClose,
   receiverPublicKeyProps,
 }) => {
   const styles = useStyles(stylesheet);
   const avatar = user?.profile?.banner ?? require('../../../assets/pepe-logo.png');
 
   const [receiverPublicKey, setReceiverPublicKey] = React.useState(receiverPublicKeyProps);
-  const [content, setContent] = React.useState<string | undefined>();
   const [message, setMessage] = React.useState<string | undefined>();
   const sendPrivateMessage = useSendPrivateMessage();
   const {showToast} = useToast();
   const queryClient = useQueryClient();
 
   const sendMessage = async (message: string) => {
-    // if (!message) {
-    // 	showToast({ title: "Please add a content", type: "error" })
-    // 	return;
-    // }
-
     if (!receiverPublicKey) {
       showToast({title: 'Please choose a Nostr public key', type: 'error'});
       return;
@@ -51,6 +47,13 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
       {
         onSuccess: () => {
           showToast({title: 'Message sent', type: 'success'});
+          queryClient.invalidateQueries({
+            queryKey: ['messagesSent'],
+          });
+          handleClose && handleClose();
+        },
+        onError() {
+          showToast({title: 'Error sending message', type: 'error'});
         },
       },
     );

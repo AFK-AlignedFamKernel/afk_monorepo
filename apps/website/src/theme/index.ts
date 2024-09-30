@@ -60,7 +60,7 @@ const colors = {
   body: {
     body: {
       // bg: mode("#153e75","#153e75")
-      fontFamilly: 'monospace',
+      fontFamily: 'monospace',
       bg: '#153e75',
       // useColorMode("#153e75", "#153e75")
     },
@@ -88,7 +88,7 @@ const theme = extendTheme({
         // color: mode("gray.800", "whiteAlpha.900")(props),
         // color: mode("gray.800", "gray.900")(props),
         color: mode('gray.800', 'gray.900')(props),
-        fontFamilly: 'monospace',
+        fontFamily: 'monospace',
         bg: mode('white', 'gray.700')(props),
         lineHeight: 'base',
       },
@@ -98,18 +98,18 @@ const theme = extendTheme({
     Text: {
       // The styles all button have in common
       baseStyle: {
-        fontFamilly: 'monospace',
+        fontFamily: 'monospace',
         // fontWeight: "bold",
         // textTransform: "uppercase",
         // borderRadius: "base", // <-- border radius is same for all variants and sizes
       },
-      fontFamilly: 'monospace',
-      // fontFamilly:"PressStart2P",
+      fontFamily: 'monospace',
+      // fontFamily:"PressStart2P",
 
       // // The default size and variant values
       defaultProps: {
         // size: 'md',
-        fontFamilly: 'monospace',
+        fontFamily: 'monospace',
         // variant: 'outline',
       },
       // Two sizes: sm and md
@@ -142,7 +142,7 @@ const theme = extendTheme({
       //     color: 'white',
       //   },
       // },
-      // fontFamilly: "monospace",
+      // fontFamily: "monospace",
     },
   },
 });

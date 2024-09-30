@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod quest_factory_tests {
-use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::quest::{
         IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestDispatcher,
-        IQuestDispatcherTrait, IQuestNFTDispatcher, IQuestNFTDispatcherTrait, ITapQuests, ITapQuestsDispatcher, ITapQuestsDispatcherTrait
+        IQuestDispatcherTrait, IQuestNFTDispatcher, IQuestNFTDispatcherTrait, ITapQuests,
+        ITapQuestsDispatcher, ITapQuestsDispatcherTrait
     };
 
     use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
@@ -52,10 +53,16 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
 
         // set minter role for quest nft
         start_cheat_caller_address(quest_nft_addr, ADMIN());
-        IQuestNFTDispatcher{contract_address:quest_nft_addr }.set_role(factory_dispatcher.contract_address, MINTER_ROLE, true);
+        IQuestNFTDispatcher { contract_address: quest_nft_addr }
+            .set_role(factory_dispatcher.contract_address, MINTER_ROLE, true);
         stop_cheat_caller_address(quest_nft_addr);
 
-        (factory_dispatcher, tap_quest_addr, IERC721Dispatcher {contract_address: quest_nft_addr}, IERC20Dispatcher {contract_address: token_address})
+        (
+            factory_dispatcher,
+            tap_quest_addr,
+            IERC721Dispatcher { contract_address: quest_nft_addr },
+            IERC20Dispatcher { contract_address: token_address }
+        )
     }
 
     fn deploy_tap_quest() -> ContractAddress {
@@ -82,7 +89,9 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         IQuestFactoryDispatcher { contract_address: factory_address }
     }
 
-    fn deploy_quest_nft(name: ByteArray, symbol: ByteArray, owner: ContractAddress) -> ContractAddress {
+    fn deploy_quest_nft(
+        name: ByteArray, symbol: ByteArray, owner: ContractAddress
+    ) -> ContractAddress {
         let class = declare("QuestNFT").unwrap();
         let mut calldata = array![];
         name.serialize(ref calldata);
@@ -142,7 +151,7 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
 
     #[test]
     fn test_add_quest() {
-        let (factory_dispatcher, tap_quest_addr, _,_) = setup();
+        let (factory_dispatcher, tap_quest_addr, _, _) = setup();
 
         factory_dispatcher.add_quest(quest_info(tap_quest_addr));
 
@@ -195,22 +204,21 @@ use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDi
         let quests = factory_dispatcher.get_quests();
 
         start_cheat_caller_address(*quests.at(0).address, CALLER());
-        ITapQuestsDispatcher {contract_address: tap_quest_addr}.handle_tap_daily();
+        ITapQuestsDispatcher { contract_address: tap_quest_addr }.handle_tap_daily();
         stop_cheat_caller_address(*quests.at(0).address);
-        
+
         start_cheat_caller_address(factory_dispatcher.contract_address, CALLER());
         factory_dispatcher.claim_reward(*quests.at(0).quest_id);
-        
+
         //asert token rewar was minted
         assert(token_dispacher.balance_of(CALLER()) == 5, 'wrong balance');
-        
+
         // assert nft was minted
         assert(quest_nft_dispatcher.balance_of(CALLER()) == 1, 'wrong numder of nfts');
-        
+
         let user_quest_info = factory_dispatcher.get_user_quest_info(*quests.at(0).quest_id);
-        stop_cheat_caller_address(factory_dispatcher.contract_address);   
-        
-        
+        stop_cheat_caller_address(factory_dispatcher.contract_address);
+
         assert(user_quest_info.quest_id == *quests.at(0).quest_id, 'wrong quest id');
         assert(user_quest_info.is_complete, 'wrong complete status');
         assert(user_quest_info.claimed_token == 5, 'wrong complete status');
