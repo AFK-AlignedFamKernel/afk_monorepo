@@ -234,8 +234,7 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
   },
 ];
 
-
-export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Invoices',
     screen: 'Invoices',

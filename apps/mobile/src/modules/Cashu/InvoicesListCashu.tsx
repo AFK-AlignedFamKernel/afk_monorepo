@@ -216,8 +216,11 @@ export const InvoicesListCashu = () => {
   const handleReceivePaymentPaid = async (invoice: ICashuInvoice) => {
     try {
       if (invoice?.amount) {
-        const receive = await mintTokens(Number(invoice?.amount), invoice?.quoteResponse ?? invoice as unknown as MintQuoteResponse)
-        console.log("receive", receive)
+        const receive = await mintTokens(
+          Number(invoice?.amount),
+          invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
+        );
+        console.log('receive', receive);
 
         const encoded = getEncodedToken({
           token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
@@ -242,8 +245,8 @@ export const InvoicesListCashu = () => {
 
       return undefined;
     } catch (e) {
-      console.log("Error handleReceivePaymentPaid", e)
-      return undefined
+      console.log('Error handleReceivePaymentPaid', e);
+      return undefined;
     }
   };
 

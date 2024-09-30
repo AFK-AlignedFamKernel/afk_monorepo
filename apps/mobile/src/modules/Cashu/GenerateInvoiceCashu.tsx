@@ -71,7 +71,6 @@ export const GenerateInvoiceCashu = () => {
       setMintInfo(info);
     })();
 
-
     // (async () => {
 
     //   console.log("ndkCashuWallet", ndkCashuWallet)

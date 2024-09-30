@@ -10,20 +10,19 @@ import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {Button, IconButton, Modalize} from '../../components';
 import TabSelector from '../../components/TabSelector';
-import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { GenerateInvoiceCashu } from './GenerateInvoiceCashu';
-import { BalanceCashu } from './BalanceCashu';
-import { MnemonicCashu } from './MnemonicCashu';
-import { InvoicesListCashu } from './InvoicesListCashu';
-import { MintListCashu } from './MintListCashu';
-import { useModal } from '../../hooks/modals/useModal';
-import { ReceiveEcash } from './ReceiveEcash';
-import { SendEcash } from './SendEcash';
-import { HistoryTxCashu } from './HistoryTxCashu';
-import { retrieveAndDecryptCashuMnemonic, retrievePassword } from '../../utils/storage';
-import { useStyles, useTheme } from '../../hooks';
-import stylesheet from './styles'
-import { useDialog, useToast } from '../../hooks/modals';
+import {useStyles, useTheme} from '../../hooks';
+import {useDialog, useToast} from '../../hooks/modals';
+import {useModal} from '../../hooks/modals/useModal';
+import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import {BalanceCashu} from './BalanceCashu';
+import {HistoryTxCashu} from './HistoryTxCashu';
+import {InvoicesListCashu} from './InvoicesListCashu';
+import {MintListCashu} from './MintListCashu';
+import {MnemonicCashu} from './MnemonicCashu';
+import {ReceiveEcash} from './ReceiveEcash';
+import {SendEcash} from './SendEcash';
+import stylesheet from './styles';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -58,17 +57,14 @@ export const CashuView = () => {
     mintUrl,
     setMintUrl,
     getMintInfo,
-    setMintInfo
-
-  } = useCashu()
-
+    setMintInfo,
+  } = useCashu();
 
   const {setMnemonic} = useCashuStore();
 
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
 
   useEffect(() => {
-
     (async () => {
       const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
 
@@ -95,11 +91,9 @@ export const CashuView = () => {
   useEffect(() => {
     (async () => {
       if (!mintUrl) return;
-      const info = await getMintInfo(mintUrl)
-      setMintInfo(info)
+      const info = await getMintInfo(mintUrl);
+      setMintInfo(info);
     })();
-
-    
   }, [mintUrl]);
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
@@ -268,8 +262,6 @@ export const CashuView = () => {
             <View>
               <Text>History</Text>
               <HistoryTxCashu></HistoryTxCashu>
-
-
             </View>
           )}
 

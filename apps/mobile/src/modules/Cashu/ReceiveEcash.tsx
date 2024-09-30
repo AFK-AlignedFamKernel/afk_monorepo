@@ -1,28 +1,27 @@
 import '../../../applyGlobalPolyfills';
 
+import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
 import {addProofs, ICashuInvoice, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {ChangeEvent, useEffect, useState} from 'react';
 import {SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
+import {CopyIconStack} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
+import {SelectedTab} from '../../types/tab';
+import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import stylesheet from './styles';
-import { getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
-import { CopyIconStack } from '../../assets/icons';
-import { SelectedTab, TABS_CASHU } from '../../types/tab';
-
-import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
-
 
 export const ReceiveEcash = () => {
   const tabs = ['lightning', 'ecash'];
 
-
-  const { ndkCashuWallet, ndkWallet, } = useNostrContext()
-  const { wallet, connectCashMint,
+  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+  const {
+    wallet,
+    connectCashMint,
     connectCashWallet,
     requestMintQuote,
     generateMnemonic,
@@ -32,10 +31,9 @@ export const ReceiveEcash = () => {
     mintTokens,
     mintUrl,
     setMintUrl,
-
-  } = useCashu()
-  const [ecash, setEcash] = useState<string | undefined>()
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
+  } = useCashu();
+  const [ecash, setEcash] = useState<string | undefined>();
+  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
 
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
@@ -74,8 +72,7 @@ export const ReceiveEcash = () => {
     const value = event.target.value;
     setEcash(value);
   };
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
 
   const generateInvoice = async () => {
     if (!mintUrl || !invoiceAmount) return;
@@ -88,7 +85,7 @@ export const ReceiveEcash = () => {
       console.log('quote', quote);
       setIsLoading(true);
       setIsInvoiceModalVisible(false);
-      const invoicesLocal = await getInvoices()
+      const invoicesLocal = await getInvoices();
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
@@ -98,16 +95,15 @@ export const ReceiveEcash = () => {
         amount: Number(invoiceAmount),
         mint: mintUrl,
         quoteResponse: quote?.request,
-      }
-  
+      };
+
       if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
-        console.log("invoices", invoices)
-        storeInvoices([...invoices, cashuInvoice])
-  
+        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
+        console.log('invoices', invoices);
+        storeInvoices([...invoices, cashuInvoice]);
       } else {
-        console.log("no old invoicesLocal", invoicesLocal)
-        storeInvoices([cashuInvoice])
+        console.log('no old invoicesLocal', invoicesLocal);
+        storeInvoices([cashuInvoice]);
       }
     } catch (error) {
       console.error('Error generating invoice:', error);
@@ -117,14 +113,13 @@ export const ReceiveEcash = () => {
     return;
   };
 
-
-  const handleCopy = async (type: 'lnbc' | "ecash") => {
-
+  const handleCopy = async (type: 'lnbc' | 'ecash') => {
     if (!quote?.request) return;
-    if (type == "lnbc") {
-      await Clipboard.setStringAsync(type === 'lnbc' ? quote?.request?.toString() : quote?.request?.toString());
-
-    } else if (type == "ecash") {
+    if (type == 'lnbc') {
+      await Clipboard.setStringAsync(
+        type === 'lnbc' ? quote?.request?.toString() : quote?.request?.toString(),
+      );
+    } else if (type == 'ecash') {
       if (ecash) {
         await Clipboard.setStringAsync(ecash);
       }
@@ -182,7 +177,7 @@ export const ReceiveEcash = () => {
             ))}
           </View>
 
-          {activeTab == "ecash" &&
+          {activeTab == 'ecash' && (
             <>
               <TextInput
                 // className="bg-accent text-white rounded-lg px-4 py-2 hover:bg-opacity-90 transition-colors duration-150"
@@ -192,17 +187,14 @@ export const ReceiveEcash = () => {
                 value={ecash}
                 onChangeText={setEcash}
                 style={styles.input}
-              >
-              </TextInput>
+              ></TextInput>
 
-              {ecash &&
-
+              {ecash && (
                 <View
                   style={{
-                    marginVertical: 3
+                    marginVertical: 3,
                   }}
                 >
-
                   <Text style={styles.text}>ecash token</Text>
 
                   <Input
@@ -220,21 +212,13 @@ export const ReceiveEcash = () => {
                     }
                   />
                 </View>
+              )}
 
-              }
-
-              <Button
-                onPress={handleReceiveEcash}
-              >
-
-                Receive ecash
-
-              </Button>
+              <Button onPress={handleReceiveEcash}>Receive ecash</Button>
             </>
+          )}
 
-          }
-
-          {activeTab == "lightning" &&
+          {activeTab == 'lightning' && (
             <>
               <TextInput
                 placeholder="Amount"
@@ -244,23 +228,14 @@ export const ReceiveEcash = () => {
                 style={styles.input}
               />
 
+              <Button onPress={generateInvoice}>Generate invoice</Button>
 
-              <Button
-                onPress={generateInvoice}
-              >
-
-                Generate invoice
-
-              </Button>
-
-              {quote?.request &&
-
+              {quote?.request && (
                 <View
                   style={{
-                    marginVertical: 3
+                    marginVertical: 3,
                   }}
                 >
-
                   <Text style={styles.text}>Invoice address</Text>
 
                   <Input
@@ -278,12 +253,9 @@ export const ReceiveEcash = () => {
                     }
                   />
                 </View>
-
-              }
+              )}
             </>
-
-          }
-
+          )}
         </View>
       </View>
     </SafeAreaView>

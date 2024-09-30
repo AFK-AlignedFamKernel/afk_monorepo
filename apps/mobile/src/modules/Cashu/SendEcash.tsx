@@ -9,7 +9,6 @@ import {Text, TextInput} from 'react-native';
 
 import {CopyIconStack} from '../../assets/icons';
 import {Button, Input} from '../../components';
-import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
@@ -29,12 +28,11 @@ export const SendEcash = () => {
     mint,
     mintTokens,
     mintUrl,
-    setMintUrl
-
-  } = useCashu()
-  const [ecash, setEcash] = useState<string | undefined>()
-  const [invoice, setInvoice] = useState<string | undefined>()
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
+    setMintUrl,
+  } = useCashu();
+  const [ecash, setEcash] = useState<string | undefined>();
+  const [invoice, setInvoice] = useState<string | undefined>();
+  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
   const tabs = ['lightning', 'ecash'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const handleTabChange = (tab: string) => {
@@ -83,7 +81,6 @@ export const SendEcash = () => {
       setMintInfo(info);
     })();
 
-
     // (async () => {
 
     //   console.log("ndkCashuWallet", ndkCashuWallet)
@@ -112,27 +109,27 @@ export const SendEcash = () => {
   }, []);
 
   const handleEcash = async () => {
-    console.log("handleEcash")
+    console.log('handleEcash');
 
     if (!invoiceAmount) {
       return showToast({
-        title: "Please enter an amount",
-        type: "error"
-      })
+        title: 'Please enter an amount',
+        type: 'error',
+      });
     }
     const ecash = await handleGenerateEcash(Number(invoiceAmount));
 
     if (!ecash) {
       return showToast({
         title: "Ecash token can't be generated",
-        type: "error"
-      })
+        type: 'error',
+      });
     }
-    console.log("ecash", ecash)
-    setGeneratedInvoice(ecash)
-    setGenerateEcash(ecash)
-    return ecash
-  }
+    console.log('ecash', ecash);
+    setGeneratedInvoice(ecash);
+    setGenerateEcash(ecash);
+    return ecash;
+  };
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -186,7 +183,6 @@ export const SendEcash = () => {
           ))}
         </View>
 
-
         <View
         //  style={styles.container}
         >
@@ -207,35 +203,21 @@ export const SendEcash = () => {
             <Text style={styles.text}>MOTD: {infoMint?.motd}</Text>
           </View>
 
-          {activeTab == "lightning" &&
-
+          {activeTab == 'lightning' && (
             <>
               <TextInput
                 placeholder="Invoice to paid"
                 value={invoice}
                 onChangeText={setInvoice}
                 style={styles.input}
-              >
-              </TextInput>
+              ></TextInput>
 
-
-              <Button
-                onPress={() => handlePayInvoice(invoice)}
-              >
-
-                Pay invoice
-
-              </Button>
-
-
-
+              <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
             </>
-          }
+          )}
 
-          {activeTab == "ecash" &&
+          {activeTab == 'ecash' && (
             <>
-
-
               <TextInput
                 placeholder="Amount"
                 keyboardType="numeric"
@@ -245,21 +227,17 @@ export const SendEcash = () => {
               />
               <Button
                 onPress={handleEcash}
-              // onPress={() =>  handleEcash}
+                // onPress={() =>  handleEcash}
               >
-
                 Generate eCash
-
               </Button>
 
-              {generatedEcash &&
-
+              {generatedEcash && (
                 <View
                   style={{
-                    marginVertical: 3
+                    marginVertical: 3,
                   }}
                 >
-
                   <Text style={styles.text}>eCash token</Text>
 
                   <Input
@@ -267,24 +245,21 @@ export const SendEcash = () => {
                     editable={false}
                     right={
                       <TouchableOpacity
-                        onPress={() => handleCopy("ecash")}
-                        style={{
-                          // marginRight: 10,
-                        }}
+                        onPress={() => handleCopy('ecash')}
+                        style={
+                          {
+                            // marginRight: 10,
+                          }
+                        }
                       >
                         <CopyIconStack color={theme.colors.primary} />
                       </TouchableOpacity>
                     }
                   />
                 </View>
-
-              }
+              )}
             </>
-          }
-
-
-
-
+          )}
         </View>
       </View>
     </SafeAreaView>
