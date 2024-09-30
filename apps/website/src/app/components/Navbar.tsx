@@ -33,7 +33,7 @@ export function Navbar() {
         <img src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" />
       </button> */}
 
-      <MenuNav></MenuNav>
+      {/* <MenuNav></MenuNav> */}
       {/* {toggleParamsNav &&
         createPortal(<MenuNav setToggle={setToggleParamsNav} toggle={toggleParamsNav} />, document.body)
       } */}

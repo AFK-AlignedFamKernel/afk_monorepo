@@ -3,11 +3,11 @@ use starknet::ContractAddress;
 #[starknet::contract]
 pub mod QuestNFT {
     use afk::interfaces::quest::{IQuestNFT};
-    use openzeppelin::introspection::src5::SRC5Component;
 
     use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::access::ownable::OwnableComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc721::ERC721Component;
     use openzeppelin::token::erc721::interface::IERC721Metadata;
     use starknet::ContractAddress;
@@ -23,11 +23,12 @@ pub mod QuestNFT {
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
     #[abi(embed_v0)]
-    impl OwnableCamelOnlyImpl = OwnableComponent::OwnableCamelOnlyImpl<ContractState>;
-    
+    impl OwnableCamelOnlyImpl =
+        OwnableComponent::OwnableCamelOnlyImpl<ContractState>;
+
     #[abi(embed_v0)]
     impl AccessControlImpl =
-    AccessControlComponent::AccessControlImpl<ContractState>;
+        AccessControlComponent::AccessControlImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl ERC721Impl = ERC721Component::ERC721Impl<ContractState>;
@@ -35,11 +36,11 @@ pub mod QuestNFT {
     impl ERC721CamelOnly = ERC721Component::ERC721CamelOnlyImpl<ContractState>;
     #[abi(embed_v0)]
     impl ERC721MetadataCamelOnly =
-    ERC721Component::ERC721MetadataCamelOnlyImpl<ContractState>;
+        ERC721Component::ERC721MetadataCamelOnlyImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
-    
+
     impl InternalImplOwnable = OwnableComponent::InternalImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
     impl InternalImpl = ERC721Component::InternalImpl<ContractState>;
@@ -72,7 +73,9 @@ pub mod QuestNFT {
 
 
     #[constructor]
-    fn constructor(ref self: ContractState, name: ByteArray, symbol: ByteArray, owner: ContractAddress) {
+    fn constructor(
+        ref self: ContractState, name: ByteArray, symbol: ByteArray, owner: ContractAddress
+    ) {
         self.ownable.initializer(owner);
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, owner);
@@ -134,18 +137,13 @@ pub mod QuestNFT {
         }
     }
 
-      #[generate_trait]
+    #[generate_trait]
     impl PrivateImpl of PrivateTrait {
         fn _set_role(
             ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            assert!(
-                role == ADMIN_ROLE
-                    || role == MINTER_ROLE
-                    ,
-                "role not enable"
-            );
+            assert!(role == ADMIN_ROLE || role == MINTER_ROLE, "role not enable");
             if is_enable {
                 self.accesscontrol._grant_role(role, recipient);
             } else {

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useDisconnect, useContractWrite } from '@starknet-react/core';
+import { constants } from 'starknet';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
-import { backendUrl, devnetMode } from '../../utils/Consts.js';
+import { backendUrl,  devnetMode, allowedMethods, expiry, metaData, dappKey, getProvider } from '../../utils/Consts.js';
 import { fetchWrapper } from '../../services/apiService.js';
-import { encodeToLink } from '../../utils/encodeToLink';
 import BeggarRankImg from '../../resources/ranks/Beggar.png';
 import OwlRankImg from '../../resources/ranks/Owl.png';
 import CrownRankImg from '../../resources/ranks/Crown.png';
@@ -14,7 +13,13 @@ import EditIcon from '../../resources/icons/Edit.png';
 import SearchIcon from '../../resources/icons/Search.png';
 import ArgentIcon from '../../resources/icons/Argent.png';
 import BraavosIcon from '../../resources/icons/Braavos.png';
-
+import {
+  useAccount,
+  useContract,
+  useNetwork,
+  useConnect
+} from '@starknet-react/core';
+import { disconnect } from 'starknetkit-next';
 const Account = (props) => {
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
@@ -25,6 +30,7 @@ const Account = (props) => {
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
   const [accountRankImg, setAccountRankImg] = useState(null);
+  const [isOpenConnector, setIsOpenConnector] = useState(false);
 
   const [usernameSaved, setUsernameSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -89,8 +95,9 @@ const Account = (props) => {
   };
 
   // TODO: Connect wallet page if no connectors
-  let [availableConnectors, setAvailableConnectors] = useState([]);
-  const { disconnect } = useDisconnect();
+  const { connect, connectors } = useConnect();
+
+  let [availableConnectors, setAvailableConnectors] = useState(connectors);
 
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
@@ -152,33 +159,61 @@ const Account = (props) => {
     }
   }, [showClaimInfo, userAwards]);
 
-  const [calls, setCalls] = useState([]);
-  const claimCall = (username) => {
+  const claimCall = async (username) => {
     if (devnetMode) return;
-    if (!props.address || !props.usernameContract) return;
+    if (!props.address || !props.usernameContract || !props.account) return;
     if (username === '') return;
-    setCalls(
-      props.usernameContract.populateTransaction['claim_username'](
-        toHex(username)
-      )
+    const usernameCallData = props.usernameContract.populate('claim_username', {
+      key: toHex(username)
+    });
+    const { suggestedMaxFee } = await props.estimateInvokeFee({
+      contractAddress: props.usernameContract.address,
+      entrypoint: 'claim_username',
+      calldata: usernameCallData.calldata
+    });
+    /* global BigInt */
+    const maxFee = (suggestedMaxFee * BigInt(15)) / BigInt(10);
+    const result = await props.usernameContract.claim_username(
+      usernameCallData.calldata,
+      {
+        maxFee
+      }
     );
+    console.log(result);
   };
-  const changeCall = (username) => {
+
+  const changeCall = async (username) => {
     if (devnetMode) return;
-    if (!props.address || !props.usernameContract) return;
+    if (!props.address || !props.usernameContract || !props.account) return;
     if (username === '') return;
-    setCalls(
-      props.usernameContract.populateTransaction['change_username'](
-        toHex(username)
-      )
+    const usernameCallData = props.usernameContract.populate(
+      'change_username',
+      {
+        new_username: toHex(username)
+      }
     );
+    const { suggestedMaxFee } = await props.estimateInvokeFee({
+      contractAddress: props.usernameContract.address,
+      entrypoint: 'change_username',
+      calldata: usernameCallData.calldata
+    });
+    const maxFee = (suggestedMaxFee * BigInt(15)) / BigInt(10);
+    const result = await props.usernameContract.change_username(
+      usernameCallData.calldata,
+      {
+        maxFee
+      }
+    );
+    // TODO: Success message
+    console.log(result);
   };
 
   useEffect(() => {
-    if (devnetMode) {
-      setAvailableConnectors(props.connectors);
-      return;
-    }
+    // if (!props.connectors) return;
+    // if (devnetMode) {
+    //   setAvailableConnectors(props.connectors);
+    //   return;
+    // }
 
     const checkIfAvailable = async () => {
       let availableConnectors = [];
@@ -192,29 +227,6 @@ const Account = (props) => {
     };
     checkIfAvailable();
   }, [props.connectors]);
-
-  const disconnectWallet = () => {
-    if (devnetMode) {
-      props.setConnected(false);
-      return;
-    }
-    disconnect();
-  };
-
-  useEffect(() => {
-    const usernameCall = async () => {
-      if (devnetMode) return;
-      if (calls.length === 0) return;
-      await writeAsync();
-      console.log('Username call successful:', data, isPending);
-      // TODO: Update the UI with the new vote count
-    };
-    usernameCall();
-  }, [calls]);
-
-  const { writeAsync, data, isPending } = useContractWrite({
-    calls
-  });
 
   // TODO: Pending & ... options for edit
   const handleSubmit = async (event) => {
@@ -234,9 +246,9 @@ const Account = (props) => {
     if (!devnetMode) {
       setUsername(username.trim());
       if (usernameBeforeEdit === '') {
-        claimCall(username.trim());
+        await claimCall(username.trim());
       } else {
-        changeCall(username.trim());
+        await changeCall(username.trim());
       }
       setUsernameSaved(true);
       setIsEditing(false);
@@ -323,7 +335,7 @@ const Account = (props) => {
   const [animatedRankColor, setAnimatedRankColor] = React.useState(0);
   const btrColorOffset = 1000;
   useEffect(() => {
-    if (pixelCount < 50) return;
+    if (pixelCount < 500) return;
     const interval = setInterval(() => {
       setAnimatedRankColor((animatedRankColor + 3) % 360);
       setRankBackground({
@@ -334,17 +346,17 @@ const Account = (props) => {
   }, [animatedRankColor, pixelCount]);
 
   useEffect(() => {
-    if (pixelCount >= 50) {
+    if (pixelCount >= 500) {
       setAccountRank('Alpha Wolf');
       setAccountRankImg(WolfRankImg);
-    } else if (pixelCount >= 30) {
+    } else if (pixelCount >= 250) {
       setAccountRank('Degen Artist');
       setRankBackground({
         background:
           'linear-gradient(45deg, rgba(255, 215, 0, 0.9), rgba(255, 215, 0, 0.6))'
       });
       setAccountRankImg(CrownRankImg);
-    } else if (pixelCount >= 10) {
+    } else if (pixelCount >= 50) {
       setAccountRank('Pixel Wizard');
       setRankBackground({
         background:
@@ -362,13 +374,62 @@ const Account = (props) => {
   }, [pixelCount]);
 
   const [starknetWalletMode, setStarknetWalletMode] = useState(false);
-  const connectStarknetWallet = async () => {
+  const _connectStarknetWallet = async () => {
     setStarknetWalletMode(true);
   };
 
   const showPixelHistory = () => {
     // TODO: Show pixel history
     console.log('Show pixel history');
+  };
+
+  const startSession = async () => {
+    const sessionParams = {
+      allowedMethods: allowedMethods,
+      expiry: BigInt(expiry),
+      metaData: metaData(false),
+      publicDappKey: dappKey.publicKey
+    };
+    const provider = await getProvider()
+    let chainId = await provider.getChainId();
+    const accountSessionSignature = await openSession({
+      wallet: wallet,
+      sessionParams: sessionParams,
+      // chainId: constants.StarknetChainId.SN_SEPOLIA?.toString() as constants.StarknetChainId
+      chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
+    });
+    const sessionRequest = createSessionRequest(
+      allowedMethods,
+      BigInt(expiry),
+      metaData(false),
+      dappKey.publicKey
+    );
+    if (!accountSessionSignature || !sessionRequest) {
+      console.error('Session request failed');
+      return;
+    }
+    setSessionRequest(sessionRequest);
+    setAccountSessionSignature(accountSessionSignature);
+    if (!address || !connectorData) {
+      console.error('No address or connector data');
+      return;
+    }
+    const sessionAccount = await buildSessionAccount({
+      accountSessionSignature: stark.formatSignature(accountSessionSignature),
+      sessionRequest: sessionRequest,
+      provider: provider,
+      chainId: chainId,
+      address: address,
+      dappKey: dappKey,
+      argentSessionServiceBaseUrl:
+        process.env.REACT_APP_ARGENT_SESSION_SERVICE_BASE_URL
+    });
+    if (!sessionAccount) {
+      console.error('Session account failed');
+      return;
+    }
+    // setAccount(sessionAccount);
+    setUsingSessionKeys(true);
   };
 
   // TODO: Ethereum login
@@ -390,11 +451,44 @@ const Account = (props) => {
           <div className='Account__login'>
             <div
               className='Text__medium Button__primary Account__login__button'
-              onClick={connectStarknetWallet}
+              onClick={() => {
+                // props.connectWallet
+
+                console.log("try connect")
+                // connect()
+                setIsOpenConnector(!isOpenConnector)
+              }
+
+              }
             >
-              StarkNet Login
+              Starknet Login
             </div>
           </div>
+          {isOpenConnector &&
+
+            <>
+              {availableConnectors.map((connector) => {
+                return (
+                  <div
+                    className='Text__medium Button__primary Account__walletlogin__button'
+                    key={connector.id}
+                    onClick={() => props.connectWallet(connector)}
+                  >
+                    {connectorLogo(connector.name) && (
+                      <img
+                        className='Account__wallet__icon'
+                        src={connectorLogo(connector.name)}
+                        alt='wallet'
+                      />
+                    )}
+                    <p>{connectorName(connector.name)}</p>
+                  </div>
+                );
+              })}
+
+            </>
+          }
+
           <div
             className={
               'Account__wallet__select' +
@@ -557,7 +651,9 @@ const Account = (props) => {
           <div className='Account__item'>
             <p className='Text__small Account__item__label'>Network</p>
             <p className='Text__small Account__item__text'>
-              {props.chain.network.toUpperCase()}
+              {process.env.REACT_APP_CHAIN_ID === constants.NetworkName.SN_MAIN
+                ? 'Mainnet'
+                : 'Sepolia'}
             </p>
           </div>
 
@@ -603,18 +699,40 @@ const Account = (props) => {
           <div className='Account__disconnect__button__separator'></div>
           <div className='Account__footer'>
             <div className='Account__kudos'>
-              <p
-                dangerouslySetInnerHTML={encodeToLink(
-                  'Special thanks to all [OnlyDust](https://app.onlydust.com/p/artpeace) contributors!'
-                )}
-                className='Text__small Account__kudos__label'
-              ></p>
+              {!props.usingSessionKeys && props.isSessionable ? (
+                <p className='Text__small Account__kudos__label'>
+                  Tired of approving each pixel? Sessions coming soon!
+                </p>
+              ) : (
+                <p className='Text__small Account__kudos__label'>
+                  Session active
+                </p>
+              )}
             </div>
-            <div
-              className='Text__medium Button__primary Account__disconnect__button'
-              onClick={() => disconnectWallet()}
-            >
-              Logout
+            <div>
+              {!props.usingSessionKeys &&
+              // && props.isSessionable 
+              (
+                <div
+                  className='Text__small Button__primary Button__disabled'
+                  style={{ marginBottom: '0.3rem', backgroundColor: '#f00' }}
+                  onClick={() => {
+                    startSession()
+                    props.startSession()}}
+                >
+                  Start session
+                </div>
+              )}
+              <div
+                className='Text__small Button__primary Account__disconnect__button'
+                onClick={() => {
+                  // props?.disconnectWallet()
+                  disconnect()
+
+                }}
+              >
+                Logout
+              </div>
             </div>
           </div>
         </div>

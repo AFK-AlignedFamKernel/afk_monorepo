@@ -178,11 +178,14 @@ func placeExtraPixelsDevnet(w http.ResponseWriter, r *http.Request) {
 
 func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 	// Only allow admin to place pixels on redis
+	fmt.Println("check admin")
 	if routeutils.AdminMiddleware(w, r) {
 		return
 	}
 
 	jsonBody, err := routeutils.ReadJsonBody[map[string]uint](r)
+	fmt.Println("jsonBody", jsonBody)
+
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid JSON request body")
 		return
@@ -214,6 +217,7 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 
 	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
 	pos := position * core.AFKBackend.CanvasConfig.ColorsBitWidth
+	fmt.Println("pos", pos)
 
 	ctx := context.Background()
 	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()

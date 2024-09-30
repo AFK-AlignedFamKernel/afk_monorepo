@@ -1,5 +1,5 @@
 export {useCashu} from "./useCashu"
-export {useCashuMintList} from "./useCashuMintList"
+export {useCashuMintList, countMintRecommenderMapping} from "./useCashuMintList"
 export {useCashuSendWalletInfo, useCreateCashuSendWalletInfo} from "./useCashuSendWalletInfo"
 export {useCashuSpendingToken} from "./useCashuSpendingToken"
 export {useCashuTokenSend} from "./useCashuTokenSend"

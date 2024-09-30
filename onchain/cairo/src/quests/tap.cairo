@@ -1,10 +1,8 @@
-
 #[starknet::contract]
 mod TapQuests {
-    use core::num::traits::Zero;
-
     use afk::interfaces::quest::{ITapQuests, IQuest};
     use afk::types::tap_types::{TapUserStats, TapDailyEvent};
+    use core::num::traits::Zero;
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
