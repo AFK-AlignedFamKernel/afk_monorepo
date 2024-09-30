@@ -101,7 +101,13 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     } else {
       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
     }
-  }, [address, connected]);
+
+    if (!account?.address) {
+      setQueryAddress('0');
+    } else {
+      setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
+    }
+  }, [address, connected, account]);
 
   // Contracts
   // TODO: Pull addrs from api?
@@ -292,7 +298,8 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
 
   const updateInterval = 1000; // 1 second
   // TODO: make this a config
-  const timeBetweenPlacements = 120000; // 2 minutes
+  const timeBetweenPlacements = 1200; // 20s
+  // const timeBetweenPlacements = 120000; // 2 minutes
   const [basePixelTimer, setBasePixelTimer] = useState('XX:XX');
   useEffect(() => {
     const updateBasePixelTimer = () => {
@@ -306,9 +313,13 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
         let secondsTillPlacement = Math.floor(
           (timeBetweenPlacements - timeSinceLastPlacement) / 1000
         );
+        console.log("secondsTillPlacement")
         setBasePixelTimer(
           `${Math.floor(secondsTillPlacement / 60)}:${secondsTillPlacement % 60 < 10 ? '0' : ''}${secondsTillPlacement % 60}`
         );
+        // setBasePixelTimer(
+        //   `${Math.floor(secondsTillPlacement / 60)}:${secondsTillPlacement % 60 < 10 ? '0' : ''}${secondsTillPlacement % 60}`
+        // );
         setBasePixelUp(false);
       }
     };

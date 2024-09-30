@@ -29,7 +29,7 @@ const Account = (props) => {
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
   const [accountRank, setAccountRank] = useState('');
-  const [accountState, setAccount] = useState<AccountInterface|undefined>();
+  const [accountState, setAccount] = useState<AccountInterface | undefined>();
   // TODO: Mint rank images when reached w/ button
   const [rankBackground, setRankBackground] = useState({
     background:
@@ -157,18 +157,17 @@ const Account = (props) => {
       setWallet(wallet);
       const connectorCore = {
         ...connector,
-        icon:{
-          dark:connector?.icon,
-          light:connector?.icon,
+        icon: {
+          dark: connector?.icon,
+          light: connector?.icon,
         }
       } as Connector
       console.log("connectorCore", connectorCore)
-      console.log("wallet?.selectedAddress", wallet?.selectedAddress)
-      // setQueryAddress(connectorData?.account.address?.slice(2).toLowerCase().padStart(64, '0'));
-      // setQueryAddress(connector?.wallet?.address?.slice(2).toLowerCase().padStart(64, '0'));
-      setQueryAddress(wallet?.selectedAddress?.slice(2).toLowerCase().padStart(64, '0'));
+      // console.log("wallet?.selectedAddress", wallet?.selectedAddress)
+      // // setQueryAddress(connectorData?.account.address?.slice(2).toLowerCase().padStart(64, '0'));
+      // // setQueryAddress(connector?.wallet?.address?.slice(2).toLowerCase().padStart(64, '0'));
+      // setQueryAddress(wallet?.selectedAddress?.slice(2).toLowerCase().padStart(64, '0'));
 
-      connectHook({connector:connectorCore})
       setConnectorData(connectorData);
       // setConnector(connector);
       setConnected(true);
@@ -176,6 +175,8 @@ const Account = (props) => {
       setAccount(new_account);
       setIsSessionable(canSession(wallet));
       console.log('canSession(wallet):', canSession(wallet));
+      await connectHook({ connector: connectorCore })
+
     }
   };
   const [addressShort, setAddressShort] = useState('');
@@ -214,7 +215,7 @@ const Account = (props) => {
     } else {
       setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
     }
-    
+
   }, [address, connected, account]);
   const [userAwards, setUserAwards] = useState([]);
   const [claimText, setClaimText] = useState('');
@@ -290,7 +291,7 @@ const Account = (props) => {
   };
 
   const changeCall = async (username) => {
-    if (devnetMode) return;
+    // if (devnetMode) return;
     if (!props.address || !props.usernameContract || !props.account) return;
     if (username === '') return;
     const usernameCallData = props.usernameContract.populate(
@@ -532,7 +533,7 @@ const Account = (props) => {
       return;
     }
     const sessionAccount = await buildSessionAccount({
-      useCacheAuthorisation:false,
+      useCacheAuthorisation: false,
       accountSessionSignature: stark.formatSignature(accountSessionSignature),
       sessionRequest: sessionRequest,
       provider: provider,
@@ -867,7 +868,7 @@ const Account = (props) => {
                 )}
               <div
                 className='Text__small Button__primary Account__disconnect__button'
-                onClick={  disconnectWallet}
+                onClick={disconnectWallet}
               >
                 Logout
               </div>

@@ -11,7 +11,7 @@ import {HeroSection} from './components/landing/HeroSection';
 import {Navbar} from './components/Navbar';
 import { NavbarPixel } from './components/NavbarPixel';
 
-export default function About() {
+export default function AboutPage() {
   return (
     <div className="min-h-screen w-full relative bg-black">
       <Navbar />
