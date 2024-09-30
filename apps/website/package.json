@@ -21,7 +21,7 @@
     "@chakra-ui/theme-tools": "^2.1.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@nostr-dev-kit/ndk": "^2.10.0",
+    "@nostr-dev-kit/ndk": "2.10.1",
     "@pinata/sdk": "^2.1.0",
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@starknet-react/chains": "^0.1.7",
