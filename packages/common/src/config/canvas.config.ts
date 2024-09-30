@@ -37,7 +37,7 @@ export const CanvasConfig: ICanvasConfig = {
     "3F00EF",
     "1991F4",
     "5672E1",
-    "786EDE", // typos: ignore
+    "786EDE",
     "3C3C84",
     "C84CF5",
     "CDA3F5",
