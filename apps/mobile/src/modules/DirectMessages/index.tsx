@@ -1,48 +1,66 @@
-import {useMyGiftWrapMessages, useMyMessagesSent} from 'afk_nostr_sdk';
-import React, {useEffect, useState} from 'react';
-import {FlatList, View, Text} from 'react-native';
+import {useIncomingMessageUsers, useMyGiftWrapMessages} from 'afk_nostr_sdk';
+import React, {useRef, useState} from 'react';
+import {ActivityIndicator, FlatList, Pressable, Text, View} from 'react-native';
 
-import {Conversation as ConversationPreview} from '../../components';
+import {AddPostIcon} from '../../assets/icons';
+import {Conversation as ConversationPreview, Modalize} from '../../components';
 import {Chat} from '../../components/PrivateMessages/Chat';
 import {FormPrivateMessage} from '../../components/PrivateMessages/FormPrivateMessage';
-import {useStyles} from '../../hooks';
-import {ConversationType} from '../../types/messages';
-import {conversationsData} from '../../utils/dummyData';
+import {useStyles, useTheme} from '../../hooks';
 import stylesheet from './styles';
 
 export const DirectMessages: React.FC = () => {
+  const theme = useTheme();
+  const modalizeRef = useRef<Modalize>(null);
   const styles = useStyles(stylesheet);
-  const [conversations, setConversations] = useState<ConversationType[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null);
+
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
+
+  const {data, isPending} = useIncomingMessageUsers();
 
   const giftMessages = useMyGiftWrapMessages();
-  const messagesSent = useMyMessagesSent();
-  useEffect(() => {
-    // Fetch the list of messages
-    // const { conversationsData } = useGetMessages();
-    setConversations(conversationsData);
-  }, []);
+  console.log('giftMessages', giftMessages?.data?.pages);
+
+  const onOpenMenu = () => {
+    modalizeRef.current?.open();
+  };
 
   const handleGoBack = () => {
     setSelectedConversation(null);
   };
 
-  console.log('giftMessages', giftMessages?.data?.pages);
-  console.log('messagesSent', messagesSent?.data?.pages);
+  if (isPending) {
+    return <ActivityIndicator></ActivityIndicator>;
+  }
 
   return (
     <>
+      <Modalize ref={modalizeRef}>
+        <FormPrivateMessage handleClose={() => modalizeRef.current?.close()} />
+      </Modalize>
 
-    <Text>Private message coming soon</Text>
-      <FormPrivateMessage></FormPrivateMessage>
+      {data?.pages.flat().length === 0 ? (
+        <View
+          style={{
+            height: 100,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={styles.name}>You dont have any message</Text>
+        </View>
+      ) : (
+        ''
+      )}
 
       {selectedConversation ? (
-        <Chat conversation={selectedConversation} handleGoBack={handleGoBack} />
+        <Chat item={selectedConversation} handleGoBack={handleGoBack} />
       ) : (
         <View style={styles.container}>
           <FlatList
-            data={conversations}
-            keyExtractor={(conversation) => conversation.id}
+            data={data?.pages.flat()}
+            keyExtractor={(item) => item.id}
             renderItem={({item}) => (
               <ConversationPreview
                 conversation={item}
@@ -53,19 +71,11 @@ export const DirectMessages: React.FC = () => {
           />
         </View>
       )}
-
-      {/* <FlatList
-        data={messagesSent?.data?.pages?.flat()}
-        keyExtractor={(conversation) => conversation.id}
-        renderItem={({ item }) => {
-          // console.log("item",item)
-          return (
-            <ConversationPreview conversation={item} onPressed={() => setSelectedConversation(item)} />
-          )
-        }
-        }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      /> */}
+      {!selectedConversation && (
+        <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
+          <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
+        </Pressable>
+      )}
     </>
   );
 };

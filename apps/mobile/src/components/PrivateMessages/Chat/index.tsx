@@ -1,27 +1,67 @@
+import {useQueryClient} from '@tanstack/react-query';
+import {useAuth, useRoomMessages, useSendPrivateMessage} from 'afk_nostr_sdk';
 import React from 'react';
-import {Image, Text, View} from 'react-native';
+import {FlatList, Image, Text, View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
-import {ConversationType} from '../../../types/messages';
+import {useToast} from '../../../hooks/modals';
 import {IconButton} from '../../IconButton';
-import {MessagesList} from '../MessagesList.tsx';
 import {MessageInput} from '../PrivateMessageInput';
 import stylesheet from './styles';
 
 export type ChatProps = {
-  conversation: ConversationType;
+  item: {
+    id: number;
+    pubkey: number;
+    created_at: string;
+    decryptedContent: string;
+    senderPublicKey: string;
+    receiverPublicKey: string;
+    user: any;
+    name: string;
+  };
+  user?: any;
   handleGoBack: () => void;
 };
 
-export const Chat: React.FC<ChatProps> = ({conversation, handleGoBack}) => {
+export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
+  const {publicKey} = useAuth();
+  const {showToast} = useToast();
+  const queryClient = useQueryClient();
+  const {mutateAsync} = useSendPrivateMessage();
+  const roomIds = [item?.senderPublicKey, item?.receiverPublicKey];
+  //Use this to get Message sent between 2 pubKey
+  const messagesSent = useRoomMessages({
+    roomParticipants: roomIds,
+  });
   const styles = useStyles(stylesheet);
-  const user = conversation.user;
-  const avatar = user.avatar ? {uri: user.avatar} : require('../../../assets/pepe-logo.png');
 
-  const handleSendMessage = (message: string) => {
-    //todo: integrate hook here
-    //todo: encrypt message
-    //todo: send message
+  const avatar = user?.avatar ? {uri: user.avatar} : require('../../../assets/pepe-logo.png');
+
+  const handleSendMessage = async (message: string) => {
+    if (!message) return;
+    const receiverPublicKey = roomIds.find((id) => id !== publicKey);
+    if (!receiverPublicKey) {
+      showToast({title: 'Invalid receiver', type: 'error'});
+      return;
+    }
+    await mutateAsync(
+      {
+        content: message,
+        receiverPublicKeyProps: receiverPublicKey,
+      },
+      {
+        onSuccess: () => {
+          // showToast({title: 'Message sent', type: 'success'});
+          queryClient.invalidateQueries({
+            queryKey: ['messagesSent'],
+          });
+        },
+        onError() {
+          showToast({title: 'Error sending message', type: 'error'});
+        },
+      },
+    );
   };
 
   return (
@@ -35,13 +75,30 @@ export const Chat: React.FC<ChatProps> = ({conversation, handleGoBack}) => {
         />
         <View style={styles.headerContent}>
           <Image source={avatar} style={styles.avatar} />
-          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.name}>{item?.name}</Text>
         </View>
       </View>
       <View style={styles.container}>
-        <MessagesList messages={conversation.messages} />
+        <FlatList
+          data={messagesSent.data?.pages.flat()}
+          keyExtractor={(item) => item.id}
+          renderItem={({item}: any) => <MessageCard publicKey={publicKey} item={item} />}
+          inverted
+          style={styles.list}
+        />
         <MessageInput onSend={handleSendMessage} />
       </View>
     </>
+  );
+};
+
+const MessageCard = ({item, publicKey}: Omit<ChatProps, 'handleGoBack'> & {publicKey: string}) => {
+  const isUser = item.senderPublicKey === publicKey;
+  const styles = useStyles(stylesheet);
+
+  return (
+    <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.otherMessage]}>
+      <Text style={styles.messageText}>{item.decryptedContent}</Text>
+    </View>
   );
 };
