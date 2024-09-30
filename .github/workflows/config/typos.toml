@@ -2,4 +2,4 @@
 ba = "ba"
 
 [files]
-extend-exclude = ["/**/patches/**", "/**/assets/**", "/**/src/config/**", "./scripts/constants/canvas.config.ts"]
+extend-exclude = ["/**/patches/**", "/**/assets/**", "/**/src/config/**", "**/*.config.ts"]
