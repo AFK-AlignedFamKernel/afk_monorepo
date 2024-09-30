@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract ABTCVault is
     Initializable,
@@ -35,6 +36,7 @@ contract ABTCVault is
     struct WrappedBTC {
         bool isPermitted;
         uint256 poolingTimestamp;
+        uint256 ratio;
     }
 
     mapping(address => WrappedBTC) public wrappedBTCTokens;
@@ -68,6 +70,9 @@ contract ABTCVault is
         __UUPSUpgradeable_init();
         __Pausable_init();
 
+        // Assign DEFAULT_ADMIN_ROLE to _admin
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(MINTER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
@@ -77,10 +82,14 @@ contract ABTCVault is
     function setWrappedBTCToken(
         address _token,
         bool _isPermitted,
-        uint256 ratio,
+        uint256 _ratio,
         uint256 _poolingTimestamp
     ) external onlyRole(ADMIN_ROLE) {
-        wrappedBTCTokens[_token] = WrappedBTC(_isPermitted, _poolingTimestamp);
+        wrappedBTCTokens[_token] = WrappedBTC(
+            _isPermitted,
+            _poolingTimestamp,
+            _ratio
+        );
         emit TokenPermissionSet(_token, _isPermitted, _poolingTimestamp);
     }
 
@@ -96,11 +105,12 @@ contract ABTCVault is
             address(this),
             _amount
         );
-        _mint(msg.sender, _amount); // 1:1 minting without fees
+        uint256 mintAmount = (_amount * wrappedToken.ratio) / 1e18;
+        _mint(msg.sender, mintAmount);
 
         userDeposits[msg.sender][_wrappedBTCToken] += _amount;
 
-        emit Deposited(msg.sender, _wrappedBTCToken, _amount, _amount);
+        emit Deposited(msg.sender, _wrappedBTCToken, _amount, mintAmount);
     }
 
     function withdraw(
@@ -110,17 +120,23 @@ contract ABTCVault is
         WrappedBTC memory wrappedToken = wrappedBTCTokens[_wrappedBTCToken];
         require(wrappedToken.isPermitted, "Token not permitted");
 
+        uint256 requiredDeposit = (_aBTCAmount * 1e18) / wrappedToken.ratio;
         require(
-            userDeposits[msg.sender][_wrappedBTCToken] >= _aBTCAmount,
+            userDeposits[msg.sender][_wrappedBTCToken] >= requiredDeposit,
             "Insufficient deposit"
         );
 
         _burn(msg.sender, _aBTCAmount);
-        IERC20(_wrappedBTCToken).transfer(msg.sender, _aBTCAmount); // 1:1 withdrawal without fees
+        IERC20(_wrappedBTCToken).transfer(msg.sender, requiredDeposit);
 
-        userDeposits[msg.sender][_wrappedBTCToken] -= _aBTCAmount;
+        userDeposits[msg.sender][_wrappedBTCToken] -= requiredDeposit;
 
-        emit Withdrawn(msg.sender, _wrappedBTCToken, _aBTCAmount, _aBTCAmount);
+        emit Withdrawn(
+            msg.sender,
+            _wrappedBTCToken,
+            requiredDeposit,
+            _aBTCAmount
+        );
     }
 
     function mint(
@@ -137,8 +153,16 @@ contract ABTCVault is
         _burn(_from, _amount);
     }
 
+    // Override the functions that emit errors to use custom errors
+
     function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
+    }
+
+    function _requireNotPaused() internal view virtual override {
+        if (paused()) {
+            revert EnforcedPause();
+        }
     }
 
     function unpause() external onlyRole(PAUSER_ROLE) {
