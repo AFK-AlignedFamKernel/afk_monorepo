@@ -121,7 +121,7 @@ contract PumpLaunch is
     /** TODO Opti mapping */
     mapping(uint256 => Token) public tokens;
     mapping(address => Token) public tokensCreated;
-    mapping(uint256 => TokenLaunch) public launches;
+    mapping(uint256 => TokenLaunch) public launch;
     mapping(address => TokenLaunch) public launchCreated;
     mapping(address => mapping(address => SharesTokenUser))
         public shareUserByToken;

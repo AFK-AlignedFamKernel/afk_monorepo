@@ -1,4 +1,4 @@
-import {ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -8,5 +8,15 @@ export default ThemedStyleSheet((theme) => ({
   separator: {
     height: 1,
     backgroundColor: theme.colors.divider,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  messageNewUserButton: {
+    position: 'absolute',
+    bottom: Spacing.large,
+    right: Spacing.pagePadding,
   },
 }));

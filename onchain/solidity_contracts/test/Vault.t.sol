@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 import "forge-std/Test.sol";
 import "../src/defi/Vault.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract MockWrappedBTC is ERC20 {
     constructor(string memory name, string memory symbol) ERC20(name, symbol) {
@@ -19,65 +20,79 @@ contract ABTCVaultTest is Test {
     address public user1;
     address public user2;
 
+    // Declare custom errors
+    error AccessControlUnauthorizedAccount(address account, bytes32 role);
+    error EnforcedPause();
+
     function setUp() public {
         admin = address(this);
-        // admin = address(0x1);
-
+    
         user1 = address(0x1);
         user2 = address(0x2);
-
+    
         wbtc = new MockWrappedBTC("Wrapped BTC", "WBTC");
         tbtc = new MockWrappedBTC("tBTC", "TBTC");
-
-        // vault = new ABTCVault();
-        vault = new ABTCVault();
-        vault.initialize(admin, address(wbtc));
-
-
+    
+        // Deploy the implementation contract
+        ABTCVault implementation = new ABTCVault();
+    
+        // Initialize data for proxy constructor
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address)",
+            admin,
+            address(wbtc)
+        );
+    
+        // Deploy the proxy contract pointing to the implementation
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(implementation),
+            data
+        );
+    
+        // Cast the proxy to the ABTCVault type
+        vault = ABTCVault(address(proxy));
+    
         vm.label(address(vault), "ABTCVault");
         vm.label(address(wbtc), "WBTC");
         vm.label(address(tbtc), "TBTC");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
     }
-
+    
     function testInitialization() public {
         assertEq(vault.name(), "Aggregated Bitcoin");
         assertEq(vault.symbol(), "aBTC");
         assertEq(vault.decimals(), 18);
         assertTrue(vault.hasRole(vault.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(vault.hasRole(vault.ADMIN_ROLE(), admin));
         assertTrue(vault.hasRole(vault.MINTER_ROLE(), admin));
         assertTrue(vault.hasRole(vault.UPGRADER_ROLE(), admin));
         assertTrue(vault.hasRole(vault.PAUSER_ROLE(), admin));
     }
 
     function testSetWrappedBTCToken() public {
-        // vm.prank(user1);
-        vm.prank(admin);
-
         vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
-        (bool isPermitted, uint256 poolingTimestamp) = vault.wrappedBTCTokens(
-            address(wbtc)
-        );
+        (bool isPermitted, uint256 poolingTimestamp, uint256 ratio) = vault
+            .wrappedBTCTokens(address(wbtc));
         assertTrue(isPermitted);
         assertEq(poolingTimestamp, block.timestamp);
+        assertEq(ratio, 1e18);
     }
 
     function testSetWrappedBTCTokenUnauthorized() public {
-        // vm.prank(user1);
-
-
+        vm.prank(user1);
         vm.expectRevert(
-            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000"
+            abi.encodeWithSelector(
+                AccessControlUnauthorizedAccount.selector,
+                user1,
+                vault.ADMIN_ROLE()
+            )
         );
         vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
     }
 
     function testDeposit() public {
-        // vm.prank(user1);
-        // vm.prank(admin);
-
-        // vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
+        vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
         uint256 depositAmount = 100 * 1e18;
         wbtc.approve(address(vault), depositAmount);
         vault.deposit(address(wbtc), depositAmount);
@@ -93,8 +108,6 @@ contract ABTCVaultTest is Test {
     }
 
     function testWithdraw() public {
-        vm.prank(admin);
-
         vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
         uint256 depositAmount = 100 * 1e18;
         wbtc.approve(address(vault), depositAmount);
@@ -133,7 +146,11 @@ contract ABTCVaultTest is Test {
         uint256 mintAmount = 100 * 1e18;
         vm.prank(user1);
         vm.expectRevert(
-            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6"
+            abi.encodeWithSelector(
+                AccessControlUnauthorizedAccount.selector,
+                user1,
+                vault.MINTER_ROLE()
+            )
         );
         vault.mint(user2, mintAmount);
     }
@@ -150,7 +167,11 @@ contract ABTCVaultTest is Test {
         vault.mint(user1, mintAmount);
         vm.prank(user1);
         vm.expectRevert(
-            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6"
+            abi.encodeWithSelector(
+                AccessControlUnauthorizedAccount.selector,
+                user1,
+                vault.MINTER_ROLE()
+            )
         );
         vault.burn(user1, mintAmount);
     }
@@ -163,7 +184,11 @@ contract ABTCVaultTest is Test {
     function testPauseUnauthorized() public {
         vm.prank(user1);
         vm.expectRevert(
-            "AccessControl: account 0x0000000000000000000000000000000000000001 is missing role 0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a"
+            abi.encodeWithSelector(
+                AccessControlUnauthorizedAccount.selector,
+                user1,
+                vault.PAUSER_ROLE()
+            )
         );
         vault.pause();
     }
@@ -179,7 +204,7 @@ contract ABTCVaultTest is Test {
         vault.pause();
         uint256 depositAmount = 100 * 1e18;
         wbtc.approve(address(vault), depositAmount);
-        vm.expectRevert("Pausable: paused");
+        vm.expectRevert(EnforcedPause.selector);
         vault.deposit(address(wbtc), depositAmount);
     }
 
@@ -189,7 +214,7 @@ contract ABTCVaultTest is Test {
         wbtc.approve(address(vault), depositAmount);
         vault.deposit(address(wbtc), depositAmount);
         vault.pause();
-        vm.expectRevert("Pausable: paused");
+        vm.expectRevert(EnforcedPause.selector);
         vault.withdraw(address(wbtc), depositAmount);
     }
 
@@ -226,9 +251,9 @@ contract ABTCVaultTest is Test {
         wbtc.approve(address(vault), wbtcAmount);
         tbtc.approve(address(vault), tbtcAmount);
 
-        vault.deposit(address(wbtc), wbtcAmount);
-        vault.deposit(address(tbtc), tbtcAmount);
+        vault.deposit(address(wbtc), wbtcAmount); // Mints 100 aBTC
+        vault.deposit(address(tbtc), tbtcAmount); // Mints 100 aBTC (50 * 2)
 
-        assertEq(vault.balanceOf(address(this)), wbtcAmount + (tbtcAmount * 2));
+        assertEq(vault.balanceOf(address(this)), 200 * 1e18);
     }
 }

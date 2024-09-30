@@ -21,69 +21,29 @@ export const BalanceCashu = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
-    mintUrl,
+    mintUrl, 
     setMintUrl,
-  } = useCashu();
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+ 
 
-  const {balance, setBalance} = useCashuBalance();
+  } = useCashu()
+  const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
-  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-  const [mint, setMint] = useState<CashuMint | undefined>(
-    mintUrl ? new CashuMint(mintUrl) : undefined,
-  );
+  const {balance, setBalance, getProofsWalletAndBalance} = useCashuBalance()
+  const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const cashuWallets = useGetCashuWalletsInfo();
-  console.log('cashuWallets', cashuWallets);
-  const lenWallet = cashuWallets?.data?.pages?.length ?? 0;
-  console.log('lenWallet', lenWallet);
-
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
   const styles = useStyles(stylesheet);
-
-  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
-  const [mintsUrls, setMintUrls] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
-  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
-  const [isZapModalVisible, setIsZapModalVisible] = useState(false);
+  const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
+  const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
 
-  // const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  // const [connectionData, setConnectionData] = useState<any>(null);
-
-  const {theme} = useTheme();
-  const [newSeed, setNewSeed] = useState<string | undefined>();
+  const { theme } = useTheme();
+  const [newSeed, setNewSeed] = useState<string | undefined>()
+  const { showToast } = useToast()
 
   const {showDialog, hideDialog} = useDialog();
-
-  const {showToast} = useToast();
-
-  const handleGenerateWallet = async () => {
-    const wallet = await ndkWallet?.createCashuWallet();
-
-    console.log('wallet', wallet);
-  };
-
-  const getProofsWalletAndBalance = async () => {
-    const proofsLocal = getProofs();
-    if (proofsLocal) {
-      /** TODO clean proofs */
-      let proofs: Proof[] = JSON.parse(proofsLocal);
-      const proofsSpent = await wallet?.checkProofsSpent(proofs);
-      // console.log("proofsSpent", proofsSpent)
-      proofs = proofs?.filter((p) => !proofsSpent?.includes(p));
-
-      if (proofsSpent) {
-        await addProofsSpent(proofsSpent);
-      }
-      const totalAmount = proofs.reduce((s, t) => (s += t.amount), 0);
-      console.log('totalAmount', totalAmount);
-      setBalance(totalAmount);
-    }
-  };
 
   useEffect(() => {
     (async () => {
@@ -100,29 +60,32 @@ export const BalanceCashu = () => {
       }
     })();
 
-    (async () => {
-      console.log('ndkCashuWallet', ndkCashuWallet);
-      console.log('ndkWallet', ndkWallet);
+    // (async () => {
 
-      const availableTokens = await ndkCashuWallet?.availableTokens;
-      console.log('availableTokens', availableTokens);
+    //   console.log("ndkCashuWallet", ndkCashuWallet)
+    //   console.log("ndkWallet", ndkWallet)
 
-      const mintBalances = await ndkCashuWallet?.mintBalances;
-      console.log('mintBalances', mintBalances);
+    //   const availableTokens = await ndkCashuWallet?.availableTokens;
+    //   console.log("availableTokens", availableTokens)
 
-      console.log('mintBalances', mintBalances);
-      const wallets = await ndkWallet?.wallets;
-      console.log('wallets', wallets);
+    //   const mintBalances = await ndkCashuWallet?.mintBalances;
+    //   console.log("mintBalances", mintBalances)
 
-      const balance = await ndkCashuWallet?.balance;
+    //   console.log("mintBalances", mintBalances)
+    //   const wallets = await ndkWallet?.wallets;
+    //   console.log("wallets", wallets)
 
-      console.log('balance', balance);
+    //   const balance = await ndkCashuWallet?.balance;
 
-      if (mint) {
-        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-        console.log('mintBalance', mintBalance);
-      }
-    })();
+    //   console.log("balance", balance)
+
+    //   if (mint) {
+    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
+    //     console.log("mintBalance", mintBalance)
+
+    //   }
+
+    // })();
 
     getProofsWalletAndBalance();
   }, []);

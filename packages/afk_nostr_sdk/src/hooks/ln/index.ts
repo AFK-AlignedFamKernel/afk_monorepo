@@ -7,7 +7,7 @@ import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 
 export const useLN = () => {
 
-    const { publicKey, setNWCUrl, nwcUrl: nwcUrlProps } = useAuth()
+    const { publicKey, setNWCUrl:setNwcUrlStore, nwcUrl: nwcUrlProps } = useAuth()
     const [nwcUrl, setNwcUrl] = useState(nwcUrlProps);
     const [pendingNwcUrl, setPendingNwcUrl] = useState('');
     const [nwcAuthUrl, setNwcAuthUrl] = useState('');
@@ -154,7 +154,8 @@ export const useLN = () => {
                 console.log("pendingNwc", pendingNwc)
                 setPendingNwcUrl(pendingNwc);
                 setNwcAuthUrl(authUrl.toString());
-                setNWCUrl(nwcUrl || '')
+                setNwcUrlStore(nwcUrl)
+                setNwcUrl(nwcUrl)
                 console.log("authUrl", authUrl)
                 console.log("nwc", nwc)
 
@@ -172,7 +173,8 @@ export const useLN = () => {
                             setNwcAuthUrl(pendingNwcUrl.toString());
 
                             await handleConnectWithUrl(pendingNwcUrl)
-
+                            setNwcUrlStore(nwcUrl)
+                            setNwcUrl(nwcUrl)
                             setNwcUrl(pendingNwcUrl);
                             return webLn
 
@@ -197,7 +199,7 @@ export const useLN = () => {
                 await nwc.enable();
                 setNostrWebLN(nwc);
 
-                setNWCUrl(nwcUrl);
+                setNwcUrl(nwcUrl);
 
                 mutateConnectNDK(nwcUrl, {
                     onSuccess: () => {

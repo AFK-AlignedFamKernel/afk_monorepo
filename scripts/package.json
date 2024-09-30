@@ -11,6 +11,7 @@
     "deploy:namespace": "ts-node ./deploy/namespace.ts",
     "deploy:launchpad": "ts-node ./deploy/launchpad.ts",
     "deploy:token": "ts-node ./deploy/token.ts",
+    "deploy:art_peace": "ts-node ./deploy/art_peace.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"
@@ -25,7 +26,7 @@
     "nodemon": "^3.1.1",
     "nostr-tools": "^2.5.2",
     "path": "^0.12.7",
-    "starknet": "^6.6.6",
+    "starknet": "^6.6.9",
     "ws": "^8.17.0",
     "common":"workspace:*"
   },

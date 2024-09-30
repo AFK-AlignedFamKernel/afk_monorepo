@@ -21,6 +21,25 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
   },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.small,
+    paddingHorizontal: Spacing.medium,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  activeTab: {
+    backgroundColor: theme.colors.divider,
+  },
+  tabText: {
+    fontSize: 18,
+    color: theme.colors.text,
+  },
   tabSelector: {
     // flex:1,
     // maxWidth: 500,

@@ -3,7 +3,7 @@ import {useNote, useReplyNotes, useSendNote} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
 
-import {Divider, IconButton, Input, KeyboardFixedView} from '../../components';
+import {Divider, Header, IconButton, Input, KeyboardFixedView} from '../../components';
 import {useNostrAuth, useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {Post} from '../../modules/Post';
@@ -51,12 +51,12 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
 
   return (
     <View style={styles.container}>
-      {/* <Header
+      <Header
         showLogo={false}
         left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack} />}
-        right={<IconButton icon="MoreHorizontalIcon" size={24} />}
-        title="Conversation"
-      /> */}
+        // right={<IconButton icon="MoreHorizontalIcon" size={24} />}
+        // title="Conversation"
+      />
 
       <Divider />
 

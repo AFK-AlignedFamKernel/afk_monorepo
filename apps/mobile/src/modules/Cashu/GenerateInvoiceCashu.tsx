@@ -71,29 +71,32 @@ export const GenerateInvoiceCashu = () => {
       setMintInfo(info);
     })();
 
-    (async () => {
-      console.log('ndkCashuWallet', ndkCashuWallet);
-      console.log('ndkWallet', ndkWallet);
 
-      const availableTokens = await ndkCashuWallet?.availableTokens;
-      console.log('availableTokens', availableTokens);
+    // (async () => {
 
-      const mintBalances = await ndkCashuWallet?.mintBalances;
-      console.log('mintBalances', mintBalances);
+    //   console.log("ndkCashuWallet", ndkCashuWallet)
+    //   console.log("ndkWallet", ndkWallet)
 
-      console.log('mintBalances', mintBalances);
-      const wallets = await ndkWallet?.wallets;
-      console.log('wallets', wallets);
+    //   const availableTokens = await ndkCashuWallet?.availableTokens;
+    //   console.log("availableTokens", availableTokens)
 
-      const balance = await ndkCashuWallet?.balance;
+    //   const mintBalances = await ndkCashuWallet?.mintBalances;
+    //   console.log("mintBalances", mintBalances)
 
-      console.log('balance', balance);
+    //   console.log("mintBalances", mintBalances)
+    //   const wallets = await ndkWallet?.wallets;
+    //   console.log("wallets", wallets)
 
-      if (mint) {
-        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-        console.log('mintBalance', mintBalance);
-      }
-    })();
+    //   const balance = await ndkCashuWallet?.balance;
+
+    //   console.log("balance", balance)
+
+    //   if (mint) {
+    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
+    //     console.log("mintBalance", mintBalance)
+    //   }
+
+    // })();
   }, []);
 
   const generateInvoice = async (): Promise<void | any> => {

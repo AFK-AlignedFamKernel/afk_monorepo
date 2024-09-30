@@ -29,12 +29,17 @@ export const SendEcash = () => {
     mint,
     mintTokens,
     mintUrl,
-    setMintUrl,
-  } = useCashu();
-  const [ecash, setEcash] = useState<string | undefined>();
-  const [invoice, setInvoice] = useState<string | undefined>();
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
+    setMintUrl
 
+  } = useCashu()
+  const [ecash, setEcash] = useState<string | undefined>()
+  const [invoice, setInvoice] = useState<string | undefined>()
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
+  const tabs = ['lightning', 'ecash'];
+  const [activeTab, setActiveTab] = useState(tabs[0]);
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
@@ -78,52 +83,56 @@ export const SendEcash = () => {
       setMintInfo(info);
     })();
 
-    (async () => {
-      console.log('ndkCashuWallet', ndkCashuWallet);
-      console.log('ndkWallet', ndkWallet);
 
-      const availableTokens = await ndkCashuWallet?.availableTokens;
-      console.log('availableTokens', availableTokens);
+    // (async () => {
 
-      const mintBalances = await ndkCashuWallet?.mintBalances;
-      console.log('mintBalances', mintBalances);
+    //   console.log("ndkCashuWallet", ndkCashuWallet)
+    //   console.log("ndkWallet", ndkWallet)
 
-      console.log('mintBalances', mintBalances);
-      const wallets = await ndkWallet?.wallets;
-      console.log('wallets', wallets);
+    //   const availableTokens = await ndkCashuWallet?.availableTokens;
+    //   console.log("availableTokens", availableTokens)
 
-      const balance = await ndkCashuWallet?.balance;
+    //   const mintBalances = await ndkCashuWallet?.mintBalances;
+    //   console.log("mintBalances", mintBalances)
 
-      console.log('balance', balance);
+    //   console.log("mintBalances", mintBalances)
+    //   const wallets = await ndkWallet?.wallets;
+    //   console.log("wallets", wallets)
 
-      if (mint) {
-        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-        console.log('mintBalance', mintBalance);
-      }
-    })();
+    //   const balance = await ndkCashuWallet?.balance;
+
+    //   console.log("balance", balance)
+
+    //   if (mint) {
+    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
+    //     console.log("mintBalance", mintBalance)
+    //   }
+
+    // })();
   }, []);
 
   const handleEcash = async () => {
-    console.log('handleEcash');
+    console.log("handleEcash")
 
     if (!invoiceAmount) {
       return showToast({
-        title: 'Please enter an invoice',
-        type: 'error',
-      });
+        title: "Please enter an amount",
+        type: "error"
+      })
     }
     const ecash = await handleGenerateEcash(Number(invoiceAmount));
 
     if (!ecash) {
       return showToast({
         title: "Ecash token can't be generated",
-        type: 'error',
-      });
+        type: "error"
+      })
     }
-    console.log('ecash', ecash);
-    setGeneratedInvoice(ecash);
-    return ecash;
-  };
+    console.log("ecash", ecash)
+    setGeneratedInvoice(ecash)
+    setGenerateEcash(ecash)
+    return ecash
+  }
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -152,6 +161,7 @@ export const SendEcash = () => {
       <View
       // style={styles.container}
       >
+        {/* 
         <TabSelector
           activeTab={selectedTab}
           handleActiveTab={handleTabSelected}
@@ -162,7 +172,20 @@ export const SendEcash = () => {
             },
           ]}
           addScreenNavigation={false}
-        ></TabSelector>
+        ></TabSelector> */}
+
+        <View style={styles.tabContainer}>
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.activeTab]}
+              onPress={() => handleTabChange(tab)}
+            >
+              <Text style={styles.tabText}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
 
         <View
         //  style={styles.container}
@@ -184,56 +207,84 @@ export const SendEcash = () => {
             <Text style={styles.text}>MOTD: {infoMint?.motd}</Text>
           </View>
 
-          <TextInput
-            placeholder="Invoice to paid"
-            value={invoice}
-            onChangeText={setInvoice}
-            style={styles.input}
-          ></TextInput>
+          {activeTab == "lightning" &&
 
-          <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
+            <>
+              <TextInput
+                placeholder="Invoice to paid"
+                value={invoice}
+                onChangeText={setInvoice}
+                style={styles.input}
+              >
+              </TextInput>
 
-          <TextInput
-            placeholder="Amount"
-            keyboardType="numeric"
-            value={invoiceAmount}
-            onChangeText={setInvoiceAmount}
-            style={styles.input}
-          />
 
-          <Button
-            onPress={handleEcash}
-            // onPress={() =>  handleEcash}
-          >
-            Generate eCash
-          </Button>
+              <Button
+                onPress={() => handlePayInvoice(invoice)}
+              >
 
-          {quote?.request && (
-            <View
-              style={{
-                marginVertical: 3,
-              }}
-            >
-              <Text style={styles.text}>Invoice address</Text>
+                Pay invoice
 
-              <Input
-                value={quote?.request}
-                editable={false}
-                right={
-                  <TouchableOpacity
-                    onPress={() => handleCopy('ecash')}
-                    style={
-                      {
-                        // marginRight: 10,
-                      }
-                    }
-                  >
-                    <CopyIconStack color={theme.colors.primary} />
-                  </TouchableOpacity>
-                }
+              </Button>
+
+
+
+            </>
+          }
+
+          {activeTab == "ecash" &&
+            <>
+
+
+              <TextInput
+                placeholder="Amount"
+                keyboardType="numeric"
+                value={invoiceAmount}
+                onChangeText={setInvoiceAmount}
+                style={styles.input}
               />
-            </View>
-          )}
+              <Button
+                onPress={handleEcash}
+              // onPress={() =>  handleEcash}
+              >
+
+                Generate eCash
+
+              </Button>
+
+              {generatedEcash &&
+
+                <View
+                  style={{
+                    marginVertical: 3
+                  }}
+                >
+
+                  <Text style={styles.text}>eCash token</Text>
+
+                  <Input
+                    value={generatedEcash}
+                    editable={false}
+                    right={
+                      <TouchableOpacity
+                        onPress={() => handleCopy("ecash")}
+                        style={{
+                          // marginRight: 10,
+                        }}
+                      >
+                        <CopyIconStack color={theme.colors.primary} />
+                      </TouchableOpacity>
+                    }
+                  />
+                </View>
+
+              }
+            </>
+          }
+
+
+
+
         </View>
       </View>
     </SafeAreaView>

@@ -75,7 +75,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     //   }, {
     //     onSuccess: () => {
     //       showToast({ title: "Lightning zap succeed", type: "success" })
-
+  
     //     }
     //   })
     // }

@@ -1,53 +1,65 @@
 import '../../../applyGlobalPolyfills';
 
-import {useCashu, useCashuMintList, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import React, {useEffect, useState} from 'react';
-import {FlatList, RefreshControl, SafeAreaView, View} from 'react-native';
-import {Text} from 'react-native';
+import { countMintRecommenderMapping, useCashu, useCashuMintList, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
+import React, { SetStateAction, useEffect, useState } from 'react';
+import { FlatList, Platform, Pressable, RefreshControl, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 
-import {useStyles} from '../../hooks';
+import {useStyles, useTheme} from '../../hooks';
 import stylesheet from './styles';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import { Input } from '../../components';
+import * as Clipboard from 'expo-clipboard';
+import { useToast } from '../../hooks/modals';
+import { CopyIconStack } from '../../assets/icons';
 
 export const MintListCashu = () => {
-  const {mintUrl, setMintUrl, mint} = useCashu();
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
-  const mintList = useCashuMintList();
+  const tabs = ['Lightning', 'Ecash'];
 
-  const [isLoad, setIsLoad] = useState<boolean>(false);
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const [mintUrls, setMintUrls] = useState<Set<string>>(new Set());
-  const [mintSum, setMintSum] = useState<Map<string, number>>(new Map());
-  console.log('mintSum', mintSum);
+  const {
+
+    mintUrl,
+    setMintUrl,
+    mint,
+    // setMint
+  } = useCashu()
+  const { ndkCashuWallet, ndkWallet, ndk } = useNostrContext()
+  const mintList = useCashuMintList()
+
+  const { showToast } = useToast()
+  const [isLoad, setIsLoad] = useState<boolean>(false)
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
+  const [mintUrls, setMintUrls] = useState<Map<string, number>>(new Map())
+  const [mintSum, setMintSum] = useState<Map<string, number>>(new Map())
+  console.log("mintSum", mintSum)
+  console.log("mintUrls", mintUrls)
+  const { theme } = useTheme();
 
   const getMintUrls = () => {
     if (isLoad) return;
 
     if (mintList?.data?.pages?.length == 0) return;
     try {
-      const mintsUrlsUnset: string[] = [];
-
-      const mintMapCounter = new Map();
-      console.log(' mintList?.data?.pages', mintList?.data?.pages?.length);
-
-      mintList?.data?.pages?.forEach((e) => {
-        if (!e?.tags) return;
+      const mintsUrlsMap: Map<string, number> = new Map()
+      const mintsUrls: string[] = []
+      mintList?.data?.pages.forEach((e) => {
         e?.tags?.filter((tag: string[]) => {
           if (tag[0] === 'mint') {
-            mintsUrlsUnset.push(tag[1]);
-            const counter = mintMapCounter.get(tag[1]);
-            console.log('counter', counter);
+            const isExist = mintsUrlsMap.has(tag[1])
+            if (isExist) {
+              const counter = mintsUrlsMap.get(tag[1]) ?? 0
+              mintsUrlsMap.set(tag[1], counter + 1)
+            } else {
+              mintsUrlsMap.set(tag[1], 1)
+            }
+            mintsUrls.push(tag[1])
 
-            mintMapCounter.set(tag[1], counter + 1);
           }
         });
-      });
-
-      setMintSum(mintMapCounter);
-      console.log('mintMapCounter', mintMapCounter);
-
-      setIsLoad(true);
-      const mintsUrls = new Set(mintsUrlsUnset);
-      setMintUrls(mintsUrls);
+      })
+      console.log("mintUrlsMap", mintsUrlsMap)
+      setMintUrls(mintsUrlsMap)
+      setIsLoad(true)
       return mintUrls;
     } catch (e) {
       console.log('Error get mint urls', e);
@@ -61,35 +73,77 @@ export const MintListCashu = () => {
     getMintUrls();
   }, [mintList, isLoad]);
 
+  useEffect(() => {
+
+    const getMapping = async () => {
+      if (isLoad) return;
+      // if (mintList?.data?.pages?.length == 0) return;
+      const mintList = await ndk.fetchEvents({
+        kinds: [NDKKind.CashuMintList],
+        limit: 100,
+      });
+
+      // const events = await getMintEvent(ndk)
+      const map = countMintRecommenderMapping([...mintList])
+      setMintUrls(map?.mintsUrlsMap)
+      setIsLoad(true)
+    }
+
+    if (!isLoad) {
+      getMapping()
+
+    }
+
+  }, [isLoad, mintList])
+
+
   const styles = useStyles(stylesheet);
+  const handleCopy = async (url: string) => {
+    await Clipboard.setStringAsync(url);
+    showToast({ type: 'info', title: 'Copied to clipboard' });
+  };
 
   console.log('mintList', mintList?.data);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View
-        style={styles.container}
-        // contentContainerStyle={styles.scrollView}
-      >
-        {/* <ScrollView contentContainerStyle={styles.scrollView}> */}
 
-        {/* <View style={styles.container}>
+      {/* <ScrollView contentContainerStyle={styles.scrollView}> */}
 
-          <FlatList
+      <View style={styles.container}>
 
-            // contentContainerStyle={styles.flatListContent}
-            data={Array.from(mintUrls)}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => {
-              return <View>
-                <Text> Mint url: {item}</Text>
+        <FlatList
 
-              </View>
-            }}
+          // contentContainerStyle={styles.flatListContent}
+          data={Array.from(mintUrls)}
+          keyExtractor={(item) => item?.[0]}
+          renderItem={({ item }) => {
+            return <View
+            // style={{ flex: 1, flexDirection: "row" }}
+            >
+              <Input
+                value={item?.[0]}
+                editable={false}
+                right={
+                  <TouchableOpacity
+                    onPress={() => handleCopy(item?.[0])}
+                    style={{
+                      marginRight: 10,
+                    }}
+                  >
+                    <CopyIconStack color={theme.colors.primary} />
+                  </TouchableOpacity>
+                }
+              />
+              <Text style={styles.text}> Mint url: {item?.[0]}</Text>
+              <Text style={styles.text}> Count: {item?.[1]}</Text>
 
-          />
-        </View> */}
+            </View>
+          }}
 
+        />
+      </View>
+      {/* 
         <View
         // style={styles.container}
         >
@@ -130,8 +184,8 @@ export const MintListCashu = () => {
             }
             onEndReached={() => mintList.fetchNextPage()}
           />
-        </View>
-      </View>
+
+        </View> */}
     </SafeAreaView>
   );
 };
