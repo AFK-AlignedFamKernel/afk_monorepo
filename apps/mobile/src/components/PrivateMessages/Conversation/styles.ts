@@ -22,6 +22,12 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
     color: theme.colors.text,
   },
+  pub: {
+    fontSize: 14,
+    fontWeight: '500',
+    width: 100,
+    color: theme.colors.text,
+  },
   handle: {
     fontSize: 14,
     color: theme.colors.textSecondary,
