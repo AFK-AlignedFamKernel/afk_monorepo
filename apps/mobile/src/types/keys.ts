@@ -27,6 +27,36 @@ export interface TokenLaunchInterface {
   slope?: Uint256;
 }
 
+
+export interface TokenStatsInterface {
+  price?: Uint256;
+  liquidity_raised?: Uint256;
+}
+
+
+export interface TokenTxInterface {
+  transfer_id: string;
+  network?: string;
+  last_price?: string;
+  quote_amount?: string;
+  coin_received?: string;
+  initial_supply?: string;
+  created_at?: Date;
+  total_supply?: string;
+  current_supply?: string;
+  liquidity_raised?: string;
+  price?: string;
+  protocol_fee?: string;
+  amount?: number;
+  cursor?: bigint;
+  transaction_type: string;
+  time_stamp?: string;
+}
+
+
+
+
+
 export interface TokenHoldersInterface {
   data: {
     _sum: {

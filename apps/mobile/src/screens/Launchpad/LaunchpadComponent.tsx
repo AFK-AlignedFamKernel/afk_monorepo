@@ -23,6 +23,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const account = useAccount();
   const [loading, setLoading] = useState<false | number>(false);
   const queryDataLaunch = useQueryAllLaunch();
+
+
   const {show: showKeyModal} = useKeyModal();
   const {show: showModal} = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,6 +36,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   console.log('width', width);
   const isDesktop = width >= 1024 ? true : false;
   console.log('isDesktop', isDesktop);
+
+
   return (
     <View style={styles.container}>
       {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
@@ -59,9 +63,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         keyExtractor={(item, i) => i.toString()}
         numColumns={isDesktop ? 3 : 1}
         renderItem={({item, index}) => {
-          // console.log("key item", item)
           return <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>;
         }}
+
         refreshControl={
           <RefreshControl
             refreshing={queryDataLaunch.isFetching}

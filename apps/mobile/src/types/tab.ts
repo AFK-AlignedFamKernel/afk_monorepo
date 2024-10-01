@@ -33,6 +33,7 @@ export enum SelectedTab {
   CASHU_SETTINGS,
   PORTFOLIO,
   STARKNET_PORTFOLIO,
+  TOKEN_STATS
 }
 
 export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
@@ -228,6 +229,12 @@ export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[]
     title: 'Holders',
     screen: 'Holders',
     tab: SelectedTab.LAUNCH_HOLDERS,
+  },
+
+  {
+    title: 'STATS',
+    screen: 'Stats',
+    tab: SelectedTab.TOKEN_STATS,
   },
   {
     title: 'TX',
