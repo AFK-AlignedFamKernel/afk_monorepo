@@ -11,7 +11,13 @@ import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../types';
 import {generateRandomKeypair} from '../../utils/keypair';
-import {retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
+import {
+  retrieveAndDecryptCashuMnemonic,
+  storeCashuMnemonic,
+  storePassword,
+  storePrivateKey,
+  storePublicKey,
+} from '../../utils/storage';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -21,7 +27,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
   const {ndk} = useNostrContext();
   const {setIsSeedCashuStorage} = useCashuStore();
-  const {generateMnemonic} = useCashu()
+  const {generateMnemonic} = useCashu();
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
 
@@ -41,12 +47,12 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     await storePrivateKey(privateKey, password);
     await storePublicKey(publicKey);
 
-    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
+    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
-    if(!mnemonicSaved) {
-      const mnemonic = await generateMnemonic()
-      await storeCashuMnemonic(mnemonic, password)
-      setIsSeedCashuStorage(true)
+    if (!mnemonicSaved) {
+      const mnemonic = await generateMnemonic();
+      await storeCashuMnemonic(mnemonic, password);
+      setIsSeedCashuStorage(true);
     }
 
     ndk.signer = new NDKPrivateKeySigner(privateKey);

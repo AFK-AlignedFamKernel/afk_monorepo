@@ -1,7 +1,7 @@
 import {createStore} from 'zustand';
 
 import createBoundedUseStore from './createBoundedUseStore';
-import { Proof } from '@cashu/cashu-ts';
+import {Proof} from '@cashu/cashu-ts';
 
 type State = {
   publicKey: string;
@@ -17,7 +17,7 @@ type State = {
   mintRequests?: string[];
   proofs?: Proof[];
   useNostr?: boolean;
-  pendingTokens?:string[];
+  pendingTokens?: string[];
 };
 
 type Action = {
@@ -26,14 +26,14 @@ type Action = {
   setIsExtensionConnect: (isExtension: boolean) => void;
 
   // Cashu Wallet
-  setIsSeedCashuStorage:(isSeedStorage:boolean) => void;
-  setMnemonic: (mnemonic:string) => void;
-  setSeed: (seed:Uint8Array) => void;
+  setIsSeedCashuStorage: (isSeedStorage: boolean) => void;
+  setMnemonic: (mnemonic: string) => void;
+  setSeed: (seed: Uint8Array) => void;
 
-  setMints: (mints:string[]) => void;
-  setProofs: (proofs:Proof[]) => void;
-  setMintsRequests: (mintRequests:string[]) => void;
-  setNWCUrl: (nwcUrl:string) => void;
+  setMints: (mints: string[]) => void;
+  setProofs: (proofs: Proof[]) => void;
+  setMintsRequests: (mintRequests: string[]) => void;
+  setNWCUrl: (nwcUrl: string) => void;
 };
 
 export const authStore = createStore<State & Action>((set, get) => ({
@@ -62,7 +62,7 @@ export const authStore = createStore<State & Action>((set, get) => ({
   },
 
   // Cashu store
- 
+
   setIsSeedCashuStorage: (isSeedCashuStorage) => {
     set({isSeedCashuStorage});
   },

@@ -1,11 +1,11 @@
 import {
   FACTORY_ADDRESS,
   LAUNCHPAD_ADDRESS,
-  STARTING_BLOCK
+  STARTING_BLOCK,
 } from "./constants.ts";
 import { Block, hash, uint256, shortString, Pool } from "./deps.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -19,15 +19,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("CreateLaunch")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -39,8 +39,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_launch"
-  }
+    tableName: "token_launch",
+  },
 };
 
 export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
@@ -61,7 +61,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       slope_low,
       slope_high,
       threshold_liquidity_low,
-      threshold_liquidity_high
+      threshold_liquidity_high,
     ] = event.data;
 
     const amount = uint256
@@ -79,7 +79,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
     const threshold_liquidity = uint256
       .uint256ToBN({
         low: threshold_liquidity_low,
-        high: threshold_liquidity_high
+        high: threshold_liquidity_high,
       })
       .toString();
 
@@ -92,7 +92,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       transaction_hash: transactionHash,
       total_supply,
       price: price_decoded,
-      time_stamp: timestamp
+      time_stamp: timestamp,
     };
   });
 }

@@ -1,15 +1,13 @@
 // https://github.com/paulmillr/nip44/blob/main/javascript/index.ts
 
-import { chacha20 } from '@noble/ciphers/chacha';
-import { 
-  ensureBytes, 
-  equalBytes } from '@noble/ciphers/utils';
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { extract as hkdf_extract, expand as hkdf_expand } from '@noble/hashes/hkdf';
-import { hmac } from '@noble/hashes/hmac';
-import { sha256 } from '@noble/hashes/sha256';
-import { concatBytes, randomBytes, utf8ToBytes } from '@noble/hashes/utils';
-import { base64 } from '@scure/base';
+import {chacha20} from '@noble/ciphers/chacha';
+import {ensureBytes, equalBytes} from '@noble/ciphers/utils';
+import {secp256k1} from '@noble/curves/secp256k1';
+import {extract as hkdf_extract, expand as hkdf_expand} from '@noble/hashes/hkdf';
+import {hmac} from '@noble/hashes/hmac';
+import {sha256} from '@noble/hashes/sha256';
+import {concatBytes, randomBytes, utf8ToBytes} from '@noble/hashes/utils';
+import {base64} from '@scure/base';
 
 declare const TextDecoder: any;
 
@@ -112,7 +110,7 @@ const u = {
 };
 
 function encrypt(plaintext: string, conversationKey: Uint8Array, nonce = randomBytes(32)): string {
-  const { chacha_key, chacha_nonce, hmac_key } = u.getMessageKeys(conversationKey, nonce);
+  const {chacha_key, chacha_nonce, hmac_key} = u.getMessageKeys(conversationKey, nonce);
   const padded = u.pad(plaintext);
   const ciphertext = chacha20(chacha_key, chacha_nonce, padded);
   const mac = u.hmacAad(hmac_key, ciphertext, nonce);
@@ -120,8 +118,8 @@ function encrypt(plaintext: string, conversationKey: Uint8Array, nonce = randomB
 }
 
 function decrypt(payload: string, conversationKey: Uint8Array): string {
-  const { nonce, ciphertext, mac } = u.decodePayload(payload);
-  const { chacha_key, chacha_nonce, hmac_key } = u.getMessageKeys(conversationKey, nonce);
+  const {nonce, ciphertext, mac} = u.decodePayload(payload);
+  const {chacha_key, chacha_nonce, hmac_key} = u.getMessageKeys(conversationKey, nonce);
   const calculatedMac = u.hmacAad(hmac_key, ciphertext, nonce);
   if (!equalBytes(calculatedMac, mac)) throw new Error('invalid MAC');
   const padded = chacha20(chacha_key, chacha_nonce, ciphertext);

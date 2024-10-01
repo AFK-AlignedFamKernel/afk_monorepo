@@ -1,58 +1,62 @@
-import { canUseBiometricAuthentication } from 'expo-secure-store';
-import { useState } from 'react';
-import { Platform } from 'react-native';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {useState} from 'react';
+import {Platform} from 'react-native';
 
-import { LockIcon } from '../../assets/icons';
-import { Button, Input } from '../../components';
-import { useTheme } from '../../hooks';
-import { useDialog, useToast } from '../../hooks/modals';
-import { Auth } from '../../modules/Auth';
-import { AuthImportKeysScreenProps } from '../../types';
-import { getPublicKeyFromSecret, isValidNostrPrivateKey } from '../../utils/keypair';
-import { retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey } from '../../utils/storage';
-import { useAuth, useCashu, useCashuStore } from 'afk_nostr_sdk';
+import {LockIcon} from '../../assets/icons';
+import {Button, Input} from '../../components';
+import {useTheme} from '../../hooks';
+import {useDialog, useToast} from '../../hooks/modals';
+import {Auth} from '../../modules/Auth';
+import {AuthImportKeysScreenProps} from '../../types';
+import {getPublicKeyFromSecret, isValidNostrPrivateKey} from '../../utils/keypair';
+import {
+  retrieveAndDecryptCashuMnemonic,
+  storeCashuMnemonic,
+  storePassword,
+  storePrivateKey,
+  storePublicKey,
+} from '../../utils/storage';
+import {useAuth, useCashu, useCashuStore} from 'afk_nostr_sdk';
 
-export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({ navigation }) => {
-  const { theme } = useTheme();
+export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) => {
+  const {theme} = useTheme();
 
   const [password, setPassword] = useState('');
   const [privateKey, setPrivateKey] = useState('');
-  const { showToast } = useToast();
-  const { showDialog, hideDialog } = useDialog();
-  const { generateMnemonic } = useCashu()
-  const { setIsSeedCashuStorage } = useCashuStore();
+  const {showToast} = useToast();
+  const {showDialog, hideDialog} = useDialog();
+  const {generateMnemonic} = useCashu();
+  const {setIsSeedCashuStorage} = useCashuStore();
 
   const handleImportAccount = async () => {
     if (!password) {
-      showToast({ type: 'error', title: 'Password is required' });
+      showToast({type: 'error', title: 'Password is required'});
       return;
     }
 
     if (!privateKey) {
-      showToast({ type: 'error', title: 'Private key to import is required' });
+      showToast({type: 'error', title: 'Private key to import is required'});
       return;
     }
 
     if (!isValidNostrPrivateKey(privateKey)) {
-      showToast({ type: 'error', title: 'Private key not valid' });
+      showToast({type: 'error', title: 'Private key not valid'});
       return;
     }
-
-
 
     await storePassword(password);
     await storePrivateKey(privateKey, password);
     const publicKey = getPublicKeyFromSecret(privateKey);
     await storePublicKey(publicKey);
 
-    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
-    console.log("mnemonicSaved", mnemonicSaved)
+    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
+    console.log('mnemonicSaved', mnemonicSaved);
 
     if (!mnemonicSaved) {
-      const mnemonic = await generateMnemonic()
-      console.log("mnemonic", mnemonic)
-      await storeCashuMnemonic(mnemonic, password)
-      setIsSeedCashuStorage(true)
+      const mnemonic = await generateMnemonic();
+      console.log('mnemonic', mnemonic);
+      await storeCashuMnemonic(mnemonic, password);
+      setIsSeedCashuStorage(true);
     }
 
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
@@ -78,7 +82,7 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({ navigation }) 
       });
     }
 
-    navigation.navigate('SaveKeys', { privateKey, publicKey });
+    navigation.navigate('SaveKeys', {privateKey, publicKey});
   };
 
   return (

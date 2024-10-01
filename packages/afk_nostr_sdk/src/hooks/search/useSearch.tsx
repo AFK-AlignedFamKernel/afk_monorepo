@@ -10,7 +10,7 @@ export type UseSearch = {
   kind?: NDKKind;
   kinds?: NDKKind[];
   sortBy?: string;
-  limit?:number;
+  limit?: number;
 };
 
 export const useSearch = (options?: UseSearch) => {

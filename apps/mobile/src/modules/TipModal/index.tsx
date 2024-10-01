@@ -1,12 +1,12 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { forwardRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {forwardRef, useState} from 'react';
+import {Pressable, View} from 'react-native';
 
-import { Modalize, Text } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import { TipSuccessModalProps } from '../TipSuccessModal';
-import { FormLightningZap } from './lightning/form';
-import { FormTipStarknet } from './starknet/form';
+import {Modalize, Text} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {TipSuccessModalProps} from '../TipSuccessModal';
+import {FormLightningZap} from './lightning/form';
+import {FormTipStarknet} from './starknet/form';
 import stylesheet from './styles';
 
 export type TipModal = Modalize;
@@ -25,7 +25,7 @@ export type TipModalProps = {
 };
 
 export const TipModal = forwardRef<Modalize, TipModalProps>(
-  ({ event, hide: hideTipModal, showSuccess, hideSuccess, show, hide }, ref) => {
+  ({event, hide: hideTipModal, showSuccess, hideSuccess, show, hide}, ref) => {
     const styles = useStyles(stylesheet);
     const [tipType, setTipType] = useState<TipTypeMode>(TipTypeMode.STARKNET);
     const theme = useTheme();
@@ -50,28 +50,29 @@ export const TipModal = forwardRef<Modalize, TipModalProps>(
         >
           <Pressable
             onPress={() => setTipType(TipTypeMode.STARKNET)}
-            style={[{
-              padding: 3,
-              backgroundColor: tipType == TipTypeMode.STARKNET ? theme.theme.colors.primary : '',
-              ...styles?.option,
-            },
-            tipType == TipTypeMode.STARKNET && styles?.selected,
+            style={[
+              {
+                padding: 3,
+                backgroundColor: tipType == TipTypeMode.STARKNET ? theme.theme.colors.primary : '',
+                ...styles?.option,
+              },
+              tipType == TipTypeMode.STARKNET && styles?.selected,
             ]}
           >
-            <Text style={{ color: theme.theme.colors.text }}>Starknet tip</Text>
+            <Text style={{color: theme.theme.colors.text}}>Starknet tip</Text>
           </Pressable>
           <Pressable
             onPress={() => setTipType(TipTypeMode.ZAP)}
-            style={[{
-              padding: 3,
-              ...styles?.option,
-            },
+            style={[
+              {
+                padding: 3,
+                ...styles?.option,
+              },
 
-            tipType == TipTypeMode.ZAP && styles?.selected,
-
+              tipType == TipTypeMode.ZAP && styles?.selected,
             ]}
           >
-            <Text style={{ color: theme.theme.colors.text }}>Zap</Text>
+            <Text style={{color: theme.theme.colors.text}}>Zap</Text>
           </Pressable>
         </View>
         {tipType == TipTypeMode.STARKNET && (

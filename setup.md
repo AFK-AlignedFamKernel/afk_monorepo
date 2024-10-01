@@ -5,11 +5,10 @@
 
 Go to the apps you want to run with the corresponding README.md
 
-
 ## Folders structure
 
-
 ### Turborepo
+
 We use Turborepo for the monorepo, for the Turborepo folders we have:
 Apps:
 
@@ -31,8 +30,6 @@ Some folders are outside the monorepo at the moment:
 - Onchain (Cairo & Solidity): /onchain
 - Scripts: Run & deploy Cairo code
 
-
-
 ### Setup a local relayer to test it with Docker
-docker run -p 8080:8080 scsibug/nostr-rs-relay
 
+docker run -p 8080:8080 scsibug/nostr-rs-relay

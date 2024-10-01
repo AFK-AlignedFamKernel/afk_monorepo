@@ -18,12 +18,12 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
-        }
+          network: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: launches
+        data: launches,
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -41,24 +41,24 @@ async function deployLaunchRoute(
       if (!isValidStarknetAddress(launch)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address"
+          message: "Invalid token address",
         });
         return;
       }
 
       const launches = await prisma.token_launch.findMany({
-        where:{
-          memecoin_address:launch
+        where: {
+          memecoin_address: launch,
         },
         select: {
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
-        }
+          network: true,
+        },
       });
       reply.status(HTTPStatus.OK).send({
-        data: launches
+        data: launches,
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -76,7 +76,7 @@ async function deployLaunchRoute(
       if (!isValidStarknetAddress(launch)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address"
+          message: "Invalid token address",
         });
         return;
       }
@@ -86,14 +86,14 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
-        }
+          network: true,
+        },
       });
 
       let statsLaunch = launches[0];
 
       reply.status(HTTPStatus.OK).send({
-        data: statsLaunch
+        data: statsLaunch,
       });
     } catch (error) {
       console.error("Error deploying launch:", error);

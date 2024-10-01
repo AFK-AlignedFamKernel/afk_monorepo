@@ -7,13 +7,13 @@ import { launchBot, sendWebAppButton } from "./services/telegram-app";
  * @type {import('fastify').FastifyInstance} Instance of Fastify
  */
 const fastify = Fastify({
-  logger: true
+  logger: true,
 });
 fastify.register(fastifyCors, {
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  credentials: true,
 });
 declareRoutes(fastify);
 

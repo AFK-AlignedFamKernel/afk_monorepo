@@ -20,10 +20,10 @@ import {
 import {
   // TipNostr,
   DepositEscrowNostr,
-  DualVMToken
+  DualVMToken,
 } from "../typechain-types";
 import { TOKENS_ADDRESS, ACCOUNT_TEST_PROFILE } from "common";
-import { finalizeEvent } from "nostr-tools"
+import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 
 const KAKAROT_ADDRESS = process.env.KAKAROT_ADDRESS || "";
@@ -53,13 +53,15 @@ describe("TipNostr Test", function () {
   let ddToken: DeclareDeployUDCResponse;
   let starknetDeposit: StarknetContract;
 
-  const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
-  const TOKEN_QUOTE_ADDRESS_KAKAROT = TOKENS_ADDRESS.KAKAROT[constants.StarknetChainId.SN_SEPOLIA].ETH;
+  const TOKEN_QUOTE_ADDRESS =
+    TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
+  const TOKEN_QUOTE_ADDRESS_KAKAROT =
+    TOKENS_ADDRESS.KAKAROT[constants.StarknetChainId.SN_SEPOLIA].ETH;
 
   // Nostr account
   let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
   const alicePublicKey = ACCOUNT_TEST_PROFILE?.alice?.nostrPublicKey;
-  let alicePublicKeyUint256 = BigInt("0x" + alicePublicKey)
+  let alicePublicKeyUint256 = BigInt("0x" + alicePublicKey);
 
   this.beforeAll(async function () {
     try {
@@ -89,10 +91,9 @@ describe("TipNostr Test", function () {
         })
         .then((tx) => tx.wait());
 
-
       /** Deploy the contract */
       // Deploy the starknetToken
-      console.log("deploy token class hash")
+      console.log("deploy token class hash");
       ddToken = await account.declareAndDeploy({
         contract: starknetTokenSierra,
         casm: starknetTokenCasm,
@@ -101,7 +102,8 @@ describe("TipNostr Test", function () {
           cairo.felt("TEST"),
           cairo.uint256(100_000_000),
           ownerStarknet,
-          18],
+          18,
+        ],
       });
       starknetToken = new StarknetContract(
         starknetTokenSierra.abi,
@@ -129,7 +131,7 @@ describe("TipNostr Test", function () {
       ]);
 
       // Deploy the starknetDeposit
-      console.log("deploy deposit escrow")
+      console.log("deploy deposit escrow");
 
       dd = await account.declareAndDeploy({
         contract: starknetDepositEscrowSierra,
@@ -144,15 +146,14 @@ describe("TipNostr Test", function () {
       );
 
       // Deploy the tipNostr contract
-      console.log("deploy solidity tip nostr")
+      console.log("deploy solidity tip nostr");
 
       const tipNostrFactory = await hre.ethers.getContractFactory(
         "DepositEscrowNostr"
       );
-      tipNostr = await tipNostrFactory.deploy(
-        KAKAROT_ADDRESS,
-        starknetDeposit.address
-      ).then((c) => c.waitForDeployment());
+      tipNostr = await tipNostrFactory
+        .deploy(KAKAROT_ADDRESS, starknetDeposit.address)
+        .then((c) => c.waitForDeployment());
 
       // Whitelist the DualVMLaunchpad contract to call Cairo contracts
       await account.execute([
@@ -162,17 +163,13 @@ describe("TipNostr Test", function () {
           entrypoint: "set_authorized_cairo_precompile_caller",
         },
       ]);
-
     } catch (e) {
-      console.log("error before all", e)
+      console.log("error before all", e);
     }
-
-
   });
 
   describe("depositTo", function () {
     it("Should deposit to a Nostr user", async function () {
-
       await dualVMToken
         .connect(addr1)
         .approve(addr2.address, 100)
@@ -191,12 +188,11 @@ describe("TipNostr Test", function () {
           0
         )
         .then((tx) => tx.wait());
-    })
-  })
+    });
+  });
 
   describe("claim", function () {
     it("Should deposit to a Nostr user", async function () {
-
       await dualVMToken
         .connect(addr1)
         .approve(addr2.address, 100)
@@ -204,7 +200,6 @@ describe("TipNostr Test", function () {
       expect(
         await dualVMToken.allowance(await addr1.address, addr2.address)
       ).to.equal(100);
-
 
       await tipNostr
         .connect(addr1)
@@ -230,11 +225,11 @@ describe("TipNostr Test", function () {
       // /** Start claim with Nostr event */
 
       const content = `claim: ${cairo.felt(0)},${cairo.felt(
-        ownerStarknet!,
+        ownerStarknet!
       )},${cairo.felt(TOKEN_QUOTE_ADDRESS)},${BigInt(1).toString()}`;
-      const timestamp = new Date().getTime()
+      const timestamp = new Date().getTime();
       let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
-      let privateKey = privateKeyAlice
+      let privateKey = privateKeyAlice;
 
       // Sign Nostr event
       const event = finalizeEvent(
@@ -247,17 +242,14 @@ describe("TipNostr Test", function () {
         privateKey
       );
 
-      console.log(
-        "event",
-        event
-      );
+      console.log("event", event);
       const signature = event.sig;
       const signatureR = "0x" + signature.slice(0, signature.length / 2);
       const signatureS = "0x" + signature.slice(signature.length / 2);
       console.log("signature", signature);
       console.log("signatureR", signatureR);
       console.log("signatureS", signatureS);
-      let public_key = BigInt("0x" + alicePublicKey)
+      let public_key = BigInt("0x" + alicePublicKey);
 
       /** @TODO fix conversion */
       const claimParams = {
@@ -273,19 +265,17 @@ describe("TipNostr Test", function () {
         },
         sig: {
           r: signatureR,
-          s: signatureS
+          s: signatureS,
         },
       };
 
       await tipNostr
         .connect(addr1)
         .claim(
-          claimParams,
+          claimParams
           // 1n,
         )
         .then((tx) => tx.wait());
-    })
-  })
-
-
+    });
+  });
 });

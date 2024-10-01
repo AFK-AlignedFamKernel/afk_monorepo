@@ -1,7 +1,7 @@
 import { Block, hash, shortString, uint256, Pool } from "./deps.ts";
 import { FACTORY_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: FACTORY_ADDRESS,
       keys: [hash.getSelectorFromName("MemecoinCreated")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,13 +35,13 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "unrugmeme_deploy"
-  }
+    tableName: "unrugmeme_deploy",
+  },
 };
 
 export default function DecodeUnruggableMemecoinDeploy({
   header,
-  events
+  events,
 }: Block) {
   const { blockNumber, blockHash, timestamp } = header!;
 
@@ -56,7 +56,7 @@ export default function DecodeUnruggableMemecoinDeploy({
       symbol,
       initial_supply_low,
       initial_supply_high,
-      memecoin_address
+      memecoin_address,
     ] = event.data;
 
     const name_decoded = shortString.decodeShortString(
@@ -80,7 +80,7 @@ export default function DecodeUnruggableMemecoinDeploy({
       name: name_decoded,
       symbol: symbol_decoded,
       initial_supply: initial_supply,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   });
 }

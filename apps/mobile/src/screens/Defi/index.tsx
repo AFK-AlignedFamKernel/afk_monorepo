@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from 'react';
+import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
-import { Swap } from '../../components/Swap';
+import {TextButton} from '../../components';
+import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import { TOKENSMINT } from '../../constants/tokens';
-import { useStyles } from '../../hooks';
-import { LightningNetworkWalletView } from '../../modules/Lightning';
-import { DefiScreenProps } from '../../types';
-import { SelectedTab, TABS_DEFI } from '../../types/tab';
+import {TOKENSMINT} from '../../constants/tokens';
+import {useStyles} from '../../hooks';
+import {LightningNetworkWalletView} from '../../modules/Lightning';
+import {DefiScreenProps} from '../../types';
+import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
-import { CashuView, CashuWalletView } from '../../modules/Cashu';
+import {CashuView, CashuWalletView} from '../../modules/Cashu';
 
-export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
+export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
@@ -32,7 +32,6 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
         </TextButton>
       </SafeAreaView>
       <ScrollView>
-
         <KeyboardAvoidingView behavior="padding" style={styles.content}>
           <TabSelector
             activeTab={selectedTab}
@@ -44,7 +43,7 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
             {/* <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text> */}
 
             {selectedTab == SelectedTab.BTC_FI_VAULT && (
-              <View style={{ display: 'flex', alignItems: 'center' }}>
+              <View style={{display: 'flex', alignItems: 'center'}}>
                 <Swap
                   tokensIns={TOKENSMINT}
                   tokenOut={TOKENSMINT.WBTC}
@@ -69,7 +68,6 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
               </View>
             )}
 
-
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
                 <Text style={styles.text}>Cashu wallet coming soon</Text>
@@ -78,9 +76,7 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
             )}
           </SafeAreaView>
         </KeyboardAvoidingView>
-
       </ScrollView>
-
     </View>
   );
 };

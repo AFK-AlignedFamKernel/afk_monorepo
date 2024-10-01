@@ -31,7 +31,6 @@ const GroupChatDetail: React.FC<GroupChatDetailScreenProps> = ({navigation, rout
     groupId: route.params.groupId,
   });
 
-
   const {mutate} = useDeleteGroup();
   const modalizeRef = useRef<Modalize>(null);
   const addMemberModalizeRef = useRef<Modalize>(null);

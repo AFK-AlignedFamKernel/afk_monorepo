@@ -1,6 +1,6 @@
 import {useInfiniteQuery} from '@tanstack/react-query';
-import { useNostrContext } from '../../context';
-import { useAuth } from '../../store';
+import {useNostrContext} from '../../context';
+import {useAuth} from '../../store';
 
 export type UseRootProfilesOptions = {
   authors?: string[];
@@ -9,7 +9,7 @@ export type UseRootProfilesOptions = {
 
 export const useMyMessagesSent = (options?: UseRootProfilesOptions) => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['myMessagesSent', options?.authors, options?.search, ndk],

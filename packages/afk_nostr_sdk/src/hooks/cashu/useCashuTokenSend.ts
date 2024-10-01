@@ -1,12 +1,17 @@
-import { useAuth } from '../../store';
-import { useMutation } from '@tanstack/react-query';
-import { useNostrContext } from '../../context';
-import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-import { deriveSharedKey, fixPubKey, generateRandomBytes, generateRandomKeypair, randomTimeUpTo2DaysInThePast } from '../../utils/keypair';
-import { v2 } from '../../utils/nip44';
-import { AFK_RELAYS } from '../../utils/relay';
-import { Proof } from '@cashu/cashu-ts';
-
+import {useAuth} from '../../store';
+import {useMutation} from '@tanstack/react-query';
+import {useNostrContext} from '../../context';
+import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {
+  deriveSharedKey,
+  fixPubKey,
+  generateRandomBytes,
+  generateRandomKeypair,
+  randomTimeUpTo2DaysInThePast,
+} from '../../utils/keypair';
+import {v2} from '../../utils/nip44';
+import {AFK_RELAYS} from '../../utils/relay';
+import {Proof} from '@cashu/cashu-ts';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
 /**
@@ -40,8 +45,8 @@ There can be multiple `kind:7375` events for the same mint, and multiple proofs 
 ```
  */
 export const useCashuTokenSend = () => {
-  const { ndk } = useNostrContext()
-  const { publicKey, privateKey } = useAuth()
+  const {ndk} = useNostrContext();
+  const {publicKey, privateKey} = useAuth();
 
   return useMutation({
     mutationKey: ['sendCashuTokenSend', ndk],
@@ -49,34 +54,40 @@ export const useCashuTokenSend = () => {
       content: string;
       mint?: string;
       proofs?: Proof[];
-      relayUrl?: string,
-      receiverPublicKeyProps?: string,
-      tags?: string[][],
-      isEncrypted?: boolean,
-      encryptedMessage?: string
+      relayUrl?: string;
+      receiverPublicKeyProps?: string;
+      tags?: string[][];
+      isEncrypted?: boolean;
+      encryptedMessage?: string;
     }) => {
-
-      const { relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content,
+      const {
+        relayUrl,
+        receiverPublicKeyProps,
+        isEncrypted,
+        tags,
+        encryptedMessage,
+        content,
 
         mint,
-        proofs
-      } = data
+        proofs,
+      } = data;
 
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
-      let receiverPublicKey = receiverPublicKeyProps ? fixPubKey(receiverPublicKeyProps) : fixPubKey(publicKey)
+      let receiverPublicKey = receiverPublicKeyProps
+        ? fixPubKey(receiverPublicKeyProps)
+        : fixPubKey(publicKey);
 
       /** NIP-4 - Encrypted Direct private message  */
 
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.CashuToken;
-      event.created_at = new Date().getTime()
+      event.created_at = new Date().getTime();
       event.content = data.content;
 
       const contentProps = {
-        mint:mint,
-        proofs:proofs,
-
-      }
+        mint: mint,
+        proofs: proofs,
+      };
       // nip44_encrypt({
       //   "mint": "https://stablenut.umint.cash",
       //     "proofs": [
@@ -89,18 +100,22 @@ export const useCashuTokenSend = () => {
       //     ]
       // })
 
-      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey)
-      let nonce = generateRandomBytes()
+      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      let nonce = generateRandomBytes();
       /** TODO verify NIP-44 */
-      event.content = v2.encrypt(JSON.stringify(mint && proofs ? contentProps : content), conversationKey, nonce);
+      event.content = v2.encrypt(
+        JSON.stringify(mint && proofs ? contentProps : content),
+        conversationKey,
+        nonce,
+      );
 
       event.tags = data.tags ?? [];
       //   "tags": [
-        // [ "a", "37375:<pubkey>:my-wallet" ]
+      // [ "a", "37375:<pubkey>:my-wallet" ]
       // ]
-   
-      const eventPublish = await event?.publish()
+
+      const eventPublish = await event?.publish();
       return eventPublish;
     },
   });
-}
+};

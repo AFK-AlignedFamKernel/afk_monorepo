@@ -27,12 +27,10 @@ export interface TokenLaunchInterface {
   slope?: Uint256;
 }
 
-
 export interface TokenStatsInterface {
   price?: Uint256;
   liquidity_raised?: Uint256;
 }
-
 
 export interface TokenTxInterface {
   transfer_id: string;
@@ -52,10 +50,6 @@ export interface TokenTxInterface {
   transaction_type: string;
   time_stamp?: string;
 }
-
-
-
-
 
 export interface TokenHoldersInterface {
   data: {

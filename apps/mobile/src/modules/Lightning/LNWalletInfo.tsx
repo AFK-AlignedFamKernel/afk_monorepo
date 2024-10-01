@@ -1,13 +1,11 @@
 import '../../../applyGlobalPolyfills';
 import React from 'react';
-import {  Pressable, TouchableOpacity, View } from 'react-native';
-import { ActivityIndicator, Text, TextInput } from 'react-native';
+import {Pressable, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Text, TextInput} from 'react-native';
 
-import { IconButton } from '../../components';
-import { useStyles } from '../../hooks';
+import {IconButton} from '../../components';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
-
-
 
 export function LNWalletInfo({
   connectionData,
@@ -56,7 +54,7 @@ export function LNWalletInfo({
       {paymentRequest ? (
         <View style={styles.paymentSection}>
           <View style={styles.paymentRequest}>
-            <Text style={{ ...styles.paymentRequestLabel, fontWeight: 'bold' }}>
+            <Text style={{...styles.paymentRequestLabel, fontWeight: 'bold'}}>
               Payment Request:
             </Text>
 
@@ -85,7 +83,7 @@ export function LNWalletInfo({
         <Text style={styles.buttonText}>Receive Payment</Text>
       </Pressable>
 
-      <View style={{ marginTop: 10, ...styles.zapSection }}>
+      <View style={{marginTop: 10, ...styles.zapSection}}>
         <Pressable style={styles.zapButton} onPress={() => setIsZapModalVisible(true)}>
           <Text style={styles.buttonText}>Zap a User</Text>
         </Pressable>
@@ -151,4 +149,3 @@ function PayInfo({
     </View>
   );
 }
-

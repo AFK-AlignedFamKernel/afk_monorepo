@@ -61,7 +61,9 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   return (
     <ScrollView style={styles.sidebar}>
       <View style={styles.rowContainer}>
-        { isDesktop && <Image style={styles.logo} source={require('./../../../assets/pepe-logo.png')} />}
+        {isDesktop && (
+          <Image style={styles.logo} source={require('./../../../assets/pepe-logo.png')} />
+        )}
         <Text style={styles.sidebarText}>AFK</Text>
       </View>
       {/* 

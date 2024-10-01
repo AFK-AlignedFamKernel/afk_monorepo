@@ -12,7 +12,7 @@ import stylesheet from './styles';
 
 export const PrivateGroupDetail: React.FC<PrivateGroupScreenProps> = ({navigation, route}) => {
   const {postId, post} = route.params;
-  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   const styles = useStyles(stylesheet);
   const [comment, setComment] = useState('');

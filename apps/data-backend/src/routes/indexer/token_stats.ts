@@ -18,7 +18,7 @@ async function tokenStatsRoute(
     if (!isValidStarknetAddress(tokenAddress)) {
       reply.status(HTTPStatus.BadRequest).send({
         code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+        message: "Invalid token address",
       });
       return;
     }
@@ -31,19 +31,19 @@ async function tokenStatsRoute(
         select: {
           price: true,
           liquidity_raised: true,
-        }
+        },
       });
 
       if (stats) {
         reply.status(HTTPStatus.OK).send(stats);
       } else {
         reply.status(HTTPStatus.NotFound).send({
-          error: "No data found for the specified token address."
+          error: "No data found for the specified token address.",
         });
       }
     } catch (error) {
       reply.status(HTTPStatus.InternalServerError).send({
-        error: "Internal Server Error while fetching statistics."
+        error: "Internal Server Error while fetching statistics.",
       });
     }
   });

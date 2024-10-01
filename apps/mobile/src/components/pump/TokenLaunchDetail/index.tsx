@@ -1,23 +1,23 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { Fraction } from '@uniswap/sdk-core';
-import { useProfile } from 'afk_nostr_sdk';
-import { ImageSourcePropType, View } from 'react-native';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {Fraction} from '@uniswap/sdk-core';
+import {useProfile} from 'afk_nostr_sdk';
+import {ImageSourcePropType, View} from 'react-native';
 
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenLaunchInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { decimalsScale } from '../../../utils/helpers';
-import { Button } from '../../Button';
-import { Text } from '../../Text';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {decimalsScale} from '../../../utils/helpers';
+import {Button} from '../../Button';
+import {Text} from '../../Text';
 import stylesheet from './styles';
-import { LaunchActionsForm } from '../../LaunchActionsForm';
-import { useState } from 'react';
-import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
-import { useWalletModal } from '../../../hooks/modals';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
+import {useState} from 'react';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useWalletModal} from '../../../hooks/modals';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -38,17 +38,17 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   event,
   isViewDetailDisabled,
   isDisabledInfo,
-  isDisabledForm
+  isDisabledForm,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
   const [amount, setAmount] = useState<number | undefined>();
 
   const styles = useStyles(stylesheet);
 
-  const { handleSellCoins } = useSellCoin();
+  const {handleSellCoins} = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
   const onConnect = async () => {
@@ -132,7 +132,6 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           </View>
         )}
 
-
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Supply:</Text>
           <Text>{Number(launch?.total_supply) / 10 ** 18}</Text>
@@ -141,12 +140,10 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           <Text weight="semiBold">Price:</Text>
           <Text>{Number(launch?.price)}</Text>
         </View>
-
       </View>
 
-      {!isDisabledInfo &&
+      {!isDisabledInfo && (
         <>
-
           <View>
             {launch?.threshold_liquidity && (
               <View style={styles.borderBottom}>
@@ -187,19 +184,15 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             </View>
           )}
         </>
+      )}
 
-      }
-
-      {!isDisabledForm &&
-
+      {!isDisabledForm && (
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
           onSellPress={sellKeys}
         ></LaunchActionsForm>
-      }
-
-
+      )}
 
       {!isViewDetailDisabled && (
         <View>

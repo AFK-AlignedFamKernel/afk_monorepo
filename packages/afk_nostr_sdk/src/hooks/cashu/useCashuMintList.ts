@@ -1,18 +1,16 @@
-
-import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
-import { useNostrContext } from '../../context';
-import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import {useInfiniteQuery, useMutation} from '@tanstack/react-query';
+import {useNostrContext} from '../../context';
+import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 
 export type UseCashuMintList = {
   authors?: string[];
   search?: string;
 };
 
-
 /** Cashu Mint List recommender
  */
 export const useCashuMintList = (options?: UseCashuMintList) => {
-  const { ndk } = useNostrContext()
+  const {ndk} = useNostrContext();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -25,7 +23,7 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({pageParam}) => {
       const mintList = await ndk.fetchEvents({
         kinds: [NDKKind.CashuMintList],
         authors: options?.authors,
@@ -54,6 +52,6 @@ export const useCashuMintList = (options?: UseCashuMintList) => {
       // };
       return [...mintList];
     },
-    placeholderData: { pages: [], pageParams: [] },
+    placeholderData: {pages: [], pageParams: []},
   });
-}
+};
