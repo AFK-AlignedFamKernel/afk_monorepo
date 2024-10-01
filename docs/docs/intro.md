@@ -11,7 +11,7 @@ sidebar_position: 1
 
 The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph. 
 
-We build and fight together, not against. What if the treasure are the friends we made along the way? Then A decentralized social network should be a treasure trove of memories and connections!
+We build and fight together, not against. What if the treasures are the friends we made along the way? Then a decentralized social network should be a treasure trove of memories and connections!
 
 Yes! This is what social networks should be about. A place where you can be yourself, express your thoughts and feelings, and connect with others.
 
