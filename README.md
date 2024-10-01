@@ -79,7 +79,7 @@ Packages:
 ## Architecture
 
 ### Tips
-There are two alternatives: WalletConnect, one which expects Nostr users to set up oridinary Starknet wallet like Argent or Braavos, and so called SocialPay which uses custom Account Abstraction contract based on bip340 signature scheme (Nostr native).
+There are two alternatives: WalletConnect, one which expects Nostr users to set up ordinary Starknet wallet like Argent or Braavos, and so called SocialPay which uses custom Account Abstraction contract based on bip340 signature scheme (Nostr native).
 
 #### Wallet Connect
 ##### Tip to a recipient that never accepted the tip and don't have an account on SN
