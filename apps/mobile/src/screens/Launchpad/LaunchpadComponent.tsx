@@ -1,16 +1,19 @@
-import {useAccount} from '@starknet-react/core';
-import {useAuth} from 'afk_nostr_sdk';
-import {useState} from 'react';
-import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
+import { useAccount } from '@starknet-react/core';
+import { useAuth } from 'afk_nostr_sdk';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 
-import {Button} from '../../components';
-import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
-import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useQueryAllLaunch} from '../../hooks/launchpad/useQueryAllLaunch';
-import {useKeyModal} from '../../hooks/modals/useKeyModal';
-import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
-import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
+import { Button } from '../../components';
+import { TokenLaunchCard } from '../../components/search/TokenLaunchCard';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { useQueryAllLaunch } from '../../hooks/launchpad/useQueryAllLaunch';
+import { useKeyModal } from '../../hooks/modals/useKeyModal';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
+import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 import stylesheet from './styles';
+import { useGetDeployToken } from '../../hooks/api/indexer/useDeployToken';
+import { TokenDeployInterface } from '../../types/keys';
+import Loading from '../../components/Loading';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -18,22 +21,32 @@ interface AllKeysComponentInterface {
 export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
   const [loading, setLoading] = useState<false | number>(false);
+  const [deployTokens, setDeployTokens] = useState<TokenDeployInterface[]>([])
   const queryDataLaunch = useQueryAllLaunch();
-  const {show: showKeyModal} = useKeyModal();
-  const {show: showModal} = useTokenCreatedModal();
+
+
+  const { data: deployTokenData, isLoading: deployLoading } = useGetDeployToken();
+
+
+  const { show: showKeyModal } = useKeyModal();
+  const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  // const {data: launches} = useGetTokenLaunch();
-  const {publicKey} = useAuth();
-  // const width = Dimensions.get("window").width
-  // const isDesktop = width >= 1024
-  const {width} = useWindowDimensions();
+  const { publicKey } = useAuth();
+  const { width } = useWindowDimensions();
   console.log('width', width);
   const isDesktop = width >= 1024 ? true : false;
   console.log('isDesktop', isDesktop);
+
+
+  useEffect(() => {
+    setDeployTokens(deployTokenData?.data)
+  }, [deployTokenData])
+
+
   return (
     <View style={styles.container}>
       {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
@@ -51,25 +64,26 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       )}
       {menuOpen && <FormLaunchToken></FormLaunchToken>}
 
-      <FlatList
-        contentContainerStyle={styles.flatListContent}
-        data={queryDataLaunch.data ?? []}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
-        keyExtractor={(item, i) => i.toString()}
-        numColumns={isDesktop ? 3 : 1}
-        renderItem={({item, index}) => {
-          // console.log("key item", item)
-          return <TokenLaunchCard key={index} launch={item}></TokenLaunchCard>;
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={queryDataLaunch.isFetching}
-            onRefresh={queryDataLaunch.refetch}
-          />
-        }
+      {
+        deployLoading ? <Loading /> : <FlatList
+          contentContainerStyle={styles.flatListContent}
+          data={deployTokens}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          keyExtractor={(item, i) => i.toString()}
+          key={`flatlist-${isDesktop ? 3 : 1}`}
+          numColumns={isDesktop ? 3 : 1}
+          renderItem={({ item, index }) => {
+            return <TokenLaunchCard key={index} token={item}></TokenLaunchCard>;
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={queryDataLaunch.isFetching}
+              onRefresh={queryDataLaunch.refetch}
+            />
+          }
         // onEndReached={() => queryDataLaunch.fetchNextPage()}
-      />
+        />
+      }
 
       {/* <FlatList
         contentContainerStyle={styles.flatListContent}
