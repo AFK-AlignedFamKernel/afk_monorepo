@@ -35,7 +35,7 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
   const styles = useStyles(stylesheet);
 
   const navigation = useNavigation<MainStackNavigationProps>();
-  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   const [channelInfo, setChannelInfo] = useState<undefined | IChannelsMetadata>();
   useEffect(() => {
@@ -110,7 +110,7 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
 
   const toggleLike = async () => {
     if (!event?.id) return;
-    await handleCheckNostrAndSendConnectDialog()
+    await handleCheckNostrAndSendConnectDialog();
 
     await react.mutateAsync(
       {event, type: isLiked ? 'dislike' : 'like'},

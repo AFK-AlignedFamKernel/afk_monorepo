@@ -1,7 +1,7 @@
 import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 import { Block, hash, uint256, shortString, Pool } from "./deps.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("CreateToken")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,8 +35,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_deploy"
-  }
+    tableName: "token_deploy",
+  },
 };
 
 export default function DecodeTokenDeploy({ header, events }: Block) {
@@ -54,7 +54,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       initial_supply_low,
       initial_supply_high,
       total_supply_low,
-      total_supply_high
+      total_supply_high,
     ] = event.data;
 
     const symbol_decoded = token_address
@@ -82,7 +82,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       symbol: symbol_decoded,
       initial_supply,
       total_supply,
-      time_stamp: timestamp
+      time_stamp: timestamp,
     });
 
     return {
@@ -97,7 +97,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       symbol: symbol_decoded,
       initial_supply,
       total_supply,
-      time_stamp: timestamp
+      time_stamp: timestamp,
     };
   });
 }

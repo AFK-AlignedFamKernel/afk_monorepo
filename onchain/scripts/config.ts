@@ -12,10 +12,10 @@ export const readContractSierraCasm = (name: string): CompiledSierraCasm =>
       .readFileSync(
         path.resolve(
           __dirname,
-          `../cairo/target/dev/afk_${name}.compiled_contract_class.json`,
-        ),
+          `../cairo/target/dev/afk_${name}.compiled_contract_class.json`
+        )
       )
-      .toString("ascii"),
+      .toString("ascii")
   );
 
 export const readContractSierra = (name: string): CompiledSierra =>
@@ -24,10 +24,10 @@ export const readContractSierra = (name: string): CompiledSierra =>
       .readFileSync(
         path.resolve(
           __dirname,
-          `../cairo/target/dev/afk_${name}.contract_class.json`,
-        ),
+          `../cairo/target/dev/afk_${name}.contract_class.json`
+        )
       )
-      .toString("ascii"),
+      .toString("ascii")
   );
 
 export function getTestProvider(): RpcProvider {
@@ -45,6 +45,6 @@ export const getTestAccount = (provider: ProviderInterface) => {
     process.env.KATANA_ACCOUNT_ADDRESS || "",
     process.env.KATANA_PRIVATE_KEY || "",
     "1",
-    "0x2",
+    "0x2"
   );
 };

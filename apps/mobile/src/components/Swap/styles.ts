@@ -9,7 +9,7 @@ export default ThemedStyleSheet((theme, error: boolean, left: boolean, right: bo
     backgroundColor: theme.colors.surface,
   },
   content: {
-    flex:1,
+    flex: 1,
     borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',

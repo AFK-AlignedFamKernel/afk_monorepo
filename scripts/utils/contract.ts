@@ -1,11 +1,7 @@
-import {
-  Account,
-  Contract,
-} from "starknet";
+import { Account, Contract } from "starknet";
 import dotenv from "dotenv";
 import { provider } from "./starknet";
 dotenv.config();
-
 
 /** @TODO determine paymaster master specs to send the TX */
 export const prepareAndConnectContract = async (

@@ -318,7 +318,6 @@ export type LightningNetworkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 export type CashuWalletScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Cashu'>,
   NativeStackScreenProps<RootStackParams>

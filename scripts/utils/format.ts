@@ -33,12 +33,10 @@ export function nostrPubkeyToUint256(pubkey: string): Uint256 {
   return { low, high };
 }
 
-
-
 // // Define the function to convert a hex string to Uint256
 export function hexStringToUint256(hexString: string) {
   // Remove the leading '0x' if present
-  if (hexString.startsWith('0x')) {
+  if (hexString.startsWith("0x")) {
     hexString = hexString.slice(2);
   }
 
@@ -55,8 +53,8 @@ export function hexStringToUint256(hexString: string) {
   // const lowHex = hexString.slice(hexString?.length/2 );
 
   // Convert the hex parts to BigInt
-  const high = BigInt('0x' + highHex);
-  const low = BigInt('0x' + lowHex);
+  const high = BigInt("0x" + highHex);
+  const low = BigInt("0x" + lowHex);
 
   // Create the Uint256 object
   const uint256Value = uint256.bnToUint256(low + (high << BigInt(128)));
@@ -67,16 +65,15 @@ export function hexStringToUint256(hexString: string) {
 export function stringToUint8Array(str: string): Uint8Array {
   // Create a Uint8Array with a length of 32
   const uint8Array = new Uint8Array(32);
-  
+
   // Fill the array with the string characters converted to their corresponding ASCII values
   for (let i = 0; i < str.length; i++) {
     uint8Array[i] = str.charCodeAt(i);
   }
-  
+
   // Return the filled Uint8Array
   return uint8Array;
 }
-
 
 // /**
 //  * Converts a string to a Uint256 format suitable for Cairo contracts.

@@ -47,9 +47,10 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
   // Function to check if a note is bookmarked
   const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
 
-  const getData = ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
-    ? bookmarksWithNotes?.data?.map((bookmark) => bookmark.notes)?.flat() || []
-    : search.data?.pages.flat();
+  const getData =
+    ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
+      ? bookmarksWithNotes?.data?.map((bookmark) => bookmark.notes)?.flat() || []
+      : search.data?.pages.flat();
 
   return (
     <View style={styles.container}>
@@ -95,10 +96,19 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
           return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />;
         }}
         refreshControl={
-          <RefreshControl refreshing={search.isFetching || bookmarksWithNotes.isFetching} onRefresh={() => {search.refetch(); bookmarksWithNotes.refetch()}} />
+          <RefreshControl
+            refreshing={search.isFetching || bookmarksWithNotes.isFetching}
+            onRefresh={() => {
+              search.refetch();
+              bookmarksWithNotes.refetch();
+            }}
+          />
         }
       />
-      {(search?.isPending || bookmarksWithNotes?.isPending || search?.isLoading || bookmarksWithNotes?.isLoading) && <ActivityIndicator />}
+      {(search?.isPending ||
+        bookmarksWithNotes?.isPending ||
+        search?.isLoading ||
+        bookmarksWithNotes?.isLoading) && <ActivityIndicator />}
     </View>
   );
 };

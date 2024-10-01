@@ -6,10 +6,10 @@ export const config = {
   network: "starknet",
   finality: "DATA_STATUS_ACCEPTED",
   filter: {
-    header: {}
+    header: {},
   },
   sinkType: "postgres",
-  sinkOptions: {}
+  sinkOptions: {},
 };
 
 // This transform does nothing.

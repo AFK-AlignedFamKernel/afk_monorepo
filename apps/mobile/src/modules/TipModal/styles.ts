@@ -119,7 +119,7 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 20,
     color: theme.colors.textLight,
   },
-  
+
   optionsContentContainer: {
     paddingVertical: 5,
     paddingHorizontal: 5,

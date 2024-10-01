@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("BuyToken")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,8 +35,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_transactions"
-  }
+    tableName: "token_transactions",
+  },
 };
 
 export default function DecodeBuyToken({ header, events }: Block) {
@@ -61,7 +61,7 @@ export default function DecodeBuyToken({ header, events }: Block) {
       last_price_high,
       timestamp,
       quote_amount_low,
-      quote_amount_high
+      quote_amount_high,
     ] = event.data;
 
     const amount = uint256
@@ -95,7 +95,7 @@ export default function DecodeBuyToken({ header, events }: Block) {
       amount: Number(amount),
       protocol_fee,
       time_stamp: timestamp,
-      transaction_type: "buy"
+      transaction_type: "buy",
     };
   });
 }

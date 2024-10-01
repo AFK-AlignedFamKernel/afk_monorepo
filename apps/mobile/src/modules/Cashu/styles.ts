@@ -1,6 +1,6 @@
-import { Platform, StatusBar } from 'react-native';
+import {Platform, StatusBar} from 'react-native';
 
-import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
+import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -47,7 +47,7 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 10,
     // position: 'relative',
     flex: 1,
-    flexDirection:"row",
+    flexDirection: 'row',
     // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
@@ -59,7 +59,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   scrollView: {
     flex: 1,
-    height: "95%"
+    height: '95%',
     // flexGrow: 1,
     // overflow:"scroll",
   },
@@ -73,7 +73,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -169,7 +169,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,

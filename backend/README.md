@@ -20,8 +20,8 @@ POSTGRES_DATABASE=your_postgres_database
 ```
 
 ## Install
-Go install: https://go.dev/doc/install
 
+Go install: https://go.dev/doc/install
 
 export PATH=$PATH:/usr/local/go/bin
 
@@ -55,6 +55,7 @@ Run the container
 docker run --env-file .env -d -p 8081:8081 --name consumer-app consumer-app
 ```
 
-## TODO 
+## TODO
+
 - [] Fix env Database Redis and Postgres in DockerFile
 - [] More coming soon

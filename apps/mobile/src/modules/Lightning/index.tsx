@@ -1,22 +1,22 @@
 import '../../../applyGlobalPolyfills';
 
-import { webln } from '@getalby/sdk';
-import { useAuth, useConnectNWC, useLN, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import {webln} from '@getalby/sdk';
+import {useAuth, useConnectNWC, useLN, useNostrContext, useSendZap} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
-import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
-import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, {SetStateAction, useEffect, useState} from 'react';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import {WebView} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, IconButton } from '../../components';
-import { useStyles } from '../../hooks';
-import { useToast } from '../../hooks/modals';
+import {Button, IconButton} from '../../components';
+import {useStyles} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import stylesheet from './styles';
-import { SendPaymentResponse } from '@webbtc/webln-types';
-import { ZapUserView } from './ZapUserView';
-import { LNWalletInfo } from './LNWalletInfo';
-import { LNPayInfo } from './LNPayInfo';
+import {SendPaymentResponse} from '@webbtc/webln-types';
+import {ZapUserView} from './ZapUserView';
+import {LNWalletInfo} from './LNWalletInfo';
+import {LNPayInfo} from './LNPayInfo';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -41,13 +41,13 @@ export const LightningNetworkWalletView: React.FC = () => {
 
 export enum ZAPType {
   INVOICE,
-  NOSTR
+  NOSTR,
 }
 
 export const LightningNetworkWallet = () => {
-  const { publicKey } = useAuth()
+  const {publicKey} = useAuth();
   const styles = useStyles(stylesheet);
-  const { showToast } = useToast();
+  const {showToast} = useToast();
   const [pendingNwcUrl, setPendingNwcUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
@@ -57,7 +57,7 @@ export const LightningNetworkWallet = () => {
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isViewNewConnection, setIsViewNewConnection] = useState(true);
 
-  const { ndk } = useNostrContext()
+  const {ndk} = useNostrContext();
   const {
     nostrWebLN,
     balance,
@@ -84,10 +84,8 @@ export const LightningNetworkWallet = () => {
     setBalance,
     setConnectionStatus,
     isExtensionAvailable,
-    setIsExtensionAvailable
-
-  } = useLN()
-
+    setIsExtensionAvailable,
+  } = useLN();
 
   async function connectWithAlbyPlatform() {
     setConnectionStatus('connecting');
@@ -102,7 +100,7 @@ export const LightningNetworkWallet = () => {
       }
     } else {
       const nwc = webln.NostrWebLNProvider.withNewSecret({});
-      const authUrl = nwc.client.getAuthorizationUrl({ name: 'React Native NWC demo' });
+      const authUrl = nwc.client.getAuthorizationUrl({name: 'React Native NWC demo'});
       setPendingNwcUrl(nwc.client.getNostrWalletConnectUrl(true));
       setNwcAuthUrl(authUrl.toString());
 
@@ -112,11 +110,9 @@ export const LightningNetworkWallet = () => {
             setNwcAuthUrl('');
             setNwcUrl(pendingNwcUrl);
 
-
-            const webLn = new webln.NostrWebLNProvider({ nostrWalletConnectUrl: pendingNwcUrl })
+            const webLn = new webln.NostrWebLNProvider({nostrWalletConnectUrl: pendingNwcUrl});
             setNostrWebLN(webLn);
             return (window as any)?.webln;
-
           }
         });
       }
@@ -125,16 +121,15 @@ export const LightningNetworkWallet = () => {
   }
 
   const handleConnectGetAlby = async () => {
-
     // const webLn = await connectWithAlbyPlatform()
-    const webLn = await connectWithAlby()
+    const webLn = await connectWithAlby();
 
     if (webLn) {
-      showToast({ title: "WebLN Connected to ZAP with BTC", type: "success" })
+      showToast({title: 'WebLN Connected to ZAP with BTC', type: 'success'});
     }
-  }
+  };
 
-  const [zapType, setZapType] = useState<ZAPType>(ZAPType.INVOICE)
+  const [zapType, setZapType] = useState<ZAPType>(ZAPType.INVOICE);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).webln) {
@@ -144,9 +139,8 @@ export const LightningNetworkWallet = () => {
 
   const handleCopyInvoice = async () => {
     await Clipboard.setStringAsync(generatedInvoice);
-    showToast({ type: 'info', title: 'Invoice copied to the clipboard' });
+    showToast({type: 'info', title: 'Invoice copied to the clipboard'});
   };
-
 
   const renderAuthView = () => {
     if (Platform.OS === 'web') {
@@ -161,7 +155,7 @@ export const LightningNetworkWallet = () => {
     } else if (WebView) {
       return (
         <WebView
-          source={{ uri: nwcAuthUrl }}
+          source={{uri: nwcAuthUrl}}
           injectedJavaScriptBeforeContentLoaded={`
             window.opener = window;
             window.addEventListener("message", (event) => {
@@ -188,14 +182,9 @@ export const LightningNetworkWallet = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.container}>
-
           {nwcAuthUrl && renderAuthView()}
 
-
-
-
-          {connectionStatus === "connected" &&
-
+          {connectionStatus === 'connected' && (
             <LNWalletInfo
               setIsInvoiceModalVisible={setIsInvoiceModalVisible}
               balance={balance}
@@ -207,7 +196,7 @@ export const LightningNetworkWallet = () => {
               setIsZapModalVisible={setIsZapModalVisible}
               isLoading={isLoading}
             />
-          }
+          )}
 
           {/* <TouchableOpacity style={styles.button} onPress={() => {
             setIsViewNewConnection(!isViewNewConnection)
@@ -215,7 +204,6 @@ export const LightningNetworkWallet = () => {
           }>
             <Text style={styles.buttonText}>New connection NWC</Text>
           </TouchableOpacity> */}
-
 
           {isViewNewConnection && (
             <View style={styles.card}>
@@ -229,12 +217,14 @@ export const LightningNetworkWallet = () => {
                     style={styles.input}
                   />
                 </View>
-                <TouchableOpacity style={styles.button} onPress={() => {
-                  if (nwcUrl) {
-                    handleConnectWithUrl(nwcUrl)
-                  }
-                }
-                }>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    if (nwcUrl) {
+                      handleConnectWithUrl(nwcUrl);
+                    }
+                  }}
+                >
                   {/* <TouchableOpacity style={styles.button} onPress={handleConnectWithUrl}> */}
                   <Text style={styles.buttonText}>Connect with URL</Text>
                 </TouchableOpacity>
@@ -252,14 +242,12 @@ export const LightningNetworkWallet = () => {
                   {isLoading
                     ? 'Connecting...'
                     : isExtensionAvailable
-                      ? 'Connect with Alby Extension'
-                      : 'Connect with Alby NWC'}
+                    ? 'Connect with Alby Extension'
+                    : 'Connect with Alby NWC'}
                 </Text>
               </Button>
             </View>
           )}
-
-
 
           <Modal
             animationType="slide"

@@ -21,9 +21,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
   const {showDialog, hideDialog} = useDialog();
 
   return (
-    <Modal
-    style={{zIndex:100}}
-    >
+    <Modal style={{zIndex: 100}}>
       <Text fontSize={16} weight="semiBold">
         Please choose a wallet to connect
       </Text>
@@ -79,13 +77,13 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
       <View style={styles.connectors}>
         <Text>EVM</Text>
         <Pressable
-              onPress={() => {
-                hide();
-              }}
-              style={styles.connector}
-            >
-              <Text weight="semiBold">{"Connect EVM"}</Text>
-            </Pressable>
+          onPress={() => {
+            hide();
+          }}
+          style={styles.connector}
+        >
+          <Text weight="semiBold">{'Connect EVM'}</Text>
+        </Pressable>
       </View>
 
       <Button variant="default" onPress={hide}>

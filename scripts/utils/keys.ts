@@ -24,7 +24,11 @@ const PATH_KEY_MARKETPLACE_COMPILED = path.resolve(
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createKeysMarketplace = async (token_address: string, initial_key_price: number, step_linear_increase: number) => {
+export const createKeysMarketplace = async (
+  token_address: string,
+  initial_key_price: number,
+  step_linear_increase: number
+) => {
   try {
     // initialize existing predeployed account 0 of Devnet
     const privateKey0 = process.env.DEV_PK as string;
@@ -55,17 +59,18 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
         const estimate = await account0.estimateDeclareFee({
           contract: compiledSierraAAaccount,
           casm: compiledCasm,
-        })
+        });
         console.log("Declare estimate", estimate);
 
-        const declareResponse = await account0.declare({
-          contract: compiledSierraAAaccount,
-          casm: compiledCasm,
+        const declareResponse = await account0.declare(
+          {
+            contract: compiledSierraAAaccount,
+            casm: compiledCasm,
 
-          // {
-          //   maxFee:estimate.suggestedMaxFee
-          // }
-        },
+            // {
+            //   maxFee:estimate.suggestedMaxFee
+            // }
+          },
           {
             // maxFee: estimate.suggestedMaxFee * BigInt(3)
           }
@@ -81,13 +86,10 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
         console.log("nonce", nonce);
 
         console.log("KeysClassHash", KeysClassHash);
-
       } catch (e) {
-        console.log("Error declare key marketplace", e)
+        console.log("Error declare key marketplace", e);
         return;
-
       }
-
     }
     let total_amount_float = initial_key_price ?? 0.01;
 
@@ -101,7 +103,6 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
       total_amount = uint256.bnToUint256(BigInt(total_amount_nb));
     }
 
-
     let step__float = step_linear_increase ?? 0.01;
 
     let total_step_linear_increase: Uint256 | undefined;
@@ -110,7 +111,9 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
     if (Number.isInteger(total_step_linear_increase_nb)) {
       total_step_linear_increase = cairo.uint256(total_step_linear_increase_nb);
     } else if (!Number.isInteger(total_step_linear_increase_nb)) {
-      total_step_linear_increase = uint256.bnToUint256(BigInt(total_step_linear_increase_nb));
+      total_step_linear_increase = uint256.bnToUint256(
+        BigInt(total_step_linear_increase_nb)
+      );
     }
 
     const { transaction_hash, contract_address } =
@@ -120,7 +123,7 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
           account0?.address,
           total_amount ?? cairo.uint256(1),
           token_address as `0x${string}`,
-          total_step_linear_increase ?? cairo.uint256(1)
+          total_step_linear_increase ?? cairo.uint256(1),
           // uint256.bnToUint256(BigInt("0x"+initial_key_price))
           // cairo.uint256(1)
           // uint256.bnToUint256(BigInt(initial_key_price))
@@ -148,19 +151,15 @@ export const createKeysMarketplace = async (token_address: string, initial_key_p
   }
 };
 
-
 export const buyKeys = async (props: {
-  key_contract: Contract,
-  user_address: string,
-  account: Account,
-  amount: number,
-  tokenAddress: string,
-
+  key_contract: Contract;
+  user_address: string;
+  account: Account;
+  amount: number;
+  tokenAddress: string;
 }) => {
   try {
-    const { key_contract, account, amount, tokenAddress,
-      user_address
-    } = props
+    const { key_contract, account, amount, tokenAddress, user_address } = props;
     const buyKeysParams = {
       user_address: user_address, // token address
       amount: cairo.uint256(amount), // amount int. Float need to be convert with bnToUint
@@ -169,35 +168,26 @@ export const buyKeys = async (props: {
     const tx = await account.execute({
       contractAddress: key_contract?.address,
       entrypoint: "buy_keys",
-      calldata: [buyKeysParams.user_address, buyKeysParams.amount]
+      calldata: [buyKeysParams.user_address, buyKeysParams.amount],
     });
 
-    await account.waitForTransaction(tx.transaction_hash)
+    await account.waitForTransaction(tx.transaction_hash);
 
     return tx;
-
   } catch (e) {
-    console.log("Error buy_keys key_contract", e)
-
+    console.log("Error buy_keys key_contract", e);
   }
-
-
-
-}
-
+};
 
 export const sellKeys = async (props: {
-  key_contract: Contract,
-  user_address: string,
-  account: Account,
-  amount: number,
-  tokenAddress: string,
-
+  key_contract: Contract;
+  user_address: string;
+  account: Account;
+  amount: number;
+  tokenAddress: string;
 }) => {
   try {
-    const { key_contract, account, amount, tokenAddress,
-      user_address
-    } = props
+    const { key_contract, account, amount, tokenAddress, user_address } = props;
     const sellKeysParams = {
       user_address: user_address, // token address
       amount: cairo.uint256(amount), // amount int. Float need to be convert with bnToUint
@@ -206,49 +196,37 @@ export const sellKeys = async (props: {
     const tx = await account.execute({
       contractAddress: key_contract?.address,
       entrypoint: "sell_keys",
-      calldata: [sellKeysParams.user_address, sellKeysParams.amount]
+      calldata: [sellKeysParams.user_address, sellKeysParams.amount],
     });
 
-    await account.waitForTransaction(tx.transaction_hash)
+    await account.waitForTransaction(tx.transaction_hash);
 
     return tx;
-
   } catch (e) {
-    console.log("Error sellKeysParams key_contract", e)
-
+    console.log("Error sellKeysParams key_contract", e);
   }
-
-
-
-}
-
+};
 
 export const instantiateKeys = async (
   account: Account,
-  key_marketplace: Contract,
+  key_marketplace: Contract
   // tokenAddress: string,
 ) => {
   try {
     let call = {
       contractAddress: key_marketplace?.address,
-      entrypoint: 'instantiate_keys',
-      calldata: CallData.compile({
-      }),
-    }
+      entrypoint: "instantiate_keys",
+      calldata: CallData.compile({}),
+    };
 
-    console.log("Call", call)
+    console.log("Call", call);
 
-    let tx = await account?.execute([call], undefined, {})
-    console.log("tx hash", tx.transaction_hash)
-    let wait_tx = await account?.waitForTransaction(tx?.transaction_hash)
-
+    let tx = await account?.execute([call], undefined, {});
+    console.log("tx hash", tx.transaction_hash);
+    let wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
 
     return wait_tx;
-
   } catch (e) {
-    console.log("Error instantiateKeys", e)
-
+    console.log("Error instantiateKeys", e);
   }
-
-
-}
+};

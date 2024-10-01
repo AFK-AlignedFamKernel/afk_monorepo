@@ -1,43 +1,43 @@
-import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount, useProvider } from '@starknet-react/core';
-import { Fraction } from '@uniswap/sdk-core';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount, useProvider} from '@starknet-react/core';
+import {Fraction} from '@uniswap/sdk-core';
 // import {useNostrContext} from '../../context/NostrContext';
-import { useNostrContext } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
-import { byteArray, cairo, CallData, getChecksumAddress, uint256 } from 'starknet';
+import {useNostrContext} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {ActivityIndicator, FlatList, RefreshControl, View} from 'react-native';
+import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
 
-import { Button, Divider, Text } from '../../components';
-import { ESCROW_ADDRESSES } from '../../constants/contracts';
-import { CHAIN_ID } from '../../constants/env';
-import { Entrypoint } from '../../constants/misc';
-import { ETH, STRK } from '../../constants/tokens';
-import { useStyles, useTheme, useTips, useWaitConnection } from '../../hooks';
-import { useClaim, useEstimateClaim } from '../../hooks/api';
-import { useToast, useTransaction, useTransactionModal, useWalletModal } from '../../hooks/modals';
-import { MainStackNavigationProps } from '../../types';
-import { decimalsScale } from '../../utils/helpers';
+import {Button, Divider, Text} from '../../components';
+import {ESCROW_ADDRESSES} from '../../constants/contracts';
+import {CHAIN_ID} from '../../constants/env';
+import {Entrypoint} from '../../constants/misc';
+import {ETH, STRK} from '../../constants/tokens';
+import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
+import {useClaim, useEstimateClaim} from '../../hooks/api';
+import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
+import {MainStackNavigationProps} from '../../types';
+import {decimalsScale} from '../../utils/helpers';
 import stylesheet from './styles';
 
 export const TipsComponent: React.FC = () => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
   const [loading, setLoading] = useState<false | number>(false);
 
   const tips = useTips();
-  const { ndk } = useNostrContext();
+  const {ndk} = useNostrContext();
 
-  const { provider } = useProvider();
+  const {provider} = useProvider();
   const account = useAccount();
   const sendTransaction = useTransaction();
   const claim = useClaim();
   const estimateClaim = useEstimateClaim();
   const walletModal = useWalletModal();
   const waitConnection = useWaitConnection();
-  const { show: showTransactionModal } = useTransactionModal();
-  const { showToast } = useToast();
+  const {show: showTransactionModal} = useTransactionModal();
+  const {showToast} = useToast();
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const onClaimPress = async (depositId: number) => {
@@ -90,7 +90,7 @@ export const TipsComponent: React.FC = () => {
       entrypoint: Entrypoint.BALANCE_OF,
       calldata: [connectedAccount.address],
     });
-    const balance = uint256.uint256ToBN({ low: balanceLow, high: balanceHigh });
+    const balance = uint256.uint256ToBN({low: balanceLow, high: balanceHigh});
 
     if (balance < gasFee) {
       // Send the claim through backend
@@ -101,14 +101,14 @@ export const TipsComponent: React.FC = () => {
       showTransactionModal(txHash, async (receipt) => {
         if (receipt.isSuccess()) {
           tips.refetch();
-          showToast({ type: 'success', title: 'Tip claimed successfully' });
+          showToast({type: 'success', title: 'Tip claimed successfully'});
         } else {
           let description = 'Please Try Again Later.';
           if (receipt.isRejected()) {
             description = receipt.transaction_failure_reason.error_message;
           }
 
-          showToast({ type: 'error', title: `Failed to claim the tip. ${description}` });
+          showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
         }
 
         setLoading(false);
@@ -152,14 +152,14 @@ export const TipsComponent: React.FC = () => {
 
       if (receipt?.isSuccess()) {
         tips.refetch();
-        showToast({ type: 'success', title: 'Tip claimed successfully' });
+        showToast({type: 'success', title: 'Tip claimed successfully'});
       } else {
         let description = 'Please Try Again Later.';
         if (receipt?.isRejected()) {
           description = receipt.transaction_failure_reason.error_message;
         }
 
-        showToast({ type: 'error', title: `Failed to claim the tip. ${description}` });
+        showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
       }
 
       setLoading(false);
@@ -169,15 +169,17 @@ export const TipsComponent: React.FC = () => {
   return (
     <View>
       <FlatList
-        ListEmptyComponent={<View>
-          <Text style={styles.text}>You don't have any tip atm.</Text>
-          <Text>Create more notes on Nostr to receive Zap and Starknet tip</Text>
-        </View>}
+        ListEmptyComponent={
+          <View>
+            <Text style={styles.text}>You don't have any tip atm.</Text>
+            <Text>Create more notes on Nostr to receive Zap and Starknet tip</Text>
+          </View>
+        }
         contentContainerStyle={styles.flatListContent}
         data={tips.data ?? []}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         keyExtractor={(item) => item.event.transaction_hash}
-        renderItem={({ item }) => {
+        renderItem={({item}) => {
           const amount = new Fraction(item.amount, decimalsScale(item.token.decimals)).toFixed(6);
 
           return (

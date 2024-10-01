@@ -1,20 +1,20 @@
-import { useAuth } from 'afk_nostr_sdk';
-import { View } from 'react-native';
+import {useAuth} from 'afk_nostr_sdk';
+import {View} from 'react-native';
 
-import { Button, Divider, Icon, IconButton, Text } from '../../components';
-import { HeaderScreen } from '../../components/HeaderScreen';
-import { PrivateKeyImport } from '../../components/PrivateKeyImport';
-import { RelaysConfig } from '../../components/RelaysConfig';
-import { useStyles, useTheme } from '../../hooks';
-import { MainStackNavigationProps, SettingsScreenProps } from '../../types';
+import {Button, Divider, Icon, IconButton, Text} from '../../components';
+import {HeaderScreen} from '../../components/HeaderScreen';
+import {PrivateKeyImport} from '../../components/PrivateKeyImport';
+import {RelaysConfig} from '../../components/RelaysConfig';
+import {useStyles, useTheme} from '../../hooks';
+import {MainStackNavigationProps, SettingsScreenProps} from '../../types';
 import stylesheet from './styles';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
-export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
+export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
-  const { theme, toggleTheme } = useTheme();
-  const { publicKey, isExtension } = useAuth();
-  const navigationMain = useNavigation<MainStackNavigationProps>()
+  const {theme, toggleTheme} = useTheme();
+  const {publicKey, isExtension} = useAuth();
+  const navigationMain = useNavigation<MainStackNavigationProps>();
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -25,7 +25,7 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
             size={16}
             onPress={() => {
               // navigationMain.navigate('Profile', {publicKey});
-              navigationMain.goBack()
+              navigationMain.goBack();
               // navigation.goBack
             }}
           />
@@ -59,11 +59,11 @@ export const Settings: React.FC<SettingsScreenProps> = ({ navigation }) => {
           </Button>
         </View>
 
-        <Divider style={{ marginVertical: 12 }} />
+        <Divider style={{marginVertical: 12}} />
 
         {!isExtension && <PrivateKeyImport />}
 
-        <Divider style={{ marginVertical: 12 }} />
+        <Divider style={{marginVertical: 12}} />
 
         <RelaysConfig />
       </View>

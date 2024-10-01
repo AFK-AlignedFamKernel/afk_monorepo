@@ -1,10 +1,10 @@
 import {createStore} from 'zustand';
 
-import { Proof } from '@cashu/cashu-ts';
+import {Proof} from '@cashu/cashu-ts';
 import createBoundedUseStore from './createBoundedUseStore';
-import { Contact } from '../types';
+import {Contact} from '../types';
 
-interface State  {
+interface State {
   publicKey: string;
   privateKey: string;
   isExtension?: boolean;
@@ -19,10 +19,10 @@ interface State  {
   mintRequests?: string[];
   proofs?: Proof[];
   useNostr?: boolean;
-  pendingTokens?:string[];
-  contacts:Contact[];
-  activeBalance:number;
-};
+  pendingTokens?: string[];
+  contacts: Contact[];
+  activeBalance: number;
+}
 
 interface Action {
   setAuth: (publicKey: string, privateKey: string) => void;
@@ -30,20 +30,19 @@ interface Action {
   setIsExtensionConnect: (isExtension: boolean) => void;
 
   // Cashu Wallet
-  setIsSeedCashuStorage:(isSeedStorage:boolean) => void;
-  setMnemonic: (mnemonic:string) => void;
-  setSeed: (seed:Uint8Array) => void;
+  setIsSeedCashuStorage: (isSeedStorage: boolean) => void;
+  setMnemonic: (mnemonic: string) => void;
+  setSeed: (seed: Uint8Array) => void;
 
-  setMints: (mints:string[]) => void;
-  setProofs: (proofs:Proof[]) => void;
-  setMintsRequests: (mintRequests:string[]) => void;
-  setNWCUrl: (nwcUrl:string) => void;
+  setMints: (mints: string[]) => void;
+  setProofs: (proofs: Proof[]) => void;
+  setMintsRequests: (mintRequests: string[]) => void;
+  setNWCUrl: (nwcUrl: string) => void;
 
-  setContacts: (contacts:Contact[]) => void;
-  setMintUrl: (mintUrl:string) => void;
-  setActiveBalance:(balance:number) => void;
-
-};
+  setContacts: (contacts: Contact[]) => void;
+  setMintUrl: (mintUrl: string) => void;
+  setActiveBalance: (balance: number) => void;
+}
 
 export const cashuStore = createStore<State & Action>((set) => ({
   // publicKey and privateKey are set to undefined but we know they are strings
@@ -56,9 +55,9 @@ export const cashuStore = createStore<State & Action>((set) => ({
   mints: undefined as unknown as string[],
   mintRequests: undefined as unknown as string[],
   proofs: undefined as unknown as Proof[],
-  contacts:[] as Contact[],
-  mintUrl: "https://mint.minibits.cash/Bitcoin" as unknown as string,
-  activeBalance:0 as unknown as number,
+  contacts: [] as Contact[],
+  mintUrl: 'https://mint.minibits.cash/Bitcoin' as unknown as string,
+  activeBalance: 0 as unknown as number,
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
@@ -74,7 +73,7 @@ export const cashuStore = createStore<State & Action>((set) => ({
   },
 
   // Cashu store
- 
+
   setIsSeedCashuStorage: (isSeedCashuStorage) => {
     set({isSeedCashuStorage});
   },
@@ -104,4 +103,4 @@ export const cashuStore = createStore<State & Action>((set) => ({
   },
 }));
 
-export const useCashuStore= createBoundedUseStore(cashuStore);
+export const useCashuStore = createBoundedUseStore(cashuStore);

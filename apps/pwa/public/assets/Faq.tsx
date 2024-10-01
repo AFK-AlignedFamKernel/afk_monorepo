@@ -1,7 +1,6 @@
 'use client';
 
-import { FaqBar } from "@/app/components/FaqBar";
-
+import {FaqBar} from '@/app/components/FaqBar';
 
 export function Faq() {
   return (

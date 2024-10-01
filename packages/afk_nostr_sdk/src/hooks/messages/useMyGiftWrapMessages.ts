@@ -1,6 +1,6 @@
 import {useInfiniteQuery} from '@tanstack/react-query';
-import { useNostrContext } from '../../context';
-import { useAuth } from '../../store';
+import {useNostrContext} from '../../context';
+import {useAuth} from '../../store';
 
 export type UseRootProfilesOptions = {
   authors?: string[];
@@ -9,7 +9,7 @@ export type UseRootProfilesOptions = {
 
 export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions) => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['myGiftWrap', options?.authors, options?.search, ndk],
@@ -30,7 +30,9 @@ export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions) => {
         limit: 20,
       });
 
-      return [...giftsWrap].filter((note) => note.tags.every((tag) => tag[0] == "p" && tag[1] == publicKey));
+      return [...giftsWrap].filter((note) =>
+        note.tags.every((tag) => tag[0] == 'p' && tag[1] == publicKey),
+      );
     },
     placeholderData: {pages: [], pageParams: []},
   });

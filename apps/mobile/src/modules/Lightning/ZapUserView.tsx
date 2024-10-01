@@ -1,10 +1,10 @@
 import '../../../applyGlobalPolyfills';
-import React, { SetStateAction} from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { Text, TextInput } from 'react-native';
+import React, {SetStateAction} from 'react';
+import {TouchableOpacity, View} from 'react-native';
+import {Text, TextInput} from 'react-native';
 import stylesheet from './styles';
-import { ZAPType } from '.';
-import { useStyles } from '../../hooks';
+import {ZAPType} from '.';
+import {useStyles} from '../../hooks';
 
 export function ZapUserView({
   isLoading,
@@ -18,7 +18,7 @@ export function ZapUserView({
   nostrLnRecipient,
   zapType,
   generatedInvoice,
-  setZapType
+  setZapType,
 }: {
   zapRecipient: any;
   nostrLnRecipient: any;
@@ -28,10 +28,10 @@ export function ZapUserView({
   setZapRecipient: React.Dispatch<SetStateAction<any>>;
   zapAmount: string;
   setZapAmount: React.Dispatch<SetStateAction<any>>;
-  handleZap: (zapAmount:string, zapRecipient:string) => void;
+  handleZap: (zapAmount: string, zapRecipient: string) => void;
   setIsZapModalVisible: React.Dispatch<SetStateAction<any>>;
   isLoading: boolean;
-  generatedInvoice?:string;
+  generatedInvoice?: string;
 }) {
   const styles = useStyles(stylesheet);
   return (
@@ -39,10 +39,8 @@ export function ZapUserView({
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Zap a User</Text>
 
-        {zapType == ZAPType.INVOICE ?
-
+        {zapType == ZAPType.INVOICE ? (
           <View style={styles.content}>
-
             <TextInput
               placeholder="Invoice"
               value={zapRecipient}
@@ -50,9 +48,8 @@ export function ZapUserView({
               style={styles.input}
             />
           </View>
-
-          : <View style={styles.content}>
-
+        ) : (
+          <View style={styles.content}>
             <TextInput
               placeholder="Recipient (Nostr address)"
               value={nostrLnRecipient}
@@ -60,10 +57,7 @@ export function ZapUserView({
               style={styles.input}
             />
           </View>
-
-        }
-
-
+        )}
 
         <View style={styles.content}>
           <TextInput

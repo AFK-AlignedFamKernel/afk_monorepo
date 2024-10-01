@@ -1,4 +1,4 @@
-import { ApolloServer, gql } from 'apollo-server';
+import { ApolloServer, gql } from "apollo-server";
 const { prisma } = require("indexer-prisma");
 
 //GraphQL schema definitions
@@ -48,18 +48,20 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     buyTokens: () => prisma.buy_token.findMany(),
-    buyToken: (_parent, { transactionHash }) => prisma.buy_token.findUnique({
-      where: { transactionHash },
-    }),
+    buyToken: (_parent, { transactionHash }) =>
+      prisma.buy_token.findUnique({
+        where: { transactionHash },
+      }),
     tokenDeploys: () => prisma.token_deploy.findMany(),
-    tokenDeploy: (_parent, { memecoinAddress }) => prisma.token_deploy.findUnique({
-      where: { memecoin_address: memecoinAddress },
-    }),
+    tokenDeploy: (_parent, { memecoinAddress }) =>
+      prisma.token_deploy.findUnique({
+        where: { memecoin_address: memecoinAddress },
+      }),
   },
 };
 
 // Create the Apollo Server
-export const server = new ApolloServer({ 
+export const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: () => ({ prisma }),

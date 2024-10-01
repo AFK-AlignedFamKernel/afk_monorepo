@@ -8,8 +8,7 @@ sidebar_position: 1
 
 ## Origin story
 
-
-The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph. 
+The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph.
 
 We build and fight together, not against. What if the treasure are the friends we made along the way? Then A decentralized social network should be a treasure trove of memories and connections!
 

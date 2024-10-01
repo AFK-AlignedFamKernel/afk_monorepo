@@ -12,8 +12,6 @@ import {Router} from './Router';
 
 SplashScreen.preventAutoHideAsync();
 
-
-
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);

@@ -1,7 +1,7 @@
 import { Block, hash, uint256, Pool } from "./deps.ts";
 import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("SellToken")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,8 +35,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"), // Your PostgreSQL connection string
-    tableName: "token_transactions" // Using the same table for buy and sell
-  }
+    tableName: "token_transactions", // Using the same table for buy and sell
+  },
 };
 
 export default function DecodeSellToken({ header, events }: Block) {
@@ -61,7 +61,7 @@ export default function DecodeSellToken({ header, events }: Block) {
       last_price_high,
       timestamp,
       quote_amount_low,
-      quote_amount_high
+      quote_amount_high,
     ] = event.data;
 
     const amount = uint256
@@ -95,7 +95,7 @@ export default function DecodeSellToken({ header, events }: Block) {
       amount,
       protocol_fee,
       time_stamp: timestamp,
-      transaction_type: "sell"
+      transaction_type: "sell",
     };
   });
 }

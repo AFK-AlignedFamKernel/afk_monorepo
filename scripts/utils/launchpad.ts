@@ -25,25 +25,24 @@ const PATH_LAUNCHPAD_COMPILED = path.resolve(
 
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createLaunchpad = async (
-  tokenAddress:string,
-  initial_key_price:Uint256,
-  step_increase_linear:Uint256,
-  coin_class_hash:string,
-  threshold_liquidity:Uint256,
-  threshold_marketcap:Uint256,
+  tokenAddress: string,
+  initial_key_price: Uint256,
+  step_increase_linear: Uint256,
+  coin_class_hash: string,
+  threshold_liquidity: Uint256,
+  threshold_marketcap: Uint256
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
 
-
-    console.log("tokenAddress",tokenAddress)
-    console.log("initial_key_price",initial_key_price)
-    console.log("step_increase_linear",step_increase_linear)
-    console.log("coin_class_hash",coin_class_hash)
-    console.log("threshold_liquidity",threshold_liquidity)
-    console.log("threshold_marketcap",threshold_marketcap)
+    console.log("tokenAddress", tokenAddress);
+    console.log("initial_key_price", initial_key_price);
+    console.log("step_increase_linear", step_increase_linear);
+    console.log("coin_class_hash", coin_class_hash);
+    console.log("threshold_liquidity", threshold_liquidity);
+    console.log("threshold_marketcap", threshold_marketcap);
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
     let LaunchpadClassHash = process.env.LAUNCHPAD_CLASS_HASH as string;
@@ -104,7 +103,7 @@ export const createLaunchpad = async (
           step_increase_linear,
           coin_class_hash,
           threshold_liquidity,
-          threshold_marketcap
+          threshold_marketcap,
         ],
       });
 
