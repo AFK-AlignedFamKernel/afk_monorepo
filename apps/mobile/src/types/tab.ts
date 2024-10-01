@@ -33,9 +33,10 @@ export enum SelectedTab {
   CASHU_SETTINGS,
   PORTFOLIO,
   STARKNET_PORTFOLIO,
+  TOKEN_STATS,
 }
 
-export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -64,7 +65,7 @@ export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }
   // },
 ];
 
-export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -83,7 +84,7 @@ export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'Feed',
@@ -108,7 +109,7 @@ export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'PostCreate',
@@ -138,7 +139,7 @@ export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Pump',
     screen: 'Launchpad',
@@ -188,8 +189,7 @@ export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
-
+export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -210,10 +210,9 @@ export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] =
   //   screen: 'BTCBridge',
   //   tab: SelectedTab.BTC_BRIDGE,
   // },
-
 ];
 
-export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Overview',
     screen: 'overview',
@@ -229,6 +228,12 @@ export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[]
     screen: 'Holders',
     tab: SelectedTab.LAUNCH_HOLDERS,
   },
+
+  {
+    title: 'STATS',
+    screen: 'Stats',
+    tab: SelectedTab.TOKEN_STATS,
+  },
   {
     title: 'TX',
     screen: 'TX',
@@ -236,32 +241,30 @@ export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[]
   },
 ];
 
-
-export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = [
+  // {
+  //   title: 'General',
+  //   screen: 'General',
+  //   tab: SelectedTab.CASHU_WALLET,
+  // },
   {
     title: 'Invoices',
     screen: 'Invoices',
     tab: SelectedTab.CASHU_INVOICES,
   },
   {
-    title: 'History',
-    screen: 'History',
-    tab: SelectedTab.CASHU_HISTORY,
-  },
-  {
     title: 'Mints',
     screen: 'Mints',
     tab: SelectedTab.CASHU_MINT,
   },
-  // {
-  //   title: 'General',
-  //   screen: 'General',
-  //   tab: SelectedTab.CASHU_WALLET,
-  // },
+  {
+    title: 'History',
+    screen: 'History',
+    tab: SelectedTab.CASHU_HISTORY,
+  },
 ];
 
-
-export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Lightning',
     screen: 'Lightning',
@@ -272,11 +275,9 @@ export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
   },
-
 ];
 
-
-export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Portfolio',
     screen: 'Portfolio',
@@ -292,5 +293,4 @@ export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[]
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
   },
-
 ];
