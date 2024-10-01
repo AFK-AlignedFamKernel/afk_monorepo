@@ -17,6 +17,8 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./buildcache/tsbuildinfo"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],

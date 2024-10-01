@@ -18,17 +18,17 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@nostr-dev-kit/ndk": "2.10.1",
+    "@nostr-dev-kit/ndk": "2.10.0",
+    "afk_prototype": "link:",
     "axios": "^1.7.2",
+    "common": "workspace:*",
     "dotenv": "^16.4.5",
     "express": "^4.17.1",
-    "afk_prototype":"link:",
     "nodemon": "^3.1.1",
     "nostr-tools": "^2.5.2",
     "path": "^0.12.7",
     "starknet": "^6.6.9",
-    "ws": "^8.17.0",
-    "common":"workspace:*"
+    "ws": "^8.17.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",
