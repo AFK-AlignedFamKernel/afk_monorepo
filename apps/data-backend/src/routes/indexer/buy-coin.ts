@@ -11,12 +11,12 @@ async function buyCoinRoute(fastify: FastifyInstance, options: RouteOptions) {
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
-        }
+          network: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: buyTokens
+        data: buyTokens,
       });
     } catch (error) {
       console.error("Error fetching buy tokens:", error);

@@ -7,7 +7,6 @@
  * @returns `true` if the string is a valid StarkNet address, otherwise `false`.
  */
 export function isValidStarknetAddress(address: string): boolean {
-    const regex = /^0x[0-9a-fA-F]{50,64}$/
-    return regex.test(address)
-  }
-  
+  const regex = /^0x[0-9a-fA-F]{50,64}$/;
+  return regex.test(address);
+}
