@@ -204,7 +204,6 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
                     return <TokenLaunchDetail isViewDetailDisabled={true} launch={item} />
                   }}
 
-                // onEndReached={() => queryDataLaunch.fetchNextPage()}
                 />
 
 

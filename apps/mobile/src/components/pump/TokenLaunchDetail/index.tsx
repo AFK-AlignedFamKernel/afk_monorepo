@@ -138,7 +138,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         </View>
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Price:</Text>
-          <Text>{Number(launch?.price)}</Text>
+          <Text>{Number(launch?.price ?? 0)}</Text>
         </View>
       </View>
 
