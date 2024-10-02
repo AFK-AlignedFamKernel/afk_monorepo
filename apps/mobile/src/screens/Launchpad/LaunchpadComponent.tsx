@@ -1,8 +1,7 @@
 import { useAccount } from '@starknet-react/core';
 import { useAuth } from 'afk_nostr_sdk';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
-
 import { Button } from '../../components';
 import { TokenLaunchCard } from '../../components/search/TokenLaunchCard';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
@@ -11,9 +10,8 @@ import { useKeyModal } from '../../hooks/modals/useKeyModal';
 import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
 import stylesheet from './styles';
-import { useGetDeployToken } from '../../hooks/api/indexer/useDeployToken';
-import { TokenDeployInterface } from '../../types/keys';
 import Loading from '../../components/Loading';
+import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -24,15 +22,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const [loading, setLoading] = useState<false | number>(false);
-  const [deployTokens, setDeployTokens] = useState<TokenDeployInterface[]>([])
   const queryDataLaunch = useQueryAllLaunch();
-
-
-  const { data: deployTokenData, isLoading: deployLoading } = useGetDeployToken();
-
-
-  const { show: showKeyModal } = useKeyModal();
+  const { tokens, isLoading } = useCombinedTokenData();
   const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
   const { publicKey } = useAuth();
@@ -42,10 +33,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   console.log('isDesktop', isDesktop);
 
 
-  useEffect(() => {
-    setDeployTokens(deployTokenData?.data)
-  }, [deployTokenData])
-
 
   return (
     <View style={styles.container}>
@@ -54,9 +41,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
-            // showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
             showModal();
-            // setMenuOpen(!menuOpen);
           }}
         >
           <Text>Create token</Text>
@@ -65,9 +50,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       {menuOpen && <FormLaunchToken></FormLaunchToken>}
 
       {
-        deployLoading ? <Loading /> : <FlatList
+        isLoading ? <Loading /> : <FlatList
           contentContainerStyle={styles.flatListContent}
-          data={deployTokens}
+          data={tokens}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           keyExtractor={(item, i) => i.toString()}
           key={`flatlist-${isDesktop ? 3 : 1}`}
@@ -81,31 +66,11 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               onRefresh={queryDataLaunch.refetch}
             />
           }
-        // onEndReached={() => queryDataLaunch.fetchNextPage()}
+
         />
       }
 
-      {/* <FlatList
-        contentContainerStyle={styles.flatListContent}
-        data={keys.data ?? []}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyExtractor={(item) => item.event.transaction_hash}
-        renderItem={({ item }) => {
-          return (
-            <View style={styles.tip}>
-              <View style={styles.tokenInfo}>
-                <View style={styles.token}>
-            
-                </View>
 
-              </View>
-
-              <Divider direction="horizontal" />
-            </View>
-          );
-        }}
-        refreshControl={<RefreshControl refreshing={keys.isFetching} onRefresh={keys.refetch} />}
-      /> */}
     </View>
   );
 };

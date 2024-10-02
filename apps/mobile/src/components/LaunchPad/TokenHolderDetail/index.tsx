@@ -14,8 +14,6 @@ export type HoldersProps = {
 export const TokenHolderDetail: React.FC<HoldersProps> = ({holders, loading}) => {
   const styles = useStyles(stylesheet);
 
-  console.log(holders, 'holders');
-
   return loading ? (
     <Loading />
   ) : (
