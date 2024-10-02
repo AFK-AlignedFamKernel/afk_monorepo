@@ -1,4 +1,4 @@
-
+import React from 'react';
 import '@walletconnect/react-native-compat'
 import { WagmiProvider } from 'wagmi';
 import {
@@ -14,11 +14,10 @@ import {
     QueryClient,
 } from "@tanstack/react-query";
 import { Chain } from "viem";
-import { createAppKit, defaultWagmiConfig, AppKit } from '@reown/appkit-wagmi-react-native'
+import { AppKit, AppKitButton, createAppKit, defaultWagmiConfig } from '@reown/appkit-wagmi-react-native'
 import { authConnector } from '@reown/appkit-auth-wagmi-react-native';
 // import { siweConfig } from './SiweUtils';
 import * as Clipboard from 'expo-clipboard';
-
 const queryClient = new QueryClient();
 
 // 1. Get projectId at https://cloud.reown.com
@@ -60,9 +59,9 @@ const kakarotEvm: Chain = {
 
 const clipboardClient = {
     setString: async (value: string) => {
-      await Clipboard.setStringAsync(value);
+        await Clipboard.setStringAsync(value);
     }
-  };
+};
 const auth = authConnector({ projectId, metadata });
 const chains = [
     mainnet,
@@ -96,6 +95,8 @@ export const EVMProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
                 {/* <RainbowKitProvider> */}
                 {/* Your App */}
                 {children}
+                {/* <AppKit/> */}
+                {/* <AppKitButton /> */}
                 {/* </RainbowKitProvider> */}
             </QueryClientProvider>
         </WagmiProvider>
