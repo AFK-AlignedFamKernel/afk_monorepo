@@ -22,21 +22,18 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const queryDataLaunch = useQueryAllLaunch();
-  const { tokens, isLoading } = useCombinedTokenData();
+  const { tokens, isLoading, isFetching } = useCombinedTokenData();
   const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
   const { publicKey } = useAuth();
   const { width } = useWindowDimensions();
-  console.log('width', width);
   const isDesktop = width >= 1024 ? true : false;
-  console.log('isDesktop', isDesktop);
 
 
 
   return (
     <View style={styles.container}>
-      {queryDataLaunch?.isLoading && <ActivityIndicator></ActivityIndicator>}
+      {isLoading && <ActivityIndicator></ActivityIndicator>}
 
       {isButtonInstantiateEnable && (
         <Button
@@ -62,8 +59,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           }}
           refreshControl={
             <RefreshControl
-              refreshing={queryDataLaunch.isFetching}
-              onRefresh={queryDataLaunch.refetch}
+              refreshing={isFetching}
             />
           }
 

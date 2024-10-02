@@ -7,8 +7,8 @@ import { TokenDeployInterface } from "../types/keys";
 
 
 export const useCombinedTokenData = (token?: string, launch?: string) => {
-  const { data: deployData, isLoading: isLoadingDeploy, isError: isErrorDeploy } = useGetDeployToken(token);
-  const { data: launchData, isLoading: isLoadingLaunch, isError: isErrorLaunch } = useGetTokenLaunch(launch);
+  const { data: deployData, isLoading: isLoadingDeploy, isError: isErrorDeploy, isFetching: tokenIsFetching } = useGetDeployToken(token);
+  const { data: launchData, isLoading: isLoadingLaunch, isError: isErrorLaunch, isFetching: launchIsFetching } = useGetTokenLaunch(launch);
 
 
   const [tokens, setTokens] = useState<TokenDeployInterface[]>([])
@@ -29,5 +29,6 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
     tokens,
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
+    isFetching: launchIsFetching || tokenIsFetching
   };
 };
