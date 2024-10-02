@@ -82,31 +82,31 @@ export const GenerateInvoiceCashu = () => {
     })();
 
 
-    (async () => {
+    // (async () => {
 
-      console.log("ndkCashuWallet", ndkCashuWallet)
-      console.log("ndkWallet", ndkWallet)
+    //   console.log("ndkCashuWallet", ndkCashuWallet)
+    //   console.log("ndkWallet", ndkWallet)
 
-      const availableTokens = await ndkCashuWallet?.availableTokens;
-      console.log("availableTokens", availableTokens)
+    //   const availableTokens = await ndkCashuWallet?.availableTokens;
+    //   console.log("availableTokens", availableTokens)
 
-      const mintBalances = await ndkCashuWallet?.mintBalances;
-      console.log("mintBalances", mintBalances)
+    //   const mintBalances = await ndkCashuWallet?.mintBalances;
+    //   console.log("mintBalances", mintBalances)
 
-      console.log("mintBalances", mintBalances)
-      const wallets = await ndkWallet?.wallets;
-      console.log("wallets", wallets)
+    //   console.log("mintBalances", mintBalances)
+    //   const wallets = await ndkWallet?.wallets;
+    //   console.log("wallets", wallets)
 
-      const balance = await ndkCashuWallet?.balance;
+    //   const balance = await ndkCashuWallet?.balance;
 
-      console.log("balance", balance)
+    //   console.log("balance", balance)
 
-      if (mint) {
-        const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-        console.log("mintBalance", mintBalance)
-      }
+    //   if (mint) {
+    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
+    //     console.log("mintBalance", mintBalance)
+    //   }
 
-    })();
+    // })();
   }, []);
 
 

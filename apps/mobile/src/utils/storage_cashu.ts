@@ -4,7 +4,7 @@ import {Platform} from 'react-native';
 
 import {pbkdf2Decrypt, pbkdf2Encrypt, PBKDF2EncryptedObject} from './encryption';
 import { MeltQuoteResponse, Proof, Token } from '@cashu/cashu-ts';
-import { ICashuInvoice } from '../types/wallet';
+import { ICashuInvoice } from 'afk_nostr_sdk';
 
 const isSecureStoreAvailable = Platform.OS === 'android' || Platform.OS === 'ios';
 export const KEY_CASHU_STORE= {

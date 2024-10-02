@@ -10,6 +10,7 @@ import {
 } from '@cashu/cashu-ts';
 import { useMemo, useState } from 'react';
 import { NDKCashuToken } from "@nostr-dev-kit/ndk-wallet"
+
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
@@ -374,7 +375,7 @@ export const useCashu = () => {
         mintUrl,
         setMintUrl,
         mintInfo,
-        setMintInfo,
+        setMintInfo
 
     }
 

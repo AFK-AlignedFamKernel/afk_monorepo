@@ -1,10 +1,11 @@
 import './TabPanel.css';
 
 import React from 'react';
-import {CSSTransition, SwitchTransition} from 'react-transition-group';
+import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
-import {TimerInjector} from '../utils/TimerInjector.js';
-import Account from './account/Account.js';
+import { TimerInjector } from '../utils/TimerInjector.js';
+// import Account from './account/Account.js';
+import Account from './account/Account.tsx';
 import ExtraPixelsPanel from './canvas/ExtraPixelsPanel.js';
 import SelectedPixelPanel from './canvas/SelectedPixelPanel.js';
 import Factions from './factions/Factions.js';
@@ -145,7 +146,7 @@ const TabPanel = (props) => {
                   isLastDay={props.isLastDay}
                   endTimestamp={props.endTimestamp}
                 >
-                  {({timeLeftInDay, newDayAvailable, startNextDay}) => (
+                  {({ timeLeftInDay, newDayAvailable, startNextDay }) => (
                     <Quests
                       address={props.address}
                       artPeaceContract={props.artPeaceContract}
@@ -205,7 +206,7 @@ const TabPanel = (props) => {
                   isLastDay={props.isLastDay}
                   endTimestamp={props.endTimestamp}
                 >
-                  {({timeLeftInDay, newDayAvailable, startNextDay}) => (
+                  {({ timeLeftInDay, newDayAvailable, startNextDay }) => (
                     <Voting
                       timeLeftInDay={timeLeftInDay}
                       newDayAvailable={newDayAvailable}
@@ -251,17 +252,23 @@ const TabPanel = (props) => {
             {props.activeTab === 'Account' && (
               <div>
                 <Account
+                  address={props.address}
+                  account={props.account}
+                  usingSessionKeys={props.usingSessionKeys}
+                  estimateInvokeFee={props.estimateInvokeFee}
                   usernameContract={props.usernameContract}
                   setActiveTab={props.setActiveTab}
                   queryAddress={props.queryAddress}
                   setConnected={props.setConnected}
-                  address={props.address}
                   chain={props.chain}
                   connectWallet={props.connectWallet}
-                  connectors={props.connectors}
+                  disconnectWallet={props.disconnectWallet}
+                  startSession={props.startSession}
                   isMobile={props.isMobile}
+                  isSessionable={props.isSessionable}
                   gameEnded={props.gameEnded}
                   setModal={props.setModal}
+                  wallet={props?.wallet}
                 />
               </div>
             )}

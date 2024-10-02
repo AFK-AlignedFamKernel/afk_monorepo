@@ -19,9 +19,9 @@ pub trait ITapQuests<TContractState> {
 #[starknet::interface]
 pub trait IQuestNFT<TContractState> {
     fn mint(ref self: TContractState, user: ContractAddress) -> u256;
-     fn set_role(
-            ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool
-        );
+    fn set_role(
+        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+    );
 }
 
 #[starknet::interface]

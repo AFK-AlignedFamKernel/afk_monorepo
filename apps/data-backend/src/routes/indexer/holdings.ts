@@ -45,7 +45,7 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
 
       if (distributions.length === 0) {
         reply.status(HTTPStatus.NotFound).send({
-          meesage: "No holders found for this token address."
+          message: "No holders found for this token address."
         });
       }
 

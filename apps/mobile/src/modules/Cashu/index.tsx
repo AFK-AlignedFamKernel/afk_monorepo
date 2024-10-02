@@ -27,6 +27,7 @@ import { MintListCashu } from './MintListCashu';
 import { useModal } from '../../hooks/modals/useModal';
 import { ReceiveEcash } from './ReceiveEcash';
 import { SendEcash } from './SendEcash';
+import { HistoryTxCashu } from './HistoryTxCashu';
 
 // Get Lighting Address:
 // const lightningAddress = new LightningAddress('hello@getalby.com');
@@ -59,6 +60,8 @@ export const CashuView = () => {
     mint,
     mintUrl,
     setMintUrl,
+    setMintInfo,
+    getMintInfo
 
 
   } = useCashu()
@@ -69,6 +72,7 @@ export const CashuView = () => {
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
 
   useEffect(() => {
+
     (async () => {
       const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
 
@@ -93,7 +97,15 @@ export const CashuView = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      if (!mintUrl) return;
+      const info = await getMintInfo(mintUrl)
+      setMintInfo(info)
+    })();
 
+    
+  }, [mintUrl]);
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
@@ -283,6 +295,7 @@ export const CashuView = () => {
           {selectedTab == SelectedTab?.CASHU_HISTORY &&
             <View>
               <Text>History</Text>
+              <HistoryTxCashu></HistoryTxCashu>
 
 
             </View>
