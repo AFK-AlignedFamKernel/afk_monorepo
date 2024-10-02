@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { AccountInterface, constants, stark } from 'starknet';
+import { AccountInterface, constants, ProviderInterface, Signature, stark } from 'starknet';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
 import { backendUrl, devnetMode, allowedMethods, expiry, metaData, dappKey, getProvider } from '../../utils/Consts.js';
-import { connect } from 'starknetkit-next';
+import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
 import { fetchWrapper } from '../../services/apiService.js';
-import BeggarRankImg from '../../resources/ranks/Beggar.png';
-import OwlRankImg from '../../resources/ranks/Owl.png';
-import CrownRankImg from '../../resources/ranks/Crown.png';
-import WolfRankImg from '../../resources/ranks/Wolf.png';
-import EditIcon from '../../resources/icons/Edit.png';
-import SearchIcon from '../../resources/icons/Search.png';
-import ArgentIcon from '../../resources/icons/Argent.png';
-import BraavosIcon from '../../resources/icons/Braavos.png';
+
 import {
   useAccount,
   useContract,
@@ -22,8 +15,20 @@ import {
   Connector
 } from '@starknet-react/core';
 import { disconnect } from 'starknetkit-next';
-import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
+import { AllowedMethod, buildSessionAccount, createSessionRequest, OffChainSession, openSession, SessionParams } from '@argent/x-sessions';
+
+// @ts-ignore
 const Account = (props) => {
+
+  const BeggarRankImg = require('../../resources/ranks/Beggar.png');
+  const OwlRankImg = require('../../resources/ranks/Owl.png');
+  const CrownRankImg = require('../../resources/ranks/Crown.png');
+  const WolfRankImg = require('../../resources/ranks/Wolf.png');
+  const EditIcon = require('../../resources/icons/Edit.png');
+  const SearchIcon = require('../../resources/icons/Search.png');
+  const ArgentIcon = require('../../resources/icons/Argent.png');
+  const BraavosIcon = require('../../resources/icons/Braavos.png');
+
   const { address, account } = useAccount()
   const [queryAddress, setQueryAddress] = useState('0');
   const [username, setUsername] = useState('');
@@ -35,7 +40,7 @@ const Account = (props) => {
     background:
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
-  const [accountRankImg, setAccountRankImg] = useState(null);
+  const [accountRankImg, setAccountRankImg] = useState(undefined);
   const [isOpenConnector, setIsOpenConnector] = useState(false);
 
   const [usernameSaved, setUsernameSaved] = useState(false);
@@ -62,6 +67,7 @@ const Account = (props) => {
     setIsValidUsername(true);
   }, [username]);
 
+  // @ts-ignore
   const toHex = (str) => {
     let hex = '0x';
     for (let i = 0; i < str.length; i++) {
@@ -70,7 +76,7 @@ const Account = (props) => {
     return hex;
   };
 
-
+  // @ts-ignore
   const connectorLogo = (name) => {
     switch (name) {
       case 'Argent':
@@ -86,6 +92,7 @@ const Account = (props) => {
     }
   };
 
+  // @ts-ignore
   const connectorName = (name) => {
     switch (name) {
       case 'Argent':
@@ -100,8 +107,8 @@ const Account = (props) => {
         return name;
     }
   };
-  const [_sessionRequest, setSessionRequest] = useState(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
   // TODO: Connect wallet page if no connectors
@@ -111,9 +118,11 @@ const Account = (props) => {
   let [availableConnectors, setAvailableConnectors] = useState(connectors);
   // Account
   // Starknet wallet
-  const [wallet, setWallet] = useState(null);
-  const [connectorData, setConnectorData] = useState(null);
+  const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
+  const [connectorData, setConnectorData] = useState<ConnectorData | null>(null);
   const [_connector, setConnector] = useState(null);
+
+  // @ts-ignore
   const canSession = (wallet) => {
     let sessionableIds = [
       'argentX',
@@ -171,7 +180,7 @@ const Account = (props) => {
       setConnectorData(connectorData);
       // setConnector(connector);
       setConnected(true);
-      let new_account = await connector.account(window?.starknet);
+      let new_account = await connector.account(window?.starknet as ProviderInterface);
       setAccount(new_account);
       setIsSessionable(canSession(wallet));
       console.log('canSession(wallet):', canSession(wallet));
@@ -179,6 +188,7 @@ const Account = (props) => {
 
     }
   };
+  
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
     if (!props.address) return;
@@ -267,6 +277,7 @@ const Account = (props) => {
     }
   }, [showClaimInfo, userAwards]);
 
+  // @ts-ignore
   const claimCall = async (username) => {
     if (devnetMode) return;
     if (!props.address || !props.usernameContract || !props.account) return;
@@ -290,6 +301,7 @@ const Account = (props) => {
     console.log(result);
   };
 
+  // @ts-ignore
   const changeCall = async (username) => {
     // if (devnetMode) return;
     if (!props.address || !props.usernameContract || !props.account) return;
@@ -337,6 +349,7 @@ const Account = (props) => {
   }, [props.connectors]);
 
   // TODO: Pending & ... options for edit
+  // @ts-ignore
   const handleSubmit = async (event) => {
     event.preventDefault();
     // Check if username is unique
@@ -509,12 +522,12 @@ const Account = (props) => {
       // wallet: window?.starknet,
       // wallet: wallet ?? props?.wallet ?? window?.swo,
       wallet: wallet ?? props?.wallet ?? window?.starknet,
-      sessionParams: sessionParams,
+      sessionParams: sessionParams as SessionParams,
       // chainId: constants.StarknetChainId.SN_SEPOLIA?.toString() as constants.StarknetChainId
       chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
     });
     const sessionRequest = createSessionRequest(
-      allowedMethods,
+      allowedMethods as AllowedMethod[],
       BigInt(expiry),
       metaData(false),
       dappKey.publicKey,

@@ -6,7 +6,7 @@ import {
   useNetwork,
   useConnect
 } from '@starknet-react/core';
-import { connect } from 'starknetkit-next';
+import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
 
 import './App.css';
 import CanvasContainer from './canvas/CanvasContainer.js';
@@ -15,7 +15,6 @@ import TabsFooter from './footer/TabsFooter.js';
 import TabPanel from './tabs/TabPanel.js';
 import { usePreventZoom, useLockScroll } from './utils/Window.js';
 import { backendUrl, wsUrl, devnetMode, allowedMethods, expiry, metaData, dappKey, getProvider } from './utils/Consts.js';
-import logo from './resources/logo.png';
 import canvasConfig from './configs/canvas.config.json';
 import { fetchWrapper, getTodaysStartTime } from './services/apiService.js';
 import art_peace_abi from './contracts/art_peace.abi.json';
@@ -23,14 +22,16 @@ import username_store_abi from './contracts/username_store.abi.json';
 import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
-import Hamburger from './resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery.js';
 import {
   openSession,
   createSessionRequest,
-  buildSessionAccount
+  buildSessionAccount,
+  SessionParams,
+  AllowedMethod,
+  OffChainSession
 } from '@argent/x-sessions';
-import { constants, provider, stark } from 'starknet';
+import { constants, provider, Signature, stark } from 'starknet';
 // import { useMediaQuery } from 'react-responsive';
 
 interface IApp {
@@ -41,6 +42,10 @@ interface IApp {
 }
 
 function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IApp) {
+
+  const logo = require('./resources/logo.png');
+  const Hamburger = require('./resources/icons/Hamburger.png');
+
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -585,11 +590,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
   // Starknet wallet
-  const [wallet, setWallet] = useState(null);
-  const [connectorData, setConnectorData] = useState(null);
+  const [wallet, setWallet] = useState<StarknetWindowObject | null>(null);
+  const [connectorData, setConnectorData] = useState<ConnectorData | null>(null);
   const [_connector, setConnector] = useState(null);
-  const [_sessionRequest, setSessionRequest] = useState(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
 
@@ -606,6 +611,8 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   //   }
   //   connect({ connector });
   // };
+
+  // @ts-ignore
   const canSession = (wallet) => {
     let sessionableIds = [
       'argentX',
@@ -739,12 +746,12 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     let chainId = await provider.getChainId();
     const accountSessionSignature = await openSession({
       wallet: wallet,
-      sessionParams: sessionParams,
+      sessionParams: sessionParams as SessionParams,
       // chainId: constants.StarknetChainId.SN_SEPOLIA?.toString() as constants.StarknetChainId
       chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
     });
     const sessionRequest = createSessionRequest(
-      allowedMethods,
+      allowedMethods as AllowedMethod[],
       BigInt(expiry),
       metaData(false),
       dappKey.publicKey
@@ -834,7 +841,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
           setLastPlacedTime={setLastPlacedTime}
         />
         {(!isMobile || activeTab === tabs[0]) && (
-          <img src={logo?.src} alt='logo' className='App__logo--mobile' />
+          <img src={logo} alt='logo' className='App__logo--mobile' />
         )}
         <div
           className={
@@ -984,7 +991,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
                   setFooterExpanded(!footerExpanded);
                 }}
               >
-                <img src={Hamburger?.src} alt='Tabs' className='ExpandTabs__icon' />
+                <img src={Hamburger} alt='Tabs' className='ExpandTabs__icon' />
               </div>
             )}
             {isFooterSplit && footerExpanded && (
