@@ -1,5 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-const { prisma } = require("indexer-prisma");
+import { prisma } from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
@@ -42,13 +42,22 @@ async function transactionsRoute(
         });
       }
 
-      const result = transactions.reduce(
+      const formattedTransactions = transactions.map((entry) => {
+        const amount = (Number(entry.amount) / 10 ** 18).toLocaleString();
+
+        return {
+          ...entry,
+          amount
+        };
+      });
+
+      const result = formattedTransactions.reduce(
         (acc, cur) => {
-          acc.total += parseFloat(cur.amount || 0);
+          acc.total += parseFloat(cur.amount);
           if (cur.transaction_type === "buy") {
-            acc.buy += parseFloat(cur.amount || 0);
+            acc.buy += parseFloat(cur.amount);
           } else if (cur.transaction_type === "sell") {
-            acc.sell += parseFloat(cur.amount || 0);
+            acc.sell += parseFloat(cur.amount);
           }
           return acc;
         },
