@@ -30,10 +30,15 @@ async function allTransactionsRoute(
         },
         select: {
           memecoin_address: true,
+          owner_address: true,
+          amount: true,
           price: true,
+          coin_receieved: true,
           liquidityRaised: true,
           total_supply: true,
-          network: true
+          network: true,
+          transaction_type: true,
+          created_at: true
         }
       });
 
