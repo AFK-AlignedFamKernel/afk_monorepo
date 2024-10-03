@@ -112,10 +112,9 @@ model unrugmeme_transfers {
 }
 
 model registration {
-  phone_number    String    @id
+  contract_addres String    @id
   nickname        String?
   created_at      DateTime? @default(now()) @db.Timestamp(6)
-  contract_addres String?   @default("")
   is_confirmed    Boolean?  @default(false)
 }
 
