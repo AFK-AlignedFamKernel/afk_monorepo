@@ -33,12 +33,12 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
       });
 
       const formattedDistributions = distributions.map((entry) => {
-        const amountBigInt = Number(entry._sum.amount).toLocaleString();
+        const amount = (Number(entry._sum.amount) / 10 ** 18).toLocaleString();
 
         return {
           ...entry,
           _sum: {
-            amount: amountBigInt
+            amount
           }
         };
       });
