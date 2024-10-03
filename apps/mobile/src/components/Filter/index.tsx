@@ -39,8 +39,8 @@ const NDK_KIND_OPTIONS = [
 
 const SORT_OPTIONS = [
   {label: 'Time', value: SORT_OPTION_EVENT_NOSTR.TIME},
-  {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
-  {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
+  // {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
+  // {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
 ];
 
 const FilterMenu: React.FC<IFilterMenuProps> = ({
