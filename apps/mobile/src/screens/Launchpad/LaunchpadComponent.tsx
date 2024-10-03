@@ -44,7 +44,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           <Text>Create token</Text>
         </Button>
       )}
-      {menuOpen && <FormLaunchToken></FormLaunchToken>}
+      {menuOpen && <FormLaunchToken />}
 
       {
         isLoading ? <Loading /> : <FlatList
@@ -55,7 +55,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           key={`flatlist-${isDesktop ? 3 : 1}`}
           numColumns={isDesktop ? 3 : 1}
           renderItem={({ item, index }) => {
-            return <TokenLaunchCard key={index} token={item}></TokenLaunchCard>;
+            return <TokenLaunchCard key={index} token={item} />;
           }}
           refreshControl={
             <RefreshControl

@@ -5,6 +5,8 @@ import {TokenHoldersInterface} from '../../../types/keys';
 import {Text} from '../../Text';
 import stylesheet from './styles';
 import Loading from '../../Loading';
+import { feltToAddress } from 'common';
+import { AddressComponent } from '../../AddressComponent';
 
 export type HoldersProps = {
   loading: boolean;
@@ -24,7 +26,7 @@ export const TokenHolderDetail: React.FC<HoldersProps> = ({holders, loading}) =>
         <View style={[styles.container, styles.borderBottom]}>
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Owner address:</Text>
-            <Text>{item.owner_address}</Text>
+            <AddressComponent address={feltToAddress(BigInt(item.owner_address))} />
           </View>
 
           <View style={styles.borderBottom}>

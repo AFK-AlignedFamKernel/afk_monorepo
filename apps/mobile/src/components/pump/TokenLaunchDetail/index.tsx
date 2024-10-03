@@ -18,6 +18,7 @@ import {useState} from 'react';
 import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
 import {useWalletModal} from '../../../hooks/modals';
+import { AddressComponent } from '../../AddressComponent';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -121,7 +122,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         {launch?.memecoin_address && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Coin address:</Text>
-            <Text>{feltToAddress(BigInt(launch.memecoin_address))}</Text>
+            <AddressComponent address={feltToAddress(BigInt(launch.memecoin_address))} />
           </View>
         )}
 
@@ -202,7 +203,6 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
               if (launch && launch?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {
                   coinAddress: feltToAddress(BigInt(launch?.memecoin_address)),
-                  launch,
                 });
               }
             }}

@@ -34,6 +34,7 @@ export enum SelectedTab {
   PORTFOLIO,
   STARKNET_PORTFOLIO,
   TOKEN_STATS,
+  USER_SHARE
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -218,11 +219,11 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'overview',
     tab: SelectedTab.LAUNCH_OVERVIEW,
   },
-  {
-    title: 'Graph',
-    screen: 'Graph',
-    tab: SelectedTab.LAUNCH_GRAPH,
-  },
+  // {
+  //   title: 'Graph',
+  //   screen: 'Graph',
+  //   tab: SelectedTab.LAUNCH_GRAPH,
+  // },
   {
     title: 'Holders',
     screen: 'Holders',
@@ -238,6 +239,12 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'TX',
     screen: 'TX',
     tab: SelectedTab.LAUNCH_TX,
+  },
+
+  {
+    title: 'Shares',
+    screen: 'Share',
+    tab: SelectedTab.USER_SHARE,
   },
 ];
 

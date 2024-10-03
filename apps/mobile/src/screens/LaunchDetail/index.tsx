@@ -9,21 +9,21 @@ import { TextButton } from '../../components';
 import { LaunchActionsForm } from '../../components/LaunchActionsForm';
 import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import { useStyles, useTheme, useWaitConnection } from '../../hooks';
+import { useStyles, useTheme } from '../../hooks';
 import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
 import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useDataCoins } from '../../hooks/launchpad/useDataCoins';
 import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
 import { useWalletModal } from '../../hooks/modals';
 import { LaunchDetailScreenProps } from '../../types';
 import {
   TokenDeployInterface,
   TokenHoldersInterface,
+  TokenLaunchInterface,
   TokenStatsInterface,
   TokenTxInterface,
+  UserShareInterface,
 } from '../../types/keys';
 import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
-import { feltToAddress } from '../../utils/format';
 import stylesheet from './styles';
 import { TokenTx } from '../../components/LaunchPad/TokenTx';
 import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
@@ -31,47 +31,57 @@ import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail'
 import { TokenStats } from '../../components/LaunchPad/TokenStats';
 import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
 import { useGetDeployToken } from '../../hooks/api/indexer/useDeployToken';
+import { UserShare } from '../../components/LaunchPad/UserShare';
+import { useGetShares } from '../../hooks/api/indexer/useUserShare';
+import { feltToAddress } from 'common';
+import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
 
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const [loading, setLoading] = useState<false | number>(false);
-  const { ndk } = useNostrContext();
-  const { provider } = useProvider();
   const account = useAccount();
 
 
-  const { coinAddress, launch: launchParams } = route.params;
+  console.log(account, "account")
+
+
+  const { coinAddress, } = route.params;
 
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
-  const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
-  const [transactions, setTransaction] = useState<TokenTxInterface[]>([]);
-  const [stats, setStats] = useState<TokenStatsInterface | undefined>();
+  const [token, setToken] = useState<TokenDeployInterface | undefined>();
 
+  const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
+
+  const [transactions, setTransaction] = useState<TokenTxInterface[]>([]);
+
+  const [shares, setShares] = useState<UserShareInterface[]>([]);
+
+  const [stats, setStats] = useState<TokenStatsInterface | undefined>();
 
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-
-  const { data: deployTokenData, isLoading: deployLoading } = useGetDeployToken(coinAddress)
-
   const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
-  const { data: transactionData, isLoading: txLoading } = useGetTransactions(
-    coinAddress,
-    '',
-  );
+
+  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
+
   const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
+
+  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, "");
+
+  const { data: tokenData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
   const { handleSellCoins } = useSellCoin();
-  // const { handleBuyKeys } = useBuyKeys()
   const { handleBuyCoins } = useBuyCoinByQuoteAmount();
-  const waitConnection = useWaitConnection();
+
   const walletModal = useWalletModal();
+
   const [amount, setAmount] = useState<number | undefined>();
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -82,14 +92,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   };
 
 
-
-
   useEffect(() => {
-    if (deployTokenData && deployTokenData.data) {
-      setTokens(deployTokenData.data)
+    if (tokenData && tokenData.data) {
+      setTokens(tokenData.data)
     }
-  }, [deployTokenData]);
-
+  }, [tokenData]);
 
 
   useEffect(() => {
@@ -105,52 +112,65 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     setStats(statsData);
   }, [statsData]);
 
-  // const onConnect = async () => {
-  //   if (!account.address) {
-  //     walletModal.show();
 
-  //     const result = await waitConnection();
-  //     if (!result) return;
-  //   }
-  // };
+  useEffect(() => {
+    const data = sharesData || [];
+    setStats(data);
+  }, [sharesData]);
 
-  // const sellKeys = async () => {
-  //   if (!amount) return;
+  useEffect(() => {
+    const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
+    setToken(latestToken)
+  }, [tokens])
 
-  //   await onConnect();
-  //   if (!account || !account?.account) return;
 
-  //   if (!launch?.owner) return;
+  const onConnect = async () => {
+    if (!account.address) {
+      walletModal.show();
 
-  //   if (!launch?.token_quote) return;
+      // const result = await waitConnection();
+      // if (!result) return;
+    }
+  };
 
-  //   handleSellCoins(
-  //     account?.account,
-  //     feltToAddress(BigInt(launch?.memecoin_address)),
-  //     Number(amount),
-  //     launch?.token_quote,
-  //     undefined,
-  //   );
-  // };
+  const sellKeys = async () => {
+    if (!amount) return;
 
-  // const buyCoin = async () => {
-  //   if (!amount) return;
+    await onConnect();
+    if (!account || !account?.account) return;
 
-  //   await onConnect();
+    if (!token?.owner) return;
 
-  //   if (!account || !account?.account) return;
+    if (!token?.token_quote) return;
 
-  //   if (!launch?.owner) return;
+    handleSellCoins(
+      account?.account,
+      feltToAddress(BigInt(token?.memecoin_address)),
+      Number(amount),
+      token?.token_quote,
+      undefined,
+    );
+  };
 
-  //   if (!launch?.token_quote) return;
-  //   // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
-  //   handleBuyCoins(
-  //     account?.account,
-  //     feltToAddress(BigInt(launch?.memecoin_address)),
-  //     Number(amount),
-  //     launch?.token_quote,
-  //   );
-  // };
+  const buyCoin = async () => {
+    if (!amount) return;
+
+    await onConnect();
+
+    if (!account || !account?.account) return;
+
+    if (!token?.owner) return;
+
+    if (!token?.token_quote) return;
+    // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
+    handleBuyCoins(
+      account?.account,
+      feltToAddress(BigInt(token?.memecoin_address)),
+      Number(amount),
+      token?.token_quote,
+    );
+  };
+
 
 
 
@@ -176,8 +196,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
-          onBuyPress={() => {}}
-          onSellPress={() => {}}
+          onBuyPress={buyCoin}
+          onSellPress={sellKeys}
         ></LaunchActionsForm>
 
         <TabSelector
@@ -226,9 +246,19 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
                 <TokenStats loading={statsLoading} stats={stats} />
               </>
             )}
+
+
+            {selectedTab == SelectedTab.USER_SHARE && shares && (
+              <>
+                <UserShare loading={sharesLoading} shares={shares} />
+              </>
+            )}
+
+
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </View>
   );
 };
+

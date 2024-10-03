@@ -143,12 +143,13 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           <Text>{token?.network}</Text>
         </View>
 
-        {/* {token?.owner && (
+        {token?.owner && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Owner:</Text>
             <Text>{feltToAddress(BigInt(token.owner))}</Text>
           </View>
-        )} */}
+        )}
+
         {/*         
       <View style={styles.imageContainer}>
         <Image
@@ -173,20 +174,17 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           Price: {Number(token?.price)}
         </Text> */}
 
-        {/* <View style={styles.borderBottom}>
-          <Text weight="semiBold">Supply:</Text>
-          <Text>{Number(token?.total_supply) / 10 ** 18}</Text>
-        </View> */}
+     
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Total Supply:</Text>
           <Text>{Number(token?.total_supply) / 10 ** 18}</Text>
         </View>
 
-        {/* {token?.created_at &&
+        {token?.created_at &&
           <Text>
             Created at {Number(token?.created_at) / 10 ** 18}
           </Text>
-        } */}
+        }
       </View>
 
       <View>
@@ -212,7 +210,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         )} */}
       </View>
 
-      {/* {token?.token_quote && (
+      {token?.token_quote && (
         <View>
           <Text weight="bold" fontSize={18} style={styles.marginBottom}>
             Token quote
@@ -221,12 +219,9 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             <Text weight="semiBold">Quote token:</Text>
             <Text>{feltToAddress(BigInt(token.token_quote?.token_address))}</Text>
           </View>
-          <View>
-            <Text weight="semiBold">Step increase: </Text>
-            <Text>{Number(token.token_quote?.step_increase_linear) / 10 ** 18}</Text>
-          </View>
+         
         </View>
-      )} */}
+      )}
 
       {/* <tokenActionsForm
         onChangeText={(e) => setAmount(Number(e))}
@@ -242,6 +237,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
               if (token && token?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {
                   coinAddress: token?.memecoin_address,
+                  launch: token
                 });
               }
             }}

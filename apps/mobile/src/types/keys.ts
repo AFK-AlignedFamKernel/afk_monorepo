@@ -28,6 +28,24 @@ export interface TokenLaunchInterface {
 }
 
 
+export interface UserShareInterface {
+  owner: string;
+  token_address: string;
+  price: Uint256;
+  initial_key_price: Uint256;
+  available_supply: Uint256;
+  bonding_curve_type?: BondingType;
+  total_supply: Uint256;
+  created_at: Uint256;
+  liquidity_raised: Uint256;
+  token_holded: Uint256;
+  is_liquidity_launch: boolean;
+  quote_token: TokenQuoteBuyKeys;
+  threshold_liquidity?: Uint256;
+  slope?: Uint256;
+}
+
+
 export interface TokenDeployInterface {
   memecoin_address: string;
   price: Uint256;
@@ -50,22 +68,16 @@ export interface TokenStatsInterface {
 }
 
 export interface TokenTxInterface {
-  transfer_id: string;
-  network?: string;
-  last_price?: string;
-  quote_amount?: string;
-  coin_received?: string;
-  initial_supply?: string;
-  created_at?: Date;
-  total_supply?: string;
-  current_supply?: string;
-  liquidity_raised?: string;
-  price?: string;
-  protocol_fee?: string;
-  amount?: number;
-  cursor?: bigint;
-  transaction_type: string;
-  time_stamp?: string;
+  memecoin_address: string,
+  owner_address: string,
+  amount: number,
+  price: number,
+  coin_received: boolean,
+  liquidityRaised: boolean,
+  total_supply: boolean,
+  network: boolean,
+  transaction_type: boolean,
+  created_at: boolean
 }
 
 export interface TokenHoldersInterface {

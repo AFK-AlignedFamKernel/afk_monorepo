@@ -1,25 +1,24 @@
 import { FlatList, View } from 'react-native';
 
 import { useStyles } from '../../../hooks';
-import { TokenTxInterface } from '../../../types/keys';
+import { UserShareInterface } from '../../../types/keys';
 import { Text } from '../../Text';
 import stylesheet from './styles';
 import Loading from '../../Loading';
 
-export type TokenTxProps = {
+export type UserShareProps = {
   loading: boolean;
-  tx?: TokenTxInterface[];
+  shares?: UserShareInterface[];
 };
 
-export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
-
+export const UserShare: React.FC<UserShareProps> = ({ shares, loading }) => {
   const styles = useStyles(stylesheet);
 
   return loading ? (
     <Loading />
   ) : (
     <FlatList
-      data={tx}
+      data={shares}
       keyExtractor={(item, index) => index.toString()}
       renderItem={({ item }) => (
         <View style={[styles.container, styles.borderBottom]}>
@@ -27,26 +26,26 @@ export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
             <Text fontSize={14} weight="semiBold">
               Memecoin Address
             </Text>
-            <Text fontSize={14}>{item.memecoin_address}</Text>
+            <Text fontSize={14}>{item.token_address}</Text>
           </View>
 
-          <View style={styles.borderBottom}>
+        <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Owner Address:
             </Text>
-            <Text fontSize={14}>{item.owner_address}</Text>
-          </View>
+            <Text fontSize={14}>{item.owner}</Text>
+          </View> 
 
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
-              Amount
+              Price
             </Text>
-            <Text fontSize={14}>{item.amount}</Text>
+            <Text fontSize={14}>{Number(item.price)}</Text>
           </View>
         </View>
       )}
       ListEmptyComponent={<View style={{ paddingTop: 40 }}>
-        <Text style={{ textAlign: 'center' }}>No transactions available</Text>
+        <Text style={{ textAlign: 'center' }}>No user share available</Text>
       </View>
       }
     />
