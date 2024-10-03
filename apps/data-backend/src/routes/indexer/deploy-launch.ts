@@ -16,6 +16,7 @@ async function deployLaunchRoute(
       const launches = await prisma.token_launch.findMany({
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
           liquidity_raised: true,
@@ -79,6 +80,7 @@ async function deployLaunchRoute(
         },
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
           liquidity_raised: true,
@@ -139,6 +141,7 @@ async function deployLaunchRoute(
       const launches = await prisma.token_launch.findMany({
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
           liquidity_raised: true,
