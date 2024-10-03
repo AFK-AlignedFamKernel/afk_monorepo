@@ -44,7 +44,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
         until: pageParam || Math.round(Date.now() / 1000),
       });
       [...events]
-        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
+        .sort((a, b) => (a.created_at && b.created_at ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           let groupId: string;
 
@@ -70,7 +70,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
           ...event,
           originalGroupId,
         }))
-        .sort((a, b) => ((b.created_at && a.created_at) ? b.created_at - a.created_at : 0));
+        .sort((a, b) => (b.created_at && a.created_at ? b.created_at - a.created_at : 0));
 
       return activeGroups;
     },

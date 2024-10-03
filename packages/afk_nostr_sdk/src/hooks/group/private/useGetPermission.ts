@@ -34,7 +34,9 @@ export const fetchPermissions = async ({
 
   if (!events || events.size === 0) return null;
 
-  const sortedEvents = [...events].sort((a, b) => ((b.created_at && a.created_at) ? b.created_at - a.created_at : 0));
+  const sortedEvents = [...events].sort((a, b) =>
+    b.created_at && a.created_at ? b.created_at - a.created_at : 0,
+  );
 
   // Return the latest event
   return sortedEvents[0];
@@ -93,7 +95,9 @@ export const useGetGroupPermission = (groupId: string) => {
       if (!events || events.size === 0) return [];
 
       // Sort events by creation time (descending) to get the latest
-      const sortedEvents = [...events].sort((a, b) => ((b.created_at && a.created_at) ? b.created_at - a.created_at : 0));
+      const sortedEvents = [...events].sort((a, b) =>
+        b.created_at && a.created_at ? b.created_at - a.created_at : 0,
+      );
 
       // Get the latest event
       const latestEvent = sortedEvents[0];

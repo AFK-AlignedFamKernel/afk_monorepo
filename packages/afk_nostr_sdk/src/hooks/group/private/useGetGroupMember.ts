@@ -43,7 +43,7 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
       const memberMap = new Map<string, any>();
 
       [...events]
-        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
+        .sort((a, b) => (a.created_at && b.created_at ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           const pubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
           if (!pubkey) return;
@@ -60,7 +60,7 @@ export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
 
       const currentMembers = Array.from(memberMap.values())
         .filter((member) => !member.isRemoved)
-        .sort((a, b) => ((a.created_at && b.created_at) ? b.created_at - a.created_at : 0));
+        .sort((a, b) => (a.created_at && b.created_at ? b.created_at - a.created_at : 0));
 
       return currentMembers;
     },
@@ -96,7 +96,10 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
       const memberPubkeys = new Set(
         memberListQuery.data?.pages
           // @ts-ignore
-          .flatMap((page) => page.map((member: any) => member.tags.find((tag: any) => tag[0] === 'p')?.[1]))
+          .flatMap((page) =>
+            // @ts-ignore
+            page.map((member: any) => member.tags.find((tag: any) => tag[0] === 'p')?.[1]),
+          )
           .filter(Boolean),
       );
 
@@ -107,15 +110,20 @@ export const useGetGroupRequest = (options: UseGetGroupListOptions) => {
         const requestPubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
         if (requestPubkey && !memberPubkeys.has(requestPubkey)) {
           const existingRequest = latestRequests.get(requestPubkey);
-          if (!existingRequest || (event.created_at && existingRequest.created_at && event.created_at > existingRequest.created_at)) {
+          if (
+            !existingRequest ||
+            (event.created_at &&
+              existingRequest.created_at &&
+              event.created_at > existingRequest.created_at)
+          ) {
             latestRequests.set(requestPubkey, event);
           }
         }
       });
 
       // Convert the Map values to an array and sort by creation time (newest first)
-      const uniqueFilteredEvents = Array.from(latestRequests.values()).sort(
-        (a, b) => ((a.created_at && b.created_at) ? b.created_at - a.created_at : 0),
+      const uniqueFilteredEvents = Array.from(latestRequests.values()).sort((a, b) =>
+        a.created_at && b.created_at ? b.created_at - a.created_at : 0,
       );
 
       return uniqueFilteredEvents;
@@ -153,7 +161,7 @@ export const useGetGroupMemberListPubkey = (options: UseGetGroupListOptions) => 
       const memberMap = new Map<string, any>();
 
       [...events]
-        .sort((a, b) => ((a.created_at && b.created_at) ? a.created_at - b.created_at : 0))
+        .sort((a, b) => (a.created_at && b.created_at ? a.created_at - b.created_at : 0))
         .forEach((event) => {
           const pubkey = event.tags.find((tag) => tag[0] === 'p')?.[1];
           if (!pubkey) return;

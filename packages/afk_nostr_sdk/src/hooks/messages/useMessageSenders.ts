@@ -108,7 +108,10 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions) => {
               ? message.receiverPublicKey
               : message.senderPublicKey;
           const existingUser = userMap.get(otherUserPubkey);
-          if (!existingUser || (message?.created_at && (message.created_at > existingUser.lastMessageAt))) {
+          if (
+            !existingUser ||
+            (message?.created_at && message.created_at > existingUser.lastMessageAt)
+          ) {
             userMap.set(otherUserPubkey, {
               id: message.id,
               pubkey: otherUserPubkey,

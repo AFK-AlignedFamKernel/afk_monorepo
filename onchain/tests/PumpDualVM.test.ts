@@ -19,7 +19,12 @@ import {
   Contract as StarknetContract,
 } from "starknet";
 import { DualVMToken, LaunchpadPumpDualVM } from "../typechain-types";
-import { formatFloatToUint256, LAUNCHPAD_ADDRESS, CLASS_HASH, TOKENS_ADDRESS } from "common";
+import {
+  formatFloatToUint256,
+  LAUNCHPAD_ADDRESS,
+  CLASS_HASH,
+  TOKENS_ADDRESS,
+} from "common";
 
 dotenv.config();
 
@@ -37,14 +42,11 @@ describe("PumpDualVM", function () {
   let addr2: HardhatEthersSigner;
   let dualVMToken: DualVMToken;
 
-
   const starknetLaunchpadSierra = readContractSierra("LaunchpadMarketplace");
   const starknetLaunchpadCasm = readContractSierraCasm("LaunchpadMarketplace");
 
-
   // const starknetTokenSierra = readContractSierra("DualVmToken");
   // const starknetTokenCasm = readContractSierraCasm("DualVmToken");
-
 
   const starknetTokenSierra = readContractSierra("ERC20");
   const starknetTokenCasm = readContractSierraCasm("ERC20");
@@ -71,25 +73,28 @@ describe("PumpDualVM", function () {
   const init_supply_bn = ethers.toBigInt(init_supply_nb);
   // // const threshold_marketcap = cairo.uint256(threshold_marketcap_nb);
   // // const threshold_liquidity = cairo.uint256(threshold_liquidity_nb);
-  const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
-  const TOKEN_CLASS_HASH = CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA]
-
+  const TOKEN_QUOTE_ADDRESS =
+    TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
+  const TOKEN_CLASS_HASH =
+    CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA];
 
   // const name_token = cairo.felt("TEST");
   // const symbol_token = cairo.felt("TEST_SYMBOL");
   const name_token = "TEST";
   const symbol_token = "TEST_SYMB";
   // const nameBytes = ethers.toUtf8Bytes(name_token).slice(0, 31)
-  const nameBytes = ethers.toUtf8Bytes(name_token).slice(0, 31)
-  const symbolBytes = ethers.toUtf8Bytes(symbol_token).slice(0, 31)
-  let timestampBytes = ethers.toUtf8Bytes(new Date().getTime().toString()).slice(0, 31)
+  const nameBytes = ethers.toUtf8Bytes(name_token).slice(0, 31);
+  const symbolBytes = ethers.toUtf8Bytes(symbol_token).slice(0, 31);
+  let timestampBytes = ethers
+    .toUtf8Bytes(new Date().getTime().toString())
+    .slice(0, 31);
 
   // const initial_key_price = cairo.uint256(1);
   // const step_increase_linear = cairo.uint256(1);
 
   /** TODO check correct format for uint256 */
   const threshold_liquidity_nb = 10;
-  const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb)
+  const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb);
   const threshold_marketcap_nb = 5000;
   const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
 
@@ -121,10 +126,9 @@ describe("PumpDualVM", function () {
         })
         .then((tx) => tx.wait());
 
-
       /** Deploy the contract */
       // Deploy the starknetToken
-      console.log("deploy token class hash")
+      console.log("deploy token class hash");
 
       ddToken = await account.declareAndDeploy({
         contract: starknetTokenSierra,
@@ -132,9 +136,10 @@ describe("PumpDualVM", function () {
         constructorCalldata: [
           cairo.felt("TEST_SYMBOL"),
           cairo.felt("TEST"),
-          cairo.uint256(100_000_000), 
+          cairo.uint256(100_000_000),
           ownerStarknet,
-          18],
+          18,
+        ],
       });
       // ddToken = await account.declareAndDeploy({
       //   contract: starknetTokenSierra,
@@ -148,9 +153,8 @@ describe("PumpDualVM", function () {
         account
       );
 
-
       // Deploy the starknetLaunchpad
-      console.log("deploy launchpad")
+      console.log("deploy launchpad");
 
       dd = await account.declareAndDeploy({
         contract: starknetLaunchpadSierra,
@@ -174,15 +178,14 @@ describe("PumpDualVM", function () {
       );
 
       // Deploy the pumpVM contract
-      console.log("deploy sol dual vm launchpad")
+      console.log("deploy sol dual vm launchpad");
 
       const pumpVMFactory = await hre.ethers.getContractFactory(
         "LaunchpadPumpDualVM"
       );
-      pumpVM = await pumpVMFactory.deploy(
-        KAKAROT_ADDRESS,
-        starknetLaunchpad.address
-      ).then((c) => c.waitForDeployment());
+      pumpVM = await pumpVMFactory
+        .deploy(KAKAROT_ADDRESS, starknetLaunchpad.address)
+        .then((c) => c.waitForDeployment());
 
       // Whitelist the DualVMLaunchpad contract to call Cairo contracts
       await account.execute([
@@ -192,21 +195,20 @@ describe("PumpDualVM", function () {
           entrypoint: "set_authorized_cairo_precompile_caller",
         },
       ]);
-
     } catch (e) {
-      console.log("error before all", e)
+      console.log("error before all", e);
     }
-
-
   });
 
   describe("createAndLaunchToken", function () {
     it("Should create token and launch pool", async function () {
-       timestampBytes = ethers.toUtf8Bytes(new Date().getTime().toString()).slice(0, 31)
+      timestampBytes = ethers
+        .toUtf8Bytes(new Date().getTime().toString())
+        .slice(0, 31);
 
       await pumpVM
         .connect(addr1)
-        .createAndLaunchToken(addr2.address,
+        .createAndLaunchToken(
           symbolBytes,
           nameBytes,
           // init_supply_bn,
@@ -214,32 +216,30 @@ describe("PumpDualVM", function () {
           timestampBytes
         )
         .then((tx) => tx.wait());
-    })
-  })
+    });
+  });
   /** @TODO fix infinite timeout */
-  // describe("createToken", function () {
-  //   it("Should create token", async function () {
-  //      timestampBytes = ethers.toUtf8Bytes(new Date().getTime().toString()).slice(0, 31)
+  describe("createToken", function () {
+    it("Should create token", async function () {
+      timestampBytes = ethers
+        .toUtf8Bytes(new Date().getTime().toString())
+        .slice(0, 31);
 
-  //     await pumpVM
-  //       .connect(addr1)
-  //       .createToken(addr2.address,
-  //         symbolBytes,
-  //         nameBytes,
-  //         // init_supply_bn,
-  //         100_000_000n,
-  //         timestampBytes,
-  //       )
-  //       .then((tx) => tx.wait());
-  //   })
-
-  // })
- 
+      await pumpVM
+        .connect(addr1)
+        .createToken(
+          addr2.address,
+          symbolBytes,
+          nameBytes,
+          // init_supply_bn,
+          100_000_000n,
+          timestampBytes
+        )
+        .then((tx) => tx.wait());
+    });
+  });
 
   describe("buyCoin", function () {
-    it("Buy coin with address and quote amount", async function () {
-
-    })
-  })
-
+    it("Buy coin with address and quote amount", async function () {});
+  });
 });
