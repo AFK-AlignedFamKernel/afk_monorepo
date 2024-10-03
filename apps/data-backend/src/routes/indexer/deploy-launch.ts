@@ -18,7 +18,9 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
@@ -47,14 +49,16 @@ async function deployLaunchRoute(
       }
 
       const launches = await prisma.token_launch.findMany({
-        where:{
-          memecoin_address:launch
+        where: {
+          memecoin_address: launch
         },
         select: {
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
       reply.status(HTTPStatus.OK).send({
@@ -86,7 +90,9 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
