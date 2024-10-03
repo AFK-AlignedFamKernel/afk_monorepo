@@ -32,6 +32,12 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
         }
       });
 
+      if (distributions.length === 0) {
+        reply.status(HTTPStatus.NotFound).send({
+          message: "No holders found for this token address."
+        });
+      }
+
       const formattedDistributions = distributions.map((entry) => {
         const amount = (Number(entry._sum.amount) / 10 ** 18).toLocaleString();
 
@@ -42,12 +48,6 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
           }
         };
       });
-
-      if (distributions.length === 0) {
-        reply.status(HTTPStatus.NotFound).send({
-          message: "No holders found for this token address."
-        });
-      }
 
       reply.status(HTTPStatus.OK).send({ data: formattedDistributions });
     } catch (error) {

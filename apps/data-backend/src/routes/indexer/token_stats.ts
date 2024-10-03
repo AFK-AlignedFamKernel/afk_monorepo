@@ -30,12 +30,20 @@ async function tokenStatsRoute(
         orderBy: { created_at: "desc" },
         select: {
           price: true,
-          liquidity_raised: true,
+          liquidity_raised: true
         }
       });
 
       if (stats) {
-        reply.status(HTTPStatus.OK).send(stats);
+        const formattedStats = {
+          ...stats,
+          price: (Number(stats.price) / 10 ** 18).toLocaleString(),
+          liquidity_raised: (
+            Number(stats.liquidity_raised) /
+            10 ** 18
+          ).toLocaleString()
+        };
+        reply.status(HTTPStatus.OK).send(formattedStats);
       } else {
         reply.status(HTTPStatus.NotFound).send({
           error: "No data found for the specified token address."
