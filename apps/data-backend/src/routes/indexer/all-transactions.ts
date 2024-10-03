@@ -33,7 +33,7 @@ async function allTransactionsRoute(
           owner_address: true,
           amount: true,
           price: true,
-          coin_receieved: true,
+          coin_received: true,
           liquidityRaised: true,
           total_supply: true,
           network: true,
