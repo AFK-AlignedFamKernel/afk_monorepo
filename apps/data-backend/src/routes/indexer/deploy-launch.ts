@@ -18,12 +18,39 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
+      if (!launches.length) {
+        reply.status(HTTPStatus.OK).send({
+          data: launches
+        });
+      }
+
+      const formattedLaunches = launches.map((entry) => {
+        const price = (Number(entry.price) / 10 ** 18).toLocaleString();
+        const total_supply = (
+          Number(entry.total_supply) /
+          10 ** 18
+        ).toLocaleString();
+        const liquidity_raised = (
+          Number(entry.liquidity_raised) /
+          10 ** 18
+        ).toLocaleString();
+
+        return {
+          ...entry,
+          price,
+          total_supply,
+          liquidity_raised
+        };
+      });
+
       reply.status(HTTPStatus.OK).send({
-        data: launches
+        data: formattedLaunches
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -47,18 +74,46 @@ async function deployLaunchRoute(
       }
 
       const launches = await prisma.token_launch.findMany({
-        where:{
-          memecoin_address:launch
+        where: {
+          memecoin_address: launch
         },
         select: {
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
+
+      if (!launches.length) {
+        reply.status(HTTPStatus.OK).send({
+          data: launches
+        });
+      }
+
+      const formattedLaunches = launches.map((entry) => {
+        const price = (Number(entry.price) / 10 ** 18).toLocaleString();
+        const total_supply = (
+          Number(entry.total_supply) /
+          10 ** 18
+        ).toLocaleString();
+        const liquidity_raised = (
+          Number(entry.liquidity_raised) /
+          10 ** 18
+        ).toLocaleString();
+
+        return {
+          ...entry,
+          price,
+          total_supply,
+          liquidity_raised
+        };
+      });
+
       reply.status(HTTPStatus.OK).send({
-        data: launches
+        data: formattedLaunches
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -86,14 +141,35 @@ async function deployLaunchRoute(
           memecoin_address: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
+      if (!launches.length) {
+        reply.status(HTTPStatus.OK).send({
+          data: launches
+        });
+      }
+
       let statsLaunch = launches[0];
 
+      const formattedStatsLaunch = {
+        ...statsLaunch,
+        price: (Number(statsLaunch.price) / 10 ** 18).toLocaleString(),
+        total_supply: (
+          Number(statsLaunch.total_supply) /
+          10 ** 18
+        ).toLocaleString(),
+        liquidity_raised: (
+          Number(statsLaunch.liquidity_raised) /
+          10 ** 18
+        ).toLocaleString()
+      };
+
       reply.status(HTTPStatus.OK).send({
-        data: statsLaunch
+        data: formattedStatsLaunch
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
