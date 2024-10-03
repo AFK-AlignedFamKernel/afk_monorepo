@@ -16,14 +16,35 @@ async function deployTokenRoute(
       const deploys = await prisma.token_deploy.findMany({
         select: {
           memecoin_address: true,
+          owner_address: true,
           name: true,
+          symbol: true,
           total_supply: true,
-          network: true
+          network: true,
+          created_at: true
         }
       });
 
+      if (!deploys.length) {
+        reply.status(HTTPStatus.OK).send({
+          data: deploys
+        });
+      }
+
+      const formattedDeploys = deploys.map((entry) => {
+        const total_supply = (
+          Number(entry.total_supply) /
+          10 ** 18
+        ).toLocaleString();
+
+        return {
+          ...entry,
+          total_supply
+        };
+      });
+
       reply.status(HTTPStatus.OK).send({
-        data: deploys
+        data: formattedDeploys
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -50,15 +71,35 @@ async function deployTokenRoute(
         where: { memecoin_address: token },
         select: {
           memecoin_address: true,
+          owner_address: true,
           name: true,
-          symbol:true,
-          initial_supply:true,
+          symbol: true,
           total_supply: true,
-          network: true
+          network: true,
+          created_at: true
         }
       });
+
+      if (!deploys.length) {
+        reply.status(HTTPStatus.OK).send({
+          data: deploys
+        });
+      }
+
+      const formattedDeploys = deploys.map((entry) => {
+        const total_supply = (
+          Number(entry.total_supply) /
+          10 ** 18
+        ).toLocaleString();
+
+        return {
+          ...entry,
+          total_supply
+        };
+      });
+
       reply.status(HTTPStatus.OK).send({
-        data: deploys
+        data: formattedDeploys
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
