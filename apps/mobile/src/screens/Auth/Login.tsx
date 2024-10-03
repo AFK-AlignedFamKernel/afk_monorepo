@@ -21,7 +21,9 @@ import {
   storeCashuSeed,
 } from '../../utils/storage';
 import { deriveSeedFromMnemonic } from '@cashu/cashu-ts';
-
+import { createConfig, http, WagmiProvider } from 'wagmi';
+import { mainnet, sepolia } from 'wagmi/chains';
+import ConnectWalletScreen from '../connectWallet/ConnectWalletscreens';
 export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
@@ -195,7 +197,17 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
     // });
   };
 
+  const config = createConfig({
+    chains: [mainnet, sepolia],
+    transports: {
+      [mainnet.id]: http(),
+      [sepolia.id]: http(),
+    },
+  })
+
   return (
+    <WagmiProvider config={config}>
+
     <Auth title="Login">
       <Input
         left={<LockIcon color={theme.colors.primary} />}
@@ -215,8 +227,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
         Login
       </Button>
 
-      <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
-
+      {/* <TextButton onPress={handleCreateAccount}>Create Account</TextButton> */}
+      <ConnectWalletScreen />
       <View
         style={
           {
@@ -233,5 +245,6 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
 
       <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton>
     </Auth>
+    </WagmiProvider>
   );
 };
