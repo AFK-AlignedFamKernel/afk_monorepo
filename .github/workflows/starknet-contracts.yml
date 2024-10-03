@@ -8,8 +8,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: '2.6.5'
       - name: Scarb version
         run: scarb --version
         working-directory: onchain/cairo
@@ -22,12 +24,14 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: '2.6.5'
       - name: Scarb version
         run: scarb --version
         working-directory: onchain/cairo
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: foundry-rs/setup-snfoundry@v3
         with:
           starknet-foundry-version: '0.25.0'

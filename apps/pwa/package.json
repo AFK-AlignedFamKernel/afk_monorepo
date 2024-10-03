@@ -10,9 +10,9 @@
     "build:nostr_sdk": "cd ../.. && pnpm run build:nostr_sdk",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "prettier:fix": "pnpm prettier --write 'src/**/*.tsx'",
-    "prettier:fix:ts": "pnpm prettier --write 'src/**/*.ts'",
-    "check-types": "tsc --noEmit"
+    "prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "prettier:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "ts:check": "tsc --noEmit"
   },
   "dependencies": {
     "@avnu/avnu-sdk": "^2.0.0",
@@ -21,7 +21,7 @@
     "@chakra-ui/theme-tools": "^2.1.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@nostr-dev-kit/ndk": "^2.8.2",
+    "@nostr-dev-kit/ndk": "2.10.0",
     "@pinata/sdk": "^2.1.0",
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@starknet-react/chains": "^0.1.7",

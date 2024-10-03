@@ -1,0 +1,23 @@
+name: Solidity Contracts
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/setup-foundry@v3
+        with:
+          foundry-version: '0.25.0'
+      - name: Foundry version
+        run: forge --version
+        working-directory: onchain/solidity_contracts
+      - name: Build Solidity contracts
+        run: forge build
+        working-directory: onchain/solidity_contracts
+      - name: Test Solidity contracts
+        run: forge test
+        working-directory: onchain/solidity_contracts
