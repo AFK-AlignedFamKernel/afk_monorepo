@@ -111,6 +111,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
 
 
     if (publicKey && privateKeyHex) {
+      // navigationMain.navigate("Home", {screen:"Feed"});
+      // navigationMain.push("Home", {screen:"Feed"});
       navigationMain.navigate('Feed');
     }
   };
