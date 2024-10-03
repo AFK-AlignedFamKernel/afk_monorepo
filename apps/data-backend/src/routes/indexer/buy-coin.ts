@@ -9,9 +9,15 @@ async function buyCoinRoute(fastify: FastifyInstance, options: RouteOptions) {
         where: { transaction_type: "buy" },
         select: {
           memecoin_address: true,
+          owner_address: true,
+          amount: true,
           price: true,
+          coin_received: true,
+          liquidityRaised: true,
           total_supply: true,
-          network: true
+          network: true,
+          transaction_type: true,
+          created_at: true
         }
       });
 
