@@ -5,6 +5,7 @@ import {Pressable, Text, TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
 import {useStyles} from '../../hooks';
+import {SORT_OPTION_EVENT_NOSTR} from '../../types/nostr';
 import FilterMenu from '../Filter';
 import stylesheet from './styles';
 
@@ -18,6 +19,11 @@ interface ISearchComponent {
   sortBy?: string;
 }
 
+const SORT_OPTIONS = [
+  {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
+  {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
+];
+
 const SearchComponent: React.FC<ISearchComponent> = ({
   searchQuery,
   setSearchQuery,
@@ -25,7 +31,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   setKinds = () => {},
   contactList,
   sortBy,
-  setSortBy,
+  setSortBy = () => {},
 }) => {
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -34,7 +40,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
 
   const handleSortChange = (sortBy: string) => {
     setActiveSortBy(sortBy);
-    setSortBy;
+    setSortBy(sortBy);
   };
 
   useEffect(() => {
@@ -82,10 +88,22 @@ const SearchComponent: React.FC<ISearchComponent> = ({
         placeholder="Search"
         clearButtonMode="always"
       />
+      <View style={styles.rowContainer}>
+        {SORT_OPTIONS.map((option) => (
+          <Pressable
+            key={option.value}
+            style={[styles.button, activeSortBy === option.value.toString() && styles.activeButton]}
+            onPress={() => handleSortChange(option.value.toString())}
+          >
+            <Text style={styles.buttonText}>{option.label}</Text>
+          </Pressable>
+        ))}
+      </View>
       <Pressable onPress={() => setIsOpenFilter(true)}>
-        <Text style={styles.input}>Filter</Text>
+        <Svg width="32" height="32" viewBox="0 0 24 24">
+          <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
+        </Svg>
       </Pressable>
-
       <FilterMenu
         visible={isOpenFilter}
         onClose={() => setIsOpenFilter(false)}
