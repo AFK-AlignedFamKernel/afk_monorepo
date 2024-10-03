@@ -176,37 +176,29 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
     });
   };
 
-  const handleGoDegenApp = () => {
-    // Brind dialog
-    navigation.navigate('DegensStack', { screen: 'Games' });
-    // showDialog({
-    //   title: 'WARNING',
-    //   description:
-    //     'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
-    //   buttons: [
-    //     {
-    //       type: 'primary',
-    //       label: 'Continue',
-    //       onPress: () => {
-    //         navigation.navigate("DegensStack", { screen: "Games" });
-    //         hideDialog();
-    //       },
-    //     },
-    //     { type: 'default', label: 'Cancel', onPress: hideDialog },
-    //   ],
-    // });
-  };
+  // const handleGoDegenApp = () => {
+  //   // Brind dialog
+  //   navigation.navigate('DegensStack', { screen: 'Games' });
+  //   // showDialog({
+  //   //   title: 'WARNING',
+  //   //   description:
+  //   //     'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
+  //   //   buttons: [
+  //   //     {
+  //   //       type: 'primary',
+  //   //       label: 'Continue',
+  //   //       onPress: () => {
+  //   //         navigation.navigate("DegensStack", { screen: "Games" });
+  //   //         hideDialog();
+  //   //       },
+  //   //     },
+  //   //     { type: 'default', label: 'Cancel', onPress: hideDialog },
+  //   //   ],
+  //   // });
+  // };
 
-  const config = createConfig({
-    chains: [mainnet, sepolia],
-    transports: {
-      [mainnet.id]: http(),
-      [sepolia.id]: http(),
-    },
-  })
 
   return (
-    <WagmiProvider config={config}>
 
     <Auth title="Login">
       <Input
@@ -243,8 +235,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
         <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
       </View>
 
-      <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton>
+      {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}
     </Auth>
-    </WagmiProvider>
   );
 };
