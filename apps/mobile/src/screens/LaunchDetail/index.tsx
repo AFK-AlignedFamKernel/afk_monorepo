@@ -1,54 +1,93 @@
-import {useAccount, useProvider} from '@starknet-react/core';
-import {useNostrContext} from 'afk_nostr_sdk';
-import {useEffect, useState} from 'react';
-import {KeyboardAvoidingView, Text, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useAccount, useProvider } from '@starknet-react/core';
+import { useNostrContext } from 'afk_nostr_sdk';
+import { useEffect, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
-import {TokenHolderDetail} from '../../components/holders/TokenHolderDetail';
-import {LaunchActionsForm} from '../../components/LaunchActionsForm';
-import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
+import { TextButton } from '../../components';
+import { LaunchActionsForm } from '../../components/LaunchActionsForm';
+import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme, useWaitConnection} from '../../hooks';
-import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
-import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useDataCoins} from '../../hooks/launchpad/useDataCoins';
-import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
-import {useWalletModal} from '../../hooks/modals';
-import {LaunchDetailScreenProps} from '../../types';
-import {TokenHoldersInterface, TokenLaunchInterface} from '../../types/keys';
-import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
-import {feltToAddress} from '../../utils/format';
-import stylesheet from './styles';
+import { useStyles, useTheme } from '../../hooks';
+import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
+import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
+import { useWalletModal } from '../../hooks/modals';
+import { LaunchDetailScreenProps } from '../../types';
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
+import {
+  TokenDeployInterface,
+  TokenHoldersInterface,
+  TokenLaunchInterface,
+  TokenStatsInterface,
+  TokenTxInterface,
+  UserShareInterface,
+} from '../../types/keys';
+import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
+import stylesheet from './styles';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
+import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenStats } from '../../components/LaunchPad/TokenStats';
+import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
+import { useGetDeployToken } from '../../hooks/api/indexer/useDeployToken';
+import { UserShare } from '../../components/LaunchPad/UserShare';
+import { useGetShares } from '../../hooks/api/indexer/useUserShare';
+import { feltToAddress } from 'common';
+import { Text } from '../../components';
+import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
+
+export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const [loading, setLoading] = useState<false | number>(false);
-  const {ndk} = useNostrContext();
-  const {provider} = useProvider();
   const account = useAccount();
-  const {coinAddress, launch: launchParams} = route.params;
-  const [launch, setLaunch] = useState<TokenLaunchInterface | undefined>(launchParams);
+
+
+  console.log(account, "account")
+
+
+  const { coinAddress, } = route.params;
+
+  const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
+
+  const [token, setToken] = useState<TokenDeployInterface | undefined>();
+
   const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
-  const {getCoinLaunchByAddress} = useDataCoins();
+
+  const [totalHoldersAddress, setTotalHoldersAddress] = useState<number>(0);
+
+  const [transactions, setTransaction] = useState<TokenTxInterface[]>([]);
+
+  const [shares, setShares] = useState<UserShareInterface[]>([]);
+
+  const [stats, setStats] = useState<TokenStatsInterface | undefined>();
+
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const {data: holdingsData} = useGetHoldings(feltToAddress(BigInt(launch?.token_address || '')));
+  const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
+
+  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
+
+  const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
+
+  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, "");
+
+  const { data: tokenData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
-  const {handleSellCoins} = useSellCoin();
-  // const { handleBuyKeys } = useBuyKeys()
-  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
+  const { handleSellCoins } = useSellCoin();
+  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
 
-  const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
+
   const [amount, setAmount] = useState<number | undefined>();
+
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -56,47 +95,63 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   };
 
-  useEffect(() => {
-    const getData = async () => {
-      const launchData = await getCoinLaunchByAddress(coinAddress);
-      console.log('launchData', launchData);
-      setLaunch(launchData);
-      setFirstLoadDone(true);
-    };
 
-    if (coinAddress && !launch) {
-      getData();
+  useEffect(() => {
+    if (tokenData && tokenData.data) {
+      setTokens(tokenData.data)
     }
-  }, [coinAddress]);
+  }, [tokenData]);
+
 
   useEffect(() => {
     setHoldings(holdingsData);
   }, [holdingsData]);
 
+  useEffect(() => {
+    const data = transactionData || [];
+    setTransaction(data);
+  }, [transactionData]);
+
+  useEffect(() => {
+    setStats(statsData);
+  }, [statsData]);
+
+
+  useEffect(() => {
+    const data = sharesData || [];
+    setStats(data);
+  }, [sharesData]);
+
+  useEffect(() => {
+    const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
+    setToken(latestToken)
+  }, [tokens])
+
+
   const onConnect = async () => {
     if (!account.address) {
       walletModal.show();
 
-      const result = await waitConnection();
-      if (!result) return;
+      // const result = await waitConnection();
+      // if (!result) return;
     }
   };
+
   const sellKeys = async () => {
     if (!amount) return;
 
     await onConnect();
     if (!account || !account?.account) return;
 
-    if (!launch?.owner) return;
+    if (!token?.owner) return;
 
-    if (!launch?.token_quote) return;
+    if (!token?.token_quote) return;
 
-    // handleSellKeys(account?.account, launch?.owner, Number(amount), launch?.token_quote, undefined)
     handleSellCoins(
       account?.account,
-      feltToAddress(BigInt(launch?.token_address)),
+      feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      launch?.token_quote,
+      token?.token_quote,
       undefined,
     );
   };
@@ -108,19 +163,20 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
     if (!account || !account?.account) return;
 
-    if (!launch?.owner) return;
+    if (!token?.owner) return;
 
-    if (!launch?.token_quote) return;
-
-    console.log('launch', launch);
-    // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
+    if (!token?.token_quote) return;
+    // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
     handleBuyCoins(
       account?.account,
-      feltToAddress(BigInt(launch?.token_address)),
+      feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      launch?.token_quote,
+      token?.token_quote,
     );
   };
+
+
+
 
   if (!coinAddress) {
     return (
@@ -141,36 +197,77 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
         </TextButton>
       </SafeAreaView>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
+
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
           onSellPress={sellKeys}
         ></LaunchActionsForm>
+
         <TabSelector
           activeTab={selectedTab}
           handleActiveTab={handleTabSelected}
           buttons={TABS_LAUNCH}
           addScreenNavigation={false}
         ></TabSelector>
+
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
           <ScrollView>
-            {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
+            {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
               <>
-                <TokenLaunchDetail isViewDetailDisabled={true} launch={launch}></TokenLaunchDetail>
+
+
+                <FlatList
+                  contentContainerStyle={styles.flatListContent}
+                  data={tokens}
+                  ItemSeparatorComponent={() => <View style={styles.separator} />}
+                  // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
+                  keyExtractor={(item, i) => i.toString()}
+                  // numColumns={isDesktop ? 3 : 1}
+                  renderItem={({ item, index }) => {
+
+                    return <TokenLaunchDetail isViewDetailDisabled={true} launch={item} />
+                  }}
+
+                />
+
+
               </>
             )}
-            {selectedTab == SelectedTab.LAUNCH_HOLDERS && holdings && (
+            {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
-                <TokenHolderDetail holders={holdings}></TokenHolderDetail>
+                <View style={styles.holdersTotal} >
+                  <Text weight="medium" fontSize={14}  >Total Owner Address:</Text>
+                  <Text weight='bold' fontSize={14}>{holdings?.data?.[0]?._count.owner_address ?? 0}</Text>
+                </View>
+                <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
               </>
             )}
+
+            {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
+              <>
+                <TokenTx tx={transactions} loading={txLoading} />
+              </>
+            )}
+
+            {selectedTab == SelectedTab.TOKEN_STATS && transactions && (
+              <>
+                <TokenStats loading={statsLoading} stats={stats} />
+              </>
+            )}
+
+
+            {selectedTab == SelectedTab.USER_SHARE && shares && (
+              <>
+                <UserShare loading={sharesLoading} shares={shares} />
+              </>
+            )}
+
+
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
-
-      {/* {launch && (
-        <TokenLaunchDetail isViewDetailDisabled={true} launch={launch}></TokenLaunchDetail>
-      )} */}
     </View>
   );
 };
+
