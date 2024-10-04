@@ -84,8 +84,8 @@ const config = createConfig({
 // 3. Create modal
 createAppKit({
     projectId,
-    // wagmiConfig,
-    wagmiConfig:config,
+    wagmiConfig,
+    // wagmiConfig:config,
     defaultChain: kakarotEvm, // Optional
     siweConfig,
     enableAnalytics: false // Optional - defaults to your Cloud configuration
