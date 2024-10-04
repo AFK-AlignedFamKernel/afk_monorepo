@@ -35,15 +35,7 @@ async function tokenStatsRoute(
       });
 
       if (stats) {
-        const formattedStats = {
-          ...stats,
-          price: (Number(stats.price) / 10 ** 18).toLocaleString(),
-          liquidity_raised: (
-            Number(stats.liquidity_raised) /
-            10 ** 18
-          ).toLocaleString()
-        };
-        reply.status(HTTPStatus.OK).send(formattedStats);
+        reply.status(HTTPStatus.OK).send(stats);
       } else {
         reply.status(HTTPStatus.NotFound).send({
           error: "No data found for the specified token address."
