@@ -1,5 +1,9 @@
-import { Block, hash, uint256, Pool } from "./deps.ts";
-import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
+import { Block, hash, uint256, Pool, Decimal } from "./deps.ts";
+import {
+  STARTING_BLOCK,
+  LAUNCHPAD_ADDRESS,
+  TOKEN_DECIMALS
+} from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -59,26 +63,50 @@ export default function DecodeBuyToken({ header, events }: Block) {
       protocol_fee_high,
       last_price_low,
       last_price_high,
-      timestamp,
+      timestamp_u64,
       quote_amount_low,
       quote_amount_high
     ] = event.data;
 
-    const amount = uint256
-      .uint256ToBN({ low: amount_low, high: amount_high })
+    const amount = new Decimal(
+      uint256.uint256ToBN({ low: amount_low, high: amount_high }).toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
-    const price = uint256
-      .uint256ToBN({ low: price_low, high: price_high })
+
+    const price = new Decimal(
+      uint256.uint256ToBN({ low: price_low, high: price_high }).toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
-    const protocol_fee = uint256
-      .uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high })
+
+    const protocol_fee = new Decimal(
+      uint256
+        .uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high })
+        .toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
-    const last_price = uint256
-      .uint256ToBN({ low: last_price_low, high: last_price_high })
+
+    const last_price = new Decimal(
+      uint256
+        .uint256ToBN({ low: last_price_low, high: last_price_high })
+        .toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
-    const quote_amount = uint256
-      .uint256ToBN({ low: quote_amount_low, high: quote_amount_high })
+
+    const quote_amount = new Decimal(
+      uint256
+        .uint256ToBN({ low: quote_amount_low, high: quote_amount_high })
+        .toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
+
+    const time_stamp = new Date(
+      Number(BigInt(timestamp_u64)) * 1000
+    ).toISOString();
 
     return {
       transfer_id,
@@ -94,8 +122,9 @@ export default function DecodeBuyToken({ header, events }: Block) {
       price,
       amount: Number(amount),
       protocol_fee,
-      time_stamp: timestamp,
-      transaction_type: "buy"
+      time_stamp,
+      transaction_type: "buy",
+      created_at: new Date().toISOString()
     };
   });
 }
