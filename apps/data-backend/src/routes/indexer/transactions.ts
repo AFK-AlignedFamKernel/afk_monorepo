@@ -42,22 +42,13 @@ async function transactionsRoute(
         });
       }
 
-      const formattedTransactions = transactions.map((entry) => {
-        const amount = (Number(entry.amount) / 10 ** 18).toLocaleString();
-
-        return {
-          ...entry,
-          amount
-        };
-      });
-
-      const result = formattedTransactions.reduce(
+      const result = transactions.reduce(
         (acc, cur) => {
-          acc.total += parseFloat(cur.amount);
+          acc.total += parseFloat(cur.amount?.toString() || "0");
           if (cur.transaction_type === "buy") {
-            acc.buy += parseFloat(cur.amount);
+            acc.buy += parseFloat(cur.amount?.toString() || "0");
           } else if (cur.transaction_type === "sell") {
-            acc.sell += parseFloat(cur.amount);
+            acc.sell += parseFloat(cur.amount?.toString() || "0");
           }
           return acc;
         },
