@@ -1,6 +1,7 @@
 import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 import {
   Block,
+  DECIMALS,
   formatUnits,
   hash,
   uint256,
@@ -76,13 +77,13 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       low: initial_supply_low,
       high: initial_supply_high
     });
-    const initial_supply = formatUnits(initial_supply_raw, 18).toString();
+    const initial_supply = formatUnits(initial_supply_raw, DECIMALS).toString();
 
     const total_supply_raw = uint256.uint256ToBN({
       low: total_supply_low,
       high: total_supply_high
     });
-    const total_supply = formatUnits(total_supply_raw, 18).toString();
+    const total_supply = formatUnits(total_supply_raw, DECIMALS).toString();
 
     return {
       memecoin_address: token_address,
