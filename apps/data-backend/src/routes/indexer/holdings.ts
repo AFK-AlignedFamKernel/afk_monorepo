@@ -38,18 +38,7 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
         });
       }
 
-      const formattedDistributions = distributions.map((entry) => {
-        const amount = (Number(entry._sum.amount) / 10 ** 18).toLocaleString();
-
-        return {
-          ...entry,
-          _sum: {
-            amount
-          }
-        };
-      });
-
-      reply.status(HTTPStatus.OK).send({ data: formattedDistributions });
+      reply.status(HTTPStatus.OK).send({ data: distributions });
     } catch (error) {
       console.error("Failed to fetch token distribution:", error);
       reply.status(HTTPStatus.InternalServerError).send({
