@@ -21,8 +21,6 @@ import {
   storeCashuSeed,
 } from '../../utils/storage';
 import { deriveSeedFromMnemonic } from '@cashu/cashu-ts';
-import { createConfig, http, WagmiProvider } from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
 import ConnectWalletScreen from '../connectWallet/ConnectWalletscreens';
 export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -220,7 +218,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
       </Button>
 
       {/* <TextButton onPress={handleCreateAccount}>Create Account</TextButton> */}
-      <ConnectWalletScreen />
+      {/* <ConnectWalletScreen /> */}
       <View
         style={
           {
