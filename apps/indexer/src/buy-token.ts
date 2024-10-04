@@ -1,9 +1,5 @@
-import { Block, hash, uint256, Pool, Decimal } from "./deps.ts";
-import {
-  STARTING_BLOCK,
-  LAUNCHPAD_ADDRESS,
-  TOKEN_DECIMALS
-} from "./constants.ts";
+import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "./deps.ts";
+import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -68,41 +64,32 @@ export default function DecodeBuyToken({ header, events }: Block) {
       quote_amount_high
     ] = event.data;
 
-    const amount = new Decimal(
-      uint256.uint256ToBN({ low: amount_low, high: amount_high }).toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const amount_raw = uint256.uint256ToBN({
+      low: amount_low,
+      high: amount_high
+    });
+    const amount = formatUnits(amount_raw, DECIMALS).toString();
 
-    const price = new Decimal(
-      uint256.uint256ToBN({ low: price_low, high: price_high }).toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const price_raw = uint256.uint256ToBN({ low: price_low, high: price_high });
+    const price = formatUnits(price_raw, DECIMALS);
 
-    const protocol_fee = new Decimal(
-      uint256
-        .uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high })
-        .toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const protocol_fee_raw = uint256.uint256ToBN({
+      low: protocol_fee_low,
+      high: protocol_fee_high
+    });
+    const protocol_fee = formatUnits(protocol_fee_raw, DECIMALS).toString();
 
-    const last_price = new Decimal(
-      uint256
-        .uint256ToBN({ low: last_price_low, high: last_price_high })
-        .toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const last_price_raw = uint256.uint256ToBN({
+      low: last_price_low,
+      high: last_price_high
+    });
+    const last_price = formatUnits(last_price_raw, DECIMALS).toString();
 
-    const quote_amount = new Decimal(
-      uint256
-        .uint256ToBN({ low: quote_amount_low, high: quote_amount_high })
-        .toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const quote_amount_raw = uint256.uint256ToBN({
+      low: quote_amount_low,
+      high: quote_amount_high
+    });
+    const quote_amount = formatUnits(quote_amount_raw, DECIMALS).toString();
 
     const time_stamp = new Date(
       Number(BigInt(timestamp_u64)) * 1000
