@@ -1,7 +1,11 @@
-import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
-import { Block, hash, uint256, shortString, Pool } from "./deps.ts";
+import {
+  LAUNCHPAD_ADDRESS,
+  STARTING_BLOCK,
+  TOKEN_DECIMALS
+} from "./constants.ts";
+import { Block, Decimal, hash, uint256, shortString, Pool } from "./deps.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -60,30 +64,26 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
     const symbol_decoded = token_address
       ? shortString.decodeShortString(symbol.replace(/0x0+/, "0x"))
       : "";
+
     const name_decoded = name
       ? shortString.decodeShortString(name.replace(/0x0+/, "0x"))
       : "";
-    const initial_supply = uint256
-      .uint256ToBN({ low: initial_supply_low, high: initial_supply_high })
-      .toString();
-    const total_supply = uint256
-      .uint256ToBN({ low: total_supply_low, high: total_supply_high })
+
+    const initial_supply = new Decimal(
+      uint256
+        .uint256ToBN({ low: initial_supply_low, high: initial_supply_high })
+        .toString()
+    )
+      .div(TOKEN_DECIMALS)
       .toString();
 
-    console.log({
-      memecoin_address: token_address,
-      network: "starknet-sepolia",
-      block_hash: blockHash,
-      block_number: Number(blockNumber),
-      block_timestamp: timestamp,
-      transaction_hash: transactionHash,
-      owner_address: caller,
-      name: name_decoded,
-      symbol: symbol_decoded,
-      initial_supply,
-      total_supply,
-      time_stamp: timestamp
-    });
+    const total_supply = new Decimal(
+      uint256
+        .uint256ToBN({ low: total_supply_low, high: total_supply_high })
+        .toString()
+    )
+      .div(TOKEN_DECIMALS)
+      .toString();
 
     return {
       memecoin_address: token_address,
@@ -97,7 +97,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       symbol: symbol_decoded,
       initial_supply,
       total_supply,
-      time_stamp: timestamp
+      created_at: new Date().toISOString()
     };
   });
 }

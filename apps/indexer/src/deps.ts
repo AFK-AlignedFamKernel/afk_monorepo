@@ -11,6 +11,6 @@ export type {
   FieldElement,
   Filter
 } from "https://esm.sh/@apibara/indexer@0.3.1/starknet";
-export { Client } from "https://deno.land/x/postgres/mod.ts";
+export { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 export { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
-export { Decimal } from "https://esm.sh/decimal.js";
+export { Decimal } from "https://esm.sh/decimal.js@10.4.3";

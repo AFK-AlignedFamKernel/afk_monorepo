@@ -25,26 +25,8 @@ async function deployTokenRoute(
         }
       });
 
-      if (!deploys.length) {
-        reply.status(HTTPStatus.OK).send({
-          data: deploys
-        });
-      }
-
-      const formattedDeploys = deploys.map((entry) => {
-        const total_supply = (
-          Number(entry.total_supply) /
-          10 ** 18
-        ).toLocaleString();
-
-        return {
-          ...entry,
-          total_supply
-        };
-      });
-
       reply.status(HTTPStatus.OK).send({
-        data: formattedDeploys
+        data: deploys
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -80,26 +62,8 @@ async function deployTokenRoute(
         }
       });
 
-      if (!deploys.length) {
-        reply.status(HTTPStatus.OK).send({
-          data: deploys
-        });
-      }
-
-      const formattedDeploys = deploys.map((entry) => {
-        const total_supply = (
-          Number(entry.total_supply) /
-          10 ** 18
-        ).toLocaleString();
-
-        return {
-          ...entry,
-          total_supply
-        };
-      });
-
       reply.status(HTTPStatus.OK).send({
-        data: formattedDeploys
+        data: deploys
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
