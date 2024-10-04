@@ -1,6 +1,6 @@
 import React from 'react';
 import '@walletconnect/react-native-compat'
-import { WagmiProvider } from 'wagmi';
+import { createConfig, WagmiProvider } from 'wagmi';
 import {
     mainnet,
     polygon,
@@ -13,10 +13,10 @@ import {
     QueryClientProvider,
     QueryClient,
 } from "@tanstack/react-query";
-import { Chain } from "viem";
+import { Chain, http } from "viem";
 import { AppKit, AppKitButton, createAppKit, defaultWagmiConfig } from '@reown/appkit-wagmi-react-native'
 import { authConnector } from '@reown/appkit-auth-wagmi-react-native';
-// import { siweConfig } from './SiweUtils';
+import { siweConfig } from './SiweUtils';
 import * as Clipboard from 'expo-clipboard';
 const queryClient = new QueryClient();
 
@@ -72,12 +72,22 @@ const wagmiConfig = defaultWagmiConfig({
     extraConnectors: [auth],
 })
 
+const config = createConfig({
+    chains: [mainnet, sepolia],
+    transports: {
+        [mainnet.id]: http(),
+        [sepolia.id]: http(),
+    },
+})
+
+
 // 3. Create modal
 createAppKit({
     projectId,
     wagmiConfig,
+    // wagmiConfig:config,
     defaultChain: kakarotEvm, // Optional
-    // siweConfig,
+    siweConfig,
     enableAnalytics: false // Optional - defaults to your Cloud configuration
 })
 

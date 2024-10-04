@@ -70,7 +70,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     console.log(activeSortBy, 'contacts', contacts);
     if (activeSortBy === '2') {
       const forYouNotes =
-        notes.data?.pages.flat().filter((item) => item?.pubkey === contacts.data[0]) ?? [];
+        notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
       console.log('something', forYouNotes);
       setFeedData(forYouNotes as any);
     }
