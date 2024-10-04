@@ -180,7 +180,7 @@ export type AuthImportKeysScreenProps = CompositeScreenProps<
 export type HomeNavigationProp = NativeStackNavigationProp<HomeBottomStackParams>;
 
 export type FeedScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<HomeBottomStackParams, 'Feed'>,
+  NativeStackScreenProps<HomeBottomStackParams| MainStackParams, 'Feed'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type UserProfileScreenProps = CompositeScreenProps<

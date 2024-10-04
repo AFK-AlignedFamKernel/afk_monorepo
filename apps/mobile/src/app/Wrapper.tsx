@@ -1,5 +1,4 @@
 import { QueryClient } from '@tanstack/react-query';
-// import { NostrProvider } from '../context/NostrContext';
 import { TanstackProvider } from 'afk_nostr_sdk';
 import { NostrProvider } from 'afk_nostr_sdk';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,8 +17,8 @@ import { TransactionModalProvider } from '../context/TransactionModal';
 import { WalletModalProvider } from '../context/WalletModal';
 import App from './App';
 import { StarknetProvider } from './StarknetProvider';
-import { EVMProvider } from './EVMProvider';
 import { ModalParentProvider } from '../context/modal/ModalParent';
+import { EVMProvider } from './EVMProvider';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
 });
@@ -52,26 +51,21 @@ export const Wrapper: React.FC = () => {
       <ThemeProvider>
         <NostrProvider>
           <TanstackProvider>
-            {/* <NostrProvider> */}
-
-            {/* <QueryClientProvider client={queryClient}> */}
             <SafeAreaProvider>
               <RootScreenContainer>
                 <PortalizeProvider>
                   <DialogProvider>
                     <StarknetProvider>
-                      {/* <EVMProvider> */}
+                      <EVMProvider>
                         <ModalProviders>
                           <App />
                         </ModalProviders>
-                      {/* </EVMProvider> */}
+                      </EVMProvider>
                     </StarknetProvider>
                   </DialogProvider>
                 </PortalizeProvider>
               </RootScreenContainer>
             </SafeAreaProvider>
-            {/* </QueryClientProvider> */}
-            {/* </NostrProvider> */}
           </TanstackProvider>
         </NostrProvider>
       </ThemeProvider>

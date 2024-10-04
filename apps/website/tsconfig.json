@@ -28,7 +28,8 @@
       "@/*": [
         "./src/*"
       ],
-      "pixel_ui": ["../../packages/pixel_ui/src"]
+      "pixel_ui": ["../../packages/pixel_ui/src"],
+      "common": ["../../packages/common/src"]
     },
     "noEmit": true
   },
