@@ -1,57 +1,64 @@
-import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {useAuth, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useState} from 'react';
-import {Platform} from 'react-native';
+import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import { useAuth, useCashu, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { useState } from 'react';
+import { Platform } from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input, TextButton} from '../../components';
-import {useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {AuthCreateAccountScreenProps} from '../../types';
-import {generateRandomKeypair} from '../../utils/keypair';
-import {retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey} from '../../utils/storage';
+import { LockIcon } from '../../assets/icons';
+import { Button, Input, TextButton } from '../../components';
+import { useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { Auth } from '../../modules/Auth';
+import { AuthCreateAccountScreenProps } from '../../types';
+import { generateRandomKeypair } from '../../utils/keypair';
+import { retrieveAndDecryptCashuMnemonic, storeCashuMnemonic, storePassword, storePrivateKey, storePublicKey } from '../../utils/storage';
 
-export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
-  const {theme} = useTheme();
+export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({ navigation }) => {
+  const { theme } = useTheme();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const {ndk} = useNostrContext();
-  const {setIsSeedCashuStorage} = useCashuStore();
-  const {generateMnemonic} = useCashu()
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
+  const { ndk } = useNostrContext();
+  const { setIsSeedCashuStorage } = useCashuStore();
+  const { generateMnemonic } = useCashu()
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
 
   const handleCreateAccount = async () => {
     if (!username) {
-      showToast({type: 'error', title: 'Username is required'});
+      showToast({ type: 'error', title: 'Username is required' });
       return;
     }
 
     if (!password) {
-      showToast({type: 'error', title: 'Password is required'});
+      showToast({ type: 'error', title: 'Password is required' });
       return;
     }
 
-    const {privateKey, publicKey} = generateRandomKeypair();
+    const { privateKey, publicKey } = generateRandomKeypair();
     await storePassword(password);
     await storePrivateKey(privateKey, password);
     await storePublicKey(publicKey);
 
-    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
+    try {
+      const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password)
 
-    if(!mnemonicSaved) {
-      const mnemonic = await generateMnemonic()
-      await storeCashuMnemonic(mnemonic, password)
-      setIsSeedCashuStorage(true)
+      if (!mnemonicSaved) {
+        const mnemonic = await generateMnemonic()
+        await storeCashuMnemonic(mnemonic, password)
+        setIsSeedCashuStorage(true)
+      }
+    } catch (e) {
+      console.log("error cashu wallet", e)
+
     }
 
+
+
     ndk.signer = new NDKPrivateKeySigner(privateKey);
-    const ndkUser = ndk.getUser({pubkey: publicKey});
-    ndkUser.profile = {nip05: username};
+    const ndkUser = ndk.getUser({ pubkey: publicKey });
+    ndkUser.profile = { nip05: username };
     await ndkUser.publish();
 
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
@@ -77,7 +84,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
       });
     }
 
-    navigation.navigate('SaveKeys', {privateKey, publicKey});
+    navigation.navigate('SaveKeys', { privateKey, publicKey });
   };
 
   const handleImportKey = () => {
