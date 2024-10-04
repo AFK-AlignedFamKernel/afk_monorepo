@@ -14,9 +14,11 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-          "jsEngine": "jsc",
+      "jsEngine": "jsc",
       "supportsTablet": true
     },
     "android": {
@@ -26,11 +28,15 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.test_afk",
-      "permissions":["android.permission.WRITE_EXTERNAL_STORAGE", "INTERNET"]
+      "permissions": [
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "deepLinking": true
+      "deepLinking": true,
+      "bundler": "metro"
     },
     "plugins": [
       [
@@ -58,6 +64,8 @@
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
       ]
-    ]
-  }
+    ],
+    "sdkVersion": "51.0.0"
+  },
+  "name": "mobile"
 }
