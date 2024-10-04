@@ -108,8 +108,6 @@ async function deployLaunchRoute(
         });
       }
 
-      let statsLaunch = launches[0];
-
       reply.status(HTTPStatus.OK).send({
         data: []
       });
