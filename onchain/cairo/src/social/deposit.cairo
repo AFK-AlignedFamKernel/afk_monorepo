@@ -195,16 +195,16 @@ pub mod DepositEscrow {
             if (!recipient.is_zero()) {
                 let erc20 = IERC20Dispatcher { contract_address: token_address };
                 erc20.transfer_from(get_caller_address(), recipient, amount);
-                self
-                    .emit(
-                        TransferEvent {
-                            sender: get_caller_address(),
-                            nostr_recipient,
-                            starknet_recipient: recipient,
-                            amount: amount,
-                            token_address: token_address
-                        }
-                    );
+                // self
+                //     .emit(
+                //         TransferEvent {
+                //             sender: sender_address,
+                //             nostr_recipient,
+                //             starknet_recipient: recipient,
+                //             amount: amount,
+                //             token_address: token_address
+                //         }
+                //     );
                 return DepositResult::Transfer(recipient);
             }
 
@@ -226,16 +226,16 @@ pub mod DepositEscrow {
                         ttl: get_block_timestamp() + timelock
                     }
                 );
-            self
-                .emit(
-                    DepositEvent {
-                        deposit_id,
-                        sender: get_caller_address(),
-                        nostr_recipient,
-                        amount: amount,
-                        token_address: token_address
-                    }
-                );
+            // self
+            //     .emit(
+            //         DepositEvent {
+            //             deposit_id,
+            //             sender: sender_address,
+            //             nostr_recipient,
+            //             amount: amount,
+            //             token_address: token_address
+            //         }
+            //     );
 
             DepositResult::Deposit(deposit_id)
         }
@@ -252,21 +252,20 @@ pub mod DepositEscrow {
 
             erc20.transfer(get_caller_address(), deposit.amount);
             self.deposits.write(deposit_id, Default::default());
-            self
-                .emit(
-                    CancelEvent {
-                        deposit_id,
-                        sender: get_caller_address(),
-                        nostr_recipient: deposit.recipient,
-                        amount: deposit.amount,
-                        token_address: deposit.token_address
-                    }
-                );
+        // self
+        //     .emit(
+        //         CancelEvent {
+        //             deposit_id,
+        //             sender: get_caller_address(),
+        //             nostr_recipient: deposit.recipient,
+        //             amount: deposit.amount,
+        //             token_address: deposit.token_address
+        //         }
+        //     );
         }
 
         fn claim(ref self: ContractState, request: SocialRequest<Claim>, gas_amount: u256) {
             let claim = @request.content;
-
             let deposit = self.deposits.read(*claim.deposit_id);
             assert!(deposit != Default::default(), "can't find deposit");
             assert!(request.public_key == deposit.recipient, "invalid recipient");
@@ -281,23 +280,22 @@ pub mod DepositEscrow {
 
             // TODO: swap if necessary
             assert!(deposit.token_address == *claim.gas_token_address, "invalid gas_token");
-            assert!(gas_amount <= *claim.gas_amount, "gas_amount to big");
+            assert!(gas_amount <= *claim.gas_amount, "gas_amount too big");
             let gas_token = IERC20Dispatcher { contract_address: *claim.gas_token_address };
             gas_token.transfer(get_caller_address(), gas_amount);
-
-            self
-                .emit(
-                    ClaimEvent {
-                        deposit_id: *claim.deposit_id,
-                        sender: get_caller_address(),
-                        nostr_recipient: request.public_key,
-                        amount: deposit.amount,
-                        starknet_recipient: *claim.starknet_recipient,
-                        token_address: deposit.token_address,
-                        gas_token_address: *claim.gas_token_address,
-                        gas_amount: *claim.gas_amount
-                    }
-                );
+        // self
+        //     .emit(
+        //         ClaimEvent {
+        //             deposit_id: *claim.deposit_id,
+        //             sender: get_caller_address(),
+        //             nostr_recipient: request.public_key,
+        //             amount: deposit.amount,
+        //             starknet_recipient: *claim.starknet_recipient,
+        //             token_address: deposit.token_address,
+        //             gas_token_address: *claim.gas_token_address,
+        //             gas_amount: *claim.gas_amount
+        //         }
+        //     );
         }
     }
 }

@@ -27,6 +27,7 @@ contract DualVMToken {
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
     event Approval(address indexed owner, address indexed spender, uint256 amount);
+    event StarknetApproval(address indexed owner, uint256 indexed spender, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                             METADATA ACCESS
@@ -165,6 +166,49 @@ contract DualVMToken {
 
         emit Transfer(from, to, amount);
 
+        return true;
+    }
+
+    function starknetTokenAddress() external view returns(uint256) {
+        return starknetToken;
+    }
+
+    function starknetBalanceOf(uint256 accountStarknetAddress) public view returns (uint256) {
+        uint256[] memory balanceOfCallData = new uint256[](1);
+        balanceOfCallData[0] = accountStarknetAddress;
+        bytes memory returnData = starknetToken.staticcallCairo("balance_of", balanceOfCallData);
+        (uint128 valueLow, uint128 valueHigh) = abi.decode(returnData, (uint128, uint128));
+        return uint256(valueLow) + (uint256(valueHigh) << 128);
+    }
+
+    function starknetAllowance(address owner, uint256 spenderStarknetAddress) public view returns (uint256) {
+        uint256[] memory ownerAddressCalldata = new uint256[](1);
+        ownerAddressCalldata[0] = uint256(uint160(owner));
+        uint256 ownerStarknetAddress =
+            abi.decode(kakarot.staticcallCairo("compute_starknet_address", ownerAddressCalldata), (uint256));
+
+        uint256[] memory allowanceCallData = new uint256[](2);
+        allowanceCallData[0] = ownerStarknetAddress;
+        allowanceCallData[1] = spenderStarknetAddress;
+
+        bytes memory returnData = starknetToken.staticcallCairo("allowance", allowanceCallData);
+        (uint128 valueLow, uint128 valueHigh) = abi.decode(returnData, (uint128, uint128));
+
+        return uint256(valueLow) + (uint256(valueHigh) << 128);
+    }
+
+    function starknetApprove(uint256 spenderStarknetAddress, uint256 amount) external returns (bool) {
+        // Split amount in [low, high]
+        uint128 amountLow = uint128(amount);
+        uint128 amountHigh = uint128(amount >> 128);
+        uint256[] memory approveCallData = new uint256[](3);
+        approveCallData[0] = spenderStarknetAddress;
+        approveCallData[1] = uint256(amountLow);
+        approveCallData[2] = uint256(amountHigh);
+
+        starknetToken.delegatecallCairo("approve", approveCallData);
+
+        emit StarknetApproval(msg.sender, spenderStarknetAddress, amount);
         return true;
     }
 }
