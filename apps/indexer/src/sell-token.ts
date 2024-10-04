@@ -110,7 +110,8 @@ export default function DecodeSellToken({ header, events }: Block) {
       amount,
       protocol_fee,
       time_stamp,
-      transaction_type: "sell"
+      transaction_type: "sell",
+      created_at: new Date().toISOString()
     };
   });
 }

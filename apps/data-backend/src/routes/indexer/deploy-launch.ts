@@ -25,33 +25,8 @@ async function deployLaunchRoute(
         }
       });
 
-      if (!launches.length) {
-        reply.status(HTTPStatus.OK).send({
-          data: launches
-        });
-      }
-
-      const formattedLaunches = launches.map((entry) => {
-        const price = (Number(entry.price) / 10 ** 18).toLocaleString();
-        const total_supply = (
-          Number(entry.total_supply) /
-          10 ** 18
-        ).toLocaleString();
-        const liquidity_raised = (
-          Number(entry.liquidity_raised) /
-          10 ** 18
-        ).toLocaleString();
-
-        return {
-          ...entry,
-          price,
-          total_supply,
-          liquidity_raised
-        };
-      });
-
       reply.status(HTTPStatus.OK).send({
-        data: formattedLaunches
+        data: launches
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -89,33 +64,8 @@ async function deployLaunchRoute(
         }
       });
 
-      if (!launches.length) {
-        reply.status(HTTPStatus.OK).send({
-          data: launches
-        });
-      }
-
-      const formattedLaunches = launches.map((entry) => {
-        const price = (Number(entry.price) / 10 ** 18).toLocaleString();
-        const total_supply = (
-          Number(entry.total_supply) /
-          10 ** 18
-        ).toLocaleString();
-        const liquidity_raised = (
-          Number(entry.liquidity_raised) /
-          10 ** 18
-        ).toLocaleString();
-
-        return {
-          ...entry,
-          price,
-          total_supply,
-          liquidity_raised
-        };
-      });
-
       reply.status(HTTPStatus.OK).send({
-        data: formattedLaunches
+        data: launches
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -150,29 +100,18 @@ async function deployLaunchRoute(
         }
       });
 
-      if (!launches.length) {
+      if (launches.length) {
+        let statsLaunch = launches[0];
+
         reply.status(HTTPStatus.OK).send({
-          data: launches
+          data: statsLaunch
         });
       }
 
       let statsLaunch = launches[0];
 
-      const formattedStatsLaunch = {
-        ...statsLaunch,
-        price: (Number(statsLaunch.price) / 10 ** 18).toLocaleString(),
-        total_supply: (
-          Number(statsLaunch.total_supply) /
-          10 ** 18
-        ).toLocaleString(),
-        liquidity_raised: (
-          Number(statsLaunch.liquidity_raised) /
-          10 ** 18
-        ).toLocaleString()
-      };
-
       reply.status(HTTPStatus.OK).send({
-        data: formattedStatsLaunch
+        data: []
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
