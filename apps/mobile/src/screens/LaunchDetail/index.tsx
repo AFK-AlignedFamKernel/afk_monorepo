@@ -1,7 +1,7 @@
 import { useAccount, useProvider } from '@starknet-react/core';
 import { useNostrContext } from 'afk_nostr_sdk';
 import { useEffect, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Text, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +15,7 @@ import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuote
 import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
 import { useWalletModal } from '../../hooks/modals';
 import { LaunchDetailScreenProps } from '../../types';
+
 import {
   TokenDeployInterface,
   TokenHoldersInterface,
@@ -34,6 +35,7 @@ import { useGetDeployToken } from '../../hooks/api/indexer/useDeployToken';
 import { UserShare } from '../../components/LaunchPad/UserShare';
 import { useGetShares } from '../../hooks/api/indexer/useUserShare';
 import { feltToAddress } from 'common';
+import { Text } from '../../components';
 import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
 
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
@@ -54,6 +56,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const [token, setToken] = useState<TokenDeployInterface | undefined>();
 
   const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
+
+  const [totalHoldersAddress, setTotalHoldersAddress] = useState<number>(0);
 
   const [transactions, setTransaction] = useState<TokenTxInterface[]>([]);
 
@@ -221,6 +225,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
                   keyExtractor={(item, i) => i.toString()}
                   // numColumns={isDesktop ? 3 : 1}
                   renderItem={({ item, index }) => {
+
                     return <TokenLaunchDetail isViewDetailDisabled={true} launch={item} />
                   }}
 
@@ -231,6 +236,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             )}
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
+                <View style={styles.holdersTotal} >
+                  <Text weight="medium" fontSize={14}  >Total Owner Address:</Text>
+                  <Text weight='bold' fontSize={14}>{holdings?.data?.[0]?._count.owner_address ?? 0}</Text>
+                </View>
                 <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
               </>
             )}

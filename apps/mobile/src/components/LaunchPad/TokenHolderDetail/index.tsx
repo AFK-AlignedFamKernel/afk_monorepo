@@ -34,10 +34,6 @@ export const TokenHolderDetail: React.FC<HoldersProps> = ({holders, loading}) =>
             <Text>{item._sum.amount}</Text>
           </View>
 
-          <View style={styles.borderBottom}>
-            <Text weight="semiBold">Number of owner address:</Text>
-            <Text>{item._count.owner_address}</Text>
-          </View>
         </View>
       )}
       ListEmptyComponent={<View style={{ paddingTop: 40 }}>

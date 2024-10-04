@@ -37,9 +37,16 @@ export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
             <Text fontSize={14}>{item.owner_address}</Text>
           </View>
 
+
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
-              Amount
+              Tx Type
+            </Text>
+            <Text fontSize={14}>{item.transaction_type}</Text>
+          </View>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Coin Received
             </Text>
             <Text fontSize={14}>{item.amount}</Text>
           </View>

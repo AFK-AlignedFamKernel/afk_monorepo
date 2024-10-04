@@ -29,19 +29,14 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, loading }) => {
             <Text fontSize={14}>{item.token_address}</Text>
           </View>
 
-        <View style={styles.borderBottom}>
-            <Text fontSize={14} weight="semiBold">
-              Owner Address:
-            </Text>
-            <Text fontSize={14}>{item.owner}</Text>
-          </View> 
-
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
-              Price
+              Coin Recieved
             </Text>
-            <Text fontSize={14}>{Number(item.price)}</Text>
+            <Text fontSize={14}>{Number(item.total_supply)}</Text>
           </View>
+
+         
         </View>
       )}
       ListEmptyComponent={<View style={{ paddingTop: 40 }}>
