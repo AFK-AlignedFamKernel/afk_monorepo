@@ -1,9 +1,12 @@
+import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 import {
-  LAUNCHPAD_ADDRESS,
-  STARTING_BLOCK,
-  TOKEN_DECIMALS
-} from "./constants.ts";
-import { Block, Decimal, hash, uint256, shortString, Pool } from "./deps.ts";
+  Block,
+  formatUnits,
+  hash,
+  uint256,
+  shortString,
+  Pool
+} from "./deps.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -69,21 +72,17 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       ? shortString.decodeShortString(name.replace(/0x0+/, "0x"))
       : "";
 
-    const initial_supply = new Decimal(
-      uint256
-        .uint256ToBN({ low: initial_supply_low, high: initial_supply_high })
-        .toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const initial_supply_raw = uint256.uint256ToBN({
+      low: initial_supply_low,
+      high: initial_supply_high
+    });
+    const initial_supply = formatUnits(initial_supply_raw, 18).toString();
 
-    const total_supply = new Decimal(
-      uint256
-        .uint256ToBN({ low: total_supply_low, high: total_supply_high })
-        .toString()
-    )
-      .div(TOKEN_DECIMALS)
-      .toString();
+    const total_supply_raw = uint256.uint256ToBN({
+      low: total_supply_low,
+      high: total_supply_high
+    });
+    const total_supply = formatUnits(total_supply_raw, 18).toString();
 
     return {
       memecoin_address: token_address,
