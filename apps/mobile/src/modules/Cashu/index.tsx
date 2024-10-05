@@ -24,6 +24,7 @@ import { ReceiveEcash } from './ReceiveEcash';
 import { SendEcash } from './SendEcash';
 import { HistoryTxCashu } from './HistoryTxCashu';
 import { NoMintBanner } from './NoMintBanner';
+import { ChevronLeftIcon, GlobeIcon, IndicatorIcon, MoreHorizontalIcon, MoreIcon, MoreVerticalIcon, ScanQrIcon, SlantedArrowIcon } from '../../assets/icons';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -112,6 +113,7 @@ export const CashuView = () => {
   const { showToast } = useToast()
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
+  const [showMore, setShowMore] = useState<boolean>(false);
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -187,27 +189,25 @@ export const CashuView = () => {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          { mintUrl
+          {mintUrl
             ? <BalanceCashu />
             : <NoMintBanner />
           }
-          <View style={styles.tabSelector}>
-            <Button onPress={onOpenSendModal}>
-              Send
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionButtonsContainer}>
+              <Button onPress={onOpenSendModal} style={styles.actionButton}>
+                Send
+              </Button>
+              <Button onPress={onOpenReceiveModal} style={styles.actionButton}>
+                Receive
+              </Button>
+            </View>
+            <Text style={styles.text}>or</Text>
+            <View>
+            <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
+              <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
             </Button>
-            <Button onPress={onOpenReceiveModal}>
-              Receive
-            </Button>
-            {/* 
-<Modalize ref={sendModalizeRef}>
-  <Modal
-  >
-    <Text>LFG</Text>
-
-  </Modal>
-
-
-</Modalize> */}
+            </View>
 
             <Modal
               style={{ zIndex: 10 }}
@@ -217,14 +217,14 @@ export const CashuView = () => {
               onRequestClose={() => setIsZapModalVisible(false)}
             >
               {/* <ZapUserView
-    isLoading={isLoading}
-    setIsZapModalVisible={setIsZapModalVisible}
-    setZapAmount={setZapAmount}
-    setZapRecipient={setZapRecipient}
-    zapAmount={zapAmount}
-    zapRecipient={zapRecipient}
-    handleZap={handleZap}
-  /> */}
+                isLoading={isLoading}
+                setIsZapModalVisible={setIsZapModalVisible}
+                setZapAmount={setZapAmount}
+                setZapRecipient={setZapRecipient}
+                zapAmount={zapAmount}
+                zapRecipient={zapRecipient}
+                handleZap={handleZap}
+              /> */}
             </Modal>
 
             <Modal
@@ -233,27 +233,39 @@ export const CashuView = () => {
               visible={isInvoiceModalVisible}
               onRequestClose={() => setIsInvoiceModalVisible(false)}
               style={{ zIndex: 10 }}
-
             >
-
               {/* <PayInfo
-    setInvoiceMemo={setInvoiceMemo}
-    setInvoiceAmount={setInvoiceAmount}
-    invoiceMemo={invoiceMemo}
-    invoiceAmount={invoiceAmount}
-    setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-    generateInvoice={generateInvoice}
-    isLoading={isLoading}
-  /> */}
+                setInvoiceMemo={setInvoiceMemo}
+                setInvoiceAmount={setInvoiceAmount}
+                invoiceMemo={invoiceMemo}
+                invoiceAmount={invoiceAmount}
+                setIsInvoiceModalVisible={setIsInvoiceModalVisible}
+                generateInvoice={generateInvoice}
+                isLoading={isLoading}
+              /> */}
             </Modal>
           </View>
+          
+          <View>
+            <Button
+              style={styles.moreButton}
+              right={<ChevronLeftIcon width={15} height={15} color={theme.colors.primary} style={showMore ? styles.lessButtonIcon : styles.moreButtonIcon} />}
+              onPress={() => setShowMore((prev) => !prev)}
+            >
+              {showMore ? 'Show less' : 'Show more'}
+            </Button>
+          </View>
 
-          <TabSelector
-            activeTab={selectedTab}
-            handleActiveTab={handleTabSelected}
-            buttons={TABS_CASHU}
-            addScreenNavigation={false}
-          ></TabSelector>
+          {
+            showMore && (
+              <TabSelector
+                activeTab={selectedTab}
+                handleActiveTab={handleTabSelected}
+                buttons={TABS_CASHU}
+                addScreenNavigation={false}
+              />
+            )
+          }
 
           {selectedTab == SelectedTab?.CASHU_INVOICES &&
             <View>
@@ -277,7 +289,6 @@ export const CashuView = () => {
           }
 
           {selectedTab == SelectedTab.CASHU_SETTINGS &&
-
             <View>
               <TouchableOpacity
                 onPress={() => {

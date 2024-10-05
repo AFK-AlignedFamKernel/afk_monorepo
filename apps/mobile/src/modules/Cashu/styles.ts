@@ -1,6 +1,7 @@
 import { Platform, StatusBar } from 'react-native';
 
 import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
+import { transform } from '@babel/core';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -256,5 +257,41 @@ export default ThemedStyleSheet((theme) => ({
     gap: 10,
     marginTop: 20,
     justifyContent: 'center'
+  },
+  actionsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: 20
+  },
+  actionButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 15,
+    marginTop: 20,
+    marginBottom: 20,
+    justifyContent: 'center',
+    width: '100%'
+  },
+  actionButton: {
+    flex: 1,
+    maxWidth: '40%',
+    backgroundColor: theme.colors.primary
+  },
+  qrButton: {
+    backgroundColor: 'transparent'
+  },
+  moreButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  moreButtonIcon: {
+    transform: 'rotate(270deg)',
+    marginLeft: 10
+  },
+  lessButtonIcon: {
+    transform: 'rotate(90deg)',
+    marginLeft: 10
   }
 }));

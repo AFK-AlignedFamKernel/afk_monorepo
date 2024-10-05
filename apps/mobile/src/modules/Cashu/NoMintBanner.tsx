@@ -14,7 +14,7 @@ export const NoMintBanner = () => {
 
   return (
     <View style={styles.banner}>
-      <InfoIcon width={30} height={30} color={theme.colors.primary} />
+      <InfoIcon width={35} height={35} color={theme.colors.primary} />
       <Text style={styles.bannerText}>
         Add a mint URL or receive ecash to get started.
       </Text>
