@@ -30,7 +30,13 @@ async function tokenStatsRoute(
         orderBy: { created_at: "desc" },
         select: {
           price: true,
-          liquidity_raised: true
+          liquidity_raised: true,
+          coin_received:true,
+          total_supply:true,
+          network:true,
+          last_price:true,
+          amount:true,
+          quote_amount:true
         }
       });
 

@@ -1,9 +1,9 @@
-import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
-import {LAUNCHPAD_ADDRESS} from 'common';
-import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
+import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
+import { LAUNCHPAD_ADDRESS } from 'common';
+import { AccountInterface, CallData, constants, RpcProvider } from 'starknet';
 
-import {TokenQuoteBuyKeys} from '../../types/keys';
-import {formatFloatToUint256} from '../../utils/format';
+import { TokenQuoteBuyKeys } from '../../types/keys';
+import { formatFloatToUint256 } from '../../utils/format';
 
 export const useSellCoin = () => {
   const account = useAccount();
@@ -20,40 +20,47 @@ export const useSellCoin = () => {
     // tokenQuote?: TokenQuoteBuyKeys,
     contractAddress?: string,
   ) => {
-    if (!account) return;
-    const addressContract =
-      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
-    // console.log('addressContract', addressContract);
-    // let launchpad_contract = await prepareAndConnectContract(
-    //     provider,
-    //     addressContract,
-    //     account
-    // );
+    try {
+      if (!account) return;
+      const addressContract =
+        contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+      // console.log('addressContract', addressContract);
+      // let launchpad_contract = await prepareAndConnectContract(
+      //     provider,
+      //     addressContract,
+      //     account
+      // );
 
-    const amountUint256 = formatFloatToUint256(amount);
-    // amountUint256 = uint256.bnToUint256(BigInt('0x' + amount));
+      const amountUint256 = formatFloatToUint256(amount);
+      // amountUint256 = uint256.bnToUint256(BigInt('0x' + amount));
 
-    const sellKeysParams = {
-      user_address, // token address
-      amount: amountUint256,
-      // amount: cairo.uint256(amount), // amount int. Float need to be convert with bnToUint
-    };
-    console.log('sellKeysParams', sellKeysParams);
+      const sellKeysParams = {
+        user_address, // token address
+        amount: amountUint256,
+        // amount: cairo.uint256(amount), // amount int. Float need to be convert with bnToUint
+      };
+      console.log('sellKeysParams', sellKeysParams);
 
-    const call = {
-      contractAddress: addressContract,
-      entrypoint: 'sell_coin',
-      calldata: CallData.compile({
-        user_address: sellKeysParams.user_address,
-        amount: sellKeysParams.amount,
-      }),
-    };
+      const call = {
+        contractAddress: addressContract,
+        entrypoint: 'sell_coin',
+        calldata: CallData.compile({
+          user_address: sellKeysParams.user_address,
+          amount: sellKeysParams.amount,
+        }),
+      };
 
-    console.log('Call', call);
-    const tx = await account?.execute([call], undefined, {});
-    console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      console.log('Call', call);
+      const tx = await account?.execute([call], undefined, {});
+      console.log('tx hash', tx.transaction_hash);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      return wait_tx
+    } catch (e) {
+      console.log("Error handleSellCoins", e)
+      return undefined;
+    }
+
   };
 
-  return {handleSellCoins};
+  return { handleSellCoins };
 };
