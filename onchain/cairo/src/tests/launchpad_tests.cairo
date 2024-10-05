@@ -240,6 +240,13 @@ mod launchpad_tests {
         launchpad.sell_coin(token_address, amount_quote);
     }
 
+    fn calculate_slope(total_supply: u256) -> u256 {
+        let liquidity_supply = total_supply / LIQUIDITY_RATIO;
+        let liquidity_available = total_supply - liquidity_supply;
+        let slope = (2 * THRESHOLD_LIQUIDITY) / (liquidity_available * (liquidity_available - 1));
+        slope
+    }
+
     #[test]
     fn launchpad_buy_with_amount() {
         println!("launchpad_buy_with_amount");
@@ -662,19 +669,12 @@ mod launchpad_tests {
         spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
     }
 
-    fn claculate_slope(total_supply: u256) -> u256 {
-        let liquidity_supply = total_supply / LIQUIDITY_RATIO;
-        let liquidity_available = total_supply - liquidity_supply;
-        let slope = (2 * THRESHOLD_LIQUIDITY) / (liquidity_available * (liquidity_available - 1));
-        slope
-    }
-
     #[test]
     fn test_create_and_launch_token() {
         let (_, erc20, launchpad) = request_fixture();
         let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
-        let slope = claculate_slope(DEFAULT_INITIAL_SUPPLY());
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
@@ -751,7 +751,7 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
         let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
-        let slope = claculate_slope(DEFAULT_INITIAL_SUPPLY());
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
@@ -874,7 +874,7 @@ mod launchpad_tests {
         assert(launched_token.liquidity_raised == 0_u256, 'wrong liquidation raised');
         assert(launched_token.token_holded == 0_u256, 'wrong token holded');
         assert(
-            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token qoute'
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
 
@@ -1222,7 +1222,7 @@ mod launchpad_tests {
 
     #[test]
     #[should_panic(expected: ("pool_update.liquidity_raised <= quote_amount",))]
-    fn test_sell_coin_when_qoute_amount_is_greaterthan_liquidity_raised() {
+    fn test_sell_coin_when_quote_amount_is_greaterthan_liquidity_raised() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
@@ -1246,7 +1246,7 @@ mod launchpad_tests {
     fn test_launchpad_end_to_end() {
         let (sender_address, erc20, launchpad) = request_fixture();
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
-        let slope = claculate_slope(DEFAULT_INITIAL_SUPPLY());
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
         let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
 
         // cheat_caller_address_global(sender_address);
