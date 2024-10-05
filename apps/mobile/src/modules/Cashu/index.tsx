@@ -249,8 +249,23 @@ export const CashuView = () => {
           <View>
             <Button
               style={styles.moreButton}
-              right={<ChevronLeftIcon width={15} height={15} color={theme.colors.primary} style={showMore ? styles.lessButtonIcon : styles.moreButtonIcon} />}
-              onPress={() => setShowMore((prev) => !prev)}
+              right={
+                <ChevronLeftIcon
+                  width={15}
+                  height={15}
+                  color={theme.colors.primary}
+                  style={showMore ? styles.lessButtonIcon : styles.moreButtonIcon}
+                />
+              }
+              onPress={() => {
+                setShowMore((prev) => !prev);
+                if (!showMore) {
+                  setSelectedTab(SelectedTab?.CASHU_MINT);
+                }
+                else {
+                  setSelectedTab(undefined);
+                }
+              }}
             >
               {showMore ? 'Show less' : 'Show more'}
             </Button>
@@ -263,6 +278,9 @@ export const CashuView = () => {
                 handleActiveTab={handleTabSelected}
                 buttons={TABS_CASHU}
                 addScreenNavigation={false}
+                containerStyle={styles.tabsContainer}
+                tabStyle={styles.tabs}
+                activeTabStyle={styles.active}
               />
             )
           }

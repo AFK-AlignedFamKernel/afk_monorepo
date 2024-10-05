@@ -315,5 +315,19 @@ export default ThemedStyleSheet((theme) => ({
   },
   activeMintText: {
     fontSize: 12
+  },
+  tabsContainer: {
+    justifyContent: 'center',
+    maxWidth: '100%'
+  },
+  tabs: {
+    backgroundColor: 'transparent',
+    color: theme.colors.text,
+    borderRadius: 0,
+    width: '30%'
+  },
+  active: {
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
   }
 }));

@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
 
 import {Button} from '../Button';
 
@@ -8,12 +8,19 @@ interface ITabSelector {
   activeTab: string | any;
   buttons?: {tab: any | string; title?: string; screen?: string}[];
   addScreenNavigation?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
+  tabStyle?: StyleProp<ViewStyle>;
+  activeTabStyle?: StyleProp<ViewStyle>;
 }
+
 const TabSelector: React.FC<ITabSelector> = ({
   activeTab,
   handleActiveTab,
   buttons,
   addScreenNavigation = true,
+  containerStyle,
+  tabStyle,
+  activeTabStyle
 }) => {
   const handlePress = (tab: string | any, screen?: string) => {
     if (addScreenNavigation) {
@@ -28,13 +35,13 @@ const TabSelector: React.FC<ITabSelector> = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={containerStyle ?? styles.container}
       >
         {buttons?.map((b, i) => {
           return (
             <Button
               key={i}
-              style={[styles.tab, activeTab === b?.tab ? styles.active : null]}
+              style={[tabStyle ?? styles.tab, activeTab === b?.tab ? activeTabStyle ?? styles.active : null]}
               onPress={() => handlePress(b?.tab, b?.screen)}
             >
               {b?.title}
