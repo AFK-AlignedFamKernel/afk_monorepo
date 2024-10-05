@@ -6,8 +6,7 @@
     "apps/*",
     "packages/*"
   ],
-  "prisma": {
-  },
+  "prisma": {},
   "scripts": {
     "build": "turbo run build",
     "build:website":"cd apps/website && pnpm run build",
@@ -38,13 +37,13 @@
     "contributors:generate": "all-contributors generate"
   },
   "dependencies": {
-    "prettier": "^2.8.8",
-    "turbo": "^1.13.2",
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "tsup": "^8.0.2",
+    "@prisma/client":"^5.18.0",
+    "prettier":"^2.8.8",
     "prisma":"5.18.0",
-    "@prisma/client": "^5.18.0"
+    "tsup":"^8.0.2",
+    "turbo":"^1.13.2"
   },
   "devDependencies": {
     "prisma": "^5.18.0",
@@ -54,5 +53,10 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "packageManager": "pnpm@8.15.9"
+  "packageManager": "pnpm@8.15.9",
+  "pnpm": {
+    "patchedDependencies": {
+      "@reown/appkit-siwe-react-native@1.0.0": "patches/@reown__appkit-siwe-react-native@1.0.0.patch"
+    }
+  }
 }

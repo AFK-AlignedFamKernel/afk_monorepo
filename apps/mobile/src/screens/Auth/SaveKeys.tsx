@@ -9,8 +9,9 @@ import {Button, Input, Text} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
-import {AuthSaveKeysScreenProps} from '../../types';
+import {AuthSaveKeysScreenProps, MainStackNavigationProps} from '../../types';
 import stylesheet from './styles';
+import { useNavigation } from '@react-navigation/native';
 
 export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   const {privateKey, publicKey} = route.params;
@@ -21,6 +22,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
 
+  const navigation = useNavigation<MainStackNavigationProps>()
   const handleCopy = async (type: 'privateKey' | 'publicKey') => {
     await Clipboard.setStringAsync(type === 'privateKey' ? privateKey : publicKey);
     showToast({type: 'info', title: 'Copied to clipboard'});
@@ -32,7 +34,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
       description: 'Please send your Nostr private key somewhere safe.',
       buttons: [
         {
-          type: 'primary',
+          type: "secondary",
           label: 'Copy private key',
           onPress: async () => {
             handleCopy("privateKey")
@@ -44,8 +46,9 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
           label: "Yes",
           onPress: async () => {
             setAuth(publicKey, privateKey);
-
             hideDialog();
+            // navigation.push("Feed")
+            navigation.push("Profile", {publicKey})
           },
         },
         {

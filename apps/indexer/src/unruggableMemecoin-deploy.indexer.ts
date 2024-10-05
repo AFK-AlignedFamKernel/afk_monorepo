@@ -1,7 +1,15 @@
-import { Block, hash, shortString, uint256, Pool } from "./deps.ts";
+import {
+  Block,
+  hash,
+  shortString,
+  uint256,
+  Pool,
+  formatUnits,
+  DECIMALS
+} from "./deps.ts";
 import { FACTORY_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -65,9 +73,11 @@ export default function DecodeUnruggableMemecoinDeploy({
     const symbol_decoded = shortString.decodeShortString(
       symbol.replace(/0x0+/, "0x")
     );
-    const initial_supply = uint256
-      .uint256ToBN({ low: initial_supply_low, high: initial_supply_high })
-      .toString();
+    const initial_supply_raw = uint256.uint256ToBN({
+      low: initial_supply_low,
+      high: initial_supply_high
+    });
+    const initial_supply = formatUnits(initial_supply_raw, DECIMALS).toString();
 
     return {
       network: "starknet-mainnet",
@@ -79,7 +89,7 @@ export default function DecodeUnruggableMemecoinDeploy({
       owner_address: owner,
       name: name_decoded,
       symbol: symbol_decoded,
-      initial_supply: initial_supply,
+      initial_supply,
       created_at: new Date().toISOString()
     };
   });
