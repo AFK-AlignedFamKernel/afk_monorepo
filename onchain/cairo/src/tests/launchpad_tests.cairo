@@ -25,7 +25,7 @@ mod launchpad_tests {
 
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash
+        get_block_timestamp, get_contract_address, ClassHash, class_hash::class_hash_const
     };
 
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
@@ -1035,5 +1035,165 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         launchpad.set_creator_fee_percent(MID_FEE_CREATOR);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_coin_creation_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_coin_creation(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_coin_creation_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_coin_creation(50_u256);
+    }
+
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_launch_creation_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_launch_creation(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_launch_creation_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_launch_creation(50_u256);
+    }
+
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_finish_percentage_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_finish_percentage(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_finish_percentage_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_finish_percentage(50_u256);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_threshold_liquidity_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_threshold_liquidity(50_u256);
+    }
+
+    #[test]
+    fn test_set_threshold_liquidity_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_threshold_liquidity(50_u256);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_address_jediswap_factory_v2_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_address_jediswap_factory_v2('jediswap'.try_into().unwrap());
+    }
+
+    #[test]
+    fn test_set_address_jediswap_factory_v2_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let jediswap_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_address_jediswap_factory_v2(jediswap_v2_addr);
+
+        let expected_event = LaunchpadEvent::SetJediwapV2Factory(
+            SetJediwapV2Factory { address_jediswap_factory_v2: jediswap_v2_addr }
+        );
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_address_jediswap_nft_router_v2_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_address_jediswap_nft_router_v2('jediswap'.try_into().unwrap());
+    }
+
+    #[test]
+    fn test_set_address_jediswap_nft_router_v2_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let jediswap_nft_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_address_jediswap_nft_router_v2(jediswap_nft_v2_addr);
+
+        let expected_event = LaunchpadEvent::SetJediwapNFTRouterV2(
+            SetJediwapNFTRouterV2 { address_jediswap_nft_router_v2: jediswap_nft_v2_addr }
+        );
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_exchanges_address_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        let jediswap_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        let exchange_addresses = array![(SupportedExchanges::Jediswap, jediswap_addr)].span();
+
+        launchpad.set_exchanges_address(exchange_addresses);
+    }
+
+    #[test]
+    fn test_set_exchanges_address_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let jediswap_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let exchange_addresses = array![(SupportedExchanges::Jediswap, jediswap_addr)].span();
+
+        launchpad.set_exchanges_address(exchange_addresses);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_class_hash_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_class_hash(class_hash_const::<'hash'>());
+    }
+
+    #[test]
+    fn test_set_class_hash_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_class_hash(class_hash_const::<'hash'>());
     }
 }

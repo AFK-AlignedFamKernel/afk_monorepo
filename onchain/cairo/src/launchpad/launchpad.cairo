@@ -331,6 +331,7 @@ pub mod LaunchpadMarketplace {
         fn set_exchanges_address(
             ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
         ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let mut dex = exchanges;
             // Add Exchanges configurations
             loop {
