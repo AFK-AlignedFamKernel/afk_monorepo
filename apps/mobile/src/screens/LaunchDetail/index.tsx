@@ -54,6 +54,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
   const [token, setToken] = useState<TokenDeployInterface | undefined>();
+  const [launch, setLaunch] = useState<TokenDeployInterface | undefined>();
 
   const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
 
@@ -76,7 +77,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, account?.address ?? "");
 
-  const { data: tokenData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
+  const { data: launchData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
@@ -98,11 +99,12 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
 
   useEffect(() => {
-    if (tokenData && tokenData.data) {
-      setTokens(tokenData?.data)
-      setToken(tokenData?.data)
+    if (launchData && launchData.data) {
+      setTokens(launchData?.data)
+      setToken(launchData?.data)
+      setLaunch(launchData.data)
     }
-  }, [tokenData]);
+  }, [launchData]);
 
 
   useEffect(() => {
@@ -111,7 +113,6 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   useEffect(() => {
     const data = transactionData || [];
-    console.log("data tx",data)
     setTransaction(data?.data);
   }, [transactionData]);
 
@@ -229,13 +230,15 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
         ></TabSelector>
 
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
-          {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
-            <>
-              <TokenLaunchDetail isViewDetailDisabled={true} launch={tokenData} />
-            </>
-          )}
+      
 
           <ScrollView>
+
+          {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
+            <>
+              <TokenLaunchDetail isViewDetailDisabled={true} launch={launch} isDisabledInfo={true} isDisabledForm/>
+            </>
+          )}
 
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
@@ -260,9 +263,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             )}
 
 
-            {selectedTab == SelectedTab.USER_SHARE && shares && (
+            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && (
               <>
-                <UserShare loading={sharesLoading} shares={shares} />
+                <UserShare loading={sharesLoading} shares={shares} coinAddress={launch?.memecoin_address}/>
               </>
             )}
 
