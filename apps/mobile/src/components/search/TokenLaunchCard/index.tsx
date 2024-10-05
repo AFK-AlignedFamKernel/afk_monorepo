@@ -128,7 +128,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         {token?.memecoin_address && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Meme Coin address:</Text>
-            <Text>{feltToAddress(BigInt(token.memecoin_address))}</Text>
+            <Text>{token?.memecoin_address}</Text>
           </View>
         )}
 
@@ -146,7 +146,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         {token?.owner && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Owner:</Text>
-            <Text>{feltToAddress(BigInt(token.owner))}</Text>
+            <Text>{token?.owner}</Text>
           </View>
         )}
 
