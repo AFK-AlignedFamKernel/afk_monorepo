@@ -3,7 +3,7 @@ import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer'
 import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
 import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
 
-import {TokenLaunchInterface} from './keys';
+import {TokenDeployInterface} from './keys';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
@@ -50,7 +50,7 @@ export type MainStackParams = {
   Feed: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
@@ -84,7 +84,7 @@ export type DegensAppStackParams = {
   Lightning: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
   Login: undefined;
   CreateAccount: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
@@ -107,7 +107,7 @@ export type DegensBottomStackParams = {
   Settings: undefined;
   Profile: {publicKey: string};
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
 
   Login: undefined;
   CreateAccount: undefined;
@@ -131,7 +131,7 @@ export type HomeBottomStackParams = {
   Settings: undefined;
   Profile: {publicKey: string};
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenLaunchInterface};
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
@@ -180,7 +180,7 @@ export type AuthImportKeysScreenProps = CompositeScreenProps<
 export type HomeNavigationProp = NativeStackNavigationProp<HomeBottomStackParams>;
 
 export type FeedScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<HomeBottomStackParams, 'Feed'>,
+  NativeStackScreenProps<HomeBottomStackParams| MainStackParams, 'Feed'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type UserProfileScreenProps = CompositeScreenProps<
@@ -317,7 +317,6 @@ export type LightningNetworkScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Lightning'>,
   NativeStackScreenProps<RootStackParams>
 >;
-
 
 export type CashuWalletScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Cashu'>,

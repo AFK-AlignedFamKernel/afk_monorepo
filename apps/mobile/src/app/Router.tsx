@@ -1,19 +1,28 @@
+// Hooks
+import { useEffect, useMemo, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
+import { useStyles, useTheme } from '../hooks';
+
+// Navigation Components
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from 'afk_nostr_sdk';
-import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, Linking, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
-import { Icon } from '../components';
-import { Navbar } from '../components/Navbar';
-import { useStyles, useTheme } from '../hooks';
+
+// Modules and Layout
 import GroupChatDetail from '../modules/Group/groupDetail/GroupChatDetail';
 import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
-import DegensSidebar from '../modules/Layout/degens-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
+import RightSidebar from '../modules/Layout/RightSideBar';
+
+// Components
+import { View } from 'react-native';
+import { Icon } from '../components';
+import { Navbar } from '../components/Navbar';
+
+// Screens
 import { CreateAccount } from '../screens/Auth/CreateAccount';
 import { ImportKeys } from '../screens/Auth/ImportKeys';
 import { Login } from '../screens/Auth/Login';
@@ -34,84 +43,53 @@ import { Profile } from '../screens/Profile';
 import { Search } from '../screens/Search';
 import { Settings } from '../screens/Settings';
 import { Tips } from '../screens/Tips';
-import { Whatever } from '../screens/Whatever';
-import { ThemedStyleSheet } from '../styles';
-import {
-  AuthStackParams,
-  DegensAppStackParams,
-  DegensBottomStackParams,
-  HomeBottomStackParams,
-  MainStackParams,
-  RootStackParams,
-} from '../types';
-import { retrievePublicKey } from '../utils/storage';
-import RightSidebar from '../modules/Layout/RightSideBar'
 import { CashuScreen } from '../screens/Cashu';
 import { WalletBTC } from '../screens/Wallet';
-const DrawerStack = createDrawerNavigator<MainStackParams>();
+
+// Styles
+import { StyleSheet } from 'react-native';
+import { ThemedStyleSheet } from '../styles';
+
+// Utilities
+import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
+import { retrievePublicKey } from '../utils/storage';
+
+// Icons
+import { IconNames } from '../components/Icon';
+import { useAuth } from 'afk_nostr_sdk';
+
+type TabBarIconProps = {
+  focused: boolean;
+  name: IconNames;
+};
+
+const TabBarIcon = ({ focused, name }: TabBarIconProps) => {
+  const styles = useStyles(stylesheet);
+  return (
+    <View style={styles.tabBarIcon}>
+      <Icon name={name} size={24} color={focused ? 'bottomBarActive' : 'bottomBarInactive'} />
+      {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
+    </View>
+  );
+};
+
+// different Stack definitions here
+const MainStack = createDrawerNavigator<MainStackParams>();
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const AuthStack = createDrawerNavigator<AuthStackParams>();
-// const AuthStack = createNativeStackNavigator<AuthStackParams>();
-const MainStack = createNativeStackNavigator<MainStackParams>();
 const HomeBottomTabsStack = createBottomTabNavigator<HomeBottomStackParams>();
-const DegensBottomTabsStack = createBottomTabNavigator<DegensBottomStackParams>();
 
-const DegensAppStack = createDrawerNavigator<DegensAppStackParams>();
-
-const RootNavigator: React.FC = () => {
-  const { publicKey } = useAuth();
-
-  const navigator = useNavigation<MainStackParams>()
-
-  useEffect(() => {
-    // Linking.getInitialURL().then(async (url) => {
-    //   if (url) {
-    //     console.log("url",url)
-    //     Linking.openURL(url);
-    //     // here I navigate based on the url via standard NavigationActions
-    //   }
-    // }).catch(err => console.error('An error occurred', err));
-  })
-
-
-  return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* <RootStack.Screen name="MainStack" component={MainNavigator} />
-      <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} /> */}
-      {publicKey ? (
-        <RootStack.Screen name="MainStack" component={MainNavigator} />
-      ) : (
-        <>
-          <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-          <RootStack.Screen name="MainStack" component={MainNavigator} />
-          <RootStack.Screen name="DegensStack" component={DegensAppNavigator} />
-        </>
-      )}
-    </RootStack.Navigator>
-  );
-};
-
-export const Router: React.FC = () => {
-  const isWeb = Platform.OS === 'web';
-  const windowWidth = Dimensions.get('window').width;
-  const shouldShowSidebar = isWeb && windowWidth >= 1024;
-  return (
-    <NavigationContainer 
-    linking={linking}
-    >
-      {/* {shouldShowSidebar && <Sidebar></Sidebar>} */}
-
-      <RootNavigator />
-    </NavigationContainer>
-  );
-};
-
+// Home Bottom Tab Navigator
 const HomeBottomTabNavigator: React.FC = () => {
+  const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
   const styles = useStyles(stylesheet);
-
-  const { publicKey } = useAuth();
   const { theme } = useTheme();
+
+  // useEffect(() => {
+  //   retrievePublicKey().then((key) => {
+  //     setPublicKey(key);
+  //   });
+  // }, []);
 
   return (
     <HomeBottomTabsStack.Navigator
@@ -128,16 +106,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="HomeIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
       />
 
@@ -147,36 +116,17 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="CoinIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
       />
 
       <HomeBottomTabsStack.Screen
         name="Games"
         component={Games as any}
-        // initialParams={{ publicKey }}
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="GameIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
       />
 
@@ -186,20 +136,11 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="PortfolioWallet"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
       />
 
-      {publicKey && (
+      {publicKey ? (
         <HomeBottomTabsStack.Screen
           name="UserProfile"
           component={Profile as any}
@@ -207,37 +148,17 @@ const HomeBottomTabNavigator: React.FC = () => {
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
-              <View style={styles.tabBarIcon}>
-                <Icon
-                  name="UserIcon"
-                  size={24}
-                  color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-                />
-                {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-              </View>
-            ),
+            tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
           }}
         />
-      )}
-
-      {!publicKey && (
+      ) : (
         <HomeBottomTabsStack.Screen
           name="Login"
           component={Login as any}
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
-              <View style={styles.tabBarIcon}>
-                <Icon
-                  name="UserIcon"
-                  size={24}
-                  color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-                />
-                {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-              </View>
-            ),
+            tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
           }}
         />
       )}
@@ -245,45 +166,55 @@ const HomeBottomTabNavigator: React.FC = () => {
   );
 };
 
+// Auth Navigator
 const AuthNavigator: React.FC = () => {
-  const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
   const dimensions = useWindowDimensions();
   const isDesktop = useMemo(() => {
     return dimensions.width >= 1024;
-  }, [dimensions]); // Adjust based on your breakpoint for desktop
+  }, [dimensions]);
+
+  const { publicKey } = useAuth()
+  // const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
 
   const theme = useTheme();
 
-  useEffect(() => {
-    retrievePublicKey().then((key) => {
-      setPublicKey(key);
-    });
-  });
+  // useEffect(() => {
+  //   retrievePublicKey().then((key) => {
+  //     setPublicKey(key);
+  //   });
+  // }, []);
 
-  if (publicKey === undefined) return null;
+  // if (publicKey === undefined) return null;
 
   return (
     <AuthStack.Navigator
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
       screenOptions={({ navigation }) => ({
-        // headerShown:false,
-        header: () =>
-          !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
+        header: () => <></>,
+        //    header: () =>!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
         drawerType: isDesktop ? 'permanent' : 'front',
-        // drawerType:"permanent",
         headerTintColor: theme.theme.colors.text,
-        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
-        // swipeEdgeWidth: 0
+        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background,
         drawerStyle: {
-          width: '20%', // Adjust width or other styling as necessary
+          width: '20%',
         },
       })}
     >
-      {publicKey && <AuthStack.Screen name="Login" component={Login} />}
+      {/* {publicKey ?
+        <>
+          <AuthStack.Screen name="CreateAccount" component={CreateAccount} />
+          <AuthStack.Screen name="Login" component={Login} />
+        </> :
+        <>
+          <AuthStack.Screen name="CreateAccount" component={CreateAccount} />
+          <AuthStack.Screen name="Login" component={Login} />
+        </>
+      } */}
+      <AuthStack.Screen name="Login" component={Login} />
       <AuthStack.Screen name="CreateAccount" component={CreateAccount} />
       <AuthStack.Screen name="SaveKeys" component={SaveKeys} />
       <AuthStack.Screen name="ImportKeys" component={ImportKeys} />
@@ -291,44 +222,12 @@ const AuthNavigator: React.FC = () => {
   );
 };
 
-const DrawerRightDesktop = createDrawerNavigator();
-
-const RightDrawerNavigator = () => {
-  const dimensions = useWindowDimensions();
-  const isDesktop = useMemo(() => {
-    return dimensions.width >= 1024;
-  }, [dimensions]); // Adjust based on your breakpoint for desktop
-
-  const theme = useTheme();
-
-  return (
-    <DrawerRightDesktop.Navigator
-      // initialRouteName="RightDrawer"
-      drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
-      screenOptions={({ navigation }) => ({
-        // drawerPosition: "right",
-        drawerType: isDesktop ? 'permanent' : 'front',
-        // drawerType:"permanent",
-        headerTintColor: theme.theme.colors.text,
-        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
-        // swipeEdgeWidth: 0
-        drawerStyle: {
-          // maxWidth:270,
-          // width: '15%', // Adjust width or other styling as necessary
-          width: 250, // Adjust width or other styling as necessary
-        },
-      })}
-    >
-      <DrawerRightDesktop.Screen name="Whatever" component={Whatever} />
-    </DrawerRightDesktop.Navigator>
-  );
-};
-
+// Main Navigator
 const MainNavigator: React.FC = () => {
   const dimensions = useWindowDimensions();
   const isDesktop = useMemo(() => {
     return dimensions.width >= 1024;
-  }, [dimensions]); // Adjust based on your breakpoint for desktop
+  }, [dimensions]);
 
   const theme = useTheme();
 
@@ -344,12 +243,11 @@ const MainNavigator: React.FC = () => {
   );
 
   return (
-    <DrawerStack.Navigator
-      // screenOptions={{ headerShown: false }}
+    <MainStack.Navigator
       // initialRouteName="Home"
+      initialRouteName="Feed"
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({ navigation }) => ({
-        // headerShown:false,
         header: () =>
           !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
@@ -357,302 +255,140 @@ const MainNavigator: React.FC = () => {
           backgroundColor: theme.theme.colors.background,
         },
         drawerType: isDesktop ? 'permanent' : 'front',
-        // drawerType:"permanent",
         headerTintColor: theme.theme.colors.text,
         overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
-        // swipeEdgeWidth: 0
         drawerStyle: {
-          // maxWidth:270,
-          // width: '15%', // Adjust width or other styling as necessary
-          width: 250, // Adjust width or other styling as necessary
+          width: 250,
         },
       })}
-      initialRouteName='Home'
     >
-      {!isDesktop ? (
-        <DrawerStack.Screen name="Home" component={HomeBottomTabNavigator} />
+      <MainStack.Screen name="Auth" component={AuthNavigator} />
+      <MainStack.Screen name="Feed" component={FeedWithSidebar} />
+
+      {!isDesktop && (
+        <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
+      )}
+
+      <MainStack.Screen name="Profile" component={Profile} />
+      <MainStack.Screen name="EditProfile" component={EditProfile} />
+      <MainStack.Screen name="CreatePost" component={CreatePost} />
+      <MainStack.Screen name="PostDetail" component={PostDetail} />
+      <MainStack.Screen name="ChannelDetail" component={ChannelDetail} />
+      <MainStack.Screen name="Search" component={Search} />
+      <MainStack.Screen name="CreateChannel" component={CreateChannel} />
+      <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
+      <MainStack.Screen name="CreateForm" component={CreateForm} />
+      <MainStack.Screen name="Defi" component={Defi} />
+      <MainStack.Screen name="Games" component={Games} />
+      <MainStack.Screen name="GroupChat" component={GroupChat} />
+      <MainStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
+      <MainStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
+      <MainStack.Screen name="Tips" component={Tips} />
+      <MainStack.Screen name="Settings" component={Settings} />
+      <MainStack.Screen name="LaunchDetail" component={LaunchDetail} />
+      <MainStack.Screen name="Lightning" component={LightningNetworkScreen} />
+      <MainStack.Screen name="Cashu" component={CashuScreen} />
+      <MainStack.Screen name="WalletBTC" component={WalletBTC} />
+
+      <MainStack.Screen name="Login" component={Login} />
+      <MainStack.Screen name="CreateAccount" component={CreateAccount} />
+      <MainStack.Screen name="SaveKeys" component={SaveKeys} />
+      <MainStack.Screen name="ImportKeys" component={ImportKeys} />
+    </MainStack.Navigator>
+  );
+};
+
+// Root Navigator
+const RootNavigator: React.FC = () => {
+  // const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
+
+  // useEffect(() => {
+  //   retrievePublicKey().then((key) => {
+  //     setPublicKey(key);
+  //   });
+  // }, []);
+
+  const { publicKey } = useAuth()
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {/* {publicKey ? (
+        <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (
-        <DrawerStack.Screen name="Feed" component={FeedWithSidebar} />
-      )}
-      {isDesktop && (
-        <DrawerStack.Screen
-          name="RightDrawer"
-          component={RightDrawerNavigator}
-        ></DrawerStack.Screen>
-      )}
-
-      <DrawerStack.Screen name="Profile" component={Profile} />
-      <DrawerStack.Screen name="EditProfile" component={EditProfile} />
-      <DrawerStack.Screen name="CreatePost" component={CreatePost} />
-      <DrawerStack.Screen name="PostDetail" component={PostDetail} />
-      <DrawerStack.Screen name="ChannelDetail" component={ChannelDetail} />
-      <DrawerStack.Screen name="Search" component={Search} />
-      <DrawerStack.Screen name="CreateChannel" component={CreateChannel} />
-      <DrawerStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
-      <DrawerStack.Screen name="CreateForm" component={CreateForm} />
-      <DrawerStack.Screen name="Defi" component={Defi} />
-      <DrawerStack.Screen name="Games" component={Games} />
-      <DrawerStack.Screen name="GroupChat" component={GroupChat} />
-      <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
-      <DrawerStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
-
-      <DrawerStack.Screen name="Tips" component={Tips} />
-      <DrawerStack.Screen name="Settings" component={Settings} />
-      <DrawerStack.Screen name="LaunchDetail" component={LaunchDetail} />
-      <DrawerStack.Screen name="Auth" component={AuthNavigator} />
-      <DrawerStack.Screen name="Login" component={Login} />
-      <DrawerStack.Screen name="Lightning" component={LightningNetworkScreen} />
-      <DrawerStack.Screen name="Cashu" component={CashuScreen} />
-      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
-    </DrawerStack.Navigator>
+        <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+      )} */}
+      {/* <RootStack.Screen name="AuthStack" component={AuthNavigator} /> */}
+      <RootStack.Screen name="MainStack" component={MainNavigator} />
+    </RootStack.Navigator>
   );
 };
 
-const DegensBottomTabNavigator: React.FC = () => {
-  const styles = useStyles(stylesheet);
-
-  const { publicKey } = useAuth();
-  const { theme } = useTheme();
-
+export const Router = () => {
   return (
-    <DegensBottomTabsStack.Navigator
-      sceneContainerStyle={styles.sceneContainer}
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
-      }}
-    >
-      <DegensBottomTabsStack.Screen
-        name="Defi"
-        component={Defi}
-        options={{
-          tabBarActiveTintColor: 'white',
-          tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="MoonIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
-        }}
-      />
-
-      <DegensBottomTabsStack.Screen
-        name="Tips"
-        component={Tips}
-        options={{
-          tabBarActiveTintColor: 'white',
-          tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="CoinIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
-        }}
-      />
-
-      <DegensBottomTabsStack.Screen
-        name="Games"
-        component={Games as any}
-        // initialParams={{ publicKey }}
-        options={{
-          tabBarActiveTintColor: 'white',
-          tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.tabBarIcon}>
-              <Icon
-                name="GameIcon"
-                size={24}
-                color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-              />
-              {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-            </View>
-          ),
-        }}
-      />
-
-      {!publicKey && (
-        <DegensBottomTabsStack.Screen
-          name="Login"
-          component={Login as any}
-          options={{
-            tabBarActiveTintColor: 'white',
-            tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => (
-              <View style={styles.tabBarIcon}>
-                <Icon
-                  name="UserIcon"
-                  size={24}
-                  color={focused ? 'bottomBarActive' : 'bottomBarInactive'}
-                />
-                {focused && <Icon name="IndicatorIcon" color="primary" size={6} />}
-              </View>
-            ),
-          }}
-        />
-      )}
-    </DegensBottomTabsStack.Navigator>
+    <NavigationContainer linking={linking}>
+      <RootNavigator />
+    </NavigationContainer>
   );
 };
-
-const DegensAppNavigator: React.FC = () => {
-  const dimensions = useWindowDimensions();
-  const isDesktop = useMemo(() => {
-    return dimensions.width >= 1024;
-  }, [dimensions]); // Adjust based on your breakpoint for desktop
-
-  const theme = useTheme();
-
-  return (
-    <DegensAppStack.Navigator
-      // screenOptions={{ headerShown: false }}
-      // initialRouteName="Home"
-      drawerContent={(props) => <DegensSidebar navigation={props?.navigation}></DegensSidebar>}
-      screenOptions={({ navigation }) => ({
-        // headerShown:false,
-        header: () => <Navbar navigation={navigation} title="AFK" showLogo={true} />,
-        headerStyle: {
-          backgroundColor: theme.theme.colors.background,
-        },
-        drawerType: isDesktop ? 'permanent' : 'front',
-        // drawerType:"permanent",
-        headerTintColor: theme.theme.colors.text,
-        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
-        // swipeEdgeWidth: 0
-        drawerStyle: {
-          // maxWidth:270,
-          // width: '15%', // Adjust width or other styling as necessary
-          width: 250, // Adjust width or other styling as necessary
-        },
-      })}
-    >
-      {!isDesktop && <DegensAppStack.Screen name="Home" component={DegensBottomTabNavigator} />}
-      <DrawerStack.Screen name="Feed" component={Feed} />
-
-      <DegensAppStack.Screen name="Login" component={Login} />
-      <DrawerStack.Screen name="Auth" component={AuthNavigator} />
-      <DrawerStack.Screen name="ChannelDetail" component={ChannelDetail} />
-      <DrawerStack.Screen name="CreateChannel" component={CreateChannel} />
-      <DrawerStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
-      <DegensAppStack.Screen name="Profile" component={Profile} />
-      <DrawerStack.Screen name="PostDetail" component={PostDetail} />
-      <DegensAppStack.Screen name="Games" component={Games} />
-      <DegensAppStack.Screen name="Defi" component={Defi} />
-      <DrawerStack.Screen name="GroupChat" component={GroupChat} />
-      <DrawerStack.Screen name="GroupChatDetail" component={GroupChatDetail} />
-      <DrawerStack.Screen name="GroupChatMemberRequest" component={GroupChatGroupRequest} />
-
-      {/* Degens */}
-      <DegensAppStack.Screen name="Tips" component={Tips} />
-      <DegensAppStack.Screen name="CreatePost" component={CreatePost} />
-      <DegensAppStack.Screen name="CreateForm" component={CreateForm} />
-      <DegensAppStack.Screen name="Settings" component={Settings} />
-      <DegensAppStack.Screen name="LaunchDetail" component={LaunchDetail} />
-
-
-      <DegensAppStack.Screen name="Lightning" component={LightningNetworkScreen} />
-      <DrawerStack.Screen name="Cashu" component={CashuScreen} />
-      <DrawerStack.Screen name="WalletBTC" component={WalletBTC} />
-
-    </DegensAppStack.Navigator>
-  );
-};
-// const MainNavigator: React.FC = () => {
-//   const dimensions = useWindowDimensions();
-//   const isDesktop = dimensions.width >= 768; // Adjust based on your breakpoint for desktop
-//   return (
-//     <MainStack.Navigator screenOptions={{ headerShown: false }}
-//     >
-//       <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
-//       <MainStack.Screen name="Profile" component={Profile} />
-//       <MainStack.Screen name="EditProfile" component={EditProfile} />
-//       <MainStack.Screen name="CreatePost" component={CreatePost} />
-//       <MainStack.Screen name="PostDetail" component={PostDetail} />
-//       <MainStack.Screen name="ChannelDetail" component={ChannelDetail} />
-//       <MainStack.Screen name="Search" component={Search} />
-//       <MainStack.Screen name="CreateChannel" component={CreateChannel} />
-//       <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
-//       <MainStack.Screen name="CreateForm" component={CreateForm} />
-//       <MainStack.Screen name="Defi" component={Defi} />
-//       <MainStack.Screen name="Games" component={Games} />
-//     </MainStack.Navigator>
-//   );
-// };
 
 const linking = {
-  prefixes: [
-    // "http://localhost:8081",
-    // "https://afk-community.xyz",
-    'home',
-    'search',
-    'profile/:publicKey',
-    'details/:id',
-    /* your linking prefixes */
-  ],
+  prefixes: ['https://afk-community.xyz', 'afk://'],
   config: {
     screens: {
-      Home: 'home',
-
+      AuthStack: {
+        path: 'auth',
+        screens: {
+          Login: 'login',
+          CreateAccount: 'create-account',
+          SaveKeys: 'save-keys',
+          ImportKeys: 'import-keys',
+        },
+      },
       MainStack: {
         path: 'app',
-        // screen:MainStack
-        // screens:{
-
-        // } 
-      },
-      DegensStack: 'degens',
-      Menu: 'menu',
-      Search: 'search',
-      AuthStack: {
-        path: 'auth'
-      },
-      Feed: 'feed',
-      ImportKeys: 'import-keys',
-      KeysMarketplace: 'keys-marketplace',
-      CreateChannel: 'create-channel',
-      CreateForm: 'create-form',
-      EditProfile: 'edit-profile',
-      Launchpad: 'launchpad',
-      LaunchToken: 'launch-token',
-      Games: 'games',
-      Defi: {
-        path: "defi",
-        // screens:{}
-      },
-      Settings: 'settings',
-      Tips: 'Tips',
-      ChannelDetail: {
-        path: 'channel/:publicKey', // Example of a path with a parameter
-        parse: {
-          id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
+        screens: {
+          Home: 'home',
+          Feed: 'feed',
+          Profile: {
+            path: 'profile/:publicKey',
+            parse: {
+              publicKey: (publicKey: any) => `${publicKey}`,
+            },
+          },
+          EditProfile: 'edit-profile',
+          CreatePost: 'create-post',
+          PostDetail: {
+            path: 'post/:id',
+            parse: {
+              id: (id: any) => `${id}`,
+            },
+          },
+          ChannelDetail: {
+            path: 'channel/:publicKey',
+            parse: {
+              publicKey: (publicKey: any) => `${publicKey}`,
+            },
+          },
+          Search: 'search',
+          CreateChannel: 'create-channel',
+          ChannelsFeed: 'channels',
+          CreateForm: 'create-form',
+          Defi: 'defi',
+          Games: 'games',
+          Tips: 'tips',
+          Settings: 'settings',
+          LaunchDetail: {
+            path: 'launch/:id',
+            parse: {
+              id: (id: any) => `${id}`,
+            },
+          },
+          Lightning: 'lightning',
+          Cashu: 'cashu',
+          WalletBTC: 'wallet-btc',
+          KeysMarketplace: 'keys-marketplace',
+          Launchpad: 'launchpad',
+          LaunchToken: 'launch-token',
         },
-      },
-      Details: {
-        path: 'profile/:publicKey', // Example of a path with a parameter
-        parse: {
-          id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
-        },
-      },
-      Profile: {
-        path: 'profile/nostr/', // Example of a path with a parameter
-        parse: {
-          id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
-        },
-
-        // path: 'details/:id', // Example of a path with a parameter
-        // parse: {
-        //   id: (id: any) => `${id}`, // Convert the id from the URL to a string, if needed
-        // },
       },
     },
   },
@@ -662,15 +398,6 @@ const stylesheet = ThemedStyleSheet((theme) => ({
   sceneContainer: {
     backgroundColor: theme.colors.background,
   },
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-
   tabBar: {
     backgroundColor: theme.colors.surface,
     borderTopColor: theme.colors.divider,

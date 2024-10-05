@@ -1,6 +1,4 @@
-import { hash, uint256, formatUnits, Block } from "./deps.ts";
-
-const DECIMALS = 18;
+import { hash, uint256, formatUnits, Block, DECIMALS } from "./deps.ts";
 
 export const config = {
   streamUrl: "https://sepolia.starknet.a5a.ch",

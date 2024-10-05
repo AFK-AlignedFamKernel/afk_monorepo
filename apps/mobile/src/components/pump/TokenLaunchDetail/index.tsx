@@ -1,30 +1,31 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { Fraction } from '@uniswap/sdk-core';
-import { useProfile } from 'afk_nostr_sdk';
-import { ImageSourcePropType, View } from 'react-native';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {Fraction} from '@uniswap/sdk-core';
+import {useProfile} from 'afk_nostr_sdk';
+import {ImageSourcePropType, View} from 'react-native';
 
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenLaunchInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { decimalsScale } from '../../../utils/helpers';
-import { Button } from '../../Button';
-import { Text } from '../../Text';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {decimalsScale} from '../../../utils/helpers';
+import {Button} from '../../Button';
+import {Text} from '../../Text';
 import stylesheet from './styles';
-import { LaunchActionsForm } from '../../LaunchActionsForm';
-import { useState } from 'react';
-import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
-import { useWalletModal } from '../../../hooks/modals';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
+import {useState} from 'react';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useWalletModal} from '../../../hooks/modals';
+import { AddressComponent } from '../../AddressComponent';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
   name?: string;
   event?: NDKEvent;
   profileProps?: NDKUserProfile;
-  launch?: TokenLaunchInterface;
+  launch?: TokenDeployInterface;
   isViewDetailDisabled?: boolean;
   isDisabledInfo?: boolean;
   isDisabledForm?: boolean;
@@ -38,17 +39,17 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   event,
   isViewDetailDisabled,
   isDisabledInfo,
-  isDisabledForm
+  isDisabledForm,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
   const [amount, setAmount] = useState<number | undefined>();
 
   const styles = useStyles(stylesheet);
 
-  const { handleSellCoins } = useSellCoin();
+  const {handleSellCoins} = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
   const onConnect = async () => {
@@ -87,7 +88,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
     // handleSellKeys(account?.account, launch?.owner, Number(amount), launch?.token_quote, undefined)
     handleSellCoins(
       account?.account,
-      feltToAddress(BigInt(launch?.token_address)),
+      feltToAddress(BigInt(launch?.memecoin_address)),
       Number(amount),
       launch?.token_quote,
       undefined,
@@ -109,7 +110,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
     // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
     handleBuyCoins(
       account?.account,
-      feltToAddress(BigInt(launch?.token_address)),
+      feltToAddress(BigInt(launch?.memecoin_address)),
       Number(amount),
       launch?.token_quote,
     );
@@ -118,10 +119,10 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   return (
     <View style={styles.container}>
       <View>
-        {launch?.token_address && (
+        {launch?.memecoin_address && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Coin address:</Text>
-            <Text>{feltToAddress(BigInt(launch.token_address))}</Text>
+            <AddressComponent address={feltToAddress(BigInt(launch.memecoin_address))} />
           </View>
         )}
 
@@ -132,21 +133,18 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           </View>
         )}
 
-
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Supply:</Text>
           <Text>{Number(launch?.total_supply) / 10 ** 18}</Text>
         </View>
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Price:</Text>
-          <Text>{Number(launch?.price)}</Text>
+          <Text>{Number(launch?.price ?? 0)}</Text>
         </View>
-
       </View>
 
-      {!isDisabledInfo &&
+      {!isDisabledInfo && (
         <>
-
           <View>
             {launch?.threshold_liquidity && (
               <View style={styles.borderBottom}>
@@ -187,29 +185,24 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             </View>
           )}
         </>
+      )}
 
-      }
-
-      {!isDisabledForm &&
-
+      {!isDisabledForm && (
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
           onSellPress={sellKeys}
         ></LaunchActionsForm>
-      }
-
-
+      )}
 
       {!isViewDetailDisabled && (
         <View>
           {' '}
           <Button
             onPress={() => {
-              if (launch && launch?.token_address) {
+              if (launch && launch?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {
-                  coinAddress: feltToAddress(BigInt(launch?.token_address)),
-                  launch,
+                  coinAddress: feltToAddress(BigInt(launch?.memecoin_address)),
                 });
               }
             }}

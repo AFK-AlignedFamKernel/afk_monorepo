@@ -1,7 +1,7 @@
-import { Block, hash, uint256, Pool } from "./deps.ts";
+import { Block, hash, uint256, Pool, formatUnits, DECIMALS } from "./deps.ts";
 import { FACTORY_ADDRESS, STARTING_BLOCK } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -62,14 +62,18 @@ export default function DecodeUnruggableMemecoinLaunch({
   return (events ?? []).map(({ event, transaction }) => {
     if (!event.data || !event.keys) return;
 
-    const transactionHash = transaction.meta.hash;
-    const transferId = `${transactionHash}_${event.index ?? 0}`;
-    const fromAddress = event.keys[1];
-    const toAddress = event.keys[2];
-    const amount = uint256.uint256ToBN({
-      low: event.data[0],
-      high: event.data[1]
+    const transaction_hash = transaction.meta.hash;
+    const transfer_id = `${transaction_hash}_${event.index}`;
+
+    const [from_address, to_address] = event.keys!;
+
+    const [amount_low, amount_high] = event.data;
+
+    const amount_raw = uint256.uint256ToBN({
+      low: amount_low,
+      high: amount_high
     });
+    const amount = formatUnits(amount_raw, DECIMALS).toString();
     const memecoin_address = event.fromAddress;
 
     return {
@@ -77,12 +81,12 @@ export default function DecodeUnruggableMemecoinLaunch({
       block_hash: blockHash,
       block_number: Number(blockNumber),
       block_timestamp: timestamp,
-      transaction_hash: transactionHash,
-      transfer_id: transferId,
-      from_address: fromAddress,
-      to_address: toAddress,
-      memecoin_address: memecoin_address,
-      amount: amount.toString(10),
+      transaction_hash,
+      transfer_id,
+      from_address,
+      to_address,
+      memecoin_address,
+      amount,
       created_at: new Date().toISOString()
     };
   });

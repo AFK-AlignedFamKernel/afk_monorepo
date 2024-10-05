@@ -1,6 +1,6 @@
-
+import React from 'react';
 import '@walletconnect/react-native-compat'
-import { WagmiProvider } from 'wagmi';
+import { createConfig, WagmiProvider } from 'wagmi';
 import {
     mainnet,
     polygon,
@@ -13,12 +13,11 @@ import {
     QueryClientProvider,
     QueryClient,
 } from "@tanstack/react-query";
-import { Chain } from "viem";
-import { createAppKit, defaultWagmiConfig, AppKit } from '@reown/appkit-wagmi-react-native'
+import { Chain, http } from "viem";
+import { AppKit, AppKitButton, createAppKit, defaultWagmiConfig } from '@reown/appkit-wagmi-react-native'
 import { authConnector } from '@reown/appkit-auth-wagmi-react-native';
-// import { siweConfig } from './SiweUtils';
+import { siweConfig } from './SiweUtils';
 import * as Clipboard from 'expo-clipboard';
-
 const queryClient = new QueryClient();
 
 // 1. Get projectId at https://cloud.reown.com
@@ -60,9 +59,9 @@ const kakarotEvm: Chain = {
 
 const clipboardClient = {
     setString: async (value: string) => {
-      await Clipboard.setStringAsync(value);
+        await Clipboard.setStringAsync(value);
     }
-  };
+};
 const auth = authConnector({ projectId, metadata });
 const chains = [
     mainnet,
@@ -73,12 +72,22 @@ const wagmiConfig = defaultWagmiConfig({
     extraConnectors: [auth],
 })
 
+const config = createConfig({
+    chains: [mainnet, sepolia],
+    transports: {
+        [mainnet.id]: http(),
+        [sepolia.id]: http(),
+    },
+})
+
+
 // 3. Create modal
 createAppKit({
     projectId,
     wagmiConfig,
+    // wagmiConfig:config,
     defaultChain: kakarotEvm, // Optional
-    // siweConfig,
+    siweConfig,
     enableAnalytics: false // Optional - defaults to your Cloud configuration
 })
 
@@ -96,6 +105,8 @@ export const EVMProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
                 {/* <RainbowKitProvider> */}
                 {/* Your App */}
                 {children}
+                {/* <AppKit/> */}
+                {/* <AppKitButton /> */}
                 {/* </RainbowKitProvider> */}
             </QueryClientProvider>
         </WagmiProvider>
