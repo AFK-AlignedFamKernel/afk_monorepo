@@ -22,7 +22,7 @@ export const useCashu = () => {
     const { setSeed, seed, mnemonic, setMnemonic } = useCashuStore()
 
     // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-    const [mintUrl, setMintUrl] = useState<string >("https://mint.minibits.cash/Bitcoin")
+    const [mintUrl, setMintUrl] = useState<string>('')
     const [mintProps, setMint] = useState<CashuMint>(new CashuMint(mintUrl ?? "https://mint.minibits.cash/Bitcoin"))
 
     const mint = useMemo(() => {

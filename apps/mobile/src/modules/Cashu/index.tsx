@@ -1,25 +1,20 @@
 import '../../../applyGlobalPolyfills';
 
-import { webln } from '@getalby/sdk';
-import { useAuth, useCashu, useCashuStore, useSendZap } from 'afk_nostr_sdk';
-import * as Clipboard from 'expo-clipboard';
+import { useCashu, useCashuStore } from 'afk_nostr_sdk';
 import React, { SetStateAction, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
-import { WebView } from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, IconButton, Input, Modalize } from '../../components';
+import { Button, IconButton, Modalize } from '../../components';
 import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
 import { MintQuoteResponse } from '@cashu/cashu-ts';
-import { CopyIconStack } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
-import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
+import { retrieveAndDecryptCashuMnemonic, retrievePassword } from '../../utils/storage';
 import TabSelector from '../../components/TabSelector';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { GenerateInvoiceCashu } from './GenerateInvoiceCashu';
 import { BalanceCashu } from './BalanceCashu';
 import { MnemonicCashu } from './MnemonicCashu';
 import { InvoicesListCashu } from './InvoicesListCashu';
@@ -28,18 +23,7 @@ import { useModal } from '../../hooks/modals/useModal';
 import { ReceiveEcash } from './ReceiveEcash';
 import { SendEcash } from './SendEcash';
 import { HistoryTxCashu } from './HistoryTxCashu';
-
-// Get Lighting Address:
-// const lightningAddress = new LightningAddress('hello@getalby.com');
-// await lightningAddress.fetch();
-// const invoice = await lightningAddress.requestInvoice({
-//           satoshi: 1,
-//  });
-// setPaymentRequest(invoice.paymentRequest);
-// } catch (error) {
-// console.error(error);
-//  }
-//  })();
+import { NoMintBanner } from './NoMintBanner';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -52,7 +36,9 @@ export const CashuWalletView: React.FC = () => {
 
 export const CashuView = () => {
 
-  const { wallet, connectCashMint,
+  const {
+    wallet,
+    connectCashMint,
     connectCashWallet,
     requestMintQuote,
     generateMnemonic,
@@ -62,8 +48,6 @@ export const CashuView = () => {
     setMintUrl,
     setMintInfo,
     getMintInfo
-
-
   } = useCashu()
 
 
@@ -104,8 +88,9 @@ export const CashuView = () => {
       setMintInfo(info)
     })();
 
-    
+
   }, [mintUrl]);
+
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
@@ -201,31 +186,16 @@ export const CashuView = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-
-
-
-
         <ScrollView contentContainerStyle={styles.scrollView}>
-
-          {selectedTab == SelectedTab?.CASHU_WALLET &&
-            <>
-              {/* <GenerateInvoiceCashu></GenerateInvoiceCashu> */}
-            </>
+          { mintUrl
+            ? <BalanceCashu />
+            : <NoMintBanner />
           }
-          <BalanceCashu></BalanceCashu>
-
-
           <View style={styles.tabSelector}>
-
-            <Button
-              onPress={onOpenSendModal}
-            >
+            <Button onPress={onOpenSendModal}>
               Send
             </Button>
-
-            <Button
-              onPress={onOpenReceiveModal}
-            >
+            <Button onPress={onOpenReceiveModal}>
               Receive
             </Button>
             {/* 
@@ -296,8 +266,6 @@ export const CashuView = () => {
             <View>
               <Text>History</Text>
               <HistoryTxCashu></HistoryTxCashu>
-
-
             </View>
           }
 
@@ -311,18 +279,14 @@ export const CashuView = () => {
           {selectedTab == SelectedTab.CASHU_SETTINGS &&
 
             <View>
-
               <TouchableOpacity
                 onPress={() => {
                   connectCashWallet(mint,)
                 }}
               >Connect Cashu</TouchableOpacity>
-
               <MnemonicCashu></MnemonicCashu>
-
             </View>
           }
-
         </ScrollView>
       </SafeAreaView>
     </View>

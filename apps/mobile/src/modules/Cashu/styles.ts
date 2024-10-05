@@ -59,9 +59,10 @@ export default ThemedStyleSheet((theme) => ({
   },
   scrollView: {
     flex: 1,
-    height: "95%"
+    height: "95%",
     // flexGrow: 1,
     // overflow:"scroll",
+    backgroundColor: theme.colors.surface,
   },
   flatListContent: {
     paddingVertical: Spacing.large,
@@ -232,4 +233,28 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     textAlign: 'center',
   },
+
+  banner: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    border: `1px solid ${theme.colors.divider}`,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 10,
+    gap: 12,
+    padding: 12
+  },
+  bannerText: {
+    color: theme.colors.text,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  bannerButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 20,
+    justifyContent: 'center'
+  }
 }));

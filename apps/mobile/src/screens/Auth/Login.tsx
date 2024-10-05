@@ -225,7 +225,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
         Login
       </Button>
 
-      {/* <TextButton onPress={handleCreateAccount}>Create Account</TextButton> */}
+      <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
       <ConnectWalletScreen />
       <View
         style={

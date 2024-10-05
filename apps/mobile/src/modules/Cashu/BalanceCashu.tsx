@@ -97,43 +97,23 @@ export const BalanceCashu = () => {
     getProofsWalletAndBalance()
   }, []);
 
-
-
-
   return (
-    // <SafeAreaView style={styles.safeArea}>
-    <View
-    // contentContainerStyle={styles.scrollView}
-    >
-
-      <View style={styles.container}>
-
-        <View>
-
-          <Text
-            style={styles.text}
-          >Your balance</Text>
-
-          <Text
-            style={styles.text}
-          >{balance}</Text>
-        </View>
-
-
-        <View>
-          <Text
-            style={styles.text}>Connect to</Text>
-
-        </View>
-        <View style={styles.content}>
-          <TextInput
-            placeholder="Mint URL"
-            value={mintUrl}
-            onChangeText={setMintUrl}
-            style={styles.input}
-          />
-
-        </View>
+    <View style={styles.container}>
+      <View>
+        <Text style={styles.text}>Your balance</Text>
+        <Text style={styles.text}>{balance}</Text>
+      </View>
+      <View>
+        <Text style={styles.text}>Connect to</Text>
+      </View>
+      <View style={styles.content}>
+        <TextInput
+          placeholder="Mint URL"
+          value={mintUrl}
+          onChangeText={setMintUrl}
+          style={styles.input}
+        />
+      </View>
 
         {/* 
           <View>
@@ -146,7 +126,5 @@ export const BalanceCashu = () => {
           </View>
         */}
       </View>
-    </View>
-    // </SafeAreaView>
   );
 };

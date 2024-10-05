@@ -72,7 +72,7 @@ export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
 
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
-                <Text style={styles.text}>Cashu wallet coming soon</Text>
+                {/* <Text style={styles.text}>Cashu wallet coming soon</Text> */}
                 <CashuWalletView></CashuWalletView>
               </View>
             )}
