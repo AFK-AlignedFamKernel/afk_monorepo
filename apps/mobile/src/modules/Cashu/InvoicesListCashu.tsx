@@ -35,8 +35,7 @@ export const InvoicesListCashu = () => {
     checkMintQuote,
     checkProofSpent,
     receiveP2PK, mintTokens,
-    mint,
-    mintUrl
+    mint
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()

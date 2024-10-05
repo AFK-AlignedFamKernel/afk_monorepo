@@ -16,10 +16,9 @@ export const NoMintBanner = () => {
     <View style={styles.banner}>
       <InfoIcon width={35} height={35} color={theme.colors.primary} />
       <Text style={styles.bannerText}>
-        Add a mint URL or receive ecash to get started.
+        Select a mint URL or receive ecash to get started.
       </Text>
       <View style={styles.bannerButtonsContainer}>
-        <Button>Add mint URL</Button>
         <Button>Receive ecash</Button>
       </View>
     </View>

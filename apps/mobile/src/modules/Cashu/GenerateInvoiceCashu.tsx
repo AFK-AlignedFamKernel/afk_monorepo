@@ -33,8 +33,8 @@ export const GenerateInvoiceCashu = () => {
     derivedSeedFromMnenomicAndSaved,
     getMintInfo, mint,
     mintTokens,
-    mintUrl,
-    setMintUrl
+    activeMintIndex,
+    mintUrls
 
   } = useCashu()
 
@@ -49,7 +49,6 @@ export const GenerateInvoiceCashu = () => {
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>()
-  const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
@@ -76,7 +75,8 @@ export const GenerateInvoiceCashu = () => {
 
   useEffect(() => {
     (async () => {
-      if (!mintUrl) return;
+      if (activeMintIndex < 0) return;
+      const mintUrl = mintUrls?.[activeMintIndex]?.url;
       const info = await getMintInfo(mintUrl)
       setMintInfo(info)
     })();
@@ -111,10 +111,9 @@ export const GenerateInvoiceCashu = () => {
 
 
   const generateInvoice = async () => {
+    const mintUrl = mintUrls?.[activeMintIndex]?.url;
     if (!mintUrl || !invoiceAmount) return;
     try {
-
-
       const cashuMint = await connectCashMint(mintUrl)
       const wallet = await connectCashWallet(cashuMint?.mint)
 

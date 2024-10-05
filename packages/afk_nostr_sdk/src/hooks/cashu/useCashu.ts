@@ -15,19 +15,27 @@ import { bytesToHex } from '@noble/curves/abstract/utils';
 import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
 
+export interface MintData {
+  url: string;
+  alias: string;
+}
+
 export const useCashu = () => {
 
     const { ndkCashuWallet } = useNostrContext()
     const { privateKey } = useAuth()
     const { setSeed, seed, mnemonic, setMnemonic } = useCashuStore()
 
-    // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-    const [mintUrl, setMintUrl] = useState<string>('')
-    const [mintProps, setMint] = useState<CashuMint>(new CashuMint(mintUrl ?? "https://mint.minibits.cash/Bitcoin"))
+    const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
+    const [mintUrls, setMintUrls] = useState<MintData[]>([{
+      url: 'https://mint.minibits.cash/Bitcoin',
+      alias: 'Default Mint'
+    }]);
+    const [mintProps, setMint] = useState<CashuMint>(new CashuMint(mintUrls?.[activeMintIndex]?.url ?? "https://mint.minibits.cash/Bitcoin"))
 
     const mint = useMemo(() => {
-        return new CashuMint(mintUrl ?? "https://mint.minibits.cash/Bitcoin") ?? mintProps
-    }, [mintUrl])
+        return new CashuMint(mintUrls?.[activeMintIndex]?.url ?? "https://mint.minibits.cash/Bitcoin") ?? mintProps
+    }, [activeMintIndex])
     const [_, setMintKeys] = useState<MintKeys[]>()
     const [mintAllKeysets, setMintAllKeys] = useState<MintAllKeysets>()
     const [mintKeysset,] = useState<MintKeys | undefined>()
@@ -52,7 +60,7 @@ export const useCashu = () => {
         //     keys: mintKeysset,
         //     // unit:"sat"
         // })
-    }, [walletCashu, mint, seed, mnemonic, mintUrl])
+    }, [walletCashu, mint, seed, mnemonic])
 
 
     /** TODO saved in secure store */
@@ -372,11 +380,13 @@ export const useCashu = () => {
         checkProofSpent,
         receiveEcash,
         handleReceivedPayment,
-        mintUrl,
-        setMintUrl,
+        mintUrls,
+        setMintUrls,
+        activeMintIndex,
+        setActiveMintIndex,
         mintInfo,
-        setMintInfo
-
+        setMintInfo,
+        mintProps
     }
 
 }

@@ -197,7 +197,7 @@ export const useLN = () => {
                 await nwc.enable();
                 setNostrWebLN(nwc);
 
-                setNWCUrl(nwcUrl);
+                setNwcUrl(nwcUrl);
 
                 mutateConnectNDK(nwcUrl, {
                     onSuccess: () => {

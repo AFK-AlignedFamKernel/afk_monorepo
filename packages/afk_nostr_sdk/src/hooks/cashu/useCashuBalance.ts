@@ -8,7 +8,7 @@ import { ProofInvoice } from "../../types"
 import { getProofs } from "../../storage"
 
 export const useCashuBalance = () => {
-    const { wallet, mint: mintState, mintUrl, connectCashMint, connectCashWallet } = useCashu()
+    const { wallet, mint: mintState, activeMintIndex, mintUrls, connectCashMint, connectCashWallet } = useCashu()
     const { mintUrl: mintUrlStore, setMintUrl: setMintUrlStore, setActiveBalance} = useCashuStore()
   
     const [balance, setBalance] = useState<number>(0)
@@ -28,7 +28,7 @@ export const useCashuBalance = () => {
 
     useEffect(() => {
         getProofsWalletAndBalance()
-    }, [mintUrl])
+    }, [activeMintIndex])
 
 
     const getProofsWalletAndBalance = async () => {
@@ -38,6 +38,7 @@ export const useCashuBalance = () => {
             /** TODO clean proofs */
             let proofs: ProofInvoice[] = JSON.parse(proofsLocal)
             const proofsSpent = await wallet?.checkProofsSpent(proofs)
+            const mintUrl = mintUrls?.[activeMintIndex]?.url;
             const { mint, keys } = await connectCashMint(mintUrlStore ?? mintUrl)
             const keyssets = await mint?.getKeySets()
             console.log("keyssets", keyssets)

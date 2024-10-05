@@ -45,8 +45,8 @@ export const CashuView = () => {
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     mint,
-    mintUrl,
-    setMintUrl,
+    activeMintIndex,
+    mintUrls,
     setMintInfo,
     getMintInfo
   } = useCashu()
@@ -84,16 +84,16 @@ export const CashuView = () => {
 
   useEffect(() => {
     (async () => {
+      const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
-      const info = await getMintInfo(mintUrl)
+      const info = await getMintInfo(mintUrl);
       setMintInfo(info)
     })();
 
 
-  }, [mintUrl]);
+  }, [activeMintIndex]);
 
   const styles = useStyles(stylesheet);
-  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
@@ -189,20 +189,20 @@ export const CashuView = () => {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          {mintUrl
+          {activeMintIndex >= 0
             ? <BalanceCashu />
             : <NoMintBanner />
           }
           <View style={styles.actionsContainer}>
             <View style={styles.actionButtonsContainer}>
-              <Button onPress={onOpenSendModal} style={styles.actionButton}>
+              <Button onPress={onOpenSendModal} style={styles.actionButton} textStyle={styles.actionButtonText}>
                 Send
               </Button>
-              <Button onPress={onOpenReceiveModal} style={styles.actionButton}>
+              <Button onPress={onOpenReceiveModal} style={styles.actionButton} textStyle={styles.actionButtonText}>
                 Receive
               </Button>
             </View>
-            <Text style={styles.text}>or</Text>
+            <Text style={styles.orText}>or</Text>
             <View>
             <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
               <ScanQrIcon width={60} height={60} color={theme.colors.primary} />

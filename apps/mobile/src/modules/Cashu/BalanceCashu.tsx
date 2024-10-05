@@ -29,20 +29,17 @@ export const BalanceCashu = () => {
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
-    mintUrl, 
-    setMintUrl,
- 
+    activeMintIndex,
+    mintUrls
 
   } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
   const {balance, setBalance, getProofsWalletAndBalance} = useCashuBalance()
-  const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
 
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
   const styles = useStyles(stylesheet);
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
-  const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -98,33 +95,12 @@ export const BalanceCashu = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View>
-        <Text style={styles.text}>Your balance</Text>
-        <Text style={styles.text}>{balance}</Text>
-      </View>
-      <View>
-        <Text style={styles.text}>Connect to</Text>
-      </View>
-      <View style={styles.content}>
-        <TextInput
-          placeholder="Mint URL"
-          value={mintUrl}
-          onChangeText={setMintUrl}
-          style={styles.input}
-        />
-      </View>
-
-        {/* 
-          <View>
-            <Text>You have {lenWallet} ecash wallets</Text>
-            <Button 
-            onPress={() => {
-              // handleGenerateWallet()
-            }}
-            >Generate wallet</Button> 
-          </View>
-        */}
-      </View>
+    <View style={styles.balanceContainer}>
+      <Text style={styles.balanceTitle}>Your balance</Text>
+      <Text style={styles.balance}>{balance}</Text>
+      <Text style={styles.activeMintText}>
+        Connected to: <b>{mintUrls?.[activeMintIndex]?.alias}</b>
+      </Text>
+    </View>
   );
 };

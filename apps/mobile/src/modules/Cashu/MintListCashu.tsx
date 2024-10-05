@@ -19,9 +19,10 @@ export const MintListCashu = () => {
 
   const {
 
-    mintUrl,
-    setMintUrl,
+    mintUrls,
+    activeMintIndex,
     mint,
+    setMintUrls
     // setMint
   } = useCashu()
   const { ndkCashuWallet, ndkWallet, ndk } = useNostrContext()
@@ -30,7 +31,6 @@ export const MintListCashu = () => {
   const { showToast } = useToast()
   const [isLoad, setIsLoad] = useState<boolean>(false)
   const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
-  const [mintUrls, setMintUrls] = useState<Map<string, number>>(new Map())
   const [mintSum, setMintSum] = useState<Map<string, number>>(new Map())
   console.log("mintSum", mintSum)
   console.log("mintUrls", mintUrls)
@@ -59,7 +59,7 @@ export const MintListCashu = () => {
         });
       })
       console.log("mintUrlsMap", mintsUrlsMap)
-      setMintUrls(mintsUrlsMap)
+      // setMintUrls(mintsUrlsMap)
       setIsLoad(true)
       return mintUrls;
     } catch (e) {
@@ -90,7 +90,7 @@ export const MintListCashu = () => {
 
       // const events = await getMintEvent(ndk)
       const map = countMintRecommenderMapping([...mintList])
-      setMintUrls(map?.mintsUrlsMap)
+      // setMintUrls(map?.mintsUrlsMap)
       setIsLoad(true)
     }
 
@@ -116,7 +116,7 @@ export const MintListCashu = () => {
 
       {/* <ScrollView contentContainerStyle={styles.scrollView}> */}
 
-      <View style={styles.container}>
+      {/* <View style={styles.container}>
 
         <FlatList
 
@@ -148,7 +148,7 @@ export const MintListCashu = () => {
           }}
 
         />
-      </View>
+      </View> */}
       {/* 
         <View
         // style={styles.container}

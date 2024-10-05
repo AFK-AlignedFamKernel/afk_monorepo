@@ -127,6 +127,7 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     marginVertical: Spacing.small,
     color: theme.colors.text,
+    fontWeight: 'bold'
   },
   text: {
     // textAlign: 'center',
@@ -279,6 +280,9 @@ export default ThemedStyleSheet((theme) => ({
     maxWidth: '40%',
     backgroundColor: theme.colors.primary
   },
+  actionButtonText: {
+    color: theme.colors.white
+  },
   qrButton: {
     backgroundColor: 'transparent'
   },
@@ -293,5 +297,23 @@ export default ThemedStyleSheet((theme) => ({
   lessButtonIcon: {
     transform: 'rotate(90deg)',
     marginLeft: 10
+  },
+  balanceContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 15
+  },
+  balanceTitle: {
+    fontSize: 20,
+    fontWeight: 600
+  },
+  balance: {
+    fontSize: 40,
+    fontWeight: 900,
+    color: theme.colors.primary
+  },
+  activeMintText: {
+    fontSize: 12
   }
 }));

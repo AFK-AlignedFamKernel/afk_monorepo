@@ -34,8 +34,8 @@ export const ReceiveEcash = () => {
     derivedSeedFromMnenomicAndSaved,
     getMintInfo, mint,
     mintTokens,
-    mintUrl,
-    setMintUrl,
+    mintUrls,
+    activeMintIndex,
 
   } = useCashu()
   const [ecash, setEcash] = useState<string | undefined>()
@@ -83,6 +83,7 @@ export const ReceiveEcash = () => {
 
 
   const generateInvoice = async () => {
+    const mintUrl = mintUrls?.[activeMintIndex]?.url;
     if (!mintUrl || !invoiceAmount) return;
     try {
 
