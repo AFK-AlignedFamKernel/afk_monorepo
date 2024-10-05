@@ -60,11 +60,29 @@ export interface TokenDeployInterface {
   token_quote: TokenQuoteBuyKeys;
   threshold_liquidity?: Uint256;
   slope?: Uint256;
+  quote_token?: string;
+
+}
+
+export interface TokenDeployIndexerInterface {
+  memecoin_address: string;
+  price: Uint256;
+  name: string;
+  network: string;
+  owner: string;
+  total_supply: Uint256;
+  created_at: Uint256;
+  liquidity_raised: Uint256;
+  token_holded: Uint256;
+  is_liquidity_launch: boolean;
+  quote_token?: string;
+  threshold_liquidity?: Uint256;
+  slope?: Uint256;
 }
 
 export interface TokenStatsInterface {
-  price?: Uint256;
-  liquidity_raised?: Uint256;
+  price?: number;
+  liquidity_raised?: number;
 }
 
 export interface TokenTxInterface {

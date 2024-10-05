@@ -13,7 +13,7 @@ import { useStyles, useTheme } from '../../hooks';
 import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
 import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
-import { useWalletModal } from '../../hooks/modals';
+import { useToast, useWalletModal } from '../../hooks/modals';
 import { LaunchDetailScreenProps } from '../../types';
 
 import {
@@ -74,7 +74,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
 
-  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, "");
+  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, account?.address ?? "");
 
   const { data: tokenData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
 
@@ -84,6 +84,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const { handleSellCoins } = useSellCoin();
   const { handleBuyCoins } = useBuyCoinByQuoteAmount();
 
+  const { showToast } = useToast()
   const walletModal = useWalletModal();
 
   const [amount, setAmount] = useState<number | undefined>();
@@ -98,7 +99,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   useEffect(() => {
     if (tokenData && tokenData.data) {
-      setTokens(tokenData.data)
+      setTokens(tokenData?.data)
+      setToken(tokenData?.data)
     }
   }, [tokenData]);
 
@@ -109,10 +111,12 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   useEffect(() => {
     const data = transactionData || [];
-    setTransaction(data);
+    console.log("data tx",data)
+    setTransaction(data?.data);
   }, [transactionData]);
 
   useEffect(() => {
+
     setStats(statsData);
   }, [statsData]);
 
@@ -122,10 +126,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     setStats(data);
   }, [sharesData]);
 
-  useEffect(() => {
-    const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
-    setToken(latestToken)
-  }, [tokens])
+  // useEffect(() => {
+  //   const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
+  //   setToken(latestToken)
+  // }, [tokens])
 
 
   const onConnect = async () => {
@@ -138,41 +142,54 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   };
 
   const sellKeys = async () => {
-    if (!amount) return;
-
+    if (!amount) {
+      return showToast({ title: "Select an amount to buy", type: "info" })
+    }
     await onConnect();
     if (!account || !account?.account) return;
 
-    if (!token?.owner) return;
+    if (!token?.memecoin_address) return;
+    console.log("token", token)
 
-    if (!token?.token_quote) return;
+    // if (!token?.quote_token) return;
 
-    handleSellCoins(
+    const sellResult = await handleSellCoins(
       account?.account,
       feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      token?.token_quote,
+      token?.quote_token,
       undefined,
     );
+
+    if(sellResult) {
+        return showToast({ title: 'Buy done', type: "success" })
+    }
   };
 
   const buyCoin = async () => {
-    if (!amount) return;
 
     await onConnect();
+    if (!amount) {
+      return showToast({ title: "Select an amount to buy", type: "info" })
+    }
 
     if (!account || !account?.account) return;
 
-    if (!token?.owner) return;
+    console.log("token", token)
 
-    if (!token?.token_quote) return;
+
+    if (!token?.memecoin_address) return;
+    // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
-    handleBuyCoins(
+    const buyResult = await handleBuyCoins(
       account?.account,
-      feltToAddress(BigInt(token?.memecoin_address)),
+      token?.memecoin_address,
+      // feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      token?.token_quote,
+      token?.quote_token,
     );
+
+    return showToast({ title: 'Buy done', type: "success" })
   };
 
 
@@ -212,28 +229,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
         ></TabSelector>
 
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
+          {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
+            <>
+              <TokenLaunchDetail isViewDetailDisabled={true} launch={tokenData} />
+            </>
+          )}
+
           <ScrollView>
-            {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
-              <>
 
-
-                <FlatList
-                  contentContainerStyle={styles.flatListContent}
-                  data={tokens}
-                  ItemSeparatorComponent={() => <View style={styles.separator} />}
-                  // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
-                  keyExtractor={(item, i) => i.toString()}
-                  // numColumns={isDesktop ? 3 : 1}
-                  renderItem={({ item, index }) => {
-
-                    return <TokenLaunchDetail isViewDetailDisabled={true} launch={item} />
-                  }}
-
-                />
-
-
-              </>
-            )}
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
                 <View style={styles.holdersTotal} >

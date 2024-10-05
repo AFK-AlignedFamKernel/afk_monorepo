@@ -65,15 +65,11 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   //   if (!event?.id) return;
   //   navigation.navigate('Profile', { publicKey: event?.pubkey });
   // };
-  let priceAmount;
-  if (launch?.price) {
-    priceAmount = new Fraction(String(launch.price), decimalsScale(18)).toFixed(18);
-  }
-  let created_at;
-
-  if (launch?.created_at) {
-    created_at = new Fraction(String(launch.created_at), decimalsScale(18)).toFixed(18);
-  }
+  let priceAmount=launch?.price;
+  // if (launch?.price) {
+  //   priceAmount = new Fraction(String(launch.price), decimalsScale(18)).toFixed(18);
+  // }
+  let created_at=launch?.created_at
 
   const sellKeys = async () => {
     if (!amount) return;
@@ -101,12 +97,12 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
     await onConnect();
 
     if (!account || !account?.account) return;
+    console.log('launch', launch);
 
     if (!launch?.owner) return;
 
     if (!launch?.token_quote) return;
 
-    console.log('launch', launch);
     // handleBuyKeys(account?.account, launch?.owner, launch?.token_quote, Number(amount),)
     handleBuyCoins(
       account?.account,

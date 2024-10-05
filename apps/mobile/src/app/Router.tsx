@@ -346,6 +346,19 @@ const linking = {
       MainStack: {
         path: 'app',
         screens: {
+          AuthStack: {
+            path: 'auth',
+            screens: {
+              Login: 'login',
+              CreateAccount: 'create-account',
+              SaveKeys: 'save-keys',
+              ImportKeys: 'import-keys',
+            },
+          },
+          Login: 'login',
+          CreateAccount: 'create-account',
+          SaveKeys: 'save-keys',
+          ImportKeys: 'import-keys',
           Home: 'home',
           Feed: 'feed',
           Profile: {
