@@ -89,7 +89,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 }
 
 #[starknet::contract]
-mod LaunchpadMarketplace {
+pub mod LaunchpadMarketplace {
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
@@ -191,7 +191,7 @@ mod LaunchpadMarketplace {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         StoredName: StoredName,
         BuyToken: BuyToken,
         SellToken: SellToken,
