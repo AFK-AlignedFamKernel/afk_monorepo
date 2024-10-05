@@ -33,7 +33,8 @@ async function transactionsRoute(
         select: {
           transaction_type: true,
           amount: true,
-          quote_amount: true
+          quote_amount: true,
+          price:true
         }
       });
 

@@ -1,5 +1,6 @@
 create table token_launch(
     memecoin_address TEXT,
+    owner_address TEXT,
     network TEXT,
     block_hash TEXT,
     block_number BIGINT,
@@ -11,6 +12,7 @@ create table token_launch(
     total_supply TEXT,
     current_supply TEXT,
     liquidity_raised TEXT,
+    threshold_liquidity TEXT,
     price TEXT,
     _cursor BIGINT,
     time_stamp TEXT
