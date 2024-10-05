@@ -16,7 +16,8 @@ export const useSellCoin = () => {
     account: AccountInterface,
     user_address: string,
     amount: number,
-    tokenQuote?: TokenQuoteBuyKeys,
+    tokenQuote?: string,
+    // tokenQuote?: TokenQuoteBuyKeys,
     contractAddress?: string,
   ) => {
     if (!account) return;

@@ -74,10 +74,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
 
-  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, "");
+  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, account?.address ?? "");
 
   const { data: tokenData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress)
 
+  console.log("tokenData",tokenData)
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
@@ -99,6 +100,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   useEffect(() => {
     if (tokenData && tokenData.data) {
       setTokens(tokenData.data)
+      setToken(tokenData)
     }
   }, [tokenData]);
 
@@ -122,10 +124,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     setStats(data);
   }, [sharesData]);
 
-  useEffect(() => {
-    const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
-    setToken(latestToken)
-  }, [tokens])
+  // useEffect(() => {
+  //   const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
+  //   setToken(latestToken)
+  // }, [tokens])
 
 
   const onConnect = async () => {
@@ -145,13 +147,13 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
     if (!token?.owner) return;
 
-    if (!token?.token_quote) return;
+    if (!token?.quote_token) return;
 
     handleSellCoins(
       account?.account,
       feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      token?.token_quote,
+      token?.quote_token,
       undefined,
     );
   };
@@ -163,6 +165,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
     if (!account || !account?.account) return;
 
+    console.log("token",token)
+
     if (!token?.owner) return;
 
     if (!token?.token_quote) return;
@@ -171,7 +175,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
       account?.account,
       feltToAddress(BigInt(token?.memecoin_address)),
       Number(amount),
-      token?.token_quote,
+      token?.quote_token,
     );
   };
 
@@ -212,28 +216,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
         ></TabSelector>
 
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
+          {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
+            <>
+              <TokenLaunchDetail isViewDetailDisabled={true} launch={tokenData} />
+            </>
+          )}
+
           <ScrollView>
-            {selectedTab == SelectedTab.LAUNCH_OVERVIEW && tokens && (
-              <>
 
-
-                <FlatList
-                  contentContainerStyle={styles.flatListContent}
-                  data={tokens}
-                  ItemSeparatorComponent={() => <View style={styles.separator} />}
-                  // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
-                  keyExtractor={(item, i) => i.toString()}
-                  // numColumns={isDesktop ? 3 : 1}
-                  renderItem={({ item, index }) => {
-
-                    return <TokenLaunchDetail isViewDetailDisabled={true} launch={item} />
-                  }}
-
-                />
-
-
-              </>
-            )}
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
                 <View style={styles.holdersTotal} >

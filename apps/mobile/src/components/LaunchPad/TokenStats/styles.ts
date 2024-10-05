@@ -1,7 +1,7 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
 export default ThemedStyleSheet((theme) => ({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.background,
     borderRadius: 8,
     padding: 16,
     margin: 16,
@@ -29,6 +29,6 @@ export default ThemedStyleSheet((theme) => ({
   value: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.colors.text,
   },
 }));
