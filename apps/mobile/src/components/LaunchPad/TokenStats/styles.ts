@@ -24,7 +24,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   label: {
     fontSize: 14,
-    color: '#555',
+    color: theme.colors.text,
   },
   value: {
     fontSize: 14,

@@ -229,12 +229,6 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'Holders',
     tab: SelectedTab.LAUNCH_HOLDERS,
   },
-
-  {
-    title: 'STATS',
-    screen: 'Stats',
-    tab: SelectedTab.TOKEN_STATS,
-  },
   {
     title: 'TX',
     screen: 'TX',
@@ -245,6 +239,11 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'Shares',
     screen: 'Share',
     tab: SelectedTab.USER_SHARE,
+  },
+  {
+    title: 'STATS',
+    screen: 'Stats',
+    tab: SelectedTab.TOKEN_STATS,
   },
 ];
 
