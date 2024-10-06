@@ -8,7 +8,6 @@ import holdingsRoute from "./routes/indexer/holdings";
 import tokenStatsRoute from "./routes/indexer/token_stats";
 import transactionsRoute from "./routes/indexer/transactions";
 import allTransactionsRoute from "./routes/indexer/all-transactions";
-
 import createFunkitStripeCheckout from "./routes/funkit/create_funkit_stripe_checkout";
 
 function declareRoutes(fastify: FastifyInstance) {
