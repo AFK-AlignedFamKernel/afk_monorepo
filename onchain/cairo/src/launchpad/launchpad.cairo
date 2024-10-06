@@ -89,7 +89,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 }
 
 #[starknet::contract]
-mod LaunchpadMarketplace {
+pub mod LaunchpadMarketplace {
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
@@ -191,7 +191,7 @@ mod LaunchpadMarketplace {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         StoredName: StoredName,
         BuyToken: BuyToken,
         SellToken: SellToken,
@@ -331,6 +331,7 @@ mod LaunchpadMarketplace {
         fn set_exchanges_address(
             ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
         ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let mut dex = exchanges;
             // Add Exchanges configurations
             loop {

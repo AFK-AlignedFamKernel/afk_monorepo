@@ -16,7 +16,7 @@ pub enum SupportedExchanges {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum BondingType {
     Linear,
@@ -29,7 +29,7 @@ pub enum BondingType {
 
 // Storage
 
-#[derive(Drop, Serde, Copy, starknet::Store)]
+#[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
     pub initial_key_price: u256,

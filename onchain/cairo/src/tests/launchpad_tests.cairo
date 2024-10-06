@@ -1,11 +1,16 @@
 #[cfg(test)]
 mod launchpad_tests {
+    use afk::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk::launchpad::launchpad::{
-        ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait
+        ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::launchpad_types::{MINTER_ROLE, ADMIN_ROLE, TokenQuoteBuyCoin, BondingType};
-    use core::array::SpanTrait;
+    use afk::types::launchpad_types::{
+        MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
+        TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
+        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
+        LiquidityCanBeAdded
+    };
     use core::num::traits::Zero;
     use core::traits::Into;
     use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
@@ -20,7 +25,7 @@ mod launchpad_tests {
 
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash
+        get_block_timestamp, get_contract_address, ClassHash, class_hash::class_hash_const
     };
 
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
@@ -35,6 +40,12 @@ mod launchpad_tests {
     const STEP_LINEAR_INCREASE: u256 = 1;
     const THRESHOLD_LIQUIDITY: u256 = 10;
     const THRESHOLD_MARKET_CAP: u256 = 500;
+    const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
+    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
+    const MID_FEE_PROTOCOL: u256 = 100; //1%
+    const MIN_FEE_CREATOR: u256 = 100; //1%
+    const MID_FEE_CREATOR: u256 = 1000; //10%
+    const MAX_FEE_CREATOR: u256 = 5000; //50%
     // const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
     // const THRESHOLD_LIQUIDITY: u256 = 10;
     // const THRESHOLD_LIQUIDITY: u256 = 10_000;
@@ -42,6 +53,8 @@ mod launchpad_tests {
     const RATIO_SUPPLY_LAUNCH: u256 = 5;
     const LIQUIDITY_SUPPLY: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
     const BUYABLE: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
+
+    const LIQUIDITY_RATIO: u256 = 5;
 
 
     fn SALT() -> felt252 {
@@ -225,6 +238,13 @@ mod launchpad_tests {
         let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
         println!("test allowance meme coin{}", allowance);
         launchpad.sell_coin(token_address, amount_quote);
+    }
+
+    fn calculate_slope(total_supply: u256) -> u256 {
+        let liquidity_supply = total_supply / LIQUIDITY_RATIO;
+        let liquidity_available = total_supply - liquidity_supply;
+        let slope = (2 * THRESHOLD_LIQUIDITY) / (liquidity_available * (liquidity_available - 1));
+        slope
     }
 
     #[test]
@@ -497,18 +517,18 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         launchpad.launch_token(token_address);
-        let amount_first_buy = 9_u256;
+        let amount_first_buy = 1_u256;
 
         run_buy_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
+
         // let mut total_amount_buy = amount_first_buy;
-        let mut amount_second = 1_u256;
+        let mut amount_second = 9_u256;
         run_buy_by_amount(
             launchpad, erc20, memecoin, amount_second, token_address, sender_address,
         );
     }
-
 
     #[test]
     fn launchpad_buy_more_then_liquidity_threshold() {
@@ -614,5 +634,692 @@ mod launchpad_tests {
         );
         println!("amount_coin_sell {:?}", amount_coin_sell);
         assert!(amount_coin_get == amount_coin_sell, "amount incorrect");
+    }
+
+    //
+    // Unit test
+    //
+
+    #[test]
+    fn test_create_token() {
+        let (_, _, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_token(
+                recipient: OWNER(),
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let expected_event = LaunchpadEvent::CreateToken(
+            CreateToken {
+                caller: OWNER(),
+                token_address: token_address,
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+            }
+        );
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+    }
+
+    #[test]
+    fn test_create_and_launch_token() {
+        let (_, erc20, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let create_token_event = LaunchpadEvent::CreateToken(
+            CreateToken {
+                caller: OWNER(),
+                token_address: token_address,
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+            }
+        );
+
+        let launch_token_event = LaunchpadEvent::CreateLaunch(
+            CreateLaunch {
+                caller: OWNER(),
+                token_address: token_address,
+                amount: 0,
+                price: initial_key_price,
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+                slope: slope,
+                threshold_liquidity: THRESHOLD_LIQUIDITY,
+                quote_token_address: erc20.contract_address,
+            }
+        );
+
+        spy
+            .assert_emitted(
+                @array![
+                    (launchpad.contract_address, create_token_event),
+                    (launchpad.contract_address, launch_token_event)
+                ]
+            );
+    }
+
+    #[test]
+    #[should_panic(expected: ("not launch",))]
+    fn test_launch_token_with_uncreated_token() {
+        let (_, erc20, launchpad) = request_fixture();
+
+        launchpad.launch_token(coin_address: erc20.contract_address);
+    }
+
+    #[test]
+    #[should_panic(expected: ("no supply provided",))]
+    fn test_launch_token_with_no_supply_provided() {
+        let (_, _, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_token(
+                recipient: OWNER(),
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        launchpad.launch_token(coin_address: token_address);
+    }
+
+    #[test]
+    fn test_launch_token() {
+        let (_, erc20, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_token(
+                recipient: launchpad.contract_address,
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        launchpad.launch_token(coin_address: token_address);
+
+        let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
+            CreateLaunch {
+                caller: OWNER(),
+                token_address: token_address,
+                amount: 0,
+                price: initial_key_price,
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+                slope: slope,
+                threshold_liquidity: THRESHOLD_LIQUIDITY,
+                quote_token_address: erc20.contract_address,
+            }
+        );
+
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
+    }
+
+    #[test]
+    fn test_launch_liquidity_ok() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        run_buy_by_amount(
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+        );
+
+        launchpad.launch_liquidity(token_address);
+    }
+
+    #[test]
+    #[should_panic(expected: ("no threshold raised",))]
+    fn test_launch_liquidity_when_no_threshold_raised() {
+        let (_, _, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        launchpad.launch_liquidity(token_address);
+    }
+
+
+    #[test]
+    fn test_get_threshold_liquidity() {
+        let (_, _, launchpad) = request_fixture();
+        assert(
+            THRESHOLD_LIQUIDITY == launchpad.get_threshold_liquidity(), 'wrong threshold liquidity'
+        );
+    }
+
+    #[test]
+    fn test_get_default_token() {
+        let (_, erc20, launchpad) = request_fixture();
+
+        let expected_token = TokenQuoteBuyCoin {
+            token_address: erc20.contract_address,
+            initial_key_price: INITIAL_KEY_PRICE,
+            price: INITIAL_KEY_PRICE,
+            is_enable: true,
+            step_increase_linear: STEP_LINEAR_INCREASE,
+        };
+
+        assert(expected_token == launchpad.get_default_token(), 'wrong default token');
+    }
+
+    #[test]
+    fn test_get_coin_launch() {
+        let (_, erc20, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let launched_token = launchpad.get_coin_launch(token_address);
+
+        assert(launched_token.owner == OWNER(), 'wrong owner');
+        assert(launched_token.token_address == token_address, 'wrong token address');
+        assert(launched_token.total_supply == DEFAULT_INITIAL_SUPPLY(), 'wrong initial supply');
+        assert(
+            launched_token.bonding_curve_type.unwrap() == BondingType::Linear,
+            'wrong initial supply'
+        );
+        assert(launched_token.price == 0_u256, 'wrong price');
+        assert(launched_token.liquidity_raised == 0_u256, 'wrong liquidation raised');
+        assert(launched_token.token_holded == 0_u256, 'wrong token holded');
+        assert(
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
+        );
+    }
+
+    #[test]
+    fn test_get_share_key_of_user() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        let mut first_buy = 10_u256;
+        run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
+
+        let share_key = launchpad.get_share_key_of_user(sender_address, memecoin.contract_address);
+
+        assert(share_key.owner == sender_address, 'wrong owner');
+        assert(share_key.token_address == memecoin.contract_address, 'wrong token address');
+    }
+
+    #[test]
+    fn test_get_all_launch_tokens_and_coins() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+        let first_token: felt252 = 'token_1';
+        let second_token: felt252 = 'token_2';
+        let third_token: felt252 = 'token_3';
+
+        let first_token_addr = launchpad
+            .create_and_launch_token(
+                symbol: 'FRST',
+                name: first_token,
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let second_token_addr = launchpad
+            .create_and_launch_token(
+                symbol: 'SCND',
+                name: second_token,
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let third_token_addr = launchpad
+            .create_and_launch_token(
+                symbol: 'THRD',
+                name: third_token,
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let all_launched_coins = launchpad.get_all_coins();
+        let all_launched_tokens = launchpad.get_all_launch();
+
+        assert(all_launched_coins.len() == 3, 'wrong number of coins');
+        assert(all_launched_tokens.len() == 3, 'wrong number of tokens');
+        assert(*all_launched_coins.at(0).name == first_token, 'wrong coin name');
+        assert(*all_launched_coins.at(1).name == second_token, 'wrong coin name');
+        assert(*all_launched_coins.at(2).name == third_token, 'wrong coin name');
+        assert(*all_launched_tokens.at(0).token_address == first_token_addr, 'wrong token address');
+        assert(
+            *all_launched_tokens.at(1).token_address == second_token_addr, 'wrong token address'
+        );
+        assert(*all_launched_tokens.at(2).token_address == third_token_addr, 'wrong token address');
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_token_with_non_admin() {
+        let (_, erc20, launchpad) = request_fixture();
+
+        let expected_token = TokenQuoteBuyCoin {
+            token_address: erc20.contract_address,
+            initial_key_price: INITIAL_KEY_PRICE,
+            price: INITIAL_KEY_PRICE,
+            is_enable: true,
+            step_increase_linear: STEP_LINEAR_INCREASE,
+        };
+
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_token(expected_token);
+    }
+
+    #[test]
+    #[should_panic(expected: ('protocol_fee_too_high',))]
+    fn test_set_protocol_fee_percent_too_high() {
+        let (_, _, launchpad) = request_fixture();
+
+        launchpad.set_protocol_fee_percent(MAX_FEE_PROTOCOL + 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('protocol_fee_too_low',))]
+    fn test_set_protocol_fee_percent_too_low() {
+        let (_, _, launchpad) = request_fixture();
+
+        launchpad.set_protocol_fee_percent(MIN_FEE_PROTOCOL - 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_protocol_fee_percent_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+
+        launchpad.set_protocol_fee_percent(MID_FEE_PROTOCOL);
+    }
+
+    #[test]
+    fn test_set_protocol_fee_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_protocol_fee_percent(MID_FEE_PROTOCOL);
+    }
+
+    #[test]
+    #[should_panic(expected: ('creator_fee_too_low',))]
+    fn test_set_creator_fee_percent_too_low() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_creator_fee_percent(MIN_FEE_CREATOR - 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('creator_fee_too_high',))]
+    fn test_set_creator_fee_percent_too_high() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_creator_fee_percent(MAX_FEE_CREATOR + 1);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_creator_fee_percent_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_creator_fee_percent(MID_FEE_PROTOCOL);
+    }
+
+    #[test]
+    fn test_set_creator_fee_percent_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_creator_fee_percent(MID_FEE_CREATOR);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_coin_creation_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_coin_creation(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_coin_creation_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_coin_creation(50_u256);
+    }
+
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_launch_creation_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_launch_creation(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_launch_creation_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_launch_creation(50_u256);
+    }
+
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_dollar_paid_finish_percentage_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_dollar_paid_finish_percentage(50_u256);
+    }
+
+    #[test]
+    fn test_set_dollar_paid_finish_percentage_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_dollar_paid_finish_percentage(50_u256);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_threshold_liquidity_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_threshold_liquidity(50_u256);
+    }
+
+    #[test]
+    fn test_set_threshold_liquidity_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_threshold_liquidity(50_u256);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_address_jediswap_factory_v2_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_address_jediswap_factory_v2('jediswap'.try_into().unwrap());
+    }
+
+    #[test]
+    fn test_set_address_jediswap_factory_v2_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let jediswap_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_address_jediswap_factory_v2(jediswap_v2_addr);
+
+        let expected_event = LaunchpadEvent::SetJediwapV2Factory(
+            SetJediwapV2Factory { address_jediswap_factory_v2: jediswap_v2_addr }
+        );
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_address_jediswap_nft_router_v2_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_address_jediswap_nft_router_v2('jediswap'.try_into().unwrap());
+    }
+
+    #[test]
+    fn test_set_address_jediswap_nft_router_v2_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let jediswap_nft_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_address_jediswap_nft_router_v2(jediswap_nft_v2_addr);
+
+        let expected_event = LaunchpadEvent::SetJediwapNFTRouterV2(
+            SetJediwapNFTRouterV2 { address_jediswap_nft_router_v2: jediswap_nft_v2_addr }
+        );
+        spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_exchanges_address_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        let jediswap_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        let exchange_addresses = array![(SupportedExchanges::Jediswap, jediswap_addr)].span();
+
+        launchpad.set_exchanges_address(exchange_addresses);
+    }
+
+    #[test]
+    fn test_set_exchanges_address_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        let jediswap_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let exchange_addresses = array![(SupportedExchanges::Jediswap, jediswap_addr)].span();
+
+        launchpad.set_exchanges_address(exchange_addresses);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Caller is missing role',))]
+    fn test_set_class_hash_non_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+
+        launchpad.set_class_hash(class_hash_const::<'hash'>());
+    }
+
+    #[test]
+    fn test_set_class_hash_ok() {
+        let (sender_address, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.set_class_hash(class_hash_const::<'hash'>());
+    }
+
+    #[test]
+    #[should_panic(expected: ('coin not found',))]
+    fn test_sell_coin_for_invalid_coin() {
+        let (_, erc20, launchpad) = request_fixture();
+
+        launchpad.sell_coin(erc20.contract_address, 50_u256);
+    }
+
+    #[test]
+    #[should_panic(expected: ("share too low",))]
+    fn test_sell_coin_when_share_too_low() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        run_sell_by_amount(
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: ("pool_update.liquidity_raised <= quote_amount",))]
+    fn test_sell_coin_when_quote_amount_is_greaterthan_liquidity_raised() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        run_buy_by_amount(launchpad, erc20, memecoin, 10_u256, token_address, sender_address,);
+
+        run_sell_by_amount(launchpad, erc20, memecoin, 20_u256, token_address, sender_address,);
+    }
+
+    #[test]
+    fn test_launchpad_end_to_end() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+        let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
+        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+
+        // cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+
+        let default_token = launchpad.get_default_token();
+
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(
+            default_token.step_increase_linear == STEP_LINEAR_INCREASE, 'no step_increase_linear'
+        );
+        assert(default_token.is_enable == true, 'not enabled');
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        let amount_first_buy = 10_u256;
+
+        run_buy_by_amount(
+            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+        );
+
+        run_sell_by_amount(
+            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+        );
+
+        run_buy_by_amount(
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+        );
+
+        run_sell_by_amount(
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+        );
+
+        let expected_create_token_event = LaunchpadEvent::CreateToken(
+            CreateToken {
+                caller: sender_address,
+                token_address: token_address,
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+            }
+        );
+
+        let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
+            CreateLaunch {
+                caller: OWNER(),
+                token_address: token_address,
+                amount: 0,
+                price: initial_key_price,
+                total_supply: DEFAULT_INITIAL_SUPPLY(),
+                slope: slope,
+                threshold_liquidity: THRESHOLD_LIQUIDITY,
+                quote_token_address: erc20.contract_address,
+            }
+        );
+
+        spy
+            .assert_emitted(
+                @array![
+                    (launchpad.contract_address, expected_create_token_event),
+                    (launchpad.contract_address, expected_launch_token_event)
+                ]
+            );
     }
 }

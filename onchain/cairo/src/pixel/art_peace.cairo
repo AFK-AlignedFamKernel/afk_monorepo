@@ -141,7 +141,7 @@ pub mod ArtPeace {
         daily_quests_count: u32,
         devmode: bool,
     ) {
-        let caller= starknet::get_caller_address();
+        let caller = starknet::get_caller_address();
         self.host.write(caller);
 
         self.canvas_width.write(canvas_width);
