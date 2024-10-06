@@ -10,6 +10,7 @@ import transactionsRoute from "./routes/indexer/transactions";
 import allTransactionsRoute from "./routes/indexer/all-transactions";
 import createFunkitStripeCheckout from "./routes/funkit/create_funkit_stripe_checkout";
 import getFunkitStripeCheckoutQuote from "./routes/funkit/get_funkit_stripe_checkout_quote";
+import getFunkitStripeCheckoutStatus from "./routes/funkit/get_funkit_stripe_checkout_status";
 
 function declareRoutes(fastify: FastifyInstance) {
   fastify.register(buyCoinRoute);
@@ -19,9 +20,10 @@ function declareRoutes(fastify: FastifyInstance) {
   fastify.register(holdingsRoute);
   fastify.register(tokenStatsRoute);
   fastify.register(transactionsRoute);
+  fastify.register(allTransactionsRoute);
   fastify.register(createFunkitStripeCheckout);
   fastify.register(getFunkitStripeCheckoutQuote);
-  fastify.register(allTransactionsRoute);
+  fastify.register(getFunkitStripeCheckoutStatus);
 }
 
 export default declareRoutes;
