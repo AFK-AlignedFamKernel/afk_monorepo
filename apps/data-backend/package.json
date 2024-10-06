@@ -24,6 +24,7 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^9.0.1",
+    "@funkit/api-base": "^1.2.0",
     "@prisma/client": "^5.18.0",
     "@telegraf/types": "^7.1.0",
     "apollo-server": "^3.13.0",
