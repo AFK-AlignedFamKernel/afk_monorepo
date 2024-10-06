@@ -111,15 +111,15 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   //   if (!event?.id) return;
   //   navigation.navigate('Profile', { publicKey: event?.pubkey });
   // };
-  let priceAmount;
-  if (token?.price) {
-    priceAmount = new Fraction(String(token.price), decimalsScale(18)).toFixed(18);
-  }
-  let created_at;
+  let priceAmount=token?.price;
+  // if (token?.price) {
+  //   priceAmount = new Fraction(String(token.price), decimalsScale(18)).toFixed(18);
+  // }
+  let created_at=token?.created_at;
 
-  if (token?.created_at) {
-    created_at = new Fraction(String(token.created_at), decimalsScale(18)).toFixed(18);
-  }
+  // if (token?.created_at) {
+  //   created_at = new Fraction(String(token.created_at), decimalsScale(18)).toFixed(18);
+  // }
 
 
   return (
@@ -128,7 +128,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         {token?.memecoin_address && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Meme Coin address:</Text>
-            <Text>{feltToAddress(BigInt(token.memecoin_address))}</Text>
+            <Text>{token?.memecoin_address}</Text>
           </View>
         )}
 
@@ -146,7 +146,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         {token?.owner && (
           <View style={styles.borderBottom}>
             <Text weight="semiBold">Owner:</Text>
-            <Text>{feltToAddress(BigInt(token.owner))}</Text>
+            <Text>{token?.owner}</Text>
           </View>
         )}
 
