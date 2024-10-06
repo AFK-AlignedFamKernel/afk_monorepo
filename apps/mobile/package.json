@@ -126,5 +126,8 @@
     "prettier": "^3.3.3",
     "typescript": "~5.3.3"
   },
+  "patchedDependencies": {
+    "@reown/appkit-siwe-react-native@1.0.0": "patches/@reown__appkit-siwe-react-native@1.0.0.patch"
+  },
   "private": true
 }
