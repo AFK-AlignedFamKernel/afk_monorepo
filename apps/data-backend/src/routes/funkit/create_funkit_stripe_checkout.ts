@@ -1,10 +1,9 @@
-import { createStripeBuySession, initializeCheckout } from "@funkit/api-base";
+import { createStripeBuySession } from "@funkit/api-base";
 import type { FastifyInstance, RouteOptions } from "fastify";
-import { TOKEN_INFO } from "../../constants/funkit";
-
 import {
   FUNKIT_STRIPE_SOURCE_CURRENCY,
-  SOURCE_OF_FUND_KEY
+  SOURCE_OF_FUND_KEY,
+  TOKEN_INFO
 } from "../../constants/funkit";
 import { generateClientMetadata } from "../../utils/funkit";
 
@@ -28,23 +27,19 @@ async function createFunkitStripeCheckout(
       if (!quoteId) {
         return reply.status(400).send({ message: "quoteId is required." });
       }
-
       if (!paymentTokenAmount) {
         return reply
           .status(400)
           .send({ message: "paymentTokenAmount is required." });
       }
-
       if (!estSubtotalUsd) {
         return reply
           .status(400)
           .send({ message: "estSubtotalUsd is required." });
       }
-
       try {
-        // 1 - Initialize the checkout and get a unique depositAddress
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
-
+        const { initializeCheckout } = await import("@funkit/api-base");
         const depositAddress = await initializeCheckout({
           userOp: null,
           quoteId,
