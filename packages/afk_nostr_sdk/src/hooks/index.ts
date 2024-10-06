@@ -51,3 +51,4 @@ export {useSendZapNote} from './zap/useZap';
 export {useLN} from "./ln";
 
 export {useCashu, useCashuMintList, countMintRecommenderMapping, useCashuSendWalletInfo, useCashuSpendingToken, useCashuTokenSend, useCashuBalance} from "./cashu"
+export type {ICashu} from "./cashu"

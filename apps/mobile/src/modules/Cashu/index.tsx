@@ -204,9 +204,9 @@ export const CashuView = () => {
             </View>
             <Text style={styles.orText}>or</Text>
             <View>
-            <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
-              <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
-            </Button>
+              <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
+                <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+              </Button>
             </View>
 
             <Modal
@@ -300,10 +300,7 @@ export const CashuView = () => {
           }
 
           {selectedTab == SelectedTab?.CASHU_MINT &&
-            <View>
-              <Text>Cashu mints</Text>
-              <MintListCashu></MintListCashu>
-            </View>
+            <MintListCashu></MintListCashu>
           }
 
           {selectedTab == SelectedTab.CASHU_SETTINGS &&

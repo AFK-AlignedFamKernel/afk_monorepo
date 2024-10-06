@@ -7,6 +7,8 @@ import {
     MeltQuoteResponse,
     getDecodedToken,
     MintAllKeysets,
+    MeltTokensResponse,
+    MintActiveKeys,
 } from '@cashu/cashu-ts';
 import { useMemo, useState } from 'react';
 import { NDKCashuToken } from "@nostr-dev-kit/ndk-wallet"
@@ -20,7 +22,64 @@ export interface MintData {
   alias: string;
 }
 
-export const useCashu = () => {
+export interface ICashu {
+  wallet: CashuWallet,
+  mint: CashuMint,
+  generateMnemonic: () => string,
+  derivedSeedFromMnenomicAndSaved: (mnemonic: string) => Uint8Array,
+  connectCashMint: (mintUrl: string) => Promise<{
+    mint: CashuMint;
+    keys: MintKeys[];
+  }>,
+  connectCashWallet: (cashuMint: CashuMint, keys?: MintKeys) => CashuWallet,
+  requestMintQuote: (nb: number) => Promise<{
+    request: MintQuoteResponse;
+  }>,
+  mintTokens: (amount: number, quote: MintQuoteResponse) => Promise<{
+    proofs: Array<Proof>;
+  }>,
+  payLnInvoice: (amount: number, request: MintQuoteResponse, proofs: Proof[]) => Promise<{
+    response: MeltTokensResponse;
+    sentProofsSpent: Proof[];
+    returnChangeSpent: Proof[];
+  }>,
+  payLnInvoiceWithToken: (token: string, request: MintQuoteResponse, meltQuote: MeltQuoteResponse) => Promise<{
+    response: MeltTokensResponse;
+  }>,
+  sendP2PK: (amount: number, tokensProofs: Proof[], pubkeyRecipient: Uint8Array, mintUrl: string) => Promise<{
+    send: Proof[];
+    encoded: string;
+  }>,
+  receiveP2PK: (encoded: string) => Promise<Proof[]>,
+  meltTokens: (invoice: string, proofsProps?: Proof[]) => Promise<MeltTokensResponse>,
+  getKeySets: () => Promise<MintActiveKeys>,
+  getKeys: () => Promise<MintActiveKeys>,
+  getProofs: (tokens: NDKCashuToken[]) => Promise<void>,
+  getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>,
+  payExternalInvoice: (amount: number, fee: number, externalInvoice: string, request: MintQuoteResponse, proofs: Proof[]) => Promise<{
+    response: MeltTokensResponse;
+    sentProofsSpent: Proof[];
+    returnChangeSpent: Proof[];
+  }>,
+  getProofsSpents: (proofs: Proof[]) => Promise<Proof[]>,
+  getMintInfo: (mintUrl: string) => Promise<GetInfoResponse>,
+  checkMeltQuote: (quote: string) => Promise<MeltQuoteResponse>,
+  checkMintQuote: (quote: string) => Promise<MintQuoteResponse>,
+  checkProofSpent: (proofs: { secret: string; }[]) => Promise<{
+    secret: string;
+  }[]>,
+  receiveEcash: (ecash: string) => Promise<Proof[]>,
+  handleReceivedPayment: (amount: number, quote: MintQuoteResponse) => Promise<Proof[]>,
+  mintUrls: MintData[],
+  setMintUrls: React.Dispatch<React.SetStateAction<MintData[]>>,
+  activeMintIndex: number,
+  setActiveMintIndex: React.Dispatch<React.SetStateAction<number>>,
+  mintInfo: GetInfoResponse,
+  setMintInfo: React.Dispatch<React.SetStateAction<GetInfoResponse>>,
+  mintProps: CashuMint
+}
+
+export const useCashu = (): ICashu => {
 
     const { ndkCashuWallet } = useNostrContext()
     const { privateKey } = useAuth()

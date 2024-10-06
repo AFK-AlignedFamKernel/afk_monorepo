@@ -19,6 +19,7 @@ import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
 import { useCashuBalance, useGetCashuWalletsInfo } from 'afk_nostr_sdk/src/hooks/cashu';
+import { useCashuContext } from '../../providers/CashuProvider';
 
 
 export const BalanceCashu = () => {
@@ -31,8 +32,8 @@ export const BalanceCashu = () => {
     derivedSeedFromMnenomicAndSaved,
     activeMintIndex,
     mintUrls
+  } = useCashuContext()!;
 
-  } = useCashu()
   const { ndkCashuWallet, ndkWallet } = useNostrContext()
 
   const {balance, setBalance, getProofsWalletAndBalance} = useCashuBalance()
