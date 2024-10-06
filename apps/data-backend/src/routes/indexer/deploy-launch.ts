@@ -16,9 +16,12 @@ async function deployLaunchRoute(
       const launches = await prisma.token_launch.findMany({
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
@@ -46,19 +49,23 @@ async function deployLaunchRoute(
         return;
       }
 
-      const launches = await prisma.token_launch.findMany({
-        where:{
-          memecoin_address:launch
+      const launchPool= await prisma.token_launch.findFirst({
+        where: {
+          memecoin_address: launch
         },
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
+
       reply.status(HTTPStatus.OK).send({
-        data: launches
+        data: launchPool
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -81,19 +88,27 @@ async function deployLaunchRoute(
         return;
       }
 
-      const launches = await prisma.token_launch.findMany({
+      const launchStats = await prisma.token_launch.findFirst({
+        where:{
+          memecoin_address:launch,
+        },
         select: {
           memecoin_address: true,
+          quote_token: true,
           price: true,
           total_supply: true,
-          network: true
+          liquidity_raised: true,
+          network: true,
+          created_at: true
         }
       });
 
-      let statsLaunch = launches[0];
+      reply.status(HTTPStatus.OK).send({
+        data: launchStats
+      });
 
       reply.status(HTTPStatus.OK).send({
-        data: statsLaunch
+        data: undefined
       });
     } catch (error) {
       console.error("Error deploying launch:", error);

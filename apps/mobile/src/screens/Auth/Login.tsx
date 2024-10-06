@@ -21,7 +21,7 @@ import {
   storeCashuSeed,
 } from '../../utils/storage';
 import { deriveSeedFromMnemonic } from '@cashu/cashu-ts';
-
+import ConnectWalletScreen from '../connectWallet/ConnectWalletscreens';
 export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
@@ -111,6 +111,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
 
 
     if (publicKey && privateKeyHex) {
+      // navigationMain.navigate("Home", {screen:"Feed"});
+      // navigationMain.push("Home", {screen:"Feed"});
       navigationMain.navigate('Feed');
     }
   };
@@ -172,28 +174,30 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
     });
   };
 
-  const handleGoDegenApp = () => {
-    // Brind dialog
-    navigation.navigate('DegensStack', { screen: 'Games' });
-    // showDialog({
-    //   title: 'WARNING',
-    //   description:
-    //     'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
-    //   buttons: [
-    //     {
-    //       type: 'primary',
-    //       label: 'Continue',
-    //       onPress: () => {
-    //         navigation.navigate("DegensStack", { screen: "Games" });
-    //         hideDialog();
-    //       },
-    //     },
-    //     { type: 'default', label: 'Cancel', onPress: hideDialog },
-    //   ],
-    // });
-  };
+  // const handleGoDegenApp = () => {
+  //   // Brind dialog
+  //   navigation.navigate('DegensStack', { screen: 'Games' });
+  //   // showDialog({
+  //   //   title: 'WARNING',
+  //   //   description:
+  //   //     'You are going to visit AFK without a Nostr graph features. Are you sure you want to continue?',
+  //   //   buttons: [
+  //   //     {
+  //   //       type: 'primary',
+  //   //       label: 'Continue',
+  //   //       onPress: () => {
+  //   //         navigation.navigate("DegensStack", { screen: "Games" });
+  //   //         hideDialog();
+  //   //       },
+  //   //     },
+  //   //     { type: 'default', label: 'Cancel', onPress: hideDialog },
+  //   //   ],
+  //   // });
+  // };
+
 
   return (
+
     <Auth title="Login">
       <Input
         left={<LockIcon color={theme.colors.primary} />}
@@ -213,8 +217,8 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
         Login
       </Button>
 
-      <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
-
+      {/* <TextButton onPress={handleCreateAccount}>Create Account</TextButton> */}
+      {/* <ConnectWalletScreen /> */}
       <View
         style={
           {
@@ -229,7 +233,7 @@ export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
         <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
       </View>
 
-      <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton>
+      {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}
     </Auth>
   );
 };

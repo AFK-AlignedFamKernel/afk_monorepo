@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import { Spacing, ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -72,5 +72,17 @@ export default ThemedStyleSheet((theme) => ({
 
   buttonIndicator: {
     marginRight: Spacing.xsmall,
+  },
+  holdersTotal: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+    paddingTop: 10,
+    marginBottom: 10,
+
+    heading: {
+      fontSize: 30,
+      
+    }
   },
 }));

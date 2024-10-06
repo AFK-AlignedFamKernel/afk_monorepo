@@ -1,11 +1,7 @@
-import {
-  FACTORY_ADDRESS,
-  LAUNCHPAD_ADDRESS,
-  STARTING_BLOCK
-} from "./constants.ts";
-import { Block, hash, uint256, shortString, Pool } from "./deps.ts";
+import { LAUNCHPAD_ADDRESS, STARTING_BLOCK } from "./constants.ts";
+import { Block, hash, uint256, Pool, formatUnits, DECIMALS } from "./deps.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -51,11 +47,12 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
 
     const transactionHash = transaction.meta.hash;
 
-    const [caller, token_address] = event.keys!;
+    const [caller, token_address, quote_token_address] = event.keys!;
     const [
       amount_low,
       amount_high,
-      price,
+      price_low,
+      price_high,
       total_supply_low,
       total_supply_high,
       slope_low,
@@ -64,26 +61,36 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       threshold_liquidity_high
     ] = event.data;
 
-    const amount = uint256
-      .uint256ToBN({ low: amount_low, high: amount_high })
-      .toString();
-    const price_decoded = price
-      ? shortString.decodeShortString(price.replace(/0x0+/, "0x"))
-      : "";
-    const total_supply = uint256
-      .uint256ToBN({ low: total_supply_low, high: total_supply_high })
-      .toString();
-    const slope = uint256
-      .uint256ToBN({ low: slope_low, high: slope_high })
-      .toString();
-    const threshold_liquidity = uint256
-      .uint256ToBN({
-        low: threshold_liquidity_low,
-        high: threshold_liquidity_high
-      })
-      .toString();
+    const amount_raw = uint256.uint256ToBN({
+      low: amount_low,
+      high: amount_high
+    });
+    const _amount = formatUnits(amount_raw, DECIMALS).toString();
+
+    const price_raw = uint256.uint256ToBN({
+      low: price_low,
+      high: price_high
+    });
+    const price = formatUnits(price_raw, DECIMALS).toString();
+
+    const total_supply_raw = uint256.uint256ToBN({
+      low: total_supply_low,
+      high: total_supply_high
+    });
+    const total_supply = formatUnits(total_supply_raw, DECIMALS).toString();
+
+    const slope_raw = uint256.uint256ToBN({ low: slope_low, high: slope_high });
+    const _slope = formatUnits(slope_raw, DECIMALS).toString();
+
+    const threshold_liquidity_raw = uint256.uint256ToBN({
+      low: threshold_liquidity_low,
+      high: threshold_liquidity_high
+    });
+    const _threshold_liquidity = formatUnits(threshold_liquidity_raw, DECIMALS);
 
     return {
+      owner_address:caller,
+      quote_token:quote_token_address,
       memecoin_address: token_address,
       network: "starknet-sepolia",
       block_hash: blockHash,
@@ -91,8 +98,9 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       block_timestamp: timestamp,
       transaction_hash: transactionHash,
       total_supply,
-      price: price_decoded,
-      time_stamp: timestamp
+      price,
+      created_at: new Date().toISOString(),
+      threshold_liquidity:_threshold_liquidity
     };
   });
 }

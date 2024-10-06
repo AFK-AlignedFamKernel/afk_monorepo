@@ -1,5 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-const { prisma } = require("indexer-prisma");
+import { prisma } from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
@@ -32,9 +32,13 @@ async function transactionsRoute(
         },
         select: {
           transaction_type: true,
-          amount: true
+          amount: true,
+          quote_amount: true,
+          price:true
         }
       });
+
+      console.log(transactions);
 
       if (transactions.length === 0) {
         return reply.status(HTTPStatus.NotFound).send({
@@ -44,15 +48,16 @@ async function transactionsRoute(
 
       const result = transactions.reduce(
         (acc, cur) => {
-          acc.total += parseFloat(cur.amount || 0);
+          acc.total += parseFloat(cur.amount?.toString() || "0");
+          acc.quote_amount += parseFloat(cur.quote_amount?.toString() || "0");
           if (cur.transaction_type === "buy") {
-            acc.buy += parseFloat(cur.amount || 0);
+            acc.total_buy += parseFloat(cur.amount?.toString() || "0");
           } else if (cur.transaction_type === "sell") {
-            acc.sell += parseFloat(cur.amount || 0);
+            acc.total_sell += parseFloat(cur.amount?.toString() || "0");
           }
           return acc;
         },
-        { total: 0, buy: 0, sell: 0 }
+        { total: 0, total_buy: 0, total_sell: 0, quote_amount: 0 }
       );
 
       reply.status(HTTPStatus.OK).send(result);

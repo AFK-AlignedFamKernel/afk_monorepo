@@ -1,28 +1,30 @@
-import {useConnect} from '@starknet-react/core';
+import React from 'react';
+import { useConnect } from '@starknet-react/core';
 import * as Linking from 'expo-linking';
-import {Platform, Pressable, View} from 'react-native';
-import {SvgXml} from 'react-native-svg';
+import { Platform, Pressable, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
-import {Button, Modal, Text} from '../../components';
-import {ARGENT_X_INSTALL_URL, BRAAVOS_INSTALL_URL} from '../../constants/urls';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog} from '../../hooks/modals/useDialog';
+import { Button, Modal, Text } from '../../components';
+import { ARGENT_X_INSTALL_URL, BRAAVOS_INSTALL_URL } from '../../constants/urls';
+import { useStyles, useTheme } from '../../hooks';
+import { useDialog } from '../../hooks/modals/useDialog';
 import stylesheet from './styles';
+import { AppKitButton, useAppKit } from '@reown/appkit-wagmi-react-native';
 
 export type WalletModalProps = {
   hide: () => void;
 };
 
-export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
-  const {theme} = useTheme();
+export const WalletModal: React.FC<WalletModalProps> = ({ hide }) => {
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
-  const {connect, connectors} = useConnect();
-  const {showDialog, hideDialog} = useDialog();
-
+  const { connect, connectors } = useConnect();
+  const { showDialog, hideDialog } = useDialog();
+  const { open: openEVM } = useAppKit()
   return (
     <Modal
-    style={{zIndex:100}}
+      style={{ zIndex: 100 }}
     >
       <Text fontSize={16} weight="semiBold">
         Please choose a wallet to connect
@@ -63,7 +65,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
                   hide();
                   return;
                 }
-                connect({connector});
+                connect({ connector });
                 hide();
               }}
               style={styles.connector}
@@ -79,13 +81,16 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
       <View style={styles.connectors}>
         <Text>EVM</Text>
         <Pressable
-              onPress={() => {
-                hide();
-              }}
-              style={styles.connector}
-            >
-              <Text weight="semiBold">{"Connect EVM"}</Text>
-            </Pressable>
+          style={styles.connector}
+
+          onPress={() => {
+            console.log("openEvm")
+            openEVM()
+          }}>
+          <Text>Connect EVM</Text>
+        </Pressable>
+        {/* <AppKitButton /> */}
+
       </View>
 
       <Button variant="default" onPress={hide}>

@@ -1,7 +1,7 @@
-import { Block, hash, uint256, Pool } from "./deps.ts";
+import { Block, formatUnits, hash, uint256, Pool, DECIMALS } from "./deps.ts";
 import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
 
-const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!
+const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
 const connection = await pool.connect();
 
@@ -59,26 +59,41 @@ export default function DecodeSellToken({ header, events }: Block) {
       protocol_fee_high,
       last_price_low,
       last_price_high,
-      timestamp,
+      timestamp_u64,
       quote_amount_low,
       quote_amount_high
     ] = event.data;
 
-    const amount = uint256
-      .uint256ToBN({ low: amount_low, high: amount_high })
-      .toString();
-    const price = uint256
-      .uint256ToBN({ low: price_low, high: price_high })
-      .toString();
-    const protocol_fee = uint256
-      .uint256ToBN({ low: protocol_fee_low, high: protocol_fee_high })
-      .toString();
-    const last_price = uint256
-      .uint256ToBN({ low: last_price_low, high: last_price_high })
-      .toString();
-    const quote_amount = uint256
-      .uint256ToBN({ low: quote_amount_low, high: quote_amount_high })
-      .toString();
+    const amount_raw = uint256.uint256ToBN({
+      low: amount_low,
+      high: amount_high
+    });
+    const amount = formatUnits(amount_raw, DECIMALS).toString();
+
+    const price_raw = uint256.uint256ToBN({ low: price_low, high: price_high });
+    const price = formatUnits(price_raw, DECIMALS).toString();
+
+    const protocol_fee_raw = uint256.uint256ToBN({
+      low: protocol_fee_low,
+      high: protocol_fee_high
+    });
+    const protocol_fee = formatUnits(protocol_fee_raw, DECIMALS).toString();
+
+    const last_price_raw = uint256.uint256ToBN({
+      low: last_price_low,
+      high: last_price_high
+    });
+    const last_price = formatUnits(last_price_raw, DECIMALS).toString();
+
+    const quote_amount_raw = uint256.uint256ToBN({
+      low: quote_amount_low,
+      high: quote_amount_high
+    });
+    const quote_amount = formatUnits(quote_amount_raw, DECIMALS).toString();
+
+    const time_stamp = new Date(
+      Number(BigInt(timestamp_u64)) * 1000
+    ).toISOString();
 
     return {
       transfer_id,
@@ -94,8 +109,9 @@ export default function DecodeSellToken({ header, events }: Block) {
       price,
       amount,
       protocol_fee,
-      time_stamp: timestamp,
-      transaction_type: "sell"
+      time_stamp,
+      transaction_type: "sell",
+      created_at: new Date().toISOString()
     };
   });
 }

@@ -32,24 +32,13 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
         }
       });
 
-      const formattedDistributions = distributions.map((entry) => {
-        const amountBigInt = Number(entry._sum.amount).toLocaleString();
-
-        return {
-          ...entry,
-          _sum: {
-            amount: amountBigInt
-          }
-        };
-      });
-
       if (distributions.length === 0) {
         reply.status(HTTPStatus.NotFound).send({
           message: "No holders found for this token address."
         });
       }
 
-      reply.status(HTTPStatus.OK).send({ data: formattedDistributions });
+      reply.status(HTTPStatus.OK).send({ data: distributions });
     } catch (error) {
       console.error("Failed to fetch token distribution:", error);
       reply.status(HTTPStatus.InternalServerError).send({
