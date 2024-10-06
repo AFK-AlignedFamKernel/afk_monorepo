@@ -117,35 +117,3 @@ model registration {
   created_at      DateTime? @default(now()) @db.Timestamp(6)
   is_confirmed    Boolean?  @default(false)
 }
-
-model usdc_transfer {
-  transfer_id       String    @id
-  network           String?
-  block_hash        String?
-  block_number      BigInt?
-  block_timestamp   DateTime? @default(now()) @db.Timestamp(6)
-  indexed_at        DateTime? @default(now()) @db.Timestamp(6)
-  transaction_hash  String?
-  from_address      String?
-  to_address        String?
-  amount            String?
-  index_in_block    BigInt?
-  sender_balance    String?
-  recipient_balance String?
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  cursor            BigInt
-}
-
-model claims {
-  id        String  @id @default(uuid())
-  amount    String?
-  nonce     Int?
-  address   String?
-  signature String?
-}
-
-model mock_limit {
-  address         String    @id
-  limit           String?
-  block_timestamp DateTime? @default(now()) @db.Timestamp(6)
-}
