@@ -306,7 +306,8 @@ export default ThemedStyleSheet((theme) => ({
   },
   balanceTitle: {
     fontSize: 20,
-    fontWeight: 600
+    fontWeight: 600,
+    color: theme.colors.text
   },
   balance: {
     fontSize: 40,
@@ -314,7 +315,8 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.primary
   },
   activeMintText: {
-    fontSize: 12
+    fontSize: 12,
+    color: theme.colors.text
   },
   tabsContainer: {
     justifyContent: 'center',
@@ -336,13 +338,15 @@ export default ThemedStyleSheet((theme) => ({
   tabTitle: {
     fontWeight: 'bold',
     fontSize: 14,
-    marginBottom: 10
+    marginBottom: 10,
+    color: theme.colors.text
   },
   titleMargin: {
     marginTop: 20
   },
   tabSubtitle: {
-    fontSize: 12
+    fontSize: 12,
+    color: theme.colors.text
   },
   mint: {
     flexDirection: 'row',
@@ -365,7 +369,8 @@ export default ThemedStyleSheet((theme) => ({
     gap: 5
   },
   title: {
-    fontSize: 12
+    fontSize: 12,
+    color: theme.colors.text
   },
   radioOuter: {
     height: 24,
