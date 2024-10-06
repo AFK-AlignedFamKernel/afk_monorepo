@@ -34,8 +34,8 @@ export const SendEcash = () => {
     derivedSeedFromMnenomicAndSaved,
     getMintInfo, mint,
     mintTokens,
-    mintUrl,
-    setMintUrl
+    mintUrls,
+    activeMintIndex
 
   } = useCashu()
   const [ecash, setEcash] = useState<string | undefined>()
@@ -83,6 +83,7 @@ export const SendEcash = () => {
   };
   useEffect(() => {
     (async () => {
+      const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
       const info = await getMintInfo(mintUrl)
       setMintInfo(info)

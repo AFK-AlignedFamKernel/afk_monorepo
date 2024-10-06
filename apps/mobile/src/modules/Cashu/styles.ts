@@ -1,6 +1,7 @@
 import { Platform, StatusBar } from 'react-native';
 
 import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
+import { transform } from '@babel/core';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -59,9 +60,10 @@ export default ThemedStyleSheet((theme) => ({
   },
   scrollView: {
     flex: 1,
-    height: "95%"
+    height: "95%",
     // flexGrow: 1,
     // overflow:"scroll",
+    backgroundColor: theme.colors.surface,
   },
   flatListContent: {
     paddingVertical: Spacing.large,
@@ -125,6 +127,7 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     marginVertical: Spacing.small,
     color: theme.colors.text,
+    fontWeight: 'bold'
   },
   text: {
     // textAlign: 'center',
@@ -232,4 +235,211 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     textAlign: 'center',
   },
+
+  banner: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    border: `1px solid ${theme.colors.divider}`,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 10,
+    gap: 12,
+    padding: 12
+  },
+  bannerText: {
+    color: theme.colors.text,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  bannerButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 20,
+    justifyContent: 'center'
+  },
+  actionsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: 20
+  },
+  actionButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 15,
+    marginTop: 20,
+    marginBottom: 20,
+    justifyContent: 'center',
+    width: '100%'
+  },
+  actionButton: {
+    flex: 1,
+    maxWidth: '40%',
+    backgroundColor: theme.colors.primary
+  },
+  actionButtonText: {
+    color: theme.colors.white
+  },
+  qrButton: {
+    backgroundColor: 'transparent'
+  },
+  moreButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  moreButtonIcon: {
+    transform: 'rotate(270deg)',
+    marginLeft: 10
+  },
+  lessButtonIcon: {
+    transform: 'rotate(90deg)',
+    marginLeft: 10
+  },
+  balanceContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 15
+  },
+  balanceTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: theme.colors.text
+  },
+  balance: {
+    fontSize: 40,
+    fontWeight: 900,
+    color: theme.colors.primary
+  },
+  activeMintText: {
+    fontSize: 12,
+    color: theme.colors.text
+  },
+  tabsContainer: {
+    justifyContent: 'center',
+    maxWidth: '100%'
+  },
+  tabs: {
+    backgroundColor: 'transparent',
+    color: theme.colors.text,
+    borderRadius: 0,
+    width: '30%'
+  },
+  active: {
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  tabContentContainer: {
+    padding: 20
+  },
+  tabTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 10,
+    color: theme.colors.text
+  },
+  titleMargin: {
+    marginTop: 20
+  },
+  tabSubtitle: {
+    fontSize: 12,
+    color: theme.colors.text
+  },
+  mint: {
+    flexDirection: 'row',
+    gap: 15,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.divider,
+    maxWidth: '100%'
+  },
+  mintContentContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1
+  },
+  textsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5
+  },
+  title: {
+    fontSize: 12,
+    color: theme.colors.text
+  },
+  radioOuter: {
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOuterSelected: {
+    borderColor: theme.colors.primary,
+  },
+  radioInner: {
+    height: 12,
+    width: 12,
+    borderRadius: 6,
+    backgroundColor: theme.colors.primary,
+  },
+  mintActionsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 10,
+    alignSelf: 'flex-end',
+    height: '100%',
+    alignItems: 'center'
+  },
+  addMintInput: {
+    borderWidth: 1,
+    borderRadius: 999,
+    borderColor: theme.colors.inputBorder,
+    flex: 1,
+    height: '100%',
+    color: theme.colors.inputText,
+    backgroundColor: theme.colors.inputBackground,
+    fontSize: 12,
+    marginTop: 10,
+    padding: 8
+  },
+  qrButtonSmall: {
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center'
+  },
+  addMintBtn: {
+    marginTop: 15,
+    backgroundColor: theme.colors.primary,
+    padding: 10
+  },
+  addMintBtnText: {
+    color: theme.colors.white,
+    fontSize: 14
+  },
+  newMintError: {
+    marginTop: 5,
+    color: theme.colors.errorDark,
+    fontWeight: 'bold'
+  },
+  noDataContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 15,
+    alignItems: 'center',
+    marginTop: 15
+  },
+  noDataText: {
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: 'bold'
+  }
 }));

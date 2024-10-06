@@ -14,15 +14,18 @@ import { useStyles, useTheme } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
 import { CashuMint, getEncodedToken, MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
-import { CopyIconStack } from '../../assets/icons';
+import { CopyIconStack, InfoIcon } from '../../assets/icons';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
 import { SelectedTab, TABS_CASHU } from '../../types/tab';
 import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
 import { TypeToast } from '../../context/Toast/ToastContext';
+import { useCashuContext } from '../../providers/CashuProvider';
 
 
 export const InvoicesListCashu = () => {
+
+  const styles = useStyles(stylesheet);
 
   const { wallet, connectCashMint,
     connectCashWallet,
@@ -35,53 +38,35 @@ export const InvoicesListCashu = () => {
     checkMintQuote,
     checkProofSpent,
     receiveP2PK, mintTokens,
-    mint,
-    mintUrl
+    mint
 
-  } = useCashu()
-  const { ndkCashuWallet, ndkWallet } = useNostrContext()
+  } = useCashuContext()!;
 
-  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-  // const [mint, setMint] = useState<CashuMint | undefined>(mintUrl ? new CashuMint(mintUrl) : undefined)
-
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
-  const [invoices, setInvoices] = useState<ICashuInvoice[] | undefined>([])
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const [invoices, setInvoices] = useState<ICashuInvoice[]>([]);
 
   useEffect(() => {
-
-
     (async () => {
-
-      const invoicesLocal = await getInvoices()
-
-
+      const invoicesLocal = await getInvoices();
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
         console.log("invoices", invoices)
         setInvoices(invoices)
-
-
       }
     })();
-
-
 
     (async () => {
       const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
-
       if (biometrySupported) {
-        const password = await retrievePassword()
+        const password = await retrievePassword();
         if (!password) return;
         const storeSeed = await retrieveAndDecryptCashuMnemonic(password);
-
-        if (storeSeed) setHasSeedCashu(true)
-
-        if (isSeedCashuStorage) setHasSeedCashu(true)
+        if (storeSeed) setHasSeedCashu(true);
+        if (isSeedCashuStorage) setHasSeedCashu(true);
       }
     })();
 
     (async () => {
-
       // const keysSet = await getKeySets()
       // const keys = await getKeys()
       // console.log("keysSet", keysSet)
@@ -106,19 +91,11 @@ export const InvoicesListCashu = () => {
       //   console.log("mintBalance", mintBalance)
 
       // }
-
-
-
-
     })();
   }, []);
 
 
-  const styles = useStyles(stylesheet);
-
-
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
-  const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
@@ -288,60 +265,62 @@ export const InvoicesListCashu = () => {
   };
 
   return (
-    // <SafeAreaView style={styles.safeArea}>
-    <ScrollView contentContainerStyle={styles.scrollView}>
-      <View style={styles.container}>
+    <View style={styles.tabContentContainer}>
+      <Text style={styles.tabTitle}>Cashu Invoices</Text>
+      {
+        invoices?.length > 0 ? (
+          <FlatList
+            ItemSeparatorComponent={() => <Divider></Divider>}
+            data={invoices?.flat().reverse()}
+            contentContainerStyle={styles.flatListContent}
 
-        <FlatList
-          ItemSeparatorComponent={() => <Divider></Divider>}
-          data={invoices?.flat().reverse()}
-          contentContainerStyle={styles.flatListContent}
+            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+            renderItem={({ item }) => {
+              const date = item?.date && new Date(item?.date)?.toISOString()
+              return (<View style={styles.card}>
+                <View>
 
-          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-          renderItem={({ item }) => {
-            const date = item?.date && new Date(item?.date)?.toISOString()
-            return (<View style={styles.card}>
-              <View>
+                  <Input
+                    value={item?.bolt11}
+                    editable={false}
+                    right={
+                      <TouchableOpacity
+                        onPress={() => handleCopy(item?.bolt11)}
+                        style={{
+                          marginRight: 10,
+                        }}
+                      >
+                        <CopyIconStack color={theme.colors.primary} />
+                      </TouchableOpacity>
+                    }
+                  />
+                  <Text style={styles.text}>Amount: {item?.amount}</Text>
+                  <Text style={styles.text}>Mint: {item?.mint}</Text>
+                  <Text style={styles.text}>Status: {item?.state}</Text>
+                  {date &&
+                    <Text
+                      style={styles.text}>Date: {date}</Text>}
 
-                <Input
-                  value={item?.bolt11}
-                  editable={false}
-                  right={
-                    <TouchableOpacity
-                      onPress={() => handleCopy(item?.bolt11)}
-                      style={{
-                        marginRight: 10,
-                      }}
-                    >
-                      <CopyIconStack color={theme.colors.primary} />
-                    </TouchableOpacity>
-                  }
-                />
-                <Text style={styles.text}>Amount: {item?.amount}</Text>
-                <Text style={styles.text}>Mint: {item?.mint}</Text>
-                <Text style={styles.text}>Status: {item?.state}</Text>
-                {date &&
-                  <Text
-                    style={styles.text}>Date: {date}</Text>}
-
-              </View>
-
-
-              <View>
-                <Button
-                  onPress={() => handleVerify(item?.quote)}
-                >Verify</Button>
-
-              </View>
-
-            </View>)
-          }}
-        />
+                </View>
 
 
+                <View>
+                  <Button
+                    onPress={() => handleVerify(item?.quote)}
+                  >Verify</Button>
 
-      </View>
-    </ScrollView>
-    // </SafeAreaView >
+                </View>
+
+              </View>)
+            }}
+          />
+        ) : (
+          <View style={styles.noDataContainer}>
+            <InfoIcon width={30} height={30} color={theme.colors.primary} />
+            <Text style={styles.noDataText}>No invoices data found.</Text>
+          </View>
+        )
+      }
+    </View>
   );
 };
