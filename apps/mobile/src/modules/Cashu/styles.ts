@@ -428,5 +428,18 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 5,
     color: theme.colors.errorDark,
     fontWeight: 'bold'
+  },
+  noDataContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 15,
+    alignItems: 'center',
+    marginTop: 15
+  },
+  noDataText: {
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: 'bold'
   }
 }));

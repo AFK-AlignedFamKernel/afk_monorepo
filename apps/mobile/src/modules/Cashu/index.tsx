@@ -286,17 +286,11 @@ export const CashuView = () => {
           }
 
           {selectedTab == SelectedTab?.CASHU_INVOICES &&
-            <View>
-              <Text style={styles.text}>Invoices</Text>
-              <InvoicesListCashu></InvoicesListCashu>
-            </View>
+            <InvoicesListCashu></InvoicesListCashu>
           }
 
           {selectedTab == SelectedTab?.CASHU_HISTORY &&
-            <View>
-              <Text>History</Text>
-              <HistoryTxCashu></HistoryTxCashu>
-            </View>
+            <HistoryTxCashu></HistoryTxCashu>
           }
 
           {selectedTab == SelectedTab?.CASHU_MINT &&
