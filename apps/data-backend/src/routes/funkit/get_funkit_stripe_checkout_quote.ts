@@ -17,12 +17,12 @@ interface GetQuoteQuery {
 
 const FUNKIT_API_KEY = process.env.FUNKIT_API_KEY || "";
 
-export function getFunkitStripeCheckoutQuote(
+async function getFunkitStripeCheckoutQuote(
   fastify: FastifyInstance,
   _options: RouteOptions
 ) {
   fastify.get(
-    "/get_funkit_stripe_checkout_quote",
+    "/get-funkit-stripe-checkout-quote",
 
     async (request, reply) => {
       const { address, tokenAmount } = request.query as GetQuoteQuery;
@@ -113,3 +113,5 @@ export function getFunkitStripeCheckoutQuote(
     }
   );
 }
+
+export default getFunkitStripeCheckoutQuote;
