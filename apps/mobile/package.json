@@ -43,9 +43,9 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "@react-navigation/stack": "^6.3.29",
-    "@reown/appkit-auth-wagmi-react-native": "1.0.0",
-    "@reown/appkit-siwe-react-native": "^1.0.0",
-    "@reown/appkit-wagmi-react-native": "^1.0.0",
+    "@reown/appkit-auth-wagmi-react-native": "0.0.0-canary-20241004192634",
+    "@reown/appkit-siwe-react-native": "0.0.0-canary-20241004192634",
+    "@reown/appkit-wagmi-react-native": "0.0.0-canary-20241004192634",
     "@starknet-react/chains": "^0.1.7",
     "@starknet-react/core": "^2.8.2",
     "@starknet-wc/core": "0.0.4",
@@ -125,6 +125,9 @@
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.3.3",
     "typescript": "~5.3.3"
+  },
+  "patchedDependencies": {
+    "@reown/appkit-siwe-react-native@1.0.0": "patches/@reown__appkit-siwe-react-native@1.0.0.patch"
   },
   "private": true
 }

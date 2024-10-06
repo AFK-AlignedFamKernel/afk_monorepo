@@ -95,6 +95,11 @@ export default function DecodeSellToken({ header, events }: Block) {
       Number(BigInt(timestamp_u64)) * 1000
     ).toISOString();
 
+    console.log({
+      memecoin_address: token_address,
+      caller: caller
+    });
+
     return {
       transfer_id,
       network: "starknet-sepolia",

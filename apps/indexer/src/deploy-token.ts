@@ -85,6 +85,11 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
     });
     const total_supply = formatUnits(total_supply_raw, DECIMALS).toString();
 
+    console.log({
+      memecoin_address: token_address,
+      caller: caller
+    });
+
     return {
       memecoin_address: token_address,
       network: "starknet-sepolia",
