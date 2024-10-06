@@ -47,7 +47,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
 
     const transactionHash = transaction.meta.hash;
 
-    const [token_address, _caller] = event.keys!;
+    const [quote_token_address, caller, token_address] = event.keys!;
     const [
       amount_low,
       amount_high,
@@ -88,6 +88,12 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
     });
     const _threshold_liquidity = formatUnits(threshold_liquidity_raw, DECIMALS);
 
+    console.log({
+      memecoin_address: token_address,
+      quote_token: quote_token_address,
+      caller: caller
+    });
+
     return {
       memecoin_address: token_address,
       network: "starknet-sepolia",
@@ -95,6 +101,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       block_number: Number(blockNumber),
       block_timestamp: timestamp,
       transaction_hash: transactionHash,
+      quote_token: quote_token_address,
       total_supply,
       price,
       created_at: new Date().toISOString()
