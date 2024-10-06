@@ -236,9 +236,11 @@ const MainNavigator: React.FC = () => {
       <View style={{ flex: 1 }}>
         <Feed navigation={useNavigation()} route={useRoute()} />
       </View>
-      <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
-        <RightSidebar />
-      </View>
+      {isDesktop &&
+        <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
+          <RightSidebar />
+        </View>
+      }
     </View>
   );
 
@@ -346,6 +348,19 @@ const linking = {
       MainStack: {
         path: 'app',
         screens: {
+          AuthStack: {
+            path: 'auth',
+            screens: {
+              Login: 'login',
+              CreateAccount: 'create-account',
+              SaveKeys: 'save-keys',
+              ImportKeys: 'import-keys',
+            },
+          },
+          Login: 'login',
+          CreateAccount: 'create-account',
+          SaveKeys: 'save-keys',
+          ImportKeys: 'import-keys',
           Home: 'home',
           Feed: 'feed',
           Profile: {

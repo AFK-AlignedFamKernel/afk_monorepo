@@ -16,9 +16,12 @@ async function deployTokenRoute(
       const deploys = await prisma.token_deploy.findMany({
         select: {
           memecoin_address: true,
+          owner_address: true,
           name: true,
+          symbol: true,
           total_supply: true,
-          network: true
+          network: true,
+          created_at: true
         }
       });
 
@@ -50,13 +53,15 @@ async function deployTokenRoute(
         where: { memecoin_address: token },
         select: {
           memecoin_address: true,
+          owner_address: true,
           name: true,
-          symbol:true,
-          initial_supply:true,
+          symbol: true,
           total_supply: true,
-          network: true
+          network: true,
+          created_at: true
         }
       });
+
       reply.status(HTTPStatus.OK).send({
         data: deploys
       });
