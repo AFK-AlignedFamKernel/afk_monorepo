@@ -1,5 +1,5 @@
 import { getCheckoutQuote, getStripeBuyQuote } from "@funkit/api-base";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, RouteOptions } from "fastify";
 import { getChecksumAddress } from "starknet";
 import {
   FUNKIT_STARKNET_CHAIN_ID,
@@ -15,9 +15,11 @@ interface GetQuoteQuery {
   tokenAmount: number;
 }
 
+const FUNKIT_API_KEY = process.env.FUNKIT_API_KEY || "";
+
 export function getFunkitStripeCheckoutQuote(
   fastify: FastifyInstance,
-  funkitApiKey: string
+  _options: RouteOptions
 ) {
   fastify.get(
     "/get_funkit_stripe_checkout_quote",
@@ -55,7 +57,7 @@ export function getFunkitStripeCheckoutQuote(
           toTokenDecimals: TOKEN_INFO.STARKNET_USDC.decimals,
           toTokenAmount: Number(tokenAmount),
           expirationTimestampMs: 1_800_000, // 30 minutes
-          apiKey: funkitApiKey,
+          apiKey: FUNKIT_API_KEY,
           sponsorInitialTransferGasLimit: "0",
           recipientAddr: normalizedRecipientAddress as `0x${string}`,
           userId: normalizedRecipientAddress,
@@ -76,7 +78,7 @@ export function getFunkitStripeCheckoutQuote(
           destinationCurrency: sourceAsset.symbol,
           destinationNetwork: sourceAsset.network,
           destinationAmount: estTotalFromAmount,
-          apiKey: funkitApiKey,
+          apiKey: FUNKIT_API_KEY,
           isSandbox: false
         });
         const stripeQuote =
