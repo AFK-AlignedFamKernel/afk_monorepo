@@ -48,7 +48,8 @@ export default function DecodeBuyToken({ header, events }: Block) {
     const transactionHash = transaction.meta.hash;
     const transfer_id = `${transactionHash}_${event.index}`;
 
-    const [token_address, caller] = event.keys!;
+    // const [token_address, caller] = event.keys!;
+    const [_, caller, token_address] = event.keys;
 
     const [
       amount_low,

@@ -47,7 +47,8 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
 
     const transactionHash = transaction.meta.hash;
 
-    const [quote_token_address, caller, token_address] = event.keys!;
+    // const [quote_token_address, caller, token_address] = event.keys!;
+    const [_, caller, token_address, quote_token_address] = event.keys;
 
     const [
       amount_low,
