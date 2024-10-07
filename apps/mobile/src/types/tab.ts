@@ -33,6 +33,7 @@ export enum SelectedTab {
   CASHU_SETTINGS,
   PORTFOLIO,
   STARKNET_PORTFOLIO,
+  SWAP_AVNU,
   TOKEN_STATS,
   USER_SHARE
 }
@@ -206,6 +207,12 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'BTCVault',
     tab: SelectedTab.BTC_FI_VAULT,
   },
+  {
+    title: 'Swap',
+    screen: 'Swap',
+    tab: SelectedTab.SWAP_AVNU,
+  },
+
   // {
   //   title: 'BTC Bridge',
   //   screen: 'BTCBridge',
