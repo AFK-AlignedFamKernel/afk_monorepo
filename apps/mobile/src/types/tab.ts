@@ -297,13 +297,13 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     tab: SelectedTab.PORTFOLIO,
   },
   {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
-  {
     title: 'Cashu',
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
 ];

@@ -43,7 +43,8 @@ export interface TokenDeployInterface {
   network: string;
   owner: string;
   total_supply: Uint256;
-  created_at: Uint256;
+  // created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;

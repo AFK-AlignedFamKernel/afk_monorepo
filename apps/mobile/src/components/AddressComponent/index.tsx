@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 // import Clipboard from '@react-native-clipboard/clipboard';
 import { MaterialIcons } from '@expo/vector-icons';
+import stylesheet from './styles';
+import { useStyles } from '../../hooks';
 
 
 interface AddressProps  {
@@ -15,6 +17,8 @@ export const AddressComponent = ({address}: AddressProps) => {
     return `${address.substring(0, 10)}...${address.substring(address.length - 10)}`;
   };
 
+
+  const styles = useStyles(stylesheet)
   const copyToClipboard = () => {
     // Clipboard.setString(address);
     Alert.alert("Copied!", "Blockchain address copied to clipboard.");
@@ -31,16 +35,3 @@ export const AddressComponent = ({address}: AddressProps) => {
 
 
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  address: {
-    marginRight: 10,
-    fontSize: 13,
-    color: '#333',
-  },
-});
-

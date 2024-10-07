@@ -44,7 +44,8 @@ import { Search } from '../screens/Search';
 import { Settings } from '../screens/Settings';
 import { Tips } from '../screens/Tips';
 import { CashuScreen } from '../screens/Cashu';
-import { WalletBTC } from '../screens/Wallet';
+import { WalletBTC } from '../screens/WalletBTC';
+import { Wallet } from '../screens/Wallet';
 
 // Styles
 import { StyleSheet } from 'react-native';
@@ -52,7 +53,7 @@ import { ThemedStyleSheet } from '../styles';
 
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
-import { retrievePublicKey } from '../utils/storage';
+// import { retrievePublicKey } from '../utils/storage';
 
 // Icons
 import { IconNames } from '../components/Icon';
@@ -93,6 +94,7 @@ const HomeBottomTabNavigator: React.FC = () => {
 
   return (
     <HomeBottomTabsStack.Navigator
+      // initialRouteName='BottomBar'
       sceneContainerStyle={styles.sceneContainer}
       screenOptions={{
         headerShown: false,
@@ -237,7 +239,7 @@ const MainNavigator: React.FC = () => {
         <Feed navigation={useNavigation()} route={useRoute()} />
       </View>
       {isDesktop &&
-        <View style={{ width: 250, backgroundColor: theme.theme.colors.surface }}>
+        <View style={{ width: 300, backgroundColor: theme.theme.colors.surface }}>
           <RightSidebar />
         </View>
       }
@@ -246,8 +248,8 @@ const MainNavigator: React.FC = () => {
 
   return (
     <MainStack.Navigator
-      // initialRouteName="Home"
-      initialRouteName="Feed"
+      initialRouteName="Home"
+      // initialRouteName="Feed"
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({ navigation }) => ({
         header: () =>
@@ -264,12 +266,20 @@ const MainNavigator: React.FC = () => {
         },
       })}
     >
-      <MainStack.Screen name="Auth" component={AuthNavigator} />
-      <MainStack.Screen name="Feed" component={FeedWithSidebar} />
-
       {!isDesktop && (
         <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />
       )}
+      {/* <MainStack.Screen name="BottomBar" component={HomeBottomTabNavigator} /> */}
+      <MainStack.Screen name="Feed" component={FeedWithSidebar} />
+
+      {/* <MainStack.Screen name="Auth" component={AuthNavigator} /> */}
+      {/* <MainStack.Screen name="Home" component={HomeBottomTabNavigator} /> */}
+
+      {!isDesktop && (
+        <MainStack.Screen name="BottomBar" component={HomeBottomTabNavigator} />
+      )}
+
+
 
       <MainStack.Screen name="Profile" component={Profile} />
       <MainStack.Screen name="EditProfile" component={EditProfile} />
@@ -296,6 +306,9 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />
       <MainStack.Screen name="SaveKeys" component={SaveKeys} />
       <MainStack.Screen name="ImportKeys" component={ImportKeys} />
+
+      <MainStack.Screen name="Wallet" component={Wallet} />
+
     </MainStack.Navigator>
   );
 };
@@ -336,6 +349,25 @@ const linking = {
   prefixes: ['https://afk-community.xyz', 'afk://'],
   config: {
     screens: {
+      // Home: {
+      //   path: '',
+      //   screens: {
+      //     Login: 'login',
+      //     CreateAccount: 'create-account',
+      //     SaveKeys: 'save-keys',
+      //     ImportKeys: 'import-keys',
+      //     Home: 'home',
+      //     Feed: 'feed',
+      //     Profile: {
+      //       path: 'profile/:publicKey',
+      //       parse: {
+      //         publicKey: (publicKey: any) => `${publicKey}`,
+      //       },
+      //     },
+      //     EditProfile: 'edit-profile',
+      //     CreatePost: 'create-post',
+      //   },
+      // },
       AuthStack: {
         path: 'auth',
         screens: {
@@ -356,6 +388,9 @@ const linking = {
               SaveKeys: 'save-keys',
               ImportKeys: 'import-keys',
             },
+          },
+          BottomBar: {
+            path: '',
           },
           Login: 'login',
           CreateAccount: 'create-account',
@@ -392,9 +427,9 @@ const linking = {
           Tips: 'tips',
           Settings: 'settings',
           LaunchDetail: {
-            path: 'launch/:id',
+            path: 'launch/:coinAddress',
             parse: {
-              id: (id: any) => `${id}`,
+              coinAddress: (coinAddress: any) => `${coinAddress}`,
             },
           },
           Lightning: 'lightning',
@@ -403,6 +438,8 @@ const linking = {
           KeysMarketplace: 'keys-marketplace',
           Launchpad: 'launchpad',
           LaunchToken: 'launch-token',
+          Wallet: 'wallet',
+          Portfolio: 'portfolio',
         },
       },
     },

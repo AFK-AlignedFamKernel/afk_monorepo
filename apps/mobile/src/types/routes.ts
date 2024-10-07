@@ -10,6 +10,7 @@ export type RootStackParams = {
   DrawerStack: DrawerScreenProps<MainStackParams>;
   AuthStack: NavigatorScreenParams<AuthStackParams>;
   DegensStack: NavigatorScreenParams<DegensAppStackParams>;
+  // Home: NavigatorScreenParams<HomeBottomStackParams>;
 };
 
 export type AuthStackParams = {
@@ -24,6 +25,7 @@ export type AuthStackParams = {
 
 export type MainStackParams = {
   // Home: NavigatorScreenParams<HomeBottomStackParams>;
+  BottomBar: undefined;
   CreatePost: undefined;
   Profile: {publicKey: string};
   PostDetail: {postId: string; post?: NDKEvent};
@@ -50,7 +52,7 @@ export type MainStackParams = {
   Feed: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+  LaunchDetail: {coinAddress: string;};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
@@ -65,6 +67,9 @@ export type MainStackParams = {
   Whatever: undefined;
   RightDrawer: undefined;
   WalletBTC: undefined;
+  Wallet: undefined;
+  Portfolio: undefined;
+  Ramp: undefined;
 };
 
 export type DegensAppStackParams = {
@@ -332,6 +337,26 @@ export type WalletScreenBTC = CompositeScreenProps<
 //   NativeStackScreenProps<RootStackParams>
 // >;
 
+export type BottomBarProps = CompositeScreenProps<
+  NativeStackScreenProps< MainStackParams, "BottomBar">,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+
+export type WalletScreen = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Wallet'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type PortfolioScreen = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Portfolio'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type Ramp = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Ramp'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 // Drawer desktop stack
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
