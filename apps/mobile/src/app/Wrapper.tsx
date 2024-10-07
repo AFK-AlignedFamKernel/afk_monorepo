@@ -20,7 +20,6 @@ import { StarknetProvider } from './StarknetProvider';
 import { ModalParentProvider } from '../context/modal/ModalParent';
 import { EVMProvider } from './EVMProvider';
 import { WalletModalEVMProvider } from '../context/WalletModalEvmProvider';
-import DynamicProvider from '../context/DynamicProvider';
 import { CashuProvider } from '../providers/CashuProvider';
 
 const queryClient = new QueryClient({

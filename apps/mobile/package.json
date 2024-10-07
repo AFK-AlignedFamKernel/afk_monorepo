@@ -27,8 +27,6 @@
     "@cashu/cashu-ts": "^1.0.1",
     "@docusaurus/core": "^3.5.2",
     "@docusaurus/preset-classic": "^3.5.2",
-    "@dynamic-labs/ethereum": "^3.2.0",
-    "@dynamic-labs/sdk-react-core": "^3.2.0",
     "@expo/metro-runtime": "~3.2.1",
     "@getalby/bitcoin-connect-react": "^3.5.3",
     "@getalby/lightning-tools": "^5.0.3",
