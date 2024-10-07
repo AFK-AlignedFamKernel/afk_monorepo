@@ -309,10 +309,10 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             // self.ownable.assert_only_owner();
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
-            self
-                .emit(
-                    SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
-                );
+        // self
+        //     .emit(
+        //         SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
+        //     );
         }
 
         fn set_address_jediswap_nft_router_v2(
@@ -320,12 +320,12 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
-            self
-                .emit(
-                    SetJediwapNFTRouterV2 {
-                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
-                    }
-                );
+        // self
+        //     .emit(
+        //         SetJediwapNFTRouterV2 {
+        //             address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
+        //         }
+        //     );
         }
 
         fn set_exchanges_address(
@@ -573,28 +573,26 @@ pub mod LaunchpadMarketplace {
             // 80% bought by others
 
             // TODO finish test and fix
-            if pool_coin.liquidity_raised >= threshold {
-                self
-                    .emit(
-                        LiquidityCanBeAdded {
-                            pool: pool_coin.token_address.clone(),
-                            asset: pool_coin.token_address.clone(),
-                            quote_token_address: pool_coin.token_quote.token_address.clone(),
-                        }
-                    );
+            if pool_coin.liquidity_raised >= threshold {// self
+            //     .emit(
+            //         LiquidityCanBeAdded {
+            //             pool: pool_coin.token_address.clone(),
+            //             asset: pool_coin.token_address.clone(),
+            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
+            //         }
+            //     );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
-            if mc >= threshold_mc {
-                // println!("mc >= threshold_mc");
-                self
-                    .emit(
-                        LiquidityCanBeAdded {
-                            pool: pool_coin.token_address.clone(),
-                            asset: pool_coin.token_address.clone(),
-                            quote_token_address: pool_coin.token_quote.token_address.clone(),
-                        }
-                    );
+            if mc >= threshold_mc {// println!("mc >= threshold_mc");
+            // self
+            //     .emit(
+            //         LiquidityCanBeAdded {
+            //             pool: pool_coin.token_address.clone(),
+            //             asset: pool_coin.token_address.clone(),
+            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
+            //         }
+            //     );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
@@ -602,21 +600,20 @@ pub mod LaunchpadMarketplace {
             // Update state
             self.shares_by_users.write((get_caller_address(), coin_address), share_user.clone());
             self.launched_coins.write(coin_address, pool_coin.clone());
-
-            self
-                .emit(
-                    BuyToken {
-                        caller: get_caller_address(),
-                        token_address: coin_address,
-                        amount: amount,
-                        price: total_price,
-                        protocol_fee: amount_protocol_fee,
-                        // creator_fee: 0,
-                        last_price: old_price,
-                        timestamp: get_block_timestamp(),
-                        quote_amount: quote_amount
-                    }
-                );
+        // self
+        //     .emit(
+        //         BuyToken {
+        //             caller: get_caller_address(),
+        //             token_address: coin_address,
+        //             amount: amount,
+        //             price: total_price,
+        //             protocol_fee: amount_protocol_fee,
+        //             // creator_fee: 0,
+        //             last_price: old_price,
+        //             timestamp: get_block_timestamp(),
+        //             quote_amount: quote_amount
+        //         }
+        //     );
         }
 
 
@@ -706,20 +703,19 @@ pub mod LaunchpadMarketplace {
                 .shares_by_users
                 .write((get_caller_address(), coin_address.clone()), share_user.clone());
             self.launched_coins.write(coin_address.clone(), pool_update.clone());
-
-            self
-                .emit(
-                    SellToken {
-                        caller: get_caller_address(),
-                        key_user: coin_address,
-                        amount: quote_amount,
-                        price: total_price,
-                        protocol_fee: amount_protocol_fee,
-                        creator_fee: amount_creator_fee,
-                        timestamp: get_block_timestamp(),
-                        last_price: old_price,
-                    }
-                );
+        // self
+        //     .emit(
+        //         SellToken {
+        //             caller: get_caller_address(),
+        //             key_user: coin_address,
+        //             amount: quote_amount,
+        //             price: total_price,
+        //             protocol_fee: amount_protocol_fee,
+        //             creator_fee: amount_creator_fee,
+        //             timestamp: get_block_timestamp(),
+        //             last_price: old_price,
+        //         }
+        //     );
         }
 
 
@@ -868,17 +864,17 @@ pub mod LaunchpadMarketplace {
                 self.array_coins.write(total_token, token);
             }
 
-            self
-                .emit(
-                    CreateToken {
-                        caller: get_caller_address(),
-                        token_address: token_address,
-                        symbol: symbol,
-                        name: name,
-                        initial_supply,
-                        total_supply: initial_supply.clone(),
-                    }
-                );
+            // self
+            //     .emit(
+            //         CreateToken {
+            //             caller: get_caller_address(),
+            //             token_address: token_address,
+            //             symbol: symbol,
+            //             name: name,
+            //             initial_supply,
+            //             total_supply: initial_supply.clone(),
+            //         }
+            //     );
             token_address
         }
 
@@ -976,20 +972,19 @@ pub mod LaunchpadMarketplace {
                 self.total_launch.write(total_launch + 1);
                 self.array_launched_coins.write(total_launch, launch_token_pump);
             }
-
-            self
-                .emit(
-                    CreateLaunch {
-                        caller: get_caller_address(),
-                        token_address: coin_address,
-                        amount: 0,
-                        price: initial_key_price,
-                        total_supply: total_supply,
-                        slope: slope,
-                        threshold_liquidity: threshold,
-                        quote_token_address: quote_token_address,
-                    }
-                );
+        // self
+        //     .emit(
+        //         CreateLaunch {
+        //             caller: get_caller_address(),
+        //             token_address: coin_address,
+        //             amount: 0,
+        //             price: initial_key_price,
+        //             total_supply: total_supply,
+        //             slope: slope,
+        //             threshold_liquidity: threshold,
+        //             quote_token_address: quote_token_address,
+        //         }
+        //     );
         }
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
@@ -1089,20 +1084,19 @@ pub mod LaunchpadMarketplace {
                 };
 
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
+            // TODO Locked LP token
 
-                // TODO Locked LP token
-
-                self
-                    .emit(
-                        LiquidityCreated {
-                            id: token_id,
-                            pool: pool,
-                            quote_token_address: quote_token_address,
-                            // token_id:token_id,
-                            owner: launch.owner,
-                            asset: asset_token_address,
-                        }
-                    );
+            // self
+            //     .emit(
+            //         LiquidityCreated {
+            //             id: token_id,
+            //             pool: pool,
+            //             quote_token_address: quote_token_address,
+            //             // token_id:token_id,
+            //             owner: launch.owner,
+            //             asset: asset_token_address,
+            //         }
+            //     );
             } else { // TODO 
             // Increase liquidity of this pool.
             }

@@ -8,32 +8,14 @@ using CairoLib for uint256;
 contract LaunchpadPumpDualVM {
     /// @dev The address of the cairo contract to call
     uint256 immutable starknetLaunchpad;
-
     /// @dev The address of the kakarot starknet contract to call
     uint256 immutable kakarot;
 
-    /// @dev The cairo function selector to call - `create_token`
-    uint256 constant FUNCTION_SELECTOR_CREATE_TOKEN = uint256(keccak256("create_token")) % 2 ** 250;
-
-   /// @dev The cairo function selector to call - `create_and_launch_token`
-    uint256 constant FUNCTION_SELECTOR_CREATE_TOKEN_AND_LAUNCH= uint256(keccak256("create_and_launch_token")) % 2 ** 250;
-
-
-    /// @dev The cairo function selector to call - `launch_token`
-    uint256 constant FUNCTION_SELECTOR_LAUNCH_TOKEN = uint256(keccak256("launch_token")) % 2 ** 250;
-
-
-    /// @dev The cairo function selector to call - `get_coin_launch`
-    uint256 constant FUNCTION_SELECTOR_GET_LAUNCH = uint256(keccak256("get_coin_launch")) % 2 ** 250;
-
-   /// @dev The cairo function selector to call - `buy_coin_by_quote_amount`
-    uint256 constant FUNCTION_SELECTOR_BUY_COIN = uint256(keccak256("buy_coin_by_quote_amount")) % 2 ** 250;
-
-   /// @dev The cairo function selector to call - `sell_coin`
-    uint256 constant FUNCTION_SELECTOR_SELL_COIN = uint256(keccak256("sell_coin")) % 2 ** 250;
+    mapping (address => uint256) evmToStarknetAddresses;
+    mapping (uint256 => address) starknetToEvmAddresses;
 
     struct SharesTokenUser {
-     address owner;
+        address owner;
         address token_address;
         uint256 price;
         uint256 amount_owned;
@@ -43,207 +25,376 @@ contract LaunchpadPumpDualVM {
         uint64 created_at;
     }
 
+    struct CairoTokenQuoteBuyCoin {
+        uint256 tokenAddress;
+        uint256 initialKeyPriceLow;
+        uint256 initialKeyPriceHigh;
+        uint256 priceLow;
+        uint256 priceHigh;
+        uint256 stepIncreaseLinearLow;
+        uint256 stepIncreaseLinearHigh;
+        bool isEnable;
+    }
+
+    struct CairoTokenLaunch {
+        uint256 owner;
+        uint256 tokenAddress;
+        uint256 initialKeyPriceLow;
+        uint256 initialKeyPriceHigh;
+        uint256 priceLow;
+        uint256 priceHigh;
+        uint256 availableSupplyLow;
+        uint256 availableSupplyHigh;
+        uint256 initialPoolSupplyLow;
+        uint256 initialPoolSupplyHigh;
+        uint256 totalSupplyLow;
+        uint256 totalSupplyHigh;
+        uint256 bondingCurveType;
+        BondingCurve bondingCurve;
+        uint64 createdAt;
+        CairoTokenQuoteBuyCoin tokenQuote;
+        uint256 liquidityRaisedLow;
+        uint256 liquidityRaisedHigh;
+        uint256 tokenHoldedLow;
+        uint256 tokenHoldedHigh;
+        bool isLiquidityLaunch;
+        uint256 slopeLow;
+        uint256 slopeHigh;
+        uint256 thresholdLiquidityLow;
+        uint256 thresholdLiquidityHigh;
+    }
+
+    struct TokenQuoteBuyCoin {
+        uint256 tokenAddress;
+        uint256 initialKeyPrice;
+        uint256 price;
+        uint256 stepIncreaseLinear;
+        bool isEnable;
+    }
+
+    enum BondingCurve {
+        Linear,
+        Trapezoidal,
+        Scoring,
+        Exponential,
+        Limited
+    }
+
     struct TokenLaunch {
         address owner;
-        address token_address;
+        uint256 tokenAddress;
+        uint256 initialKeyPrice;
         uint256 price;
-        uint256 available_supply;
-        uint256 total_supply;
-        uint256 initial_key_price;
-        uint256 liquidity_raised;
-        uint256 token_holded;
-        bool is_liquidity_launch;
-        uint256 slop;
-        uint64 created_at;
+        uint256 availableSupply;
+        uint256 initialPoolSupply;
+        uint256 totalSupply;
+        BondingCurve bondingCurve;
+        uint64 createdAt;
+        TokenQuoteBuyCoin tokenQuote;
+        uint256 liquidityRaised;
+        uint256 tokenHolded;
+        bool isLiquidityLaunch;
+        uint256 slope;
+        uint256 thresholdLiquidity;
+    }
+
+    struct CairoToken {
+        uint256 owner;
+        uint256 tokenAddress;
+        uint256 symbol;
+        uint256 name;
+        uint256 totalSupplyLow;
+        uint256 totalSupplyHigh;
+        uint256 initialSupplyLow;
+        uint256 initialSupplyHigh;
+        TokenType tokenType;
+        uint64 createdAt;
+    }
+
+    enum TokenType {
+        ERC20,
+        ERC404
     }
 
     struct Token {
         address owner;
-        address token_address;
-        bytes symbol;
-        bytes name;
-        uint256 total_supply;
-        uint256 initial_supply;
-        uint64 created_at;
-        
+        uint256 tokenAddress;
+        bytes31 symbol;
+        bytes31 name;
+        uint256 totalSupply;
+        uint256 initialSupply;
+        TokenType tokenType;
+        uint64 createdAt;
     }
 
-    constructor(
-        uint256 _kakarot,
-        uint256 _starknetLaunchpad) {
+    event CreateToken(
+        address indexed caller,
+        uint256 indexed tokenAddress,
+        bytes31 symbol,
+        bytes31 name,
+        uint256 initialSupply,
+        uint256 totalSupply
+    );
+
+    event CreateLaunch(
+        address indexed caller,
+        uint256 indexed tokenAddress,
+        uint256 indexed quoteTokenAddress,
+        uint256 amount,
+        uint256 price,
+        uint256 totalSupply,
+        uint256 slope,
+        uint256 thresholdLiquidity
+    );
+
+    constructor(uint256 _kakarot, uint256 _starknetLaunchpad) {
         kakarot = _kakarot;
         starknetLaunchpad = _starknetLaunchpad;
     }
 
-    function getLaunchPump(uint256 tokenAddress) public {
-
-        uint256[] memory tokenAddressCalldata = new uint256[](1);
-        tokenAddressCalldata[0] = uint256(uint160(tokenAddress));
-        uint256 tokenStarknetAddress =
-            abi.decode(starknetLaunchpad.staticcallCairo("compute_starknet_address", tokenAddressCalldata), (uint256));
-
-        // call launch that sent struct
-        // todo how do it?
+    function bytes31ToUint256(bytes31 data) internal pure returns(uint256) {
+        return uint256(bytes32(data) >> 8);
     }
 
-
-   function bytesToUint256(bytes calldata b) internal pure returns (uint256) {
-        require(b.length <= 32, "Byte array should be no longer than 32 bytes");
-        return abi.decode(abi.encodePacked(new bytes(32 - b.length), b), (uint256));
+    function uint256ToU256(uint256 data) internal pure returns(uint256, uint256) {
+        uint128 low = uint128(data);
+        uint128 high = uint128(data >> 128);
+        return (low, high);
     }
 
-    function bytesFeltToUint256(bytes calldata b) internal pure returns (uint256) {
-        require(b.length <= 31, "Byte array should be no longer than 31 bytes");
-        return abi.decode(abi.encodePacked(new bytes(32 - b.length), b), (uint256));
+    function uint256ToBytes31(uint256 data) internal pure returns(bytes31 result) {
+        assembly {
+            result := shl(8, data)
+        }
     }
 
+    function getAllCoins() public view returns(Token[] memory) {
+        bytes memory returnData = starknetLaunchpad.staticcallCairo("get_all_coins");
+        bytes32 offset = 0x0000000000000000000000000000000000000000000000000000000000000020;
+        CairoToken[] memory cairoTokens = abi.decode(
+            bytes.concat(offset, returnData),
+            (CairoToken[])
+        );
+        Token[] memory tokens = new Token[](cairoTokens.length);
+        for (uint256 i = 0; i < cairoTokens.length; ++i) {
+            tokens[i].owner = starknetToEvmAddresses[cairoTokens[i].owner];
+            tokens[i].tokenAddress = cairoTokens[i].tokenAddress;
+            tokens[i].symbol = uint256ToBytes31(cairoTokens[i].symbol);
+            tokens[i].name = uint256ToBytes31(cairoTokens[i].name);
+            tokens[i].totalSupply = cairoTokens[i].totalSupplyLow +
+                (cairoTokens[i].totalSupplyHigh << 128);
+            tokens[i].initialSupply = cairoTokens[i].initialSupplyLow +
+                (cairoTokens[i].initialSupplyHigh << 128);
+            tokens[i].tokenType = cairoTokens[i].tokenType;
+            tokens[i].createdAt = cairoTokens[i].createdAt;
+        }
+        return tokens;
+    }
 
-    /** */
-    function createToken(address recipient,
-      bytes calldata symbol,
-      bytes calldata name,
-      uint256 initialSupply,
-      bytes calldata contractAddressSalt
+    function getCoinLaunch(uint256 tokenAddress) public view returns(TokenLaunch memory) {
+        uint256[] memory getCoinLaunchCallData = new uint256[](1);
+        getCoinLaunchCallData[0] = tokenAddress;
+        bytes memory returnData = starknetLaunchpad.staticcallCairo(
+            "get_coin_launch",
+            getCoinLaunchCallData
+        );
+        CairoTokenLaunch memory cairoTokenLaunch = abi.decode(returnData, (CairoTokenLaunch));
+        return TokenLaunch({
+            owner: starknetToEvmAddresses[cairoTokenLaunch.owner],
+            tokenAddress: cairoTokenLaunch.tokenAddress,
+            initialKeyPrice: cairoTokenLaunch.initialKeyPriceLow +
+                (cairoTokenLaunch.initialKeyPriceHigh << 128),
+            price: cairoTokenLaunch.priceLow + (cairoTokenLaunch.priceHigh << 128),
+            availableSupply: cairoTokenLaunch.availableSupplyLow +
+                (cairoTokenLaunch.availableSupplyHigh << 128),
+            initialPoolSupply: cairoTokenLaunch.initialPoolSupplyLow +
+                (cairoTokenLaunch.initialPoolSupplyHigh << 128),
+            totalSupply: cairoTokenLaunch.totalSupplyLow +
+                (cairoTokenLaunch.totalSupplyHigh << 128),
+            bondingCurve: cairoTokenLaunch.bondingCurve,
+            createdAt: cairoTokenLaunch.createdAt,
+            tokenQuote: TokenQuoteBuyCoin({
+                tokenAddress: cairoTokenLaunch.tokenQuote.tokenAddress,
+                initialKeyPrice: cairoTokenLaunch.tokenQuote.initialKeyPriceLow +
+                    (cairoTokenLaunch.tokenQuote.initialKeyPriceHigh << 128),
+                price: cairoTokenLaunch.tokenQuote.priceLow +
+                    (cairoTokenLaunch.tokenQuote.priceHigh << 128),
+                stepIncreaseLinear: cairoTokenLaunch.tokenQuote.stepIncreaseLinearLow +
+                    (cairoTokenLaunch.tokenQuote.stepIncreaseLinearHigh << 128),
+                isEnable: cairoTokenLaunch.tokenQuote.isEnable
+            }),
+            liquidityRaised: cairoTokenLaunch.liquidityRaisedLow +
+                (cairoTokenLaunch.liquidityRaisedHigh << 128),
+            tokenHolded: cairoTokenLaunch.tokenHoldedLow +
+                (cairoTokenLaunch.tokenHoldedHigh << 128),
+            isLiquidityLaunch: cairoTokenLaunch.isLiquidityLaunch,
+            slope: cairoTokenLaunch.slopeLow + (cairoTokenLaunch.slopeHigh << 128),
+            thresholdLiquidity: cairoTokenLaunch.thresholdLiquidityLow +
+                (cairoTokenLaunch.thresholdLiquidityHigh << 128)
+        });
+    }
+
+    function createToken(
+        address recipient,
+        bytes31 symbol,
+        bytes31 name,
+        uint256 initialSupply,
+        bytes31 contractAddressSalt
     ) public {
-
-        uint256[] memory recipientAddressCalldata = new uint256[](1);
-        recipientAddressCalldata[0] = uint256(uint160(recipient));
-
-        uint256 recipientStarknetAddress =
-            abi.decode(kakarot.staticcallCairo("compute_starknet_address", recipientAddressCalldata), (uint256));
-
-        uint128 amountLow = uint128(initialSupply);
-        uint128 amountHigh = uint128(initialSupply >> 128);
-        // Decode the first 32 bytes (a uint256 is 32 bytes)
-        uint256 symbolAsUint = bytesFeltToUint256(symbol);
-        uint256 nameAsUint = bytesFeltToUint256(name);
-        uint256 contractAddressSaltResult = bytesFeltToUint256(contractAddressSalt);
-
-        // uint256 symbolAsUint = convertBytesToUint256(symbol);
-        // uint256 nameAsUint = convertBytesToUint256(name);
-        // uint256 contractAddressSaltResult = convertBytesToUint256(contractAddressSalt);
-
+        // Get owner
+        if (evmToStarknetAddresses[msg.sender] == 0) {
+            uint256[] memory ownerAddressCalldata = new uint256[](1);
+            ownerAddressCalldata[0] = uint256(uint160(msg.sender));
+            uint256 ownerStarknetAddress = abi.decode(
+                kakarot.staticcallCairo("compute_starknet_address", ownerAddressCalldata),
+                (uint256)
+            );
+            evmToStarknetAddresses[msg.sender] = ownerStarknetAddress;
+            starknetToEvmAddresses[ownerStarknetAddress] = msg.sender;
+        }
+        // Get recipient
+        if (evmToStarknetAddresses[recipient] == 0) {
+            uint256[] memory recipientAddressCalldata = new uint256[](1);
+            recipientAddressCalldata[0] = uint256(uint160(recipient));
+            uint256 recipientStarknetAddress = abi.decode(
+                kakarot.staticcallCairo("compute_starknet_address", recipientAddressCalldata),
+                (uint256)
+            );
+            evmToStarknetAddresses[recipient] = recipientStarknetAddress;
+            starknetToEvmAddresses[recipientStarknetAddress] = recipient;
+        }
         uint256[] memory createTokenCallData = new uint256[](6);
-        createTokenCallData[0] = recipientStarknetAddress;
-        createTokenCallData[1] = uint(symbolAsUint);
-        createTokenCallData[2] = uint(nameAsUint);
-        createTokenCallData[3] = uint256(amountLow);
-        createTokenCallData[4] = uint256(amountHigh);
-        createTokenCallData[5] = uint256(contractAddressSaltResult);
-
-        // TODO change to create token only
-        starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN, createTokenCallData);
-        // starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN_AND_LAUNCH, createTokenCallData);
-
-        // starknetLaunchpad.callCairo("create_token", createTokenCallData);
-        // starknetLaunchpad.staticcallCairo("create_token", createTokenCallData);
-
+        createTokenCallData[0] = evmToStarknetAddresses[recipient];
+        createTokenCallData[1] = bytes31ToUint256(symbol);
+        createTokenCallData[2] = bytes31ToUint256(name);
+        (createTokenCallData[3], createTokenCallData[4]) = uint256ToU256(initialSupply);
+        createTokenCallData[5] = bytes31ToUint256(contractAddressSalt);
+        bytes memory returnData = starknetLaunchpad.delegatecallCairo(
+            "create_token",
+            createTokenCallData
+        );
+        uint tokenAddress = abi.decode(returnData, (uint256));
+        emit CreateToken(
+            msg.sender,
+            tokenAddress,
+            symbol,
+            name,
+            initialSupply,
+            initialSupply
+        );
     }
 
     function createAndLaunchToken(
-         bytes calldata symbol,
-         bytes calldata name,
-         uint256 initialSupply,
-         bytes calldata contractAddressSalt
-        ) public {
-            uint128 amountLow = uint128(initialSupply);
-            uint128 amountHigh = uint128(initialSupply >> 128);
-
-            uint256[] memory createLaunchTokenCallData = new uint256[](5);
-            // Decode the first 32 bytes (a uint256 is 32 bytes)
-            uint256 symbolAsUint = bytesFeltToUint256(symbol);
-            uint256 nameAsUint = bytesFeltToUint256(name);
-            uint256 contractAddressSaltResult = bytesFeltToUint256(contractAddressSalt);
-            createLaunchTokenCallData[0] = uint(symbolAsUint);
-            createLaunchTokenCallData[1] = uint(nameAsUint);
-            createLaunchTokenCallData[2] = uint256(amountLow);
-            createLaunchTokenCallData[3] = uint256(amountHigh);
-            createLaunchTokenCallData[4] = uint256(contractAddressSaltResult);
-
-            starknetLaunchpad.callCairo(FUNCTION_SELECTOR_CREATE_TOKEN_AND_LAUNCH, createLaunchTokenCallData);
-            // starknetLaunchpad.staticcallCairo("create_and_launch_token", createLaunchTokenCallData);
-
-
+        bytes31 symbol,
+        bytes31 name,
+        uint256 initialSupply,
+        bytes31 contractAddressSalt
+    ) public {
+        // Get owner
+        if (evmToStarknetAddresses[msg.sender] == 0) {
+            uint256[] memory ownerAddressCalldata = new uint256[](1);
+            ownerAddressCalldata[0] = uint256(uint160(msg.sender));
+            uint256 ownerStarknetAddress = abi.decode(
+                kakarot.staticcallCairo("compute_starknet_address", ownerAddressCalldata),
+                (uint256)
+            );
+            evmToStarknetAddresses[msg.sender] = ownerStarknetAddress;
+            starknetToEvmAddresses[ownerStarknetAddress] = msg.sender;
+        }
+        uint256[] memory createLaunchTokenCallData = new uint256[](5);
+        createLaunchTokenCallData[0] = bytes31ToUint256(symbol);
+        createLaunchTokenCallData[1] = bytes31ToUint256(name);
+        (createLaunchTokenCallData[2], createLaunchTokenCallData[3]) = uint256ToU256(initialSupply);
+        createLaunchTokenCallData[4] = bytes31ToUint256(contractAddressSalt);
+        bytes memory returnData = starknetLaunchpad.delegatecallCairo(
+            "create_and_launch_token",
+            createLaunchTokenCallData
+        );
+        uint tokenAddress = abi.decode(returnData, (uint256));
+        TokenLaunch memory tokenLaunch = getCoinLaunch(tokenAddress);
+        emit CreateToken(
+            msg.sender,
+            tokenAddress,
+            symbol,
+            name,
+            initialSupply,
+            initialSupply
+        );
+        emit CreateLaunch(
+            msg.sender,
+            tokenAddress,
+            tokenLaunch.tokenQuote.tokenAddress,
+            0,
+            tokenLaunch.initialKeyPrice,
+            tokenLaunch.totalSupply,
+            tokenLaunch.slope,
+            tokenLaunch.thresholdLiquidity
+        );
     }
 
     // Launch a token already deployed
     // Need to be approve or transfer to the launchpad
-    function launchToken(
-        address coinAddress
-    )  public {
-
-        uint256[] memory coinAddressCalldata = new uint256[](1);
-        coinAddressCalldata[0] = uint256(uint160(coinAddress));
-        uint256 coinStarknetAddress =
-            abi.decode(kakarot.staticcallCairo("compute_starknet_address", coinAddressCalldata), (uint256));
-
+    function launchToken(uint256 tokenAddress) public {
         uint256[] memory launchTokenCalldata = new uint256[](1);
-        launchTokenCalldata[0] = coinStarknetAddress;
-
-        starknetLaunchpad.callCairo(FUNCTION_SELECTOR_LAUNCH_TOKEN, launchTokenCalldata);
-        
+        launchTokenCalldata[0] = tokenAddress;
+        starknetLaunchpad.delegatecallCairo("launch_token", launchTokenCalldata);
+        TokenLaunch memory tokenLaunch = getCoinLaunch(tokenAddress);
+        emit CreateLaunch(
+            msg.sender,
+            tokenAddress,
+            tokenLaunch.tokenQuote.tokenAddress,
+            0,
+            tokenLaunch.initialKeyPrice,
+            tokenLaunch.totalSupply,
+            tokenLaunch.slope,
+            tokenLaunch.thresholdLiquidity
+        );
     }
 
-    function buyToken(
-        address coinAddress
-    ) public {
-         uint256[] memory coinAddressCalldata = new uint256[](1);
-        coinAddressCalldata[0] = uint256(uint160(coinAddress));
-        uint256 coinStarknetAddress =
-            abi.decode(kakarot.staticcallCairo("compute_starknet_address", coinAddressCalldata), (uint256));
-
-        uint256[] memory buyTokenCalldata = new uint256[](1);
-        buyTokenCalldata[0] = coinStarknetAddress;
-        starknetLaunchpad.callCairo(FUNCTION_SELECTOR_BUY_COIN, buyTokenCalldata);
-
+    function buyTokenByQuoteAmount(uint256 tokenAddress, uint256 quoteAmount) public {
+        uint256[] memory buyTokenByQuoteAmountCalldata = new uint256[](3);
+        buyTokenByQuoteAmountCalldata[0] = tokenAddress;
+        (buyTokenByQuoteAmountCalldata[1], buyTokenByQuoteAmountCalldata[2]) =
+            uint256ToU256(quoteAmount);
+        starknetLaunchpad.delegatecallCairo(
+            "buy_coin_by_quote_amount",
+            buyTokenByQuoteAmountCalldata
+        );
     }
 
-    function sellToken(
-        address coinAddress
-    ) public {
-        uint256[] memory coinAddressCalldata = new uint256[](1);
-        coinAddressCalldata[0] = uint256(uint160(coinAddress));
-        uint256 coinStarknetAddress =
-            abi.decode(kakarot.staticcallCairo("compute_starknet_address", coinAddressCalldata), (uint256));
-
-        uint256[] memory sellTokenCalldata = new uint256[](1);
-        sellTokenCalldata[0] = coinStarknetAddress;
-        starknetLaunchpad.callCairo(FUNCTION_SELECTOR_SELL_COIN, sellTokenCalldata);
-
+    function sellToken(uint256 tokenAddress, uint256 quoteAmount) public {
+        uint256[] memory sellTokenCalldata = new uint256[](3);
+        sellTokenCalldata[0] = tokenAddress;
+        (sellTokenCalldata[1], sellTokenCalldata[2]) = uint256ToU256(quoteAmount);
+        starknetLaunchpad.delegatecallCairo("sell_coin", sellTokenCalldata);
     }
 
-    // Function to cast `bytes` to `bytes31`
-    function bytesToBytes31(bytes memory b) internal pure returns (bytes31) {
-        require(b.length == 31, "Invalid bytes length for bytes31");
-
-        bytes31 result;
-        assembly {
-            result := mload(add(b, 31))
-        }
-
-        return result;
+    function getDefaultToken() public view returns(TokenQuoteBuyCoin memory) {
+        bytes memory returnData = starknetLaunchpad.staticcallCairo("get_default_token");
+        CairoTokenQuoteBuyCoin memory cairoTokenQuoteBuyCoin = abi.decode(
+            returnData,
+            (CairoTokenQuoteBuyCoin)
+        );
+        return TokenQuoteBuyCoin({
+            tokenAddress: cairoTokenQuoteBuyCoin.tokenAddress,
+            initialKeyPrice: cairoTokenQuoteBuyCoin.initialKeyPriceLow +
+                (cairoTokenQuoteBuyCoin.initialKeyPriceHigh << 128),
+            price: cairoTokenQuoteBuyCoin.priceLow +
+                (cairoTokenQuoteBuyCoin.priceHigh << 128),
+            stepIncreaseLinear: cairoTokenQuoteBuyCoin.stepIncreaseLinearLow +
+                (cairoTokenQuoteBuyCoin.stepIncreaseLinearHigh << 128),
+            isEnable: cairoTokenQuoteBuyCoin.isEnable
+        });
     }
 
-    // Function to convert `bytes31` to `uint256`
-    function bytes31ToUint256(bytes31 input) internal pure returns (uint256) {
-        uint256 result;
-        assembly {
-            result := mload(add(input, 31)) // Read 31 bytes as uint256
-        }
-        return result;
-    }
-
-    // Function to convert `bytes calldata` to `bytes31` and then to uint256
-    function convertBytesToUint256(bytes calldata input) internal pure returns (uint256) {
-        require(input.length == 31, "Input must be exactly 31 bytes long");
-
-        // Convert `bytes calldata` to `bytes31`
-        bytes31 fixedBytes = bytes31(bytesToBytes31(input));
-
-        // Convert `bytes31` to `uint256`
-        uint256 result = bytes31ToUint256(fixedBytes);
-
-        return result;
+    function setToken(TokenQuoteBuyCoin memory quoteToken) public {
+        uint256[] memory setTokenCalldata = new uint256[](8);
+        setTokenCalldata[0] = quoteToken.tokenAddress;
+        (setTokenCalldata[1], setTokenCalldata[2]) = uint256ToU256(quoteToken.initialKeyPrice);
+        (setTokenCalldata[3], setTokenCalldata[4]) = uint256ToU256(quoteToken.price);
+        (setTokenCalldata[5], setTokenCalldata[6]) = uint256ToU256(quoteToken.stepIncreaseLinear);
+        setTokenCalldata[7] = quoteToken.isEnable ? 1 : 0;
+        starknetLaunchpad.delegatecallCairo("set_token", setTokenCalldata);
     }
     
 }

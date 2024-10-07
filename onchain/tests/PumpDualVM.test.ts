@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import hre from "hardhat";
 import { ethers } from "hardhat";
-import { parseEther, type Contract as EthContract, type Signer } from "ethers";
+import { parseEther, EventLog, stripZerosLeft, zeroPadValue } from "ethers";
 import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import "@nomicfoundation/hardhat-ethers";
 import {
@@ -10,22 +10,19 @@ import {
   getTestProvider,
   getTestAccount,
 } from "../scripts/config";
-import dotenv from "dotenv";
 import {
-  byteArray,
   cairo,
-  constants,
   DeclareDeployUDCResponse,
   Contract as StarknetContract,
+  shortString,
 } from "starknet";
-import { DualVMToken, LaunchpadPumpDualVM } from "../typechain-types";
 import {
-  formatFloatToUint256,
-  LAUNCHPAD_ADDRESS,
-  CLASS_HASH,
-  TOKENS_ADDRESS,
-} from "common";
-
+  DualVMToken,
+  DualVMToken__factory,
+  LaunchpadPumpDualVM,
+} from "../typechain-types";
+import { formatFloatToUint256 } from "common";
+import dotenv from "dotenv";
 dotenv.config();
 
 const KAKAROT_ADDRESS = process.env.KAKAROT_ADDRESS || "";
@@ -37,16 +34,14 @@ describe("PumpDualVM", function () {
   this.timeout(0);
   let pumpVM: LaunchpadPumpDualVM;
   let owner: HardhatEthersSigner;
-  let ownerStarknet: string;
+  let ownerStarknet: bigint;
   let addr1: HardhatEthersSigner;
   let addr2: HardhatEthersSigner;
-  let dualVMToken: DualVMToken;
+  let DualVMTokenFactory: DualVMToken__factory;
+  let dualVmQuoteToken: DualVMToken;
 
   const starknetLaunchpadSierra = readContractSierra("LaunchpadMarketplace");
   const starknetLaunchpadCasm = readContractSierraCasm("LaunchpadMarketplace");
-
-  // const starknetTokenSierra = readContractSierra("DualVmToken");
-  // const starknetTokenCasm = readContractSierraCasm("DualVmToken");
 
   const starknetTokenSierra = readContractSierra("ERC20");
   const starknetTokenCasm = readContractSierraCasm("ERC20");
@@ -58,45 +53,54 @@ describe("PumpDualVM", function () {
   let ddToken: DeclareDeployUDCResponse;
   let starknetLaunchpad: StarknetContract;
 
-  const initial_key_price = cairo.uint256(1);
-  const step_increase_linear = cairo.uint256(1);
+  const initialKeyPrice = cairo.uint256(1);
+  const stepIncreaseLinear = cairo.uint256(1);
 
   /** TODO check correct format for uint256 */
+  // const init_supply_nb = 100_000_000;
 
-  // const threshold_liquidity_nb = 10;
-  // const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb)
-  // const threshold_marketcap_nb = 5000;
-  // const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
-  const init_supply_nb = 100_000_000;
-
-  const init_supply = formatFloatToUint256(init_supply_nb);
-  const init_supply_bn = ethers.toBigInt(init_supply_nb);
-  // // const threshold_marketcap = cairo.uint256(threshold_marketcap_nb);
-  // // const threshold_liquidity = cairo.uint256(threshold_liquidity_nb);
-  const TOKEN_QUOTE_ADDRESS =
-    TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
-  const TOKEN_CLASS_HASH =
-    CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA];
-
-  // const name_token = cairo.felt("TEST");
-  // const symbol_token = cairo.felt("TEST_SYMBOL");
-  const name_token = "TEST";
-  const symbol_token = "TEST_SYMB";
-  // const nameBytes = ethers.toUtf8Bytes(name_token).slice(0, 31)
-  const nameBytes = ethers.toUtf8Bytes(name_token).slice(0, 31);
-  const symbolBytes = ethers.toUtf8Bytes(symbol_token).slice(0, 31);
-  let timestampBytes = ethers
-    .toUtf8Bytes(new Date().getTime().toString())
-    .slice(0, 31);
+  // const init_supply = formatFloatToUint256(init_supply_nb);
+  // const init_supply_bn = ethers.toBigInt(init_supply_nb);
 
   // const initial_key_price = cairo.uint256(1);
   // const step_increase_linear = cairo.uint256(1);
 
   /** TODO check correct format for uint256 */
-  const threshold_liquidity_nb = 10;
-  const threshold_liquidity = formatFloatToUint256(threshold_liquidity_nb);
-  const threshold_marketcap_nb = 5000;
-  const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
+  // const thresholdLiquidity = formatFloatToUint256(10);
+  // const thresholdMarketcap = formatFloatToUint256(5000);
+  const thresholdLiquidity = cairo.uint256(10);
+  const thresholdMarketcap = cairo.uint256(500);
+
+  const toBytes31 = (str: string) =>
+    zeroPadValue(shortString.encodeShortString(str), 31);
+
+  const fromBytes31 = (bytes31: string) =>
+    shortString.decodeShortString(stripZerosLeft(bytes31));
+
+  const computeStarknetAddress = async (evmAddress: string) => {
+    const result = await account.callContract({
+      contractAddress: KAKAROT_ADDRESS,
+      calldata: [evmAddress],
+      entrypoint: "compute_starknet_address",
+    });
+    return BigInt(result[0]);
+  };
+
+  const deployDualVmToken = async (tokenAddress: string) => {
+    const dualVmToken = await DualVMTokenFactory.deploy(
+      KAKAROT_ADDRESS,
+      tokenAddress
+    ).then((c) => c.waitForDeployment());
+    // Whitelist the Dual Token contract to call Cairo contracts
+    await account.execute([
+      {
+        contractAddress: KAKAROT_ADDRESS,
+        calldata: [await dualVmToken.getAddress(), true],
+        entrypoint: "set_authorized_cairo_precompile_caller",
+      },
+    ]);
+    return dualVmToken;
+  };
 
   this.beforeAll(async function () {
     try {
@@ -104,13 +108,7 @@ describe("PumpDualVM", function () {
 
       // Pre-compute the StarkNet address of the ETH-side owner
       // to mint him the initial supply of the token
-      ownerStarknet = (
-        await account.callContract({
-          contractAddress: KAKAROT_ADDRESS,
-          calldata: [owner.address],
-          entrypoint: "compute_starknet_address",
-        })
-      )[0];
+      ownerStarknet = await computeStarknetAddress(owner.address);
 
       // Send eth to addr1 and addr2, effectively deploying the underlying EOA accounts
       await owner
@@ -134,24 +132,22 @@ describe("PumpDualVM", function () {
         contract: starknetTokenSierra,
         casm: starknetTokenCasm,
         constructorCalldata: [
-          cairo.felt("TEST_SYMBOL"),
-          cairo.felt("TEST"),
-          cairo.uint256(100_000_000),
+          cairo.felt("USDC token"),
+          cairo.felt("USDC"),
+          cairo.uint256(1_000_000),
           ownerStarknet,
           18,
         ],
       });
-      // ddToken = await account.declareAndDeploy({
-      //   contract: starknetTokenSierra,
-      //   casm: starknetTokenCasm,
-      //   constructorCalldata: [100_000_000, 0, ownerStarknet],
-      // });
 
       starknetToken = new StarknetContract(
         starknetTokenSierra.abi,
         ddToken.deploy.contract_address,
         account
       );
+
+      DualVMTokenFactory = await hre.ethers.getContractFactory("DualVMToken");
+      dualVmQuoteToken = await deployDualVmToken(starknetToken.address);
 
       // Deploy the starknetLaunchpad
       console.log("deploy launchpad");
@@ -161,13 +157,12 @@ describe("PumpDualVM", function () {
         casm: starknetLaunchpadCasm,
         constructorCalldata: [
           ownerStarknet,
-          initial_key_price,
-          TOKEN_QUOTE_ADDRESS,
-          step_increase_linear,
+          initialKeyPrice,
+          starknetToken.address,
+          stepIncreaseLinear,
           ddToken.declare.class_hash,
-          // ddToken.declare.class_hash,
-          threshold_liquidity,
-          threshold_marketcap,
+          thresholdLiquidity,
+          thresholdMarketcap,
         ],
       });
 
@@ -195,51 +190,372 @@ describe("PumpDualVM", function () {
           entrypoint: "set_authorized_cairo_precompile_caller",
         },
       ]);
+      // fund addr1 with the dualVmQuoteToken
+      await dualVmQuoteToken
+        .transfer(addr1.address, 1000n)
+        .then((tx) => tx.wait());
     } catch (e) {
       console.log("error before all", e);
     }
   });
 
-  describe("createAndLaunchToken", function () {
-    it("Should create token and launch pool", async function () {
-      timestampBytes = ethers
-        .toUtf8Bytes(new Date().getTime().toString())
-        .slice(0, 31);
-
-      await pumpVM
-        .connect(addr1)
-        .createAndLaunchToken(
-          symbolBytes,
-          nameBytes,
-          // init_supply_bn,
-          100_000_000n,
-          timestampBytes
-        )
-        .then((tx) => tx.wait());
-    });
-  });
-  /** @TODO fix infinite timeout */
   describe("createToken", function () {
-    it("Should create token", async function () {
-      timestampBytes = ethers
-        .toUtf8Bytes(new Date().getTime().toString())
-        .slice(0, 31);
-
-      await pumpVM
-        .connect(addr1)
+    it("should create token", async function () {
+      const receipt = await pumpVM
         .createToken(
-          addr2.address,
-          symbolBytes,
-          nameBytes,
-          // init_supply_bn,
+          owner.address,
+          toBytes31("symbol1"),
+          toBytes31("name1"),
           100_000_000n,
-          timestampBytes
+          toBytes31("salty1")
         )
         .then((tx) => tx.wait());
+      if (!receipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [createToken] = receipt.logs as EventLog[];
+      const { caller, tokenAddress, symbol, name, initialSupply, totalSupply } =
+        createToken.args.toObject() as {
+          caller: string;
+          tokenAddress: bigint;
+          symbol: string;
+          name: string;
+          initialSupply: bigint;
+          totalSupply: bigint;
+        };
+      const tokens = await pumpVM.getAllCoins();
+      const token = tokens.find(
+        ({ symbol }) => fromBytes31(symbol) === "symbol1"
+      );
+      if (!token) {
+        expect.fail("Token not found");
+      }
+      expect({
+        owner: token.owner,
+        tokenAddress: token.tokenAddress,
+        symbol: token.symbol,
+        name: token.name,
+        initialSupply: token.initialSupply,
+        totalSupply: token.totalSupply,
+      }).to.include({
+        owner: owner.address,
+        tokenAddress,
+        symbol: toBytes31("symbol1"),
+        name: toBytes31("name1"),
+        initialSupply: 100_000_000n,
+        totalSupply: 100_000_000n,
+      });
+      expect({
+        caller,
+        tokenAddress,
+        symbol,
+        name,
+        initialSupply,
+        totalSupply,
+      }).to.include({
+        caller: owner.address,
+        tokenAddress: token.tokenAddress,
+        symbol: toBytes31("symbol1"),
+        name: toBytes31("name1"),
+        initialSupply: 100_000_000n,
+        totalSupply: 100_000_000n,
+      });
     });
   });
 
-  describe("buyCoin", function () {
-    it("Buy coin with address and quote amount", async function () {});
+  describe("createAndLaunchToken", function () {
+    it("should create token and launch pool", async function () {
+      const receipt = await pumpVM
+        .createAndLaunchToken(
+          toBytes31("symbol2"),
+          toBytes31("name2"),
+          100_000_000n,
+          toBytes31("salty2")
+        )
+        .then((tx) => tx.wait());
+      if (!receipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [, createLaunch] = receipt.logs as EventLog[];
+      const {
+        caller,
+        tokenAddress,
+        quoteTokenAddress,
+        amount,
+        price,
+        totalSupply,
+        slope,
+        thresholdLiquidity,
+      } = createLaunch.args.toObject() as {
+        caller: string;
+        tokenAddress: bigint;
+        quoteTokenAddress: bigint;
+        amount: bigint;
+        price: bigint;
+        totalSupply: bigint;
+        slope: bigint;
+        thresholdLiquidity: bigint;
+      };
+      const starknetTokenLaunch = await starknetLaunchpad.call(
+        "get_coin_launch",
+        [tokenAddress]
+      );
+      const tokenLaunch = await pumpVM.getCoinLaunch(tokenAddress);
+      expect(starknetTokenLaunch).to.deep.include({
+        owner: await computeStarknetAddress(tokenLaunch.owner),
+        token_address: tokenLaunch.tokenAddress,
+        initial_key_price: tokenLaunch.initialKeyPrice,
+        price: tokenLaunch.price,
+        available_supply: tokenLaunch.availableSupply,
+        initial_pool_supply: tokenLaunch.initialPoolSupply,
+        total_supply: tokenLaunch.totalSupply,
+        created_at: tokenLaunch.createdAt,
+        token_quote: {
+          token_address: tokenLaunch.tokenQuote.tokenAddress,
+          initial_key_price: tokenLaunch.tokenQuote.initialKeyPrice,
+          price: tokenLaunch.tokenQuote.price,
+          step_increase_linear: tokenLaunch.tokenQuote.stepIncreaseLinear,
+          is_enable: tokenLaunch.tokenQuote.isEnable,
+        },
+        liquidity_raised: tokenLaunch.liquidityRaised,
+        token_holded: tokenLaunch.tokenHolded,
+        is_liquidity_launch: tokenLaunch.isLiquidityLaunch,
+        slope: tokenLaunch.slope,
+        threshold_liquidity: tokenLaunch.thresholdLiquidity,
+      });
+      expect({
+        caller,
+        tokenAddress,
+        quoteTokenAddress,
+        amount,
+        price,
+        totalSupply,
+        slope,
+        thresholdLiquidity,
+      }).to.include({
+        caller: owner.address,
+        tokenAddress: tokenLaunch.tokenAddress,
+        quoteTokenAddress: tokenLaunch.tokenQuote.tokenAddress,
+        amount: 0n,
+        price: tokenLaunch.initialKeyPrice,
+        totalSupply: tokenLaunch.totalSupply,
+        slope: tokenLaunch.slope,
+        thresholdLiquidity: tokenLaunch.thresholdLiquidity,
+      });
+    });
+  });
+
+  describe("launchToken", function () {
+    it("should launch token", async function () {
+      const createTokenReceipt = await pumpVM
+        .createToken(
+          owner.address,
+          toBytes31("symbol3"),
+          toBytes31("name3"),
+          100_000_000n,
+          toBytes31("salty3")
+        )
+        .then((tx) => tx.wait());
+      if (!createTokenReceipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [createToken] = createTokenReceipt.logs as EventLog[];
+      const { tokenAddress } = createToken.args.toObject() as {
+        tokenAddress: bigint;
+      };
+      const dualVmToken = await deployDualVmToken(
+        `0x${tokenAddress.toString(16)}`
+      );
+      await dualVmToken.starknetApprove(
+        starknetLaunchpad.address,
+        100_000_000n
+      );
+      const launchTokenReceipt = await pumpVM
+        .launchToken(tokenAddress)
+        .then((tx) => tx.wait());
+      if (!launchTokenReceipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [createLaunch] = launchTokenReceipt.logs as EventLog[];
+      const {
+        caller,
+        quoteTokenAddress,
+        amount,
+        price,
+        totalSupply,
+        slope,
+        thresholdLiquidity,
+      } = createLaunch.args.toObject() as {
+        caller: string;
+        quoteTokenAddress: bigint;
+        amount: bigint;
+        price: bigint;
+        totalSupply: bigint;
+        slope: bigint;
+        thresholdLiquidity: bigint;
+      };
+      const tokenLaunch = await pumpVM.getCoinLaunch(tokenAddress);
+      expect({
+        caller,
+        tokenAddress,
+        quoteTokenAddress,
+        amount,
+        price,
+        totalSupply,
+        slope,
+        thresholdLiquidity,
+      }).to.include({
+        caller: owner.address,
+        tokenAddress: tokenLaunch.tokenAddress,
+        quoteTokenAddress: tokenLaunch.tokenQuote.tokenAddress,
+        amount: 0n,
+        price: tokenLaunch.initialKeyPrice,
+        totalSupply: tokenLaunch.totalSupply,
+        slope: tokenLaunch.slope,
+        thresholdLiquidity: tokenLaunch.thresholdLiquidity,
+      });
+    });
+  });
+
+  describe("buyCoinByQuoteAmount", function () {
+    it("buy coin with address and quote amount", async function () {
+      const receipt = await pumpVM
+        .createAndLaunchToken(
+          toBytes31("symbol4"),
+          toBytes31("name4"),
+          100_000_000n,
+          toBytes31("salty4")
+        )
+        .then((tx) => tx.wait());
+      if (!receipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [createToken] = receipt.logs as EventLog[];
+      const { tokenAddress } = createToken.args.toObject() as {
+        tokenAddress: bigint;
+      };
+      const dualVmToken = await deployDualVmToken(
+        `0x${tokenAddress.toString(16)}`
+      );
+      await dualVmQuoteToken
+        .connect(addr1)
+        .starknetApprove(starknetLaunchpad.address, 1000n)
+        .then((tx) => tx.wait());
+      const buyerQuoteTokenBalanceBeforeBuy = await dualVmQuoteToken.balanceOf(
+        addr1.address
+      );
+      const buyerTokenBalanceBeforeBuy = await dualVmToken.balanceOf(
+        addr1.address
+      );
+      await pumpVM
+        .connect(addr1)
+        .buyTokenByQuoteAmount(tokenAddress, 100n)
+        .then((tx) => tx.wait());
+      const buyerQuoteTokenBalanceAfterBuy = await dualVmQuoteToken.balanceOf(
+        addr1.address
+      );
+      const buyerTokenBalanceAfterBuy = await dualVmToken.balanceOf(
+        addr1.address
+      );
+      expect(Number(buyerQuoteTokenBalanceBeforeBuy)).to.be.greaterThanOrEqual(
+        Number(buyerQuoteTokenBalanceAfterBuy)
+      );
+      expect(Number(buyerTokenBalanceBeforeBuy)).to.be.lessThanOrEqual(
+        Number(buyerTokenBalanceAfterBuy)
+      );
+    });
+  });
+
+  describe("sellCoin", function () {
+    it("should sell coin by quote amount", async function () {
+      const receipt = await pumpVM
+        .createAndLaunchToken(
+          toBytes31("symbol5"),
+          toBytes31("name5"),
+          100_000_000n,
+          toBytes31("salty5")
+        )
+        .then((tx) => tx.wait());
+      if (!receipt) {
+        expect.fail("Tx receipt not found");
+      }
+      const [createToken] = receipt.logs as EventLog[];
+      const { tokenAddress } = createToken.args.toObject() as {
+        tokenAddress: bigint;
+      };
+      const dualVmToken = await deployDualVmToken(
+        `0x${tokenAddress.toString(16)}`
+      );
+      await dualVmQuoteToken
+        .connect(addr1)
+        .starknetApprove(starknetLaunchpad.address, 1000n)
+        .then((tx) => tx.wait());
+      await pumpVM
+        .connect(addr1)
+        .buyTokenByQuoteAmount(tokenAddress, 1n)
+        .then((tx) => tx.wait());
+      const sellerQuoteTokenBalanceBeforeSell =
+        await dualVmQuoteToken.balanceOf(addr1.address);
+      const sellerTokenBalanceBeforeSell = await dualVmToken.balanceOf(
+        addr1.address
+      );
+      await pumpVM
+        .connect(addr1)
+        .sellToken(tokenAddress, 1n)
+        .then((tx) => tx.wait());
+      const sellerQuoteTokenBalanceAfterSell = await dualVmQuoteToken.balanceOf(
+        addr1.address
+      );
+      const sellerTokenBalanceAfterSell = await dualVmToken.balanceOf(
+        addr1.address
+      );
+      expect(Number(sellerQuoteTokenBalanceBeforeSell)).to.be.lessThanOrEqual(
+        Number(sellerQuoteTokenBalanceAfterSell)
+      );
+      expect(Number(sellerTokenBalanceBeforeSell)).to.be.greaterThanOrEqual(
+        Number(sellerTokenBalanceAfterSell)
+      );
+    });
+  });
+
+  describe("setToken", function () {
+    it("should set the default quote token", async function () {
+      const ddNewQuoteToken = await account.declareAndDeploy({
+        contract: starknetTokenSierra,
+        casm: starknetTokenCasm,
+        constructorCalldata: [
+          cairo.felt("EURe token"),
+          cairo.felt("EURe"),
+          cairo.uint256(100_000_000),
+          ownerStarknet,
+          18,
+        ],
+      });
+      const newQuoteToken = new StarknetContract(
+        starknetTokenSierra.abi,
+        ddNewQuoteToken.deploy.contract_address,
+        account
+      );
+      await pumpVM
+        .setToken({
+          tokenAddress: newQuoteToken.address,
+          initialKeyPrice: 1n,
+          price: 1n,
+          stepIncreaseLinear: 1n,
+          isEnable: true,
+        })
+        .then((tx) => tx.wait());
+      const starknetDefaultToken = await starknetLaunchpad.call(
+        "get_default_token"
+      );
+      const defaultToken = await pumpVM.getDefaultToken();
+      expect(starknetDefaultToken).to.include({
+        token_address: defaultToken.tokenAddress,
+        initial_key_price: defaultToken.initialKeyPrice,
+        price: defaultToken.price,
+        step_increase_linear: defaultToken.stepIncreaseLinear,
+        is_enable: defaultToken.isEnable,
+      });
+    });
   });
 });
