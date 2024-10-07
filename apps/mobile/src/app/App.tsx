@@ -9,7 +9,6 @@ import {View} from 'react-native';
 import {useTips} from '../hooks';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
-import { CashuProvider } from '../providers/CashuProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -93,10 +92,8 @@ export default function App() {
   if (!appIsReady) return null;
 
   return (
-    <CashuProvider>
       <View style={{flex: 1, flexDirection: 'row'}} onLayout={onLayoutRootView}>
         <Router />
       </View>
-    </CashuProvider>
   );
 }

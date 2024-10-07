@@ -617,7 +617,7 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
       'argentWebWallet',
       'ArgentWebWallet'
     ];
-    if (sessionableIds.includes(wallet.id)) {
+    if (sessionableIds.includes(wallet?.id)) {
       return true;
     }
     return false;
