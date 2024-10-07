@@ -54,7 +54,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
     if (!event.data || !event.keys) return;
 
     const transactionHash = transaction.meta.hash;
-    const [token_address, caller] = event.keys;
+    const [_, caller, token_address] = event.keys;
 
     const [
       symbol,
