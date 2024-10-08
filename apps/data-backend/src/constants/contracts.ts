@@ -5,7 +5,7 @@ import { constants } from "starknet";
 //   typeof constants.StarknetChainId.SN_GOERLI
 // >;
 
-type SupportedChainId = constants.StarknetChainId
+type SupportedChainId = constants.StarknetChainId;
 type AddressesMap = Record<SupportedChainId, string>;
 
 export const BLANK_ACCOUNT_CLASS_HASH =
