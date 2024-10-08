@@ -112,8 +112,13 @@ model unrugmeme_transfers {
 }
 
 model registration {
-  contract_addres String    @id
+  contract_address String    @id
   nickname        String?
   created_at      DateTime? @default(now()) @db.Timestamp(6)
   is_confirmed    Boolean?  @default(false)
+  phoneNumber        String?
+  email        String?
+  starknetAddress        String?
+  evmAddress        String?
+
 }

@@ -21,6 +21,7 @@ import { ModalParentProvider } from '../context/modal/ModalParent';
 import { EVMProvider } from './EVMProvider';
 import { WalletModalEVMProvider } from '../context/WalletModalEvmProvider';
 import { CashuProvider } from '../providers/CashuProvider';
+import { dynamicClient } from './DynamicClient';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2 } },
@@ -61,10 +62,11 @@ export const Wrapper: React.FC = () => {
                     <StarknetProvider>
                       <EVMProvider>
                         <CashuProvider>
+                          {/* <dynamicClient.reactNative.WebView /> */}
                           {/* <DynamicProvider> */}
-                            <ModalProviders>
-                              <App />
-                            </ModalProviders>
+                          <ModalProviders>
+                            <App />
+                          </ModalProviders>
                           {/* </DynamicProvider> */}
                         </CashuProvider>
                       </EVMProvider>
