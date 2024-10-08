@@ -1,8 +1,8 @@
 import {FC, useState} from 'react';
-import {dynamicClient} from '../../app/DynamicClient';
+import {dynamicClient} from '../../../app/DynamicClient';
 import {TextInput, View} from 'react-native';
 import React from 'react';
-import {Button} from '../../components';
+import {Button} from '../../../components';
 
 export const DynamicEmailSignIn: FC = () => {
   const [email, setEmail] = useState('');
