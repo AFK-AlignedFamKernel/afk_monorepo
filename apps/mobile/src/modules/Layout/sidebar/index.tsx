@@ -22,7 +22,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   };
 
   const handleAuth = () => {
-    navigation.navigate('Auth');
+    navigation.navigate('Login');
   };
   const theme = useTheme();
   // const handleNavigateHome = () => {

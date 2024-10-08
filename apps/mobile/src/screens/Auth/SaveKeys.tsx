@@ -23,6 +23,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   const {showDialog, hideDialog} = useDialog();
 
   const navigation = useNavigation<MainStackNavigationProps>();
+  // const navigation = useNavigation();
   const handleCopy = async (type: 'privateKey' | 'publicKey') => {
     await Clipboard.setStringAsync(type === 'privateKey' ? privateKey : publicKey);
     showToast({type: 'info', title: 'Copied to clipboard'});
@@ -47,7 +48,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
           onPress: async () => {
             setAuth(publicKey, privateKey);
             hideDialog();
-            // navigation.push("Feed")
+            // navigation.navigate("Feed")
             navigation.push('Profile', {publicKey});
           },
         },

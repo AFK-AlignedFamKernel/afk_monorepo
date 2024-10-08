@@ -1,4 +1,4 @@
-import { getCheckoutQuote, getStripeBuyQuote } from "@funkit/api-base";
+
 import type { FastifyInstance, RouteOptions } from "fastify";
 import { getChecksumAddress } from "starknet";
 import {
@@ -46,7 +46,9 @@ async function getFunkitStripeCheckoutQuote(
       try {
         // 1 - Generate the funkit checkout quote
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
-
+        const { getCheckoutQuote, getStripeBuyQuote } = await import(
+          "@funkit/api-base"
+        );
         const normalizedRecipientAddress = getChecksumAddress(address);
         const baseQuote = await getCheckoutQuote({
           fromChainId: sourceAsset.networkId,

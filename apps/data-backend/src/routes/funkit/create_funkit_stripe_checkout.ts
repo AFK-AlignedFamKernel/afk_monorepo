@@ -1,4 +1,3 @@
-import { createStripeBuySession } from "@funkit/api-base";
 import type { FastifyInstance, RouteOptions } from "fastify";
 import {
   FUNKIT_STRIPE_SOURCE_CURRENCY,
@@ -39,7 +38,9 @@ async function createFunkitStripeCheckout(
       }
       try {
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
-        const { initializeCheckout } = await import("@funkit/api-base");
+        const { initializeCheckout, createStripeBuySession } = await import(
+          "@funkit/api-base"
+        );
         const depositAddress = await initializeCheckout({
           userOp: null,
           quoteId,
