@@ -21,12 +21,12 @@ async function deployTokenRoute(
           symbol: true,
           total_supply: true,
           network: true,
-          created_at: true
-        }
+          created_at: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: deploys
+        data: deploys,
       });
     } catch (error) {
       console.error("Error deploying launch:", error);
@@ -44,7 +44,7 @@ async function deployTokenRoute(
       if (!isValidStarknetAddress(token)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address"
+          message: "Invalid token address",
         });
         return;
       }
@@ -58,12 +58,12 @@ async function deployTokenRoute(
           symbol: true,
           total_supply: true,
           network: true,
-          created_at: true
-        }
+          created_at: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: deploys
+        data: deploys,
       });
     } catch (error) {
       console.error("Error deploying launch:", error);

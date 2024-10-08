@@ -1,46 +1,58 @@
 import '../../../applyGlobalPolyfills';
 
-import { webln } from '@getalby/sdk';
-import { addProofs, ICashuInvoice, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import {webln} from '@getalby/sdk';
+import {
+  addProofs,
+  ICashuInvoice,
+  useAuth,
+  useCashu,
+  useCashuStore,
+  useNostrContext,
+  useSendZap,
+} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { ChangeEvent, SetStateAction, useEffect, useState } from 'react';
-import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
-import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, {ChangeEvent, SetStateAction, useEffect, useState} from 'react';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import {WebView} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, IconButton, Input } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import { useDialog, useToast } from '../../hooks/modals';
+import {Button, IconButton, Input} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {useDialog, useToast} from '../../hooks/modals';
 import stylesheet from './styles';
-import { getDecodedToken, GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
-import { CopyIconStack } from '../../assets/icons';
-import { canUseBiometricAuthentication } from 'expo-secure-store';
-import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
-import { SelectedTab, TABS_CASHU } from '../../types/tab';
+import {getDecodedToken, GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
+import {CopyIconStack} from '../../assets/icons';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {
+  retrieveAndDecryptCashuMnemonic,
+  retrievePassword,
+  storeCashuMnemonic,
+} from '../../utils/storage';
+import {SelectedTab, TABS_CASHU} from '../../types/tab';
 
-import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
-import { usePayment } from '../../hooks/usePayment';
+import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import {usePayment} from '../../hooks/usePayment';
 import TabSelector from '../../components/TabSelector';
 
-
 export const SendEcash = () => {
-
-  const { ndkCashuWallet, ndkWallet, } = useNostrContext()
-  const { wallet, connectCashMint,
+  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+  const {
+    wallet,
+    connectCashMint,
     connectCashWallet,
     requestMintQuote,
     generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
-    getMintInfo, mint,
+    getMintInfo,
+    mint,
     mintTokens,
     mintUrls,
-    activeMintIndex
-
-  } = useCashu()
-  const [ecash, setEcash] = useState<string | undefined>()
-  const [invoice, setInvoice] = useState<string | undefined>()
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore()
+    activeMintIndex,
+  } = useCashu();
+  const [ecash, setEcash] = useState<string | undefined>();
+  const [invoice, setInvoice] = useState<string | undefined>();
+  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
   const tabs = ['lightning', 'ecash'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const handleTabChange = (tab: string) => {
@@ -49,9 +61,9 @@ export const SendEcash = () => {
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
-  const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
-  const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>()
-  const [mintsUrls, setMintUrls] = useState<string[]>(["https://mint.minibits.cash/Bitcoin"])
+  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
+  const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>();
+  const [mintsUrls, setMintUrls] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
 
@@ -66,29 +78,29 @@ export const SendEcash = () => {
   const [generatedEcash, setGenerateEcash] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
   const [invoiceMemo, setInvoiceMemo] = useState('');
-  const { theme } = useTheme();
-  const [newSeed, setNewSeed] = useState<string | undefined>()
+  const {theme} = useTheme();
+  const [newSeed, setNewSeed] = useState<string | undefined>();
 
-  const { showDialog, hideDialog } = useDialog()
-  const { handleGenerateEcash, handlePayInvoice } = usePayment()
+  const {showDialog, hideDialog} = useDialog();
+  const {handleGenerateEcash, handlePayInvoice} = usePayment();
 
-  const { showToast } = useToast()
+  const {showToast} = useToast();
 
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.LIGHTNING_NETWORK_WALLET,
+  );
 
   const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setEcash(value);
-
   };
   useEffect(() => {
     (async () => {
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
-      const info = await getMintInfo(mintUrl)
-      setMintInfo(info)
+      const info = await getMintInfo(mintUrl);
+      setMintInfo(info);
     })();
-
 
     // (async () => {
 
@@ -117,29 +129,28 @@ export const SendEcash = () => {
     // })();
   }, []);
 
-
   const handleEcash = async () => {
-    console.log("handleEcash")
+    console.log('handleEcash');
 
     if (!invoiceAmount) {
       return showToast({
-        title: "Please enter an amount",
-        type: "error"
-      })
+        title: 'Please enter an amount',
+        type: 'error',
+      });
     }
-    const ecash = await handleGenerateEcash(Number(invoiceAmount))
+    const ecash = await handleGenerateEcash(Number(invoiceAmount));
 
     if (!ecash) {
       return showToast({
         title: "Ecash token can't be generated",
-        type: "error"
-      })
+        type: 'error',
+      });
     }
-    console.log("ecash", ecash)
-    setGeneratedInvoice(ecash)
-    setGenerateEcash(ecash)
-    return ecash
-  }
+    console.log('ecash', ecash);
+    setGeneratedInvoice(ecash);
+    setGenerateEcash(ecash);
+    return ecash;
+  };
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -149,11 +160,9 @@ export const SendEcash = () => {
   };
 
   const handleCopy = async (type: 'ecash') => {
-
     if (!generatedEcash) return;
-    if (type == "ecash") {
+    if (type == 'ecash') {
       await Clipboard.setStringAsync(generatedEcash);
-
     }
     //  else if (type == "seed") {
     //   if (newSeed) {
@@ -161,12 +170,11 @@ export const SendEcash = () => {
     //   }
 
     // }
-    showToast({ type: 'info', title: 'Copied to clipboard' });
+    showToast({type: 'info', title: 'Copied to clipboard'});
   };
   return (
     <SafeAreaView
     // style={styles.safeArea}
-
     >
       <View
       // style={styles.container}
@@ -196,13 +204,9 @@ export const SendEcash = () => {
           ))}
         </View>
 
-
-
         <View
         //  style={styles.container}
         >
-
-
           {/* <View style={styles.content}>
             <TextInput
               placeholder="Mint URL"
@@ -215,47 +219,26 @@ export const SendEcash = () => {
           <View
           // style={styles.text}
           >
-            <Text
-              style={styles.text}
-            >Name: {infoMint?.name}</Text>
-            <Text
-              style={styles.text}
-            >Description: {infoMint?.description}</Text>
-            <Text
-              style={styles.text}
-            >MOTD: {infoMint?.motd}</Text>
-
+            <Text style={styles.text}>Name: {infoMint?.name}</Text>
+            <Text style={styles.text}>Description: {infoMint?.description}</Text>
+            <Text style={styles.text}>MOTD: {infoMint?.motd}</Text>
           </View>
 
-          {activeTab == "lightning" &&
-
+          {activeTab == 'lightning' && (
             <>
               <TextInput
                 placeholder="Invoice to paid"
                 value={invoice}
                 onChangeText={setInvoice}
                 style={styles.input}
-              >
-              </TextInput>
+              ></TextInput>
 
-
-              <Button
-                onPress={() => handlePayInvoice(invoice)}
-              >
-
-                Pay invoice
-
-              </Button>
-
-
-
+              <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
             </>
-          }
+          )}
 
-          {activeTab == "ecash" &&
+          {activeTab == 'ecash' && (
             <>
-
-
               <TextInput
                 placeholder="Amount"
                 keyboardType="numeric"
@@ -265,21 +248,17 @@ export const SendEcash = () => {
               />
               <Button
                 onPress={handleEcash}
-              // onPress={() =>  handleEcash}
+                // onPress={() =>  handleEcash}
               >
-
                 Generate eCash
-
               </Button>
 
-              {generatedEcash &&
-
+              {generatedEcash && (
                 <View
                   style={{
-                    marginVertical: 3
+                    marginVertical: 3,
                   }}
                 >
-
                   <Text style={styles.text}>eCash token</Text>
 
                   <Input
@@ -287,24 +266,21 @@ export const SendEcash = () => {
                     editable={false}
                     right={
                       <TouchableOpacity
-                        onPress={() => handleCopy("ecash")}
-                        style={{
-                          // marginRight: 10,
-                        }}
+                        onPress={() => handleCopy('ecash')}
+                        style={
+                          {
+                            // marginRight: 10,
+                          }
+                        }
                       >
                         <CopyIconStack color={theme.colors.primary} />
                       </TouchableOpacity>
                     }
                   />
                 </View>
-
-              }
+              )}
             </>
-          }
-
-
-
-
+          )}
         </View>
       </View>
     </SafeAreaView>

@@ -24,9 +24,7 @@ const PATH_TAP_QUEST_COMPILED = path.resolve(
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createTapQuests = async (
-
-) => {
+export const createTapQuests = async () => {
   try {
     // initialize existing predeployed account 0 of Devnet
     const privateKey0 = process.env.DEV_PK as string;
@@ -85,8 +83,7 @@ export const createTapQuests = async (
     const { transaction_hash, contract_address } =
       await account0.deployContract({
         classHash: TapClassHash,
-        constructorCalldata: [
-        ],
+        constructorCalldata: [],
       });
 
     console.log("transaction_hash", transaction_hash);

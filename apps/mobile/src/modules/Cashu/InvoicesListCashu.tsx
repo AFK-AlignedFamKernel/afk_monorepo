@@ -1,33 +1,62 @@
 import '../../../applyGlobalPolyfills';
 
-import { webln } from '@getalby/sdk';
-import { getProofs, ICashuInvoice, storeProofs, storeTransactions, useAuth, useCashu, useCashuStore, useNostrContext, useSendZap } from 'afk_nostr_sdk';
+import {webln} from '@getalby/sdk';
+import {
+  getProofs,
+  ICashuInvoice,
+  storeProofs,
+  storeTransactions,
+  useAuth,
+  useCashu,
+  useCashuStore,
+  useNostrContext,
+  useSendZap,
+} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, { SetStateAction, useEffect, useState } from 'react';
-import { FlatList, Platform, Pressable, RefreshControl, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
-import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, {SetStateAction, useEffect, useState} from 'react';
+import {
+  FlatList,
+  Platform,
+  Pressable,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import {WebView} from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import { Button, Divider, IconButton, Input } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
-import { useDialog, useToast } from '../../hooks/modals';
+import {Button, Divider, IconButton, Input} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {useDialog, useToast} from '../../hooks/modals';
 import stylesheet from './styles';
-import { CashuMint, getEncodedToken, MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
-import { CopyIconStack, InfoIcon } from '../../assets/icons';
-import { canUseBiometricAuthentication } from 'expo-secure-store';
-import { retrieveAndDecryptCashuMnemonic, retrievePassword, storeCashuMnemonic } from '../../utils/storage';
-import { SelectedTab, TABS_CASHU } from '../../types/tab';
-import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
-import { TypeToast } from '../../context/Toast/ToastContext';
-import { useCashuContext } from '../../providers/CashuProvider';
-
+import {
+  CashuMint,
+  getEncodedToken,
+  MintQuoteResponse,
+  MintQuoteState,
+  Proof,
+} from '@cashu/cashu-ts';
+import {CopyIconStack, InfoIcon} from '../../assets/icons';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {
+  retrieveAndDecryptCashuMnemonic,
+  retrievePassword,
+  storeCashuMnemonic,
+} from '../../utils/storage';
+import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import {TypeToast} from '../../context/Toast/ToastContext';
+import {useCashuContext} from '../../providers/CashuProvider';
 
 export const InvoicesListCashu = () => {
-
   const styles = useStyles(stylesheet);
 
-  const { wallet, connectCashMint,
+  const {
+    wallet,
+    connectCashMint,
     connectCashWallet,
     requestMintQuote,
     generateMnemonic,
@@ -37,21 +66,21 @@ export const InvoicesListCashu = () => {
     checkMeltQuote,
     checkMintQuote,
     checkProofSpent,
-    receiveP2PK, mintTokens,
-    mint
-
+    receiveP2PK,
+    mintTokens,
+    mint,
   } = useCashuContext()!;
 
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
   const [invoices, setInvoices] = useState<ICashuInvoice[]>([]);
 
   useEffect(() => {
     (async () => {
       const invoicesLocal = await getInvoices();
       if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal)
-        console.log("invoices", invoices)
-        setInvoices(invoices)
+        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
+        console.log('invoices', invoices);
+        setInvoices(invoices);
       }
     })();
 
@@ -71,31 +100,22 @@ export const InvoicesListCashu = () => {
       // const keys = await getKeys()
       // console.log("keysSet", keysSet)
       // console.log("keys", keys)
-
       // const mintBalances = await ndkCashuWallet?.mintBalances;
-
       // console.log("mintBalances", mintBalances)
-
       // const availableTokens = await ndkCashuWallet?.availableTokens;
       // console.log("availableTokens", availableTokens)
-
       // const wallets = await ndkWallet?.wallets;
-
       // console.log("wallets", wallets)
       // const balance = await ndkCashuWallet?.balance;
-
       // console.log("balance", balance)
-
       // if (mint) {
       //   const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
       //   console.log("mintBalance", mintBalance)
-
       // }
     })();
   }, []);
 
-
-  const [quote, setQuote] = useState<MintQuoteResponse | undefined>()
+  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   const [hasSeedCashu, setHasSeedCashu] = useState(false);
@@ -106,180 +126,170 @@ export const InvoicesListCashu = () => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
 
-  const { theme } = useTheme();
-  const [newSeed, setNewSeed] = useState<string | undefined>()
+  const {theme} = useTheme();
+  const [newSeed, setNewSeed] = useState<string | undefined>();
 
-  const { showDialog, hideDialog } = useDialog()
+  const {showDialog, hideDialog} = useDialog();
 
-  const { showToast } = useToast()
+  const {showToast} = useToast();
 
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.LIGHTNING_NETWORK_WALLET);
-
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
+    SelectedTab.LIGHTNING_NETWORK_WALLET,
+  );
 
   const handleVerifyQuote = async (quote?: string) => {
-
     if (!quote) {
-      return showToast({ title: "Use a valid quote string", type: "info" })
+      return showToast({title: 'Use a valid quote string', type: 'info'});
     }
-    const check = await checkMintQuote(quote)
-    console.log("check", check)
+    const check = await checkMintQuote(quote);
+    console.log('check', check);
 
     if (check) {
-
       if (check?.state == MintQuoteState.PAID) {
         return showToast({
-          title: "Quote paid",
-          type: "success"
-        })
-      }
-      else if (check?.state == MintQuoteState.UNPAID) {
+          title: 'Quote paid',
+          type: 'success',
+        });
+      } else if (check?.state == MintQuoteState.UNPAID) {
         return showToast({
-          title: "Quote unpaid",
-          type: "info"
-        })
-      }
-      else if (check?.state == MintQuoteState.ISSUED) {
+          title: 'Quote unpaid',
+          type: 'info',
+        });
+      } else if (check?.state == MintQuoteState.ISSUED) {
         return showToast({
-          title: "Quote issued",
-          type: "info"
-        })
+          title: 'Quote issued',
+          type: 'info',
+        });
       }
-
     }
     return showToast({
-      title: "Verify coming soon",
-      type: "error"
-    })
-  }
-
+      title: 'Verify coming soon',
+      type: 'error',
+    });
+  };
 
   const handleVerify = async (quote?: string) => {
     try {
-
-      console.log("handleVerify")
+      console.log('handleVerify');
       if (!quote) return;
-      console.log("quote", quote)
-      const check = await checkMintQuote(quote)
-      console.log("check", check)
+      console.log('quote', quote);
+      const check = await checkMintQuote(quote);
+      console.log('check', check);
       if (check?.state === MintQuoteState.UNPAID) {
-        showToast({ title: "Unpaid", type: "success" })
-      }
-      else if (check?.state === MintQuoteState.PAID) {
-        showToast({ title: "Invoice is paid. Try to issued", type: "success" })
-        const invoice = invoices?.find((i) => i?.quote == quote)
+        showToast({title: 'Unpaid', type: 'success'});
+      } else if (check?.state === MintQuoteState.PAID) {
+        showToast({title: 'Invoice is paid. Try to issued', type: 'success'});
+        const invoice = invoices?.find((i) => i?.quote == quote);
 
-        const invoicesUpdated = invoices?.map((i) => {
-          if (i?.quote === quote) {
-            i.state = MintQuoteState.PAID
+        const invoicesUpdated =
+          invoices?.map((i) => {
+            if (i?.quote === quote) {
+              i.state = MintQuoteState.PAID;
 
+              return i;
+            }
             return i;
-          }
-          return i;
-        }) ?? []
+          }) ?? [];
 
-        storeInvoices(invoicesUpdated)
-        storeTransactions(invoicesUpdated)
+        storeInvoices(invoicesUpdated);
+        storeTransactions(invoicesUpdated);
 
         if (invoice && invoice?.quote) {
-          console.log("invoice", invoice)
+          console.log('invoice', invoice);
 
-          const received = await handleReceivePaymentPaid(invoice)
-          console.log("received", received)
+          const received = await handleReceivePaymentPaid(invoice);
+          console.log('received', received);
 
           if (received) {
-            showToast({ title: "Payment received", type: "success" })
+            showToast({title: 'Payment received', type: 'success'});
           }
-
         }
-      }
-      else if (check?.state === MintQuoteState.ISSUED) {
-        showToast({ title: "Invoice is paid", type: "success" })
-        const invoice = invoices?.find((i) => i?.quote == quote)
-        const invoicesUpdated = invoices?.map((i) => {
-          if (i?.quote === quote) {
-            i.state = MintQuoteState.PAID
+      } else if (check?.state === MintQuoteState.ISSUED) {
+        showToast({title: 'Invoice is paid', type: 'success'});
+        const invoice = invoices?.find((i) => i?.quote == quote);
+        const invoicesUpdated =
+          invoices?.map((i) => {
+            if (i?.quote === quote) {
+              i.state = MintQuoteState.PAID;
+              return i;
+            }
             return i;
-          }
-          return i;
-        }) ?? []
-        storeInvoices(invoicesUpdated)
-        storeTransactions(invoicesUpdated)
+          }) ?? [];
+        storeInvoices(invoicesUpdated);
+        storeTransactions(invoicesUpdated);
         if (invoice && invoice?.quote) {
-          const received = await handleReceivePaymentPaid(invoice)
+          const received = await handleReceivePaymentPaid(invoice);
           if (received) {
-            showToast({ title: "Received", type: "success" })
+            showToast({title: 'Received', type: 'success'});
           }
         }
       }
     } catch (e) {
-      console.log("handleVerify", e)
+      console.log('handleVerify', e);
     }
-
-
-  }
+  };
 
   const handleReceivePaymentPaid = async (invoice: ICashuInvoice) => {
     try {
       if (invoice?.amount) {
-        const receive = await mintTokens(Number(invoice?.amount), invoice?.quoteResponse ?? invoice as unknown as MintQuoteResponse)
-        console.log("receive", receive)
+        const receive = await mintTokens(
+          Number(invoice?.amount),
+          invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
+        );
+        console.log('receive', receive);
 
         const encoded = getEncodedToken({
-          token: [{ mint: mint?.mintUrl, proofs: receive?.proofs as Proof[] }]
+          token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
         });
         // const response = await wallet?.receive(encoded);
         const response = await receiveP2PK(encoded);
-        console.log("response", response)
-        const proofsLocal = await getProofs()
+        console.log('response', response);
+        const proofsLocal = await getProofs();
         if (!proofsLocal) {
-          setInvoices(invoices)
-          await storeProofs([...receive?.proofs as Proof[], ...response as Proof[]])
+          setInvoices(invoices);
+          await storeProofs([...(receive?.proofs as Proof[]), ...(response as Proof[])]);
           return response;
         } else {
-          const proofs: Proof[] = JSON.parse(proofsLocal)
-          console.log("invoices", invoices)
-          setInvoices(invoices)
-          console.log("receive", receive)
-          await storeProofs([...proofs, ...receive?.proofs as Proof[], ...response as Proof[]])
+          const proofs: Proof[] = JSON.parse(proofsLocal);
+          console.log('invoices', invoices);
+          setInvoices(invoices);
+          console.log('receive', receive);
+          await storeProofs([...proofs, ...(receive?.proofs as Proof[]), ...(response as Proof[])]);
           return response;
         }
-
       }
 
       return undefined;
     } catch (e) {
-      console.log("Error handleReceivePaymentPaid", e)
-      return undefined
+      console.log('Error handleReceivePaymentPaid', e);
+      return undefined;
     }
-
-  }
+  };
 
   const handleCopy = async (bolt11?: string) => {
     if (!bolt11) return;
     await Clipboard.setStringAsync(bolt11);
 
     showToast({
-      title: "Your invoice is copied",
-      type: "info"
-    })
+      title: 'Your invoice is copied',
+      type: 'info',
+    });
   };
 
   return (
     <View style={styles.tabContentContainer}>
       <Text style={styles.tabTitle}>Cashu Invoices</Text>
-      {
-        invoices?.length > 0 ? (
-          <FlatList
-            ItemSeparatorComponent={() => <Divider></Divider>}
-            data={invoices?.flat().reverse()}
-            contentContainerStyle={styles.flatListContent}
-
-            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-            renderItem={({ item }) => {
-              const date = item?.date && new Date(item?.date)?.toISOString()
-              return (<View style={styles.card}>
+      {invoices?.length > 0 ? (
+        <FlatList
+          ItemSeparatorComponent={() => <Divider></Divider>}
+          data={invoices?.flat().reverse()}
+          contentContainerStyle={styles.flatListContent}
+          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+          renderItem={({item}) => {
+            const date = item?.date && new Date(item?.date)?.toISOString();
+            return (
+              <View style={styles.card}>
                 <View>
-
                   <Input
                     value={item?.bolt11}
                     editable={false}
@@ -297,30 +307,22 @@ export const InvoicesListCashu = () => {
                   <Text style={styles.text}>Amount: {item?.amount}</Text>
                   <Text style={styles.text}>Mint: {item?.mint}</Text>
                   <Text style={styles.text}>Status: {item?.state}</Text>
-                  {date &&
-                    <Text
-                      style={styles.text}>Date: {date}</Text>}
-
+                  {date && <Text style={styles.text}>Date: {date}</Text>}
                 </View>
-
 
                 <View>
-                  <Button
-                    onPress={() => handleVerify(item?.quote)}
-                  >Verify</Button>
-
+                  <Button onPress={() => handleVerify(item?.quote)}>Verify</Button>
                 </View>
-
-              </View>)
-            }}
-          />
-        ) : (
-          <View style={styles.noDataContainer}>
-            <InfoIcon width={30} height={30} color={theme.colors.primary} />
-            <Text style={styles.noDataText}>No invoices data found.</Text>
-          </View>
-        )
-      }
+              </View>
+            );
+          }}
+        />
+      ) : (
+        <View style={styles.noDataContainer}>
+          <InfoIcon width={30} height={30} color={theme.colors.primary} />
+          <Text style={styles.noDataText}>No invoices data found.</Text>
+        </View>
+      )}
     </View>
   );
 };

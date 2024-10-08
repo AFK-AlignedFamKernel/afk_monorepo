@@ -37,13 +37,11 @@ describe("NamespaceDualVM", function () {
   let addr2: HardhatEthersSigner;
   // let dualVMToken: DualVMToken;
 
-
   // Nostr account
   let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
   const alicePublicKey = ACCOUNT_TEST_PROFILE?.alice?.nostrPublicKey;
-  
-  let alicePublicKeyUint256= BigInt("0x" + alicePublicKey)
 
+  let alicePublicKeyUint256 = BigInt("0x" + alicePublicKey);
 
   const starknetNamespaceSierra = readContractSierra("Namespace");
   const starknetLaunchpadCasm = readContractSierraCasm("Namespace");
@@ -57,7 +55,8 @@ describe("NamespaceDualVM", function () {
   let dd: DeclareDeployUDCResponse;
   let ddToken: DeclareDeployUDCResponse;
   let starknetNamespace: StarknetContract;
-  const TOKEN_QUOTE_ADDRESS = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
+  const TOKEN_QUOTE_ADDRESS =
+    TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
 
   this.beforeAll(async function () {
     try {
@@ -87,22 +86,16 @@ describe("NamespaceDualVM", function () {
         })
         .then((tx) => tx.wait());
 
-
       /** Deploy the contract */
       // Deploy the starknetToken
-     
-
 
       // Deploy the Nostr namespace
-      console.log("deploy namespace nostr")
+      console.log("deploy namespace nostr");
 
       dd = await account.declareAndDeploy({
         contract: starknetNamespaceSierra,
         casm: starknetLaunchpadCasm,
-        constructorCalldata: [
-          ownerStarknet,
-          
-        ],
+        constructorCalldata: [ownerStarknet],
       });
 
       starknetNamespace = new StarknetContract(
@@ -112,15 +105,14 @@ describe("NamespaceDualVM", function () {
       );
 
       // Deploy the namespace contract
-      console.log("deploy sol dual vm launchpad")
+      console.log("deploy sol dual vm launchpad");
 
       const namespaceFactory = await hre.ethers.getContractFactory(
         "NamespaceNostr"
       );
-      namespace = await namespaceFactory.deploy(
-        KAKAROT_ADDRESS,
-        starknetNamespace.address
-      ).then((c) => c.waitForDeployment());
+      namespace = await namespaceFactory
+        .deploy(KAKAROT_ADDRESS, starknetNamespace.address)
+        .then((c) => c.waitForDeployment());
 
       // Whitelist the DualVMLaunchpad contract to call Cairo contracts
       await account.execute([
@@ -131,7 +123,7 @@ describe("NamespaceDualVM", function () {
         },
       ]);
 
-       // console.log("deploy token class hash")
+      // console.log("deploy token class hash")
 
       // ddToken = await account.declareAndDeploy({
       //   contract: starknetTokenSierra,
@@ -139,7 +131,7 @@ describe("NamespaceDualVM", function () {
       //   constructorCalldata: [
       //     cairo.felt("TEST_SYMBOL"),
       //     cairo.felt("TEST"),
-      //     cairo.uint256(100_000_000), 
+      //     cairo.uint256(100_000_000),
       //     ownerStarknet,
       //     18
       //   ],
@@ -149,124 +141,92 @@ describe("NamespaceDualVM", function () {
       //   ddToken.deploy.contract_address,
       //   account
       // );
-
     } catch (e) {
-      console.log("error before all", e)
+      console.log("error before all", e);
     }
-
-
   });
-
 
   describe("Get Nostr address of a Starknet user", function () {
     it("Get Nostr address of a Starknet user", async function () {
-
       await namespace
         .connect(addr1)
-        .getNostrAddressByStarknetAddress(
-          addr2.address,
-        )
+        .getNostrAddressByStarknetAddress(addr2.address)
         .then((tx) => tx.wait());
-
-    })
-  })
+    });
+  });
 
   describe("Get Starknet address", function () {
-    it("Get Starknet address by Nostr user" , async function () {
-
+    it("Get Starknet address by Nostr user", async function () {
       await namespace
         .connect(addr1)
-        .getStarknetAddressByNostrAddress(
-          alicePublicKeyUint256
-        )
+        .getStarknetAddressByNostrAddress(alicePublicKeyUint256)
         .then((tx) => tx.wait());
-
-    })
-  })
-
+    });
+  });
 
   describe("Linked nostr address", function () {
-    it("Link nostr address" , async function () {
+    it("Link nostr address", async function () {
+      /** Start claim with Nostr event */
 
+      // const content = `link to ${alicePublicKey}`;
+      const content = `link to ${cairo.felt(ownerStarknet)}`;
 
-        /** Start claim with Nostr event */
+      const timestamp = new Date().getTime();
 
-        // const content = `link to ${alicePublicKey}`;
-        const content = `link to ${cairo.felt(ownerStarknet)}`;
-  
-        const timestamp = new Date().getTime()
-  
-  
-        let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
-        let privateKey = privateKeyAlice
-  
-        // Sign Nostr event
-        const event = finalizeEvent(
-          {
-            kind: 1,
-            tags: [],
-            content: content,
-            created_at: timestamp,
-          },
-          privateKey
-        );
-  
-        console.log(
-          "event",
-          event
-        );
-        const signature = event.sig;
-        const signatureR = "0x" + signature.slice(0, signature.length / 2);
-        const signatureS = "0x" + signature.slice(signature.length / 2);
-        console.log("signature", signature);
-        console.log("signatureR", signatureR);
-        console.log("signatureS", signatureS);
-        let public_key = BigInt("0x" + alicePublicKey)
-        // let public_key = alicePublicKey
-  
-        /** @TODO fix conversion */
-        const linkParams = {
-          public_key: public_key,
-          created_at: timestamp,
+      let privateKeyAlice = ACCOUNT_TEST_PROFILE?.alice?.nostrPrivateKey as any;
+      let privateKey = privateKeyAlice;
+
+      // Sign Nostr event
+      const event = finalizeEvent(
+        {
           kind: 1,
-          tags: ethers.toUtf8Bytes("[]"), // tags
-          content: {
-            nostr_address: public_key,
-            starknet_address: ownerStarknet,
-          },
-          sig: {
-            r: signatureR,
-            s: signatureS,
-          },
-        };
-  
+          tags: [],
+          content: content,
+          created_at: timestamp,
+        },
+        privateKey
+      );
+
+      console.log("event", event);
+      const signature = event.sig;
+      const signatureR = "0x" + signature.slice(0, signature.length / 2);
+      const signatureS = "0x" + signature.slice(signature.length / 2);
+      console.log("signature", signature);
+      console.log("signatureR", signatureR);
+      console.log("signatureS", signatureS);
+      let public_key = BigInt("0x" + alicePublicKey);
+      // let public_key = alicePublicKey
+
+      /** @TODO fix conversion */
+      const linkParams = {
+        public_key: public_key,
+        created_at: timestamp,
+        kind: 1,
+        tags: ethers.toUtf8Bytes("[]"), // tags
+        content: {
+          nostr_address: public_key,
+          starknet_address: ownerStarknet,
+        },
+        sig: {
+          r: signatureR,
+          s: signatureS,
+        },
+      };
 
       await namespace
         .connect(addr1)
-        .linkNostrAddress(
-          linkParams
-        )
+        .linkNostrAddress(linkParams)
         .then((tx) => tx.wait());
-
 
       await namespace
         .connect(addr1)
-        .getStarknetAddressByNostrAddress(
-          alicePublicKeyUint256
-        )
+        .getStarknetAddressByNostrAddress(alicePublicKeyUint256)
         .then((tx) => tx.wait());
 
-
       await namespace
-      .connect(addr1)
-      .getNostrAddressByStarknetAddress(
-        addr1.address,
-      )
-      .then((tx) => tx.wait());
-
-    })
-  })
-
-
-
+        .connect(addr1)
+        .getNostrAddressByStarknetAddress(addr1.address)
+        .then((tx) => tx.wait());
+    });
+  });
 });

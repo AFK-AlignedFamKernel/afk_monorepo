@@ -1,17 +1,17 @@
-import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNostrContext } from '../context/NostrContext';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {useNostrContext} from '../context/NostrContext';
 
 export type UseRepostOptions = {
   event?: NDKEvent;
 };
 
 export const useRepost = (options?: UseRepostOptions) => {
-  const { ndk } = useNostrContext();
+  const {ndk} = useNostrContext();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationKey: ["sendRepost", ndk],
+    mutationKey: ['sendRepost', ndk],
     mutationFn: async () => {
       if (!options?.event) {
         throw new Error('No event provided for repost');
@@ -28,8 +28,8 @@ export const useRepost = (options?: UseRepostOptions) => {
       return repostEvent;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-      queryClient.invalidateQueries({ queryKey: ['reactions'] });
+      queryClient.invalidateQueries({queryKey: ['notes']});
+      queryClient.invalidateQueries({queryKey: ['reactions']});
     },
   });
 };

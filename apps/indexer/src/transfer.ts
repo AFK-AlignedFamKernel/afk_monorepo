@@ -10,15 +10,15 @@ export const config = {
       {
         fromAddress:
           "0x03e85bfbb8e2a42b7bead9e88e9a1b19dbccf661471061807292120462396ec9",
-        keys: [hash.getSelectorFromName("Transfer")]
-      }
-    ]
+        keys: [hash.getSelectorFromName("Transfer")],
+      },
+    ],
   },
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "transfers"
-  }
+    tableName: "transfers",
+  },
 };
 
 export default function transform({ header, events }: Block) {
@@ -43,7 +43,7 @@ export default function transform({ header, events }: Block) {
       from_address: fromAddress,
       to_address: toAddress,
       amount: amount,
-      amount_raw: amountRaw.toString()
+      amount_raw: amountRaw.toString(),
     };
   });
 }

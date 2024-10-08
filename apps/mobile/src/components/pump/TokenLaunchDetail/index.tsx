@@ -1,24 +1,24 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { Fraction } from '@uniswap/sdk-core';
-import { useProfile } from 'afk_nostr_sdk';
-import { ImageSourcePropType, Pressable, View } from 'react-native';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {Fraction} from '@uniswap/sdk-core';
+import {useProfile} from 'afk_nostr_sdk';
+import {ImageSourcePropType, Pressable, View} from 'react-native';
 
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { decimalsScale } from '../../../utils/helpers';
-import { Button } from '../../Button';
-import { Text } from '../../Text';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {decimalsScale} from '../../../utils/helpers';
+import {Button} from '../../Button';
+import {Text} from '../../Text';
 import stylesheet from './styles';
-import { LaunchActionsForm } from '../../LaunchActionsForm';
-import { useState } from 'react';
-import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
-import { useToast, useWalletModal } from '../../../hooks/modals';
-import { AddressComponent } from '../../AddressComponent';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
+import {useState} from 'react';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useToast, useWalletModal} from '../../../hooks/modals';
+import {AddressComponent} from '../../AddressComponent';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -41,18 +41,20 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   isDisabledInfo,
   isDisabledForm,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
   const [amount, setAmount] = useState<number | undefined>();
-  console.log("launch", launch)
+  console.log('launch', launch);
 
-  const [isDisabledInfoState, setIsDisabledInfoState] = useState<boolean | undefined>(isDisabledInfo)
+  const [isDisabledInfoState, setIsDisabledInfoState] = useState<boolean | undefined>(
+    isDisabledInfo,
+  );
   const styles = useStyles(stylesheet);
 
-  const { showToast } = useToast()
-  const { handleSellCoins } = useSellCoin();
+  const {showToast} = useToast();
+  const {handleSellCoins} = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
   const onConnect = async () => {
@@ -72,14 +74,13 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   // if (launch?.price) {
   //   priceAmount = new Fraction(String(launch.price), decimalsScale(18)).toFixed(18);
   // }
-  let created_at = launch?.created_at
+  let created_at = launch?.created_at;
 
   // const sellKeys = async () => {
   //   if (!amount) return;
 
   //   await onConnect();
   //   if (!account || !account?.account) return;
-
 
   //   if (!launch?.quote_token) return;
 
@@ -118,13 +119,13 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
 
   const sellKeys = async () => {
     if (!amount) {
-      return showToast({ title: "Select an amount to buy", type: "info" })
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
     await onConnect();
     if (!account || !account?.account) return;
 
     if (!launch?.memecoin_address) return;
-    console.log("launch", launch)
+    console.log('launch', launch);
 
     // if (!token?.quote_token) return;
 
@@ -138,21 +139,19 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
     );
 
     if (sellResult) {
-      return showToast({ title: 'Buy done', type: "success" })
+      return showToast({title: 'Buy done', type: 'success'});
     }
   };
 
   const buyCoin = async () => {
-
     await onConnect();
     if (!amount) {
-      return showToast({ title: "Select an amount to buy", type: "info" })
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
 
     if (!account || !account?.account) return;
 
-    console.log("launch", launch)
-
+    console.log('launch', launch);
 
     if (!launch?.memecoin_address) return;
     // if (!token?.token_quote) return;
@@ -165,10 +164,8 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
       launch?.quote_token,
     );
 
-    return showToast({ title: 'Buy done', type: "success" })
+    return showToast({title: 'Buy done', type: 'success'});
   };
-
-
 
   return (
     <View style={styles.container}>
@@ -197,12 +194,12 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         </View>
       </View>
 
-      <Pressable onPress={() => {
-        setIsDisabledInfoState(!isDisabledInfoState)
-      }}>
-        <Text>
-          {isDisabledInfoState ? "View more info" : "Close info"}
-        </Text>
+      <Pressable
+        onPress={() => {
+          setIsDisabledInfoState(!isDisabledInfoState);
+        }}
+      >
+        <Text>{isDisabledInfoState ? 'View more info' : 'Close info'}</Text>
       </Pressable>
       {!isDisabledInfoState && (
         <>
@@ -229,15 +226,12 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             )}
           </View>
 
-          {launch?.quote_token &&
-
+          {launch?.quote_token && (
             <View style={styles.borderBottom}>
               <Text weight="semiBold">Quote token:</Text>
               <Text>{launch?.quote_token}</Text>
             </View>
-
-
-          }
+          )}
           {launch?.token_quote && (
             <View
             // style={styles.imageContainer}

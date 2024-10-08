@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const {IpfsHash} = await pinata.pinFileToIPFS(stream, {
       pinataMetadata: {
         name: file.name,
-        type:file.type
+        type: file.type,
       },
     });
 

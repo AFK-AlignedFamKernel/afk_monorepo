@@ -8,8 +8,7 @@ dotenv.config();
 const config = {
   // const config: HardhatUserConfig = {
   solidity: {
-    compilers:[
-      
+    compilers: [
       {
         version: "0.8.0", // Specify the second compiler version
         // settings: {
@@ -17,7 +16,7 @@ const config = {
         //   //   enabled: true,
         //   //   runs: 200,
         //   // },
-        //   evmVersion: "cancun",  
+        //   evmVersion: "cancun",
         // },
       },
       {
@@ -27,7 +26,7 @@ const config = {
             enabled: true,
             runs: 200,
           },
-          evmVersion: "cancun",  
+          evmVersion: "cancun",
         },
       },
       // {
@@ -38,7 +37,7 @@ const config = {
       //       runs: 200,
       //     },
       //   },
-      //   evmVersion: "cancun",  
+      //   evmVersion: "cancun",
 
       // },
       // {
@@ -48,11 +47,10 @@ const config = {
       //       enabled: true,
       //       runs: 200,
       //     },
-      //     evmVersion: "cancun",  
+      //     evmVersion: "cancun",
       //   },
       // },
-    
-    ]
+    ],
   },
   networks: {
     kakarotRpc: {

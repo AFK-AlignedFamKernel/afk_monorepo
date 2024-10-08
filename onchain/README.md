@@ -33,7 +33,6 @@ git submodule add https://github.com/Uniswap/v2-periphery solidity_contracts/lib
 pnpm i .  && cp .env.example .env
 ```
 
-
 To get started, you will need to run the local nodes. You can do this by running:
 
 ```sh

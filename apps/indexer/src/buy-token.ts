@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("BuyToken")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,8 +35,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_transactions"
-  }
+    tableName: "token_transactions",
+  },
 };
 
 export default function DecodeBuyToken({ header, events }: Block) {
@@ -62,12 +62,12 @@ export default function DecodeBuyToken({ header, events }: Block) {
       last_price_high,
       timestamp_u64,
       quote_amount_low,
-      quote_amount_high
+      quote_amount_high,
     ] = event.data;
 
     const amount_raw = uint256.uint256ToBN({
       low: amount_low,
-      high: amount_high
+      high: amount_high,
     });
     const amount = formatUnits(amount_raw, DECIMALS).toString();
 
@@ -76,19 +76,19 @@ export default function DecodeBuyToken({ header, events }: Block) {
 
     const protocol_fee_raw = uint256.uint256ToBN({
       low: protocol_fee_low,
-      high: protocol_fee_high
+      high: protocol_fee_high,
     });
     const protocol_fee = formatUnits(protocol_fee_raw, DECIMALS).toString();
 
     const last_price_raw = uint256.uint256ToBN({
       low: last_price_low,
-      high: last_price_high
+      high: last_price_high,
     });
     const last_price = formatUnits(last_price_raw, DECIMALS).toString();
 
     const quote_amount_raw = uint256.uint256ToBN({
       low: quote_amount_low,
-      high: quote_amount_high
+      high: quote_amount_high,
     });
     const quote_amount = formatUnits(quote_amount_raw, DECIMALS).toString();
 
@@ -98,9 +98,9 @@ export default function DecodeBuyToken({ header, events }: Block) {
 
     console.log({
       memecoin_address: token_address,
-      caller: caller
+      caller: caller,
     });
-    
+
     return {
       transfer_id,
       network: "starknet-sepolia",
@@ -117,7 +117,7 @@ export default function DecodeBuyToken({ header, events }: Block) {
       protocol_fee,
       time_stamp,
       transaction_type: "buy",
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   });
 }

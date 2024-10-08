@@ -35,7 +35,7 @@ export enum SelectedTab {
   STARKNET_PORTFOLIO,
   SWAP_AVNU,
   TOKEN_STATS,
-  USER_SHARE
+  USER_SHARE,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -297,13 +297,13 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     tab: SelectedTab.PORTFOLIO,
   },
   {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
-  {
     title: 'Cashu',
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
 ];

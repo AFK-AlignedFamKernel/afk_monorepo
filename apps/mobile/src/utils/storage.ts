@@ -5,15 +5,13 @@ import {Platform} from 'react-native';
 import {pbkdf2Decrypt, pbkdf2Encrypt, PBKDF2EncryptedObject} from './encryption';
 
 const isSecureStoreAvailable = Platform.OS === 'android' || Platform.OS === 'ios';
-export const KEY_STORE= {
-
-  PUBLIC_KEY:"publicKey",
-  PASSWORD:"PASSWORD",
-  ENCRYPTED_PRIVATE_KEY:"encryptedPrivateKey",
-  ENCRYPTED_CASHU_MNEMONIC:"encryptedCashuMnemonic",
-  ENCRYPTED_CASHU_SEED:"encryptedCashuSeed",
-
-}
+export const KEY_STORE = {
+  PUBLIC_KEY: 'publicKey',
+  PASSWORD: 'PASSWORD',
+  ENCRYPTED_PRIVATE_KEY: 'encryptedPrivateKey',
+  ENCRYPTED_CASHU_MNEMONIC: 'encryptedCashuMnemonic',
+  ENCRYPTED_CASHU_SEED: 'encryptedCashuSeed',
+};
 export const storePublicKey = async (publicKey: string) => {
   if (isSecureStoreAvailable) {
     return SecureStore.setItemAsync(KEY_STORE.PUBLIC_KEY, publicKey);
@@ -76,9 +74,10 @@ export const retrieveAndDecryptPrivateKey = async (password: string): Promise<fa
 /** TODO add security for password retrieve in Web view? */
 export const storePassword = async (password: string) => {
   if (isSecureStoreAvailable) {
-    return await SecureStore.setItemAsync(KEY_STORE.PASSWORD, password, {requireAuthentication: true});
-  }
-  else {
+    return await SecureStore.setItemAsync(KEY_STORE.PASSWORD, password, {
+      requireAuthentication: true,
+    });
+  } else {
     return await AsyncStorage.setItem(KEY_STORE.PASSWORD, password);
   }
 };
@@ -87,13 +86,11 @@ export const storePassword = async (password: string) => {
 export const retrievePassword = async () => {
   if (isSecureStoreAvailable) {
     return await SecureStore.getItemAsync(KEY_STORE.PASSWORD, {requireAuthentication: true});
-  }
-  else {
+  } else {
     return await AsyncStorage.getItem(KEY_STORE.PASSWORD);
   }
   return null;
 };
-
 
 /** no password atm */
 export const storeCashuMnemonic = async (privateKeyHex: string, password: string) => {
@@ -130,7 +127,9 @@ export const storeCashuMnemonic = async (privateKeyHex: string, password: string
 //   }
 // };
 
-export const retrieveAndDecryptCashuMnemonic = async (password: string): Promise<false | Buffer> => {
+export const retrieveAndDecryptCashuMnemonic = async (
+  password: string,
+): Promise<false | Buffer> => {
   try {
     const encryptedCashuMnemonic = isSecureStoreAvailable
       ? await SecureStore.getItemAsync(KEY_STORE.ENCRYPTED_CASHU_MNEMONIC)
@@ -155,8 +154,6 @@ export const retrieveAndDecryptCashuMnemonic = async (password: string): Promise
     throw new Error('Error retrieving and decrypting cashu mnemonic');
   }
 };
-
-
 
 /** no password atm */
 export const storeCashuSeed = async (privateKeyHex: string, password: string) => {

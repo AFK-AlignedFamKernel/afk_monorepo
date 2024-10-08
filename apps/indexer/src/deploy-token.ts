@@ -6,7 +6,7 @@ import {
   hash,
   uint256,
   shortString,
-  Pool
+  Pool,
 } from "./deps.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
@@ -23,15 +23,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("CreateToken")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -43,8 +43,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_deploy"
-  }
+    tableName: "token_deploy",
+  },
 };
 
 export default function DecodeTokenDeploy({ header, events }: Block) {
@@ -62,7 +62,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       initial_supply_low,
       initial_supply_high,
       total_supply_low,
-      total_supply_high
+      total_supply_high,
     ] = event.data;
 
     const symbol_decoded = token_address
@@ -75,19 +75,19 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
 
     const initial_supply_raw = uint256.uint256ToBN({
       low: initial_supply_low,
-      high: initial_supply_high
+      high: initial_supply_high,
     });
     const initial_supply = formatUnits(initial_supply_raw, DECIMALS).toString();
 
     const total_supply_raw = uint256.uint256ToBN({
       low: total_supply_low,
-      high: total_supply_high
+      high: total_supply_high,
     });
     const total_supply = formatUnits(total_supply_raw, DECIMALS).toString();
 
     console.log({
       memecoin_address: token_address,
-      caller: caller
+      caller: caller,
     });
 
     return {
@@ -102,7 +102,7 @@ export default function DecodeTokenDeploy({ header, events }: Block) {
       symbol: symbol_decoded,
       initial_supply,
       total_supply,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   });
 }

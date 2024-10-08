@@ -24,7 +24,7 @@ async function getFunkitStripeCheckoutStatus(
       try {
         const checkoutItem = await getCheckoutByDepositAddress({
           depositAddress: funkitDepositAddress as `0x${string}`,
-          apiKey: FUNKIT_API_KEY
+          apiKey: FUNKIT_API_KEY,
         });
         if (!checkoutItem || !checkoutItem?.depositAddr) {
           return reply
@@ -32,7 +32,7 @@ async function getFunkitStripeCheckoutStatus(
             .send({ message: "Failed to get a funkit checkout." });
         }
         return reply.send({
-          state: checkoutItem.state
+          state: checkoutItem.state,
         });
       } catch (error: any) {
         if (error?.message?.includes("InvalidParameterError")) {

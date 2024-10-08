@@ -1,7 +1,7 @@
-import { Platform, StatusBar } from 'react-native';
+import {Platform, StatusBar} from 'react-native';
 
-import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
-import { transform } from '@babel/core';
+import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
+import {transform} from '@babel/core';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -48,7 +48,7 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 10,
     // position: 'relative',
     flex: 1,
-    flexDirection:"row",
+    flexDirection: 'row',
     // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
@@ -60,7 +60,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   scrollView: {
     flex: 1,
-    height: "95%",
+    height: '95%',
     // flexGrow: 1,
     // overflow:"scroll",
     backgroundColor: theme.colors.surface,
@@ -75,7 +75,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -127,7 +127,7 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     marginVertical: Spacing.small,
     color: theme.colors.text,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   text: {
     // textAlign: 'center',
@@ -172,7 +172,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
     shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -244,12 +244,12 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
     gap: 12,
-    padding: 12
+    padding: 12,
   },
   bannerText: {
     color: theme.colors.text,
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   bannerButtonsContainer: {
     display: 'flex',
@@ -257,13 +257,13 @@ export default ThemedStyleSheet((theme) => ({
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 20,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   actionsContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 20
+    marginTop: 20,
   },
   actionButtonsContainer: {
     display: 'flex',
@@ -273,18 +273,18 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 20,
     marginBottom: 20,
     justifyContent: 'center',
-    width: '100%'
+    width: '100%',
   },
   actionButton: {
     flex: 1,
     maxWidth: '40%',
-    backgroundColor: theme.colors.primary
+    backgroundColor: theme.colors.primary,
   },
   actionButtonText: {
-    color: theme.colors.white
+    color: theme.colors.white,
   },
   qrButton: {
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
   },
   moreButton: {
     flex: 1,
@@ -292,61 +292,61 @@ export default ThemedStyleSheet((theme) => ({
   },
   moreButtonIcon: {
     transform: 'rotate(270deg)',
-    marginLeft: 10
+    marginLeft: 10,
   },
   lessButtonIcon: {
     transform: 'rotate(90deg)',
-    marginLeft: 10
+    marginLeft: 10,
   },
   balanceContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 15
+    gap: 15,
   },
   balanceTitle: {
     fontSize: 20,
     fontWeight: 600,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
   balance: {
     fontSize: 40,
     fontWeight: 900,
-    color: theme.colors.primary
+    color: theme.colors.primary,
   },
   activeMintText: {
     fontSize: 12,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
   tabsContainer: {
     justifyContent: 'center',
-    maxWidth: '100%'
+    maxWidth: '100%',
   },
   tabs: {
     backgroundColor: 'transparent',
     color: theme.colors.text,
     borderRadius: 0,
-    width: '30%'
+    width: '30%',
   },
   active: {
     borderBottomWidth: 2,
     borderColor: theme.colors.primary,
   },
   tabContentContainer: {
-    padding: 20
+    padding: 20,
   },
   tabTitle: {
     fontWeight: 'bold',
     fontSize: 14,
     marginBottom: 10,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
   titleMargin: {
-    marginTop: 20
+    marginTop: 20,
   },
   tabSubtitle: {
     fontSize: 12,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
   mint: {
     flexDirection: 'row',
@@ -355,22 +355,22 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: theme.colors.divider,
-    maxWidth: '100%'
+    maxWidth: '100%',
   },
   mintContentContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    flex: 1
+    flex: 1,
   },
   textsContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 5
+    gap: 5,
   },
   title: {
     fontSize: 12,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
   radioOuter: {
     height: 24,
@@ -396,7 +396,7 @@ export default ThemedStyleSheet((theme) => ({
     gap: 10,
     alignSelf: 'flex-end',
     height: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   addMintInput: {
     borderWidth: 1,
@@ -408,38 +408,38 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.inputBackground,
     fontSize: 12,
     marginTop: 10,
-    padding: 8
+    padding: 8,
   },
   qrButtonSmall: {
     padding: 0,
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   addMintBtn: {
     marginTop: 15,
     backgroundColor: theme.colors.primary,
-    padding: 10
+    padding: 10,
   },
   addMintBtnText: {
     color: theme.colors.white,
-    fontSize: 14
+    fontSize: 14,
   },
   newMintError: {
     marginTop: 5,
     color: theme.colors.errorDark,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   noDataContainer: {
     display: 'flex',
     flexDirection: 'column',
     gap: 15,
     alignItems: 'center',
-    marginTop: 15
+    marginTop: 15,
   },
   noDataText: {
     color: theme.colors.text,
     textAlign: 'center',
     fontSize: 14,
-    fontWeight: 'bold'
-  }
+    fontWeight: 'bold',
+  },
 }));

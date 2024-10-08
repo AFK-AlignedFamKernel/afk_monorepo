@@ -19,7 +19,7 @@ async function transactionsRoute(
     if (!isValidStarknetAddress(tokenAddress)) {
       reply.status(HTTPStatus.BadRequest).send({
         code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+        message: "Invalid token address",
       });
       return;
     }
@@ -28,21 +28,21 @@ async function transactionsRoute(
       const transactions = await prisma.token_transactions.findMany({
         where: {
           memecoin_address: tokenAddress,
-          owner_address: userId
+          owner_address: userId,
         },
         select: {
           transaction_type: true,
           amount: true,
           quote_amount: true,
-          price:true
-        }
+          price: true,
+        },
       });
 
       console.log(transactions);
 
       if (transactions.length === 0) {
         return reply.status(HTTPStatus.NotFound).send({
-          error: "No transactions found for this user and token address."
+          error: "No transactions found for this user and token address.",
         });
       }
 
@@ -64,7 +64,7 @@ async function transactionsRoute(
     } catch (error) {
       console.error("Failed to retrieve user transactions:", error);
       reply.status(HTTPStatus.InternalServerError).send({
-        error: "Internal Server Error while fetching user transactions."
+        error: "Internal Server Error while fetching user transactions.",
       });
     }
   });

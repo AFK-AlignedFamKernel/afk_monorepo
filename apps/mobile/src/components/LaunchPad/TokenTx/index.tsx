@@ -1,8 +1,8 @@
-import { FlatList, View } from 'react-native';
+import {FlatList, View} from 'react-native';
 
-import { useStyles } from '../../../hooks';
-import { TokenTxInterface } from '../../../types/keys';
-import { Text } from '../../Text';
+import {useStyles} from '../../../hooks';
+import {TokenTxInterface} from '../../../types/keys';
+import {Text} from '../../Text';
 import stylesheet from './styles';
 import Loading from '../../Loading';
 
@@ -11,8 +11,7 @@ export type TokenTxProps = {
   tx?: TokenTxInterface[];
 };
 
-export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
-
+export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
   const styles = useStyles(stylesheet);
 
   return loading ? (
@@ -21,7 +20,7 @@ export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
     <FlatList
       data={tx}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({ item }) => (
+      renderItem={({item}) => (
         <View style={[styles.container, styles.borderBottom]}>
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
@@ -37,7 +36,6 @@ export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
             <Text fontSize={14}>{item.owner_address}</Text>
           </View>
 
-
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Tx Type
@@ -52,9 +50,10 @@ export const TokenTx: React.FC<TokenTxProps> = ({ tx, loading }) => {
           </View>
         </View>
       )}
-      ListEmptyComponent={<View style={{ paddingTop: 40 }}>
-        <Text style={{ textAlign: 'center' }}>No transactions available</Text>
-      </View>
+      ListEmptyComponent={
+        <View style={{paddingTop: 40}}>
+          <Text style={{textAlign: 'center'}}>No transactions available</Text>
+        </View>
       }
     />
   );

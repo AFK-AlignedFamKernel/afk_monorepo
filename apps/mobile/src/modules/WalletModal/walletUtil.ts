@@ -79,8 +79,8 @@ export function injectedWithFallback() {
         return !window.ethereum
           ? 'Install MetaMask'
           : window.ethereum?.isMetaMask
-            ? 'MetaMask'
-            : 'Browser Wallet';
+          ? 'MetaMask'
+          : 'Browser Wallet';
       },
     };
   });

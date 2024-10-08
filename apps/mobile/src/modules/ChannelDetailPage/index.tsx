@@ -30,8 +30,7 @@ export const ChannelDetailComponent: React.FC<IChannelDetailComponent> = ({navig
   const notes = useMessagesChannels({noteId: note?.id});
   const queryClient = useQueryClient();
   const {showToast} = useToast();
-  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth()
-
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   const [channelInfo, setChannelInfo] = useState<undefined | IChannelsMetadata>();
   useEffect(() => {
@@ -58,7 +57,7 @@ export const ChannelDetailComponent: React.FC<IChannelDetailComponent> = ({navig
       tags = [['e', note?.id ?? selectedReply ?? '', '', 'reply', note?.pubkey ?? '']];
     }
 
-    await handleCheckNostrAndSendConnectDialog()
+    await handleCheckNostrAndSendConnectDialog();
 
     sendNote.mutate(
       {

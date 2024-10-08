@@ -1,9 +1,9 @@
 export const CanvasConfig: ICanvasConfig = {
-  "canvas": {
-    "width": 512,
-    "height": 384
+  canvas: {
+    width: 512,
+    height: 384,
   },
-  "colors": [
+  colors: [
     "FAFAFA",
     "080808",
     "BA2112",
@@ -18,9 +18,9 @@ export const CanvasConfig: ICanvasConfig = {
     "5CFFFE",
     "A13DFF",
     "FF7AD7",
-    "C1D9E6"
+    "C1D9E6",
   ],
-  "votableColors": [
+  votableColors: [
     "EA1608",
     "FF5C5D",
     "F86949",
@@ -45,18 +45,17 @@ export const CanvasConfig: ICanvasConfig = {
     "EA1F78",
     "CD3C5B",
     "898D90",
-    "D4D7D9"
+    "D4D7D9",
   ],
-  "colorsBitwidth": 5
-}
-
+  colorsBitwidth: 5,
+};
 
 export interface ICanvasConfig {
-  "canvas": {
-    "width": number,
-    "height": number
-  },
-  colors: string[],
-  votableColors: string[],
-  colorsBitwidth:number
+  canvas: {
+    width: number;
+    height: number;
+  };
+  colors: string[];
+  votableColors: string[];
+  colorsBitwidth: number;
 }

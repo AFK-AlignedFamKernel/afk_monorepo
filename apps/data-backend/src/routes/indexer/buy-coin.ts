@@ -16,12 +16,13 @@ async function buyCoinRoute(fastify: FastifyInstance, options: RouteOptions) {
           total_supply: true,
           network: true,
           transaction_type: true,
-          time_stamp: true
-        }
+          time_stamp: true,
+          quote_amount: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: buyTokens
+        data: buyTokens,
       });
     } catch (error) {
       console.error("Error fetching buy tokens:", error);

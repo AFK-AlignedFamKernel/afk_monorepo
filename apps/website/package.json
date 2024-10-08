@@ -48,7 +48,9 @@
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
     "zustand": "^4.5.2",
-    "starknetkit-next": "npm:starknetkit@2.3.0"
+    "starknetkit-next": "npm:starknetkit@2.3.0",
+    "@argent/x-sessions": "^6.7.4"
+
 
   },
   "devDependencies": {

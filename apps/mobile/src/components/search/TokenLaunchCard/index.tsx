@@ -1,24 +1,23 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { Fraction } from '@uniswap/sdk-core';
-import { useProfile } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
-
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
-import { useWalletModal } from '../../../hooks/modals';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {Fraction} from '@uniswap/sdk-core';
+import {useProfile} from 'afk_nostr_sdk';
+import {useState} from 'react';
+import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import {useStyles, useTheme, useWaitConnection} from '../../../hooks';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useToast, useWalletModal} from '../../../hooks/modals';
 // import {useProfile} from '../../hooks';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenDeployInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { decimalsScale } from '../../../utils/helpers';
-import { Button } from '../../Button';
-import { LaunchActionsForm } from '../../LaunchActionsForm';
-import { Text } from '../../Text';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {Text} from '../../Text';
 import stylesheet from './styles';
+import {CopyIconStack} from '../../../assets/icons';
+import {Button, Input} from '../..';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -26,6 +25,7 @@ export type LaunchCoinProps = {
   event?: NDKEvent;
   profileProps?: NDKUserProfile;
   token?: TokenDeployInterface;
+  launch?: TokenLaunchInterface;
   isViewDetailDisabled?: boolean;
 };
 
@@ -35,23 +35,27 @@ enum AmountType {
 }
 export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   token,
+  launch,
   imageProps,
   name,
   profileProps,
   event,
   isViewDetailDisabled,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
+
+  const {showToast} = useToast();
+  const {theme} = useTheme();
 
   const styles = useStyles(stylesheet);
 
   const [amount, setAmount] = useState<number | undefined>();
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT);
 
-  const { handleSellCoins } = useSellCoin();
+  const {handleSellCoins} = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
 
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
@@ -111,36 +115,51 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   //   if (!event?.id) return;
   //   navigation.navigate('Profile', { publicKey: event?.pubkey });
   // };
-  let priceAmount=token?.price;
+  let priceAmount = token?.price;
   // if (token?.price) {
   //   priceAmount = new Fraction(String(token.price), decimalsScale(18)).toFixed(18);
   // }
-  let created_at=token?.created_at;
+  let created_at = token?.created_at;
 
   // if (token?.created_at) {
   //   created_at = new Fraction(String(token.created_at), decimalsScale(18)).toFixed(18);
   // }
 
+  const handleCopy = async () => {
+    if (!token?.memecoin_address) return;
+    await Clipboard.setStringAsync(token?.memecoin_address);
+    showToast({type: 'info', title: 'Copied to clipboard'});
+  };
 
   return (
     <View style={styles.container}>
       <View>
         {token?.memecoin_address && (
           <View style={styles.borderBottom}>
-            <Text weight="semiBold">Meme Coin address:</Text>
+            {/* <Text weight="semiBold">Meme Coin address:</Text> */}
+            <Input
+              value={token?.memecoin_address}
+              editable={false}
+              right={
+                <TouchableOpacity
+                  onPress={() => handleCopy()}
+                  style={
+                    {
+                      // marginRight: 10,
+                    }
+                  }
+                >
+                  <CopyIconStack color={theme.colors.primary} />
+                </TouchableOpacity>
+              }
+            />
             <Text>{token?.memecoin_address}</Text>
           </View>
         )}
 
-
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Name:</Text>
           <Text>{token?.name}</Text>
-        </View>
-
-        <View style={styles.borderBottom}>
-          <Text weight="semiBold">Network:</Text>
-          <Text>{token?.network}</Text>
         </View>
 
         {token?.owner && (
@@ -174,17 +193,22 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           Price: {Number(token?.price)}
         </Text> */}
 
-     
         <View style={styles.borderBottom}>
           <Text weight="semiBold">Total Supply:</Text>
-          <Text>{Number(token?.total_supply) / 10 ** 18}</Text>
+          <Text>{Number(token?.total_supply)}</Text>
         </View>
 
-        {token?.created_at &&
+        {token?.created_at && (
           <Text>
-            Created at {Number(token?.created_at) / 10 ** 18}
+            Created at {token?.created_at}
+            {/* Created at {Number(token?.created_at)} */}
           </Text>
-        }
+        )}
+
+        <View style={styles.borderBottom}>
+          <Text weight="semiBold">Network:</Text>
+          <Text>{token?.network}</Text>
+        </View>
       </View>
 
       <View>
@@ -219,7 +243,6 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             <Text weight="semiBold">Quote token:</Text>
             <Text>{feltToAddress(BigInt(token.token_quote?.token_address))}</Text>
           </View>
-         
         </View>
       )}
 
@@ -237,7 +260,6 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
               if (token && token?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {
                   coinAddress: token?.memecoin_address,
-                  launch: token
                 });
               }
             }}

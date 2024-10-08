@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "build:index": "tsc",
-    "build:all": "pnpm run build:indexer-prisma && cd ../../apps/data-backend tsc",
+    "build:all_repo": "pnpm run build:indexer-prisma && cd ../../apps/data-backend tsc",
+    "build:all": "pnpm run build:indexer-prisma && cd ../../apps/data-backend && pnpm prisma:setup && tsc",
     "start": "ts-node src/index.ts",
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "ts-node dist/index.js",
@@ -28,6 +29,7 @@
     "@prisma/client": "^5.18.0",
     "@telegraf/types": "^7.1.0",
     "apollo-server": "^3.13.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
@@ -35,9 +37,12 @@
     "graphql": "^16.9.0",
     "helmet": "^7.1.0",
     "indexer-prisma": "workspace:*",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.15",
     "pg": "^8.12.0",
     "pg-promise": "^11.9.1",
     "telegraf": "^4.16.3",
+    "twilio": "^5.3.3",
     "typescript": "^5.5.4"
   },
   "devDependencies": {

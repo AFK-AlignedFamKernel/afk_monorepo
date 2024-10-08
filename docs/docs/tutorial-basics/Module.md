@@ -4,13 +4,12 @@ sidebar_position: 3
 
 # Modules
 
- **WEBAPP**
+**WEBAPP**
 
- The webapp is a simple frontend to sign and verify messages using a browser extension like [Flamingo](https://www.getflamingo.org/) or [nos2x](https://github.com/fiatjaf/nos2x/). It is built using React and Tailwind CSS.
-
-
+The webapp is a simple frontend to sign and verify messages using a browser extension like [Flamingo](https://www.getflamingo.org/) or [nos2x](https://github.com/fiatjaf/nos2x/). It is built using React and Tailwind CSS.
 
 ## Development
+
 To start the development server, run:
 
 ```bash
@@ -18,6 +17,7 @@ npm start
 ```
 
 ## Build
+
 To build the project, run:
 
 ```bash
@@ -29,6 +29,7 @@ npm start
 The onchain components of the project are implemented as a suite of Starknet smart contracts.
 
 ## Build
+
 To build the project, run:
 
 ```bash
@@ -36,6 +37,7 @@ scarb build
 ```
 
 ## Test
+
 To test the project, run:
 
 ```bash
@@ -51,8 +53,7 @@ Pick an issue with the labels "mobile" to start work on React-native and contrib
 ```bash
 cd apps/mobile
 npm i
-npm start 
+npm start
 ```
+
 Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
-
-

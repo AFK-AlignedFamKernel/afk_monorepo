@@ -15,7 +15,7 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
     if (!isValidStarknetAddress(tokenAddress)) {
       reply.status(HTTPStatus.BadRequest).send({
         code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+        message: "Invalid token address",
       });
       return;
     }
@@ -25,16 +25,16 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
         by: ["owner_address"],
         where: { memecoin_address: tokenAddress },
         _sum: {
-          amount: true
+          amount: true,
         },
         _count: {
-          owner_address: true
-        }
+          owner_address: true,
+        },
       });
 
       if (distributions.length === 0) {
         reply.status(HTTPStatus.NotFound).send({
-          message: "No holders found for this token address."
+          message: "No holders found for this token address.",
         });
       }
 
@@ -42,7 +42,7 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
     } catch (error) {
       console.error("Failed to fetch token distribution:", error);
       reply.status(HTTPStatus.InternalServerError).send({
-        message: "Internal Server Error while fetching token distribution."
+        message: "Internal Server Error while fetching token distribution.",
       });
     }
   });

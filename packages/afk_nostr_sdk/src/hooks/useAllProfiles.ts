@@ -6,7 +6,7 @@ import {useNostrContext} from '../context/NostrContext';
 export type UseRootProfilesOptions = {
   authors?: string[];
   search?: string;
-  limit?:number;
+  limit?: number;
 };
 
 export const useAllProfiles = (options?: UseRootProfilesOptions) => {

@@ -37,8 +37,7 @@ export const createArtPeace = async (
   start_time: number,
   end_time: number,
   daily_quests_count: number,
-  devmode: boolean,
-
+  devmode: boolean
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -96,18 +95,18 @@ export const createArtPeace = async (
       console.log("nonce", nonce);
     }
 
-    console.log("host", host)
-    console.log("canvas_width", canvas_width)
-    console.log("canvas_height", canvas_height)
-    console.log("time_between_pixels", time_between_pixels)
-    console.log("color_palette", color_palette)
-    console.log("votable_colors", votable_colors)
-    console.log("daily_new_colors_count", daily_new_colors_count)
-    console.log("start_time", start_time)
-    console.log("end_time", end_time)
-    console.log("daily_quests_count", daily_quests_count)
-    console.log("devmode", devmode)
-    console.log("account0 address", account0?.address)
+    console.log("host", host);
+    console.log("canvas_width", canvas_width);
+    console.log("canvas_height", canvas_height);
+    console.log("time_between_pixels", time_between_pixels);
+    console.log("color_palette", color_palette);
+    console.log("votable_colors", votable_colors);
+    console.log("daily_new_colors_count", daily_new_colors_count);
+    console.log("start_time", start_time);
+    console.log("end_time", end_time);
+    console.log("daily_quests_count", daily_quests_count);
+    console.log("devmode", devmode);
+    console.log("account0 address", account0?.address);
     const initParams = {
       // host: account0?.address,
       canvas_width: cairo.uint256(canvas_width),
@@ -119,9 +118,9 @@ export const createArtPeace = async (
       start_time,
       end_time,
       daily_quests_count,
-      devmode
-    }
-    console.log("initParams", initParams)
+      devmode,
+    };
+    console.log("initParams", initParams);
     const ArtPeaceCalldata = CallData.compile({
       host: account0?.address,
       canvas_width: cairo.uint256(canvas_width),
@@ -133,9 +132,7 @@ export const createArtPeace = async (
       start_time,
       end_time,
       daily_quests_count,
-      devmode
-
-
+      devmode,
     });
     const { transaction_hash, contract_address } =
       await account0.deployContract({
@@ -145,7 +142,7 @@ export const createArtPeace = async (
           // host ?? account0?.address,
           // cairo.uint256(canvas_width),
           // cairo.uint256(canvas_height),
-                  canvas_width,
+          canvas_width,
           canvas_height,
           time_between_pixels,
           color_palette,
@@ -154,8 +151,8 @@ export const createArtPeace = async (
           start_time,
           end_time,
           daily_quests_count,
-          devmode
-        ]
+          devmode,
+        ],
         // constructorCalldata: [
         //   initParams
         //   // [
@@ -186,7 +183,6 @@ export const createArtPeace = async (
         //   // daily_quests_count,
         //   // devmode
         // ]
-
       });
 
     console.log("transaction_hash", transaction_hash);

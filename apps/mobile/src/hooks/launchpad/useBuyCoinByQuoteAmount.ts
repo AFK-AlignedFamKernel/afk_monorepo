@@ -1,16 +1,16 @@
-import { useNetwork } from '@starknet-react/core';
+import {useNetwork} from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
-import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, CallData, constants, RpcProvider } from 'starknet';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
-import { TokenQuoteBuyKeys } from '../../types/keys';
-import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
-import { STRK, TOKEN_ADDRESSES } from '../../constants/tokens';
+import {TokenQuoteBuyKeys} from '../../types/keys';
+import {feltToAddress, formatFloatToUint256} from '../../utils/format';
+import {STRK, TOKEN_ADDRESSES} from '../../constants/tokens';
 
 export const useBuyCoinByQuoteAmount = () => {
   const chain = useNetwork();
   const chainId = chain?.chain?.id;
-  const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
   const handleBuyCoins = async (
     account: AccountInterface,
     coin_address: string,
@@ -21,14 +21,12 @@ export const useBuyCoinByQuoteAmount = () => {
   ) => {
     try {
       const addressContract =
-      contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
-
+        contractAddress ?? LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
 
       console.log('addressContract', addressContract);
       console.log('read asset');
       if (!account) return;
 
-     
       // const asset = await prepareAndConnectContract(
       //   provider,
       //   feltToAddress(BigInt(tokenQuote?.token_address)),
@@ -74,13 +72,12 @@ export const useBuyCoinByQuoteAmount = () => {
       const tx = await account?.execute([approveCall, buyCoinCall], undefined, {});
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-      return wait_tx
+      return wait_tx;
     } catch (e) {
-      console.log("Error handleBuyCoins", e)
+      console.log('Error handleBuyCoins', e);
       return undefined;
     }
-
   };
 
-  return { handleBuyCoins };
+  return {handleBuyCoins};
 };

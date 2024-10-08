@@ -1,4 +1,4 @@
-import { Uint256 } from 'starknet';
+import {Uint256} from 'starknet';
 
 export interface KeysUser {
   owner: string;
@@ -27,14 +27,12 @@ export interface TokenLaunchInterface {
   slope?: Uint256;
 }
 
-
 export interface UserShareInterface {
   total: number;
   total_buy: number;
   total_sell: number;
   quote_amount: number;
 }
-
 
 export interface TokenDeployInterface {
   memecoin_address: string;
@@ -43,7 +41,8 @@ export interface TokenDeployInterface {
   network: string;
   owner: string;
   total_supply: Uint256;
-  created_at: Uint256;
+  // created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;
@@ -51,7 +50,6 @@ export interface TokenDeployInterface {
   threshold_liquidity?: Uint256;
   slope?: Uint256;
   quote_token?: string;
-
 }
 
 export interface TokenDeployIndexerInterface {
@@ -76,16 +74,16 @@ export interface TokenStatsInterface {
 }
 
 export interface TokenTxInterface {
-  memecoin_address: string,
-  owner_address: string,
-  amount: number,
-  price: number,
-  coin_received: boolean,
-  liquidityRaised: boolean,
-  total_supply: boolean,
-  network: boolean,
-  transaction_type: boolean,
-  created_at: boolean
+  memecoin_address: string;
+  owner_address: string;
+  amount: number;
+  price: number;
+  coin_received: boolean;
+  liquidityRaised: boolean;
+  total_supply: boolean;
+  network: boolean;
+  transaction_type: boolean;
+  created_at: boolean;
 }
 
 export interface TokenHoldersInterface {

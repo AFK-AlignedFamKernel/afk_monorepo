@@ -57,9 +57,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
             )}
             {selectedTab == SelectedTab.SWAP_AVNU && (
               <View style={{display: 'flex', alignItems: 'center'}}>
-                <TokenSwap
-                  onPress={() => console.log('pressed!')}
-                />
+                <TokenSwap onPress={() => console.log('pressed!')} />
               </View>
             )}
             {/* 
@@ -71,7 +69,6 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
 
             {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
               <View>
-                <Text style={styles.text}>Zap, Lightning wallet and NWC</Text>
                 <LightningNetworkWalletView></LightningNetworkWalletView>
               </View>
             )}

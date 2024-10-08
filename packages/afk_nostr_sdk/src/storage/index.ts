@@ -1,2 +1,2 @@
-export * from "./cashu"
-export * from "./nostr"
+export * from './cashu';
+export * from './nostr';

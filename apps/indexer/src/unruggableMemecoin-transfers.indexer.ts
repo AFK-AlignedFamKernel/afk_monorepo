@@ -20,9 +20,9 @@ export const config = {
       {
         fromAddress: FACTORY_ADDRESS,
         keys: [hash.getSelectorFromName("MemecoinLaunched")],
-        includeReceipt: false
-      }
-    ]
+        includeReceipt: false,
+      },
+    ],
   },
   streamUrl: "https://mainnet.starknet.a5a.ch",
   startingBlock: STARTING_BLOCK,
@@ -31,8 +31,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "unrugmeme_transfers"
-  }
+    tableName: "unrugmeme_transfers",
+  },
 };
 
 export function factory({ header, events }: Block) {
@@ -41,21 +41,21 @@ export function factory({ header, events }: Block) {
     return {
       fromAddress: memecoin_address,
       keys: [hash.getSelectorFromName("Transfer")],
-      includeReceipt: false
+      includeReceipt: false,
     };
   });
 
   return {
     filter: {
       header: { weak: true },
-      events: launchEvents
-    }
+      events: launchEvents,
+    },
   };
 }
 
 export default function DecodeUnruggableMemecoinLaunch({
   header,
-  events
+  events,
 }: Block) {
   const { blockNumber, blockHash, timestamp } = header!;
 
@@ -71,7 +71,7 @@ export default function DecodeUnruggableMemecoinLaunch({
 
     const amount_raw = uint256.uint256ToBN({
       low: amount_low,
-      high: amount_high
+      high: amount_high,
     });
     const amount = formatUnits(amount_raw, DECIMALS).toString();
     const memecoin_address = event.fromAddress;
@@ -87,7 +87,7 @@ export default function DecodeUnruggableMemecoinLaunch({
       to_address,
       memecoin_address,
       amount,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   });
 }
