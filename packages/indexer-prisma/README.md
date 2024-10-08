@@ -1,7 +1,6 @@
 # Setup
 
-Add an .env 
-
+Add an .env
 
 ```bash
 INDEXER_DATABASE_URL="the Postgres indexer you deploy"

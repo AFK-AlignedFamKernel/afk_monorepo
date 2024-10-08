@@ -17,7 +17,7 @@ import getFunkitStripeCheckoutStatus from "./routes/funkit/get_funkit_stripe_che
 // import { ServiceContext } from 'twilio/lib/rest/verify/v2/service'
 
 function declareRoutes(
-  fastify: FastifyInstance,
+  fastify: FastifyInstance
   // deployer: Account,
   // twilio_services: ServiceContext
 ) {

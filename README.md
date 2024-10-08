@@ -2,7 +2,6 @@
 
 [![Starknet Test Workflow Status](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml/badge.svg)](https://github.com/AFK-AlignedFamKernel/afk_monorepo/actions/workflows/starknet-contracts.yml)
 
-
 [![Built with React Native](https://img.shields.io/badge/Built%20with-React%20Native-%2361DAFB?style=for-the-badge&logo=react)](https://reactnative.dev/)
 
 </div>
@@ -15,7 +14,7 @@ Decentralized social built with Nostr and powered by Starknet account abstractio
 
 ## Origin story
 
-The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph. 
+The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph.
 
 We build and fight together, not against. What if the treasure are the friends we made along the way? Then A decentralized social network should be a treasure trove of memories and connections!
 
@@ -32,7 +31,6 @@ Tech stack:
 - Starknet smart contracts in Cairo - [Learn Cairo now](https://book.cairo-lang.org/)
 - React Native for the mobile app - [Learn React Native now](https://reactnative.dev/docs/tutorial)
 - Typescript for the Nostr relayer - [Learn Typescript now](https://www.typescriptlang.org/docs/handbook/2/basic-types.html)
-
 
 ## Monorepo
 
@@ -60,7 +58,7 @@ Packages:
 
 - [x] Cairo implementation of Nostr signature verification
 - [x] Starknet account contract implementation, controlled by Nostr keypair
-- [X] AFK landing page 
+- [x] AFK landing page
 - [x] SocialPay feature to send and receive tips through Nostr signed messages
 - [x] Implement a Nostr client application with Starknet integration
 - [x] Run Nostr relay server
@@ -79,10 +77,13 @@ Packages:
 ## Architecture
 
 ### Tips
+
 There are two alternatives: WalletConnect, one which expects Nostr users to set up oridinary Starknet wallet like Argent or Braavos, and so called SocialPay which uses custom Account Abstraction contract based on bip340 signature scheme (Nostr native).
 
 #### Wallet Connect
+
 ##### Tip to a recipient that never accepted the tip and don't have an account on SN
+
 ```mermaid
 sequenceDiagram
     actor Alice
@@ -90,7 +91,7 @@ sequenceDiagram
     participant backend as Backend
     participant transfer as Deposit Contract
     participant erc20 as ERC20
-    
+
     Note over Alice,erc20: Alice tip is escrowed by the Deposit Contract
     activate Alice
     Alice->>erc20: approve(Deposit Contract, x)
@@ -106,16 +107,17 @@ sequenceDiagram
     Note right of Bob: deposit_id is signed<br/> with Nostr key
     backend->>transfer: claim(deposit_id)
     transfer->>erc20: transferFrom(Transfer Contract, Bob, x)
-    deactivate Bob 
+    deactivate Bob
 ```
 
 ##### Tip to a recipient that earlier accepted the tip
+
 ```mermaid
 sequenceDiagram
     actor Alice
     participant transfer as Deposit Contract
     participant erc20 as ERC20
-    
+
     activate Alice
     Alice->>erc20: approve(Deposit Contract, x)
     Alice->>transfer: transfer(Bob Nostr Address, x)
@@ -178,7 +180,6 @@ snforge test
 The AFK Mobile app is built with React-native & Expo.
 [Current version](https://app.afk-community)
 
-
 Pick an issue with the labels "mobile" to start work on React-native and contribute!
 
 ### Test
@@ -190,8 +191,8 @@ cd apps/mobile
 pnpm install
 pnpm start
 ```
-Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
 
+Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
 
 ## Resources
 
@@ -208,9 +209,7 @@ We build into the Joyboy repo here from the Exploration team:
 
 [![Exploration team repo](https://github.com/keep-starknet-strange/joyboy)]
 
-
 [![Exploration_Team](https://img.shields.io/badge/Exploration_Team-29296E.svg?&style=for-the-badge&logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJhIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODEgMTgxIj48ZGVmcz48c3R5bGU+LmJ7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48cGF0aCBjbGFzcz0iYiIgZD0iTTE3Ni43Niw4OC4xOGwtMzYtMzcuNDNjLTEuMzMtMS40OC0zLjQxLTIuMDQtNS4zMS0xLjQybC0xMC42MiwyLjk4LTEyLjk1LDMuNjNoLjc4YzUuMTQtNC41Nyw5LjktOS41NSwxNC4yNS0xNC44OSwxLjY4LTEuNjgsMS44MS0yLjcyLDAtNC4yN0w5Mi40NSwuNzZxLTEuOTQtMS4wNC00LjAxLC4xM2MtMTIuMDQsMTIuNDMtMjMuODMsMjQuNzQtMzYsMzcuNjktMS4yLDEuNDUtMS41LDMuNDQtLjc4LDUuMThsNC4yNywxNi41OGMwLDIuNzIsMS40Miw1LjU3LDIuMDcsOC4yOS00LjczLTUuNjEtOS43NC0xMC45Ny0xNS4wMi0xNi4wNi0xLjY4LTEuODEtMi41OS0xLjgxLTQuNCwwTDQuMzksODguMDVjLTEuNjgsMi4zMy0xLjgxLDIuMzMsMCw0LjUzbDM1Ljg3LDM3LjNjMS4zNiwxLjUzLDMuNSwyLjEsNS40NCwxLjQybDExLjQtMy4xMSwxMi45NS0zLjYzdi45MWMtNS4yOSw0LjE3LTEwLjIyLDguNzYtMTQuNzYsMTMuNzNxLTMuNjMsMi45OC0uNzgsNS4zMWwzMy40MSwzNC44NGMyLjIsMi4yLDIuOTgsMi4yLDUuMTgsMGwzNS40OC0zNy4xN2MxLjU5LTEuMzgsMi4xNi0zLjYsMS40Mi01LjU3LTEuNjgtNi4wOS0zLjI0LTEyLjMtNC43OS0xOC4zOS0uNzQtMi4yNy0xLjIyLTQuNjItMS40Mi02Ljk5LDQuMyw1LjkzLDkuMDcsMTEuNTIsMTQuMjUsMTYuNzEsMS42OCwxLjY4LDIuNzIsMS42OCw0LjQsMGwzNC4zMi0zNS43NHExLjU1LTEuODEsMC00LjAxWm0tNzIuMjYsMTUuMTVjLTMuMTEtLjc4LTYuMDktMS41NS05LjE5LTIuNTktMS43OC0uMzQtMy42MSwuMy00Ljc5LDEuNjhsLTEyLjk1LDEzLjg2Yy0uNzYsLjg1LTEuNDUsMS43Ni0yLjA3LDIuNzJoLS42NWMxLjMtNS4zMSwyLjcyLTEwLjYyLDQuMDEtMTUuOGwxLjY4LTYuNzNjLjg0LTIuMTgsLjE1LTQuNjUtMS42OC02LjA5bC0xMi45NS0xNC4xMmMtLjY0LS40NS0xLjE0LTEuMDgtMS40Mi0xLjgxbDE5LjA0LDUuMTgsMi41OSwuNzhjMi4wNCwuNzYsNC4zMywuMTQsNS43LTEuNTVsMTIuOTUtMTQuMzhzLjc4LTEuMDQsMS42OC0xLjE3Yy0xLjgxLDYuNi0yLjk4LDE0LjEyLTUuNDQsMjAuNDYtMS4wOCwyLjk2LS4wOCw2LjI4LDIuNDYsOC4xNiw0LjI3LDQuMTQsOC4yOSw4LjU1LDEyLjk1LDEyLjk1LDAsMCwxLjMsLjkxLDEuNDIsMi4wN2wtMTMuMzQtMy42M1oiLz48L3N2Zz4=)](https://github.com/keep-starknet-strange)
-
 
 AFK Aligned Fam Kernel is born from this open source project.
 

@@ -30,7 +30,11 @@ const PATH_TOKEN_COMPILED = path.resolve(
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createToken = async (total_supply?:number, name?:string, symbol?:string,) => {
+export const createToken = async (
+  total_supply?: number,
+  name?: string,
+  symbol?: string
+) => {
   try {
     const privateKey0 = process.env.DEV_PK as string;
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
@@ -54,14 +58,12 @@ export const createToken = async (total_supply?:number, name?:string, symbol?:st
     });
     console.log("declareIfNot", declareIfNot);
 
-    if(declareIfNot?.transaction_hash) {
+    if (declareIfNot?.transaction_hash) {
       console.log("Declare deploy", declareIfNot?.transaction_hash);
       await provider.waitForTransaction(declareIfNot?.transaction_hash);
       const contractClassHash = declareIfNot.class_hash;
       console.log("Todo contractClassHash", contractClassHash);
     }
-
-
 
     const contractConstructor: Calldata = CallData.compile({
       symbol: cairo.felt(symbol ?? "AFK BRO"),
@@ -70,7 +72,7 @@ export const createToken = async (total_supply?:number, name?:string, symbol?:st
       // name: byteArray.byteArrayFromString(name ?? "AFK FAM"),
       total_supply: cairo.uint256(total_supply ?? 10000),
       recipient: account0?.address,
-      decimals:18,
+      decimals: 18,
     });
 
     let ERC20_HASH =

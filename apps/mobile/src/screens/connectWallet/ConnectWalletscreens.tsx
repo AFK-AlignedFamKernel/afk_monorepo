@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useConnect, useAccount } from 'wagmi';
-import { TextButton } from '../../components';
+import {View, Text, StyleSheet} from 'react-native';
+import {useConnect, useAccount} from 'wagmi';
+import {TextButton} from '../../components';
 
 const ConnectWalletScreen = () => {
-  const { connect, connectors, error } = useConnect();
+  const {connect, connectors, error} = useConnect();
   // const { disconnect } = useDisconnect();
-  const { address, isConnected } = useAccount();
+  const {address, isConnected} = useAccount();
 
   const handleConnect = async () => {
     const connector = connectors[0]; // Assuming the first connector is the one we want to use
     if (connector) {
-      await connect({ connector });
+      await connect({connector});
     }
   };
 
@@ -27,9 +27,7 @@ const ConnectWalletScreen = () => {
           <TextButton onPress={handleDisconnect}>Disconnect</TextButton>
         </View>
       ) : (
-        <TextButton onPress={handleConnect}>
-          Connect Wallet
-        </TextButton>
+        <TextButton onPress={handleConnect}>Connect Wallet</TextButton>
       )}
       {error && <Text style={styles.error}>Error: {error.message}</Text>}
     </View>

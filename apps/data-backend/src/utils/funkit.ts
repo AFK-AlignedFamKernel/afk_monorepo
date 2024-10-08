@@ -1,6 +1,6 @@
 export function generateClientMetadata({
   pickedSourceAsset,
-  estDollarValue
+  estDollarValue,
 }: {
   pickedSourceAsset: any;
   estDollarValue: number;
@@ -17,14 +17,14 @@ export function generateClientMetadata({
     selectedSourceAssetInfo: {
       address: pickedSourceAsset.address,
       chainId: pickedSourceAsset.networkId,
-      symbol: pickedSourceAsset.symbol.toUpperCase()
+      symbol: pickedSourceAsset.symbol.toUpperCase(),
     },
     selectedPaymentMethodInfo: {
       paymentMethod: "card",
       title: "Debit or Credit",
       description: "",
-      meta: {}
-    }
+      meta: {},
+    },
   };
 }
 

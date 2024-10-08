@@ -9,6 +9,6 @@ export const TOKEN_INFO = {
     decimals: 6,
     symbol: "usdc",
     network: "starknet",
-    networkId: FUNKIT_STARKNET_CHAIN_ID
-  }
+    networkId: FUNKIT_STARKNET_CHAIN_ID,
+  },
 };

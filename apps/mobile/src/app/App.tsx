@@ -12,8 +12,6 @@ import {Router} from './Router';
 
 SplashScreen.preventAutoHideAsync();
 
-
-
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
@@ -92,8 +90,8 @@ export default function App() {
   if (!appIsReady) return null;
 
   return (
-      <View style={{flex: 1, flexDirection: 'row'}} onLayout={onLayoutRootView}>
-        <Router />
-      </View>
+    <View style={{flex: 1, flexDirection: 'row'}} onLayout={onLayoutRootView}>
+      <Router />
+    </View>
   );
 }

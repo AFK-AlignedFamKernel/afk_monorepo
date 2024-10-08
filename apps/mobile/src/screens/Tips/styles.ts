@@ -7,8 +7,8 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.xxxsmall,
     paddingHorizontal: Spacing.normal,
   },
-  text:{
-    color:theme.colors.text
+  text: {
+    color: theme.colors.text,
   },
 
   flatListContent: {

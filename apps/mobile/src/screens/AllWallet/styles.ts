@@ -26,7 +26,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
     // margin: Spacing.pagePadding,
-    padding:Spacing.xxsmall
+    padding: Spacing.xxsmall,
   },
   text: {
     color: theme.colors.text,

@@ -19,14 +19,14 @@ async function allTransactionsRoute(
       if (!isValidStarknetAddress(tokenAddress)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address"
+          message: "Invalid token address",
         });
         return;
       }
 
       const allTransactions = await prisma.token_transactions.findMany({
         where: {
-          memecoin_address: tokenAddress
+          memecoin_address: tokenAddress,
         },
         select: {
           memecoin_address: true,
@@ -38,12 +38,12 @@ async function allTransactionsRoute(
           total_supply: true,
           network: true,
           transaction_type: true,
-          created_at: true
-        }
+          created_at: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: allTransactions
+        data: allTransactions,
       });
     } catch (error) {
       console.error("Error fetching buy tokens:", error);

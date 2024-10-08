@@ -1,3 +1,3 @@
 # Cairo contracts of AFK
 
- . "$HOME/.asdf/asdf.sh"
+. "$HOME/.asdf/asdf.sh"

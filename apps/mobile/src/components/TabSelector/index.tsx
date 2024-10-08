@@ -20,7 +20,7 @@ const TabSelector: React.FC<ITabSelector> = ({
   addScreenNavigation = true,
   containerStyle,
   tabStyle,
-  activeTabStyle
+  activeTabStyle,
 }) => {
   const handlePress = (tab: string | any, screen?: string) => {
     if (addScreenNavigation) {
@@ -41,7 +41,10 @@ const TabSelector: React.FC<ITabSelector> = ({
           return (
             <Button
               key={i}
-              style={[tabStyle ?? styles.tab, activeTab === b?.tab ? activeTabStyle ?? styles.active : null]}
+              style={[
+                tabStyle ?? styles.tab,
+                activeTab === b?.tab ? activeTabStyle ?? styles.active : null,
+              ]}
               onPress={() => handlePress(b?.tab, b?.screen)}
             >
               {b?.title}

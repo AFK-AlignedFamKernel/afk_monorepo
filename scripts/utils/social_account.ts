@@ -1,4 +1,12 @@
-import { Account, json, hash, CallData, Contract, cairo, uint256 } from "starknet";
+import {
+  Account,
+  json,
+  hash,
+  CallData,
+  Contract,
+  cairo,
+  uint256,
+} from "starknet";
 import fs from "fs";
 import dotenv from "dotenv";
 import { nostrPubkeyToUint256 } from "./format";
@@ -51,9 +59,7 @@ export const createSocialContract = async (nostrPublicKey: string) => {
       // public_key: nostPubkeyUint,
       // public_key:nostrPublicKey
       // public_key:cairo.uint256(nostrPublicKey)
-      public_key:uint256.bnToUint256(BigInt("0x"+ nostrPublicKey)) 
-
-      
+      public_key: uint256.bnToUint256(BigInt("0x" + nostrPublicKey)),
     });
     //Devnet
     // //  fund account address before account creation
@@ -193,16 +199,16 @@ export const createSocialAccount = async (
 
     /** @description uncomment this to declare your account */
     console.log("declare account");
-    console.log("try declare account")
+    console.log("try declare account");
     const declareResponse = await account0.declare({
       contract: compiledSierraAAaccount,
       casm: compiledAACasm,
     });
 
     const contractClassHash = declareResponse.class_hash;
-    AAaccountClassHash=contractClassHash
+    AAaccountClassHash = contractClassHash;
 
-    await provider.waitForTransaction(declareResponse?.transaction_hash)
+    await provider.waitForTransaction(declareResponse?.transaction_hash);
     console.log("declareResponse", declareResponse?.class_hash);
 
     const AAaccount = new Account(provider, AAcontractAddress, AAprivateKey);

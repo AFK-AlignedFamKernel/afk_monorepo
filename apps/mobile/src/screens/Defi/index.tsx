@@ -57,9 +57,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
             )}
             {selectedTab == SelectedTab.SWAP_AVNU && (
               <View style={{display: 'flex', alignItems: 'center'}}>
-                <TokenSwap
-                  onPress={() => console.log('pressed!')}
-                />
+                <TokenSwap onPress={() => console.log('pressed!')} />
               </View>
             )}
             {/* 

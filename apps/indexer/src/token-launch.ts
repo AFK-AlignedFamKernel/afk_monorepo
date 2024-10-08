@@ -15,15 +15,15 @@ try {
 
 const filter = {
   header: {
-    weak: true
+    weak: true,
   },
   events: [
     {
       fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("CreateLaunch")],
-      includeReceipt: false
-    }
-  ]
+      includeReceipt: false,
+    },
+  ],
 };
 
 export const config = {
@@ -35,8 +35,8 @@ export const config = {
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_launch"
-  }
+    tableName: "token_launch",
+  },
 };
 
 export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
@@ -60,24 +60,24 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       slope_low,
       slope_high,
       threshold_liquidity_low,
-      threshold_liquidity_high
+      threshold_liquidity_high,
     ] = event.data;
 
     const amount_raw = uint256.uint256ToBN({
       low: amount_low,
-      high: amount_high
+      high: amount_high,
     });
     const _amount = formatUnits(amount_raw, DECIMALS).toString();
 
     const price_raw = uint256.uint256ToBN({
       low: price_low,
-      high: price_high
+      high: price_high,
     });
     const price = formatUnits(price_raw, DECIMALS).toString();
 
     const total_supply_raw = uint256.uint256ToBN({
       low: total_supply_low,
-      high: total_supply_high
+      high: total_supply_high,
     });
     const total_supply = formatUnits(total_supply_raw, DECIMALS).toString();
 
@@ -86,19 +86,19 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
 
     const threshold_liquidity_raw = uint256.uint256ToBN({
       low: threshold_liquidity_low,
-      high: threshold_liquidity_high
+      high: threshold_liquidity_high,
     });
     const _threshold_liquidity = formatUnits(threshold_liquidity_raw, DECIMALS);
 
     console.log({
       memecoin_address: token_address,
       quote_token: quote_token_address,
-      caller: caller
+      caller: caller,
     });
 
     return {
-      owner_address:caller,
-      quote_token:quote_token_address,
+      owner_address: caller,
+      quote_token: quote_token_address,
       memecoin_address: token_address,
       network: "starknet-sepolia",
       block_hash: blockHash,
@@ -109,7 +109,7 @@ export default function DecodeTokenLaunchDeploy({ header, events }: Block) {
       total_supply,
       price,
       created_at: new Date().toISOString(),
-      threshold_liquidity:_threshold_liquidity
+      threshold_liquidity: _threshold_liquidity,
     };
   });
 }

@@ -1,21 +1,19 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from 'react';
+import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
-import { Swap } from '../../components/Swap';
+import {TextButton} from '../../components';
+import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import { TOKENSMINT } from '../../constants/tokens';
-import { useStyles } from '../../hooks';
-import { LightningNetworkWalletView } from '../../modules/Lightning';
-import { WalletScreen } from '../../types';
-import { SelectedTab, TABS_DEFI } from '../../types/tab';
+import {TOKENSMINT} from '../../constants/tokens';
+import {useStyles} from '../../hooks';
+import {LightningNetworkWalletView} from '../../modules/Lightning';
+import {WalletScreen} from '../../types';
+import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
-import {
-  CashuWalletView
-} from '../../modules/Cashu';
+import {CashuWalletView} from '../../modules/Cashu';
 
-export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
+export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
@@ -34,7 +32,6 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
         </TextButton>
       </SafeAreaView>
       <ScrollView>
-
         <KeyboardAvoidingView behavior="padding" style={styles.content}>
           <TabSelector
             activeTab={selectedTab}
@@ -43,9 +40,8 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
             addScreenNavigation={false}
           ></TabSelector>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-
             {selectedTab == SelectedTab.BTC_FI_VAULT && (
-              <View style={{ display: 'flex', alignItems: 'center' }}>
+              <View style={{display: 'flex', alignItems: 'center'}}>
                 <Swap
                   tokensIns={TOKENSMINT}
                   tokenOut={TOKENSMINT.WBTC}
@@ -70,11 +66,9 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
                 <CashuWalletView></CashuWalletView>
               </View>
             )}
-
           </SafeAreaView>
         </KeyboardAvoidingView>
       </ScrollView>
-
     </View>
   );
 };

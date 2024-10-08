@@ -35,7 +35,7 @@ export enum SelectedTab {
   STARKNET_PORTFOLIO,
   SWAP_AVNU,
   TOKEN_STATS,
-  USER_SHARE
+  USER_SHARE,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [

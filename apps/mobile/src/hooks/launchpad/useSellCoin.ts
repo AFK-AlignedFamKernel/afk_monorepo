@@ -1,9 +1,9 @@
-import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
-import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, CallData, constants, RpcProvider } from 'starknet';
+import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
-import { TokenQuoteBuyKeys } from '../../types/keys';
-import { formatFloatToUint256 } from '../../utils/format';
+import {TokenQuoteBuyKeys} from '../../types/keys';
+import {formatFloatToUint256} from '../../utils/format';
 
 export const useSellCoin = () => {
   const account = useAccount();
@@ -54,13 +54,12 @@ export const useSellCoin = () => {
       const tx = await account?.execute([call], undefined, {});
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-      return wait_tx
+      return wait_tx;
     } catch (e) {
-      console.log("Error handleSellCoins", e)
+      console.log('Error handleSellCoins', e);
       return undefined;
     }
-
   };
 
-  return { handleSellCoins };
+  return {handleSellCoins};
 };

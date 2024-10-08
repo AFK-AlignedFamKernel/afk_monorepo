@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
 import { Account, RpcProvider, ec, stark } from "starknet";
 const STARKNET_URL = process.env.RPC_ENDPOINT || "http://127.0.0.1:5050";
-export const provider = new RpcProvider({nodeUrl:STARKNET_URL});
+export const provider = new RpcProvider({ nodeUrl: STARKNET_URL });
 
 export const createStarknetWallet = () => {
   try {
@@ -34,8 +34,7 @@ export const connectWallet = (
     });
     const privateKey = privateKeyProps ?? (process?.env?.DEV_PK as string);
 
-    const publicKey =
-      accountAddress ?? (process.env.DEV_PUBLIC_KEY as string);
+    const publicKey = accountAddress ?? (process.env.DEV_PUBLIC_KEY as string);
     const account = new Account(provider, publicKey, privateKey);
 
     return account;

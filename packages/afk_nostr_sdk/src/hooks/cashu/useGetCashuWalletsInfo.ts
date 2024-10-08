@@ -1,8 +1,7 @@
-import { useAuth } from '../../store';
-import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
-import { useNostrContext } from '../../context';
-import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-
+import {useAuth} from '../../store';
+import {useInfiniteQuery, useMutation} from '@tanstack/react-query';
+import {useNostrContext} from '../../context';
+import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
 /** 
@@ -37,7 +36,7 @@ export type UseRootProfilesOptions = {
 
 export const useGetCashuWalletsInfo = (options?: UseRootProfilesOptions) => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth()
+  const {publicKey} = useAuth();
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['getCashuWallets', options?.authors, options?.search, ndk],
@@ -58,8 +57,8 @@ export const useGetCashuWalletsInfo = (options?: UseRootProfilesOptions) => {
         limit: 20,
       });
 
-      console.log("cashuWallets",cashuWallets)
-      console.log("[...cashuWallets]",[...cashuWallets])
+      console.log('cashuWallets', cashuWallets);
+      console.log('[...cashuWallets]', [...cashuWallets]);
       return [cashuWallets];
     },
     placeholderData: {pages: [], pageParams: []},

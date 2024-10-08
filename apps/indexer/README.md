@@ -17,7 +17,6 @@ apibara run ./src/buy-token.ts --allow-env .env --allow-net=localhost -A dna_xxx
 
 ```
 
-
 ## Docker test
 
 ```
@@ -25,5 +24,6 @@ apibara run ./src/buy-token.ts --allow-env .env --allow-net=localhost -A dna_xxx
 
 ```
 
- ### Run it
- docker run -it --env-file ./.env afk-indexer run /app/buy-token.ts --tls-accept-invalid-certificates=true --allow-env-from-env POSTGRES_CONNECTION_STRING
+### Run it
+
+docker run -it --env-file ./.env afk-indexer run /app/buy-token.ts --tls-accept-invalid-certificates=true --allow-env-from-env POSTGRES_CONNECTION_STRING

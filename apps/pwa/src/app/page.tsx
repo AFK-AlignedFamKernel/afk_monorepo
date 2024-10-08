@@ -1,6 +1,6 @@
 'use client';
 import {Navbar} from './components/Navbar';
-import { AppRender } from 'pixel_ui';
+import {AppRender} from 'pixel_ui';
 
 export default function App() {
   return (

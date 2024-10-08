@@ -1,10 +1,5 @@
-import { View } from "react-native"
+import {View} from 'react-native';
 
 const Invoice = () => {
-    return(
-
-        <View>
-            
-        </View>
-    )
-}
+  return <View></View>;
+};

@@ -15,7 +15,7 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
     if (!isValidStarknetAddress(tokenAddress)) {
       reply.status(HTTPStatus.BadRequest).send({
         code: HTTPStatus.BadRequest,
-        message: "Invalid token address"
+        message: "Invalid token address",
       });
       return;
     }
@@ -27,13 +27,13 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
         select: {
           price: true,
           block_timestamp: true,
-          transaction_type: true
-        }
+          transaction_type: true,
+        },
       });
 
       if (transactions.length === 0) {
         return reply.status(HTTPStatus.NotFound).send({
-          error: "No transactions found for this token address."
+          error: "No transactions found for this token address.",
         });
       }
       // Hourly candles

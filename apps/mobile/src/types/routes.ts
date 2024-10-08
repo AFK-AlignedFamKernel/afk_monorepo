@@ -52,7 +52,7 @@ export type MainStackParams = {
   Feed: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string;};
+  LaunchDetail: {coinAddress: string};
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
@@ -185,7 +185,7 @@ export type AuthImportKeysScreenProps = CompositeScreenProps<
 export type HomeNavigationProp = NativeStackNavigationProp<HomeBottomStackParams>;
 
 export type FeedScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<HomeBottomStackParams| MainStackParams, 'Feed'>,
+  NativeStackScreenProps<HomeBottomStackParams | MainStackParams, 'Feed'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type UserProfileScreenProps = CompositeScreenProps<
@@ -338,10 +338,9 @@ export type WalletScreenBTC = CompositeScreenProps<
 // >;
 
 export type BottomBarProps = CompositeScreenProps<
-  NativeStackScreenProps< MainStackParams, "BottomBar">,
+  NativeStackScreenProps<MainStackParams, 'BottomBar'>,
   NativeStackScreenProps<RootStackParams>
 >;
-
 
 export type WalletScreen = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Wallet'>,
