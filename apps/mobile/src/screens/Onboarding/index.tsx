@@ -14,6 +14,7 @@ import stylesheet from './styles';
 import { CashuWalletView } from '../../modules/Cashu';
 import { DynamicEmailSignIn } from '../../modules/Onboard/dynamic/DynamicEmailSignIn';
 import { DynamicWalletOnboarding } from '../../modules/Onboard/dynamic';
+import { WalletOnboarding } from '../../modules/Onboard/wallet';
 
 export const OnboardingWallet: React.FC<OnboardingWalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
@@ -46,6 +47,12 @@ export const OnboardingWallet: React.FC<OnboardingWalletScreen> = ({ navigation 
             {selectedTab == SelectedTab.DYNAMIC_GENERAL && (
               <View style={{ display: 'flex', alignItems: 'center' }}>
                 <DynamicWalletOnboarding />
+              </View>
+            )}
+
+            {selectedTab == SelectedTab.GENERATE_INTERNAL_WALLET && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <WalletOnboarding />
               </View>
             )}
 

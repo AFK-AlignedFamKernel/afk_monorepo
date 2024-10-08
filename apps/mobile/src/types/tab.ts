@@ -37,6 +37,7 @@ export enum SelectedTab {
   TOKEN_STATS,
   USER_SHARE,
   DYNAMIC_GENERAL,
+  GENERATE_INTERNAL_WALLET,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -321,6 +322,11 @@ export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: Selec
     title: 'Dynamic',
     screen: 'Dynamic',
     tab: SelectedTab.DYNAMIC_GENERAL,
+  },
+  {
+    title: 'Generate',
+    screen: 'Generate',
+    tab: SelectedTab.GENERATE_INTERNAL_WALLET,
   },
   {
     title: 'Portfolio',
