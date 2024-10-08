@@ -1,10 +1,11 @@
 import { constants } from "starknet";
 
-type SupportedChainId = Exclude<
-  constants.StarknetChainId,
-  typeof constants.StarknetChainId.SN_GOERLI
->;
+// type SupportedChainId = Exclude<
+//   constants.StarknetChainId,
+//   typeof constants.StarknetChainId.SN_GOERLI
+// >;
 
+type SupportedChainId = constants.StarknetChainId
 type AddressesMap = Record<SupportedChainId, string>;
 
 export const BLANK_ACCOUNT_CLASS_HASH =
