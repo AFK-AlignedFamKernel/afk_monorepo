@@ -1,10 +1,9 @@
-import { getCheckoutQuote, getStripeBuyQuote } from "@funkit/api-base";
 import type { FastifyInstance, RouteOptions } from "fastify";
 import { getChecksumAddress } from "starknet";
 import {
   FUNKIT_STARKNET_CHAIN_ID,
   FUNKIT_STRIPE_SOURCE_CURRENCY,
-  TOKEN_INFO,
+  TOKEN_INFO
 } from "../../constants/funkit";
 import { roundUpToFiveDecimalPlaces } from "../../utils/funkit";
 import { isValidStarknetAddress } from "../../utils/starknet";
@@ -34,7 +33,7 @@ async function getFunkitStripeCheckoutQuote(
       if (!isValidStarknetAddress(address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: "Invalid token address"
         });
         return;
       }
@@ -46,6 +45,10 @@ async function getFunkitStripeCheckoutQuote(
       try {
         // 1 - Generate the funkit checkout quote
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
+
+        const { getCheckoutQuote, getStripeBuyQuote } = await import(
+          "@funkit/api-base"
+        );
 
         const normalizedRecipientAddress = getChecksumAddress(address);
         const baseQuote = await getCheckoutQuote({
@@ -61,7 +64,7 @@ async function getFunkitStripeCheckoutQuote(
           sponsorInitialTransferGasLimit: "0",
           recipientAddr: normalizedRecipientAddress as `0x${string}`,
           userId: normalizedRecipientAddress,
-          needsRefuel: false,
+          needsRefuel: false
         });
         if (!baseQuote || !baseQuote.quoteId) {
           return reply
@@ -79,7 +82,7 @@ async function getFunkitStripeCheckoutQuote(
           destinationNetwork: sourceAsset.network,
           destinationAmount: estTotalFromAmount,
           apiKey: FUNKIT_API_KEY,
-          isSandbox: false,
+          isSandbox: false
         });
         const stripeQuote =
           stripeFullQuote?.destination_network_quotes?.[
@@ -103,7 +106,7 @@ async function getFunkitStripeCheckoutQuote(
           cardFees: Number(stripeQuote.fees.transaction_fee_monetary).toFixed(
             2
           ),
-          totalUsd: Number(stripeQuote.source_total_amount).toFixed(2),
+          totalUsd: Number(stripeQuote.source_total_amount).toFixed(2)
         };
         return reply.send(finalQuote);
       } catch (error) {

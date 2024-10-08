@@ -1,9 +1,8 @@
-import { createStripeBuySession } from "@funkit/api-base";
 import type { FastifyInstance, RouteOptions } from "fastify";
 import {
   FUNKIT_STRIPE_SOURCE_CURRENCY,
   SOURCE_OF_FUND_KEY,
-  TOKEN_INFO,
+  TOKEN_INFO
 } from "../../constants/funkit";
 import { generateClientMetadata } from "../../utils/funkit";
 
@@ -39,16 +38,18 @@ async function createFunkitStripeCheckout(
       }
       try {
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
-        const { initializeCheckout } = await import("@funkit/api-base");
+        const { initializeCheckout, createStripeBuySession } = await import(
+          "@funkit/api-base"
+        );
         const depositAddress = await initializeCheckout({
           userOp: null,
           quoteId,
           sourceOfFund: SOURCE_OF_FUND_KEY,
           clientMetadata: generateClientMetadata({
             pickedSourceAsset: sourceAsset,
-            estDollarValue: estSubtotalUsd,
+            estDollarValue: estSubtotalUsd
           }),
-          apiKey: FUNKIT_API_KEY,
+          apiKey: FUNKIT_API_KEY
         });
         if (!depositAddress) {
           return reply
@@ -63,7 +64,7 @@ async function createFunkitStripeCheckout(
           destinationCurrency: sourceAsset.symbol,
           destinationNetwork: sourceAsset.network,
           walletAddress: depositAddress,
-          isSandbox: false,
+          isSandbox: false
         });
         if (
           !stripeSession ||
@@ -77,7 +78,7 @@ async function createFunkitStripeCheckout(
         return reply.send({
           stripeCheckoutId: stripeSession.id,
           stripeRedirectUrl: stripeSession.redirect_url,
-          funkitDepositAddress: depositAddress,
+          funkitDepositAddress: depositAddress
         });
       } catch (error: any) {
         console.error("Failed to start a checkout:", error);
