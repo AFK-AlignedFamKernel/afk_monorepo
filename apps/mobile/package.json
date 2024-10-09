@@ -30,6 +30,7 @@
     "@dynamic-labs/client": "4.0.0-alpha.8",
     "@dynamic-labs/react-hooks": "4.0.0-alpha.8",
     "@dynamic-labs/react-native-extension": "4.0.0-alpha.8",
+    "@dynamic-labs/utils": "^3.3.0",
     "@dynamic-labs/viem-extension": "4.0.0-alpha.8",
     "@expo/metro-runtime": "~3.2.1",
     "@getalby/bitcoin-connect-react": "^3.5.3",
