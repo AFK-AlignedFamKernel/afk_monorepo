@@ -38,19 +38,21 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
     const ids = new Set<string>();
     bookmarksWithNotes.data.forEach((bookmark) => {
       bookmark.notes.forEach((note) => {
-        ids.add(note?.id || '');
+        if(note?.id) {
+          ids?.add(note?.id || '');
+        }
       });
     });
     return ids;
-  }, [bookmarksWithNotes.data]);
+  }, [bookmarksWithNotes?.data]);
 
   // Function to check if a note is bookmarked
   const isBookmarked = (noteId: string) => bookmarkedNoteIds.has(noteId);
 
   const getData =
     ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
-      ? bookmarksWithNotes?.data?.map((bookmark) => bookmark.notes)?.flat() || []
-      : search.data?.pages.flat();
+      ? bookmarksWithNotes?.data?.map((bookmark) => bookmark?.notes)?.flat() || []
+      : search.data?.pages?.flat();
 
   return (
     <View style={styles.container}>
@@ -86,14 +88,14 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
           </>
         }
         data={getData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item?.id}
         renderItem={({item}) => {
           if (!item) return <></>;
           if (ndkKinds.includes(NDKKind.Repost)) {
             const itemReposted = JSON.parse(item?.content);
             return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />;
           }
-          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item.id)} />;
+          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item?.id)} />;
         }}
         refreshControl={
           <RefreshControl

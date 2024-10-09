@@ -70,6 +70,7 @@ export type MainStackParams = {
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
+  Onboarding:undefined;
 };
 
 export type DegensAppStackParams = {
@@ -354,6 +355,11 @@ export type PortfolioScreen = CompositeScreenProps<
 
 export type Ramp = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Ramp'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type OnboardingWalletScreen = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Onboarding'>,
   NativeStackScreenProps<RootStackParams>
 >;
 // Drawer desktop stack

@@ -1,4 +1,3 @@
-import { getCheckoutByDepositAddress } from "@funkit/api-base";
 import type { FastifyInstance, RouteOptions } from "fastify";
 
 const FUNKIT_API_KEY = process.env.FUNKIT_API_KEY || "";
@@ -22,6 +21,9 @@ async function getFunkitStripeCheckoutStatus(
       }
 
       try {
+        const { getCheckoutByDepositAddress } = await import(
+          "@funkit/api-base"
+        );
         const checkoutItem = await getCheckoutByDepositAddress({
           depositAddress: funkitDepositAddress as `0x${string}`,
           apiKey: FUNKIT_API_KEY,

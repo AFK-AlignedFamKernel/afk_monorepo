@@ -14,7 +14,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {Picker} from '../../../components';
 import {Button, Input} from '../../../components';
-import {useStyles} from '../../../hooks';
+import {useNostrAuth, useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import stylesheet from './styles';
 
@@ -28,6 +28,7 @@ export const CreateGroup: React.FC = () => {
   const queryClient = useQueryClient();
   const {mutate} = useCreateGroup();
   const {mutate: addMember} = useAddMember();
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
   const {mutate: addPermission} = useAddPermissions();
 
   const initialValues = {
@@ -39,7 +40,10 @@ export const CreateGroup: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <Formik
         initialValues={initialValues}
-        onSubmit={(values) => {
+        onSubmit={async (values) => {
+
+          await handleCheckNostrAndSendConnectDialog()
+
           mutate(
             {
               groupType: values.access as any,

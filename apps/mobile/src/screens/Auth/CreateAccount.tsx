@@ -59,10 +59,17 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
       console.log('error cashu wallet', e);
     }
 
-    ndk.signer = new NDKPrivateKeySigner(privateKey);
-    const ndkUser = ndk.getUser({pubkey: publicKey});
-    ndkUser.profile = {nip05: username};
-    await ndkUser.publish();
+  
+    try {
+      ndk.signer = new NDKPrivateKeySigner(privateKey);
+      const ndkUser = ndk.getUser({pubkey: publicKey});
+      ndkUser.profile = {nip05: username, displayName:username};
+      await ndkUser.publish();
+    }catch(e) {
+      console.log("error ndk user setup")
+
+    }
+ 
 
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
     if (biometySupported) {

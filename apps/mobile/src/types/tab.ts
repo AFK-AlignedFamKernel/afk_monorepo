@@ -36,6 +36,8 @@ export enum SelectedTab {
   SWAP_AVNU,
   TOKEN_STATS,
   USER_SHARE,
+  DYNAMIC_GENERAL,
+  GENERATE_INTERNAL_WALLET,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -277,18 +279,6 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
   },
 ];
 
-export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
-  {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
-  {
-    title: 'Cashu',
-    screen: 'Cashu',
-    tab: SelectedTab.CASHU_WALLET,
-  },
-];
 
 export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
@@ -297,6 +287,11 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     tab: SelectedTab.PORTFOLIO,
   },
   {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+  {
     title: 'Cashu',
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
@@ -305,5 +300,37 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'Lightning',
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+];
+
+export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Cashu',
+    screen: 'Cashu',
+    tab: SelectedTab.CASHU_WALLET,
+  },
+  {
+    title: 'Lightning',
+    screen: 'Lightning',
+    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+];
+
+
+export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Dynamic',
+    screen: 'Dynamic',
+    tab: SelectedTab.DYNAMIC_GENERAL,
+  },
+  {
+    title: 'Generate',
+    screen: 'Generate',
+    tab: SelectedTab.GENERATE_INTERNAL_WALLET,
+  },
+  {
+    title: 'Portfolio',
+    screen: 'Portfolio',
+    tab: SelectedTab.PORTFOLIO,
   },
 ];
