@@ -2,7 +2,7 @@
 // File: /NostrKeyManager.ts
 
 import { generateNewMnemonic } from "@cashu/cashu-ts";
-import { generateRandomKeypair } from "./keypair";
+import { generateRandomKeypair } from "../keypair";
 
 export class NostrKeyManager {
   private static STORAGE_KEY = "nostr_pubkey";

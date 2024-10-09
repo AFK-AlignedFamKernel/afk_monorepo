@@ -5,9 +5,8 @@ import { TextInput, View, ScrollView, Text } from 'react-native';
 import React from 'react';
 import { Button } from '../../../components';
 import { useToast } from '../../../hooks/modals';
-import { WalletManager } from '../../../utils/wallet-manager';
 import { useAuth } from 'afk_nostr_sdk';
-
+import { WalletManager } from '../../../utils/storage/wallet-manager';
 export const WalletOnboarding: FC = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -16,7 +15,6 @@ export const WalletOnboarding: FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isFirstLoadDone, setIsFirstLoadDone] = useState(false);
   const { setAuth } = useAuth()
-  const { wallets } = useReactiveClient(dynamicClient)
 
   const handleGenerateWallet = async () => {
 

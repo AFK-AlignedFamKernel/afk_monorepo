@@ -58,7 +58,7 @@ import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParam
 // Icons
 import { IconNames } from '../components/Icon';
 import { useAuth } from 'afk_nostr_sdk';
-import { OnboardingWallet } from '../screens/Onboarding';
+import { Onboarding } from '../screens/Onboarding';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -304,7 +304,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="ImportKeys" component={ImportKeys} />
 
       <MainStack.Screen name="Wallet" component={Wallet} />
-      <MainStack.Screen name="Onboarding" component={OnboardingWallet} />
+      <MainStack.Screen name="Onboarding" component={Onboarding} />
     </MainStack.Navigator>
   );
 };

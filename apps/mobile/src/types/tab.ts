@@ -38,6 +38,7 @@ export enum SelectedTab {
   USER_SHARE,
   DYNAMIC_GENERAL,
   GENERATE_INTERNAL_WALLET,
+  BRIDGE_LAYERSWAP,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -282,6 +283,11 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
 
 export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
+    title: 'Cashu',
+    screen: 'Cashu',
+    tab: SelectedTab.CASHU_WALLET,
+  },
+  {
     title: 'Portfolio',
     screen: 'Portfolio',
     tab: SelectedTab.PORTFOLIO,
@@ -291,15 +297,11 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
+
   {
-    title: 'Cashu',
-    screen: 'Cashu',
-    tab: SelectedTab.CASHU_WALLET,
-  },
-  {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+    title: 'Bridge',
+    screen: 'Bridge',
+    tab: SelectedTab.BRIDGE_LAYERSWAP,
   },
 ];
 
