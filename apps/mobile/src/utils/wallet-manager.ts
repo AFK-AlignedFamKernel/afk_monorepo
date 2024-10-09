@@ -1,8 +1,6 @@
 // Rod Cashu wallet example
 // File: /WalletManager.ts
-
-import { generateNewMnemonic } from "@cashu/cashu-ts";
-import { generateRandomKeypair } from "./keypair";
+// import crypto from "crypto"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
@@ -393,7 +391,7 @@ export class WalletManager {
       if (!storedCred || !storedSalt) throw new Error("No stored credential or salt found");
   
       const { rawId, encryptedKey, mnemonic } = JSON.parse(storedCred);
-      const encoder = new TextEncoder();
+      // const encoder = new TextEncoder();
       const salt = new Uint8Array(JSON.parse(storedSalt));
   
       const decryptedPrivateKey = await this.decryptSecretKey(encryptedKey, rawId, salt);
