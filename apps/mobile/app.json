@@ -19,7 +19,12 @@
     ],
     "ios": {
       "jsEngine": "jsc",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
+        "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone."
+      },
+      "bundleIdentifier": "com.ghais.AFK-Community"
     },
     "android": {
       "jsEngine": "hermes",
@@ -30,7 +35,9 @@
       "package": "com.test_afk",
       "permissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
       ]
     },
     "web": {
@@ -61,10 +68,26 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "The ${PRODUCT_NAME} accesses your photos to let you share them with your friends.",
+          "cameraPermission":"Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission":"Allow $(PRODUCT_NAME) to access your microphone"
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone.",
+          "enableCodeScanner": true
         }
       ]
     ],
-    "sdkVersion": "51.0.0"
+    "sdkVersion": "51.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "f68a6dce-559a-48e0-9376-e5c870bdfc22"
+      }
+    }
   }
 }
