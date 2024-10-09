@@ -16,6 +16,7 @@ import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
 import RightSidebar from '../modules/Layout/RightSideBar';
+import ShortVideosModule from '../modules/ShortVideos';
 
 // Components
 import {View} from 'react-native';
@@ -302,6 +303,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="ImportKeys" component={ImportKeys} />
 
       <MainStack.Screen name="Wallet" component={Wallet} />
+
+      <MainStack.Screen name="ShortVideos" component={ShortVideosModule} />
     </MainStack.Navigator>
   );
 };

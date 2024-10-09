@@ -70,6 +70,7 @@ export type MainStackParams = {
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
+  ShortVideos: undefined;
 };
 
 export type DegensAppStackParams = {
