@@ -4,20 +4,20 @@ import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input, TextButton} from '../../components';
-import {useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {AuthCreateAccountScreenProps} from '../../types';
-import {generateRandomKeypair} from '../../utils/keypair';
+import {LockIcon} from '../../../assets/icons';
+import {Button, Input, TextButton} from '../../../components';
+import {useTheme} from '../../../hooks';
+import {useDialog, useToast} from '../../../hooks/modals';
+import {Auth} from '../../../modules/Auth';
+import {AuthCreateAccountScreenProps} from '../../../types';
+import {generateRandomKeypair} from '../../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
   storePassword,
   storePrivateKey,
   storePublicKey,
-} from '../../utils/storage';
+} from '../../../utils/storage';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();

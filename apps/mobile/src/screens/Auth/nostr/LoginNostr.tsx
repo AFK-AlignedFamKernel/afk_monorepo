@@ -4,13 +4,13 @@ import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
-import { LockIcon } from '../../assets/icons';
-import { Button, Input, TextButton } from '../../components';
-import { useTheme } from '../../hooks';
-import { useDialog, useToast } from '../../hooks/modals';
-import { Auth } from '../../modules/Auth';
-import { AuthLoginScreenProps, MainStackNavigationProps } from '../../types';
-import { getPublicKeyFromSecret } from '../../utils/keypair';
+import { LockIcon } from '../../../assets/icons';
+import { Button, Input, TextButton } from '../../../components';
+import { useTheme } from '../../../hooks';
+import { useDialog, useToast } from '../../../hooks/modals';
+import { Auth } from '../../../modules/Auth';
+import { AuthLoginScreenProps, MainStackNavigationProps } from '../../../types';
+import { getPublicKeyFromSecret } from '../../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
   retrieveAndDecryptCashuSeed,
@@ -19,10 +19,10 @@ import {
   retrievePublicKey,
   storeCashuMnemonic,
   storeCashuSeed,
-} from '../../utils/storage';
+} from '../../../utils/storage';
 import { deriveSeedFromMnemonic } from '@cashu/cashu-ts';
-import ConnectWalletScreen from '../connectWallet/ConnectWalletscreens';
-export const Login: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
+import ConnectWalletScreen from '../../connectWallet/ConnectWalletscreens';
+export const LoginNostr: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
 

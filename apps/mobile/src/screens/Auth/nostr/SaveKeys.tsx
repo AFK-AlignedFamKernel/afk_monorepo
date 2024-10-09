@@ -3,13 +3,13 @@ import {useAuth} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import {TouchableOpacity, View} from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
-import {InfoIcon} from '../../assets/icons';
-import {Button, Input, Text} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {AuthSaveKeysScreenProps, MainStackNavigationProps} from '../../types';
+import {CopyIconStack} from '../../../assets/icons';
+import {InfoIcon} from '../../../assets/icons';
+import {Button, Input, Text} from '../../../components';
+import {useStyles, useTheme} from '../../../hooks';
+import {useDialog, useToast} from '../../../hooks/modals';
+import {Auth} from '../../../modules/Auth';
+import {AuthSaveKeysScreenProps, MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
 import {useNavigation} from '@react-navigation/native';
 
