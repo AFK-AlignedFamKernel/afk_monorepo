@@ -1,6 +1,6 @@
 // Hooks
-import { useMemo } from 'react';
-import { useWindowDimensions } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { useWindowDimensions, View, Platform } from 'react-native';
 import { useStyles, useTheme } from '../hooks';
 
 // Navigation Components
@@ -18,7 +18,6 @@ import Sidebar from '../modules/Layout/sidebar';
 // import RightSidebar from '../modules/Layout/RightSideBar';
 
 // Components
-import { View } from 'react-native';
 import { Icon } from '../components';
 import { Navbar } from '../components/Navbar';
 
@@ -53,12 +52,14 @@ import { ThemedStyleSheet } from '../styles';
 
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
+import { useNavigationContainerRef } from '@react-navigation/native';
 // import { retrievePublicKey } from '../utils/storage';
 
 // Icons
 import { IconNames } from '../components/Icon';
 import { useAuth } from 'afk_nostr_sdk';
 import { Onboarding } from '../screens/Onboarding';
+import { initGoogleAnalytics, logPageView } from '../utils/analytics';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -334,8 +335,34 @@ const RootNavigator: React.FC = () => {
 };
 
 export const Router = () => {
+  const navigationRef = useNavigationContainerRef();
+  const routeNameRef = useRef<string>();
+
+  const GA_TRACKING_ID = process.env.EXPO_PUBLIC_GOOGLE_TAG_ID; // Replace with your Google Analytics Tracking ID
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && GA_TRACKING_ID) {
+      initGoogleAnalytics(GA_TRACKING_ID);
+      logPageView(); // Log the initial page view
+
+      const unsubscribe = navigationRef.addListener('state', () => {
+        const currentRouteName = navigationRef.getCurrentRoute()?.name;
+        if (currentRouteName !== routeNameRef.current) {
+          routeNameRef.current = currentRouteName;
+          logPageView(); // Log new page view on route change
+        }
+      });
+
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    }
+  }, [navigationRef]);
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer linking={linking}
+      ref={navigationRef}>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -389,7 +416,7 @@ const linking = {
           //   path: '',
           // },
           Login: 'login',
-          Onboarding:"onboarding",
+          Onboarding: "onboarding",
           CreateAccount: 'create-account',
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',
