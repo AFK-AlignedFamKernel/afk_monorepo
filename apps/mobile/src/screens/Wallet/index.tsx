@@ -1,20 +1,22 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, Platform, ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
-import {Swap} from '../../components/Swap';
+import { TextButton } from '../../components';
+import { Swap } from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import {TOKENSMINT} from '../../constants/tokens';
-import {useStyles} from '../../hooks';
-import {LightningNetworkWalletView} from '../../modules/Lightning';
-import {WalletScreen} from '../../types';
-import {SelectedTab, TABS_WALLET} from '../../types/tab';
+import { TOKENSMINT } from '../../constants/tokens';
+import { useStyles } from '../../hooks';
+import { LightningNetworkWalletView } from '../../modules/Lightning';
+import { WalletScreen } from '../../types';
+import { SelectedTab, TABS_WALLET } from '../../types/tab';
 import stylesheet from './styles';
-import {CashuWalletView} from '../../modules/Cashu';
-import {LayerswapView} from '../../modules/Bridge/layerswap';
+import { CashuWalletView } from '../../modules/Cashu';
+import { LayerswapView } from '../../modules/Bridge/layerswap';
+import { PaymentStripeScreen } from '../../modules/Payment/stripe';
+import CheckoutScreen from '../../modules/Payment/stripe/checkout';
 
-export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
+export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
@@ -55,7 +57,7 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
             )}
 
             {selectedTab == SelectedTab.BTC_FI_VAULT && (
-              <View style={{display: 'flex', alignItems: 'center'}}>
+              <View style={{ display: 'flex', alignItems: 'center' }}>
                 <Swap
                   tokensIns={TOKENSMINT}
                   tokenOut={TOKENSMINT.WBTC}
@@ -73,6 +75,22 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
                 <LightningNetworkWalletView></LightningNetworkWalletView>
               </View>
             )}
+
+            {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
+              <View>
+                <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
+                <PaymentStripeScreen></PaymentStripeScreen>
+                <CheckoutScreen></CheckoutScreen>
+              </View>
+            )}
+
+            {selectedTab == SelectedTab.WALLET_INTERNAL && (
+              <View>
+                <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
+                <CashuWalletView></CashuWalletView>
+              </View>
+            )}
+
           </SafeAreaView>
         </KeyboardAvoidingView>
       </ScrollView>

@@ -1,6 +1,7 @@
-import { PlatformPayButton, isPlatformPaySupported } from '@stripe/stripe-react-native';
+import { PlatformPay, PlatformPayButton, confirmPlatformPayPayment, isPlatformPaySupported } from '@stripe/stripe-react-native';
 import { useEffect, useState } from 'react';
 import { useStripe } from '@stripe/stripe-react-native';
+import { Alert, View } from 'react-native';
 
 const API_URL= process.env.EXPO_PUBLIC_INDEXER_BACKEND_URL;
 export function PayStripe() {
@@ -22,7 +23,7 @@ export function PayStripe() {
         some: 'value',
       }),
     });
-    const { clientSecret } = await response.json();
+    const { clientSecret, paymentIntent } = await response.json();
 
     return clientSecret;
   };
@@ -60,7 +61,7 @@ export function PayStripe() {
       // handle error
     } else {
       Alert.alert('Success', 'Check the logs for payment intent details.');
-      console.log(JSON.stringify(paymentIntent, null, 2));
+      // console.log(JSON.stringify(paymentIntent, null, 2));
     }
   };
 

@@ -39,6 +39,10 @@ export enum SelectedTab {
   DYNAMIC_GENERAL,
   GENERATE_INTERNAL_WALLET,
   BRIDGE_LAYERSWAP,
+  STRIPE_SCREEN,
+  ONRAMP_OFFRAMP,
+  PAY_WALLET,
+  WALLET_INTERNAL,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -307,6 +311,11 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'Bridge',
     screen: 'Bridge',
     tab: SelectedTab.BRIDGE_LAYERSWAP,
+  },
+  {
+    title: 'Ramp',
+    screen: 'Ramp',
+    tab: SelectedTab.ONRAMP_OFFRAMP,
   },
 ];
 
