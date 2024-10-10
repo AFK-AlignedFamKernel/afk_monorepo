@@ -58,6 +58,7 @@ const NostrVideo = ({item, shouldPlay}: {shouldPlay: boolean; item: NostrEvent})
             resizeMode={ResizeMode.COVER}
             useNativeControls={false}
             onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+            videoStyle={styles.innerVideo}
           />
         </View>
       </Pressable>
