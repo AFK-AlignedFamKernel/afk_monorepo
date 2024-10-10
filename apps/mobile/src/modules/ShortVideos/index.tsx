@@ -261,11 +261,12 @@ const ShortVideosModule = () => {
   return (
     <View style={styles.container}>
       <FlatList
+        style={styles.list}
         data={videosEvents}
         renderItem={({item, index}) => (
           <NostrVideo item={item} shouldPlay={index === currentViewableItemIndex} />
         )}
-        keyExtractor={(item) => item.content}
+        keyExtractor={(item, index) => item.content + index}
         pagingEnabled
         horizontal={false}
         showsVerticalScrollIndicator={false}
