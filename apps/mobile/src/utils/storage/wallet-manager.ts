@@ -37,6 +37,21 @@ export class WalletManager {
     return this.createAndStoreKeyPair();
   }
 
+  static async getOrCreateKeyPairWithCredential(credential?:Credential|null): Promise<{
+    secretKey: string;
+    publicKey: string;
+    mnemonic?: string;
+    strkPrivateKey?: string;
+  }> {
+    const storedPubKey = localStorage.getItem(WalletManager.STORAGE_EVM_KEY);
+
+    if (storedPubKey) {
+      const { secretKey, mnemonic, strkPrivateKey } = await this.retrieveSecretKey(storedPubKey);
+      return { secretKey, publicKey: storedPubKey, mnemonic, strkPrivateKey };
+    }
+    return this.createAndStoreKeyPairWithCredential(credential);
+  }
+
   static getPublicKey() {
     const storedPubKey = localStorage.getItem(WalletManager.STORAGE_EVM_KEY);
 
@@ -138,7 +153,7 @@ export class WalletManager {
     return { secretKey, publicKey, strkPrivateKey };
   }
 
-  private static async createAndStoreKeyPairWithCredential(credential?:Credential, 
+  private static async createAndStoreKeyPairWithCredential(credential?:Credential|null, 
     propsPasskey?:GeneratePasskeyValues): Promise<{
     secretKey: string;
     publicKey: string;
@@ -168,7 +183,7 @@ export class WalletManager {
 
 
     // 
-    await this.storeSecretKeyWithCredential(secretKey, publicKey, strkPrivateKey, starkKeyPub, propsPasskey, credential);
+    await this.storeSecretKeyWithCredential(secretKey, publicKey, strkPrivateKey, starkKeyPub, credential, propsPasskey );
     localStorage.setItem(WalletManager.STORAGE_EVM_KEY, publicKey);
     localStorage.setItem(WalletManager.STORAGE_STRK_KEY, starkKeyPub);
     return { secretKey, publicKey, strkPrivateKey };
@@ -308,8 +323,8 @@ export class WalletManager {
     publicKey: string,
     strkPrivateKey: string,
     strkPublicKey: string,
+    credentialPropsGenerate?:Credential|null,
     credentialProps?:GeneratePasskeyValues,
-    credentialPropsGenerate?:Credential,
     mnemonic?: string,
     strkMnemonic?: string,
 

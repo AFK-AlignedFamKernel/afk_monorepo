@@ -25,6 +25,7 @@ import ConnectWalletScreen from '../../connectWallet/ConnectWalletscreens';
 export const LoginNostr: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
+  const publicKey = useAuth((state) => state.publicKey);
 
   // const { setIsSeedCashuStorage } = useAuth()
   const { setIsSeedCashuStorage, setSeed, setMnemonic } = useCashuStore();
@@ -198,6 +199,8 @@ export const LoginNostr: React.FC<AuthLoginScreenProps> = ({ navigation }) => {
 
   return (
     <Auth title="Login">
+
+      
       <Input
         left={<LockIcon color={theme.colors.primary} />}
         value={password}

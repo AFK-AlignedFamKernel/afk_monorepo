@@ -11,10 +11,11 @@ export class NostrKeyManager {
   private static PBKDF2_ITERATIONS = 100000; // Adjust based on your security needs and performance requirements
   private static IS_CASHU_WALLET_SETUP = "is_cashu_wallet_setup";
 
-  static async getOrCreateKeyPair(): Promise<{
+  static async getOrCreateKeyPair(credential?:Credential|null): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
+    credential?:Credential|null
   }> {
     const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
 
@@ -22,7 +23,7 @@ export class NostrKeyManager {
       const { secretKey, mnemonic } = await this.retrieveSecretKey(storedPubKey);
       return { secretKey, publicKey: storedPubKey, mnemonic };
     }
-    return this.createAndStoreKeyPair();
+    return this.createAndStoreKeyPair(credential);
   }
 
   static getPublicKey() {
@@ -49,7 +50,7 @@ export class NostrKeyManager {
     return isWalletSetup;
   }
 
-  private static async createAndStoreKeyPair(): Promise<{
+  private static async createAndStoreKeyPair(credential?:Credential|null): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
@@ -58,7 +59,7 @@ export class NostrKeyManager {
     // const publicKey = getPublicKey(secretKey);
     const mnemonic = generateNewMnemonic()
 
-    await this.storeSecretKey(secretKey, publicKey, mnemonic);
+    await this.storeSecretKey(secretKey, publicKey, mnemonic, credential);
     localStorage.setItem(NostrKeyManager.STORAGE_KEY, publicKey);
 
     return { secretKey, publicKey, mnemonic };
@@ -67,10 +68,11 @@ export class NostrKeyManager {
   private static async storeSecretKey(
     secretKey: string,
     publicKey: string,
-    mnemonic: string
+    mnemonic: string,
+    credentialProps?:Credential|null
   ): Promise<void> {
     const encoder = new TextEncoder();
-    const credential = await navigator.credentials.create({
+    const credential = credentialProps ?? await navigator.credentials.create({
       publicKey: {
         challenge: encoder.encode("nostr-key-challenge"),
         rp: { name: "Nostr Connect App" },

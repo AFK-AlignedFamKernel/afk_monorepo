@@ -140,7 +140,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
       />
 

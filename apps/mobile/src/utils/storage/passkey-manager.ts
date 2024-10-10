@@ -6,7 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { GeneratePasskeyValues } from '../../types/storage';
 const encoder = new TextEncoder();
-const DEFAULT_PASSKEY = {
+export const DEFAULT_PASSKEY = {
   publicKey: {
     challenge: encoder.encode("afk-key-challenge"),
     rp: { name: "AFK Connect App" },
@@ -30,7 +30,7 @@ export class PasskeyManager {
     return isWalletSetup;
   }
 
-  public async generatePasskeyAndSave(props: GeneratePasskeyValues): Promise<Credential | null> {
+  public static async generatePasskeyAndSave(props: GeneratePasskeyValues): Promise<Credential | null | undefined> {
     const passkey = await PasskeyManager.generatePasskey(props)
     if (passkey) {
       await PasskeyManager.storeSecretKey(passkey)
@@ -40,7 +40,7 @@ export class PasskeyManager {
 
   /** Todo finish passkey mobile */
   private static async generatePasskey(props: GeneratePasskeyValues
-  ): Promise<Credential | null> {
+  ): Promise<Credential | null | undefined> {
     const encoder = new TextEncoder();
     const { nameChallenge, nameRp, publicKey, user } = props
     const isWeb = Platform.OS == "web"

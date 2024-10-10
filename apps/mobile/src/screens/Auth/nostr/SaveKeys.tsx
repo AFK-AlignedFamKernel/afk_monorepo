@@ -49,7 +49,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
             setAuth(publicKey, privateKey);
             hideDialog();
             // navigation.navigate("Feed")
-            navigation.push('Profile', {publicKey});
+            navigation.navigate('Profile', {publicKey});
           },
         },
         {
