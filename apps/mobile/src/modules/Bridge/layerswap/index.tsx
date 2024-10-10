@@ -32,19 +32,24 @@ export const LayerswapView = () => {
             <View style={{
               minHeight: isDesktop ? 650 : 450
             }}>
-              <a href={`https://www.layerswap.io/app/?to=STARKNET_MAINNET&clientId=${process.env.EXPO_PUBLIC_LAYERSWAP_CLIENT_ID}`}>
+              {/* <a href={`https://www.layerswap.io/app/?to=STARKNET_MAINNET&clientId=${process.env.EXPO_PUBLIC_LAYERSWAP_CLIENT_ID}`}>
                 Deposit funds
-              </a>
-              <iframe src={`https://layerswap.io/app/?
+              </a> */}
+              {/* <iframe src={`https://layerswap.io/app/?
                       clientId=${process.env.EXPO_PUBLIC_LAYERSWAP_CLIENT_ID}
                       &to=STARKNET_MAINNET
                       &from=ETHEREUM_MAINNET
-                      &destAddress=0x0000000000000000000000000000000000000000
                       &amount=27
                       &asset=IMX
                       &actionButtonText=Deposit`
-
-
+              } */}
+              <iframe src={`https://layerswap.io/app/?
+                      clientId=${process.env.EXPO_PUBLIC_LAYERSWAP_CLIENT_ID}
+                      &to=STARKNET_MAINNET
+                      &from=ARBITRUM_MAINNET
+                      &amount=50
+                      &asset=USDC
+                      &actionButtonText=Deposit`
               }
                 height={"100%"}
                 width={"100%"}
