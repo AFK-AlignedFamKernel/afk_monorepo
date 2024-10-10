@@ -37,6 +37,7 @@
     "@dynamic-labs/react-native-extension": "4.0.0-alpha.8",
     "@dynamic-labs/utils": "^3.3.0",
     "@dynamic-labs/viem-extension": "4.0.0-alpha.8",
+    "@ethersproject/units": "^5.7.0",
     "@expo/metro-runtime": "~3.2.1",
     "@getalby/bitcoin-connect-react": "^3.5.3",
     "@getalby/lightning-tools": "^5.0.3",
