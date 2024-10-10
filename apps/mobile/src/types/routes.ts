@@ -72,9 +72,8 @@ export type MainStackParams = {
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
-  Onboarding:undefined;
+  Onboarding: undefined;
 };
-
 
 export type HomeBottomStackParams = {
   Feed: undefined;
@@ -322,8 +321,6 @@ export type OnboardingWalletScreen = CompositeScreenProps<
 // Drawer desktop stack
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
-
-
 
 /** TODO delete */
 export type DegensAppStackParams = {

@@ -61,5 +61,5 @@ export {
 } from './cashu';
 export type {ICashu} from './cashu';
 
-export {useGetVideos} from "./videos/useGetVideos"
-export {useSendVideo} from "./videos/useSendVideo"
+export {useGetVideos} from './videos/useGetVideos';
+export {useSendVideo} from './videos/useSendVideo';

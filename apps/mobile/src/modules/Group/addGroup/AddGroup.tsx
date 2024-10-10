@@ -41,8 +41,7 @@ export const CreateGroup: React.FC = () => {
       <Formik
         initialValues={initialValues}
         onSubmit={async (values) => {
-
-          await handleCheckNostrAndSendConnectDialog()
+          await handleCheckNostrAndSendConnectDialog();
 
           mutate(
             {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AccountInterface, constants, stark } from 'starknet';
+import { AccountInterface, constants, Signature, stark } from 'starknet';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
-import { backendUrl, devnetMode, allowedMethods, expiry, metaData, dappKey, getProvider } from '../../utils/Consts.js';
-import { connect } from 'starknetkit-next';
+import { backendUrl, devnetMode, expiry, metaData, dappKey, getProvider } from '../../utils/Consts.js';
+import { allowedMethods } from '../../utils/Session';
+import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
 import { fetchWrapper } from '../../services/apiService.js';
 import BeggarRankImg from '../../resources/ranks/Beggar.png';
 import OwlRankImg from '../../resources/ranks/Owl.png';
@@ -22,7 +23,7 @@ import {
   Connector
 } from '@starknet-react/core';
 import { disconnect } from 'starknetkit-next';
-import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
+import { buildSessionAccount, createSessionRequest, OffChainSession, openSession } from '@argent/x-sessions';
 const Account = (props) => {
   const { address, account } = useAccount()
   const [queryAddress, setQueryAddress] = useState('0');
@@ -35,7 +36,7 @@ const Account = (props) => {
     background:
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
-  const [accountRankImg, setAccountRankImg] = useState(null);
+  const [accountRankImg, setAccountRankImg] = useState<any|null>(null);
   const [isOpenConnector, setIsOpenConnector] = useState(false);
 
   const [usernameSaved, setUsernameSaved] = useState(false);
@@ -100,8 +101,8 @@ const Account = (props) => {
         return name;
     }
   };
-  const [_sessionRequest, setSessionRequest] = useState(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession|null>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
   // TODO: Connect wallet page if no connectors
@@ -111,8 +112,8 @@ const Account = (props) => {
   let [availableConnectors, setAvailableConnectors] = useState(connectors);
   // Account
   // Starknet wallet
-  const [wallet, setWallet] = useState(null);
-  const [connectorData, setConnectorData] = useState(null);
+  const [wallet, setWallet] = useState<StarknetWindowObject | undefined | null>(null);
+  const [connectorData, setConnectorData] = useState<ConnectorData | undefined | null>(null);
   const [_connector, setConnector] = useState(null);
   const canSession = (wallet) => {
     let sessionableIds = [
@@ -154,7 +155,6 @@ const Account = (props) => {
     ) {
       console.log("wallet", wallet)
       console.log("canSession")
-      setWallet(wallet);
       const connectorCore = {
         ...connector,
         icon: {
@@ -167,12 +167,11 @@ const Account = (props) => {
       // // setQueryAddress(connectorData?.account.address?.slice(2).toLowerCase().padStart(64, '0'));
       // // setQueryAddress(connector?.wallet?.address?.slice(2).toLowerCase().padStart(64, '0'));
       // setQueryAddress(wallet?.selectedAddress?.slice(2).toLowerCase().padStart(64, '0'));
-
       setConnectorData(connectorData);
-      // setConnector(connector);
       setConnected(true);
-      let new_account = await connector.account(window?.starknet);
-      setAccount(new_account);
+      setWallet(wallet);
+      // let new_account = await connector.account(window?.starknet);
+      // setAccount(new_account);
       setIsSessionable(canSession(wallet));
       console.log('canSession(wallet):', canSession(wallet));
       await connectHook({ connector: connectorCore })
@@ -324,11 +323,11 @@ const Account = (props) => {
     // }
 
     const checkIfAvailable = async () => {
-      let availableConnectors = [];
+      let availableConnectors:any[] = [];
       for (let i = 0; i < props.connectors.length; i++) {
         let available = await props.connectors[i].available();
         if (available) {
-          availableConnectors.push(props.connectors[i]);
+          availableConnectors.push(props?.connectors[i]);
         }
       }
       setAvailableConnectors(availableConnectors);
@@ -616,13 +615,13 @@ const Account = (props) => {
                     }
                     }
                   >
-                    {connectorLogo(connector.name) && (
+                    {/* {connectorLogo(connector.name) && (
                       <img
                         className='Account__wallet__icon'
                         src={connectorLogo(connector.name)}
                         alt='wallet'
                       />
-                    )}
+                    )} */}
                     <p>{connectorName(connector.name)}</p>
                   </div>
                 );
@@ -646,13 +645,13 @@ const Account = (props) => {
                     key={connector.id}
                     onClick={() => props.connectWallet(connector)}
                   >
-                    {connectorLogo(connector.name) && (
+                    {/* {connectorLogo(connector.name) && (
                       <img
                         className='Account__wallet__icon'
                         src={connectorLogo(connector.name)}
                         alt='wallet'
                       />
-                    )}
+                    )} */}
                     <p>{connectorName(connector.name)}</p>
                   </div>
                 );
@@ -707,7 +706,7 @@ const Account = (props) => {
                   >
                     <img
                       className='Account__item__icon'
-                      src={EditIcon}
+                      src={"../../resources/icons/Edit.png"}
                       alt='edit'
                     />
                   </div>
@@ -813,7 +812,7 @@ const Account = (props) => {
                 >
                   <img
                     className='Account__item__icon'
-                    src={SearchIcon}
+                    src={"../../resources/icons/Search.png"}
                     alt='show'
                   />
                 </div>

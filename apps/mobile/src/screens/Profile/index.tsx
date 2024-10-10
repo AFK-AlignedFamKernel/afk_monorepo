@@ -38,7 +38,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
     const ids = new Set<string>();
     bookmarksWithNotes.data.forEach((bookmark) => {
       bookmark.notes.forEach((note) => {
-        if(note?.id) {
+        if (note?.id) {
           ids?.add(note?.id || '');
         }
       });

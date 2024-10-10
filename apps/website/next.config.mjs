@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config) => {
+    config.externals.push('encoding');
+    return config;
+  },
   async headers() {
     return [
       {

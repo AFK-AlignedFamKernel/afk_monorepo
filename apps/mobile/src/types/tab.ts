@@ -215,7 +215,7 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'Swap',
     tab: SelectedTab.SWAP_AVNU,
   },
-  
+
   {
     title: 'Bridge',
     screen: 'Bridge',
@@ -286,7 +286,6 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
   },
 ];
 
-
 export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Cashu',
@@ -323,7 +322,6 @@ export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
 ];
-
 
 export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {

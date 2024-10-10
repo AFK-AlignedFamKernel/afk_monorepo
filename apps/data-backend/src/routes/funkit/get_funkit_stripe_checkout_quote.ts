@@ -1,4 +1,3 @@
-
 import type { FastifyInstance, RouteOptions } from "fastify";
 import { getChecksumAddress } from "starknet";
 import {
