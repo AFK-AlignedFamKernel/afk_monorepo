@@ -125,7 +125,8 @@
     "text-encoding": "^0.7.0",
     "viem": "2.x",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@stripe/stripe-react-native":"0.38.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
