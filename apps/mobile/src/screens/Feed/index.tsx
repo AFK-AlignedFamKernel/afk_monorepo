@@ -56,22 +56,22 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     const filtered = flattenedPages.filter((item) =>
       item?.content?.toLowerCase().includes(searchLower),
     );
-    console.log('search result is => ', filtered);
+    // console.log('search result is => ', filtered);
     return filtered;
   }, [notes.data?.pages, search]);
   // Filter notes based on the search query
   useEffect(() => {
     const filtered = filteredNotes();
     setFeedData(filtered as any);
-    console.log('feed data is => ', filtered);
+    // console.log('feed data is => ', filtered);
   }, [search, notes.data?.pages]);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
-    if (activeSortBy === '2') {
+    if (activeSortBy === '2' && contacts && contacts?.data) {
       const forYouNotes =
         notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
-      console.log('something', forYouNotes);
+      // console.log('something', forYouNotes);
       setFeedData(forYouNotes as any);
     }
   }, [activeSortBy]);

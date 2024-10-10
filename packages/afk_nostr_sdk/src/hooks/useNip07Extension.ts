@@ -9,11 +9,12 @@ export const useNip07Extension = (options?: UseRootProfilesOptions) => {
   const {ndk, nip07Signer} = useNostrContext();
   const {setAuth, setPublicKey, setIsExtensionConnect} = useAuth();
   const getPublicKey = async () => {
-    nip07Signer?.user().then(async (user) => {
-      if (user.npub) {
-        console.log('Permission granted to read their public key:', user.npub);
-        setPublicKey(user.npub);
+    return nip07Signer?.user().then(async (user) => {
+      if (user.pubkey) {
+        console.log('Permission granted to read their public key:', user.pubkey);
+        setPublicKey(user.pubkey);
         setIsExtensionConnect(true);
+        return user.pubkey
       }
     });
     // if (typeof window !== 'undefined') {

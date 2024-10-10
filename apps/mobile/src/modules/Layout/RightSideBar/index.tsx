@@ -25,12 +25,12 @@ const RightSidebar = () => {
 
   const renderListItem = ({item}: {item: TokenLaunchInterface}) => (
     <View style={styles.itemContainer}>
-      <TokenLaunchDetail
+      {/* <TokenLaunchDetail
         launch={item}
         // isViewDetailDisabled={true}
         isDisabledInfo={true}
         isDisabledForm={true}
-      />
+      /> */}
     </View>
   );
 

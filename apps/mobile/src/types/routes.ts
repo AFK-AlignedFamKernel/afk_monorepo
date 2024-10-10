@@ -9,7 +9,7 @@ export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
   DrawerStack: DrawerScreenProps<MainStackParams>;
   AuthStack: NavigatorScreenParams<AuthStackParams>;
-  DegensStack: NavigatorScreenParams<DegensAppStackParams>;
+  // DegensStack: NavigatorScreenParams<DegensAppStackParams>;
   // Home: NavigatorScreenParams<HomeBottomStackParams>;
 };
 
@@ -21,6 +21,7 @@ export type AuthStackParams = {
     publicKey: string;
   };
   ImportKeys: undefined;
+  LoginNostr: undefined;
 };
 
 export type MainStackParams = {
@@ -54,6 +55,7 @@ export type MainStackParams = {
   Launchpad: undefined;
   LaunchDetail: {coinAddress: string};
   Login: undefined;
+  LoginNostr: undefined;
   CreateAccount: undefined;
   SaveKeys: {
     privateKey: string;
@@ -70,59 +72,7 @@ export type MainStackParams = {
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
-  ShortVideos: undefined;
-};
-
-export type DegensAppStackParams = {
-  // Home: NavigatorScreenParams<HomeBottomStackParams>;
-  Home: NavigatorScreenParams<DegensBottomStackParams>;
-
-  CreatePost: undefined;
-  Profile: {publicKey: string};
-  CreateForm: undefined;
-  Defi: undefined;
-  Games: undefined;
-  KeysMarketplace: undefined;
-  Slinks: undefined;
-  Tips: undefined;
-  // Home: undefined;
-  Feed: undefined;
-  Lightning: undefined;
-  Settings: undefined;
-  Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
-  Login: undefined;
-  CreateAccount: undefined;
-  Auth: NavigatorScreenParams<AuthStackParams>;
-  Cashu: undefined;
-
-  SaveKeys: {
-    privateKey: string;
-    publicKey: string;
-  };
-};
-
-export type DegensBottomStackParams = {
-  // Feed: undefined;
-  UserProfile: {publicKey: string};
-  Notifications: undefined;
-  Tips: undefined;
-  Games: undefined;
-  Defi: undefined;
-  Home: undefined;
-  Settings: undefined;
-  Profile: {publicKey: string};
-  Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
-
-  Login: undefined;
-  CreateAccount: undefined;
-  SaveKeys: {
-    privateKey: string;
-    publicKey: string;
-  };
-  ImportKeys: undefined;
-  Lightning: undefined;
+  Onboarding: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -150,6 +100,7 @@ export type HomeBottomStackParams = {
   PrivateGroupDetails: {postId: string; post?: NDKEvent};
   Lightning: undefined;
   Cashu: undefined;
+  LoginNostr: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -165,6 +116,11 @@ export type AuthLoginScreenProps = CompositeScreenProps<
   NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'Login'>,
   NativeStackScreenProps<RootStackParams>
 >;
+export type AuthLoginNostrScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'LoginNostr'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
 export type AuthCreateAccountScreenProps = CompositeScreenProps<
   NativeStackScreenProps<
     AuthStackParams | HomeBottomStackParams | MainStackParams,
@@ -357,6 +313,64 @@ export type Ramp = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Ramp'>,
   NativeStackScreenProps<RootStackParams>
 >;
+
+export type OnboardingWalletScreen = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Onboarding'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 // Drawer desktop stack
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
+
+/** TODO delete */
+export type DegensAppStackParams = {
+  // Home: NavigatorScreenParams<HomeBottomStackParams>;
+  Home: NavigatorScreenParams<DegensBottomStackParams>;
+
+  CreatePost: undefined;
+  Profile: {publicKey: string};
+  CreateForm: undefined;
+  Defi: undefined;
+  Games: undefined;
+  KeysMarketplace: undefined;
+  Slinks: undefined;
+  Tips: undefined;
+  // Home: undefined;
+  Feed: undefined;
+  Lightning: undefined;
+  Settings: undefined;
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+  Login: undefined;
+  CreateAccount: undefined;
+  Auth: NavigatorScreenParams<AuthStackParams>;
+  Cashu: undefined;
+
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+};
+
+export type DegensBottomStackParams = {
+  // Feed: undefined;
+  UserProfile: {publicKey: string};
+  Notifications: undefined;
+  Tips: undefined;
+  Games: undefined;
+  Defi: undefined;
+  Home: undefined;
+  Settings: undefined;
+  Profile: {publicKey: string};
+  Launchpad: undefined;
+  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+
+  Login: undefined;
+  CreateAccount: undefined;
+  SaveKeys: {
+    privateKey: string;
+    publicKey: string;
+  };
+  ImportKeys: undefined;
+  Lightning: undefined;
+};

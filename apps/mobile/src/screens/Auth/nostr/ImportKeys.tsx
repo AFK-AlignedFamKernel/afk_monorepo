@@ -2,20 +2,20 @@ import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input} from '../../components';
-import {useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {AuthImportKeysScreenProps} from '../../types';
-import {getPublicKeyFromSecret, isValidNostrPrivateKey} from '../../utils/keypair';
+import {LockIcon} from '../../../assets/icons';
+import {Button, Input} from '../../../components';
+import {useTheme} from '../../../hooks';
+import {useDialog, useToast} from '../../../hooks/modals';
+import {Auth} from '../../../modules/Auth';
+import {AuthImportKeysScreenProps} from '../../../types';
+import {getPublicKeyFromSecret, isValidNostrPrivateKey} from '../../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
   storePassword,
   storePrivateKey,
   storePublicKey,
-} from '../../utils/storage';
+} from '../../../utils/storage';
 import {useAuth, useCashu, useCashuStore} from 'afk_nostr_sdk';
 
 export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) => {

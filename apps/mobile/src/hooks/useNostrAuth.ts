@@ -7,7 +7,7 @@ import {MainStackNavigationProps} from '../types';
 import {useNavigation} from '@react-navigation/native';
 
 export const useNostrAuth = () => {
-  const {publicKey} = useAuth();
+  const {publicKey, privateKey} = useAuth();
   const {ndk} = useNostrContext();
   const {showDialog, hideDialog} = useDialog();
   const {getPublicKey} = useNip07Extension();
@@ -15,7 +15,7 @@ export const useNostrAuth = () => {
 
   const isNostrConnected = useMemo(() => {
     return publicKey ? true : false;
-  }, []);
+  }, [publicKey]);
 
   const handleCheckNostrAndSendConnectDialog = async () => {
     if (!isNostrConnected) {

@@ -60,3 +60,6 @@ export {
   useCashuBalance,
 } from './cashu';
 export type {ICashu} from './cashu';
+
+export {useGetVideos} from "./videos/useGetVideos"
+export {useSendVideo} from "./videos/useSendVideo"
