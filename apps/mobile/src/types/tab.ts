@@ -38,6 +38,7 @@ export enum SelectedTab {
   USER_SHARE,
   DYNAMIC_GENERAL,
   GENERATE_INTERNAL_WALLET,
+  BRIDGE_LAYERSWAP,
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -214,6 +215,12 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'Swap',
     tab: SelectedTab.SWAP_AVNU,
   },
+  
+  {
+    title: 'Bridge',
+    screen: 'Bridge',
+    tab: SelectedTab.BRIDGE_LAYERSWAP,
+  },
 
   // {
   //   title: 'BTC Bridge',
@@ -282,24 +289,25 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
 
 export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
-    title: 'Portfolio',
-    screen: 'Portfolio',
-    tab: SelectedTab.PORTFOLIO,
-  },
-  {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
-  {
     title: 'Cashu',
     screen: 'Cashu',
     tab: SelectedTab.CASHU_WALLET,
   },
+  // {
+  //   title: 'Portfolio',
+  //   screen: 'Portfolio',
+  //   tab: SelectedTab.PORTFOLIO,
+  // },
   {
     title: 'Lightning',
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+
+  {
+    title: 'Bridge',
+    screen: 'Bridge',
+    tab: SelectedTab.BRIDGE_LAYERSWAP,
   },
 ];
 

@@ -6,9 +6,11 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { generatePrivateKey, generateMnemonic, privateKeyToAccount } from 'viem/accounts'
 import { ec, stark } from "starknet";
+import { GeneratePasskeyValues } from '../../types/storage';
 
 export class WalletManager {
   private static SALT_KEY_PREFIX = "wallet_salt_";
+  private static STORAGE_KEY = "wallet_pubkey";
   private static STORAGE_EVM_KEY = "evm_pubkey";
   private static STORAGE_STRK_KEY = "strk_pubkey";
   private static CRED_KEY_EVM_PREFIX = "evm_cred_";
@@ -33,6 +35,21 @@ export class WalletManager {
       return { secretKey, publicKey: storedPubKey, mnemonic, strkPrivateKey };
     }
     return this.createAndStoreKeyPair();
+  }
+
+  static async getOrCreateKeyPairWithCredential(credential?:Credential|null): Promise<{
+    secretKey: string;
+    publicKey: string;
+    mnemonic?: string;
+    strkPrivateKey?: string;
+  }> {
+    const storedPubKey = localStorage.getItem(WalletManager.STORAGE_EVM_KEY);
+
+    if (storedPubKey) {
+      const { secretKey, mnemonic, strkPrivateKey } = await this.retrieveSecretKey(storedPubKey);
+      return { secretKey, publicKey: storedPubKey, mnemonic, strkPrivateKey };
+    }
+    return this.createAndStoreKeyPairWithCredential(credential);
   }
 
   static getPublicKey() {
@@ -136,6 +153,42 @@ export class WalletManager {
     return { secretKey, publicKey, strkPrivateKey };
   }
 
+  private static async createAndStoreKeyPairWithCredential(credential?:Credential|null, 
+    propsPasskey?:GeneratePasskeyValues): Promise<{
+    secretKey: string;
+    publicKey: string;
+    strkPrivateKey?: string;
+    mnemonic?: string;
+  }> {
+
+    // Generate EVM address
+    const secretKey = generatePrivateKey()
+    const account = await privateKeyToAccount(secretKey)
+    const publicKey = account?.address;
+
+    // Generate Starknet account
+
+    // TODO
+    // Generate public and private key pair.
+    const strkPrivateKey = stark.randomAddress();
+    console.log('New OZ account:\nprivateKey=', strkPrivateKey);
+    const starkKeyPub = ec.starkCurve.getStarkKey(strkPrivateKey);
+    console.log('publicKey=', starkKeyPub);
+
+
+    // Generate credential for navigator
+
+    // Secure store for mobile
+
+
+
+    // 
+    await this.storeSecretKeyWithCredential(secretKey, publicKey, strkPrivateKey, starkKeyPub, credential, propsPasskey );
+    localStorage.setItem(WalletManager.STORAGE_EVM_KEY, publicKey);
+    localStorage.setItem(WalletManager.STORAGE_STRK_KEY, starkKeyPub);
+    return { secretKey, publicKey, strkPrivateKey };
+  }
+
 
   private static async generatePasskey(
     secretKey: string,
@@ -182,6 +235,105 @@ export class WalletManager {
         },
       });
 
+      if (credential && credential.type === "public-key") {
+        const pkCred = credential as PublicKeyCredential;
+        const rawId = Array.from(new Uint8Array(pkCred.rawId));
+
+        // Generate a random salt
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        localStorage.setItem(
+          `${WalletManager.SALT_KEY_PREFIX}${publicKey}`,
+          JSON.stringify(Array.from(salt))
+        );
+        localStorage.setItem(
+          `${WalletManager.SALT_KEY_PREFIX}${strkPublicKey}`,
+          JSON.stringify(Array.from(salt))
+        );
+        localStorage.setItem(
+          `${WalletManager.SALT_KEY_PREFIX}`,
+          JSON.stringify(Array.from(salt))
+        );
+
+        // EVM
+
+        // Encrypt the secret key
+        const encryptedKey = await this.encryptSecretKey(secretKey, rawId, salt);
+        console.log("encryptedkey", encryptedKey)
+        console.log("secretKey", secretKey)
+
+
+        localStorage.setItem(
+          `${WalletManager.CRED_KEY_EVM_PREFIX}${publicKey}`,
+          JSON.stringify({
+            rawId, encryptedKey,
+            // mnemonic: encryptedMnemonic
+
+          })
+        );
+        localStorage.setItem(
+          `${WalletManager.SALT_KEY_EVM_PREFIX}${publicKey}`,
+          JSON.stringify(Array.from(salt))
+        );
+        // const encryptedMnemonic = await this.encryptSecretKey(mnemonic, rawId, salt);
+        // console.log("encryptedMnemonic", encryptedMnemonic)
+        // Starknet
+
+        const encryptedStrkPrivateKey = await this.encryptSecretKey(strkPrivateKey, rawId, salt);
+        console.log("strkPrivateKey", strkPrivateKey)
+        console.log("encryptedStrkPrivateKey", encryptedStrkPrivateKey)
+
+
+        localStorage.setItem(
+          `${WalletManager.CRED_KEY_STRK_PREFIX}${strkPublicKey}`,
+          JSON.stringify({ rawId, encryptedStrkPrivateKey, mnemonic: encryptedStrkPrivateKey })
+        );
+        localStorage.setItem(
+          `${WalletManager.SALT_KEY_STRK_PREFIX}${strkPublicKey}`,
+          JSON.stringify(Array.from(salt))
+        );
+
+        // All
+        localStorage.setItem(
+          `${WalletManager.CRED_KEY_PREFIX}${publicKey}`,
+          JSON.stringify({
+            rawId, encryptedKey,
+            strkPrivateKey
+            // mnemonic: encryptedMnemonic
+          })
+        );
+
+        localStorage.setItem(
+          `${WalletManager.IS_WALLET_SETUP}`,
+          "true"
+        );
+
+      } else {
+        throw new Error("Failed to create credential");
+      }
+
+    } catch (error) {
+      console.log("Error storeSecretKey WalletManager", error)
+
+    }
+
+  }
+
+  private static async storeSecretKeyWithCredential(
+    secretKey: string,
+    publicKey: string,
+    strkPrivateKey: string,
+    strkPublicKey: string,
+    credentialPropsGenerate?:Credential|null,
+    credentialProps?:GeneratePasskeyValues,
+    mnemonic?: string,
+    strkMnemonic?: string,
+
+  ): Promise<void> {
+    try {
+
+      const credential = credentialPropsGenerate;
+      if(!credential) return undefined;
+      
       if (credential && credential.type === "public-key") {
         const pkCred = credential as PublicKeyCredential;
         const rawId = Array.from(new Uint8Array(pkCred.rawId));

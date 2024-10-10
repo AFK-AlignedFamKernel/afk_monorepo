@@ -23,10 +23,10 @@ import { Icon } from '../components';
 import { Navbar } from '../components/Navbar';
 
 // Screens
-import { CreateAccount } from '../screens/Auth/CreateAccount';
-import { ImportKeys } from '../screens/Auth/ImportKeys';
-import { Login } from '../screens/Auth/Login';
-import { SaveKeys } from '../screens/Auth/SaveKeys';
+import { CreateAccount } from '../screens/Auth/nostr/CreateAccount';
+import { ImportKeys } from '../screens/Auth/nostr/ImportKeys';
+import { LoginNostr } from '../screens/Auth/nostr/LoginNostr';
+import { SaveKeys } from '../screens/Auth/nostr/SaveKeys';
 import { ChannelDetail } from '../screens/ChannelDetail';
 import { ChannelsFeed } from '../screens/ChannelsFeed';
 import { CreateChannel } from '../screens/CreateChannel';
@@ -58,7 +58,7 @@ import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParam
 // Icons
 import { IconNames } from '../components/Icon';
 import { useAuth } from 'afk_nostr_sdk';
-import { OnboardingWallet } from '../screens/Onboarding';
+import { Onboarding } from '../screens/Onboarding';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -140,7 +140,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
       />
 
@@ -158,7 +158,7 @@ const HomeBottomTabNavigator: React.FC = () => {
       ) : (
         <HomeBottomTabsStack.Screen
           name="Login"
-          component={Login as any}
+          component={LoginNostr as any}
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
@@ -218,7 +218,7 @@ const AuthNavigator: React.FC = () => {
           <AuthStack.Screen name="Login" component={Login} />
         </>
       } */}
-      <AuthStack.Screen name="Login" component={Login} />
+      <AuthStack.Screen name="Login" component={LoginNostr} />
       <AuthStack.Screen name="CreateAccount" component={CreateAccount} />
       <AuthStack.Screen name="SaveKeys" component={SaveKeys} />
       <AuthStack.Screen name="ImportKeys" component={ImportKeys} />
@@ -298,13 +298,13 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Cashu" component={CashuScreen} />
       <MainStack.Screen name="WalletBTC" component={WalletBTC} />
 
-      <MainStack.Screen name="Login" component={Login} />
+      <MainStack.Screen name="Login" component={LoginNostr} />
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />
       <MainStack.Screen name="SaveKeys" component={SaveKeys} />
       <MainStack.Screen name="ImportKeys" component={ImportKeys} />
 
       <MainStack.Screen name="Wallet" component={Wallet} />
-      <MainStack.Screen name="Onboarding" component={OnboardingWallet} />
+      <MainStack.Screen name="Onboarding" component={Onboarding} />
     </MainStack.Navigator>
   );
 };

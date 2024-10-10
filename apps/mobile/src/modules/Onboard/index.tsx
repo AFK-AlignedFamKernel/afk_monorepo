@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TextButton } from '../../components';
@@ -7,22 +7,26 @@ import { Swap } from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
 import { TOKENSMINT } from '../../constants/tokens';
 import { useStyles } from '../../hooks';
-import { LightningNetworkWalletView } from '../../modules/Lightning';
-import { WalletScreen } from '../../types';
-import { SelectedTab, TABS_WALLET } from '../../types/tab';
+import { LightningNetworkWalletView } from '../Lightning';
+import { MainStackNavigationProps, OnboardingWalletScreen } from '../../types';
+import { SelectedTab, TABS_ONBOARDING_WALLET, TABS_WALLET } from '../../types/tab';
 import stylesheet from './styles';
-import { CashuWalletView } from '../../modules/Cashu';
-import { LayerswapView } from '../../modules/Bridge/layerswap';
+import { CashuWalletView } from '../Cashu';
+import { DynamicEmailSignIn } from './dynamic/DynamicEmailSignIn';
+import { DynamicWalletOnboarding } from './dynamic';
+import { useNavigation } from '@react-navigation/native';
+import { WalletOnboarding } from '../../modules/Onboard/wallet';
 
-export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
+export const OnboardingComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.DYNAMIC_GENERAL);
 
+  const navigation = useNavigation<MainStackNavigationProps>()
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
-    if (screen) {
-      navigation.navigate(screen as any);
-    }
+    // if (screen) {
+    //   navigation.navigate(screen as any);
+    // }
   };
 
   return (
@@ -37,22 +41,20 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
           <TabSelector
             activeTab={selectedTab}
             handleActiveTab={handleTabSelected}
-            buttons={TABS_WALLET}
+            buttons={TABS_ONBOARDING_WALLET}
             addScreenNavigation={false}
           ></TabSelector>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
 
-            {selectedTab == SelectedTab.BRIDGE_LAYERSWAP && (
-              <>
-                <LayerswapView />
-              </>
+            {selectedTab == SelectedTab.DYNAMIC_GENERAL && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <DynamicWalletOnboarding />
+              </View>
             )}
 
-
-            {selectedTab == SelectedTab.CASHU_WALLET && (
-              <View>
-                <Text style={styles.text}>Cashu wallet coming soon</Text>
-                <CashuWalletView></CashuWalletView>
+            {selectedTab == SelectedTab.GENERATE_INTERNAL_WALLET && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <WalletOnboarding />
               </View>
             )}
 
@@ -76,6 +78,12 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
               </View>
             )}
 
+            {selectedTab == SelectedTab.CASHU_WALLET && (
+              <View>
+                <Text style={styles.text}>Cashu wallet coming soon</Text>
+                <CashuWalletView></CashuWalletView>
+              </View>
+            )}
           </SafeAreaView>
         </KeyboardAvoidingView>
       </ScrollView>
