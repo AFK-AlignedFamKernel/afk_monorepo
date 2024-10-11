@@ -1,12 +1,9 @@
-import {parseUnits} from '@ethersproject/units';
 import {Feather} from '@expo/vector-icons';
-import React, {useCallback, useEffect, useState} from 'react';
+import {useAccount} from '@starknet-react/core';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle} from 'react-native';
-import {parseEther} from 'viem';
-import {useSendTransaction, useWriteContract} from 'wagmi';
 
-import {useSwapModal} from '../../context/SwapModalProvider';
-import {useEvmWallet} from '../../context/WalletModalEvmProvider';
+import {WalletModalContext} from '../../context/WalletModal';
 import {useStyles, useTheme} from '../../hooks';
 import {
   useAvnuExecuteSwap,
@@ -16,7 +13,7 @@ import {
 } from '../../starknet/evm/hooks';
 import styleSheet from './styles';
 import TokenSelectModal from './TokenSelection';
-import {formatToUSD} from './util';
+import {formatToUSD, parseAmountToHex, parseUSD} from './util';
 interface Token {
   symbol: string;
   l2_token_address: string;
@@ -25,10 +22,9 @@ interface Token {
 }
 
 export default function TokenSwapView({showHeader = false}: {showHeader?: boolean}) {
-  const {showSwap} = useSwapModal();
-  const {sendTransaction} = useSendTransaction();
-  const {showEvmWallet, address, isConnected} = useEvmWallet();
-  const {data: hash} = useWriteContract();
+  const walletModalContext = useContext(WalletModalContext);
+
+  const {address, isConnected, account} = useAccount();
 
   const {data: tokens} = useGetEvmTokens();
   const [toToken, setToToken] = useState<Token | null>(null);
@@ -49,10 +45,13 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
   //USD VALUES
   const [estUsdValue, setEstUSDValue] = useState<string | any>('$0.00');
 
+  //Parse Amount
+  const sellAmount = parseUSD(amount);
+
   //AVNU SWAP DETAILS
   const {data: avnuSwapDetails} = useGetAvnuSwapQuoteDetails({
     buyTokenAddress: otherToken?.l2_token_address as any,
-    sellAmount: amount !== '0' ? parseUnits(amount || '0', fromToken?.decimals)._hex : '',
+    sellAmount: amount !== '0' ? parseAmountToHex(sellAmount, fromToken?.decimals as any) : '',
     sellTokenAddress: token?.l2_token_address as any,
     size: 3,
   });
@@ -144,10 +143,11 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
       setToToken(token);
     }
     setModalVisible(false);
-    updateAmounts(fromAmount, toAmount);
+    updateAmounts('0', '0');
+    setEstUSDValue('$0.00');
   };
 
-  const handleCallData = () => {
+  const handleExecute = () => {
     if (toAmount === '0' && fromAmount === '0') return;
     mutateSwapCallData(
       {
@@ -164,22 +164,16 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           );
 
           if (swapCall) {
-            sendTransaction(
-              {
-                to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
-                value: parseEther('0.000001'),
-              },
-              {
-                onSuccess() {
-                  console.log('Swap transaction sent:', hash);
-                  // Execute the swap on Avnu backend
-                  mutateExecuteSwap({
-                    quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
-                    signature: [''], // You can use this if needed in your backend
-                  });
-                },
-              },
-            );
+            const resp = await account?.execute({
+              contractAddress: swapCall.contractAddress,
+              entrypoint: swapCall.entrypoint,
+              calldata: swapCall.calldata,
+            });
+
+            mutateExecuteSwap({
+              quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
+              signature: [resp?.transaction_hash as string], // You can use this if needed in your backend
+            });
           }
         },
         onError(error) {
@@ -187,12 +181,6 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
         },
       },
     );
-  };
-  const handleExecute = () => {
-    mutateExecuteSwap({
-      quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
-      signature: [''],
-    });
   };
 
   return (
@@ -300,11 +288,11 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
         <View style={styles.infoContainer}>{/* Add swap info and other details if needed */}</View>
 
         {isConnected ? (
-          <TouchableOpacity onPress={() => handleCallData()} style={styles.swapButton}>
+          <TouchableOpacity onPress={() => handleExecute()} style={styles.swapButton}>
             <Text style={styles.swapButtonText}>Swap</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={() => showEvmWallet()} style={styles.swapButton}>
+          <TouchableOpacity onPress={() => walletModalContext?.show()} style={styles.swapButton}>
             <Text style={styles.swapButtonText}>Connect Wallet</Text>
           </TouchableOpacity>
         )}
