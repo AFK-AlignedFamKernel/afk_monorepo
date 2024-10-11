@@ -8,11 +8,78 @@ export interface IGetTokenReturnTypeObj {
   logo_url: string;
 }
 
+export interface IAvnuSwapBuildDataTypeReturnTypeObj {
+  types: Types;
+  primaryType: string;
+  domain: Domain;
+  message: Message;
+}
+
+export interface IAvnuSwapBuildDataTypeReturnTypeObj {
+  signature: any;
+  types: Types;
+  primaryType: string;
+  domain: Domain;
+  message: Message;
+}
+
+export interface Domain {
+  name: ChainID;
+  version: ChainID;
+  chainId: ChainID;
+  revision: string;
+  separatorName$lib: string;
+}
+
+export interface ChainID {
+  content: string;
+  isString: boolean;
+}
+
+export interface Message {
+  values: AdditionalProp1[];
+  isEmpty: boolean;
+  size: number;
+  entries: Entry[];
+  keys: string[];
+  additionalProp1: AdditionalProp1;
+  additionalProp2: AdditionalProp1;
+  additionalProp3: AdditionalProp1;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AdditionalProp1 {}
+
+export interface Entry {
+  value: AdditionalProp1;
+  key: string;
+}
+
+export interface Types {
+  additionalProp1: AdditionalProp[];
+  additionalProp2: AdditionalProp[];
+  additionalProp3: AdditionalProp[];
+}
+
+export interface AdditionalProp {
+  name: string;
+  type: string;
+}
+
 export interface IAvnuSwapCalldata {
   quoteId: string;
   takerAddress: string;
   slippage: number;
   includeApprove: boolean;
+}
+
+export interface IAvnuSwapBuildTypedata {
+  quoteId: string;
+  takerAddress: string;
+  slippage: number;
+  includeApprove: boolean;
+  gasTokenAddress?: string;
+  maxGasTokenAmount?: string;
 }
 
 export interface IAvnuSwapCalldataReturnTypeObj {

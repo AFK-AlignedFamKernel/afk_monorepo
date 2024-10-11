@@ -8,6 +8,7 @@ import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {
   useAvnuExecuteSwap,
+  useAvnuSwapBuildDataType,
   useAvnuSwapCalldata,
   useGetAvnuSwapQuoteDetails,
   useGetEvmTokens,
@@ -53,7 +54,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
   const sellAmount = parseUSD(amount);
 
   //AVNU SWAP DETAILS
-  const {data: avnuSwapDetails} = useGetAvnuSwapQuoteDetails({
+  const {data: avnuSwapDetails, refetch} = useGetAvnuSwapQuoteDetails({
     buyTokenAddress: otherToken?.l2_token_address as any,
     sellAmount: amount !== '0' ? parseAmountToHex(sellAmount, fromToken?.decimals as any) : '',
     sellTokenAddress: token?.l2_token_address as any,
@@ -62,6 +63,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
   const {mutate: mutateSwapCallData} = useAvnuSwapCalldata();
 
   const {mutate: mutateExecuteSwap} = useAvnuExecuteSwap();
+  const {mutate: mutateSwapBuildDataType} = useAvnuSwapBuildDataType();
 
   const theme = useTheme();
   const styles = useStyles(styleSheet);
@@ -151,48 +153,56 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
     setEstUSDValue('$0.00');
   };
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     if (toAmount === '0' && fromAmount === '0') return;
     setIsLoading(true);
 
-    console.log(account?.address, 'add', address);
+    // Refetch the quote to ensure we have the latest data
+    const freshQuote = await refetch();
 
     mutateSwapCallData(
       {
         takerAddress: account?.address as string,
         slippage: 0.05,
-        quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
+        quoteId: freshQuote?.data?.length ? freshQuote.data[0].quoteId : '',
         includeApprove: true,
       },
       {
         async onSuccess(data) {
-          try {
-            // Find the swap call
-            const swapCall = data.calls.find(
-              (call) => call.entrypoint === 'swap' || call.entrypoint === 'multi_route_swap',
-            );
+          // Find the approve call and the swap call
+          const approveCall = data.calls.find((call) => call.entrypoint === 'approve');
+          const swapCall = data.calls.find(
+            (call) => call.entrypoint === 'swap' || call.entrypoint === 'multi_route_swap',
+          );
 
-            if (swapCall) {
-              const resp = await account?.execute({
-                contractAddress: swapCall.contractAddress,
-                entrypoint: swapCall.entrypoint,
-                calldata: swapCall.calldata,
-              });
-
-              mutateExecuteSwap({
-                quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
-                signature: [resp?.transaction_hash as string], // You can use this if needed in your backend
-              });
+          if (approveCall && swapCall) {
+            try {
+              // Execute both calls in a single transaction
+              const res = await account?.execute([
+                {
+                  contractAddress: approveCall.contractAddress,
+                  entrypoint: approveCall.entrypoint,
+                  calldata: approveCall.calldata,
+                },
+                {
+                  contractAddress: swapCall.contractAddress,
+                  entrypoint: swapCall.entrypoint,
+                  calldata: swapCall.calldata,
+                },
+              ]);
+              if (res?.transaction_hash) {
+                setIsLoading(false);
+                showToast({type: 'info', title: 'Swap Successfull'});
+              }
+            } catch (error) {
+              setIsLoading(false);
+              showToast({type: 'error', title: error.message});
             }
-          } catch (error) {
-            showToast({type: 'error', title: error.message});
-            setIsLoading(false);
           }
         },
         onError(error) {
           setIsLoading(false);
           showToast({type: 'error', title: error.message});
-          console.error('Failed to get swap call data:', error);
         },
       },
     );

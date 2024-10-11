@@ -1,6 +1,7 @@
 import {useMutation, useQuery} from '@tanstack/react-query';
 
 import {
+  buildAvnuSwapBuildTypeFn,
   buildAvnuSwapCallDataFn,
   executeAvnuSwapFn,
   fetchEvmTokenFn,
@@ -69,6 +70,13 @@ export const useAvnuSwapCalldata = () => {
   });
 };
 
+export const useAvnuSwapBuildDataType = () => {
+  return useMutation({
+    mutationKey: ['avnuSwapBuildDataType'],
+    mutationFn: buildAvnuSwapBuildTypeFn,
+  });
+};
+
 export const useAvnuExecuteSwap = () => {
   return useMutation({
     mutationKey: ['avnuExecuteSwap'],
@@ -86,5 +94,6 @@ export const useGetAvnuSwapQuoteDetails = ({...options}: IAvnuQueryType) => {
     ],
     queryFn: () => fetchGetAvnuSwapQuoteFn(options),
     enabled: options.sellAmount ? true : false,
+    refetchInterval: 10000, // Refetch every 10 seconds to keep quote fresh
   });
 };
