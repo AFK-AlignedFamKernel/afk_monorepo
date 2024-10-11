@@ -5,6 +5,7 @@ import {Image, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle} f
 
 import {WalletModalContext} from '../../context/WalletModal';
 import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import {
   useAvnuExecuteSwap,
   useAvnuSwapCalldata,
@@ -22,6 +23,9 @@ interface Token {
 }
 
 export default function TokenSwapView({showHeader = false}: {showHeader?: boolean}) {
+  const {showToast} = useToast();
+
+  const [isLoading, setIsLoading] = useState(false);
   const walletModalContext = useContext(WalletModalContext);
 
   const {address, isConnected, account} = useAccount();
@@ -149,34 +153,45 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
 
   const handleExecute = () => {
     if (toAmount === '0' && fromAmount === '0') return;
+    setIsLoading(true);
+
+    console.log(account?.address, 'add', address);
+
     mutateSwapCallData(
       {
-        takerAddress: address as string,
-        slippage: 0.5,
+        takerAddress: account?.address as string,
+        slippage: 0.05,
         quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
         includeApprove: true,
       },
       {
         async onSuccess(data) {
-          // Find the swap call
-          const swapCall = data.calls.find(
-            (call) => call.entrypoint === 'swap' || call.entrypoint === 'multi_route_swap',
-          );
+          try {
+            // Find the swap call
+            const swapCall = data.calls.find(
+              (call) => call.entrypoint === 'swap' || call.entrypoint === 'multi_route_swap',
+            );
 
-          if (swapCall) {
-            const resp = await account?.execute({
-              contractAddress: swapCall.contractAddress,
-              entrypoint: swapCall.entrypoint,
-              calldata: swapCall.calldata,
-            });
+            if (swapCall) {
+              const resp = await account?.execute({
+                contractAddress: swapCall.contractAddress,
+                entrypoint: swapCall.entrypoint,
+                calldata: swapCall.calldata,
+              });
 
-            mutateExecuteSwap({
-              quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
-              signature: [resp?.transaction_hash as string], // You can use this if needed in your backend
-            });
+              mutateExecuteSwap({
+                quoteId: avnuSwapDetails?.length ? avnuSwapDetails[0].quoteId : '',
+                signature: [resp?.transaction_hash as string], // You can use this if needed in your backend
+              });
+            }
+          } catch (error) {
+            showToast({type: 'error', title: error.message});
+            setIsLoading(false);
           }
         },
         onError(error) {
+          setIsLoading(false);
+          showToast({type: 'error', title: error.message});
           console.error('Failed to get swap call data:', error);
         },
       },
@@ -212,6 +227,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
               style={styles.input}
               placeholder="0.0"
               value={fromAmount}
+              disabled={isLoading}
               onChangeText={handleFromAmountChange}
             />
 
@@ -289,7 +305,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
 
         {isConnected ? (
           <TouchableOpacity onPress={() => handleExecute()} style={styles.swapButton}>
-            <Text style={styles.swapButtonText}>Swap</Text>
+            <Text style={styles.swapButtonText}>{isLoading ? 'Swapping...' : 'Swap'}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => walletModalContext?.show()} style={styles.swapButton}>
