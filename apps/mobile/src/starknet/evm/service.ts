@@ -17,9 +17,9 @@ import {
   IQuoteSwapQuery,
 } from './types';
 
-const ekuboBaseUrl = process.env.EXPO_PUBLIC_EKUBO_API;
+const ekuboBaseUrl = process.env.EXPO_PUBLIC_EKUBO_API || 'https://mainnet-api.ekubo.org';
 const ekuboQuoteBaseUrl = process.env.EXPO_PUBLIC_EKUBO_ROUTE_API;
-const avnuApi = 'https://starknet.api.avnu.fi';
+const avnuApi = process.env.EXPO_PUBLIC_AVNU_API || 'https://starknet.api.avnu.fi';
 
 export const ApiEvmInstance = axios.create({
   baseURL: ekuboBaseUrl,
