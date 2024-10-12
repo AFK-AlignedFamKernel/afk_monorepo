@@ -20,7 +20,6 @@
     "jsx": "preserve",
     "incremental": true,
     "noImplicitAny": false,
-    "preserveSymlinks": true,
     "plugins": [
       {
         "name": "next"
