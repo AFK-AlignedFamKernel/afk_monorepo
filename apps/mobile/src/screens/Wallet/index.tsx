@@ -76,7 +76,7 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
               </View>
             )}
 
-            {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
+            {/* {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
               <View>
                 <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
                 <PaymentStripeScreen></PaymentStripeScreen>
@@ -87,9 +87,8 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
             {selectedTab == SelectedTab.WALLET_INTERNAL && (
               <View>
                 <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
-                <CashuWalletView></CashuWalletView>
               </View>
-            )}
+            )} */}
 
           </SafeAreaView>
         </KeyboardAvoidingView>

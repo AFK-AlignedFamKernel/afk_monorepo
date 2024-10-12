@@ -739,6 +739,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     };
     const provider = await getProvider()
     let chainId = await provider.getChainId();
+
+    if(!wallet) {
+      console.error('No wallet find');
+      return;
+    }
     const accountSessionSignature = await openSession({
       wallet: wallet,
       sessionParams: sessionParams,
