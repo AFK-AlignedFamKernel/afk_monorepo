@@ -31,8 +31,7 @@
         "./src/*"
       ],
       "pixel_ui": ["../../packages/pixel_ui/src"],
-      "common": ["../../packages/common/src"],
-      "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"]
+      "common": ["../../packages/common/src"]
     },
     "noEmit": true
   },
