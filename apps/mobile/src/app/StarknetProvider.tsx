@@ -43,7 +43,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
             wcProjectId: WALLET_CONNECT_ID,
             dappName: 'AFK',
             description: 'AFK Starknet dApp',
-            url: 'https://afk-community',
+            url: 'https://afk-community.xyz',
             provider,
           }),
 
