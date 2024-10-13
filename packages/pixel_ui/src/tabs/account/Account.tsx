@@ -812,7 +812,7 @@ const Account = (props) => {
                 >
                   <img
                     className='Account__item__icon'
-                    src={"../../resources/icons/Search.png"}
+                    src={"/resources/icons/Search.png"}
                     alt='show'
                   />
                 </div>

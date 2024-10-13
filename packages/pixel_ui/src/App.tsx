@@ -24,7 +24,7 @@ import username_store_abi from './contracts/username_store.abi.json';
 import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
-import Hamburger from './resources/icons/Hamburger.png';
+import Hamburger from '/resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery.js';
 import {
   openSession,
