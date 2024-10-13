@@ -20,9 +20,11 @@ function MyApp({Component, pageProps}: AppProps) {
   // Track page views
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      window.gtag('config', GA_TRACKING_ID, {
-        page_path: url,
-      });
+      if(typeof window !== "undefined") {
+        window.gtag('config', GA_TRACKING_ID, {
+          page_path: url,
+        });
+      }
     };
     router.events.on('routeChangeComplete', handleRouteChange);
     return () => {
