@@ -14,6 +14,7 @@ import {LayerswapView} from '../../modules/Bridge/layerswap';
 import {DefiScreenProps} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
+import TokenSwapView from '../../modules/Swap';
 
 export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
@@ -58,7 +59,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
             )}
             {selectedTab == SelectedTab.SWAP_AVNU && (
               <View style={{display: 'flex', alignItems: 'center'}}>
-                <TokenSwap onPress={() => console.log('pressed!')} />
+                <TokenSwapView />
               </View>
             )}
             {/* 

@@ -22,6 +22,7 @@ import {EVMProvider} from './EVMProvider';
 import {WalletModalEVMProvider} from '../context/WalletModalEvmProvider';
 import {CashuProvider} from '../providers/CashuProvider';
 import {dynamicClient} from './DynamicClient';
+import {SwapModalEVMProvider} from '../context/SwapModalProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {queries: {retry: 2}},
@@ -31,19 +32,21 @@ const ModalProviders = ({children}: {children: React.ReactNode}) => {
   return (
     <ToastProvider>
       <WalletModalEVMProvider>
-        <WalletModalProvider>
-          <TransactionModalProvider>
-            <TipModalProvider>
-              <TipModalStarknetProvider>
-                <TokenCreateModalProvider>
-                  <KeyModalProvider>
-                    <ModalParentProvider>{children}</ModalParentProvider>
-                  </KeyModalProvider>
-                </TokenCreateModalProvider>
-              </TipModalStarknetProvider>
-            </TipModalProvider>
-          </TransactionModalProvider>
-        </WalletModalProvider>
+        <SwapModalEVMProvider>
+          <WalletModalProvider>
+            <TransactionModalProvider>
+              <TipModalProvider>
+                <TipModalStarknetProvider>
+                  <TokenCreateModalProvider>
+                    <KeyModalProvider>
+                      <ModalParentProvider>{children}</ModalParentProvider>
+                    </KeyModalProvider>
+                  </TokenCreateModalProvider>
+                </TipModalStarknetProvider>
+              </TipModalProvider>
+            </TransactionModalProvider>
+          </WalletModalProvider>
+        </SwapModalEVMProvider>
       </WalletModalEVMProvider>
     </ToastProvider>
   );
