@@ -25,20 +25,20 @@ export const WalletOnboarding: FC = () => {
     if (isWalletSetup && isWalletSetup == 'true') {
       const result = await WalletManager.getDecryptedPrivateKey();
       if (!result) {
-        showToast({title: 'Authentification issue.', type: 'error'});
+        showToast({title: 'Authentication issue.', type: 'error'});
 
         // return router.push("/onboarding")
       } else {
         const {secretKey, mnemonic, publicKey, strkPrivateKey} = result;
         console.log('result', result);
-        showToast({title: 'Authentification succed.', type: 'success'});
+        showToast({title: 'Authentication succeed.', type: 'success'});
 
         setIsConnected(true);
       }
     } else if (!isWalletSetup) {
       const result = await WalletManager.getOrCreateKeyPair();
       if (!result) {
-        showToast({title: 'Authentification issue.', type: 'error'});
+        showToast({title: 'Authentication issue.', type: 'error'});
         // return router.push("/onboarding")
       } else {
         const {secretKey, mnemonic, publicKey, strkPrivateKey} = result;
@@ -58,13 +58,13 @@ export const WalletOnboarding: FC = () => {
     if (isWalletSetup && isWalletSetup == 'true') {
       const result = await WalletManager.getDecryptedPrivateKey();
       if (!result) {
-        showToast({title: 'Authentification issue.', type: 'error'});
+        showToast({title: 'Authentication issue.', type: 'error'});
 
         // return router.push("/onboarding")
       } else {
         const {secretKey, mnemonic, publicKey, strkPrivateKey} = result;
         console.log('result', result);
-        showToast({title: 'Authentification succed.', type: 'success'});
+        showToast({title: 'Authentication succed.', type: 'success'});
 
         setIsConnected(true);
       }

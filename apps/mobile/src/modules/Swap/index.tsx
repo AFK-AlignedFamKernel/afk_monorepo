@@ -192,7 +192,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
               ]);
               if (res?.transaction_hash) {
                 setIsLoading(false);
-                showToast({type: 'info', title: 'Swap Successfull'});
+                showToast({type: 'info', title: 'Swap Successful'});
               }
             } catch (error) {
               setIsLoading(false);

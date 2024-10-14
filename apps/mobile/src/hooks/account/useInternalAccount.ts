@@ -41,14 +41,14 @@ export const useInternalAccount = () => {
       if (isWalletSetup && isWalletSetup == 'true') {
         // const result = await PasskeyManager.getDecryptedPrivateKey()
         // if (!result) {
-        //   showToast({ title: "Authentification issue.", type: "error" })
+        //   showToast({ title: "Authentication issue.", type: "error" })
 
         //   // return router.push("/onboarding")
 
         // } else {
         //   const { secretKey, mnemonic, publicKey, strkPrivateKey } = result
         //   console.log("result", result)
-        //   showToast({ title: "Authentification succed.", type: "success" })
+        //   showToast({ title: "Authentication succed.", type: "success" })
 
         //   setIsConnected(true)
         // }
@@ -90,7 +90,7 @@ export const useInternalAccount = () => {
       } else if (!passkey) {
         const result = await PasskeyManager.generatePasskeyAndSave(DEFAULT_PASSKEY_VALUES);
         if (!result) {
-          showToast({title: 'Authentification issue.', type: 'error'});
+          showToast({title: 'Authentication issue.', type: 'error'});
           // return router.push("/onboarding")
         } else {
           const credential = result;
