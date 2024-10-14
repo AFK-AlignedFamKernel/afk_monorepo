@@ -1,13 +1,13 @@
 // Hooks
-import { useEffect, useMemo, useRef } from 'react';
-import { useWindowDimensions, View, Platform } from 'react-native';
-import { useStyles, useTheme } from '../hooks';
+import {useEffect, useMemo, useRef} from 'react';
+import {useWindowDimensions, View, Platform} from 'react-native';
+import {useStyles, useTheme} from '../hooks';
 
 // Navigation Components
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+import {NavigationContainer, useNavigation, useRoute} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 // Modules and Layout
 import GroupChatDetail from '../modules/Group/groupDetail/GroupChatDetail';
@@ -20,55 +20,55 @@ import ShortVideosModule from '../modules/ShortVideos';
 // import RightSidebar from '../modules/Layout/RightSideBar';
 
 // Components
-import { Icon } from '../components';
-import { Navbar } from '../components/Navbar';
+import {Icon} from '../components';
+import {Navbar} from '../components/Navbar';
 
 // Screens
-import { CreateAccount } from '../screens/Auth/nostr/CreateAccount';
-import { ImportKeys } from '../screens/Auth/nostr/ImportKeys';
-import { LoginNostr } from '../screens/Auth/nostr/LoginNostr';
-import { SaveKeys } from '../screens/Auth/nostr/SaveKeys';
-import { ChannelDetail } from '../screens/ChannelDetail';
-import { ChannelsFeed } from '../screens/ChannelsFeed';
-import { CreateChannel } from '../screens/CreateChannel';
-import { CreateForm } from '../screens/CreateForm';
-import { CreatePost } from '../screens/CreatePost';
-import { Defi } from '../screens/Defi';
-import { EditProfile } from '../screens/EditProfile';
-import { Feed } from '../screens/Feed';
-import { Games } from '../screens/Games';
-import { LaunchDetail } from '../screens/LaunchDetail';
-import { LightningNetworkScreen } from '../screens/Lightning';
-import { PostDetail } from '../screens/PostDetail';
-import { Profile } from '../screens/Profile';
-import { Search } from '../screens/Search';
-import { Settings } from '../screens/Settings';
-import { Tips } from '../screens/Tips';
-import { CashuScreen } from '../screens/Cashu';
-import { WalletBTC } from '../screens/WalletBTC';
-import { Wallet } from '../screens/Wallet';
+import {CreateAccount} from '../screens/Auth/nostr/CreateAccount';
+import {ImportKeys} from '../screens/Auth/nostr/ImportKeys';
+import {LoginNostr} from '../screens/Auth/nostr/LoginNostr';
+import {SaveKeys} from '../screens/Auth/nostr/SaveKeys';
+import {ChannelDetail} from '../screens/ChannelDetail';
+import {ChannelsFeed} from '../screens/ChannelsFeed';
+import {CreateChannel} from '../screens/CreateChannel';
+import {CreateForm} from '../screens/CreateForm';
+import {CreatePost} from '../screens/CreatePost';
+import {Defi} from '../screens/Defi';
+import {EditProfile} from '../screens/EditProfile';
+import {Feed} from '../screens/Feed';
+import {Games} from '../screens/Games';
+import {LaunchDetail} from '../screens/LaunchDetail';
+import {LightningNetworkScreen} from '../screens/Lightning';
+import {PostDetail} from '../screens/PostDetail';
+import {Profile} from '../screens/Profile';
+import {Search} from '../screens/Search';
+import {Settings} from '../screens/Settings';
+import {Tips} from '../screens/Tips';
+import {CashuScreen} from '../screens/Cashu';
+import {WalletBTC} from '../screens/WalletBTC';
+import {Wallet} from '../screens/Wallet';
 
 // Styles
-import { StyleSheet } from 'react-native';
-import { ThemedStyleSheet } from '../styles';
+import {StyleSheet} from 'react-native';
+import {ThemedStyleSheet} from '../styles';
 
 // Utilities
-import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
-import { useNavigationContainerRef } from '@react-navigation/native';
+import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
+import {useNavigationContainerRef} from '@react-navigation/native';
 // import { retrievePublicKey } from '../utils/storage';
 
 // Icons
-import { IconNames } from '../components/Icon';
-import { useAuth } from 'afk_nostr_sdk';
-import { Onboarding } from '../screens/Onboarding';
-import { initGoogleAnalytics, logPageView } from '../utils/analytics';
+import {IconNames} from '../components/Icon';
+import {useAuth} from 'afk_nostr_sdk';
+import {Onboarding} from '../screens/Onboarding';
+import {initGoogleAnalytics, logPageView} from '../utils/analytics';
 
 type TabBarIconProps = {
   focused: boolean;
   name: IconNames;
 };
 
-const TabBarIcon = ({ focused, name }: TabBarIconProps) => {
+const TabBarIcon = ({focused, name}: TabBarIconProps) => {
   const styles = useStyles(stylesheet);
   return (
     <View style={styles.tabBarIcon}>
@@ -86,10 +86,10 @@ const HomeBottomTabsStack = createBottomTabNavigator<HomeBottomStackParams>();
 
 // Home Bottom Tab Navigator
 const HomeBottomTabNavigator: React.FC = () => {
-  const { publicKey } = useAuth()
+  const {publicKey} = useAuth();
   // const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
   const styles = useStyles(stylesheet);
-  const { theme } = useTheme();
+  const {theme} = useTheme();
 
   // useEffect(() => {
   //   retrievePublicKey().then((key) => {
@@ -113,7 +113,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
       />
 
@@ -123,7 +123,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="CoinIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CoinIcon" />,
         }}
       />
 
@@ -133,7 +133,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="GameIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="GameIcon" />,
         }}
       />
 
@@ -143,7 +143,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="WalletIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
       />
 
@@ -151,11 +151,11 @@ const HomeBottomTabNavigator: React.FC = () => {
         <HomeBottomTabsStack.Screen
           name="UserProfile"
           component={Profile as any}
-          initialParams={{ publicKey }}
+          initialParams={{publicKey}}
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="UserIcon" />,
+            tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="UserIcon" />,
           }}
         />
       ) : (
@@ -165,7 +165,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           options={{
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'grey',
-            tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="UserPlusIcon" />,
+            tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="UserPlusIcon" />,
           }}
         />
       )}
@@ -180,7 +180,7 @@ const AuthNavigator: React.FC = () => {
     return dimensions.width >= 1024;
   }, [dimensions]);
 
-  const { publicKey } = useAuth();
+  const {publicKey} = useAuth();
   // const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
 
   const theme = useTheme();
@@ -196,7 +196,7 @@ const AuthNavigator: React.FC = () => {
   return (
     <AuthStack.Navigator
       drawerContent={(props) => <AuthSidebar navigation={props?.navigation}></AuthSidebar>}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({navigation}) => ({
         header: () => <></>,
         //    header: () =>!isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
@@ -239,8 +239,8 @@ const MainNavigator: React.FC = () => {
   const theme = useTheme();
 
   const FeedWithSidebar: React.FC = () => (
-    <View style={{ flexDirection: 'row', flex: 1 }}>
-      <View style={{ flex: 1 }}>
+    <View style={{flexDirection: 'row', flex: 1}}>
+      <View style={{flex: 1}}>
         <Feed navigation={useNavigation()} route={useRoute()} />
       </View>
       {/* {isDesktop && (
@@ -256,7 +256,7 @@ const MainNavigator: React.FC = () => {
       initialRouteName="Home"
       // initialRouteName="Feed"
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
-      screenOptions={({ navigation }) => ({
+      screenOptions={({navigation}) => ({
         header: () =>
           !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
         headerShown: !isDesktop,
@@ -324,9 +324,9 @@ const RootNavigator: React.FC = () => {
   //   });
   // }, []);
 
-  const { publicKey } = useAuth();
+  const {publicKey} = useAuth();
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Navigator screenOptions={{headerShown: false}}>
       {/* {publicKey ? (
         <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (
@@ -365,8 +365,7 @@ export const Router = () => {
     }
   }, [navigationRef]);
   return (
-    <NavigationContainer linking={linking}
-      ref={navigationRef}>
+    <NavigationContainer linking={linking} ref={navigationRef}>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -420,7 +419,7 @@ const linking = {
           //   path: '',
           // },
           Login: 'login',
-          Onboarding: "onboarding",
+          Onboarding: 'onboarding',
           CreateAccount: 'create-account',
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',

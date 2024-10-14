@@ -10,10 +10,10 @@
     "format:check": "prettier -c \"src/**/*.{ts,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:strict": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
-    "lint:fix": "yarn lint --fix",
+    "lint:fix": "pnpm lint --fix",
     "ts:check": "tsc --noEmit",
-    "check:all": "yarn check && yarn format:check && yarn lint && yarn ts:check",
-    "check:all-strict": "yarn check && yarn format:check && yarn lint:strict && yarn ts:check"
+    "check:all": "pnpm check && pnpm format:check && pnpm lint && pnpm ts:check",
+    "check:all-strict": "pnpm check && pnpm format:check && pnpm lint:strict && pnpm ts:check"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +27,12 @@
   "devDependencies": {
     "starknet": "^6.6.6",
     "tsup": "^8.0.2",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.2.5"
   }
 }

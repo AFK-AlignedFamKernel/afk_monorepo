@@ -164,7 +164,7 @@ export const fetchGetSwapQuoteFn = async (
 export const fetchGetQuotePriceFn = async (query: IQuotePrice): Promise<IPriceReturnType> => {
   try {
     const response = await ApiEvmInstance.get(
-      `/price/${query.baseToken}/${query.quoteToken}?${query.atTime}&peroid=${query.period}`,
+      `/price/${query.baseToken}/${query.quoteToken}?${query.atTime}&period=${query.period}`,
     );
     return response.data;
   } catch (error) {

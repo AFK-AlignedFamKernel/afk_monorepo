@@ -14,7 +14,7 @@ export const useNip07Extension = (options?: UseRootProfilesOptions) => {
         console.log('Permission granted to read their public key:', user.pubkey);
         setPublicKey(user.pubkey);
         setIsExtensionConnect(true);
-        return user.pubkey
+        return user.pubkey;
       }
     });
     // if (typeof window !== 'undefined') {

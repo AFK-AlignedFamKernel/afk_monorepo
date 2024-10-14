@@ -6,7 +6,7 @@ import {
   useNetwork,
   useConnect
 } from '@starknet-react/core';
-import { connect } from 'starknetkit-next';
+import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
 
 import './App.css';
 import CanvasContainer from './canvas/CanvasContainer.js';
@@ -14,7 +14,8 @@ import PixelSelector from './footer/PixelSelector.js';
 import TabsFooter from './footer/TabsFooter.js';
 import TabPanel from './tabs/TabPanel.js';
 import { usePreventZoom, useLockScroll } from './utils/Window.js';
-import { backendUrl, wsUrl, devnetMode, allowedMethods, expiry, metaData, dappKey, getProvider } from './utils/Consts.js';
+import { backendUrl, wsUrl, devnetMode, expiry, metaData, dappKey, getProvider } from './utils/Consts.js';
+import { allowedMethods } from './utils/Session.js';
 import logo from './resources/logo.png';
 import canvasConfig from './configs/canvas.config.json';
 import { fetchWrapper, getTodaysStartTime } from './services/apiService.js';
@@ -23,14 +24,15 @@ import username_store_abi from './contracts/username_store.abi.json';
 import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
-import Hamburger from './resources/icons/Hamburger.png';
+import Hamburger from '/resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery.js';
 import {
   openSession,
   createSessionRequest,
-  buildSessionAccount
+  buildSessionAccount,
+  OffChainSession
 } from '@argent/x-sessions';
-import { constants, provider, stark } from 'starknet';
+import { constants, provider, Signature, stark } from 'starknet';
 // import { useMediaQuery } from 'react-responsive';
 
 interface IApp {
@@ -333,8 +335,8 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateChainFactionPixelTimers = () => {
-      let newChainFactionPixelTimers = [];
-      let newChainFactionPixels = [];
+      let newChainFactionPixelTimers: string[] = [];
+      let newChainFactionPixels: any[] = [];
       for (let i = 0; i < chainFactionPixelsData.length; i++) {
         let memberPixels = chainFactionPixelsData[i]?.memberPixels;
 
@@ -376,8 +378,8 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [factionPixelTimers, setFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateFactionPixelTimers = () => {
-      let newFactionPixelTimers = [];
-      let newFactionPixels = [];
+      let newFactionPixelTimers: string[] = [];
+      let newFactionPixels: any[] = [];
       for (let i = 0; i < factionPixelsData.length; i++) {
         let memberPixels = factionPixelsData[i].memberPixels;
         if (memberPixels !== 0) {
@@ -585,11 +587,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
   // Starknet wallet
-  const [wallet, setWallet] = useState(null);
-  const [connectorData, setConnectorData] = useState(null);
+  const [wallet, setWallet] = useState<StarknetWindowObject | undefined | null>(null);
+  const [connectorData, setConnectorData] = useState<ConnectorData | undefined | null>(null);
   const [_connector, setConnector] = useState(null);
-  const [_sessionRequest, setSessionRequest] = useState(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null | undefined>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
 
@@ -737,6 +739,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     };
     const provider = await getProvider()
     let chainId = await provider.getChainId();
+
+    if(!wallet) {
+      console.error('No wallet find');
+      return;
+    }
     const accountSessionSignature = await openSession({
       wallet: wallet,
       sessionParams: sessionParams,

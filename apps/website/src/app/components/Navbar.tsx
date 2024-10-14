@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, {useState} from 'react';
 import {createPortal} from 'react-dom';
+
 import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
 export function Navbar() {

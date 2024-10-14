@@ -13,6 +13,8 @@ import { SelectedTab, TABS_WALLET } from '../../types/tab';
 import stylesheet from './styles';
 import { CashuWalletView } from '../../modules/Cashu';
 import { LayerswapView } from '../../modules/Bridge/layerswap';
+import { PaymentStripeScreen } from '../../modules/Payment/stripe';
+import CheckoutScreen from '../../modules/Payment/stripe/checkout';
 
 export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
@@ -41,13 +43,11 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
             addScreenNavigation={false}
           ></TabSelector>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-
             {selectedTab == SelectedTab.BRIDGE_LAYERSWAP && (
               <>
                 <LayerswapView />
               </>
             )}
-
 
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
@@ -75,6 +75,20 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
                 <LightningNetworkWalletView></LightningNetworkWalletView>
               </View>
             )}
+
+            {/* {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
+              <View>
+                <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
+                <PaymentStripeScreen></PaymentStripeScreen>
+                <CheckoutScreen></CheckoutScreen>
+              </View>
+            )}
+
+            {selectedTab == SelectedTab.WALLET_INTERNAL && (
+              <View>
+                <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
+              </View>
+            )} */}
 
           </SafeAreaView>
         </KeyboardAvoidingView>

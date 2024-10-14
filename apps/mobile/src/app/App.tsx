@@ -5,11 +5,11 @@ import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {useCallback, useEffect, useState} from 'react';
 import {View, Platform} from 'react-native';
-import { useNavigationContainerRef } from '@react-navigation/native';
+import {useNavigationContainerRef} from '@react-navigation/native';
 import {useTips} from '../hooks';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
-import { initGoogleAnalytics } from '../utils/analytics';
+import {initGoogleAnalytics} from '../utils/analytics';
 
 SplashScreen.preventAutoHideAsync();
 

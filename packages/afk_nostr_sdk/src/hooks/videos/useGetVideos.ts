@@ -6,7 +6,7 @@ import {useNostrContext} from '../../context/NostrContext';
 export type UseRootNotesOptions = {
   authors?: string[];
   search?: string;
-  kinds?:NDKKind[]
+  kinds?: NDKKind[];
 };
 
 export const useGetVideos = (options?: UseRootNotesOptions) => {

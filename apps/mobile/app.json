@@ -81,6 +81,13 @@
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone.",
           "enableCodeScanner": true
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "",
+          "enableGooglePay": true
+        }
       ]
     ],
     "sdkVersion": "51.0.0",

@@ -1,24 +1,24 @@
 // import { useAuth } from '../../../store/auth';
-import { useAuth, useNostrContext } from 'afk_nostr_sdk';
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, Text, View, Image, ScrollView } from 'react-native';
+import {useAuth, useNostrContext} from 'afk_nostr_sdk';
+import React, {useEffect, useMemo} from 'react';
+import {Pressable, Text, View, Image, ScrollView} from 'react-native';
 
-import { Icon } from '../../../components/Icon';
-import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
+import {Icon} from '../../../components/Icon';
+import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import stylesheet from './styles';
 
 interface SidebarInterface {
   // navigation:MainStackNavigationProps | DrawerNavigationHelpers
   navigation: any;
 }
-const Sidebar = ({ navigation }: SidebarInterface) => {
+const Sidebar = ({navigation}: SidebarInterface) => {
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
   const ndk = useNostrContext();
   // const navigation = useNavigation<MainStackNavigationProps>()
   // const navigation = useNavigation<DrawerStackNavigationProps>()
   const handleNavigateProfile = () => {
-    navigation.navigate('Profile', { publicKey });
+    navigation.navigate('Profile', {publicKey});
   };
 
   const handleAuth = () => {
@@ -26,7 +26,7 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
   };
 
   const handleWallet = () => {
-    navigation.navigate("Wallet");
+    navigation.navigate('Wallet');
   };
   const theme = useTheme();
   // const handleNavigateHome = () => {
@@ -93,22 +93,22 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
             </Pressable> */}
 
       <Pressable onPress={handleHomeScreen} style={styles.item}>
-        <Icon name="HomeIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="HomeIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>Feed</Text>
       </Pressable>
 
       <Pressable onPress={handleTipsScreen} style={styles.item}>
-        <Icon name="CoinIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="CoinIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>Tips</Text>
       </Pressable>
 
       <Pressable onPress={handleGameScreen} style={styles.item}>
-        <Icon name="GameIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="GameIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>?</Text>
       </Pressable>
 
       <Pressable onPress={handleDefiScreen} style={styles.item}>
-        <Icon name="CoinIcon" size={24} style={{ backgroundColor: theme.theme.colors.background }} />
+        <Icon name="CoinIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
         <Text style={styles.textItem}>DeFi</Text>
       </Pressable>
 
@@ -130,8 +130,6 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
           <Text style={styles.textItem}>Login</Text>
         </Pressable>
       )}
-
-
     </ScrollView>
   );
 };

@@ -11,6 +11,8 @@ import allTransactionsRoute from "./routes/indexer/all-transactions";
 import createFunkitStripeCheckout from "./routes/funkit/create_funkit_stripe_checkout";
 import getFunkitStripeCheckoutQuote from "./routes/funkit/get_funkit_stripe_checkout_quote";
 import getFunkitStripeCheckoutStatus from "./routes/funkit/get_funkit_stripe_checkout_status";
+import createPaymentIntent from "./routes/stripe/createPaymentIntent";
+import paymentSheet from "./routes/stripe/paymentSheet";
 // import getOtp from "./routes/otp/getOtp";
 // import verifyOtp from "./routes/otp/verifyOtp";
 // import type { Account } from 'starknet'
@@ -32,6 +34,8 @@ function declareRoutes(
   fastify.register(createFunkitStripeCheckout);
   fastify.register(getFunkitStripeCheckoutQuote);
   fastify.register(getFunkitStripeCheckoutStatus);
+  fastify.register(createPaymentIntent);
+  fastify.register(paymentSheet);
   // fastify.register(getOtp, twilio_services?.verifications);
   // fastify.register(verifyOtp, deployer, twilio_services?.verificationChecks);
   // fastify.register(verifyOtp, [deployer, twilio_services?.verificationChecks]);
