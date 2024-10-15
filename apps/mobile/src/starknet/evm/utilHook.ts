@@ -5,8 +5,6 @@ import {useMemo} from 'react';
 import {type BlockNumber, type CallOptions, BlockTag, num, shortString} from 'starknet';
 import {formatUnits} from 'viem';
 
-const DEFAULT_FETCH_INTERVAL = 5_000;
-
 export type Balance = {
   decimals: number;
   symbol: string;
@@ -41,8 +39,6 @@ export type UseBalanceProps = UseQueryProps<
 
 export type UseBalanceResult = UseQueryResult<Balance, Error>;
 
-type TAbi = typeof balanceABIFragment;
-
 /**
  * Fetch the balance for the provided address and token.
  *
@@ -62,7 +58,6 @@ export function useBalanceUtil({
     abi: balanceABIFragment,
     address: token,
   });
-  console.log(contract, 'contract');
 
   const queryKey_ = useMemo(
     () => queryKey({chain, token, address, blockIdentifier}),
