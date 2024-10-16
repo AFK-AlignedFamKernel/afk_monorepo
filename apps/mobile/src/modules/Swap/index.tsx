@@ -268,7 +268,9 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           </View>
           <View style={styles.balanceEstimate}>
             <Text style={styles.estimate}>≈ {estUsdValue}</Text>
-            <Text style={styles.balance}>{fromBalance ? `$${fromBalance?.formatted}` : ''}</Text>
+            <Text style={styles.balance}>
+              {fromBalance ? parseFloat(fromBalance?.formatted).toFixed(5) : ''}
+            </Text>
           </View>
         </View>
 
@@ -313,7 +315,9 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           </View>
           <View style={styles.balanceEstimate}>
             <Text style={styles.estimate}>≈ {estUsdValue}</Text>
-            <Text style={styles.balance}>{toBalance ? `$${toBalance?.formatted}` : ''}</Text>
+            <Text style={styles.balance}>
+              {toBalance ? parseFloat(toBalance?.formatted).toFixed(5) : ''}
+            </Text>
           </View>
         </View>
 

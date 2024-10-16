@@ -62,6 +62,7 @@ import {IconNames} from '../components/Icon';
 import {useAuth} from 'afk_nostr_sdk';
 import {Onboarding} from '../screens/Onboarding';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
+import {TagsView} from '../screens/Tags';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -286,6 +287,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="PostDetail" component={PostDetail} />
       <MainStack.Screen name="ChannelDetail" component={ChannelDetail} />
       <MainStack.Screen name="Search" component={Search} />
+      <MainStack.Screen name="Tags" component={TagsView} />
       <MainStack.Screen name="CreateChannel" component={CreateChannel} />
       <MainStack.Screen name="ChannelsFeed" component={ChannelsFeed} />
       <MainStack.Screen name="CreateForm" component={CreateForm} />
@@ -425,6 +427,7 @@ const linking = {
           ImportKeys: 'import-keys',
           Home: 'home',
           Feed: 'feed',
+          Tags: 'Tags',
           Profile: {
             path: 'profile/:publicKey',
             parse: {

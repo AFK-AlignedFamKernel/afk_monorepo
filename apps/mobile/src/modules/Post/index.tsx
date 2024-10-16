@@ -12,6 +12,7 @@ import {
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
+import React from 'react';
 import {ActivityIndicator, Image, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
@@ -24,11 +25,13 @@ import Animated, {
 
 import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
 import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
+import Badge from '../../components/Badge';
 import {useNostrAuth, useStyles, useTheme} from '../../hooks';
 import {useTipModal, useToast} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
-import {getImageRatio, shortenPubkey} from '../../utils/helpers';
+import {getImageRatio, removeHashFn, shortenPubkey} from '../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../utils/timestamp';
+import {ContentWithClickableHashtags} from '../PostCard';
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -92,6 +95,10 @@ export const Post: React.FC<PostProps> = ({
     const dislikesCount = reactions.data.length - likesCount;
     return likesCount - dislikesCount;
   }, [reactions.data]);
+
+  const hashTags = useMemo(() => {
+    return event?.tags?.filter((tag) => tag[0] === 't').map((tag) => tag[1]) || [];
+  }, [event?.tags]);
 
   const postSource = useMemo(() => {
     if (!event?.tags) return;
@@ -179,6 +186,11 @@ export const Post: React.FC<PostProps> = ({
   const content = event?.content || '';
   const truncatedContent = content.length > 200 ? `${content.slice(0, 200)}...` : content;
 
+  const handleHashtagPress = (hashtag: string) => {
+    const tag = removeHashFn(hashtag);
+    navigation.navigate('Tags', {tagName: tag});
+  };
+
   return (
     <View style={styles.container}>
       {repostedEvent ||
@@ -261,9 +273,10 @@ export const Post: React.FC<PostProps> = ({
 
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
-          <Text color="textStrong" fontSize={13} lineHeight={20}>
-            {isContentExpanded ? content : truncatedContent}
-          </Text>
+          <ContentWithClickableHashtags
+            content={isContentExpanded ? content : truncatedContent}
+            onHashtagPress={handleHashtagPress}
+          />
 
           {content.length > 200 && (
             <Pressable onPress={toggleExpandedContent}>
@@ -290,48 +303,62 @@ export const Post: React.FC<PostProps> = ({
         <View style={styles.footer}>
           <View
             style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'baseline',
               gap: 10,
+              flexWrap: 'nowrap',
             }}
           >
-            <Pressable onPress={handleNavigateToPostDetails}>
-              <View style={styles.footerComments}>
-                <CommentIcon height={20} color={theme.colors.textSecondary} />
-
-                <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                  {comments.data?.pages.flat().length} comments
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              style={{marginHorizontal: 3}}
-              onPress={() => {
-                if (!event) return;
-                showTipModal(event);
+            <View style={{flexDirection: 'row', gap: 8}}>
+              {hashTags.map((hashTag, index) => (
+                <Pressable onPress={() => handleHashtagPress(hashTag)} key={index}>
+                  <Badge value={`#${hashTag}`} />
+                </Pressable>
+              ))}
+            </View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'baseline',
+                gap: 10,
               }}
             >
-              <Icon name="CoinIcon" size={20} title="Tip" />
-            </Pressable>
+              <Pressable onPress={handleNavigateToPostDetails}>
+                <View style={styles.footerComments}>
+                  <CommentIcon height={20} color={theme.colors.textSecondary} />
 
-            <Pressable
-              style={{marginHorizontal: 3}}
-              onPress={handleRepost}
-              disabled={repostMutation.isPending}
-            >
-              <Icon name="RepostIcon" size={20} title="Repost" />
-              {repostMutation.isPending && <ActivityIndicator size="small" />}
-            </Pressable>
+                  <Text color="textSecondary" fontSize={11} lineHeight={16}>
+                    {comments.data?.pages.flat().length} comments
+                  </Text>
+                </View>
+              </Pressable>
 
-            <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
-              <Icon
-                name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
-                size={20}
-                title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
-              />
-            </Pressable>
+              <Pressable
+                style={{marginHorizontal: 3}}
+                onPress={() => {
+                  if (!event) return;
+                  showTipModal(event);
+                }}
+              >
+                <Icon name="CoinIcon" size={20} title="Tip" />
+              </Pressable>
+
+              <Pressable
+                style={{marginHorizontal: 3}}
+                onPress={handleRepost}
+                disabled={repostMutation.isPending}
+              >
+                <Icon name="RepostIcon" size={20} title="Repost" />
+                {repostMutation.isPending && <ActivityIndicator size="small" />}
+              </Pressable>
+
+              <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
+                <Icon
+                  name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
+                  size={20}
+                  title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
+                />
+              </Pressable>
+            </View>
           </View>
 
           <Menu

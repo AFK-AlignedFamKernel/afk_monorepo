@@ -18,6 +18,10 @@ export const LightTheme = {
     ...CommonColors,
     red: '#EC796B',
 
+    badge: '#F2F2F2',
+    badgeText: '#333333',
+    badgeBorder: '#CCCCCC',
+
     messageCard: '#FFFFFF',
     messageCardText: '#14142C',
 
@@ -94,6 +98,10 @@ export const DarkTheme = {
   colors: {
     ...CommonColors,
     red: '#EC796B',
+
+    badge: '#2C2C2C',
+    badgeText: '#B3B3B3',
+    badgeBorder: '#444444',
 
     messageCard: '#2C2C2C',
     messageCardText: '#FFFFFF',
