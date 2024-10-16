@@ -38,6 +38,7 @@ export type MainStackParams = {
     post?: NDKEvent;
     groupAccess: string;
   };
+  Tags: {tagName: string; post?: NDKEvent};
   EditProfile: undefined;
   Search: undefined;
   CreateChannel: undefined;
@@ -190,6 +191,11 @@ export type CreatePostScreenProps = CompositeScreenProps<
 
 export type ProfileScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'Profile'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type TagsScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Tags'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

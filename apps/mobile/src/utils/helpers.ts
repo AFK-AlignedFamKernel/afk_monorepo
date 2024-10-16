@@ -61,3 +61,7 @@ export const dataURLToBlob = (dataURL: string) => {
 export const getImageRatio = (width: number, height: number, minRatio = 0.75, maxRatio = 1.5) => {
   return Math.max(minRatio, Math.min(maxRatio, width / height));
 };
+
+export function removeHashFn(str: string) {
+  return str.replace(/#/g, '');
+}

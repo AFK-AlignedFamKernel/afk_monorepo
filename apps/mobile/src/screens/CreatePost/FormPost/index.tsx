@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {useSendNote} from 'afk_nostr_sdk';
 import * as ImagePicker from 'expo-image-picker';
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -28,6 +28,9 @@ export const FormCreatePost: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.NOTES);
   const navigation = useNavigation<MainStackNavigationProps>();
   const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
+
+  const [tags, setTags] = useState<string[][]>([]);
+  const inputRef = useRef<TextInput>(null);
 
   const onGalleryPress = async () => {
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
@@ -60,7 +63,10 @@ export const FormCreatePost: React.FC = () => {
       sendNote.mutate(
         {
           content: note,
-          tags: image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : [],
+          tags: [
+            ...tags,
+            ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
+          ],
         },
         {
           onSuccess() {
@@ -89,6 +95,17 @@ export const FormCreatePost: React.FC = () => {
     }
   };
 
+  const handleTextChange = (text: string) => {
+    setNote(text);
+
+    // Extract hashtags from the text
+    const hashtags = text.match(/#\w+/g) || [];
+
+    // Convert hashtags to the required format and update tags state
+    const newTags = hashtags.map((tag) => ['t', tag.slice(1)]);
+    setTags(newTags);
+  };
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
@@ -97,7 +114,8 @@ export const FormCreatePost: React.FC = () => {
             <TextInput
               style={styles.input}
               value={note}
-              onChangeText={setNote}
+              ref={inputRef}
+              onChangeText={handleTextChange}
               autoFocus
               multiline={true}
               placeholder="Make a post"
