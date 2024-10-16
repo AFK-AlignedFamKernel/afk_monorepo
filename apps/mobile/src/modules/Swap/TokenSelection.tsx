@@ -22,6 +22,7 @@ const RenderTokenItem = ({
   onSelect: (item: IGetTokenReturnTypeObj) => void;
 }) => {
   const styles = useStyles(styleSheet);
+
   return (
     <TouchableOpacity style={styles.tokenItem} onPress={() => onSelect(item)}>
       <Image source={{uri: item.logo_url}} style={styles.tokenLogo} />
@@ -29,7 +30,7 @@ const RenderTokenItem = ({
         <Text style={styles.tokenName}>{item.name}</Text>
         <Text style={styles.tokenSymbol}>{item.symbol}</Text>
       </View>
-      <Text style={styles.tokenDecimals}>{item.decimals}</Text>
+      {/* <Text style={styles.tokenDecimals}>{item.decimals}</Text> */}
     </TouchableOpacity>
   );
 };

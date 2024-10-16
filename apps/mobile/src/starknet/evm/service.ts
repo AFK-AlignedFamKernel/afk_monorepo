@@ -66,7 +66,7 @@ export const buildAvnuSwapCallDataFn = async (
   payload: IAvnuSwapCalldata,
 ): Promise<IAvnuSwapCalldataReturnTypeObj> => {
   try {
-    const response = await ApiEvmInstance2.post(avnuApi + `/swap/v2/build`, payload);
+    const response = await ApiEvmInstance2.post(`/swap/v2/build`, payload);
     return response.data;
   } catch (error) {
     return Promise.reject(error);
@@ -82,7 +82,7 @@ export const buildAvnuSwapBuildTypeFn = async (
   payload: IAvnuSwapBuildTypedata,
 ): Promise<{data: IAvnuSwapBuildDataTypeReturnTypeObj; signature: any}> => {
   try {
-    const response = await ApiEvmInstance2.post(avnuApi + `/swap/v2/build-typed-data`, payload);
+    const response = await ApiEvmInstance2.post(`/swap/v2/build-typed-data`, payload);
     // Extract the signature from the response headers
     const signature = response.headers['signature'] || null;
     return {
@@ -103,7 +103,7 @@ export const executeAvnuSwapFn = async (
   payload: IAvnuExecuteSwap,
 ): Promise<IGetAvnuQuoteReturnTypeObj[]> => {
   try {
-    const response = await ApiEvmInstance2.post(avnuApi + `/swap/v2/execute`, payload);
+    const response = await ApiEvmInstance2.post(`/swap/v2/execute`, payload);
     return response.data;
   } catch (error) {
     return Promise.reject(error);

@@ -7,12 +7,11 @@ import {WalletModalContext} from '../../context/WalletModal';
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {
-  useAvnuExecuteSwap,
-  useAvnuSwapBuildDataType,
   useAvnuSwapCalldata,
   useGetAvnuSwapQuoteDetails,
   useGetEvmTokens,
 } from '../../starknet/evm/hooks';
+import {useBalanceUtil} from '../../starknet/evm/utilHook';
 import styleSheet from './styles';
 import TokenSelectModal from './TokenSelection';
 import {formatToUSD, parseAmountToHex, parseUSD} from './util';
@@ -25,11 +24,10 @@ interface Token {
 
 export default function TokenSwapView({showHeader = false}: {showHeader?: boolean}) {
   const {showToast} = useToast();
+  const {address, isConnected, account} = useAccount();
 
   const [isLoading, setIsLoading] = useState(false);
   const walletModalContext = useContext(WalletModalContext);
-
-  const {address, isConnected, account} = useAccount();
 
   const {data: tokens} = useGetEvmTokens();
   const [toToken, setToToken] = useState<Token | null>(null);
@@ -40,6 +38,15 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
   const [modalVisible, setModalVisible] = useState(false);
   const [activeInput, setActiveInput] = useState<'from' | 'to'>('from');
   const [shouldRefetchQuote, setShouldRefetchQuote] = useState(false);
+
+  const {data: fromBalance} = useBalanceUtil({
+    address,
+    token: fromToken?.l2_token_address,
+  });
+  const {data: toBalance} = useBalanceUtil({
+    address,
+    token: toToken?.l2_token_address,
+  });
 
   // Determine which amount and token to use based on activeInput and reversed state
   const amount = activeInput === 'to' ? toAmount : fromAmount;
@@ -61,9 +68,6 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
     size: 3,
   });
   const {mutate: mutateSwapCallData} = useAvnuSwapCalldata();
-
-  const {mutate: mutateExecuteSwap} = useAvnuExecuteSwap();
-  const {mutate: mutateSwapBuildDataType} = useAvnuSwapBuildDataType();
 
   const theme = useTheme();
   const styles = useStyles(styleSheet);
@@ -264,6 +268,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           </View>
           <View style={styles.balanceEstimate}>
             <Text style={styles.estimate}>≈ {estUsdValue}</Text>
+            <Text style={styles.balance}>{fromBalance ? `$${fromBalance?.formatted}` : ''}</Text>
           </View>
         </View>
 
@@ -308,6 +313,7 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           </View>
           <View style={styles.balanceEstimate}>
             <Text style={styles.estimate}>≈ {estUsdValue}</Text>
+            <Text style={styles.balance}>{toBalance ? `$${toBalance?.formatted}` : ''}</Text>
           </View>
         </View>
 
@@ -323,7 +329,6 @@ export default function TokenSwapView({showHeader = false}: {showHeader?: boolea
           </TouchableOpacity>
         )}
       </View>
-
       <TokenSelectModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
