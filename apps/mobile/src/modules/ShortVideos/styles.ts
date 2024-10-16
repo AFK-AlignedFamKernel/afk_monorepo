@@ -4,6 +4,7 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     height: '100%',
+    backgroundColor:theme.colors.background
   },
   list: {
     height: '100%',

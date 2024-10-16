@@ -8,7 +8,7 @@ import React from 'react';
 import {Platform} from 'react-native';
 import {Chain, http} from 'viem';
 import {createConfig, WagmiProvider} from 'wagmi';
-import {mainnet, sepolia} from 'wagmi/chains';
+import {kakarotSepolia, mainnet, sepolia} from 'wagmi/chains';
 import {coinbaseWallet, safe, walletConnect} from 'wagmi/connectors';
 
 import {injectedWithFallback} from '../modules/WalletModal/walletUtil';
@@ -25,7 +25,7 @@ const metadata = {
   projectId,
   name: 'AFK',
   description: 'AFK',
-  url: 'https://reown.com/appkit',
+  url: 'https://afk-community.xyz',
   icons: ['https://avatars.githubusercontent.com/u/179229932'],
   redirect: {
     native: 'YOUR_APP_SCHEME://',
@@ -70,7 +70,7 @@ export const wagmiConfig = defaultWagmiConfig({
 });
 
 export const webConfig = createConfig({
-  chains: [mainnet, sepolia],
+  chains: [mainnet, sepolia, kakarotSepolia],
   // connectors: [walletConnect({projectId}), metaMask(), safe()],
   connectors: [
     injectedWithFallback(),
@@ -86,6 +86,7 @@ export const webConfig = createConfig({
   transports: {
     [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [kakarotSepolia.id]: http(),
   },
 });
 

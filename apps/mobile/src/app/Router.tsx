@@ -470,6 +470,7 @@ const linking = {
           LaunchToken: 'launch-token',
           Wallet: 'wallet',
           Portfolio: 'portfolio',
+          ShortVideos: 'shorts',
         },
       },
     },
