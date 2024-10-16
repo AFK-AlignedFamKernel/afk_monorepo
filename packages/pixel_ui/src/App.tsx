@@ -118,11 +118,11 @@ function App({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IAp
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({
-    address: process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS,
+    address: process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS,
     abi: username_store_abi
   });
   const { contract: canvasNftContract } = useContract({
-    address: process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS,
+    address: process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS,
     abi: canvas_nft_abi
   });
 
