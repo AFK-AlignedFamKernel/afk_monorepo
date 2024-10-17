@@ -23,5 +23,11 @@ node_modules/
 
 .env
 
+# Ignore .env files
+.env
+.env.*
+
+# Ignore pnpm-lock.yaml
+pnpm-lock.yaml
 
 pnpm-lock.yamlapps/mobile/.env
