@@ -1,10 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
-import {useSendNote} from 'afk_nostr_sdk';
+import {useSendNote, useSendVideo} from 'afk_nostr_sdk';
 import * as ImagePicker from 'expo-image-picker';
 import {useRef, useState} from 'react';
 import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import * as FileSystem from 'expo-file-system';
+import { Video, AVPlaybackStatus } from 'expo-av';
 
 import {GalleryIcon, SendIconContained} from '../../../assets/icons';
 import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
@@ -14,6 +16,7 @@ import {MainStackNavigationProps} from '../../../types';
 import {SelectedTab} from '../../../types/tab';
 import {getImageRatio} from '../../../utils/helpers';
 import stylesheet from './styles';
+import { NDKKind } from '@nostr-dev-kit/ndk';
 // import {useSendNote} from "afk_nostr_sdk/hooks"
 
 export const FormCreatePost: React.FC = () => {
@@ -31,6 +34,10 @@ export const FormCreatePost: React.FC = () => {
 
   const [tags, setTags] = useState<string[][]>([]);
   const inputRef = useRef<TextInput>(null);
+  const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | undefined>();
+  const sendVideo = useSendVideo();
+  const [videoTitle, setVideoTitle] = useState('');
+  const [videoDuration, setVideoDuration] = useState<number | undefined>();
 
   const onGalleryPress = async () => {
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
@@ -43,48 +50,91 @@ export const FormCreatePost: React.FC = () => {
     });
 
     if (pickerResult.canceled || !pickerResult.assets.length) return;
-    setImage(pickerResult.assets[0]);
+    const asset = pickerResult.assets[0];
+    if (asset.type === 'video') {
+      setVideo(asset);
+      setImage(undefined);
+    } else {
+      setImage(asset);
+      setVideo(undefined);
+    }
   };
 
   const handleSendNote = async () => {
-    if (!note || note?.trim()?.length == 0) {
-      showToast({type: 'error', title: 'Please write your note'});
+    if (!note && !video && !image) {
+      showToast({type: 'error', title: 'Please add content to your post'});
       return;
-    }
-
-    let imageUrl: string | undefined;
-    if (image) {
-      const result = await fileUpload.mutateAsync(image);
-      if (result.data.url) imageUrl = result.data.url;
     }
 
     await handleCheckNostrAndSendConnectDialog();
     try {
-      sendNote.mutate(
-        {
-          content: note,
-          tags: [
-            ...tags,
-            ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
-          ],
-        },
-        {
-          onSuccess() {
-            showToast({type: 'success', title: 'Note sent successfully'});
-            queryClient.invalidateQueries({queryKey: ['rootNotes']});
-            navigation.goBack();
+      if (video) {
+        // Get video duration
+        const videoRef = new Video({ source: { uri: video.uri } });
+        const status = await videoRef.getStatusAsync();
+        const duration = status.isLoaded && 'durationMillis' in status && status.durationMillis !== undefined
+          ? status.durationMillis / 1000
+          : undefined;
+
+        sendVideo.mutate(
+          {
+            content: note || '',
+            videoUri: video.uri,
+            kind: NDKKind.VerticalVideo,
+            title: videoTitle || 'Untitled Video',
+            duration: duration,
+            alt: note, // Using the note as alt text, adjust if needed
+            contentWarning: undefined, // Add logic to set this if needed
+            additionalTags: tags,
           },
-          onError(e) {
-            console.log('error', e);
-            showToast({
-              type: 'error',
-              title: 'Error! Note could not be sent. Please try again later.',
-            });
+          {
+            onSuccess() {
+              showToast({type: 'success', title: 'Video posted successfully'});
+              queryClient.invalidateQueries({queryKey: ['getVideos']});
+              navigation.goBack();
+            },
+            onError(e) {
+              console.log('error', e);
+              showToast({
+                type: 'error',
+                title: 'Error! Video could not be posted. Please try again later.',
+              });
+            },
+          }
+        );
+      } else {
+        let imageUrl: string | undefined;
+        if (image) {
+          const response = await fileUpload.mutateAsync(image);
+          imageUrl = response.data.url; // Adjust this based on the actual response structure
+        }
+
+        sendNote.mutate(
+          {
+            content: note ?? '',
+            tags: [
+              ...tags,
+              ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
+            ],
           },
-        },
-      );
+          {
+            onSuccess() {
+              showToast({type: 'success', title: 'Note sent successfully'});
+              queryClient.invalidateQueries({queryKey: ['rootNotes']});
+              navigation.goBack();
+            },
+            onError(e) {
+              console.log('error', e);
+              showToast({
+                type: 'error',
+                title: 'Error! Note could not be sent. Please try again later.',
+              });
+            },
+          }
+        );
+      }
     } catch (e) {
-      console.log('sendNote error', e);
+      console.log('sendNote/sendVideo error', e);
     }
   };
 

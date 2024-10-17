@@ -14,18 +14,16 @@ const ShortVideosModule = () => {
   const { theme } = useTheme();
   const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
-  const videos = useGetVideos();
-  const [videosEventsState, setVideosEvents] = useState<NostrEvent[]>(
-    videos?.data?.pages?.flat() as NostrEvent[],
-  );
+  const { data: videosData, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetVideos();
 
   const videosEvents = useMemo(() => {
-    return videos?.data?.pages?.flat() as NostrEvent[]
-  }, [videos?.data?.pages])
+    return videosData?.pages?.flat() as NostrEvent[] || [];
+  }, [videosData?.pages]);
 
   const fetchNostrEvents = async () => {
-    // This mock should be replaced with actual implementation (hook integration to get videos)
-    setVideosEvents(mockEvents);
+    if (hasNextPage && !isFetchingNextPage) {
+      await fetchNextPage();
+    }
   };
 
   const onViewableItemsChanged = ({ viewableItems }: any) => {
@@ -45,11 +43,13 @@ const ShortVideosModule = () => {
           renderItem={({ item, index }) => (
             <NostrVideo item={item} shouldPlay={index === currentViewableItemIndex} />
           )}
-          keyExtractor={(item, index) => item.content + index}
+          keyExtractor={(item, index) => (item.id ?? index.toString()) + index}
           pagingEnabled
           horizontal={false}
           showsVerticalScrollIndicator={false}
           viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+          onEndReached={fetchNostrEvents}
+          onEndReachedThreshold={0.5}
         />
       ) : (
         <View style={styles.noDataContainer}>

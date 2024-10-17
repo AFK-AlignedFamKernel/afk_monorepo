@@ -30,7 +30,12 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
   }, [shouldPlay]);
 
   const extractVideoURL = (event: NostrEvent) => {
-    return event?.tags?.find((tag) => tag?.[0] === 'url')?.[1] || '';
+    const urlTag = event?.tags?.find((tag) => tag?.[0] === 'url');
+    if (urlTag) {
+      const ipfsHash = urlTag[1].replace('ipfs://', '');
+      return `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+    }
+    return '';
   };
 
   const handleProfile = () => {
