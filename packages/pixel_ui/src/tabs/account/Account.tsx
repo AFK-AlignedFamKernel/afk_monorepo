@@ -36,7 +36,7 @@ const Account = (props) => {
     background:
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
-  const [accountRankImg, setAccountRankImg] = useState<any|null>(null);
+  const [accountRankImg, setAccountRankImg] = useState<any | null>(null);
   const [isOpenConnector, setIsOpenConnector] = useState(false);
 
   const [usernameSaved, setUsernameSaved] = useState(false);
@@ -101,7 +101,7 @@ const Account = (props) => {
         return name;
     }
   };
-  const [_sessionRequest, setSessionRequest] = useState<OffChainSession|null>(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
   const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
@@ -323,7 +323,7 @@ const Account = (props) => {
     // }
 
     const checkIfAvailable = async () => {
-      let availableConnectors:any[] = [];
+      let availableConnectors: any[] = [];
       for (let i = 0; i < props.connectors.length; i++) {
         let available = await props.connectors[i].available();
         if (available) {
@@ -610,6 +610,8 @@ const Account = (props) => {
                     className='Text__medium Button__primary Account__walletlogin__button'
                     key={connector.id}
                     onClick={() => {
+                      props.connectWallet(connector)
+
                       connectWallet()
                       // props.connectWallet(connector)
                     }

@@ -24,14 +24,7 @@ import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery';
 
-interface IApp {
-  contractAddress?: string;
-  canvasAddress?: string;
-  nftAddress?: string;
-  factoryAddress?: string;
-}
-
-function App({ contractAddress }: IApp) {
+function AppOld() {
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -90,7 +83,7 @@ function App({ contractAddress }: IApp) {
   // Contracts
   // TODO: Pull addrs from api?
   const { contract: artPeaceContract } = useContract({
-    address: contractAddress ?? process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
+    address: process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({
@@ -262,7 +255,7 @@ function App({ contractAddress }: IApp) {
         return;
       }
       const time = new Date(response.data);
-      setLastPlacedTime(time?.getTime());
+      setLastPlacedTime(time);
     }
 
     fetchGetLastPlacedPixel();
@@ -310,7 +303,7 @@ function App({ contractAddress }: IApp) {
           newChainFactionPixels.push(memberPixels);
           continue;
         }
-        let lastPlacedTime = new Date(chainFactionPixelsData[i].lastPlacedTime)?.getTime();
+        let lastPlacedTime = new Date(chainFactionPixelsData[i].lastPlacedTime);
         let timeSinceLastPlacement = Date.now() - lastPlacedTime;
         let chainFactionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
@@ -350,7 +343,7 @@ function App({ contractAddress }: IApp) {
           continue;
         }
         let lastPlacedTime = new Date(factionPixelsData[i].lastPlacedTime);
-        let timeSinceLastPlacement = Date.now() - lastPlacedTime?.getTime();
+        let timeSinceLastPlacement = Date.now() - lastPlacedTime;
         let factionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
         if (factionPixelAvailable) {
@@ -387,9 +380,9 @@ function App({ contractAddress }: IApp) {
     }
     setAvailablePixels(
       (basePixelUp ? 1 : 0) +
-      totalChainFactionPixels +
-      totalFactionPixels +
-      extraPixels
+        totalChainFactionPixels +
+        totalFactionPixels +
+        extraPixels
     );
   }, [basePixelUp, chainFactionPixels, factionPixels, extraPixels]);
 
@@ -835,4 +828,4 @@ function App({ contractAddress }: IApp) {
   );
 }
 
-export default App;
+export default AppOld;

@@ -6,13 +6,16 @@ import {
   useNetwork,
   useConnect
 } from '@starknet-react/core';
+import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
+
 import './App.css';
 import CanvasContainer from './canvas/CanvasContainer.js';
 import PixelSelector from './footer/PixelSelector.js';
 import TabsFooter from './footer/TabsFooter.js';
 import TabPanel from './tabs/TabPanel.js';
 import { usePreventZoom, useLockScroll } from './utils/Window.js';
-import { backendUrl, wsUrl, devnetMode } from './utils/Consts.js';
+import { backendUrl, wsUrl, devnetMode, expiry, metaData, dappKey, getProvider } from './utils/Consts.js';
+import { allowedMethods } from './utils/Session';
 import logo from './resources/logo.png';
 import canvasConfig from './configs/canvas.config.json';
 import { fetchWrapper, getTodaysStartTime } from './services/apiService.js';
@@ -22,9 +25,24 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
-import useMediaQuery from './hooks/useMediaQuery';
+import useMediaQuery from './hooks/useMediaQuery.js';
+import {
+  openSession,
+  createSessionRequest,
+  buildSessionAccount,
+  OffChainSession
+} from '@argent/x-sessions';
+import { constants, provider, Signature, stark } from 'starknet';
+// import { useMediaQuery } from 'react-responsive';
 
-function App() {
+interface IApp {
+  contractAddress?: string;
+  canvasAddress?: string;
+  nftAddress?: string;
+  factoryAddress?: string;
+}
+
+function AppTryFix({ contractAddress, canvasAddress, nftAddress, factoryAddress }: IApp) {
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -59,18 +77,20 @@ function App() {
 
   // Starknet wallet
   const { account, address } = useAccount();
+  const [accountState, setAccount] = useState(null);
+
   const { chain } = useNetwork();
   const [queryAddress, setQueryAddress] = useState('0');
   const [connected, setConnected] = useState(false); // TODO: change to only devnet
   useEffect(() => {
     if (devnetMode) {
-      if (connected) {
-        setQueryAddress(
-          '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-        );
-      } else {
-        setQueryAddress('0');
-      }
+      // if (connected) {
+      //   setQueryAddress(
+      //     '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
+      //   );
+      // } else {
+      //   setQueryAddress('0');
+      // }
     } else {
       if (!address) {
         setQueryAddress('0');
@@ -78,20 +98,27 @@ function App() {
         setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
       }
     }
-  }, [address, connected]);
+    if (!address) {
+      setQueryAddress('0');
+    } else {
+      setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
+    }
+
+
+  }, [address, connected, account]);
 
   // Contracts
   // TODO: Pull addrs from api?
   const { contract: artPeaceContract } = useContract({
-    address: process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
+    address: contractAddress ?? process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS,
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({
-    address: process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS,
+    address: process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS,
     abi: username_store_abi
   });
   const { contract: canvasNftContract } = useContract({
-    address: process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS,
+    address: process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS,
     abi: canvas_nft_abi
   });
 
@@ -156,7 +183,7 @@ function App() {
 
   // Colors
   const staticColors = canvasConfig.colors;
-  const [colors, setColors] = useState([]);
+  const [colors, setColors] = useState<any[]>([]);
 
   const [notificationMessage, setNotificationMessage] = useState('');
 
@@ -183,7 +210,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const processMessage = async (message) => {
+    const processMessage = async (message: any) => {
       if (message) {
         // Check the message type and handle accordingly
         if (message.messageType === 'colorPixel') {
@@ -210,18 +237,24 @@ function App() {
   const width = canvasConfig.canvas.width;
   const height = canvasConfig.canvas.height;
 
-  const canvasRef = useRef(null);
-  const extraPixelsCanvasRef = useRef(null);
-
-  const colorPixel = (position, color) => {
+  // const canvasRef = useRef(null);
+  // const extraPixelsCanvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const extraPixelsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const colorPixel = (position: number, color: number) => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
     const x = position % width;
     const y = Math.floor(position / width);
     const colorIdx = color;
     const colorHex = `#${colors[colorIdx]}FF`;
-    context.fillStyle = colorHex;
-    context.fillRect(x, y, 1, 1);
+    if (canvas && canvasRef?.current) {
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.fillStyle = colorHex;
+        context.fillRect(x, y, 1, 1);
+      }
+    }
+
   };
 
   // Pixel selection data
@@ -233,14 +266,14 @@ function App() {
 
   const [lastPlacedTime, setLastPlacedTime] = useState(0);
   const [basePixelUp, setBasePixelUp] = useState(false);
-  const [chainFactionPixelsData, setChainFactionPixelsData] = useState([]);
-  const [chainFactionPixels, setChainFactionPixels] = useState([]);
-  const [factionPixelsData, setFactionPixelsData] = useState([]);
-  const [factionPixels, setFactionPixels] = useState([]);
+  const [chainFactionPixelsData, setChainFactionPixelsData] = useState<any[]>([]);
+  const [chainFactionPixels, setChainFactionPixels] = useState<any[]>([]);
+  const [factionPixelsData, setFactionPixelsData] = useState<any[]>([]);
+  const [factionPixels, setFactionPixels] = useState<any[]>([]);
   const [extraPixels, setExtraPixels] = useState(0);
   const [availablePixels, setAvailablePixels] = useState(0);
   const [availablePixelsUsed, setAvailablePixelsUsed] = useState(0);
-  const [extraPixelsData, setExtraPixelsData] = useState([]);
+  const [extraPixelsData, setExtraPixelsData] = useState<any[]>([]);
 
   const [selectorMode, setSelectorMode] = useState(false);
 
@@ -255,7 +288,7 @@ function App() {
         return;
       }
       const time = new Date(response.data);
-      setLastPlacedTime(time);
+      setLastPlacedTime(time?.getTime());
     }
 
     fetchGetLastPlacedPixel();
@@ -263,7 +296,8 @@ function App() {
 
   const updateInterval = 1000; // 1 second
   // TODO: make this a config
-  const timeBetweenPlacements = 120000; // 2 minutes
+  const timeBetweenPlacements = 1200; // 20s
+  // const timeBetweenPlacements = 120000; // 2 minutes
   const [basePixelTimer, setBasePixelTimer] = useState('XX:XX');
   useEffect(() => {
     const updateBasePixelTimer = () => {
@@ -277,9 +311,13 @@ function App() {
         let secondsTillPlacement = Math.floor(
           (timeBetweenPlacements - timeSinceLastPlacement) / 1000
         );
+        console.log("secondsTillPlacement")
         setBasePixelTimer(
           `${Math.floor(secondsTillPlacement / 60)}:${secondsTillPlacement % 60 < 10 ? '0' : ''}${secondsTillPlacement % 60}`
         );
+        // setBasePixelTimer(
+        //   `${Math.floor(secondsTillPlacement / 60)}:${secondsTillPlacement % 60 < 10 ? '0' : ''}${secondsTillPlacement % 60}`
+        // );
         setBasePixelUp(false);
       }
     };
@@ -290,20 +328,24 @@ function App() {
     return () => clearInterval(interval);
   }, [lastPlacedTime]);
 
-  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState([]);
+  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateChainFactionPixelTimers = () => {
-      let newChainFactionPixelTimers = [];
-      let newChainFactionPixels = [];
+      let newChainFactionPixelTimers: string[] = [];
+      let newChainFactionPixels: any[] = [];
       for (let i = 0; i < chainFactionPixelsData.length; i++) {
-        let memberPixels = chainFactionPixelsData[i].memberPixels;
+        let memberPixels = chainFactionPixelsData[i]?.memberPixels;
+
+        if (!memberPixels) {
+
+        }
         if (memberPixels !== 0) {
           newChainFactionPixelTimers.push('00:00');
           newChainFactionPixels.push(memberPixels);
           continue;
         }
         let lastPlacedTime = new Date(chainFactionPixelsData[i].lastPlacedTime);
-        let timeSinceLastPlacement = Date.now() - lastPlacedTime;
+        let timeSinceLastPlacement = Date.now() - lastPlacedTime?.getTime();
         let chainFactionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
         if (chainFactionPixelAvailable) {
@@ -329,11 +371,11 @@ function App() {
     return () => clearInterval(interval);
   }, [chainFactionPixelsData]);
 
-  const [factionPixelTimers, setFactionPixelTimers] = useState([]);
+  const [factionPixelTimers, setFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateFactionPixelTimers = () => {
-      let newFactionPixelTimers = [];
-      let newFactionPixels = [];
+      let newFactionPixelTimers: string[] = [];
+      let newFactionPixels: any[] = [];
       for (let i = 0; i < factionPixelsData.length; i++) {
         let memberPixels = factionPixelsData[i].memberPixels;
         if (memberPixels !== 0) {
@@ -342,7 +384,7 @@ function App() {
           continue;
         }
         let lastPlacedTime = new Date(factionPixelsData[i].lastPlacedTime);
-        let timeSinceLastPlacement = Date.now() - lastPlacedTime;
+        let timeSinceLastPlacement = Date.now() - lastPlacedTime?.getTime();
         let factionPixelAvailable =
           timeSinceLastPlacement > timeBetweenPlacements;
         if (factionPixelAvailable) {
@@ -379,9 +421,9 @@ function App() {
     }
     setAvailablePixels(
       (basePixelUp ? 1 : 0) +
-        totalChainFactionPixels +
-        totalFactionPixels +
-        extraPixels
+      totalChainFactionPixels +
+      totalFactionPixels +
+      extraPixels
     );
   }, [basePixelUp, chainFactionPixels, factionPixels, extraPixels]);
 
@@ -431,7 +473,7 @@ function App() {
     setPixelPlacedBy('');
   };
 
-  const setPixelSelection = (x, y) => {
+  const setPixelSelection = (x: any, y: any) => {
     setSelectedPositionX(x);
     setSelectedPositionY(y);
     setPixelSelectedMode(true);
@@ -442,27 +484,37 @@ function App() {
     setAvailablePixelsUsed(0);
     setExtraPixelsData([]);
 
-    const canvas = extraPixelsCanvasRef.current;
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, width, height);
+    const canvas = extraPixelsCanvasRef?.current;
+    if (canvas) {
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.clearRect(0, 0, width, height);
+      }
+    }
+
   }, [width, height]);
 
   const clearExtraPixel = useCallback(
-    (index) => {
+    (index: number) => {
       setAvailablePixelsUsed(availablePixelsUsed - 1);
       setExtraPixelsData(extraPixelsData.filter((_, i) => i !== index));
-      const canvas = extraPixelsCanvasRef.current;
-      const context = canvas.getContext('2d');
+      const canvas = extraPixelsCanvasRef?.current;
       const pixel = extraPixelsData[index];
       const x = pixel.x;
       const y = pixel.y;
-      context.clearRect(x, y, 1, 1);
+      if (canvas) {
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.clearRect(x, y, 1, 1);
+        }
+      }
+
     },
     [extraPixelsData, availablePixelsUsed]
   );
 
   const addExtraPixel = useCallback(
-    (x, y) => {
+    (x: any, y: any) => {
       // Overwrite pixel if already placed
       const existingPixelIndex = extraPixelsData.findIndex(
         (pixel) => pixel.x === x && pixel.y === y
@@ -530,18 +582,101 @@ function App() {
   const [nftPosition, setNftPosition] = useState(null);
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
+  // Starknet wallet
+  const [wallet, setWallet] = useState<StarknetWindowObject | undefined | null>(null);
+  const [connectorData, setConnectorData] = useState<ConnectorData | undefined | null>(null);
+  const [_connector, setConnector] = useState(null);
+  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null | undefined>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
+  const [isSessionable, setIsSessionable] = useState(false);
+  const [usingSessionKeys, setUsingSessionKeys] = useState(false);
 
   // Account
-  const { connect, connectors } = useConnect();
-  const connectWallet = async (connector) => {
-    if (devnetMode) {
-      setConnected(true);
-      return;
+  const {
+    // connect, 
+    connectors
+
+  } = useConnect();
+  // const connectWallet = async (connector:any) => {
+  //   if (devnetMode) {
+  //     setConnected(true);
+  //     return;
+  //   }
+  //   connect({ connector });
+  // };
+  const canSession = (wallet) => {
+    let sessionableIds = [
+      'argentX',
+      'ArgentX',
+      'argent',
+      'Argent',
+      'argentMobile',
+      'ArgentMobile',
+      'argentWebWallet',
+      'ArgentWebWallet'
+    ];
+    if (sessionableIds.includes(wallet?.id)) {
+      return true;
     }
-    connect({ connector });
+    return false;
+  };
+  const { connect: connectStarknet } = useConnect();
+
+  // Account
+  const connectWallet = async (connectorProps) => {
+    // if (devnetMode) {
+    //   setConnected(true);
+    //   return;
+    // }
+    console.log("try connect wallet")
+
+    const { wallet, connectorData, connector } =
+      await connect({
+        // modalMode: 'alwaysAsk',
+        // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
+        argentMobileOptions: {
+          dappName: 'afk/pwa',
+          url: window.location.hostname,
+          // chainId: CHAIN_ID,
+          icons: []
+        }
+      });
+    connectStarknet({ connector:connectorProps });
+
+    if (wallet && connectorData
+      && connector
+
+    ) {
+      console.log("wallet", wallet)
+      console.log("canSession")
+      setWallet(wallet);
+      setConnectorData(connectorData);
+      // setConnector(connector);
+      setConnected(true);
+      // let new_account = await connector.account(wallet);
+      // setAccount(new_account);
+      setIsSessionable(canSession(wallet));
+      setQueryAddress(connectorData?.account)
+      console.log('canSession(wallet):', canSession(wallet));
+    }
+  };
+
+  const disconnectWallet = async () => {
+    // if (devnetMode) {
+    //   setConnected(false);
+    //   return;
+    // }
+    setWallet(null);
+    setConnectorData(null);
+    setConnected(false);
+    // setAccount(null);
+    setSessionRequest(null);
+    setAccountSessionSignature(null);
+    setUsingSessionKeys(false);
+    setIsSessionable(false);
   };
   useEffect(() => {
-    if (devnetMode) return;
+    // if (devnetMode) return;
     if (!connectors) return;
     if (connectors.length === 0) return;
 
@@ -549,7 +684,7 @@ function App() {
       for (let i = 0; i < connectors.length; i++) {
         let ready = await connectors[i].ready();
         if (ready) {
-          connectWallet(connectors[i]);
+          connectWallet();
           break;
         }
       }
@@ -596,6 +731,60 @@ function App() {
     basePixelUp
   ]);
 
+  const startSession = async () => {
+    const sessionParams = {
+      allowedMethods: allowedMethods,
+      expiry: BigInt(expiry),
+      metaData: metaData(false),
+      publicDappKey: dappKey.publicKey
+    };
+    const provider = await getProvider()
+    let chainId = await provider.getChainId();
+
+    if (!wallet) {
+      console.error('No wallet find');
+      return;
+    }
+    const accountSessionSignature = await openSession({
+      wallet: wallet,
+      sessionParams: sessionParams,
+      // chainId: constants.StarknetChainId.SN_SEPOLIA?.toString() as constants.StarknetChainId
+      chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
+    });
+    const sessionRequest = createSessionRequest(
+      allowedMethods,
+      BigInt(expiry),
+      metaData(false),
+      dappKey.publicKey
+    );
+    if (!accountSessionSignature || !sessionRequest) {
+      console.error('Session request failed');
+      return;
+    }
+    setSessionRequest(sessionRequest);
+    setAccountSessionSignature(accountSessionSignature);
+    if (!address || !connectorData) {
+      console.error('No address or connector data');
+      return;
+    }
+    const sessionAccount = await buildSessionAccount({
+      accountSessionSignature: stark.formatSignature(accountSessionSignature),
+      sessionRequest: sessionRequest,
+      provider: provider,
+      chainId: chainId,
+      address: address,
+      dappKey: dappKey,
+      argentSessionServiceBaseUrl:
+        process.env.REACT_APP_ARGENT_SESSION_SERVICE_BASE_URL
+    });
+    if (!sessionAccount) {
+      console.error('Session account failed');
+      return;
+    }
+    // setAccount(sessionAccount);
+    setUsingSessionKeys(true);
+  };
+
   return (
     <div className='App'>
       <div className='App--background'>
@@ -608,6 +797,7 @@ function App() {
           colorPixel={colorPixel}
           address={address}
           artPeaceContract={artPeaceContract}
+          artPeaceContractAddress={contractAddress}
           colors={colors}
           canvasRef={canvasRef}
           extraPixelsCanvasRef={extraPixelsCanvasRef}
@@ -653,7 +843,7 @@ function App() {
           setLastPlacedTime={setLastPlacedTime}
         />
         {(!isMobile || activeTab === tabs[0]) && (
-          <img src={logo} alt='logo' className='App__logo--mobile' />
+          <img src={logo?.src} alt='logo' className='App__logo--mobile' />
         )}
         <div
           className={
@@ -665,6 +855,7 @@ function App() {
         >
           <TabPanel
             colorPixel={colorPixel}
+            isUsingSess
             address={address}
             queryAddress={queryAddress}
             account={account}
@@ -748,12 +939,17 @@ function App() {
             latestMintedTokenId={latestMintedTokenId}
             setLatestMintedTokenId={setLatestMintedTokenId}
             connectWallet={connectWallet}
+            disconnectWallet={disconnectWallet}
+            startSession={startSession}
+            wallet={wallet}
+            isSessionable={isSessionable}
             connectors={connectors}
             currentDay={currentDay}
             gameEnded={gameEnded}
             isLastDay={isLastDay}
             endTimestamp={endTimestamp}
             host={host}
+            usingSessionKeys={usingSessionKeys}
           />
         </div>
         <div className='App__footer'>
@@ -797,7 +993,7 @@ function App() {
                   setFooterExpanded(!footerExpanded);
                 }}
               >
-                <img src={Hamburger} alt='Tabs' className='ExpandTabs__icon' />
+                <img src={Hamburger?.src} alt='Tabs' className='ExpandTabs__icon' />
               </div>
             )}
             {isFooterSplit && footerExpanded && (

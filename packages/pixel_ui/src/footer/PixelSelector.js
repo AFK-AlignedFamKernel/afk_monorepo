@@ -4,14 +4,17 @@ import '../utils/Styles.css';
 import React, {useEffect, useState} from 'react';
 
 import EraserIcon from '../resources/icons/Eraser.png';
+import { useAccount } from '@starknet-react/core';
 
 const PixelSelector = (props) => {
   // Track when a placement is available
 
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
 
+  const {address} = useAccount()
+  console.log("Pixel selector address",address)
   useEffect(() => {
-    if (props.queryAddress === '0') {
+    if (!address) {
       setPlacementTimer('Login to Play');
       return;
     }

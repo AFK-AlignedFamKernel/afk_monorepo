@@ -1,6 +1,6 @@
 import './CanvasContainer.css';
 
-import { useContractWrite } from '@starknet-react/core';
+import { useAccount, useContractWrite } from '@starknet-react/core';
 import React, { useEffect, useRef, useState } from 'react';
 
 import canvasConfig from '../configs/canvas.config.json';
@@ -11,8 +11,12 @@ import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
+import { ART_PEACE_ADDRESS } from "common"
+import { CallData } from 'starknet';
 
 const CanvasContainer = (props) => {
+
+  const { account, address } = useAccount()
   // TODO: Handle window resize
   const width = canvasConfig.canvas.width;
   const height = canvasConfig.canvas.height;
@@ -232,16 +236,43 @@ const CanvasContainer = (props) => {
   };
 
   const [calls, setCalls] = useState([]);
-  const placePixelCall = (position, color, now) => {
-    if (devnetMode) return;
-    if (!props.address || !props.artPeaceContract) return;
-    // TODO: Check valid inputs
-    setCalls(props.artPeaceContract.populateTransaction['place_pixel'](position, color, now));
+  const placePixelCall = async (position, color, now) => {
+    // if (devnetMode) return;
+    console.log("props artpeaceCOntract", props?.artPeaceContract)
+    // if (!props.address || !props.artPeaceContract) return;
+    if (!props.artPeaceContract) {
+      console.log('user connected', account?.address);
+
+      const pixelCalldata = {
+        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        entrypoint: "place_pixel",
+        calldata: CallData.compile({
+          position: position,
+          color,
+          now
+        })
+
+      }
+      console.log("pixelCAlldata",pixelCalldata)
+      const tx = await account.execute([pixelCalldata])
+
+      console.log('tx hash', tx.transaction_hash);
+
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+
+
+    } else {
+      // TODO: Check valid inputs
+      setCalls(props.artPeaceContract.populateTransaction['place_pixel'](position, color, now));
+
+    }
   };
 
   useEffect(() => {
     const placePixel = async () => {
       // if (devnetMode) return;
+      console.log('Place Pixel calls:', calls);
+
       if (calls.length === 0) return;
       await writeAsync();
       console.log('Place Pixel successful:', data, isPending);
@@ -316,18 +347,29 @@ const CanvasContainer = (props) => {
     if (props.selectedColorId !== -1) {
       props.setSelectedColorId(-1);
       props.colorPixel(position, colorId);
-      const response = await fetchWrapper(`place-pixel-redis`, {
-        mode: 'cors',
-        method: 'POST',
-        body: JSON.stringify({
-          position: position.toString(),
-          color: colorId.toString(),
-          timestamp: timestamp.toString(),
-        }),
-      });
-      if (response.result) {
-        console.log(response.result);
+      console.log("body", JSON.stringify({
+        position: position.toString(),
+        color: colorId.toString(),
+        timestamp: timestamp.toString(),
+      }))
+      try {
+        const response = await fetchWrapper(`place-pixel-redis`, {
+          mode: 'cors',
+          method: 'POST',
+          body: JSON.stringify({
+            position: position.toString(),
+            color: colorId.toString(),
+            timestamp: timestamp.toString(),
+          }),
+        });
+        if (response.result) {
+          console.log(response.result);
+        }
+      } catch (error) {
+        console.log("Error pixel-redis", error)
+
       }
+
       props.clearPixelSelection();
       props.setLastPlacedTime(timestamp * 1000);
     }
