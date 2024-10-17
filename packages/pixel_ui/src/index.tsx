@@ -1,17 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-
 import StarknetProvider from './StarknetProvider.js';
-
 import './index.css';
 import App from './App';
+import AppOld from './AppOld.js';
 
-
-
-const AppRender = ( ) => {
-  return(
+interface IAppRender {
+  artPeaceAddress?: string
+}
+const AppRender = ({ artPeaceAddress }: IAppRender) => {
+  return (
     <StarknetProvider>
-      <App />
+      <App contractAddress={artPeaceAddress} />
+      {/* <AppOld /> */}
     </StarknetProvider>
   )
 }

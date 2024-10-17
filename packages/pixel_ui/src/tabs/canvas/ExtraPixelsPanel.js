@@ -24,7 +24,7 @@ const ExtraPixelsPanel = (props) => {
 
   const [calls, setCalls] = useState([]);
   const extraPixelPlaceCall = (positions, colors, now) => {
-    if (devnetMode) return;
+    // if (devnetMode) return;
     if (!props.address || !props.artPeaceContract) return;
     // TODO: Validate inputs
     setCalls(
@@ -38,7 +38,7 @@ const ExtraPixelsPanel = (props) => {
 
   useEffect(() => {
     const extraPixelsPlaced = async () => {
-      if (devnetMode) return;
+      // if (devnetMode) return;
       if (calls.length === 0) return;
       await writeAsync();
       console.log('Extra pixels placed successful:', data, isPending);
@@ -63,21 +63,33 @@ const ExtraPixelsPanel = (props) => {
         timestamp
       );
     } else {
+      extraPixelPlaceCall(
+        props.extraPixelsData.map(
+          (pixel) => pixel.x + pixel.y * canvasConfig.canvas.width
+        ),
+        props.extraPixelsData.map((pixel) => pixel.colorId),
+        timestamp
+      );
       let placeExtraPixelsEndpoint = 'place-extra-pixels-devnet';
-      const response = await fetchWrapper(placeExtraPixelsEndpoint, {
-        mode: 'cors',
-        method: 'POST',
-        body: JSON.stringify({
-          extraPixels: props.extraPixelsData.map((pixel) => ({
-            position: pixel.x + pixel.y * canvasConfig.canvas.width,
-            colorId: pixel.colorId
-          })),
-          timestamp: timestamp
-        })
-      });
-      if (response.result) {
-        console.log(response.result);
+      try {
+        const response = await fetchWrapper(placeExtraPixelsEndpoint, {
+          mode: 'cors',
+          method: 'POST',
+          body: JSON.stringify({
+            extraPixels: props.extraPixelsData.map((pixel) => ({
+              position: pixel.x + pixel.y * canvasConfig.canvas.width,
+              colorId: pixel.colorId
+            })),
+            timestamp: timestamp
+          })
+        });
+        if (response.result) {
+          console.log(response.result);
+        }
+      } catch (error) {
+        console.log("error pixel devnet", error)
       }
+
     }
     for (let i = 0; i < props.extraPixelsData.length; i++) {
       let position =
@@ -131,7 +143,7 @@ const ExtraPixelsPanel = (props) => {
         } else {
           newChainFactionPixels.push(
             props.chainFactionPixels[chainFactionIndex] -
-              currChainFactionPixelsUsed
+            currChainFactionPixelsUsed
           );
           let newChainFactionData =
             props.chainFactionPixelsData[chainFactionIndex];
@@ -303,81 +315,81 @@ const ExtraPixelsPanel = (props) => {
           </div>
           {(props.chainFactionPixels.length > 0 ||
             props.factionPixels.length > 0) && (
-            <div
-              className={`ExtraPixelsPanel__info__item ${chainFactionPixelsUsed + factionPixelsUsed === totalChainFactionPixels + totalFactionPixels ? 'ExtraPixelsPanel__info__item--used' : ''} ExtraPixelsPanel__info__item--clickable`}
-              onClick={() => setFactionPixelsExpanded(!factionPixelsExpanded)}
-            >
-              <p className='Text__small Heading__sub'>Faction</p>
-              <p className='Text__small ExtraPixelsPanel__info__item__details'>
-                {totalChainFactionPixels +
-                  totalFactionPixels -
-                  chainFactionPixelsUsed -
-                  factionPixelsUsed}
-                /&nbsp;
-                {totalChainFactionPixels + totalFactionPixels}
-              </p>
-              {factionPixelsExpanded && (
-                <div className='ExtraPixelsPanel__info__item__expand'>
-                  {props.chainFactionPixels.map((chainFactionPixel, index) => {
-                    return (
-                      <div
-                        className='ExtraPixelsPanel__info__item__expand__item'
-                        key={index}
-                      >
-                        <p
-                          className='Text__xsmall ExtraPixelsPanel__faction__name'
-                          style={{
-                            margin: '0.5rem 0',
-                            padding: '0 0.5rem',
-                            borderRight: '1px solid black',
-                            flex: 1
-                          }}
+              <div
+                className={`ExtraPixelsPanel__info__item ${chainFactionPixelsUsed + factionPixelsUsed === totalChainFactionPixels + totalFactionPixels ? 'ExtraPixelsPanel__info__item--used' : ''} ExtraPixelsPanel__info__item--clickable`}
+                onClick={() => setFactionPixelsExpanded(!factionPixelsExpanded)}
+              >
+                <p className='Text__small Heading__sub'>Faction</p>
+                <p className='Text__small ExtraPixelsPanel__info__item__details'>
+                  {totalChainFactionPixels +
+                    totalFactionPixels -
+                    chainFactionPixelsUsed -
+                    factionPixelsUsed}
+                  /&nbsp;
+                  {totalChainFactionPixels + totalFactionPixels}
+                </p>
+                {factionPixelsExpanded && (
+                  <div className='ExtraPixelsPanel__info__item__expand'>
+                    {props.chainFactionPixels.map((chainFactionPixel, index) => {
+                      return (
+                        <div
+                          className='ExtraPixelsPanel__info__item__expand__item'
+                          key={index}
                         >
-                          {getChainFactionName(index)}
-                        </p>
-                        <p
-                          className='Text__xsmall'
-                          style={{ margin: 0, padding: '0.5rem' }}
+                          <p
+                            className='Text__xsmall ExtraPixelsPanel__faction__name'
+                            style={{
+                              margin: '0.5rem 0',
+                              padding: '0 0.5rem',
+                              borderRight: '1px solid black',
+                              flex: 1
+                            }}
+                          >
+                            {getChainFactionName(index)}
+                          </p>
+                          <p
+                            className='Text__xsmall'
+                            style={{ margin: 0, padding: '0.5rem' }}
+                          >
+                            {chainFactionPixel === 0
+                              ? props.chainFactionPixelTimers[index]
+                              : chainFactionPixel + 'px'}
+                          </p>
+                        </div>
+                      );
+                    })}
+                    {props.factionPixels.map((factionPixel, index) => {
+                      return (
+                        <div
+                          className='ExtraPixelsPanel__info__item__expand__item'
+                          key={index}
                         >
-                          {chainFactionPixel === 0
-                            ? props.chainFactionPixelTimers[index]
-                            : chainFactionPixel + 'px'}
-                        </p>
-                      </div>
-                    );
-                  })}
-                  {props.factionPixels.map((factionPixel, index) => {
-                    return (
-                      <div
-                        className='ExtraPixelsPanel__info__item__expand__item'
-                        key={index}
-                      >
-                        <p
-                          className='Text__xsmall ExtraPixelsPanel__faction__name'
-                          style={{
-                            margin: '0.5rem 0',
-                            padding: '0 0.5rem',
-                            borderRight: '1px solid black',
-                            flex: 1
-                          }}
-                        >
-                          {getFactionName(index)}
-                        </p>
-                        <p
-                          className='Text__xsmall'
-                          style={{ margin: 0, padding: '0.5rem' }}
-                        >
-                          {factionPixel === 0
-                            ? props.factionPixelTimers[index]
-                            : factionPixel + 'px'}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+                          <p
+                            className='Text__xsmall ExtraPixelsPanel__faction__name'
+                            style={{
+                              margin: '0.5rem 0',
+                              padding: '0 0.5rem',
+                              borderRight: '1px solid black',
+                              flex: 1
+                            }}
+                          >
+                            {getFactionName(index)}
+                          </p>
+                          <p
+                            className='Text__xsmall'
+                            style={{ margin: 0, padding: '0.5rem' }}
+                          >
+                            {factionPixel === 0
+                              ? props.factionPixelTimers[index]
+                              : factionPixel + 'px'}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           {props.extraPixels > 0 && (
             <div
               className={`ExtraPixelsPanel__info__item ${extraPixelsUsed === props.extraPixels ? 'ExtraPixelsPanel__info__item--used' : ''}`}

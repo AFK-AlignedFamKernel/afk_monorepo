@@ -4,9 +4,9 @@ import { AllowedMethod } from '@argent/x-sessions';
 import { constants, ec } from 'starknet';
 
 
-const ART_PEACE_CONTRACT=process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS ?? ""
-const USERNAME_CONTRACT=process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS ?? ""
-const CANVAS_NFT_CONTRACT_ADDRESS=process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS ?? ""
+const ART_PEACE_CONTRACT=process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS ?? ""
+const USERNAME_CONTRACT=process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS ?? ""
+const CANVAS_NFT_CONTRACT_ADDRESS=process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS ?? ""
 
 
 export const allowedMethods:AllowedMethod[] = [

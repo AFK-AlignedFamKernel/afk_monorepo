@@ -24,7 +24,7 @@ import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery';
 
-function App() {
+function AppOld() {
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -263,7 +263,8 @@ function App() {
 
   const updateInterval = 1000; // 1 second
   // TODO: make this a config
-  const timeBetweenPlacements = 120000; // 2 minutes
+  // const timeBetweenPlacements = 120000; // 2 minutes
+  const timeBetweenPlacements = 11000; // 10 s
   const [basePixelTimer, setBasePixelTimer] = useState('XX:XX');
   useEffect(() => {
     const updateBasePixelTimer = () => {
@@ -827,4 +828,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppOld;
