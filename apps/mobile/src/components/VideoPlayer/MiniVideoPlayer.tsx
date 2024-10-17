@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
     overflow: 'hidden',
+    aspectRatio: 16 / 9,
   },
   video: {
     width: '100%',

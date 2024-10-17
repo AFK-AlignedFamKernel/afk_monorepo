@@ -7,7 +7,8 @@ import React from 'react';
 import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {GalleryIcon, SendIconContained, UploadIcon, VideoIcon} from '../../../assets/icons';
+import {GalleryIcon, SendIconContained, VideoIcon} from '../../../assets/icons';
+import {LoadingSpinner} from '../../../components/Loading';
 import VideoPlayer from '../../../components/VideoPlayer';
 import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
 import {useFileUpload} from '../../../hooks/api';
@@ -89,16 +90,16 @@ export const FormCreatePost: React.FC = () => {
           const videoMetadata = {
             dimension: `${video.width}x${video.height}`,
             url: data.url,
-            sha256: data.cid, // Assuming CID can be used as SHA256
-            mimeType: data.mime_type,
-            imageUrls: [], // You might want to generate or upload a thumbnail
+            sha256: data.id, // Assuming ipfs hash is SHA256
+            mimeType: 'video/mp4', //Making this default
+            imageUrls: [], // Thumbnail can be added future
             fallbackUrls: [],
             useNip96: false,
           };
           sendVideoEvent.mutate(
             {
               content: note,
-              title: data?.name,
+              title: 'Video Note',
               publishedAt: Math.floor(Date.now() / 1000),
               isVertical: video?.height > video?.width,
               videoMetadata: [videoMetadata],
@@ -224,7 +225,9 @@ export const FormCreatePost: React.FC = () => {
             </View>
 
             {videoPinataUpload.isPending || sendVideoEvent.isPending ? (
-              ''
+              <Pressable style={styles.sendButton}>
+                <LoadingSpinner color={theme.colors.text} />
+              </Pressable>
             ) : (
               <Pressable style={styles.sendButton} onPress={handleSendNote}>
                 <SendIconContained width="56" height="56" color={theme.colors.primary} />

@@ -9,30 +9,19 @@ import {dataURLToBlob} from '../../utils/helpers';
 import {useApiMutation} from './useApiMutation';
 
 //ENVS
-const PINATA_JWT = process.env.EXPO_PUBLIC_PINATA_JWT || '';
-const PINATA_GATEWAY_UPLOAD_URL = process.env.EXPO_PUBLIC_PINATA_UPLOAD_GATEWAY_URL || '';
-
-const PINATA_UPLOAD_URL =
-  process.env.EXPO_PUBLIC_PINATA_UPLOAD_URL || 'https://uploads.pinata.cloud/v3/files';
-const PINATA_SIGN_URL =
-  process.env.EXPO_PUBLIC_PINATA_PINATA_SIGN_URL || 'https://api.pinata.cloud/v3/files/sign';
-
-// Set a date far in the future (approximately 100 years from now)
-const FAR_FUTURE_DATE = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).getTime();
+const PINATA_GATEWAY = process.env.EXPO_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/';
 
 interface IVideoType {
   id: string;
-  name: string;
-  cid: string;
-  created_at: string;
-  size: number;
-  number_of_files: number;
-  mime_type: string;
-  user_id: string;
-  is_duplicate: boolean;
   url: string;
 }
 
+interface IpfHash {
+  data: {
+    hash: string;
+    url: string;
+  };
+}
 export const useFileUpload = () => {
   return useApiMutation({
     mutationKey: ['fileUpload'],
@@ -78,32 +67,17 @@ export const usePinataVideoUpload = () => {
 
       const headers = {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${PINATA_JWT}`,
       };
 
       try {
-        const {data: uploadResponse} = await axios.post(PINATA_UPLOAD_URL, formData, {headers});
-        const cid = uploadResponse?.data?.cid;
+        const resp = (await ApiInstance.post('/file', formData, {
+          headers,
+        })) as IpfHash;
 
-        if (cid) {
-          const body = {
-            url: `${PINATA_GATEWAY_UPLOAD_URL}/files/${cid}`,
-            date: FAR_FUTURE_DATE,
-            expires: FAR_FUTURE_DATE,
-            method: 'GET',
-          };
-          headers['Content-Type'] = 'application/json';
-          const {data: result} = await axios.post(PINATA_SIGN_URL, body, {
-            headers,
-          });
-
-          return {
-            ...uploadResponse?.data,
-            url: result?.data,
-          } as IVideoType;
-        }
-
-        return uploadResponse as IVideoType;
+        return {
+          id: resp.data.hash,
+          url: `${PINATA_GATEWAY}ipfs/${resp.data.hash}`,
+        } as IVideoType;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           throw new Error(error.response?.data?.message || 'Upload failed');
