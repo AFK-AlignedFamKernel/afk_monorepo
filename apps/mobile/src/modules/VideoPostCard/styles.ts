@@ -86,6 +86,7 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
+    paddingTop: 5,
   },
   footerContent: {
     gap: 10,

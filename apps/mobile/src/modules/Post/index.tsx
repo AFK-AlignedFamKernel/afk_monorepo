@@ -300,7 +300,7 @@ export const Post: React.FC<PostProps> = ({
       </View>
 
       {!asComment && (
-        <>
+        <View>
           <View style={styles.hashTagsContainer}>
             {hashTags.map((hashTag, index) => (
               <Pressable onPress={() => handleHashtagPress(hashTag)} key={index}>
@@ -377,7 +377,7 @@ export const Post: React.FC<PostProps> = ({
               />
             </Menu>
           </View>
-        </>
+        </View>
       )}
     </View>
   );
