@@ -13,7 +13,7 @@ import {
 import {useAuth} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 import React from 'react';
-import {ActivityIndicator, Image, Pressable, View} from 'react-native';
+import {ActivityIndicator, Pressable, View} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -26,10 +26,11 @@ import Animated, {
 import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
 import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
 import Badge from '../../components/Badge';
+import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
 import {useNostrAuth, useStyles, useTheme} from '../../hooks';
 import {useTipModal, useToast} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
-import {getImageRatio, removeHashFn, shortenPubkey} from '../../utils/helpers';
+import {removeHashFn, shortenPubkey} from '../../utils/helpers';
 import {getElapsedTimeStringFull} from '../../utils/timestamp';
 import {ContentWithClickableHashtags} from '../PostCard';
 import stylesheet from './styles';
@@ -42,7 +43,7 @@ export type PostProps = {
   isBookmarked?: boolean;
 };
 
-export const Post: React.FC<PostProps> = ({
+export const VideoPost: React.FC<PostProps> = ({
   asComment,
   event,
   repostedEventProps,
@@ -57,7 +58,6 @@ export const Post: React.FC<PostProps> = ({
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
   const {publicKey} = useAuth();
   const {show: showTipModal} = useTipModal();
   const {data: profile} = useProfile({publicKey: event?.pubkey});
@@ -100,17 +100,21 @@ export const Post: React.FC<PostProps> = ({
     return event?.tags?.filter((tag) => tag[0] === 't').map((tag) => tag[1]) || [];
   }, [event?.tags]);
 
-  const postSource = useMemo(() => {
-    if (!event?.tags) return;
+  //Video MetaData
+  const videoMetadata = useMemo(() => {
+    const imetaTag = event?.tags?.find((tag) => tag[0] === 'imeta') || [];
 
-    const imageTag = event.tags.find((tag) => tag[0] === 'image');
-    if (!imageTag) return;
-    let dimensions = [250, 300];
-    if (imageTag[2]) {
-      dimensions = imageTag[2].split('x').map(Number);
-      setMediaDimensions(dimensions);
-    }
-    return {uri: imageTag[1], width: dimensions[0], height: dimensions[1]};
+    const dimensions = imetaTag.find((item) => item.startsWith('dim'))?.split(' ')[1] || '';
+    const url = imetaTag.find((item) => item.startsWith('url'))?.split(' ')[1] || '';
+    const mimeType = imetaTag.find((item) => item.startsWith('m'))?.split(' ')[1] || '';
+    const images =
+      imetaTag.filter((item) => item.startsWith('image')).map((item) => item.split(' ')[1]) || [];
+    const fallbacks =
+      imetaTag.filter((item) => item.startsWith('fallback')).map((item) => item.split(' ')[1]) ||
+      [];
+    const service = imetaTag.find((item) => item.startsWith('service'))?.split(' ')[1] || '';
+
+    return {dimensions, url, mimeType, images, fallbacks, service};
   }, [event?.tags]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
@@ -271,8 +275,8 @@ export const Post: React.FC<PostProps> = ({
         </Pressable>
       </View>
 
-      <View style={styles.content}>
-        <Pressable onPress={handleNavigateToPostDetails}>
+      <View style={styles.innerContainer}>
+        <Pressable style={{width: '80%'}} onPress={handleNavigateToPostDetails}>
           <ContentWithClickableHashtags
             content={isContentExpanded ? content : truncatedContent}
             onHashtagPress={handleHashtagPress}
@@ -283,20 +287,15 @@ export const Post: React.FC<PostProps> = ({
               <Text style={styles.seeMore}>{isContentExpanded ? 'See less' : 'See more...'}</Text>
             </Pressable>
           )}
-
-          {postSource && (
-            <Image
-              source={postSource}
-              style={[
-                styles.contentImage,
-                {
-                  height: dimensionsMedia[1],
-                  aspectRatio: getImageRatio(postSource.width, postSource.height),
-                },
-              ]}
-            />
-          )}
         </Pressable>
+
+        <MiniVideoPlayer
+          customStyle={{
+            height: 100,
+            width: 150,
+          }}
+          uri={videoMetadata?.url}
+        />
       </View>
 
       {!asComment && (
