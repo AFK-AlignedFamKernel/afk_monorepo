@@ -18,6 +18,7 @@ import {useToast} from '../../hooks/modals';
 import {CreateChannelScreenProps, MainStackNavigationProps} from '../../types';
 import {ChannelHead} from './Head';
 import stylesheet from './styles';
+import { uploadToPinata } from 'afk_nostr_sdk/src/utils/pinata'; // Add this import
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -40,7 +41,7 @@ type FormValues = {
   relays: string[];
 };
 
-export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
+export const CreateChannel: React.FC<CreateChannelScreenProps> = ({ navigation }) => {
   const formikRef = useRef<FormikProps<FormValues>>(null);
 
   const {theme} = useTheme();
@@ -56,7 +57,6 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
   const queryClient = useQueryClient();
   const {relays} = useSettingsStore();
   const {showToast} = useToast();
-  const navigation = useNavigation<MainStackNavigationProps>();
 
   if (profile.isLoading) return null;
 
@@ -151,6 +151,21 @@ export const CreateChannel: React.FC<CreateChannelScreenProps> = () => {
       showToast({type: 'success', title: 'Channel created successfully'});
     } catch (error) {
       showToast({type: 'error', title: 'Failed to create Channel'});
+    }
+  };
+
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const videoUri = result.assets[0].uri;
+      const cid = await uploadToPinata(videoUri);
+      // Use the CID in your form or state
     }
   };
 
