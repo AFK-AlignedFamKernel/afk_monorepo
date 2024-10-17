@@ -6,17 +6,8 @@ const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" ? true : false
 /** TODO fix url */
 
 const backendConfig = isProduction ? backendConfigProd : backendConfigDev
-// const backendConfig = backendConfigProd
-// const backendConfig =  backendConfigDev
 
-// TODO used REACT_APP_NODE_ENV
-// const isProduction = true
-// export const backendUrl = 'https://' + backendConfig.host;
 console.log("isProduction", isProduction)
-// export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? backendConfig.host;
-
-// export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ? 'https://' + process.env.NEXT_PUBLIC_BACKEND_URL : 'https://' + backendConfig.host + ':' + backendConfig.port;
-// console.log("backendUrl", backendUrl)
 
 export const backendUrl = isProduction
   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
@@ -24,7 +15,8 @@ export const backendUrl = isProduction
 console.log("backendUrl", backendUrl)
 
 export const wsUrl = isProduction
-  ? 'wss://' + backendConfig.host + '/ws'
+  // ? 'wss://' + backendConfig.host + '/ws'
+  ? 'wss://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL + "/ws": backendConfig.host + "/ws"
   : 'ws://' + backendConfig.host + ':' + backendConfig.consumer_port + '/ws';
 console.log("wsUrl", wsUrl)
 
@@ -40,22 +32,8 @@ export const templateUrl = isProduction
 
 console.log("templateUrl", templateUrl)
 
-// export const wsUrl = backendConfig.production
-//   ? 'wss://' + backendConfig.host + '/ws'
-//   : 'ws://' + backendConfig.host + ':' + backendConfig.consumer_port + '/ws';
-// console.log("wsUrl", wsUrl)
-
-// export const nftUrl = backendConfig.production
-//   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
-//   : 'http://' + backendConfig.host + ':' + backendConfig.consumer_port;
-
 console.log("nftUrl", nftUrl)
 
-// export const templateUrl = backendConfig.production
-//   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
-//   : 'http://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host + ':' + backendConfig.port;
-
-// TODO used REACT_APP_NODE_ENV
 export const devnetMode = backendConfig.production === false;
 // export const devnetMode = backendConfig.production === false;
 export const convertUrl = (url) => {

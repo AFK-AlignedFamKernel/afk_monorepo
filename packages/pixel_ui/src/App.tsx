@@ -23,6 +23,8 @@ import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import Hamburger from './resources/icons/Hamburger.png';
 import useMediaQuery from './hooks/useMediaQuery';
+const logoUrl = './resources/logo.png'
+const HamburgerUrl = './resources/icons/Hamburger.png';
 
 interface IApp {
   contractAddress?: string;
@@ -163,7 +165,7 @@ function App({ contractAddress }: IApp) {
 
   // Colors
   const staticColors = canvasConfig.colors;
-  const [colors, setColors] = useState([]);
+  const [colors, setColors] = useState<any[]>([]);
 
   const [notificationMessage, setNotificationMessage] = useState('');
 
@@ -217,18 +219,22 @@ function App({ contractAddress }: IApp) {
   const width = canvasConfig.canvas.width;
   const height = canvasConfig.canvas.height;
 
-  const canvasRef = useRef(null);
-  const extraPixelsCanvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const extraPixelsCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const colorPixel = (position, color) => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    const x = position % width;
-    const y = Math.floor(position / width);
-    const colorIdx = color;
-    const colorHex = `#${colors[colorIdx]}FF`;
-    context.fillStyle = colorHex;
-    context.fillRect(x, y, 1, 1);
+    if (canvas && canvasRef?.current) {
+      const context = canvas?.getContext('2d');
+      if (context) {
+        const x = position % width;
+        const y = Math.floor(position / width);
+        const colorIdx = color;
+        const colorHex = `#${colors[colorIdx]}FF`;
+        context.fillStyle = colorHex;
+        context.fillRect(x, y, 1, 1);
+      }
+    }
   };
 
   // Pixel selection data
@@ -240,14 +246,14 @@ function App({ contractAddress }: IApp) {
 
   const [lastPlacedTime, setLastPlacedTime] = useState(0);
   const [basePixelUp, setBasePixelUp] = useState(false);
-  const [chainFactionPixelsData, setChainFactionPixelsData] = useState([]);
-  const [chainFactionPixels, setChainFactionPixels] = useState([]);
-  const [factionPixelsData, setFactionPixelsData] = useState([]);
-  const [factionPixels, setFactionPixels] = useState([]);
+  const [chainFactionPixelsData, setChainFactionPixelsData] = useState<any[]>([]);
+  const [chainFactionPixels, setChainFactionPixels] = useState<any[]>([]);
+  const [factionPixelsData, setFactionPixelsData] = useState<any[]>([]);
+  const [factionPixels, setFactionPixels] = useState<any[]>([]);
   const [extraPixels, setExtraPixels] = useState(0);
   const [availablePixels, setAvailablePixels] = useState(0);
   const [availablePixelsUsed, setAvailablePixelsUsed] = useState(0);
-  const [extraPixelsData, setExtraPixelsData] = useState([]);
+  const [extraPixelsData, setExtraPixelsData] = useState<any[]>([]);
 
   const [selectorMode, setSelectorMode] = useState(false);
 
@@ -298,11 +304,11 @@ function App({ contractAddress }: IApp) {
     return () => clearInterval(interval);
   }, [lastPlacedTime]);
 
-  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState([]);
+  const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState<string[]>([]);
   useEffect(() => {
     const updateChainFactionPixelTimers = () => {
-      let newChainFactionPixelTimers = [];
-      let newChainFactionPixels = [];
+      let newChainFactionPixelTimers: string[] = [];
+      let newChainFactionPixels: any[] = [];
       for (let i = 0; i < chainFactionPixelsData.length; i++) {
         let memberPixels = chainFactionPixelsData[i].memberPixels;
         if (memberPixels !== 0) {
@@ -337,11 +343,11 @@ function App({ contractAddress }: IApp) {
     return () => clearInterval(interval);
   }, [chainFactionPixelsData]);
 
-  const [factionPixelTimers, setFactionPixelTimers] = useState([]);
+  const [factionPixelTimers, setFactionPixelTimers] = useState<any[]>([]);
   useEffect(() => {
     const updateFactionPixelTimers = () => {
-      let newFactionPixelTimers = [];
-      let newFactionPixels = [];
+      let newFactionPixelTimers: any[] = [];
+      let newFactionPixels: any[] = [];
       for (let i = 0; i < factionPixelsData.length; i++) {
         let memberPixels = factionPixelsData[i].memberPixels;
         if (memberPixels !== 0) {
@@ -451,8 +457,13 @@ function App({ contractAddress }: IApp) {
     setExtraPixelsData([]);
 
     const canvas = extraPixelsCanvasRef.current;
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, width, height);
+    if (canvas && canvasRef?.current) {
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.clearRect(0, 0, width, height);
+      }
+    }
+
   }, [width, height]);
 
   const clearExtraPixel = useCallback(
@@ -460,11 +471,17 @@ function App({ contractAddress }: IApp) {
       setAvailablePixelsUsed(availablePixelsUsed - 1);
       setExtraPixelsData(extraPixelsData.filter((_, i) => i !== index));
       const canvas = extraPixelsCanvasRef.current;
-      const context = canvas.getContext('2d');
-      const pixel = extraPixelsData[index];
-      const x = pixel.x;
-      const y = pixel.y;
-      context.clearRect(x, y, 1, 1);
+      if (canvas) {
+        const context = canvas.getContext('2d');
+        if (context) {
+          const pixel = extraPixelsData[index];
+          const x = pixel.x;
+          const y = pixel.y;
+          context.clearRect(x, y, 1, 1);
+        }
+
+      }
+
     },
     [extraPixelsData, availablePixelsUsed]
   );
@@ -661,7 +678,7 @@ function App({ contractAddress }: IApp) {
           setLastPlacedTime={setLastPlacedTime}
         />
         {(!isMobile || activeTab === tabs[0]) && (
-          <img src={logo} alt='logo' className='App__logo--mobile' />
+          <img src={logoUrl} alt='logo' className='App__logo--mobile' />
         )}
         <div
           className={
@@ -805,7 +822,7 @@ function App({ contractAddress }: IApp) {
                   setFooterExpanded(!footerExpanded);
                 }}
               >
-                <img src={Hamburger} alt='Tabs' className='ExpandTabs__icon' />
+                <img src={HamburgerUrl} alt='Tabs' className='ExpandTabs__icon' />
               </div>
             )}
             {isFooterSplit && footerExpanded && (

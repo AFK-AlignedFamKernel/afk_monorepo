@@ -12,7 +12,6 @@ const PixelSelector = (props) => {
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
 
   const {address} = useAccount()
-  console.log("Pixel selector address",address)
   useEffect(() => {
     if (!address) {
       setPlacementTimer('Login to Play');
