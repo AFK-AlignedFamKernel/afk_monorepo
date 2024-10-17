@@ -68,7 +68,7 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    overflowX: 'scroll',
+    // overflowX: 'scroll',
   },
   footerComments: {
     flexDirection: 'row',

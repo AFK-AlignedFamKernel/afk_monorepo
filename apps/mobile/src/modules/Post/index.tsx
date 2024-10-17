@@ -304,7 +304,6 @@ export const Post: React.FC<PostProps> = ({
           <View
             style={{
               gap: 10,
-              flexWrap: 'nowrap',
             }}
           >
             <View style={{flexDirection: 'row', gap: 8}}>
