@@ -7,7 +7,7 @@ import React from 'react';
 import {Image, KeyboardAvoidingView, Pressable, TextInput, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {GalleryIcon, SendIconContained, VideoIcon} from '../../../assets/icons';
+import {GalleryIcon, SendIconContained, UploadIcon, VideoIcon} from '../../../assets/icons';
 import VideoPlayer from '../../../components/VideoPlayer';
 import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
 import {useFileUpload} from '../../../hooks/api';
@@ -223,9 +223,13 @@ export const FormCreatePost: React.FC = () => {
               </View>
             </View>
 
-            <Pressable style={styles.sendButton} onPress={handleSendNote}>
-              <SendIconContained width="56" height="56" color={theme.colors.primary} />
-            </Pressable>
+            {videoPinataUpload.isPending || sendVideoEvent.isPending ? (
+              ''
+            ) : (
+              <Pressable style={styles.sendButton} onPress={handleSendNote}>
+                <SendIconContained width="56" height="56" color={theme.colors.primary} />
+              </Pressable>
+            )}
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
