@@ -289,13 +289,23 @@ export const VideoPost: React.FC<PostProps> = ({
           )}
         </Pressable>
 
-        <MiniVideoPlayer
-          customStyle={{
-            height: 100,
-            width: 150,
-          }}
-          uri={videoMetadata?.url}
-        />
+        {!content ? (
+          <MiniVideoPlayer
+            customStyle={{
+              height: 300,
+              width: '100%',
+            }}
+            uri={videoMetadata?.url}
+          />
+        ) : (
+          <MiniVideoPlayer
+            customStyle={{
+              height: 100,
+              width: 150,
+            }}
+            uri={videoMetadata?.url}
+          />
+        )}
       </View>
 
       {!asComment && (

@@ -69,8 +69,13 @@ export const FormCreatePost: React.FC = () => {
   };
 
   const handleSendNote = async () => {
-    if (!note || note?.trim()?.length == 0) {
-      showToast({type: 'error', title: 'Please write your note'});
+    // if (!note || note?.trim()?.length == 0) {
+    //   showToast({type: 'error', title: 'Please write your note'});
+    //   return;
+    // }
+
+    if (!note?.trim().length && !image && !video) {
+      showToast({type: 'error', title: 'Please add a note, image, or video'});
       return;
     }
 
@@ -98,7 +103,7 @@ export const FormCreatePost: React.FC = () => {
           };
           sendVideoEvent.mutate(
             {
-              content: note,
+              content: note || '',
               title: 'Video Note',
               publishedAt: Math.floor(Date.now() / 1000),
               isVertical: video?.height > video?.width,
@@ -121,12 +126,18 @@ export const FormCreatePost: React.FC = () => {
             },
           );
         },
+        onError() {
+          showToast({
+            type: 'error',
+            title: 'Error! Error Uploading Video',
+          });
+        },
       });
     } else {
       try {
         sendNote.mutate(
           {
-            content: note,
+            content: note || '',
             tags: [
               ...tags,
               ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
