@@ -43,9 +43,7 @@ const ClickableHashtag = ({hashtag, onPress}: any) => {
   const styles = useStyles(stylesheet);
   return (
     <Pressable>
-      <Text style={styles.hashtagColor} onPress={() => onPress(hashtag)}>
-        {hashtag}
-      </Text>
+      <Text style={styles.hashtagColor}>{hashtag}</Text>
     </Pressable>
   );
 };

@@ -10,6 +10,5 @@ export default ThemedStyleSheet((theme) => ({
   },
   hashtagColor: {
     color: theme.colors.primary,
-    textDecorationLine: 'underline',
   },
 }));
