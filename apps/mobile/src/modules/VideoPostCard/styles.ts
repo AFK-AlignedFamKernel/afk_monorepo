@@ -1,6 +1,18 @@
 import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
+  card_container: {
+    backgroundColor: theme.colors.surface,
+    padding: Spacing.xsmall,
+    marginHorizontal: Spacing.medium,
+    marginBottom: Spacing.large,
+    borderRadius: 16,
+  },
+  hashtagColor: {
+    color: theme.colors.primary,
+  },
+
+  //Video Card
   container: {},
 
   repost: {
@@ -73,6 +85,7 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
+    paddingTop: 5,
   },
   footerContent: {
     gap: 10,
@@ -86,5 +99,22 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.primary,
     fontSize: 13,
     marginTop: Spacing.xsmall,
+  },
+
+  //Inner content
+  innerContainer: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    width: '100%',
+  },
+  innerContentContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
 }));
