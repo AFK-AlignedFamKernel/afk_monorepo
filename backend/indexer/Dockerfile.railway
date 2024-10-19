@@ -1,6 +1,6 @@
 FROM quay.io/apibara/sink-webhook:0.6.0
 
 WORKDIR /indexer
-COPY ./script.js .
+COPY ./* .
 
 ENTRYPOINT ["/nix/store/2l9p053ypiyh4i1r0b82ml4f1x0fy0sp-apibara-sink-webhook-0.6.0/bin/apibara-sink-webhook"]
