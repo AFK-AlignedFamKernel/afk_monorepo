@@ -2,8 +2,6 @@
   "$schema": "https://backboard.railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "buildCommand": "echo building!",
-    "buildEnvironment": "V2",
     "dockerFilePath": "backend/indexer/Dockerfile.railway"
   },
   "deploy": {
