@@ -1,18 +1,11 @@
 import {
   Account,
   json,
-  Contract,
-  cairo,
-  uint256,
-  byteArray,
-  CallData,
 } from "starknet";
 import fs from "fs";
 import dotenv from "dotenv";
 import { provider } from "./starknet";
 import path from "path";
-import { finalizeEvent } from "nostr-tools";
-import { CanvasConfig } from "common";
 
 dotenv.config();
 const PATH_ART_PEACE = path.resolve(
@@ -88,36 +81,6 @@ export const createUsernameStore = async (
       await account0.deployContract({
         classHash: UsernameStoreClassHash,
         constructorCalldata: [],
-        // constructorCalldata: [
-        //   initParams
-        //   // [
-        //   // host ?? account0?.address,
-        //   // canvas_width,
-        //   // canvas_height,
-        //   // time_between_pixels,
-        //   // color_palette,
-        //   // votable_colors,
-        //   // daily_new_colors_count,
-        //   // start_time,
-        //   // end_time,
-        //   // daily_quests_count,
-        //   // devmode
-        //   // ]
-
-        //   // }
-
-        //   // host?? account0?.address,
-        //   // canvas_width,
-        //   // canvas_height,
-        //   // time_between_pixels,
-        //   // color_palette,
-        //   // votable_colors,
-        //   // daily_new_colors_count,
-        //   // start_time,
-        //   // end_time,
-        //   // daily_quests_count,
-        //   // devmode
-        // ]
       });
 
     console.log("transaction_hash", transaction_hash);
@@ -127,15 +90,13 @@ export const createUsernameStore = async (
     console.log("Tx deploy", tx);
     await provider.waitForTransaction(transaction_hash);
     console.log(
-      "✅ New contract Escrow created.\n   address =",
+      "✅ New contract UsernameStore created.\n   address =",
       contract_address
     );
 
-    // const contract = new Contract(compiledSierraAAaccount, contract_address, account0)
     return {
       contract_address,
       tx,
-      // contract
     };
   } catch (error) {
     console.log("Error createArtPeace= ", error);
