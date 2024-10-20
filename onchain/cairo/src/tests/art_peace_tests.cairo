@@ -77,7 +77,11 @@ pub(crate) fn deploy_contract() -> ContractAddress {
         devmode: false
     }
         .serialize(ref calldata);
+
+    start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
+    stop_cheat_caller_address(utils::ART_PEACE_CONTRACT());
+
     cheat_block_timestamp(
         contract_addr, TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN, CheatSpan::Indefinite
     );
@@ -131,9 +135,12 @@ pub(crate) fn deploy_with_quests_contract(
     }
         .serialize(ref calldata);
 
+    start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
+    stop_cheat_caller_address(utils::ART_PEACE_CONTRACT());
 
     start_cheat_caller_address(contract_addr, utils::HOST());
+
     let art_peace = IArtPeaceDispatcher { contract_address: contract_addr };
     let mut i = 0;
     let mut dayId = 0;
@@ -175,7 +182,7 @@ fn deploy_nft_contract() -> ContractAddress {
 
 
 fn deploy_erc20_mock() -> ContractAddress {
-    let contract = snf::declare("SnakeERC20Mock").unwrap();
+    let contract = snf::declare("ERC20").unwrap();
     let name: ByteArray = "erc20 mock";
     let symbol: ByteArray = "ERC20MOCK";
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
