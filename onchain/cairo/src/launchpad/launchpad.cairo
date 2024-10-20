@@ -480,7 +480,7 @@ pub mod LaunchpadMarketplace {
             }
             assert!(amount <= pool_coin.available_supply, "Not enough available supply");
 
-            // **Assertion 3:** Amount Received Validation
+            // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
             let expected_quote_amount = self
                 ._get_quote_paid_by_amount_coin(coin_address, amount, false);
