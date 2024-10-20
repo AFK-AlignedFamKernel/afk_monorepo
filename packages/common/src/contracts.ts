@@ -114,3 +114,9 @@ export const ART_PEACE_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
 };
+
+export const USERNAME_STORE_ADDRESS = {
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x3af00ab1a4d280793d311c610173bdf84b6e2fd2221bacfc52d19531413e00c",
+};
