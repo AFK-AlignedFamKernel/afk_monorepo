@@ -13,7 +13,7 @@ pub mod pixel {
     }
 
     pub mod username_store {
-        pub mod username_store;
         pub mod interfaces;
+        pub mod username_store;
     }
 }
