@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = ".prisma/client"
 }
 
 datasource db {
@@ -25,21 +26,23 @@ model token_deploy {
 }
 
 model token_launch {
-  memecoin_address String?
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String    @id
-  quote_token      String?
-  exchange_name    String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  total_supply     String?
-  current_supply   String?
-  liquidity_raised String?
-  price            String?
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
+  memecoin_address    String?
+  owner_address       String?
+  network             String?
+  block_hash          String?
+  block_number        BigInt?
+  block_timestamp     DateTime? @db.Timestamp(6)
+  transaction_hash    String    @id
+  quote_token         String?
+  exchange_name       String?
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  total_supply        String?
+  current_supply      String?
+  liquidity_raised    String?
+  threshold_liquidity String?
+  price               String?
+  cursor              BigInt?   @map("_cursor")
+  time_stamp          String?
 }
 
 model unrugmeme_deploy {
