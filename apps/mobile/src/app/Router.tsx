@@ -47,6 +47,9 @@ import {Tips} from '../screens/Tips';
 import {CashuScreen} from '../screens/Cashu';
 import {WalletBTC} from '../screens/WalletBTC';
 import {Wallet} from '../screens/Wallet';
+import {DappBrowserScreen} from '../screens/DappBrowserScreen';
+
+
 
 // Styles
 import {StyleSheet} from 'react-native';
@@ -312,6 +315,7 @@ const MainNavigator: React.FC = () => {
 
       <MainStack.Screen name="ShortVideos" component={ShortVideosModule} />
       <MainStack.Screen name="Onboarding" component={Onboarding} />
+      <MainStack.Screen name="DappBrowser" component={DappBrowserScreen} />
     </MainStack.Navigator>
   );
 };
@@ -403,6 +407,8 @@ const linking = {
           CreateAccount: 'create-account',
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',
+          DappBrowser: 'browser',
+
         },
       },
       MainStack: {
@@ -471,6 +477,7 @@ const linking = {
           Wallet: 'wallet',
           Portfolio: 'portfolio',
           ShortVideos: 'shorts',
+          DappBrowser: 'browser',
         },
       },
     },

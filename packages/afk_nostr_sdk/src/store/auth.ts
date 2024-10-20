@@ -1,7 +1,7 @@
-import {createStore} from 'zustand';
+import { createStore } from 'zustand';
 
 import createBoundedUseStore from './createBoundedUseStore';
-import {Proof} from '@cashu/cashu-ts';
+import { Proof } from '@cashu/cashu-ts';
 
 type State = {
   publicKey: string;
@@ -18,6 +18,11 @@ type State = {
   proofs?: Proof[];
   useNostr?: boolean;
   pendingTokens?: string[];
+
+  evmPublicKey?: string;
+  evmPrivateKey?: string;
+  strkPublicKey?: string;
+  strkPrivateKey?: string;
 };
 
 type Action = {
@@ -34,6 +39,8 @@ type Action = {
   setProofs: (proofs: Proof[]) => void;
   setMintsRequests: (mintRequests: string[]) => void;
   setNWCUrl: (nwcUrl: string) => void;
+  setEVMWallet: (evmPublicKey?: string, evmPrivateKey?: string) => void;
+  setStrkWallet: (strkPublicKey?: string, strkPrivateKey?: string) => void;
 };
 
 export const authStore = createStore<State & Action>((set, get) => ({
@@ -47,39 +54,51 @@ export const authStore = createStore<State & Action>((set, get) => ({
   mints: undefined as unknown as string[],
   mintRequests: undefined as unknown as string[],
   proofs: undefined as unknown as Proof[],
+  strkPrivateKey: undefined as unknown as string,
+  strkPublicKey: undefined as unknown as string,
+  evmPublicKey: undefined as unknown as string,
+  evmPrivateKey: undefined as unknown as string,
 
   setAuth: (publicKey, privateKey) => {
-    set({publicKey, privateKey});
+    set({ publicKey, privateKey });
   },
   setNWCUrl: (nwcUrl) => {
-    set({nwcUrl});
+    set({ nwcUrl });
   },
   setPublicKey: (publicKey) => {
-    set({publicKey});
+    set({ publicKey });
   },
   setIsExtensionConnect: (isExtension) => {
-    set({isExtension});
+    set({ isExtension });
   },
 
   // Cashu store
 
   setIsSeedCashuStorage: (isSeedCashuStorage) => {
-    set({isSeedCashuStorage});
+    set({ isSeedCashuStorage });
   },
   setSeed: (seed) => {
-    set({seed});
+    set({ seed });
   },
   setMnemonic: (mnemonic) => {
-    set({mnemonic});
+    set({ mnemonic });
   },
   setMints: (mints) => {
-    set({mints});
+    set({ mints });
   },
   setMintsRequests: (mintRequests) => {
-    set({mintRequests});
+    set({ mintRequests });
   },
   setProofs: (proofs) => {
-    set({proofs});
+    set({ proofs });
+  },
+
+  // Wallet
+  setEVMWallet: (evmPublicKey, evmPrivateKey) => {
+    set({ evmPublicKey, evmPrivateKey });
+  },
+  setStrkWallet: (strkPublicKey, strkPrivateKey) => {
+    set({ strkPrivateKey, strkPublicKey });
   },
 }));
 
