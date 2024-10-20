@@ -29,11 +29,12 @@ const HamburgerUrl = './resources/icons/Hamburger.png';
 interface IApp {
   contractAddress?: string;
   canvasAddress?: string;
-  nftAddress?: string;
+  usernameAddress?: string;
+  nftCanvasAddress?: string;
   factoryAddress?: string;
 }
 
-function App({ contractAddress }: IApp) {
+function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   // Window management
   usePreventZoom();
   const tabs = ['Canvas', 'Factions', 'Quests', 'Vote', 'NFTs', 'Account'];
@@ -92,15 +93,15 @@ function App({ contractAddress }: IApp) {
   // Contracts
   // TODO: Pull addrs from api?
   const { contract: artPeaceContract } = useContract({
-    address: contractAddress ?? process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
+    address: contractAddress ?? process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS,
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({
-    address: process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS,
+    address: usernameAddress ?? process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS,
     abi: username_store_abi
   });
   const { contract: canvasNftContract } = useContract({
-    address: process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS,
+    address: nftCanvasAddress ?? process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS,
     abi: canvas_nft_abi
   });
 
