@@ -8,12 +8,12 @@ interface IAppRender {
   usernameAddress?: string
   nftCanvasAddress?: string
 }
-const AppRender = ({ artPeaceAddress , usernameAddress, nftCanvasAddress}: IAppRender) => {
+const AppRender = ({ artPeaceAddress, usernameAddress, nftCanvasAddress }: IAppRender) => {
   return (
     <StarknetProvider>
-      <App contractAddress={artPeaceAddress} 
-      nftCanvasAddress={nftCanvasAddress}
-      usernameAddress={usernameAddress}
+      <App contractAddress={artPeaceAddress}
+        nftCanvasAddress={nftCanvasAddress}
+        usernameAddress={usernameAddress}
       />
       {/* <AppOld /> */}
     </StarknetProvider>
