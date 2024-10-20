@@ -1,5 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import { prisma } from "indexer-prisma";
+import prisma from "../../../../../packages/indexer-prisma/src/index.js";
 import { HTTPStatus } from "../../utils/http";
 
 async function buyCoinRoute(fastify: FastifyInstance, options: RouteOptions) {

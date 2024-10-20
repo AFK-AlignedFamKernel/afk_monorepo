@@ -8,7 +8,7 @@ import {
 } from "../../constants/contracts";
 import { hashPhoneNumber } from "../../utils/format";
 import { computeAddress } from "../../utils/address";
-import { prisma } from "@prisma/client";
+import { PrismaClient } from "../../../prisma/.prisma/client";
 
 interface VerifyOtpRequestBody {
   phone_number: string;
@@ -52,6 +52,8 @@ async function verifyOtp(
         const { phone_number, sent_otp, public_key_x, public_key_y } =
           request.body;
 
+        const prisma = new PrismaClient();
+
         // Create a verification request to twilio
         const response = await twilio_verification
           .create({
@@ -71,9 +73,9 @@ async function verifyOtp(
         }
 
         // check if user is already registered
-        const user = prisma.registration.findFirst({
+        const user = await prisma.registration.findFirst({
           where: {
-            phoneNumber: phone_number,
+            phone_number: phone_number,
           },
         });
 
@@ -114,10 +116,9 @@ async function verifyOtp(
         }
 
         // update the user record as confirmed and add the account address
-
         const userUpdated = await prisma.registration.update({
           where: {
-            phoneNumber: phone_number,
+            id: user?.id,
           },
           data: {
             is_confirmed: true,

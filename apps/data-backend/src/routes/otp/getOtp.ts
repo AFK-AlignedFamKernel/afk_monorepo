@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { VerificationListInstance } from "twilio/lib/rest/verify/v2/service/verification";
-import { prisma } from "@prisma/client";
+import { PrismaClient } from "../../../prisma/.prisma/client";
 
 interface GetOtpRequestBody {
   phone_number: string;
@@ -18,7 +18,7 @@ async function getOtp(
       schema: {
         body: {
           type: "object",
-          required: ["phone_number", "nickname"],
+          required: ["contract_address","phone_number", "nickname"],
           properties: {
             phone_number: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
             nickname: { type: "string", pattern: "^[A-Za-z]{1,20}$" },
@@ -32,19 +32,20 @@ async function getOtp(
         const { phone_number, nickname } = request.body;
 
         // validating if phone number exists in db
+        const prisma = new PrismaClient();
 
         const record_by_phone_number = await prisma.registration.findFirst({
           where: {
-            phoneNumber: phone_number,
+            phone_number: phone_number,
           },
           orderBy: { created_at: "desc" },
         });
 
-        if (!record_by_phone_number.length) {
+        if (!record_by_phone_number) {
           try {
             await prisma.registration.create({
               data: {
-                phoneNumber: phone_number,
+                phone_number: phone_number,
                 nickname,
               },
             });
