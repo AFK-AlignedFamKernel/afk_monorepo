@@ -35,8 +35,9 @@ pub mod interfaces {
 }
 
 pub mod afk_id {
-    pub mod afk_identity;
-    pub mod id_factory;
+    // pub mod afk_identity;
+    // pub mod id_factory;
+    pub mod username_store;
 }
 
 pub mod defi {
@@ -85,11 +86,14 @@ pub mod pixel {
 
 #[cfg(test)]
 pub mod tests {
+    pub mod utils;
     pub mod identity_tests;
     pub mod keys_tests;
     pub mod launchpad_tests;
     pub mod quest_factory_test;
     pub mod tap_tests;
     pub mod vault_tests;
+    // TODO fix test snforge version Artpeace
+    // pub mod art_peace_tests;
 }
 
