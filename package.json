@@ -24,7 +24,6 @@
     "mobile":"turbo run start --filter=mobile",
     "extension":"turbo run dev --filter=extensions",
     "lint": "turbo run lint",
-    "lint:fix": "turbo run lint -fix",
     "clean": "turbo run clean && rimraf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:migrate:deploy": "turbo run db:migrate:deploy",
