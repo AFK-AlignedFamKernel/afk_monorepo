@@ -47,7 +47,7 @@ import {Tips} from '../screens/Tips';
 import {CashuScreen} from '../screens/Cashu';
 import {WalletBTC} from '../screens/WalletBTC';
 import {Wallet} from '../screens/Wallet';
-import {DappBrowserScreen} from '../screens/DappBrowserScreen';
+import {DappBrowserScreen} from '../screens/DappBrowser';
 
 
 
