@@ -86,7 +86,6 @@ pub mod pixel {
 
 #[cfg(test)]
 pub mod tests {
-    // TODO fix test snforge version Artpeace
     pub mod art_peace_tests;
     // pub mod identity_tests;
     pub mod keys_tests;
