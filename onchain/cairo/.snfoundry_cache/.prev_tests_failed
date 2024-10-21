@@ -1,9 +1,0 @@
-afk::social::deposit::tests::deposit_claim_gas_fee
-afk::social::deposit::tests::deposit_claim
-afk::tests::launchpad_tests::launchpad_tests::test_create_token
-afk::social::deposit::tests::claim_incorrect_gas_amount
-afk::tests::launchpad_tests::launchpad_tests::test_create_and_launch_token
-afk::tests::launchpad_tests::launchpad_tests::test_launch_token
-afk::tests::launchpad_tests::launchpad_tests::test_set_address_jediswap_factory_v2_ok
-afk::tests::launchpad_tests::launchpad_tests::test_set_address_jediswap_nft_router_v2_ok
-afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
