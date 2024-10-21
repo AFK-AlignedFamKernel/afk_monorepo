@@ -1,5 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "../../../../../packages/indexer-prisma/src/index.js";
+import prisma from "indexer-prisma"
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
