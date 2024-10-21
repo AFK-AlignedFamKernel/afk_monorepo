@@ -83,6 +83,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_address_jediswap_nft_router_v2(
         ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
     );
+    fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory: ContractAddress);
+    fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_exchanges_address(
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
@@ -152,6 +154,8 @@ pub mod LaunchpadMarketplace {
         protocol_fee_destination: ContractAddress,
         address_jediswap_factory_v2: ContractAddress,
         address_jediswap_nft_router_v2: ContractAddress,
+        address_ekubo_factory: ContractAddress,
+        address_ekubo_router: ContractAddress,
         // User states
         token_created: LegacyMap::<ContractAddress, Token>,
         launched_coins: LegacyMap::<ContractAddress, TokenLaunch>,
@@ -311,7 +315,8 @@ pub mod LaunchpadMarketplace {
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
         // self
         //     .emit(
-        //         SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
+        //         SetJediwapV2Factory { address_jediswap_factory_v2:
+        //         address_jediswap_factory_v2 }
         //     );
         }
 
@@ -328,6 +333,24 @@ pub mod LaunchpadMarketplace {
         //     );
         }
 
+        fn set_address_ekubo_factory(
+            ref self: ContractState, 
+            address_ekubo_factory: ContractAddress
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.address_ekubo_factory.write(address_ekubo_factory);
+            // Optionally emit an event
+        }
+        
+        fn set_address_ekubo_router(
+            ref self: ContractState, 
+            address_ekubo_router: ContractAddress
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.address_ekubo_router.write(address_ekubo_router);
+            // Optionally emit an event
+        }
+    
         fn set_exchanges_address(
             ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
         ) {
@@ -404,16 +427,20 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress, quote_amount: u256
         ) {
             // assert!(quote_amount > 0, "amount == 0");
+            let caller = get_caller_address();
             let old_launch = self.launched_coins.read(coin_address);
             assert!(!old_launch.owner.is_zero(), "coin not found");
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let mut pool_coin = old_launch.clone();
             let total_supply_memecoin = memecoin.total_supply();
             let threshold_liquidity = self.threshold_liquidity.read();
-            // let liquidity_raised = old_launch.liquidity_raised.clone();
 
-            // assert!(threshold_liquidity < liquidity_raised + quote_amount,"threshold reached");
-            // assert!(threshold_liquidity <= liquidity_raised + quote_amount,"threshold reached");
+            //new liquidity after purchase
+            let new_liquidity = pool_coin.liquidity_raised + quote_amount;
+
+            //assertiony
+            assert!(new_liquidity <= threshold_liquidity, "Threshold liquidity exceeded");
+
             // TODO erc20 token transfer
             let token_quote = old_launch.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
@@ -471,29 +498,16 @@ pub mod LaunchpadMarketplace {
                 // println!("remain_liquidity {:?}", remain_liquidity);
                 erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
             }
-            // println!("total_price {:?}", total_price);
-            // assert!(threshold_liquidity < liquidity_raised + quote_amount,"threshold reached");
-            // assert!(total_price > 0, "div 0");
-            // let mut amount = self
-            // ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
+            assert!(amount <= pool_coin.available_supply, "Not enough available supply");
 
-            // if total_price != 0 {
-            //     amount = self
-            //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
-            // }
+            // Assertion: Amount Received Validation
+            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
+            let expected_quote_amount = self
+                ._get_quote_paid_by_amount_coin(coin_address, amount, false);
+            assert!(
+                expected_quote_amount == quote_amount, "Quote amount does not match expected value"
+            );
 
-            // if amount == 0 {
-            //     amount = self
-            //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
-            // }
-
-            // if amount > pool_coin.available_supply {
-            //     amount = pool_coin.available_supply;
-            // }
-            // let mut amount = self
-            // ._get_coin_amount_by_quote_amount(coin_address, total_price, false);
-            // println!("quote_amount {:?}", quote_amount);
-            // println!("amount to buy {:?}", amount);
             // println!("total_price {:?}", total_price);
 
             // Change the Stats of pool:
@@ -622,7 +636,7 @@ pub mod LaunchpadMarketplace {
             let old_pool = self.launched_coins.read(coin_address);
             assert(!old_pool.owner.is_zero(), 'coin not found');
 
-            // let caller = get_caller_address();
+            let caller = get_caller_address();
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
 
             let mut share_user = old_share.clone();
@@ -635,6 +649,9 @@ pub mod LaunchpadMarketplace {
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
+            assert!(old_share.amount_owned >= quote_amount, "share too low");
+            assert!(old_pool.total_supply >= quote_amount, "above supply");
+        
             // TODO fix this function
             let mut amount = self
                 ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
@@ -648,6 +665,10 @@ pub mod LaunchpadMarketplace {
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let creator_fee_percent = self.creator_fee_percent.read();
+
+            // Ensure fee percentages are within valid bounds
+            assert!(protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL, "protocol_fee_percent out of bounds");
+            assert!(creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR, "creator_fee_percent out of bounds");
 
             // assert!(old_share.amount_owned >= amount, "share to sell > supply");
             // println!("amount{:?}", amount);
@@ -667,10 +688,41 @@ pub mod LaunchpadMarketplace {
             let amount_creator_fee = total_price * creator_fee_percent / BPS;
             // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
             let remain_liquidity = total_price - amount_protocol_fee;
+            let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
             // let remain_liquidity = total_price ;
             assert!(
                 old_pool.liquidity_raised >= remain_liquidity,
                 "pool_update.liquidity_raised <= remain_liquidity"
+            );
+
+            // Ensure fee calculations are correct
+            assert!(
+                amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
+                "fee calculation mismatch"
+            );
+
+            // Assertion: Check if the contract has enough quote tokens to transfer
+            let contract_quote_balance = erc20.balance_of(get_contract_address());
+            assert!(
+                contract_quote_balance >= quote_amount,
+                "contract has insufficient quote token balance"
+            );
+
+            // Transfer protocol fee to the designated destination
+            if amount_protocol_fee > 0 {
+                erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            }
+
+            // Transfer the remaining quote amount to the user
+            if amount_to_user > 0 {
+                erc20.transfer(caller, amount_to_user);
+            }
+
+            // Assertion: Ensure the user receives the correct amount
+            let user_received = erc20.balance_of(caller) - (old_share.amount_owned);
+            assert!(
+                user_received == amount_to_user,
+                "user did not receive the correct quote amount"
             );
 
             // TODO fix amount owned and sellable.
@@ -682,9 +734,9 @@ pub mod LaunchpadMarketplace {
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-            erc20.transfer(get_caller_address(), remain_liquidity);
+            // erc20.transfer(get_caller_address(), remain_liquidity);
             // // println!("transfer protocol fee {}", amount_protocol_fee.clone());
-            erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
@@ -693,30 +745,44 @@ pub mod LaunchpadMarketplace {
 
             // TODO check reetrancy guard
 
+
+            // Assertion: Ensure pool liquidity remains consistent
+            assert!(
+                old_pool.liquidity_raised >= quote_amount,
+                "pool liquidity inconsistency after sale"
+            );
+
             // TODO finish update state
             pool_update.price = total_price;
             pool_update.liquidity_raised = pool_update.liquidity_raised - total_price;
             pool_update.token_holded -= amount;
             pool_update.available_supply += amount;
 
+            // Assertion: Ensure the pool's liquidity and token holded are updated correctly
+            assert!(
+                pool_update.liquidity_raised + quote_amount == old_pool.liquidity_raised,
+                "liquidity_raised mismatch after update"
+            );
+            assert!(
+                pool_update.token_holded + self._get_coin_amount_by_quote_amount(coin_address, quote_amount, true) == old_pool.token_holded,
+                "token_holded mismatch after update"
+            );
+
             self
                 .shares_by_users
                 .write((get_caller_address(), coin_address.clone()), share_user.clone());
             self.launched_coins.write(coin_address.clone(), pool_update.clone());
-        // self
-        //     .emit(
-        //         SellToken {
-        //             caller: get_caller_address(),
-        //             key_user: coin_address,
-        //             amount: quote_amount,
-        //             price: total_price,
-        //             protocol_fee: amount_protocol_fee,
-        //             creator_fee: amount_creator_fee,
-        //             timestamp: get_block_timestamp(),
-        //             last_price: old_price,
-        //         }
-        //     );
-        }
+            self.emit(SellToken {
+                caller: caller,
+                key_user: coin_address,
+                amount: quote_amount,
+                price: total_price, // Adjust if necessary
+                protocol_fee: amount_protocol_fee,
+                creator_fee: amount_creator_fee,
+                timestamp: get_block_timestamp(),
+                last_price: old_pool.price,
+                });
+            }
 
 
         // TODO finish check
@@ -994,6 +1060,7 @@ pub mod LaunchpadMarketplace {
         ) {
             match exchange {
                 SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) }
+                // SupportedExchanges::Ekubo => { self._add_liquidity_ekubo(coin_address) }
             }
         }
 
@@ -1102,6 +1169,64 @@ pub mod LaunchpadMarketplace {
             }
         }
 
+        // fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress) {
+        //     let factory_address = self.address_ekubo_factory.read();
+        //     let router_address = self.address_ekubo_router.read();
+            
+        //     if router_address.is_zero() || factory_address.is_zero() {
+        //         panic!("Ekubo factory or router address not set");
+        //     }
+            
+        //     let router = IEkuboRouterDispatcher { contract_address: router_address };
+        //     let factory = IEkuboFactoryDispatcher { contract_address: factory_address };
+            
+        //     let launch = self.launched_coins.read(coin_address);
+        //     let token_a = launch.token_address.clone();
+        //     let token_b = launch.token_quote.token_address.clone();
+        //     let fee = 3000; // Example fee, adjust as needed
+            
+        //     // Check if the pool exists
+        //     let pool = factory.get_pool(token_a, token_b, fee);
+            
+        //     if pool.is_zero() {
+        //         // Create the pool if it doesn't exist
+        //         factory.create_pool(token_a, token_b, fee);
+        //     }
+            
+        //     // Approve tokens to router
+        //     let erc20_a = IERC20Dispatcher { contract_address: token_a };
+        //     let erc20_b = IERC20Dispatcher { contract_address: token_b };
+            
+        //     erc20_a.approve(router_address, launch.token_holded);
+        //     erc20_b.approve(router_address, launch.liquidity_raised);
+            
+        //     // Define mint parameters
+        //     let mint_params = MintParams {
+        //         token0: token_a,
+        //         token1: token_b,
+        //         fee: fee,
+        //         tick_lower: 0,
+        //         tick_upper: 0,
+        //         amount0_desired: launch.token_holded,
+        //         amount1_desired: launch.liquidity_raised,
+        //         amount0_min: 0,
+        //         amount1_min: 0,
+        //         recipient: launch.owner,
+        //         deadline: get_block_timestamp(),
+        //     };
+            
+        //     // Mint liquidity via Ekubo router
+        //     router.mint(mint_params);
+            
+        //     // Emit LiquidityCreated event
+        //     self.emit(LiquidityCreated {
+        //         pool: pool,
+        //         asset: token_a,
+        //         quote_token_address: token_b,
+        //         owner: launch.owner,
+        //     });
+        // }
+        
 
         // Function to calculate the price for the next token to be minted
         fn _get_linear_price(
@@ -1309,4 +1434,3 @@ pub mod LaunchpadMarketplace {
         }
     }
 }
-
