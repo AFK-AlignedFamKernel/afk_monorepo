@@ -1,17 +1,17 @@
-use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-use afk::interfaces::pixel::InitParams;
-use afk::tests::utils;
 use afk::interfaces::nfts::{
     IArtPeaceNFTMinterDispatcher, IArtPeaceNFTMinterDispatcherTrait, ICanvasNFTStoreDispatcher,
     ICanvasNFTStoreDispatcherTrait, NFTMintParams, NFTMetadata
 };
-use afk::templates::template::{
+use afk::interfaces::pixel::InitParams;
+use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+use afk::interfaces::pixel_template::{
     ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait, ITemplateVerifierDispatcher,
     ITemplateVerifierDispatcherTrait, TemplateMetadata
 };
+use afk::tests::utils;
+use core::hash::{HashStateTrait, HashStateExTrait};
 
 use core::poseidon::PoseidonTrait;
-use core::hash::{HashStateTrait, HashStateExTrait};
 
 use openzeppelin::token::erc20::interface::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 use openzeppelin::token::erc721::interface::{
@@ -20,11 +20,11 @@ use openzeppelin::token::erc721::interface::{
 };
 
 use snforge_std as snf;
-use snforge_std::{CheatTarget, ContractClassTrait, start_prank, stop_prank};
 use snforge_std::{
-    declare, ContractClass, spy_events, SpyOn, EventSpy, EventFetcher,
-    Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
-    stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp
+    declare, ContractClass, spy_events, SpyOn, EventSpy, EventFetcher, Event, EventAssertions,
+    start_cheat_caller_address, cheat_caller_address_global, stop_cheat_caller_address,
+    stop_cheat_caller_address_global, start_cheat_block_timestamp, cheat_block_timestamp, CheatSpan,
+    ContractClassTrait
 };
 use starknet::{ContractAddress, contract_address_const, get_contract_address, get_caller_address};
 
@@ -37,10 +37,9 @@ const LEANIENCE_MARGIN: u64 = 20;
 pub(crate) fn deploy_contract() -> ContractAddress {
     deploy_nft_contract();
 
-    let contract = snf::declare("ArtPeace");
+    let contract = declare("ArtPeace").unwrap();
     let mut calldata = array![];
     InitParams {
-        host: utils::HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,
@@ -77,8 +76,14 @@ pub(crate) fn deploy_contract() -> ContractAddress {
         devmode: false
     }
         .serialize(ref calldata);
-    let contract_addr = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
-    snf::start_warp(CheatTarget::One(contract_addr), TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN);
+
+    start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
+    let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
+    stop_cheat_caller_address(utils::ART_PEACE_CONTRACT());
+
+    cheat_block_timestamp(
+        contract_addr, TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN, CheatSpan::Indefinite
+    );
 
     contract_addr
 }
@@ -88,11 +93,10 @@ pub(crate) fn deploy_with_quests_contract(
 ) -> ContractAddress {
     deploy_nft_contract();
 
-    let contract = snf::declare("ArtPeace");
+    let contract = snf::declare("ArtPeace").unwrap();
     let daily_quests_count = 3;
     let mut calldata = array![];
     InitParams {
-        host: utils::HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,
@@ -130,9 +134,12 @@ pub(crate) fn deploy_with_quests_contract(
     }
         .serialize(ref calldata);
 
-    let contract_addr = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
+    start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
+    let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
+    stop_cheat_caller_address(utils::ART_PEACE_CONTRACT());
 
-    snf::start_prank(CheatTarget::One(contract_addr), utils::HOST());
+    start_cheat_caller_address(contract_addr, utils::HOST());
+
     let art_peace = IArtPeaceDispatcher { contract_address: contract_addr };
     let mut i = 0;
     let mut dayId = 0;
@@ -152,47 +159,48 @@ pub(crate) fn deploy_with_quests_contract(
     }
 
     art_peace.add_main_quests(main_quests);
-    snf::stop_prank(CheatTarget::One(contract_addr));
+    snf::stop_cheat_caller_address(contract_addr);
 
-    snf::start_warp(CheatTarget::One(contract_addr), TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN);
+    cheat_block_timestamp(
+        contract_addr, TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN, CheatSpan::Indefinite
+    );
 
     contract_addr
 }
 
 fn deploy_nft_contract() -> ContractAddress {
-    let contract = snf::declare("CanvasNFT");
+    let contract = snf::declare("CanvasNFT").unwrap();
     let mut calldata = array![];
     let name: ByteArray = "CanvasNFTs";
     let symbol: ByteArray = "A/P";
     name.serialize(ref calldata);
     symbol.serialize(ref calldata);
-    contract.deploy_at(@calldata, utils::NFT_CONTRACT()).unwrap()
+    let (contract_addr, _) = contract.deploy_at(@calldata, utils::NFT_CONTRACT()).unwrap();
+    contract_addr
 }
 
 
 fn deploy_erc20_mock() -> ContractAddress {
-    let contract = snf::declare("SnakeERC20Mock");
-    let name: ByteArray = "erc20 mock";
-    let symbol: ByteArray = "ERC20MOCK";
+    // use DualVmToken erc20 for testing
+    let contract = snf::declare("DualVmToken").unwrap();
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
-    let recipient: ContractAddress = get_contract_address();
-
-    let mut calldata: Array<felt252> = array![];
-    Serde::serialize(@name, ref calldata);
-    Serde::serialize(@symbol, ref calldata);
+    let recipient: ContractAddress = utils::HOST();
+    let mut calldata = array![];
     Serde::serialize(@initial_supply, ref calldata);
     Serde::serialize(@recipient, ref calldata);
 
-    let contract_addr = contract.deploy_at(@calldata, utils::ERC20_MOCK_CONTRACT()).unwrap();
+    let (contract_addr, _) = contract.deploy_at(@calldata, utils::ERC20_MOCK_CONTRACT()).unwrap();
 
     contract_addr
 }
 
 pub(crate) fn warp_to_next_available_time(art_peace: IArtPeaceDispatcher) {
     let last_time = art_peace.get_last_placed_time();
-    snf::start_warp(
-        CheatTarget::One(art_peace.contract_address),
-        last_time + TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN
+
+    cheat_block_timestamp(
+        art_peace.contract_address,
+        last_time + TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN,
+        CheatSpan::Indefinite
     );
 }
 
@@ -219,9 +227,9 @@ fn place_pixel_test() {
     let pos = x + y * WIDTH;
     let color = 0x5;
     let now = 10;
-    snf::start_prank(CheatTarget::One(art_peace.contract_address), utils::PLAYER1());
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
     art_peace.place_pixel(pos, color, now);
-    snf::stop_prank(CheatTarget::One(art_peace.contract_address));
+    stop_cheat_caller_address(art_peace.contract_address);
     assert!(art_peace.get_user_pixels_placed(utils::PLAYER1()) == 1, "User pixels placed is not 1");
     assert!(
         art_peace.get_user_pixels_placed_color(utils::PLAYER1(), color) == 1,
@@ -233,9 +241,9 @@ fn place_pixel_test() {
     let y = 25;
     let color = 0x7;
     let now = 20;
-    snf::start_prank(CheatTarget::One(art_peace.contract_address), utils::PLAYER2());
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER2());
     art_peace.place_pixel_xy(x, y, color, now);
-    snf::stop_prank(CheatTarget::One(art_peace.contract_address));
+    stop_cheat_caller_address(art_peace.contract_address);
     assert!(art_peace.get_user_pixels_placed(utils::PLAYER2()) == 1, "User pixels placed is not 1");
     assert!(
         art_peace.get_user_pixels_placed_color(utils::PLAYER2(), color) == 1,
@@ -338,11 +346,10 @@ fn increase_day_test() {
     let current_day_index = art_peace.get_day();
     assert!(current_day_index == 0, "day index wrongly initialized");
 
-    snf::start_warp(CheatTarget::One(art_peace_address), DAY_IN_SECONDS);
+    cheat_block_timestamp(art_peace_address, DAY_IN_SECONDS, CheatSpan::Indefinite);
     art_peace.increase_day_index();
     let current_day_index = art_peace.get_day();
     assert!(current_day_index == 1, "day index not updated");
-    snf::stop_warp(CheatTarget::One(art_peace_address));
 }
 
 #[test]
@@ -354,7 +361,8 @@ fn increase_day_panic_test() {
     let current_day_index = art_peace.get_day();
     assert!(current_day_index == 0, "day index wrongly initialized");
 
-    snf::start_warp(CheatTarget::One(art_peace_address), DAY_IN_SECONDS - 1);
+    cheat_block_timestamp(art_peace_address, DAY_IN_SECONDS - 1, CheatSpan::Indefinite);
+
     art_peace.increase_day_index();
 }
 
@@ -366,14 +374,14 @@ fn nft_mint_test() {
     let nft_minter = IArtPeaceNFTMinterDispatcher { contract_address: art_peace.contract_address };
     let nft_store = ICanvasNFTStoreDispatcher { contract_address: utils::NFT_CONTRACT() };
     let nft = IERC721Dispatcher { contract_address: utils::NFT_CONTRACT() };
-    snf::start_prank(CheatTarget::One(nft_minter.contract_address), utils::HOST());
+    start_cheat_caller_address(nft_minter.contract_address, utils::HOST());
     nft_minter.add_nft_contract(utils::NFT_CONTRACT());
-    snf::stop_prank(CheatTarget::One(nft_minter.contract_address));
+    stop_cheat_caller_address(nft_minter.contract_address);
 
     let mint_params = NFTMintParams { position: 10, width: 16, height: 16, name: 'test' };
-    snf::start_prank(CheatTarget::One(nft_minter.contract_address), utils::PLAYER1());
+    start_cheat_caller_address(nft_minter.contract_address, utils::PLAYER1());
     nft_minter.mint_nft(mint_params);
-    snf::stop_prank(CheatTarget::One(nft_minter.contract_address));
+    stop_cheat_caller_address(nft_minter.contract_address);
 
     let expected_metadata = NFTMetadata {
         position: 10,
@@ -393,9 +401,9 @@ fn nft_mint_test() {
     assert!(nft.balance_of(utils::PLAYER1()) == 1, "NFT balance is not correct");
     assert!(nft.balance_of(utils::PLAYER2()) == 0, "NFT balance is not correct");
 
-    snf::start_prank(CheatTarget::One(nft.contract_address), utils::PLAYER1());
+    start_cheat_caller_address(nft.contract_address, utils::PLAYER1());
     nft.transfer_from(utils::PLAYER1(), utils::PLAYER2(), 0);
-    snf::stop_prank(CheatTarget::One(nft.contract_address));
+    stop_cheat_caller_address(nft.contract_address);
 
     assert!(nft.owner_of(0) == utils::PLAYER2(), "NFT owner is not correct after transfer");
     assert!(nft.balance_of(utils::PLAYER1()) == 0, "NFT balance is not correct after transfer");
@@ -411,14 +419,14 @@ fn nft_set_base_uri_test() {
     let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
     let nft_minter = IArtPeaceNFTMinterDispatcher { contract_address: art_peace.contract_address };
     let nft = IERC721Dispatcher { contract_address: utils::NFT_CONTRACT() };
-    snf::start_prank(CheatTarget::One(nft_minter.contract_address), utils::HOST());
+    start_cheat_caller_address(nft_minter.contract_address, utils::HOST());
     nft_minter.add_nft_contract(utils::NFT_CONTRACT());
-    snf::stop_prank(CheatTarget::One(nft_minter.contract_address));
+    stop_cheat_caller_address(nft_minter.contract_address);
 
     let mint_params = NFTMintParams { position: 10, width: 16, height: 16, name: 'test' };
-    snf::start_prank(CheatTarget::One(nft_minter.contract_address), utils::PLAYER1());
+    start_cheat_caller_address(nft_minter.contract_address, utils::PLAYER1());
     nft_minter.mint_nft(mint_params);
-    snf::stop_prank(CheatTarget::One(nft_minter.contract_address));
+    stop_cheat_caller_address(nft_minter.contract_address);
 
     let _base_uri: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
     let expected_uri: ByteArray = "https://api.art-peace.net/nft-meta/nft-0.json";
@@ -427,9 +435,9 @@ fn nft_set_base_uri_test() {
 
     let new_base_uri: ByteArray = "https://api.art-peace.net/nft-meta/v1/nft-";
     let new_expected_uri: ByteArray = "https://api.art-peace.net/nft-meta/v1/nft-0.json";
-    snf::start_prank(CheatTarget::One(nft_minter.contract_address), utils::HOST());
+    start_cheat_caller_address(nft_minter.contract_address, utils::HOST());
     nft_minter.set_nft_base_uri(new_base_uri);
-    snf::stop_prank(CheatTarget::One(nft_minter.contract_address));
+    stop_cheat_caller_address(nft_minter.contract_address);
     assert!(nft_meta.token_uri(0) == new_expected_uri, "NFT URI is not correct after change");
 }
 
@@ -445,7 +453,7 @@ fn deposit_reward_test() {
     let erc20_mock: ContractAddress = deploy_erc20_mock();
     let reward_amount: u256 = 1 * utils::pow_256(10, 18);
 
-    // 2x2 template image
+    // // 2x2 template image
     let template_image = array![1, 2, 3, 4];
     let template_hash = template_verifier.compute_template_hash(template_image.span());
     let template_metadata = TemplateMetadata {
@@ -459,9 +467,17 @@ fn deposit_reward_test() {
         creator: get_caller_address(),
     };
 
-    IERC20Dispatcher { contract_address: erc20_mock }.approve(art_peace_address, reward_amount);
+    start_cheat_caller_address(erc20_mock, utils::HOST());
+    IERC20Dispatcher { contract_address: erc20_mock }.transfer(utils::PLAYER1(), reward_amount);
+    stop_cheat_caller_address(erc20_mock);
 
+    start_cheat_caller_address(erc20_mock, utils::PLAYER1());
+    IERC20Dispatcher { contract_address: erc20_mock }.approve(art_peace_address, reward_amount);
+    stop_cheat_caller_address(erc20_mock);
+
+    start_cheat_caller_address(art_peace_address, utils::PLAYER1());
     template_store.add_template(template_metadata);
+    stop_cheat_caller_address(art_peace_address);
 
     let art_peace_token_balance = IERC20Dispatcher { contract_address: erc20_mock }
         .balance_of(art_peace_address);
@@ -511,21 +527,21 @@ fn distribute_rewards_test() {
     template_store.add_template(template_metadata);
     assert!(template_store.get_templates_count() == 1, "Templates count is not 1");
 
-    start_prank(CheatTarget::One(art_peace_address), user);
+    start_cheat_caller_address(art_peace_address, user);
     art_peace.place_pixel(0, 1, now);
-    stop_prank(CheatTarget::One(art_peace_address));
+    stop_cheat_caller_address(art_peace_address);
 
-    start_prank(CheatTarget::One(art_peace_address), user2);
+    start_cheat_caller_address(art_peace_address, user2);
     art_peace.place_pixel(1, 2, now);
-    stop_prank(CheatTarget::One(art_peace_address));
+    stop_cheat_caller_address(art_peace_address);
 
-    start_prank(CheatTarget::One(art_peace_address), user3);
+    start_cheat_caller_address(art_peace_address, user3);
     art_peace.place_pixel(WIDTH, 3, now);
-    stop_prank(CheatTarget::One(art_peace_address));
+    stop_cheat_caller_address(art_peace_address);
 
-    start_prank(CheatTarget::One(art_peace_address), user4);
+    start_cheat_caller_address(art_peace_address, user4);
     art_peace.place_pixel(WIDTH + 1, 4, now);
-    stop_prank(CheatTarget::One(art_peace_address));
+    stop_cheat_caller_address(art_peace_address);
 
     template_verifier.complete_template_with_rewards(template_id, template_image_span);
 

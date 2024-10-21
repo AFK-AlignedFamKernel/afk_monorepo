@@ -587,7 +587,7 @@ pub mod LaunchpadMarketplace {
             // 80% bought by others
 
             // TODO finish test and fix
-            if pool_coin.liquidity_raised >= threshold {// self
+            if pool_coin.liquidity_raised >= threshold { // self
             //     .emit(
             //         LiquidityCanBeAdded {
             //             pool: pool_coin.token_address.clone(),
@@ -598,7 +598,7 @@ pub mod LaunchpadMarketplace {
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
-            if mc >= threshold_mc {// println!("mc >= threshold_mc");
+            if mc >= threshold_mc { // println!("mc >= threshold_mc");
             // self
             //     .emit(
             //         LiquidityCanBeAdded {
