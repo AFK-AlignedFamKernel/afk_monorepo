@@ -105,7 +105,8 @@ mod vault_test {
     #[test]
     fn test_mint_by_token() {
         let (vault_dispatcher, wbtc_dispatcher, abtc_dispatcher) = setup();
-        let mut spy = spy_events(SpyOn::One(vault_dispatcher.contract_address));
+        // let mut spy = spy_events(SpyOn::One(vault_dispatcher.contract_address));
+        let mut spy = spy_events();
         let amount = 200;
 
         // set permitted token

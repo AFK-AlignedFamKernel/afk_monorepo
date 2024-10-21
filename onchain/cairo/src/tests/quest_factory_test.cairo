@@ -15,7 +15,7 @@ mod quest_factory_tests {
 
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        cheat_caller_address_global, stop_cheat_caller_address, stop_cheat_caller_address_global,
+        stop_cheat_caller_address, stop_cheat_caller_address_global,
         start_cheat_block_timestamp
     };
 

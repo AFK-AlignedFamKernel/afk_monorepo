@@ -12,8 +12,8 @@ mod tap_tests {
     use openzeppelin::utils::serde::SerializedAppend;
 
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
+        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
+        Event, EventAssertions, start_cheat_caller_address,
         stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
         CheatSpan, stop_cheat_block_timestamp
     };

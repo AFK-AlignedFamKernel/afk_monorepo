@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod identity_tests {
-    use afk::afk_id::id_factory::{
-        IFactoryAfkIdentityDispatcher, IFactoryAfkIdentityDispatcherTrait
-    };
+    // use afk::afk_id::id_factory::{
+    //     IFactoryAfkIdentityDispatcher, IFactoryAfkIdentityDispatcherTrait
+    // };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::num::traits::Zero;
