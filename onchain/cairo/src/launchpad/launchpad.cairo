@@ -734,7 +734,7 @@ pub mod LaunchpadMarketplace {
             // println!("contract_balance {}", contract_balance);
             // println!("transfer creator fee {}", amount_creator_fee.clone());
             // println!("transfer liquidity {}", remain_liquidity.clone());
-            erc20.transfer(get_caller_address(), remain_liquidity);
+            // erc20.transfer(get_caller_address(), remain_liquidity);
             // // println!("transfer protocol fee {}", amount_protocol_fee.clone());
             // erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
 
