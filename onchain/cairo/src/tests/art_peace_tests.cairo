@@ -182,15 +182,20 @@ fn deploy_nft_contract() -> ContractAddress {
 
 
 fn deploy_erc20_mock() -> ContractAddress {
-    let contract = snf::declare("ERC20").unwrap();
-    let name: ByteArray = "erc20 mock";
-    let symbol: ByteArray = "ERC20MOCK";
+    let contract = snf::declare("DualVmToken").unwrap();
+    let name: felt252 = 'erc20 mock';
+    let symbol: felt252 = 'ERC20MOCK';
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
-    let recipient: ContractAddress = get_contract_address();
+    let recipient: ContractAddress = utils::HOST();
+    let decimals = 18_u8;
 
-    let mut calldata: Array<felt252> = array![];
-    Serde::serialize(@name, ref calldata);
-    Serde::serialize(@symbol, ref calldata);
+    let mut calldata = array![];
+    // Serde::serialize(@name, ref calldata);
+    // Serde::serialize(@symbol, ref calldata);
+    // Serde::serialize(@initial_supply, ref calldata);
+    // Serde::serialize(@recipient, ref calldata);
+    // Serde::serialize(@decimals, ref calldata);
+    
     Serde::serialize(@initial_supply, ref calldata);
     Serde::serialize(@recipient, ref calldata);
 
@@ -458,7 +463,7 @@ fn deposit_reward_test() {
     let erc20_mock: ContractAddress = deploy_erc20_mock();
     let reward_amount: u256 = 1 * utils::pow_256(10, 18);
 
-    // 2x2 template image
+    // // 2x2 template image
     let template_image = array![1, 2, 3, 4];
     let template_hash = template_verifier.compute_template_hash(template_image.span());
     let template_metadata = TemplateMetadata {
@@ -472,9 +477,21 @@ fn deposit_reward_test() {
         creator: get_caller_address(),
     };
 
-    IERC20Dispatcher { contract_address: erc20_mock }.approve(art_peace_address, reward_amount);
+    println!("balance of host: {}",  IERC20Dispatcher { contract_address: erc20_mock }.balance_of(utils::HOST()));
 
+    start_cheat_caller_address(erc20_mock, utils::HOST());
+    IERC20Dispatcher { contract_address: erc20_mock }.transfer(utils::PLAYER1(), reward_amount);
+    stop_cheat_caller_address(erc20_mock);
+    
+    
+    start_cheat_caller_address(erc20_mock, utils::PLAYER1());
+    IERC20Dispatcher { contract_address: erc20_mock }.approve(art_peace_address, reward_amount);
+    stop_cheat_caller_address(erc20_mock);
+    
+    
+    start_cheat_caller_address(art_peace_address, utils::PLAYER1());
     template_store.add_template(template_metadata);
+    stop_cheat_caller_address(art_peace_address);
 
     let art_peace_token_balance = IERC20Dispatcher { contract_address: erc20_mock }
         .balance_of(art_peace_address);
