@@ -343,7 +343,7 @@ pub struct ChainFactionTemplateRemoved {
 
 #[derive(Drop, Serde)]
 pub struct InitParams {
-    pub host: ContractAddress,
+    // pub host: ContractAddress,
     pub canvas_width: u128,
     pub canvas_height: u128,
     pub time_between_pixels: u64,
