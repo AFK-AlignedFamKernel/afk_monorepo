@@ -182,20 +182,11 @@ fn deploy_nft_contract() -> ContractAddress {
 
 
 fn deploy_erc20_mock() -> ContractAddress {
+    // use DualVmToken erc20 for testing
     let contract = snf::declare("DualVmToken").unwrap();
-    let name: felt252 = 'erc20 mock';
-    let symbol: felt252 = 'ERC20MOCK';
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
     let recipient: ContractAddress = utils::HOST();
-    let decimals = 18_u8;
-
     let mut calldata = array![];
-    // Serde::serialize(@name, ref calldata);
-    // Serde::serialize(@symbol, ref calldata);
-    // Serde::serialize(@initial_supply, ref calldata);
-    // Serde::serialize(@recipient, ref calldata);
-    // Serde::serialize(@decimals, ref calldata);
-    
     Serde::serialize(@initial_supply, ref calldata);
     Serde::serialize(@recipient, ref calldata);
 
@@ -477,18 +468,14 @@ fn deposit_reward_test() {
         creator: get_caller_address(),
     };
 
-    println!("balance of host: {}",  IERC20Dispatcher { contract_address: erc20_mock }.balance_of(utils::HOST()));
-
     start_cheat_caller_address(erc20_mock, utils::HOST());
     IERC20Dispatcher { contract_address: erc20_mock }.transfer(utils::PLAYER1(), reward_amount);
     stop_cheat_caller_address(erc20_mock);
-    
-    
+
     start_cheat_caller_address(erc20_mock, utils::PLAYER1());
     IERC20Dispatcher { contract_address: erc20_mock }.approve(art_peace_address, reward_amount);
     stop_cheat_caller_address(erc20_mock);
-    
-    
+
     start_cheat_caller_address(art_peace_address, utils::PLAYER1());
     template_store.add_template(template_metadata);
     stop_cheat_caller_address(art_peace_address);
