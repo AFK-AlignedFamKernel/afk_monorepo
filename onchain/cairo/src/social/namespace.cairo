@@ -236,18 +236,18 @@ pub mod Namespace {
 
 #[cfg(test)]
 mod tests {
-    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::array::SpanTrait;
-    use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
+        DeclareResultTrait,
+        Event, start_cheat_caller_address, start_cheat_caller_address_global,
+        stop_cheat_caller_address_global, start_cheat_block_timestamp, EventSpyAssertionsTrait,
     };
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
         contract_address_const,
     };
+    use core::array::SpanTrait;
+    use core::traits::Into;
 
     use super::super::request::{SocialRequest, Signature, Encode};
     use super::super::transfer::Transfer;
@@ -258,7 +258,8 @@ mod tests {
     use super::{INamespaceDispatcher, INamespaceDispatcherTrait};
 
     fn declare_namespace() -> ContractClass {
-        declare("Namespace").unwrap()
+        // declare("Namespace").unwrap().contract_class()
+        *declare("Namespace").unwrap().contract_class()
     }
 
     fn deploy_namespace(class: ContractClass) -> INamespaceDispatcher {
@@ -356,7 +357,7 @@ mod tests {
     #[test]
     fn linked_wallet_to() {
         let (request, recipient_nostr_key, sender_address, namespace, _) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(namespace.contract_address, sender_address);
         namespace.linked_nostr_default_account(request);
 
@@ -386,7 +387,7 @@ mod tests {
     #[should_panic()]
     fn link_incorrect_signature_link_to() {
         let (request, _, sender_address, namespace, _) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         stop_cheat_caller_address_global();
         start_cheat_caller_address(namespace.contract_address, sender_address);
         let request_test_failed_sig = SocialRequest {
@@ -405,7 +406,7 @@ mod tests {
     // #[should_panic(expected: ' invalid caller ')]
     fn link_incorrect_caller_link_to() {
         let (_, _, sender_address, namespace, fail_request_linked_wallet_to) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         stop_cheat_caller_address_global();
         start_cheat_caller_address(namespace.contract_address, sender_address);
         namespace.linked_nostr_default_account(fail_request_linked_wallet_to);

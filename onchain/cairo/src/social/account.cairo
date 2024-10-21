@@ -1,5 +1,5 @@
 use starknet::account::Call;
-use starknet::{ContractAddress, get_caller_address, get_contract_address, contract_address_const};
+// use starknet::{ContractAddress, get_caller_address, get_contract_address, contract_address_const};
 use super::profile::NostrProfile;
 use super::request::SocialRequest;
 use super::transfer::Transfer;
@@ -28,8 +28,8 @@ pub mod SocialAccount {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_VERSION, QUERY_OFFSET, execute_calls,
-        is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls,
+        // is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;

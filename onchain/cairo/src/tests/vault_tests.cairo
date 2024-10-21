@@ -1,17 +1,21 @@
 #[cfg(test)]
 mod vault_test {
-    use afk::defi::vault::Vault::Event;
-    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::defi_types::{
-        TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent
-    };
-
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events, EventSpy, SpyOn, EventAssertions
+        stop_cheat_caller_address, spy_events,
+        DeclareResultTrait, EventSpyAssertionsTrait
     };
+
+    use afk::defi::vault::Vault::Event;
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
+    use afk::tokens::erc20::{ IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::types::defi_types::{
+        // TokenPermitted, DepositUser, 
+        MintDepositEvent, WithdrawDepositEvent
+    };
+
+ 
     use starknet::ContractAddress;
 
     fn ADMIN() -> ContractAddress {
@@ -33,17 +37,17 @@ mod vault_test {
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
     fn setup() -> (IERCVaultDispatcher, IERC20Dispatcher, IERC20Dispatcher,) {
-        let erc20_mintable_class = declare("ERC20Mintable").unwrap();
-        let erc20_class = declare("ERC20").unwrap();
+        let erc20_mintable_class = declare("ERC20Mintable").unwrap().contract_class();
+        let erc20_class = declare("ERC20").unwrap().contract_class();
 
         let wbtc_dispathcer = deploy_erc20(
-            erc20_class, 'wBTC token', 'wBTC', 100_000_000_u256, ADMIN(),
+            *erc20_class, 'wBTC token', 'wBTC', 100_000_000_u256, ADMIN(),
         );
         let abtc_dispathcer = deploy_erc20_mint(
-            erc20_mintable_class, "aBTC token", "aBTC", ADMIN(), 100_000_000_u256,
+            *erc20_mintable_class, "aBTC token", "aBTC", ADMIN(), 100_000_000_u256,
         );
 
-        let vault_class = declare("Vault").unwrap();
+        let vault_class = declare("Vault").unwrap().contract_class();
 
         let mut calldata = array![abtc_dispathcer.contract_address.into()];
         ADMIN().serialize(ref calldata);

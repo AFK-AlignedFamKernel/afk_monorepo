@@ -1,33 +1,24 @@
 #[cfg(test)]
 mod tap_tests {
-    // use afk::quests::tap::{ITapQuestsDispatcher, ITapQuestsDispatcherTrait};
-    use afk::interfaces::quest::{
-        ITapQuests, IQuest, ITapQuestsDispatcher, ITapQuestsDispatcherTrait
-    };
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::array::SpanTrait;
-    use core::num::traits::Zero;
-    use core::traits::Into;
-    use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
-    use openzeppelin::utils::serde::SerializedAppend;
-
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
-        Event, EventAssertions, start_cheat_caller_address,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
-        CheatSpan, stop_cheat_block_timestamp
+        declare,  ContractClassTrait, 
+        DeclareResultTrait,
+        start_cheat_caller_address,
+        start_cheat_block_timestamp,
     };
-    use starknet::syscalls::deploy_syscall;
+    use afk::interfaces::quest::{
+       ITapQuestsDispatcher, ITapQuestsDispatcherTrait
+    };
 
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash
+        ContractAddress,
+        get_block_timestamp
     };
 
     const DAILY_TIMESTAMP_SECONDS: u64 = 60 * 60 * 24;
 
     fn deploy_tap() -> ITapQuestsDispatcher {
-        let class = declare("TapQuests").unwrap();
+        let class = declare("TapQuests").unwrap().contract_class();
         let mut calldata = array![];
         5.serialize(ref calldata);
         true.serialize(ref calldata);

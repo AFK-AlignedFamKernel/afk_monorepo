@@ -67,13 +67,14 @@ pub trait IDepositEscrow<TContractState> {
 pub mod DepositEscrow {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    // use starknet::storage::Map;
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::{
-        get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
+        get_block_timestamp, get_caller_address, get_contract_address, ContractAddress
     };
     use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
+        SocialRequest, SocialRequestImpl, SocialRequestTrait,
     };
 
     use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
@@ -302,31 +303,30 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
-    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::array::SpanTrait;
-    use core::option::OptionTrait;
-    use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
+        declare, ContractClass, ContractClassTrait,
+        start_cheat_caller_address, start_cheat_caller_address_global,
         stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        DeclareResultTrait
     };
     use starknet::{
-        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
-        contract_address_const,
+        ContractAddress, get_block_timestamp,
+        
     };
 
-    use super::super::request::{SocialRequest, Signature, Encode};
-    use super::super::transfer::Transfer;
-    use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::option::OptionTrait;
+
+    use super::super::request::{SocialRequest, Signature};
+    use super::{DepositResult, NostrPublicKey, Claim};
     use super::{IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
 
-    fn declare_escrow() -> ContractClass {
-        declare("DepositEscrow").unwrap()
+    fn declare_escrow() -> @ContractClass {
+        declare("DepositEscrow").unwrap().contract_class()
     }
 
-    fn declare_erc20() -> ContractClass {
-        declare("ERC20").unwrap()
+    fn declare_erc20() ->  @ContractClass {
+        declare("ERC20").unwrap().contract_class()
     }
 
     fn deploy_escrow(class: ContractClass) -> IDepositEscrowDispatcher {
@@ -411,7 +411,7 @@ mod tests {
     ) {
         let erc20_class = declare_erc20();
         let escrow_class = declare_escrow();
-        request_fixture_custom_classes(erc20_class, escrow_class)
+        request_fixture_custom_classes(*erc20_class, *escrow_class)
     }
 
     #[test]
@@ -420,7 +420,7 @@ mod tests {
         let recipient_address: ContractAddress = 678.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -483,7 +483,7 @@ mod tests {
             ..request
         };
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -535,7 +535,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -553,7 +553,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -581,7 +581,7 @@ mod tests {
         let recipient_address: ContractAddress = 789.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -606,7 +606,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -628,7 +628,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -647,7 +647,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -670,7 +670,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -689,7 +689,7 @@ mod tests {
         let recipient_address: ContractAddress = 345.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
