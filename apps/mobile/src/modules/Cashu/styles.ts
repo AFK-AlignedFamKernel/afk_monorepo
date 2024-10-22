@@ -442,4 +442,27 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  label: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: "#333",
+  },
+
+  picker: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  confirmContainer: {
+    marginVertical: 20,
+  },
+  confirmText: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
 }));

@@ -1,6 +1,6 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
+import { webln } from '@getalby/sdk';
 import {
   addProofs,
   ICashuInvoice,
@@ -11,32 +11,33 @@ import {
   useSendZap,
 } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
+import React, { ChangeEvent, SetStateAction, useEffect, useState } from 'react';
+import { Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
+import { WebView } from 'react-native-webview';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {Button, IconButton, Input} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
+import { Button, IconButton, Input } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
 import stylesheet from './styles';
-import {getDecodedToken, GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
+import { CopyIconStack } from '../../assets/icons';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
 import {
   retrieveAndDecryptCashuMnemonic,
   retrievePassword,
   storeCashuMnemonic,
 } from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import { SelectedTab, TABS_CASHU } from '../../types/tab';
 
-import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
-import {usePayment} from '../../hooks/usePayment';
+import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
+import { usePayment } from '../../hooks/usePayment';
 import TabSelector from '../../components/TabSelector';
+import SendNostrContact from './SendContact';
 
 export const SendEcash = () => {
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+  const { ndkCashuWallet, ndkWallet } = useNostrContext();
   const {
     wallet,
     connectCashMint,
@@ -52,8 +53,8 @@ export const SendEcash = () => {
   } = useCashu();
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const tabs = ['lightning', 'ecash'];
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const tabs = ['lightning', 'ecash', "contact"];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -78,13 +79,13 @@ export const SendEcash = () => {
   const [generatedEcash, setGenerateEcash] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
   const [invoiceMemo, setInvoiceMemo] = useState('');
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>();
 
-  const {showDialog, hideDialog} = useDialog();
-  const {handleGenerateEcash, handlePayInvoice} = usePayment();
+  const { showDialog, hideDialog } = useDialog();
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LIGHTNING_NETWORK_WALLET,
@@ -170,7 +171,7 @@ export const SendEcash = () => {
     //   }
 
     // }
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
   return (
     <SafeAreaView
@@ -248,7 +249,7 @@ export const SendEcash = () => {
               />
               <Button
                 onPress={handleEcash}
-                // onPress={() =>  handleEcash}
+              // onPress={() =>  handleEcash}
               >
                 Generate eCash
               </Button>
@@ -279,6 +280,12 @@ export const SendEcash = () => {
                   />
                 </View>
               )}
+            </>
+          )}
+
+          {activeTab == 'contact' && (
+            <>
+              <SendNostrContact />
             </>
           )}
         </View>
