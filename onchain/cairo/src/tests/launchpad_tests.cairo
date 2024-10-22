@@ -719,7 +719,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("not launch",))]
+    #[should_panic(expected: ('not launch',))]
     fn test_launch_token_with_uncreated_token() {
         let (_, erc20, launchpad) = request_fixture();
 
@@ -727,7 +727,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("no supply provided",))]
+    #[should_panic(expected: ('no supply provided',))]
     fn test_launch_token_with_no_supply_provided() {
         let (_, _, launchpad) = request_fixture();
 
@@ -805,7 +805,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("no threshold raised",))]
+    #[should_panic(expected: ('no threshold raised',))]
     fn test_launch_liquidity_when_no_threshold_raised() {
         let (_, _, launchpad) = request_fixture();
 
@@ -1198,7 +1198,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("share too low",))]
+    #[should_panic(expected: ('share too low',))]
     fn test_sell_coin_when_share_too_low() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
