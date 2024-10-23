@@ -25,8 +25,8 @@ func isFlagSet(name string) bool {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
 		log.Fatal(err.Error())
+		log.Fatal("Error loading .env file")
 	}
 
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
