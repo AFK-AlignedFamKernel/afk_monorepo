@@ -42,7 +42,7 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
 const ClickableHashtag = ({hashtag, onPress}: any) => {
   const styles = useStyles(stylesheet);
   return (
-    <Pressable>
+    <Pressable onPress={onPress}>
       <Text style={styles.hashtagColor}>{hashtag}</Text>
     </Pressable>
   );
