@@ -1,17 +1,17 @@
 import {CreateConfigParameters} from 'wagmi';
 import {
   arbitrum,
-  mainnet,
-  polygon,
-  avalanche,
-  bsc,
-  optimism,
-  gnosis,
-  zora,
-  base,
-  celo,
   aurora,
+  avalanche,
+  base,
+  bsc,
+  celo,
+  gnosis,
+  mainnet,
+  optimism,
+  polygon,
   sepolia,
+  zora,
 } from 'wagmi/chains';
 
 export const chains = [

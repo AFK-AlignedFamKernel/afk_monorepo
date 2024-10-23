@@ -1,5 +1,6 @@
 import {getEncodedToken, Proof, Token} from '@cashu/cashu-ts';
 import {getProofs, useCashu} from 'afk_nostr_sdk';
+
 import {useToast} from './modals';
 
 export const usePayment = () => {
@@ -12,7 +13,7 @@ export const usePayment = () => {
 
     /** TODO add tx history for paid invoice/ecash */
     if (proofsLocalStr) {
-      let proofsLocal: Proof[] = JSON.parse(proofsLocalStr);
+      const proofsLocal: Proof[] = JSON.parse(proofsLocalStr);
       console.log('proofsLocal', proofsLocal);
       const proofsSpent = await wallet?.checkProofsSpent(proofsLocal);
 
@@ -85,7 +86,7 @@ export const usePayment = () => {
         console.log('totalAmount', totalAmount);
 
         let amountCounter = 0;
-        for (let p of proofs?.reverse()) {
+        for (const p of proofs?.reverse()) {
           amountCounter += p?.amount;
           proofsToUsed.push(p);
 
@@ -100,11 +101,11 @@ export const usePayment = () => {
         if (sendCashu) {
           const keysets = await wallet?.mint?.getKeySets();
           // unit of keysets
-          let unit = keysets?.keysets[0].unit;
+          const unit = keysets?.keysets[0].unit;
 
           const token = {
             token: [{proofs: proofsToUsed, mint: wallet?.mint?.mintUrl}],
-            unit: unit,
+            unit,
           } as Token;
           console.log('keysets', keysets);
           console.log('proofsToUsed', proofsToUsed);

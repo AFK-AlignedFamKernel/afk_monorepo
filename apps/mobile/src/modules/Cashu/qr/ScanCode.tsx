@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { Text, View } from 'react-native';
-import { Camera, useCameraDevices } from 'react-native-vision-camera';
+import React, {useEffect} from 'react';
+import {Text} from 'react-native';
+import {Camera, useCameraDevices} from 'react-native-vision-camera';
 
-const ScanCashuQRCode = ({  }) => {
+const ScanCashuQRCode = () => {
   const devices = useCameraDevices();
   const device = devices[0];
 
@@ -20,9 +20,9 @@ const ScanCashuQRCode = ({  }) => {
 
   if (device == null) return <Text>Loading Camera...</Text>;
 
-  const handleScan = (frame: { text: any; }) => {
+  const handleScan = (frame: {text: any}) => {
     // Assuming `frame` contains the scanned QR code's content
-    const qrCodeData = frame?.text;  // You need a QR code processor library here
+    const qrCodeData = frame?.text; // You need a QR code processor library here
     if (qrCodeData) {
       try {
       } catch (error) {
@@ -33,10 +33,10 @@ const ScanCashuQRCode = ({  }) => {
 
   return (
     <Camera
-    //   style={{ flex: 1 }}
+      //   style={{ flex: 1 }}
       device={device}
       isActive={true}
-    //   frameProcessor={handleScan}
+      //   frameProcessor={handleScan}
     />
   );
 };

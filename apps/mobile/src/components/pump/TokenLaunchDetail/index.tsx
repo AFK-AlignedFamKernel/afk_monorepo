@@ -1,24 +1,22 @@
 import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
-import {Fraction} from '@uniswap/sdk-core';
 import {useProfile} from 'afk_nostr_sdk';
+import {useState} from 'react';
 import {ImageSourcePropType, Pressable, View} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
-import {MainStackNavigationProps} from '../../../types';
-import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
-import {feltToAddress} from '../../../utils/format';
-import {decimalsScale} from '../../../utils/helpers';
-import {Button} from '../../Button';
-import {Text} from '../../Text';
-import stylesheet from './styles';
-import {LaunchActionsForm} from '../../LaunchActionsForm';
-import {useState} from 'react';
 import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
 import {useToast, useWalletModal} from '../../../hooks/modals';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
 import {AddressComponent} from '../../AddressComponent';
+import {Button} from '../../Button';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
+import {Text} from '../../Text';
+import stylesheet from './styles';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -70,11 +68,11 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   //   if (!event?.id) return;
   //   navigation.navigate('Profile', { publicKey: event?.pubkey });
   // };
-  let priceAmount = launch?.price;
+  const priceAmount = launch?.price;
   // if (launch?.price) {
   //   priceAmount = new Fraction(String(launch.price), decimalsScale(18)).toFixed(18);
   // }
-  let created_at = launch?.created_at;
+  const created_at = launch?.created_at;
 
   // const sellKeys = async () => {
   //   if (!amount) return;

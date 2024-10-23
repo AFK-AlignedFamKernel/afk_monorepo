@@ -1,7 +1,6 @@
 import {Platform, StatusBar} from 'react-native';
 
 import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
-import {transform} from '@babel/core';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -445,11 +444,11 @@ export default ThemedStyleSheet((theme) => ({
   label: {
     fontSize: 14,
     marginBottom: 8,
-    color: "#333",
+    color: '#333',
   },
 
   picker: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -461,8 +460,8 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 16,
   },
   buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 16,
   },
 }));

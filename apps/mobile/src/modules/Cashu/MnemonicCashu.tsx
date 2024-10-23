@@ -1,27 +1,24 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {useAuth, useCashu, useCashuStore, useSendZap} from 'afk_nostr_sdk';
+import {MintQuoteResponse} from '@cashu/cashu-ts';
+import {useCashu, useCashuStore} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import React, {useEffect, useState} from 'react';
+import {Platform, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {Text} from 'react-native';
 
-import {Button, IconButton, Input} from '../../components';
+import {CopyIconStack} from '../../assets/icons';
+import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {SelectedTab} from '../../types/tab';
 import {
   retrieveAndDecryptCashuMnemonic,
   retrievePassword,
   storeCashuMnemonic,
 } from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import stylesheet from './styles';
 
 export const MnemonicCashu = () => {
   const {
@@ -174,7 +171,7 @@ export const MnemonicCashu = () => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         {!hasSeedCashu && (
           <View style={styles.container}>
-            <Text>You don't have a Cashu Seed setup to secure your wallet</Text>
+            <Text>You don&apos;t have a Cashu Seed setup to secure your wallet</Text>
             <Button onPress={handleGenerateAndSavedMnemonic}>Generate seed</Button>
           </View>
         )}

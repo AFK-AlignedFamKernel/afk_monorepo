@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -14,5 +14,4 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
     color: theme.colors.text,
   },
-
 }));

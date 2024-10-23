@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
+import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
 import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useState} from 'react';
@@ -9,7 +9,7 @@ import {Button, Input, TextButton} from '../../components';
 import {useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
-import {AuthLoginScreenProps, MainStackNavigationProps} from '../../types';
+import {MainStackNavigationProps} from '../../types';
 import {getPublicKeyFromSecret} from '../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
@@ -20,14 +20,19 @@ import {
   storeCashuMnemonic,
   storeCashuSeed,
 } from '../../utils/storage';
-import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
 
 interface ILoginNostr {
-    isNavigationAfterLogin?:boolean;
-    navigationProps?:MainStackNavigationProps | any;
-    handleSuccess?:() => void;
+  isNavigationAfterLogin?: boolean;
+  navigationProps?: MainStackNavigationProps | any;
+  handleSuccess?: () => void;
+  handleSuccessCreateAccount?: () => void;
 }
-export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin, navigationProps, handleSuccess}:ILoginNostr) => {
+export const LoginNostrModule: React.FC<ILoginNostr> = ({
+  isNavigationAfterLogin,
+  navigationProps,
+  handleSuccess,
+  handleSuccessCreateAccount,
+}: ILoginNostr) => {
   const {theme} = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
   const publicKey = useAuth((state) => state.publicKey);
@@ -113,13 +118,12 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin,
     } catch (e) {
       console.log('Error mnemonic', e);
     }
-    if(handleSuccess) {
-      handleSuccess()
+    if (handleSuccess) {
+      handleSuccess();
     }
     if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
       navigationProps?.navigate('Feed');
     }
-  
   };
 
   const handleCreateAccount = () => {
@@ -172,8 +176,8 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin,
             const publicKey = await getPublicKey();
             // navigation.navigate('ImportKeys');
             hideDialog();
-            if(handleSuccess) {
-              handleSuccess()
+            if (handleSuccess) {
+              handleSuccess();
             }
             if (publicKey && navigationProps) {
               navigationProps.navigate('Profile', {publicKey});

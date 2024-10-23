@@ -1,7 +1,7 @@
-import { createStore } from 'zustand';
+import {Proof} from '@cashu/cashu-ts';
+import {createStore} from 'zustand';
 
 import createBoundedUseStore from './createBoundedUseStore';
-import { Proof } from '@cashu/cashu-ts';
 
 type State = {
   publicKey: string;
@@ -60,45 +60,45 @@ export const authStore = createStore<State & Action>((set, get) => ({
   evmPrivateKey: undefined as unknown as string,
 
   setAuth: (publicKey, privateKey) => {
-    set({ publicKey, privateKey });
+    set({publicKey, privateKey});
   },
   setNWCUrl: (nwcUrl) => {
-    set({ nwcUrl });
+    set({nwcUrl});
   },
   setPublicKey: (publicKey) => {
-    set({ publicKey });
+    set({publicKey});
   },
   setIsExtensionConnect: (isExtension) => {
-    set({ isExtension });
+    set({isExtension});
   },
 
   // Cashu store
 
   setIsSeedCashuStorage: (isSeedCashuStorage) => {
-    set({ isSeedCashuStorage });
+    set({isSeedCashuStorage});
   },
   setSeed: (seed) => {
-    set({ seed });
+    set({seed});
   },
   setMnemonic: (mnemonic) => {
-    set({ mnemonic });
+    set({mnemonic});
   },
   setMints: (mints) => {
-    set({ mints });
+    set({mints});
   },
   setMintsRequests: (mintRequests) => {
-    set({ mintRequests });
+    set({mintRequests});
   },
   setProofs: (proofs) => {
-    set({ proofs });
+    set({proofs});
   },
 
   // Wallet
   setEVMWallet: (evmPublicKey, evmPrivateKey) => {
-    set({ evmPublicKey, evmPrivateKey });
+    set({evmPublicKey, evmPrivateKey});
   },
   setStrkWallet: (strkPublicKey, strkPrivateKey) => {
-    set({ strkPrivateKey, strkPublicKey });
+    set({strkPrivateKey, strkPublicKey});
   },
 }));
 

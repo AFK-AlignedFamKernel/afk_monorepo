@@ -1,10 +1,12 @@
 import '../../../applyGlobalPolyfills';
+
 import React, {SetStateAction} from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
-import stylesheet from './styles';
-import {ZAPType} from '.';
+
 import {useStyles} from '../../hooks';
+import {ZAPType} from '.';
+import stylesheet from './styles';
 
 export function ZapUserView({
   isLoading,

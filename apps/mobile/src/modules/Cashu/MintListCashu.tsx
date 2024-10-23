@@ -1,24 +1,24 @@
 import '../../../applyGlobalPolyfills';
 
+import {NDKKind} from '@nostr-dev-kit/ndk';
 import {
   countMintRecommenderMapping,
   useCashuMintList,
   useCashuStore,
   useNostrContext,
 } from 'afk_nostr_sdk';
+import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import * as Clipboard from 'expo-clipboard';
 import React, {useEffect, useState} from 'react';
 import {FlatList, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {useStyles, useTheme} from '../../hooks';
-import stylesheet from './styles';
-import {Button} from '../../components';
-import * as Clipboard from 'expo-clipboard';
-import {useToast} from '../../hooks/modals';
 import {InfoIcon, ScanQrIcon, TrashIcon} from '../../assets/icons';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {Button} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
-import {NDKKind} from '@nostr-dev-kit/ndk';
+import stylesheet from './styles';
 
 export const MintListCashu = () => {
   const tabs = ['Lightning', 'Ecash'];

@@ -1,7 +1,7 @@
 import {schnorr} from '@noble/curves/secp256k1';
 import {getSharedSecret} from '@noble/secp256k1';
-import {getRandomBytes} from 'expo-crypto';
 import * as secp from '@noble/secp256k1';
+import {getRandomBytes} from 'expo-crypto';
 export const generateRandomKeypair = () => {
   try {
     const privateKey = getRandomBytes(32);

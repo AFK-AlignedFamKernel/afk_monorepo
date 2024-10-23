@@ -1,9 +1,8 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { createContext, useCallback, useMemo, useRef, useState } from 'react';
+import {createContext, useCallback, useMemo, useRef, useState} from 'react';
 
-import { TipSuccessModal, TipSuccessModalProps } from '../modules/TipSuccessModal';
-import { LoginNostrModule } from '../modules/Login';
 import {Modalize} from '../components';
+import {LoginNostrModule} from '../modules/Login';
+import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
 
 export type LoginModalContextType = {
   show: () => void;
@@ -16,7 +15,7 @@ export type LoginModalContextType = {
 export const LoginModalContext = createContext<LoginModalContextType | null>(null);
 export type LoginModal = Modalize;
 
-export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const loginModalRef = useRef<LoginModal>(null);
 
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
@@ -38,7 +37,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children
   }, []);
 
   const context = useMemo(
-    () => ({ show, hide, showSuccess, hideSuccess }),
+    () => ({show, hide, showSuccess, hideSuccess}),
     [show, hide, showSuccess, hideSuccess],
   );
 
@@ -57,8 +56,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children
         }}
         ref={loginModalRef}
         adjustToContentHeight
-        
-        >
+      >
         <LoginNostrModule />
       </Modalize>
 

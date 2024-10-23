@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import {useAuth} from 'afk_nostr_sdk';
 import {View} from 'react-native';
 
@@ -8,7 +9,6 @@ import {RelaysConfig} from '../../components/RelaysConfig';
 import {useStyles, useTheme} from '../../hooks';
 import {MainStackNavigationProps, SettingsScreenProps} from '../../types';
 import stylesheet from './styles';
-import {useNavigation} from '@react-navigation/native';
 
 export const Settings: React.FC<SettingsScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);

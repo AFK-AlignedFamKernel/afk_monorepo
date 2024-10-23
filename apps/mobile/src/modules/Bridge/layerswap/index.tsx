@@ -1,12 +1,14 @@
 import '../../../../applyGlobalPolyfills';
-import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, ScrollView, TouchableOpacity, View} from 'react-native';
+
+import React from 'react';
+import {Platform, ScrollView, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 // import { ActivityIndicator, Modal, Text, TextInput } from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
+
 import {useStyles} from '../../../hooks';
-import stylesheet from './styles';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useIsDesktop} from '../../../hooks/useIsDesktop';
+import stylesheet from './styles';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -49,8 +51,8 @@ export const LayerswapView = () => {
                       &amount=50
                       &asset=USDC
                       &actionButtonText=Deposit`}
-                height={'100%'}
-                width={'100%'}
+                height="100%"
+                width="100%"
               ></iframe>
             </View>
           ) : (

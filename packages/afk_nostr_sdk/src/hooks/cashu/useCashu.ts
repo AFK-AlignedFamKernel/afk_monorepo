@@ -1,23 +1,23 @@
 import {
   CashuMint,
   CashuWallet,
-  getEncodedToken,
-  MintQuoteResponse,
-  Proof,
   deriveSeedFromMnemonic,
   generateNewMnemonic,
-  MintKeys,
+  getDecodedToken,
+  getEncodedToken,
   GetInfoResponse,
   MeltQuoteResponse,
-  getDecodedToken,
-  MintAllKeysets,
   MeltTokensResponse,
   MintActiveKeys,
+  MintAllKeysets,
+  MintKeys,
+  MintQuoteResponse,
+  Proof,
 } from '@cashu/cashu-ts';
-import {useMemo, useState} from 'react';
-import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
-
 import {bytesToHex} from '@noble/curves/abstract/utils';
+import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
+import {useMemo, useState} from 'react';
+
 import {useNostrContext} from '../../context';
 import {useAuth, useCashuStore} from '../../store';
 
@@ -174,7 +174,8 @@ export const useCashu = (): ICashu => {
     const mintCashu = new CashuMint(mintUrl);
     setMint(mintCashu);
 
-    const keys = (await mintCashu?.getKeys()).keysets;
+    const keysRes = await mintCashu?.getKeys();
+    const keys = keysRes?.keysets;
     console.log('keys', keys);
     setMintKeys(keys);
 
@@ -415,8 +416,6 @@ export const useCashu = (): ICashu => {
 
     const response = await wallet?.receive(encoded);
 
-    if (response) {
-    }
     return response;
   };
 

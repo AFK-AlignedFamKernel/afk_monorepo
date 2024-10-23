@@ -7,7 +7,6 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     padding: 16,
     width: '100%',
-
   },
   swapCard: {
     backgroundColor: theme.colors.swap_surface,
@@ -46,7 +45,7 @@ export default ThemedStyleSheet((theme) => ({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width:"100%"
+    width: '100%',
   },
   balanceEstimate: {
     flex: 1,
@@ -68,7 +67,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: 0,
     margin: 0,
     borderColor: 'transparent',
-    width:"100%"
+    width: '100%',
   },
   tokenSelect: {
     flexDirection: 'row',

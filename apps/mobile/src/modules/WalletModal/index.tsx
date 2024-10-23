@@ -1,4 +1,4 @@
-import {AppKitButton, useAppKit} from '@reown/appkit-wagmi-react-native';
+import {useAppKit} from '@reown/appkit-wagmi-react-native';
 import {useConnect} from '@starknet-react/core';
 import * as Linking from 'expo-linking';
 import React from 'react';

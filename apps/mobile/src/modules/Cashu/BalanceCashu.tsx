@@ -1,37 +1,18 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {
-  addProofsSpent,
-  getProofs,
-  useAuth,
-  useCashu,
-  useCashuStore,
-  useNostrContext,
-  useSendZap,
-} from 'afk_nostr_sdk';
-import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
-
-import {Button, IconButton, Input} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {CashuMint, MintQuoteResponse, Proof} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
+import {MintQuoteResponse} from '@cashu/cashu-ts';
+import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {useCashuBalance} from 'afk_nostr_sdk/src/hooks/cashu';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
-import {useCashuBalance, useGetCashuWalletsInfo} from 'afk_nostr_sdk/src/hooks/cashu';
+import React, {useEffect, useState} from 'react';
+import {Platform, View} from 'react-native';
+import {Text} from 'react-native';
+
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
+import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import stylesheet from './styles';
 
 export const BalanceCashu = () => {
   const {

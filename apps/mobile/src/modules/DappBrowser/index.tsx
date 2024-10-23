@@ -1,22 +1,24 @@
-import React from 'react';
-import { WebView } from 'react-native-webview';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import {useAuth} from 'afk_nostr_sdk';
 // import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { ethers, parseEther } from 'ethers';
-import { useAuth } from 'afk_nostr_sdk';
-import { Platform } from 'react-native';
+import ethers, {parseEther} from 'ethers';
+import React from 'react';
+import {Platform} from 'react-native';
+import {WebView} from 'react-native-webview';
+import {useAccount, useConnect, useDisconnect} from 'wagmi';
 
 // This component will handle the dApp interaction
 const DAppBrowser = () => {
-  const { address, isConnected, chain, chainId } = useAccount();
-  const { evmPublicKey, evmPrivateKey } = useAuth()
-  const { connect } = useConnect({
+  const {address, isConnected, chain, chainId} = useAccount();
+  const {evmPublicKey, evmPrivateKey} = useAuth();
+  const {connect} = useConnect({
     // connector: new MetaMaskConnector(),
   });
-  const { disconnect } = useDisconnect();
+  const {disconnect} = useDisconnect();
 
   // Example of viem client setup
-  const client = new ethers.JsonRpcProvider(process?.env?.EXPO_PUBLIC_PROVIDER_URL ?? "https://mainnet.infura.io/v3/YOUR_INFURA_KEY");
+  const client = new ethers.JsonRpcProvider(
+    process?.env?.EXPO_PUBLIC_PROVIDER_URL ?? 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+  );
 
   // Generate the injection script for the dApp to use the wallet
   const injectWalletScript = (address: string | undefined, chainId: number | undefined) => `
@@ -56,7 +58,7 @@ const DAppBrowser = () => {
   `;
 
   // Handle messages from the WebView (e.g., transaction requests)
-  const handleOnMessage = async (event: { nativeEvent: { data: string; }; }) => {
+  const handleOnMessage = async (event: {nativeEvent: {data: string}}) => {
     const message = JSON.parse(event.nativeEvent.data);
     if (message.type === 'sendTransaction') {
       // Process transaction using viem or ethers.js
@@ -90,12 +92,11 @@ const DAppBrowser = () => {
       // Sign message with ethers.js
       if (evmPrivateKey) {
         const wallet = new ethers.Wallet(evmPrivateKey, client);
-        wallet.signMessage(message.message).then(signedMessage => {
+        wallet.signMessage(message.message).then((signedMessage) => {
           // Send back the signed message to WebView
           console.log('Signed Message:', signedMessage);
         });
       }
-
     }
   };
 
@@ -104,32 +105,25 @@ const DAppBrowser = () => {
 
   return (
     <>
-      {
-        Platform.OS == "web" ?
-
-          <>
-            <iframe
-              id={"dappIframe"}
-              src={'https://lfg.afk-community.xyz' } // The dApp URL
-              // injectedJavaScript={injectedScript}
-              // onMessage={handleOnMessage} // Handle WebView messages
-            />
-          </>
-
-          :
-          <>
-            <WebView
-              source={{ uri: 'https://example-dapp.com' }} // The dApp URL
-              injectedJavaScript={injectedScript}
-              onMessage={handleOnMessage} // Handle WebView messages
-            />
-          </>
-
-      }
+      {Platform.OS == 'web' ? (
+        <>
+          <iframe
+            id="dappIframe"
+            src="https://lfg.afk-community.xyz" // The dApp URL
+            // injectedJavaScript={injectedScript}
+            // onMessage={handleOnMessage} // Handle WebView messages
+          />
+        </>
+      ) : (
+        <>
+          <WebView
+            source={{uri: 'https://example-dapp.com'}} // The dApp URL
+            injectedJavaScript={injectedScript}
+            onMessage={handleOnMessage} // Handle WebView messages
+          />
+        </>
+      )}
     </>
-
-
-
   );
 };
 

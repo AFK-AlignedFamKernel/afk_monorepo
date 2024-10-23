@@ -1,14 +1,14 @@
-import {FlatList, Pressable, View} from 'react-native';
+import {useEffect, useState} from 'react';
+import {Pressable, View} from 'react-native';
+import {useAccount} from 'wagmi';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
+import {useGetShares} from '../../../hooks/api/indexer/useUserShare';
+import {useWalletModal} from '../../../hooks/modals';
 import {TokenStatsInterface, UserShareInterface} from '../../../types/keys';
+import Loading from '../../Loading';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import Loading from '../../Loading';
-import {useGetShares} from '../../../hooks/api/indexer/useUserShare';
-import {useAccount} from 'wagmi';
-import {useEffect, useState} from 'react';
-import {useWalletModal} from '../../../hooks/modals';
 
 export type UserShareProps = {
   loading: boolean;

@@ -1,5 +1,6 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+
 import {useNostrContext} from '../context/NostrContext';
 
 interface BookmarkParams {
@@ -102,7 +103,7 @@ export const useBookmark = (userPublicKey: string) => {
         throw new Error('No event provided for bookmark');
       }
 
-      let bookmarks = await fetchBookmarks();
+      const bookmarks = await fetchBookmarks();
       let bookmarkEvent = bookmarks.find(
         (e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList),
       );
@@ -152,8 +153,8 @@ export const useBookmark = (userPublicKey: string) => {
   const removeBookmark = useMutation({
     mutationKey: ['bookmarks', ndk],
     mutationFn: async ({eventId, category}: RemoveBookmarkParams) => {
-      let bookmarks = await fetchBookmarks();
-      let bookmarkEvent = bookmarks.find(
+      const bookmarks = await fetchBookmarks();
+      const bookmarkEvent = bookmarks.find(
         (e) => e.kind === (category ? NDKKind.BookmarkSet : NDKKind.BookmarkList),
       );
 

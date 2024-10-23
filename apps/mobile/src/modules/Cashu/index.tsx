@@ -1,39 +1,30 @@
 import '../../../applyGlobalPolyfills';
 
+import {MintQuoteResponse} from '@cashu/cashu-ts';
 import {useCashu, useCashuStore} from 'afk_nostr_sdk';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
 import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
+import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
 import {Button, IconButton, Modalize} from '../../components';
+import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
-import TabSelector from '../../components/TabSelector';
+import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
+import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import {BalanceCashu} from './BalanceCashu';
-import {MnemonicCashu} from './MnemonicCashu';
+import {HistoryTxCashu} from './HistoryTxCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
 import {MintListCashu} from './MintListCashu';
-import {useModal} from '../../hooks/modals/useModal';
+import {MnemonicCashu} from './MnemonicCashu';
+import {NoMintBanner} from './NoMintBanner';
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
-import {HistoryTxCashu} from './HistoryTxCashu';
-import {NoMintBanner} from './NoMintBanner';
-import {
-  ChevronLeftIcon,
-  GlobeIcon,
-  IndicatorIcon,
-  MoreHorizontalIcon,
-  MoreIcon,
-  MoreVerticalIcon,
-  ScanQrIcon,
-  SlantedArrowIcon,
-} from '../../assets/icons';
+import stylesheet from './styles';
 
 export const CashuWalletView: React.FC = () => {
   return (

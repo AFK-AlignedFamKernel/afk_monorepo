@@ -1,4 +1,5 @@
 import {useQuery} from '@tanstack/react-query';
+
 import {ApiIndexerInstance} from '../../../services/api';
 
 export const useGetShares = (tokenAddress: string, userId: string) => {

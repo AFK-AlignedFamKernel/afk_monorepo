@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, FlatList, ActivityIndicator, ScrollView} from 'react-native';
 import {useAuth, useProfile} from 'afk_nostr_sdk';
-import {useQueryAllCoins} from '../../../hooks/launchpad/useQueryAllCoins';
+import React, {useState} from 'react';
+import {ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+
 import {useStyles, useTheme} from '../../../hooks';
-import stylesheet from './styles';
-import {TokenLaunchDetail} from '../../../components/pump/TokenLaunchDetail';
+import {useQueryAllCoins} from '../../../hooks/launchpad/useQueryAllCoins';
 import {TokenLaunchInterface} from '../../../types/keys';
+import stylesheet from './styles';
 
 const tabs = ['Pump', 'Trending', 'Quests'];
 

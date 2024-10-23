@@ -331,7 +331,6 @@ export type DappBrowserWalletScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
 
 /** TODO delete */

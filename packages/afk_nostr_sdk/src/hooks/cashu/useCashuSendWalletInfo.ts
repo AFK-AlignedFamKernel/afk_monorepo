@@ -1,16 +1,15 @@
-import {useAuth} from '../../store';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../context';
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {useAuth} from '../../store';
 import {
   deriveSharedKey,
   fixPubKey,
   generateRandomBytes,
   generateRandomKeypair,
-  randomTimeUpTo2DaysInThePast,
 } from '../../utils/keypair';
 import {v2} from '../../utils/nip44';
-import {AFK_RELAYS} from '../../utils/relay';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
 /** 
@@ -125,7 +124,7 @@ export const useCashuSendWalletInfoManual = () => {
       } = data;
 
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
-      let receiverPublicKey = receiverPublicKeyProps
+      const receiverPublicKey = receiverPublicKeyProps
         ? fixPubKey(receiverPublicKeyProps)
         : fixPubKey(publicKey);
 
@@ -149,10 +148,10 @@ export const useCashuSendWalletInfoManual = () => {
       // [ "relay", "wss://relay2" ],
       // [ "balance", "100", "sat" ],
       // [ "privkey", "hexkey" ]
-      let {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
-      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
+      const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       // Generate a random IV (initialization vector)
-      let nonce = generateRandomBytes();
+      const nonce = generateRandomBytes();
 
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(

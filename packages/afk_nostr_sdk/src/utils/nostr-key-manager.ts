@@ -2,6 +2,7 @@
 // File: /NostrKeyManager.ts
 
 import {generateNewMnemonic} from '@cashu/cashu-ts';
+
 import {generateRandomKeypair} from './keypair';
 
 export class NostrKeyManager {
@@ -163,7 +164,7 @@ export class NostrKeyManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: NostrKeyManager.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -173,7 +174,7 @@ export class NostrKeyManager {
       ['encrypt'],
     );
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, data);
 
     const encryptedArray = new Uint8Array(encryptedData);
     const resultArray = new Uint8Array(iv.length + encryptedArray.length);
@@ -201,7 +202,7 @@ export class NostrKeyManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: NostrKeyManager.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -211,7 +212,7 @@ export class NostrKeyManager {
       ['decrypt'],
     );
 
-    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv}, key, data);
 
     const decoder = new TextDecoder();
     const decryptedPrivateKey = decoder.decode(decryptedData);

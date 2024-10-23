@@ -1,11 +1,10 @@
+import {useAuth} from 'afk_nostr_sdk';
 import {FC, useState} from 'react';
-import {useReactiveClient} from '@dynamic-labs/react-hooks';
-import {dynamicClient} from '../../../app/DynamicClient';
-import {TextInput, View, ScrollView, Text} from 'react-native';
 import React from 'react';
+import {ScrollView, Text, View} from 'react-native';
+
 import {Button} from '../../../components';
 import {useToast} from '../../../hooks/modals';
-import {useAuth} from 'afk_nostr_sdk';
 import {WalletManager} from '../../../utils/storage/wallet-manager';
 export const WalletOnboarding: FC = () => {
   const [email, setEmail] = useState('');
