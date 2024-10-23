@@ -15,4 +15,4 @@ RUN go build -o main ./cmd/backend/backend.go
 
 EXPOSE 8080
 
-CMD ["./main", "--admin"]
+CMD ["./main"]
