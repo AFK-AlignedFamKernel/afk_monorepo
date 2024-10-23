@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
@@ -29,8 +31,12 @@ func main() {
 	}
 
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	production := flag.Bool("production", false, "Production mode")
-
+	// production := flag.Bool("production", false, "Production mode")
+	// production := flag.Bool("production", true, "Production mode")
+	production, err := strconv.ParseBool(os.Getenv("PRODUCTION"))
+	// if err != nil {
+	// 	panic(err)
+	// }
 	flag.Parse()
 
 	canvasConfig, err := config.LoadCanvasConfig(*canvasConfigFilename)
@@ -49,7 +55,8 @@ func main() {
 	}
 
 	if isFlagSet("production") {
-		backendConfig.Production = *production
+		backendConfig.Production = production
+		// backendConfig.Production = *production
 	}
 
 	databases := core.NewDatabases(databaseConfig)

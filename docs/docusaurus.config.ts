@@ -32,6 +32,15 @@ const config: Config = {
 
   presets: [
     [
+      '@docusaurus/preset-classic',
+      {
+        gtag: {
+          trackingID: process.env.NEXT_PUBLIC_GTAG_TRACKING_ID,
+          anonymizeIP: true,
+        },
+      },
+    ],
+    [
       "classic",
       {
         docs: {

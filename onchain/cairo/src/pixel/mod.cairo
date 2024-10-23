@@ -1,4 +1,5 @@
 pub mod templates;
+pub mod username_store;
 pub use art_peace::ArtPeace;
 
 pub mod pixel {
@@ -9,5 +10,10 @@ pub mod pixel {
 
     pub mod templates {
         pub mod component;
+    }
+
+    pub mod username_store {
+        pub mod interfaces;
+        pub mod username_store;
     }
 }

@@ -15,6 +15,7 @@ import { CashuWalletView } from '../../modules/Cashu';
 import { LayerswapView } from '../../modules/Bridge/layerswap';
 import { PaymentStripeScreen } from '../../modules/Payment/stripe';
 import CheckoutScreen from '../../modules/Payment/stripe/checkout';
+import { OnrampMoney } from '../../modules/onramp/onramp_money';
 
 export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
@@ -76,16 +77,19 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
               </View>
             )}
 
-            {/* {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
+            {selectedTab == SelectedTab.ONRAMP_OFFRAMP && (
               <View>
                 <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
-                <PaymentStripeScreen></PaymentStripeScreen>
-                <CheckoutScreen></CheckoutScreen>
+                <OnrampMoney/>
               </View>
             )}
 
+            {/*
+
             {selectedTab == SelectedTab.WALLET_INTERNAL && (
               <View>
+
+              
                 <Text style={styles.text}>Onramp/Offramp solution coming soon</Text>
               </View>
             )} */}

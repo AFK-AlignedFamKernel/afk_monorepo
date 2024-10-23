@@ -61,4 +61,11 @@ export default ThemedStyleSheet((theme) => ({
     right: Spacing.pagePadding,
     bottom: '110%',
   },
+
+  videoContainer: {
+    padding: 10,
+    overflow: 'hidden',
+    width: '100%',
+    height: 400,
+  },
 }));

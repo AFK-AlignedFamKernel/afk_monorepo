@@ -4,10 +4,12 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/config"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes"
+	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/indexer"
 
 	"github.com/joho/godotenv"
 )
@@ -29,8 +31,11 @@ func main() {
 	}
 
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	production := flag.Bool("production", false, "Production mode")
+	// production := flag.Bool("production", false, "Production mode")
+	// production := flag.Bool("production", false, "Production mode")
 	// admin := flag.Bool("admin", false, "Admin mode")
+
+	production, err := strconv.ParseBool(os.Getenv("PRODUCTION"))
 
 	admin_res := os.Getenv("ADMIN_BACKEND")
 	admin := false
@@ -60,7 +65,7 @@ func main() {
 	}
 
 	if isFlagSet("production") {
-		backendConfig.Production = *production
+		backendConfig.Production = production
 	}
 
 	databases := core.NewDatabases(databaseConfig)
@@ -70,6 +75,9 @@ func main() {
 	// core.AFKBackend = core.NewBackend(databases, canvasConfig, backendConfig, *admin)
 
 	routes.InitRoutes()
+	indexer.InitIndexerRoutes()
+	routes.InitWebsocketRoutes()
+	routes.InitNFTStaticRoutes()
 
 	core.AFKBackend.Start(core.AFKBackend.BackendConfig.Port)
 }
