@@ -438,8 +438,8 @@ pub mod LaunchpadMarketplace {
             //new liquidity after purchase
             let new_liquidity = pool_coin.liquidity_raised + quote_amount;
 
-            //assertiony
-            assert!(new_liquidity <= threshold_liquidity, "Threshold liquidity exceeded");
+            //assertion
+            assert(new_liquidity <= threshold_liquidity, 'threshold liquidity exceeded');
 
             // TODO erc20 token transfer
             let token_quote = old_launch.token_quote.clone();
@@ -498,7 +498,7 @@ pub mod LaunchpadMarketplace {
                 // println!("remain_liquidity {:?}", remain_liquidity);
                 erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
             }
-            assert!(amount <= pool_coin.available_supply, "Not enough available supply");
+            assert(amount <= pool_coin.available_supply, 'no available supply');
 
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
@@ -641,23 +641,22 @@ pub mod LaunchpadMarketplace {
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
 
             let mut share_user = old_share.clone();
-            // Verify Amount owned
-            assert(old_share.amount_owned >= quote_amount, 'share too low');
-            assert!(old_pool.total_supply >= quote_amount, "above supply");
+            
 
             // TODO erc20 token transfer
             let total_supply = old_pool.total_supply;
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
-            assert!(old_share.amount_owned >= quote_amount, "share too low");
-            assert!(old_pool.total_supply >= quote_amount, "above supply");
+            // Verify Amount owned
+            assert(old_share.amount_owned >= quote_amount, 'share too low');
+            assert(old_pool.total_supply >= quote_amount, 'above supply');
         
             // TODO fix this function
             let mut amount = self
                 ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
 
-            assert!(share_user.amount_owned >= amount, "above supply");
+            assert(share_user.amount_owned >= amount, 'above supply');
 
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
@@ -668,17 +667,17 @@ pub mod LaunchpadMarketplace {
             let creator_fee_percent = self.creator_fee_percent.read();
 
             // Ensure fee percentages are within valid bounds
-            assert!(protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL, "protocol_fee_percent out of bounds");
-            assert!(creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR, "creator_fee_percent out of bounds");
+            assert(protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL, 'protocol fee out');
+            assert(creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR, 'creator_fee out');
 
             // assert!(old_share.amount_owned >= amount, "share to sell > supply");
             // println!("amount{:?}", amount);
             // assert!(total_supply >= quote_amount, "share to sell > supply");
-            assert!(
+            assert(
                 old_pool.liquidity_raised >= quote_amount,
-                "liquidity_raised <= amount"
+                'liquidity <= amount'
             );
-            // assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
+            // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
 
             let old_price = old_pool.price.clone();
 
@@ -691,15 +690,15 @@ pub mod LaunchpadMarketplace {
             let remain_liquidity = total_price - amount_protocol_fee;
             let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
             // let remain_liquidity = total_price ;
-            assert!(
+            assert(
                 old_pool.liquidity_raised >= remain_liquidity,
-                "pool_update.liquidity_raised <= remain_liquidity"
+                'liquidity <= amount'
             );
 
             // Ensure fee calculations are correct
-            assert!(
+            assert(
                 amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
-                "fee calculation mismatch"
+                'fee calculation mismatch'
             );
 
             // Assertion: Check if the contract has enough quote tokens to transfer
@@ -721,9 +720,9 @@ pub mod LaunchpadMarketplace {
 
             // Assertion: Ensure the user receives the correct amount
             let user_received = erc20.balance_of(caller) - (old_share.amount_owned);
-            assert!(
+            assert(
                 user_received == amount_to_user,
-                "user did not receive the correct quote amount"
+                'user not receive amount'
             );
 
             // TODO fix amount owned and sellable.
@@ -791,8 +790,8 @@ pub mod LaunchpadMarketplace {
         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
             let pool = self.launched_coins.read(coin_address);
 
-            assert!(pool.liquidity_raised >= pool.threshold_liquidity, "no threshold raised");
-            assert!(pool.is_liquidity_launch == false, "liquidity already launch");
+            assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
+            assert(pool.is_liquidity_launch == false, 'liquidity already launch');
 
             self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
         }
@@ -1017,14 +1016,13 @@ pub mod LaunchpadMarketplace {
             // Check if allowance or balance is ok
 
             if balance_contract < total_supply {
+                assert(allowance >= amount_needed, 'no supply provided');
                 if allowance >= amount_needed {
                     // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
                         .transfer_from(
                             caller, get_contract_address(), total_supply - balance_contract
                         );
-                } else {
-                    panic!("no supply provided")
                 }
             }
 
