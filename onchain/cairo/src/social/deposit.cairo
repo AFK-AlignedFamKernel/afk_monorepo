@@ -73,6 +73,9 @@ pub mod DepositEscrow {
     use starknet::{
         get_block_timestamp, get_caller_address, get_contract_address, ContractAddress
     };
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use super::super::request::{
         SocialRequest, SocialRequestImpl, SocialRequestTrait,
     };
@@ -95,9 +98,9 @@ pub mod DepositEscrow {
     #[storage]
     struct Storage {
         next_deposit_id: DepositId,
-        deposits: LegacyMap<DepositId, Deposit>,
-        nostr_to_sn: LegacyMap<NostrPublicKey, ContractAddress>,
-        sn_to_nostr: LegacyMap<ContractAddress, NostrPublicKey>,
+        deposits: Map<DepositId, Deposit>,
+        nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
+        sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -217,8 +220,9 @@ pub mod DepositEscrow {
 
             self
                 .deposits
-                .write(
-                    deposit_id,
+                .entry(
+                    deposit_id)
+                    .write(
                     Deposit {
                         sender: get_caller_address(),
                         amount,
@@ -242,7 +246,7 @@ pub mod DepositEscrow {
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
 
             erc20.transfer(get_caller_address(), deposit.amount);
-            self.deposits.write(deposit_id, Default::default());
+            self.deposits.entry(deposit_id).write(Default::default());
             self
                 .emit(
                     CancelEvent {
@@ -265,9 +269,9 @@ pub mod DepositEscrow {
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
             erc20.transfer(*claim.starknet_recipient, deposit.amount - gas_amount);
 
-            self.nostr_to_sn.write(request.public_key, *claim.starknet_recipient);
-            self.sn_to_nostr.write(*claim.starknet_recipient, request.public_key);
-            self.deposits.write(*claim.deposit_id, Default::default());
+            self.nostr_to_sn.entry(request.public_key).write(*claim.starknet_recipient);
+            self.sn_to_nostr.entry(*claim.starknet_recipient).write(request.public_key);
+            self.deposits.entry(*claim.deposit_id).write(Default::default());
 
             // TODO: swap if necessary
             assert!(deposit.token_address == *claim.gas_token_address, "invalid gas_token");

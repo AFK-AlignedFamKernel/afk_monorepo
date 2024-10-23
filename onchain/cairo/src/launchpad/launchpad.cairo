@@ -92,8 +92,12 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use afk::interfaces::jediswap::{
-        IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
+        IJediswapFactoryV2, 
+        IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
@@ -148,8 +152,8 @@ pub mod LaunchpadMarketplace {
     struct Storage {
         // Admin & others contract
         coin_class_hash: ClassHash,
-        quote_tokens: LegacyMap::<ContractAddress, bool>,
-        exchange_configs: LegacyMap<SupportedExchanges, ContractAddress>,
+        quote_tokens: Map::<ContractAddress, bool>,
+        exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
         address_jediswap_factory_v2: ContractAddress,
@@ -157,17 +161,16 @@ pub mod LaunchpadMarketplace {
         address_ekubo_factory: ContractAddress,
         address_ekubo_router: ContractAddress,
         // User states
-        token_created: LegacyMap::<ContractAddress, Token>,
-        launched_coins: LegacyMap::<ContractAddress, TokenLaunch>,
-        pumped_coins: LegacyMap::<ContractAddress, TokenLaunch>,
-        shares_by_users: LegacyMap::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        bonding_type: LegacyMap::<ContractAddress, BondingType>,
-        array_launched_coins: LegacyMap::<u64, TokenLaunch>,
-        array_coins: LegacyMap::<u64, Token>,
-        tokens_created: LegacyMap::<u64, Token>,
-        launch_created: LegacyMap::<u64, TokenLaunch>,
+        token_created: Map::<ContractAddress, Token>,
+        launched_coins: Map::<ContractAddress, TokenLaunch>,
+        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
+        bonding_type: Map::<ContractAddress, BondingType>,
+        array_launched_coins: Map::<u64, TokenLaunch>,
+        array_coins: Map::<u64, Token>,
+        tokens_created: Map::<u64, Token>,
+        launch_created: Map::<u64, TokenLaunch>,
         // Parameters
-        is_tokens_buy_enable: LegacyMap::<ContractAddress, TokenQuoteBuyCoin>,
+        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
@@ -259,7 +262,7 @@ pub mod LaunchpadMarketplace {
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.is_tokens_buy_enable.write(token_quote.token_address, token_quote);
+            self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
         }
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
@@ -361,7 +364,7 @@ pub mod LaunchpadMarketplace {
                 match dex.pop_front() {
                     Option::Some((exchange, address)) => self
                         .exchange_configs
-                        .write(*exchange, *address),
+                        .entry(*exchange).write(*address),
                     Option::None => { break; }
                 }
             };
@@ -613,8 +616,8 @@ pub mod LaunchpadMarketplace {
 
             // TODO check reetrancy guard
             // Update state
-            self.shares_by_users.write((get_caller_address(), coin_address), share_user.clone());
-            self.launched_coins.write(coin_address, pool_coin.clone());
+            self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user.clone());
+            self.launched_coins.entry(coin_address).write(pool_coin.clone());
             self
                 .emit(
                     BuyToken {
@@ -770,8 +773,8 @@ pub mod LaunchpadMarketplace {
 
             self
                 .shares_by_users
-                .write((get_caller_address(), coin_address.clone()), share_user.clone());
-            self.launched_coins.write(coin_address.clone(), pool_update.clone());
+                .entry((get_caller_address(), coin_address.clone())).write(share_user.clone());
+            self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self.emit(SellToken {
                 caller: caller,
                 key_user: coin_address,
@@ -919,15 +922,15 @@ pub mod LaunchpadMarketplace {
                 token_type: Option::None,
             };
 
-            self.token_created.write(token_address, token);
+            self.token_created.entry(token_address).write(token);
 
             let total_token = self.total_token.read();
             if total_token == 0 {
                 self.total_token.write(1);
-                self.array_coins.write(0, token);
+                self.array_coins.entry(0).write(token);
             } else {
                 self.total_token.write(total_token + 1);
-                self.array_coins.write(total_token, token);
+                self.array_coins.entry(total_token).write(token);
             }
 
             self
@@ -1027,15 +1030,15 @@ pub mod LaunchpadMarketplace {
             }
 
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount_needed);
-            self.launched_coins.write(coin_address, launch_token_pump.clone());
+            self.launched_coins.entry(coin_address).write(launch_token_pump.clone());
 
             let total_launch = self.total_launch.read();
             if total_launch == 0 {
                 self.total_launch.write(1);
-                self.array_launched_coins.write(0, launch_token_pump);
+                self.array_launched_coins.entry(0).write(launch_token_pump);
             } else {
                 self.total_launch.write(total_launch + 1);
-                self.array_launched_coins.write(total_launch, launch_token_pump);
+                self.array_launched_coins.entry(total_launch).write(launch_token_pump);
             }
             self
                 .emit(

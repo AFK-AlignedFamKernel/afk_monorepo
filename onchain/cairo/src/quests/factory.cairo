@@ -7,17 +7,19 @@ pub mod QuestFactory {
     use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
     use afk::types::quest::{QuestInfo, UserQuestInfo};
 
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use starknet::{ContractAddress, get_caller_address};
 
     #[storage]
     struct Storage {
         // Map quest_id -> quest info
-        quests: LegacyMap<u32, QuestInfo>,
+        quests: Map<u32, QuestInfo>,
         quest_count: u32,
-        user_quests: LegacyMap<ContractAddress, u32>,
+        user_quests: Map<ContractAddress, u32>,
         // Map (user address, quest_id) -> user quest info
-        user_quest_info: LegacyMap<(ContractAddress, u32), UserQuestInfo>,
+        user_quest_info: Map<(ContractAddress, u32), UserQuestInfo>,
         quest_nft: ContractAddress,
         vault: ContractAddress,
     }
@@ -37,7 +39,7 @@ pub mod QuestFactory {
         fn add_quest(ref self: ContractState, quest: QuestInfo) {
             let mut new_quest = quest.clone();
             new_quest.quest_id = self.quest_count.read();
-            self.quests.write(self.quest_count.read(), new_quest);
+            self.quests.entry(self.quest_count.read()).write(new_quest);
             self.quest_count.write(self.quest_count.read() + 1);
         //TODO emit add quest event
         }
@@ -99,8 +101,8 @@ pub mod QuestFactory {
                 claimed_nft_id: nft_id.try_into().unwrap()
             };
 
-            self.user_quest_info.write((caller, quest_id), user_quest);
-            self.user_quests.write(caller, quest_id);
+            self.user_quest_info.entry((caller, quest_id)).write(user_quest);
+            self.user_quests.entry(caller).write(quest_id);
         //TODO emit claim event
         }
 

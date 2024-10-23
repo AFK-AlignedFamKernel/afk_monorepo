@@ -88,7 +88,9 @@ pub mod Namespace {
         LinkedWalletProfileDefault, LinkedResult, INamespace, NostrPublicKey,
         LinkedStarknetAddressEncodeImpl, LinkedStarknetAddress, OPERATOR_ROLE, ADMIN_ROLE
     };
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     // AccessControl
@@ -112,10 +114,8 @@ pub mod Namespace {
 
     #[storage]
     struct Storage {
-        nostr_to_sn: LegacyMap<NostrPublicKey, ContractAddress>,
-        sn_to_nostr: LegacyMap<ContractAddress, NostrPublicKey>,
-        nostr_to_sn_list: LegacyMap<NostrPublicKey, (u8, ContractAddress)>,
-        nostr_starknet_next_id: LegacyMap<NostrPublicKey, u8>,
+        nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
+        sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -205,8 +205,8 @@ pub mod Namespace {
 
             assert!(starknet_address == get_caller_address(), "invalid caller");
             request.verify().expect('can\'t verify signature');
-            self.nostr_to_sn.write(request.public_key, profile_default.starknet_address);
-            self.sn_to_nostr.write(profile_default.starknet_address, request.public_key);
+            self.nostr_to_sn.entry(request.public_key).write(profile_default.starknet_address);
+            self.sn_to_nostr.entry(profile_default.starknet_address).write(request.public_key);
             self
                 .emit(
                     LinkedDefaultStarknetAddressEvent {

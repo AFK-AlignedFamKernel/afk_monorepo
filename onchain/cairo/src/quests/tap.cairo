@@ -7,15 +7,17 @@ mod TapQuests {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     const DAILY_TIMESTAMP_SECONDS: u64 = 60 * 60 * 24;
 
     #[storage]
     struct Storage {
-        tap_by_users: LegacyMap<ContractAddress, TapUserStats>,
+        tap_by_users: Map<ContractAddress, TapUserStats>,
         token_reward: u32,
-        claimed: LegacyMap<ContractAddress, bool>,
-        is_claimable: LegacyMap<ContractAddress, bool>,
+        claimed: Map<ContractAddress, bool>,
+        is_claimable: Map<ContractAddress, bool>,
         is_reward_nft: bool,
         is_reward_token: bool,
     }
@@ -48,8 +50,8 @@ mod TapQuests {
             let timestamp = get_block_timestamp();
             if tap_old.owner.is_zero() {
                 let tap = TapUserStats { owner: caller, last_tap: timestamp, total_tap: 1 };
-                self.tap_by_users.write(caller, tap);
-                self.is_claimable.write(caller, true);
+                self.tap_by_users.entry(caller).write(tap);
+                self.is_claimable.entry(caller).write(true);
                 self.emit(TapDailyEvent { owner: caller, last_tap: timestamp, total_tap: 1 });
             } else {
                 let mut tap = self.tap_by_users.read(caller);
@@ -60,8 +62,8 @@ mod TapQuests {
                 tap.last_tap = get_block_timestamp();
                 let total = tap.total_tap + 1;
                 tap.total_tap = total.clone();
-                self.tap_by_users.write(caller, tap);
-                self.is_claimable.write(caller, true);
+                self.tap_by_users.entry(caller).write(tap);
+                self.is_claimable.entry(caller).write(true);
                 self.emit(TapDailyEvent { owner: caller, last_tap: timestamp, total_tap: total });
             }
         }

@@ -25,15 +25,17 @@ pub mod Memecoin {
     use starknet::ContractAddress;
     use starknet::contract_address_const;
     use starknet::get_caller_address;
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         name: felt252,
         symbol: felt252,
         decimals: u8,
         total_supply: u256,
-        balances: LegacyMap::<ContractAddress, u256>,
-        allowances: LegacyMap::<(ContractAddress, ContractAddress), u256>,
+        balances: Map::<ContractAddress, u256>,
+        allowances: Map::<(ContractAddress, ContractAddress), u256>,
     }
 
     #[event]
@@ -69,7 +71,7 @@ pub mod Memecoin {
         self.decimals.write(decimals);
         assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
         self.total_supply.write(initial_supply);
-        self.balances.write(recipient, initial_supply);
+        self.balances.entry(recipient).write(initial_supply);
         self
             .emit(
                 Event::Transfer(
@@ -160,8 +162,8 @@ pub mod Memecoin {
         ) {
             assert(!sender.is_zero(), 'ERC20: transfer from 0');
             assert(!recipient.is_zero(), 'ERC20: transfer to 0');
-            self.balances.write(sender, self.balances.read(sender) - amount);
-            self.balances.write(recipient, self.balances.read(recipient) + amount);
+            self.balances.entry(sender).write(self.balances.read(sender) - amount);
+            self.balances.entry(recipient).write(self.balances.read(recipient) + amount);
             self.emit(Transfer { from: sender, to: recipient, value: amount });
         }
         fn spend_allowance(
@@ -169,14 +171,14 @@ pub mod Memecoin {
         ) {
             let current_allowance = self.allowances.read((owner, spender));
             assert(current_allowance >= amount, 'not enough allowance');
-            self.allowances.write((owner, spender), current_allowance - amount);
+            self.allowances.entry((owner, spender)).write(current_allowance - amount);
         }
 
         fn approve_helper(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
         ) {
             assert(!spender.is_zero(), 'ERC20: approve from 0');
-            self.allowances.write((owner, spender), amount);
+            self.allowances.entry((owner, spender)).write(amount);
             self.emit(Approval { owner, spender, value: amount });
         }
     }

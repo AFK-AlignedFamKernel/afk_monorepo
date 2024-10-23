@@ -13,10 +13,12 @@ mod AfkIdentity {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
-        id_user_exist: LegacyMap<ContractAddress, bool>
+        id_user_exist: Map<ContractAddress, bool>
     }
 
     #[event]

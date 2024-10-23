@@ -41,12 +41,14 @@ pub mod SocialAccount {
     };
     use super::super::transfer::Transfer;
     use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         #[key]
         public_key: u256,
-        transfers: LegacyMap<u256, bool>,
+        transfers: Map<u256, bool>,
     }
 
     #[event]
@@ -90,7 +92,7 @@ pub mod SocialAccount {
 
             if let Option::Some(id) = request.verify() {
                 assert!(!self.transfers.read(id), "double spend");
-                self.transfers.write(id, true);
+                self.transfers.entry(id).write(true);
                 erc20.transfer(request.content.recipient_address, request.content.amount);
             } else {
                 panic!("can't verify signature");

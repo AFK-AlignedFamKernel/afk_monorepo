@@ -3,13 +3,15 @@ pub mod VoteQuest {
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
     use afk::interfaces::quests::{IQuest};
     use starknet::{ContractAddress, get_caller_address};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         art_peace: ContractAddress,
         reward: u32,
         day_index: u32,
-        claimed: LegacyMap<ContractAddress, bool>,
+        claimed: Map<ContractAddress, bool>,
     }
 
     #[derive(Drop, Serde)]
@@ -58,7 +60,7 @@ pub mod VoteQuest {
 
             assert(self.is_claimable(user, calldata), 'Quest not claimable');
 
-            self.claimed.write(user, true);
+            self.claimed.entry(user).write(true);
             let reward = self.reward.read();
 
             reward
