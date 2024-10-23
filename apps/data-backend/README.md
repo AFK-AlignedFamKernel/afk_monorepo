@@ -18,3 +18,9 @@ sudo lsof -t -i:5050
 
 sudo kill -9 [ID_RECEIVED_BEFORE]
 ```
+
+## Run Backend Postgres database
+
+```
+docker run --name afk-data-backend -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=data-backend -d -p 5433:5432 postgres
+```
