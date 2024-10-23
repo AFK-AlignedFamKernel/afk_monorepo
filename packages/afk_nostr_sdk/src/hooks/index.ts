@@ -4,6 +4,8 @@ export {useMessagesChannels} from './channel/useMessagesChannels';
 export {useSendMessageChannel} from './channel/useSendMessageChannel';
 export {useGetPublicGroup} from './group/public/useGetPublicGroup';
 export {useSearch} from './search/useSearch';
+export {useSearchTag} from './search/useTagSearch';
+export {useSendVideoEvent} from "./useSendVideo"
 export {useSearchUsers} from './search/useSearchUsers';
 export {useAllProfiles} from './useAllProfiles';
 export {useContacts} from './useContacts';

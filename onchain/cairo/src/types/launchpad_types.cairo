@@ -11,8 +11,8 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 #[derive(Drop, Copy, Serde, Hash)]
 pub enum SupportedExchanges {
     Jediswap,
-// Ekubo,
-// Starkdefi,
+    // Ekubo,
+    // Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,

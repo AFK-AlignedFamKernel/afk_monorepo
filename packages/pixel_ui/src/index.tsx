@@ -5,11 +5,16 @@ import AppOld from './AppOld.js';
 
 interface IAppRender {
   artPeaceAddress?: string
+  usernameAddress?: string
+  nftCanvasAddress?: string
 }
-const AppRender = ({ artPeaceAddress }: IAppRender) => {
+const AppRender = ({ artPeaceAddress, usernameAddress, nftCanvasAddress }: IAppRender) => {
   return (
     <StarknetProvider>
-      <App contractAddress={artPeaceAddress} />
+      <App contractAddress={artPeaceAddress}
+        nftCanvasAddress={nftCanvasAddress}
+        usernameAddress={usernameAddress}
+      />
       {/* <AppOld /> */}
     </StarknetProvider>
   )

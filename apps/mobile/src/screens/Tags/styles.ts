@@ -32,12 +32,15 @@ export default ThemedStyleSheet((theme) => ({
   storySeparator: {
     width: 8,
   },
+  backButton: {
+    marginTop: -4,
+  },
 
   headerContainer: {
     marginBottom: 20,
     padding: 10,
     paddingVertical: 5,
-    paddingHorizontal: 18,
+    paddingHorizontal: 5,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
   },

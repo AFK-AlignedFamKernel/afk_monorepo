@@ -5,8 +5,8 @@ import {Pressable, View} from 'react-native';
 
 import {Text} from '../../components';
 import {useStyles} from '../../hooks';
-import {Post} from '../Post';
 import stylesheet from './styles';
+import {VideoPost} from './VideoPost';
 
 export type PostCardProps = {
   event?: NDKEvent;
@@ -15,7 +15,7 @@ export type PostCardProps = {
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 
-export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookmarked}) => {
+export const VideoPostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookmarked}) => {
   const styles = useStyles(stylesheet);
 
   let repostedEvent = undefined;
@@ -27,8 +27,8 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
     repostedEvent = JSON.stringify(event?.content);
   }
   return (
-    <View style={styles.container}>
-      <Post
+    <View style={styles.card_container}>
+      <VideoPost
         event={event}
         asComment={false}
         repostedEventProps={repostedEvent}
