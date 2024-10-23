@@ -3,11 +3,9 @@ FROM quay.io/apibara/sink-webhook:0.6.0 as sink-webhook
 WORKDIR /indexer
 COPY ./script.js .
 
-
 ARG ART_PEACE_CONTRACT_ADDRESS
 
 ENV ART_PEACE_CONTRACT_ADDRESS=${ART_PEACE_CONTRACT_ADDRESS}
-
 
 ARG PERSIST_TO_REDIS
 
@@ -25,4 +23,4 @@ ARG INDEXER_ID
 
 ENV INDEXER_ID=${INDEXER_ID}
 
-CMD ["run", "script.js", "--allow-env", "./.env", "--allow-env-from-env", "CONSUMER_TARGET_URL,APIBARA_STREAM_URL,PERSIST_TO_REDIS,INDEXER_ID, ART_PEACE_CONTRACT_ADDRESS", "--allow-net", "--sink-id", "art-peace-sink-id"]
+CMD ["run", "script.js", "--allow-env-from-env", "CONSUMER_TARGET_URL,APIBARA_STREAM_URL,PERSIST_TO_REDIS,INDEXER_ID, ART_PEACE_CONTRACT_ADDRESS", "--allow-net", "--sink-id", "art-peace-sink-id"]
