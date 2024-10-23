@@ -22,7 +22,9 @@ pub mod ArtPeace {
     use core::poseidon::PoseidonTrait;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::ContractAddress;
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     component!(path: TemplateStoreComponent, storage: templates, event: TemplateEvent);
 
     #[abi(embed_v0)]
@@ -37,37 +39,37 @@ pub mod ArtPeace {
         canvas_height: u128,
         total_pixels: u128,
         // Map: user's address -> last time they placed a pixel
-        last_placed_time: LegacyMap::<ContractAddress, u64>,
+        last_placed_time: Map::<ContractAddress, u64>,
         time_between_pixels: u64,
         // Map: user's address -> amount of extra pixels they have
-        extra_pixels: LegacyMap::<ContractAddress, u32>,
+        extra_pixels: Map::<ContractAddress, u32>,
         time_between_member_pixels: u64,
         factions_count: u32,
         // Map: faction id -> faction data
-        factions: LegacyMap::<u32, Faction>,
+        factions: Map::<u32, Faction>,
         // Map: members address -> faction id ( 0 => no faction )
-        users_faction: LegacyMap::<ContractAddress, u32>,
+        users_faction: Map::<ContractAddress, u32>,
         // Map: members address -> membership metadata
-        users_faction_meta: LegacyMap::<ContractAddress, MemberMetadata>,
+        users_faction_meta: Map::<ContractAddress, MemberMetadata>,
         chain_factions_count: u32,
         // Map: chain faction id -> chain faction data
-        chain_factions: LegacyMap::<u32, ChainFaction>,
+        chain_factions: Map::<u32, ChainFaction>,
         // Map: chain members address -> faction id ( 0 => no faction )
-        users_chain_faction: LegacyMap::<ContractAddress, u32>,
+        users_chain_faction: Map::<ContractAddress, u32>,
         // Map: chain members address -> membership metadata
-        users_chain_faction_meta: LegacyMap::<ContractAddress, MemberMetadata>,
+        users_chain_faction_meta: Map::<ContractAddress, MemberMetadata>,
         // TODO: Extra factions ( assigned at start with larger allocations )
         color_count: u8,
         // Map: color index -> color value in RGBA
-        color_palette: LegacyMap::<u8, u32>,
+        color_palette: Map::<u8, u32>,
         // Map: (day index) -> number of votable colors
-        votable_colors_count: LegacyMap::<u32, u8>,
+        votable_colors_count: Map::<u32, u8>,
         // Map: (votable color index, day index) -> color value in RGBA
-        votable_colors: LegacyMap::<(u8, u32), u32>,
+        votable_colors: Map::<(u8, u32), u32>,
         // Map: (votable color index, day index) -> amount of votes
-        color_votes: LegacyMap::<(u8, u32), u32>,
+        color_votes: Map::<(u8, u32), u32>,
         // Map: (user's address, day_index) -> color index
-        user_votes: LegacyMap::<(ContractAddress, u32), u8>,
+        user_votes: Map::<(ContractAddress, u32), u8>,
         daily_new_colors_count: u32,
         creation_time: u64,
         end_time: u64,
@@ -75,20 +77,20 @@ pub mod ArtPeace {
         start_day_time: u64,
         daily_quests_count: u32,
         // Map: (day_index, quest_id) -> quest contract address
-        daily_quests: LegacyMap::<(u32, u32), ContractAddress>,
+        daily_quests: Map::<(u32, u32), ContractAddress>,
         main_quests_count: u32,
         // Map: quest index -> quest contract address
-        main_quests: LegacyMap::<u32, ContractAddress>,
+        main_quests: Map::<u32, ContractAddress>,
         nft_contract: ContractAddress,
         // Map: (day_index, user's address, color index) -> amount of pixels placed
-        user_pixels_placed: LegacyMap::<(u32, ContractAddress, u8), u32>,
+        user_pixels_placed: Map::<(u32, ContractAddress, u8), u32>,
         devmode: bool,
         faction_templates_count: u32,
         // Map: template id -> template metadata
-        faction_templates: LegacyMap::<u32, FactionTemplateMetadata>,
+        faction_templates: Map::<u32, FactionTemplateMetadata>,
         chain_faction_templates_count: u32,
         // Map: template id -> template metadata
-        chain_faction_templates: LegacyMap::<u32, FactionTemplateMetadata>,
+        chain_faction_templates: Map::<u32, FactionTemplateMetadata>,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
     }
@@ -155,18 +157,18 @@ pub mod ArtPeace {
         self.color_count.write(color_count);
         let mut i: u8 = 0;
         while i < color_count {
-            self.color_palette.write(i, *color_palette.at(i.into()));
+            self.color_palette.entry(i).write(*color_palette.at(i.into()));
             // TODO fix events
             self.emit(ColorAdded { color_key: i, color: *color_palette.at(i.into()) });
             i += 1;
         };
 
         let votable_colors_count: u8 = votable_colors.len().try_into().unwrap();
-        self.votable_colors_count.write(0, votable_colors_count);
+        self.votable_colors_count.entry(0).write(votable_colors_count);
         let mut i: u8 = 0;
         while i < votable_colors_count {
             let new_color = *votable_colors.at(i.into());
-            self.votable_colors.write((i + 1, 0), new_color);
+            self.votable_colors.entry((i + 1, 0)).write(new_color);
             self.emit(VotableColorAdded { day: 0, color_key: i + 1, color: new_color });
             i += 1;
         };
@@ -185,7 +187,7 @@ pub mod ArtPeace {
             let test_address = starknet::contract_address_const::<
                 0x328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0
             >();
-            self.extra_pixels.write(test_address, 1000);
+            self.extra_pixels.entry(test_address).write(1000);
         }
         self.devmode.write(devmode);
 
@@ -364,7 +366,7 @@ pub mod ArtPeace {
                 pixels_placed += 1;
             };
             let extra_pixels_placed = pixel_count - prior_pixels;
-            self.extra_pixels.write(caller, extra_pixels - extra_pixels_placed);
+            self.extra_pixels.entry(caller).write(extra_pixels - extra_pixels_placed);
             // TODO fix emit event build
             self.emit(ExtraPixelsPlaced { placed_by: caller, extra_pixels: extra_pixels_placed });
         }
@@ -418,7 +420,7 @@ pub mod ArtPeace {
             self.check_game_running();
             let faction_id = self.factions_count.read() + 1;
             let faction = Faction { name, leader, joinable, allocation };
-            self.factions.write(faction_id, faction);
+            self.factions.entry(faction_id).write(faction);
             self.factions_count.write(faction_id);
             // TODO fix emit event
             self.emit(FactionCreated { faction_id, name, leader, joinable, allocation });
@@ -437,7 +439,7 @@ pub mod ArtPeace {
             );
             let mut faction = self.factions.read(faction_id);
             faction.leader = new_leader;
-            self.factions.write(faction_id, faction);
+            self.factions.entry(faction_id).write(faction);
             self.emit(FactionLeaderChanged { faction_id, new_leader });
         }
 
@@ -448,7 +450,7 @@ pub mod ArtPeace {
             self.check_game_running();
             let faction_id = self.chain_factions_count.read() + 1;
             let chain_faction = ChainFaction { name };
-            self.chain_factions.write(faction_id, chain_faction);
+            self.chain_factions.entry(faction_id).write(chain_faction);
             self.chain_factions_count.write(faction_id);
             self.emit(ChainFactionCreated { faction_id, name });
         }
@@ -464,7 +466,7 @@ pub mod ArtPeace {
             let caller = starknet::get_caller_address();
             let faction = self.factions.read(faction_id);
             assert(faction.joinable, 'Faction is not joinable');
-            self.users_faction.write(caller, faction_id);
+            self.users_faction.entry(caller).write(faction_id);
             self.emit(FactionJoined { faction_id, user: caller });
         }
 
@@ -486,7 +488,7 @@ pub mod ArtPeace {
                 'User already in a chain faction'
             );
             let caller = starknet::get_caller_address();
-            self.users_chain_faction.write(caller, faction_id);
+            self.users_chain_faction.entry(caller).write(faction_id);
             self.emit(ChainFactionJoined { faction_id, user: caller });
         }
 
@@ -568,11 +570,11 @@ pub mod ArtPeace {
             if users_vote != color {
                 if users_vote != 0 {
                     let old_vote = self.color_votes.read((users_vote, day));
-                    self.color_votes.write((users_vote, day), old_vote - 1);
+                    self.color_votes.entry((users_vote, day)).write(old_vote - 1);
                 }
                 let new_vote = self.color_votes.read((color, day));
-                self.color_votes.write((color, day), new_vote + 1);
-                self.user_votes.write((caller, day), color);
+                self.color_votes.entry((color, day)).write(new_vote + 1);
+                self.user_votes.entry((caller, day)).write(color);
                 self.emit(VoteColor { voted_by: caller, day, color });
             }
         }
@@ -695,7 +697,7 @@ pub mod ArtPeace {
             let mut i = 0;
             while i < quests
                 .len() {
-                    self.daily_quests.write((day_index, i), *quests.at(i));
+                    self.daily_quests.entry((day_index, i)).write(*quests.at(i));
                     i += 1;
                 };
         }
@@ -709,7 +711,7 @@ pub mod ArtPeace {
             let end = i + quests.len();
             while i < end {
                 // TODO: This should be i - self.main_quests_count.read()
-                self.main_quests.write(i, *quests.at(i));
+                self.main_quests.entry(i).write(*quests.at(i));
                 i += 1;
             };
             self.main_quests_count.write(end);
@@ -725,8 +727,9 @@ pub mod ArtPeace {
             if reward > 0 {
                 self
                     .extra_pixels
-                    .write(
-                        starknet::get_caller_address(),
+                    .entry(
+                        starknet::get_caller_address())
+                        .write(
                         self.extra_pixels.read(starknet::get_caller_address()) + reward
                     );
             }
@@ -741,8 +744,9 @@ pub mod ArtPeace {
             if reward > 0 {
                 self
                     .extra_pixels
-                    .write(
+                    .entry(
                         starknet::get_caller_address(),
+                    ).write(
                         self.extra_pixels.read(starknet::get_caller_address()) + reward
                     );
             }
@@ -785,7 +789,7 @@ pub mod ArtPeace {
                 template_metadata.faction_id <= self.factions_count.read(), 'Faction does not exist'
             );
             let template_id = self.faction_templates_count.read();
-            self.faction_templates.write(template_id, template_metadata);
+            self.faction_templates.entry(template_id).write(template_metadata);
             self.faction_templates_count.write(template_id + 1);
             self.emit(FactionTemplateAdded { template_id, template_metadata });
         }
@@ -831,7 +835,7 @@ pub mod ArtPeace {
                 'Faction does not exist'
             );
             let template_id = self.chain_faction_templates_count.read();
-            self.chain_faction_templates.write(template_id, template_metadata);
+            self.chain_faction_templates.entry(template_id).write(template_metadata);
             self.chain_faction_templates_count.write(template_id + 1);
             self.emit(ChainFactionTemplateAdded { template_id, template_metadata });
         }
@@ -1174,11 +1178,11 @@ pub mod ArtPeace {
             let vote = self.color_votes.read((votable_index, day));
             let color = self.votable_colors.read((votable_index, day));
             if vote >= threshold {
-                self.color_palette.write(color_index, color);
+                self.color_palette.entry(color_index).write(color);
                 self.emit(ColorAdded { color_key: color_index, color });
                 color_index += 1;
             } else if start_new_vote {
-                self.votable_colors.write((next_day_votable_index, next_day), color);
+                self.votable_colors.entry((next_day_votable_index, next_day)).write(color);
                 self
                     .emit(
                         VotableColorAdded {
@@ -1191,7 +1195,7 @@ pub mod ArtPeace {
         };
         self.color_count.write(color_index);
         if start_new_vote {
-            self.votable_colors_count.write(next_day, next_day_votable_index - 1);
+            self.votable_colors_count.entry(next_day).write(next_day_votable_index - 1);
         }
     }
 
@@ -1204,7 +1208,7 @@ pub mod ArtPeace {
         let day = self.day_index.read();
         self
             .user_pixels_placed
-            .write((day, caller, color), self.user_pixels_placed.read((day, caller, color)) + 1);
+            .entry((day, caller, color)).write(self.user_pixels_placed.read((day, caller, color)) + 1);
         // TODO: Optimize?
         self.emit(PixelPlaced { placed_by: caller, pos, day, color });
     }
@@ -1213,7 +1217,7 @@ pub mod ArtPeace {
     fn place_basic_pixel_inner(ref self: ContractState, pos: u128, color: u8, now: u64) {
         place_pixel_inner(ref self, pos, color);
         let caller = starknet::get_caller_address();
-        self.last_placed_time.write(caller, now);
+        self.last_placed_time.entry(caller).write(now);
         self.emit(BasicPixelPlaced { placed_by: caller, timestamp: now });
     }
 
@@ -1241,14 +1245,14 @@ pub mod ArtPeace {
         let caller = starknet::get_caller_address();
         if faction_pixels_left == 0 {
             let new_member_metadata = MemberMetadata { member_placed_time: now, member_pixels: 0 };
-            self.users_faction_meta.write(caller, new_member_metadata);
+            self.users_faction_meta.entry(caller).write(new_member_metadata);
             self.emit(FactionPixelsPlaced { user: caller, placed_time: now, member_pixels: 0 });
         } else {
             let last_placed_time = self.users_faction_meta.read(caller).member_placed_time;
             let new_member_metadata = MemberMetadata {
                 member_placed_time: last_placed_time, member_pixels: faction_pixels_left
             };
-            self.users_faction_meta.write(caller, new_member_metadata);
+            self.users_faction_meta.entry(caller).write(new_member_metadata);
             self
                 .emit(
                     FactionPixelsPlaced {
@@ -1284,7 +1288,7 @@ pub mod ArtPeace {
                 let new_member_metadata = MemberMetadata {
                     member_placed_time: now, member_pixels: 0
                 };
-                self.users_chain_faction_meta.write(caller, new_member_metadata);
+                self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
                 self
                     .emit(
                         ChainFactionPixelsPlaced {
@@ -1299,7 +1303,7 @@ pub mod ArtPeace {
                 let new_member_metadata = MemberMetadata {
                     member_placed_time: last_placed_time, member_pixels: member_pixels_left
                 };
-                self.users_chain_faction_meta.write(caller, new_member_metadata);
+                self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
                 self
                     .emit(
                         ChainFactionPixelsPlaced {

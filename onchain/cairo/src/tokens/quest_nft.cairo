@@ -125,7 +125,8 @@ pub mod QuestNFT {
                 token_id += 1;
             }
 
-            self.erc721._mint(user, token_id);
+            // self.erc721._mint(user, token_id);
+            self.erc721.mint(user, token_id);
             self.nft_count.write(token_id + 1);
             token_id
         }

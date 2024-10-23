@@ -19,11 +19,13 @@ mod FactoryAfkIdentity {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
-        id_user_exist: LegacyMap<ContractAddress, bool>,
-        user_identity: LegacyMap<ContractAddress, AfkIdentityState>
+        id_user_exist: Map<ContractAddress, bool>,
+        user_identity: Map<ContractAddress, AfkIdentityState>
     }
 
     #[event]
@@ -46,7 +48,7 @@ mod FactoryAfkIdentity {
                 token_address: token_address.clone(),
                 created_at: get_block_timestamp()
             };
-            self.user_identity.write(caller, afk_identity);
+            self.user_identity.entry(caller).write(afk_identity);
             self
                 .emit(
                     AfkIdentityCreated {

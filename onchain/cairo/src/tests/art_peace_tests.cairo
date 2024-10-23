@@ -11,9 +11,7 @@ use afk::interfaces::pixel_template::{
 use afk::tests::utils;
 use core::hash::{HashStateTrait, HashStateExTrait};
 
-use core::poseidon::PoseidonTrait;
-
-use openzeppelin::token::erc20::interface::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use openzeppelin::token::erc721::interface::{
     IERC721Dispatcher, IERC721DispatcherTrait, IERC721MetadataDispatcher,
     IERC721MetadataDispatcherTrait
@@ -21,12 +19,14 @@ use openzeppelin::token::erc721::interface::{
 
 use snforge_std as snf;
 use snforge_std::{
-    declare, ContractClass, spy_events, SpyOn, EventSpy, EventFetcher, Event, EventAssertions,
-    start_cheat_caller_address, cheat_caller_address_global, stop_cheat_caller_address,
-    stop_cheat_caller_address_global, start_cheat_block_timestamp, cheat_block_timestamp, CheatSpan,
-    ContractClassTrait
+    declare, ContractClass, spy_events, EventSpy, Event,
+    start_cheat_caller_address, stop_cheat_caller_address,
+     cheat_block_timestamp, CheatSpan,
+    ContractClassTrait, DeclareResultTrait,
+    
+    
 };
-use starknet::{ContractAddress, contract_address_const, get_contract_address, get_caller_address};
+use starknet::{ContractAddress, get_caller_address};
 
 const DAY_IN_SECONDS: u64 = consteval_int!(60 * 60 * 24);
 const WIDTH: u128 = 100;
@@ -37,7 +37,7 @@ const LEANIENCE_MARGIN: u64 = 20;
 pub(crate) fn deploy_contract() -> ContractAddress {
     deploy_nft_contract();
 
-    let contract = declare("ArtPeace").unwrap();
+    let contract = declare("ArtPeace").unwrap().contract_class();
     let mut calldata = array![];
     InitParams {
         canvas_width: WIDTH,
@@ -93,7 +93,7 @@ pub(crate) fn deploy_with_quests_contract(
 ) -> ContractAddress {
     deploy_nft_contract();
 
-    let contract = snf::declare("ArtPeace").unwrap();
+    let contract = declare("ArtPeace").unwrap().contract_class();
     let daily_quests_count = 3;
     let mut calldata = array![];
     InitParams {
@@ -159,7 +159,7 @@ pub(crate) fn deploy_with_quests_contract(
     }
 
     art_peace.add_main_quests(main_quests);
-    snf::stop_cheat_caller_address(contract_addr);
+    stop_cheat_caller_address(contract_addr);
 
     cheat_block_timestamp(
         contract_addr, TIME_BETWEEN_PIXELS + LEANIENCE_MARGIN, CheatSpan::Indefinite
@@ -169,7 +169,7 @@ pub(crate) fn deploy_with_quests_contract(
 }
 
 fn deploy_nft_contract() -> ContractAddress {
-    let contract = snf::declare("CanvasNFT").unwrap();
+    let contract = declare("CanvasNFT").unwrap().contract_class();
     let mut calldata = array![];
     let name: ByteArray = "CanvasNFTs";
     let symbol: ByteArray = "A/P";
@@ -182,7 +182,7 @@ fn deploy_nft_contract() -> ContractAddress {
 
 fn deploy_erc20_mock() -> ContractAddress {
     // use DualVmToken erc20 for testing
-    let contract = snf::declare("DualVmToken").unwrap();
+    let contract = declare("DualVmToken").unwrap().contract_class();
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
     let recipient: ContractAddress = utils::HOST();
     let mut calldata = array![];

@@ -4,14 +4,16 @@ pub mod TemplateStoreComponent {
     use core::num::traits::Zero;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::{ContractAddress, get_caller_address};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         templates_count: u32,
         // Map: template_id -> template_metadata
-        templates: LegacyMap::<u32, TemplateMetadata>,
+        templates: Map::<u32, TemplateMetadata>,
         // Map: template_id -> is_completed
-        completed_templates: LegacyMap::<u32, bool>,
+        completed_templates: Map::<u32, bool>,
     }
 
     #[event]
@@ -60,7 +62,7 @@ pub mod TemplateStoreComponent {
             ref self: ComponentState<TContractState>, template_metadata: TemplateMetadata
         ) {
             let template_id = self.templates_count.read();
-            self.templates.write(template_id, template_metadata);
+            self.templates.entry(template_id).write(template_metadata);
             self.templates_count.write(template_id + 1);
 
             if !template_metadata.reward_token.is_zero() && template_metadata.reward != 0 {

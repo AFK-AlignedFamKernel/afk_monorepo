@@ -5,17 +5,20 @@ pub mod UserNameClaimErrors {
 }
 
 #[starknet::contract]
-pub mod UsernameStore {
+pub mod Nameservice {
     use afk::interfaces::username_store::IUsernameStore;
-    use starknet::{ContractAddress, contract_address_const, get_caller_address};
+    use starknet::{ContractAddress, contract_address_const, get_caller_address, get_block_timestamp};
     use super::UserNameClaimErrors;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+         StoragePointerWriteAccess, StoragePathEntry, Map
     };
+
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
-        user_to_username: Map::<ContractAddress, felt252>
+        user_to_username: Map::<ContractAddress, felt252>,
+        subscription_price:u256,
+        token_quote:ContractAddress
     }
 
     #[event]
@@ -29,7 +32,8 @@ pub mod UsernameStore {
     struct UserNameClaimed {
         #[key]
         address: ContractAddress,
-        username: felt252
+        username: felt252,
+        timestamp:u64
     }
 
     #[derive(Drop, starknet::Event)]
@@ -41,10 +45,11 @@ pub mod UsernameStore {
     }
 
     #[abi(embed_v0)]
-    impl UsernameStore of IUsernameStore<ContractState> {
+    impl Nameservice of IUsernameStore<ContractState> {
         fn claim_username(ref self: ContractState, key: felt252) {
             let caller_address = get_caller_address();
 
+            // TODO add yearly timestamp subscription
             assert(
                 self.user_to_username.read(caller_address) == 0,
                 UserNameClaimErrors::USER_HAS_USERNAME
@@ -59,7 +64,7 @@ pub mod UsernameStore {
             self.usernames.entry(key).write(caller_address);
             self.user_to_username.entry(caller_address).write(key);
 
-            self.emit(UserNameClaimed { username: key, address: caller_address });
+            self.emit(UserNameClaimed { username: key, address: caller_address, timestamp:get_block_timestamp()});
         }
 
         fn change_username(ref self: ContractState, new_username: felt252) {

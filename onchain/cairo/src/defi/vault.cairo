@@ -19,6 +19,9 @@ pub mod Vault {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use super::{DepositUser, TokenPermitted, MintDepositEvent, WithdrawDepositEvent};
 
 
@@ -35,10 +38,10 @@ pub mod Vault {
     struct Storage {
         token_address: ContractAddress,
         is_mintable_paused: bool,
-        token_permitted: LegacyMap<ContractAddress, TokenPermitted>,
-        is_token_permitted: LegacyMap<ContractAddress, bool>,
-        deposit_by_user: LegacyMap<ContractAddress, DepositUser>,
-        deposit_by_user_by_token: LegacyMap::<(ContractAddress, ContractAddress), DepositUser>,
+        token_permitted: Map<ContractAddress, TokenPermitted>,
+        is_token_permitted: Map<ContractAddress, bool>,
+        deposit_by_user: Map<ContractAddress, DepositUser>,
+        deposit_by_user_by_token: Map::<(ContractAddress, ContractAddress), DepositUser>,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -113,8 +116,8 @@ pub mod Vault {
                 deposit_user.minted += amount;
             }
 
-            self.deposit_by_user.write(caller, deposit_user);
-            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+            self.deposit_by_user.entry(caller).write(deposit_user);
+            self.deposit_by_user_by_token.entry((caller, token_address)).write(deposit_user);
 
             // emit event
             self
@@ -156,7 +159,7 @@ pub mod Vault {
             deposit_user.withdraw += amount;
 
             self.deposit_by_user.write(caller, deposit_user);
-            self.deposit_by_user_by_token.write((caller, token_address), deposit_user);
+            self.deposit_by_user_by_token.entry((caller, token_address)).write(deposit_user);
 
             // emit event
             self
@@ -185,8 +188,8 @@ pub mod Vault {
             let token_permitted = TokenPermitted {
                 token_address, ratio_mint, is_available, pooling_timestamp,
             };
-            self.token_permitted.write(token_address, token_permitted);
-            self.is_token_permitted.write(token_address, true);
+            self.token_permitted.entry(token_address).write(token_permitted);
+            self.is_token_permitted.entry(token_address).write(true);
         }
 
         fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {

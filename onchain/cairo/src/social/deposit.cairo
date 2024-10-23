@@ -67,13 +67,17 @@ pub trait IDepositEscrow<TContractState> {
 pub mod DepositEscrow {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    // use starknet::storage::Map;
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::{
-        get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
+        get_block_timestamp, get_caller_address, get_contract_address, ContractAddress
+    };
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
+        SocialRequest, SocialRequestImpl, SocialRequestTrait,
     };
 
     use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
@@ -94,9 +98,9 @@ pub mod DepositEscrow {
     #[storage]
     struct Storage {
         next_deposit_id: DepositId,
-        deposits: LegacyMap<DepositId, Deposit>,
-        nostr_to_sn: LegacyMap<NostrPublicKey, ContractAddress>,
-        sn_to_nostr: LegacyMap<ContractAddress, NostrPublicKey>,
+        deposits: Map<DepositId, Deposit>,
+        nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
+        sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -195,16 +199,16 @@ pub mod DepositEscrow {
             if (!recipient.is_zero()) {
                 let erc20 = IERC20Dispatcher { contract_address: token_address };
                 erc20.transfer_from(get_caller_address(), recipient, amount);
-                // self
-                //     .emit(
-                //         TransferEvent {
-                //             sender: sender_address,
-                //             nostr_recipient,
-                //             starknet_recipient: recipient,
-                //             amount: amount,
-                //             token_address: token_address
-                //         }
-                //     );
+                self
+                    .emit(
+                        TransferEvent {
+                            sender: get_caller_address(),
+                            nostr_recipient,
+                            starknet_recipient: recipient,
+                            amount: amount,
+                            token_address: token_address
+                        }
+                    );
                 return DepositResult::Transfer(recipient);
             }
 
@@ -216,8 +220,9 @@ pub mod DepositEscrow {
 
             self
                 .deposits
-                .write(
-                    deposit_id,
+                .entry(
+                    deposit_id)
+                    .write(
                     Deposit {
                         sender: get_caller_address(),
                         amount,
@@ -226,16 +231,6 @@ pub mod DepositEscrow {
                         ttl: get_block_timestamp() + timelock
                     }
                 );
-            // self
-            //     .emit(
-            //         DepositEvent {
-            //             deposit_id,
-            //             sender: sender_address,
-            //             nostr_recipient,
-            //             amount: amount,
-            //             token_address: token_address
-            //         }
-            //     );
 
             DepositResult::Deposit(deposit_id)
         }
@@ -251,17 +246,17 @@ pub mod DepositEscrow {
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
 
             erc20.transfer(get_caller_address(), deposit.amount);
-            self.deposits.write(deposit_id, Default::default());
-        // self
-        //     .emit(
-        //         CancelEvent {
-        //             deposit_id,
-        //             sender: get_caller_address(),
-        //             nostr_recipient: deposit.recipient,
-        //             amount: deposit.amount,
-        //             token_address: deposit.token_address
-        //         }
-        //     );
+            self.deposits.entry(deposit_id).write(Default::default());
+            self
+                .emit(
+                    CancelEvent {
+                        deposit_id,
+                        sender: get_caller_address(),
+                        nostr_recipient: deposit.recipient,
+                        amount: deposit.amount,
+                        token_address: deposit.token_address
+                    }
+                );
         }
 
         fn claim(ref self: ContractState, request: SocialRequest<Claim>, gas_amount: u256) {
@@ -274,59 +269,57 @@ pub mod DepositEscrow {
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
             erc20.transfer(*claim.starknet_recipient, deposit.amount - gas_amount);
 
-            self.nostr_to_sn.write(request.public_key, *claim.starknet_recipient);
-            self.sn_to_nostr.write(*claim.starknet_recipient, request.public_key);
-            self.deposits.write(*claim.deposit_id, Default::default());
+            self.nostr_to_sn.entry(request.public_key).write(*claim.starknet_recipient);
+            self.sn_to_nostr.entry(*claim.starknet_recipient).write(request.public_key);
+            self.deposits.entry(*claim.deposit_id).write(Default::default());
 
             // TODO: swap if necessary
             assert!(deposit.token_address == *claim.gas_token_address, "invalid gas_token");
             assert!(gas_amount <= *claim.gas_amount, "gas_amount too big");
             let gas_token = IERC20Dispatcher { contract_address: *claim.gas_token_address };
             gas_token.transfer(get_caller_address(), gas_amount);
-        // self
-        //     .emit(
-        //         ClaimEvent {
-        //             deposit_id: *claim.deposit_id,
-        //             sender: get_caller_address(),
-        //             nostr_recipient: request.public_key,
-        //             amount: deposit.amount,
-        //             starknet_recipient: *claim.starknet_recipient,
-        //             token_address: deposit.token_address,
-        //             gas_token_address: *claim.gas_token_address,
-        //             gas_amount: *claim.gas_amount
-        //         }
-        //     );
+            self.emit(
+                    ClaimEvent {
+                        deposit_id: *claim.deposit_id,
+                        sender: get_caller_address(),
+                        nostr_recipient: request.public_key,
+                        amount: deposit.amount,
+                        starknet_recipient: *claim.starknet_recipient,
+                        token_address: deposit.token_address,
+                        gas_token_address: *claim.gas_token_address,
+                        gas_amount: *claim.gas_amount
+                    }
+                );
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::array::SpanTrait;
-    use core::option::OptionTrait;
-    use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
+        declare, ContractClass, ContractClassTrait,
+        start_cheat_caller_address, start_cheat_caller_address_global,
         stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        DeclareResultTrait
     };
     use starknet::{
-        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
-        contract_address_const,
+        ContractAddress, get_block_timestamp,
+        
     };
 
-    use super::super::request::{SocialRequest, Signature, Encode};
-    use super::super::transfer::Transfer;
-    use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::option::OptionTrait;
+
+    use super::super::request::{SocialRequest, Signature};
+    use super::{DepositResult, NostrPublicKey, Claim};
     use super::{IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
 
-    fn declare_escrow() -> ContractClass {
-        declare("DepositEscrow").unwrap()
+    fn declare_escrow() -> @ContractClass {
+        declare("DepositEscrow").unwrap().contract_class()
     }
 
-    fn declare_erc20() -> ContractClass {
-        declare("ERC20").unwrap()
+    fn declare_erc20() ->  @ContractClass {
+        declare("ERC20").unwrap().contract_class()
     }
 
     fn deploy_escrow(class: ContractClass) -> IDepositEscrowDispatcher {
@@ -411,7 +404,7 @@ mod tests {
     ) {
         let erc20_class = declare_erc20();
         let escrow_class = declare_escrow();
-        request_fixture_custom_classes(erc20_class, escrow_class)
+        request_fixture_custom_classes(*erc20_class, *escrow_class)
     }
 
     #[test]
@@ -420,7 +413,7 @@ mod tests {
         let recipient_address: ContractAddress = 678.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -483,7 +476,7 @@ mod tests {
             ..request
         };
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -535,7 +528,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -553,7 +546,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -581,7 +574,7 @@ mod tests {
         let recipient_address: ContractAddress = 789.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -606,7 +599,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -628,7 +621,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -647,7 +640,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -670,7 +663,7 @@ mod tests {
 
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 
@@ -689,7 +682,7 @@ mod tests {
         let recipient_address: ContractAddress = 345.try_into().unwrap();
         let amount = 100_u256;
 
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         erc20.approve(escrow.contract_address, amount);
         stop_cheat_caller_address_global();
 

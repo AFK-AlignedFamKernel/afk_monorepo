@@ -201,7 +201,7 @@ mod tests {
         let rx: u256 = 0x6cff5c3ba86c69ea4b7376f31a9bcb4f74c1976089b2d9963da2e5543e177769;
         let s: u256 = 0x69e89b4c5564d00349106b8497785dd7d1d713a8ae82b32fa79d5f7fc407d39b;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -212,7 +212,7 @@ mod tests {
         let s: u256 = 0x3cc27944640ac607cd107ae10923d9ef7a73c643e166be5ebeafa34b1ac553e2;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
 
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -223,7 +223,7 @@ mod tests {
         let s: u256 = 0x28890b3edb6e7189b630448b515ce4f8622a954cfe545735aaea5134fccdb2bd;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
 
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -234,7 +234,7 @@ mod tests {
         let s: u256 = 0x961764b3aa9b2ffcb6ef947b6887a226e8d7c93e00c5ed0c1834ff0d0c2e6da6;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
 
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -246,7 +246,7 @@ mod tests {
         let s: u256 = 0x123dda8328af9c23a94c1feecfd123ba4fb73476f0d594dcb65c6425bd186051;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
 
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod tests {
         let s: u256 = 0x7615fbaf5ae28864013c099742deadb4dba87f11ac6754f93780d5a1837cf197;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
 
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -268,7 +268,7 @@ mod tests {
         let rx: u256 = 0x4a298dacae57395a15d0795ddbfd1dcb564da82b0f269bc70a74f8220429ba1d;
         let s: u256 = 0x69e89b4c5564d00349106b8497785dd7d1d713a8ae82b32fa79d5f7fc407d39b;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -278,7 +278,7 @@ mod tests {
         let rx: u256 = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f;
         let s: u256 = 0x69e89b4c5564d00349106b8497785dd7d1d713a8ae82b32fa79d5f7fc407d39b;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -288,7 +288,7 @@ mod tests {
         let rx: u256 = 0x6cff5c3ba86c69ea4b7376f31a9bcb4f74c1976089b2d9963da2e5543e177769;
         let s: u256 = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]
@@ -298,7 +298,7 @@ mod tests {
         let rx: u256 = 0x6cff5c3ba86c69ea4b7376f31a9bcb4f74c1976089b2d9963da2e5543e177769;
         let s: u256 = 0x69e89b4c5564d00349106b8497785dd7d1d713a8ae82b32fa79d5f7fc407d39b;
         let m: u256 = 0x243f6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-        assert_eq!(verify(px, rx, s, m.into()), false);
+        assert(verify(px, rx, s, m.into()) == false, 'verify valid');
     }
 
     #[test]

@@ -70,7 +70,7 @@ mod tests {
         let expected =
             "nprofile1qyh8wumn8ghj7un9d3shjtnwdaehgu3wv4uxzmtsd3jjumtev3hk6ctfdchx27rpd4cxcefwvdhk6qgkwaehxw309ahx7um5wghxyctwv9hxztnrdaksqgyyvqa5uvqggqpke2xvsy47lnywysxqndeczf3e6hxa3m886m46gqlwp5er";
 
-        assert_eq!(profile.encode(), expected);
+        assert(profile.encode() == expected, 'profile encode error');
     }
 
     #[test]
@@ -82,7 +82,7 @@ mod tests {
 
         let expected = "nprofile1qqs2sa3zk4a49umxg4lgvlsaenrqaf33ejkffd78f2cgy4xy38h393s2w22mm";
 
-        assert_eq!(profile.encode(), expected);
+        assert(profile.encode() == expected, 'profile encode error');
     }
 
     #[test]
@@ -95,7 +95,7 @@ mod tests {
         let expected =
             "nprofile1qyt8wumn8ghj7mn0wd68ytnzv9hxzmnp9e3k7mgqyz08pf5l3unu38v5phxaupze0xxdd8hjjxpsutl6gn4lmt28muy5cevgzmu";
 
-        assert_eq!(profile.encode(), expected);
+        assert(profile.encode() == expected, 'profile encode error');
     }
 }
 

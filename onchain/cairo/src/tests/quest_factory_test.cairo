@@ -1,28 +1,25 @@
 #[cfg(test)]
 mod quest_factory_tests {
+
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
+        stop_cheat_caller_address
+    };
+    use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
+
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::quest::{
-        IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestDispatcher,
-        IQuestDispatcherTrait, IQuestNFTDispatcher, IQuestNFTDispatcherTrait, ITapQuests,
+        IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait,
+        IQuestNFTDispatcher, IQuestNFTDispatcherTrait,
         ITapQuestsDispatcher, ITapQuestsDispatcherTrait
     };
 
-    use afk::interfaces::vault::{IERCVault, IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::quest::{QuestInfo, UserQuestInfo};
-
-    use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
-
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        cheat_caller_address_global, stop_cheat_caller_address, stop_cheat_caller_address_global,
-        start_cheat_block_timestamp
-    };
-
+    use afk::interfaces::vault::{IERCVaultDispatcher};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::types::quest::{QuestInfo};
 
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash
+        ContractAddress
     };
 
     fn ADMIN() -> ContractAddress {
@@ -66,7 +63,7 @@ mod quest_factory_tests {
     }
 
     fn deploy_tap_quest() -> ContractAddress {
-        let class = declare("TapQuests").unwrap();
+        let class = declare("TapQuests").unwrap().contract_class();
         let mut calldata = array![];
         5.serialize(ref calldata);
         true.serialize(ref calldata);
@@ -79,7 +76,7 @@ mod quest_factory_tests {
     fn deploy_factory_quest(
         quest_nft: ContractAddress, vault: ContractAddress
     ) -> IQuestFactoryDispatcher {
-        let factory_class = declare("QuestFactory").unwrap();
+        let factory_class = declare("QuestFactory").unwrap().contract_class();
         let mut calldata = array![];
         quest_nft.serialize(ref calldata);
         vault.serialize(ref calldata);
@@ -92,7 +89,7 @@ mod quest_factory_tests {
     fn deploy_quest_nft(
         name: ByteArray, symbol: ByteArray, owner: ContractAddress
     ) -> ContractAddress {
-        let class = declare("QuestNFT").unwrap();
+        let class = declare("QuestNFT").unwrap().contract_class();
         let mut calldata = array![];
         name.serialize(ref calldata);
         symbol.serialize(ref calldata);
@@ -105,12 +102,12 @@ mod quest_factory_tests {
 
 
     fn deploy_and_setup_vault() -> (IERCVaultDispatcher, ContractAddress) {
-        let erc20_mintable_class = declare("ERC20Mintable").unwrap();
+        let erc20_mintable_class = declare("ERC20Mintable").unwrap().contract_class();
         let abtc_dispathcer = deploy_erc20_mint(
-            erc20_mintable_class, "aBTC token", "aBTC", ADMIN(), 100_000_000_u256,
+            *erc20_mintable_class, "aBTC token", "aBTC", ADMIN(), 100_000_000_u256,
         );
 
-        let vault_class = declare("Vault").unwrap();
+        let vault_class = declare("Vault").unwrap().contract_class();
 
         let mut calldata = array![abtc_dispathcer.contract_address.into()];
         ADMIN().serialize(ref calldata);

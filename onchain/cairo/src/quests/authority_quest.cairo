@@ -4,14 +4,16 @@ pub mod AuthorityQuest {
     use afk::interfaces::quests::{IAuthorityQuest, IQuest};
 
     use starknet::{ContractAddress, get_caller_address};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         art_peace: ContractAddress,
         authority: ContractAddress,
         reward: u32,
-        claimable: LegacyMap<ContractAddress, bool>,
-        claimed: LegacyMap<ContractAddress, bool>,
+        claimable: Map<ContractAddress, bool>,
+        claimed: Map<ContractAddress, bool>,
     }
 
     #[derive(Drop, Serde)]
@@ -39,7 +41,7 @@ pub mod AuthorityQuest {
             let mut i = 0;
             while i < calldata
                 .len() {
-                    self.claimable.write((*calldata[i]).try_into().unwrap(), true);
+                    self.claimable.entry((*calldata[i]).try_into().unwrap()).write(true);
                     i += 1;
                 }
         }
@@ -70,7 +72,7 @@ pub mod AuthorityQuest {
 
             assert(self.is_claimable(user, calldata), 'Quest not claimable');
 
-            self.claimed.write(user, true);
+            self.claimed.entry(user).write(true);
             let reward = self.reward.read();
 
             reward

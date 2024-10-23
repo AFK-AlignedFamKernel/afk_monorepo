@@ -92,8 +92,12 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use afk::interfaces::jediswap::{
-        IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
+        IJediswapFactoryV2, 
+        IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
@@ -148,8 +152,8 @@ pub mod LaunchpadMarketplace {
     struct Storage {
         // Admin & others contract
         coin_class_hash: ClassHash,
-        quote_tokens: LegacyMap::<ContractAddress, bool>,
-        exchange_configs: LegacyMap<SupportedExchanges, ContractAddress>,
+        quote_tokens: Map::<ContractAddress, bool>,
+        exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
         address_jediswap_factory_v2: ContractAddress,
@@ -157,17 +161,16 @@ pub mod LaunchpadMarketplace {
         address_ekubo_factory: ContractAddress,
         address_ekubo_router: ContractAddress,
         // User states
-        token_created: LegacyMap::<ContractAddress, Token>,
-        launched_coins: LegacyMap::<ContractAddress, TokenLaunch>,
-        pumped_coins: LegacyMap::<ContractAddress, TokenLaunch>,
-        shares_by_users: LegacyMap::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        bonding_type: LegacyMap::<ContractAddress, BondingType>,
-        array_launched_coins: LegacyMap::<u64, TokenLaunch>,
-        array_coins: LegacyMap::<u64, Token>,
-        tokens_created: LegacyMap::<u64, Token>,
-        launch_created: LegacyMap::<u64, TokenLaunch>,
+        token_created: Map::<ContractAddress, Token>,
+        launched_coins: Map::<ContractAddress, TokenLaunch>,
+        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
+        bonding_type: Map::<ContractAddress, BondingType>,
+        array_launched_coins: Map::<u64, TokenLaunch>,
+        array_coins: Map::<u64, Token>,
+        tokens_created: Map::<u64, Token>,
+        launch_created: Map::<u64, TokenLaunch>,
         // Parameters
-        is_tokens_buy_enable: LegacyMap::<ContractAddress, TokenQuoteBuyCoin>,
+        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
@@ -259,7 +262,7 @@ pub mod LaunchpadMarketplace {
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.is_tokens_buy_enable.write(token_quote.token_address, token_quote);
+            self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
         }
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
@@ -313,11 +316,11 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             // self.ownable.assert_only_owner();
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
-        // self
-        //     .emit(
-        //         SetJediwapV2Factory { address_jediswap_factory_v2:
-        //         address_jediswap_factory_v2 }
-        //     );
+            self
+                .emit(
+                    SetJediwapV2Factory { address_jediswap_factory_v2:
+                    address_jediswap_factory_v2 }
+                );
         }
 
         fn set_address_jediswap_nft_router_v2(
@@ -325,12 +328,12 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
-        // self
-        //     .emit(
-        //         SetJediwapNFTRouterV2 {
-        //             address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
-        //         }
-        //     );
+            self
+                .emit(
+                    SetJediwapNFTRouterV2 {
+                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
+                    }
+                );
         }
 
         fn set_address_ekubo_factory(
@@ -361,7 +364,7 @@ pub mod LaunchpadMarketplace {
                 match dex.pop_front() {
                     Option::Some((exchange, address)) => self
                         .exchange_configs
-                        .write(*exchange, *address),
+                        .entry(*exchange).write(*address),
                     Option::None => { break; }
                 }
             };
@@ -438,8 +441,8 @@ pub mod LaunchpadMarketplace {
             //new liquidity after purchase
             let new_liquidity = pool_coin.liquidity_raised + quote_amount;
 
-            //assertiony
-            assert!(new_liquidity <= threshold_liquidity, "Threshold liquidity exceeded");
+            //assertion
+            assert(new_liquidity <= threshold_liquidity, 'threshold liquidity exceeded');
 
             // TODO erc20 token transfer
             let token_quote = old_launch.token_quote.clone();
@@ -498,15 +501,15 @@ pub mod LaunchpadMarketplace {
                 // println!("remain_liquidity {:?}", remain_liquidity);
                 erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
             }
-            assert!(amount <= pool_coin.available_supply, "Not enough available supply");
+            assert(amount <= pool_coin.available_supply, 'no available supply');
 
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
-            let expected_quote_amount = self
-                ._get_quote_paid_by_amount_coin(coin_address, amount, false);
-            assert!(
-                expected_quote_amount == quote_amount, "Quote amount does not match expected value"
-            );
+            // let expected_quote_amount = self
+            //     ._get_quote_paid_by_amount_coin(coin_address, amount, false);
+            // assert!(
+            //     expected_quote_amount == quote_amount, "Quote amount does not match expected value"
+            // );
 
             // println!("total_price {:?}", total_price);
 
@@ -587,47 +590,48 @@ pub mod LaunchpadMarketplace {
             // 80% bought by others
 
             // TODO finish test and fix
-            if pool_coin.liquidity_raised >= threshold { // self
-            //     .emit(
-            //         LiquidityCanBeAdded {
-            //             pool: pool_coin.token_address.clone(),
-            //             asset: pool_coin.token_address.clone(),
-            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
-            //         }
-            //     );
+            if pool_coin.liquidity_raised >= threshold { 
+            self
+                .emit(
+                    LiquidityCanBeAdded {
+                        pool: pool_coin.token_address.clone(),
+                        asset: pool_coin.token_address.clone(),
+                        quote_token_address: pool_coin.token_quote.token_address.clone(),
+                    }
+                );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
             if mc >= threshold_mc { // println!("mc >= threshold_mc");
-            // self
-            //     .emit(
-            //         LiquidityCanBeAdded {
-            //             pool: pool_coin.token_address.clone(),
-            //             asset: pool_coin.token_address.clone(),
-            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
-            //         }
-            //     );
+                self
+                    .emit(
+                        LiquidityCanBeAdded {
+                            pool: pool_coin.token_address.clone(),
+                            asset: pool_coin.token_address.clone(),
+                            quote_token_address: pool_coin.token_quote.token_address.clone(),
+                        }
+                    );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
             // TODO check reetrancy guard
             // Update state
-            self.shares_by_users.write((get_caller_address(), coin_address), share_user.clone());
-            self.launched_coins.write(coin_address, pool_coin.clone());
-        // self
-        //     .emit(
-        //         BuyToken {
-        //             caller: get_caller_address(),
-        //             token_address: coin_address,
-        //             amount: amount,
-        //             price: total_price,
-        //             protocol_fee: amount_protocol_fee,
-        //             // creator_fee: 0,
-        //             last_price: old_price,
-        //             timestamp: get_block_timestamp(),
-        //             quote_amount: quote_amount
-        //         }
-        //     );
+            self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user.clone());
+            self.launched_coins.entry(coin_address).write(pool_coin.clone());
+            self
+                .emit(
+                    BuyToken {
+                        caller: get_caller_address(),
+                        token_address: coin_address,
+                        amount: amount,
+                        price: total_price,
+                        protocol_fee: amount_protocol_fee,
+                        // creator_fee: 0,
+                        last_price: old_price,
+                        timestamp: get_block_timestamp(),
+                        quote_amount: quote_amount
+                    }
+                );
         }
 
 
@@ -640,23 +644,22 @@ pub mod LaunchpadMarketplace {
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
 
             let mut share_user = old_share.clone();
-            // Verify Amount owned
-            assert!(old_share.amount_owned >= quote_amount, "share too low");
-            assert!(old_pool.total_supply >= quote_amount, "above supply");
+            
 
             // TODO erc20 token transfer
             let total_supply = old_pool.total_supply;
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
-            assert!(old_share.amount_owned >= quote_amount, "share too low");
-            assert!(old_pool.total_supply >= quote_amount, "above supply");
+            // Verify Amount owned
+            assert(old_share.amount_owned >= quote_amount, 'share too low');
+            assert(old_pool.total_supply >= quote_amount, 'above supply');
         
             // TODO fix this function
             let mut amount = self
                 ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
 
-            assert!(share_user.amount_owned >= amount, "above supply");
+            assert(share_user.amount_owned >= amount, 'above supply');
 
             let mut total_price = quote_amount.clone();
             // println!("amount {:?}", amount);
@@ -667,17 +670,17 @@ pub mod LaunchpadMarketplace {
             let creator_fee_percent = self.creator_fee_percent.read();
 
             // Ensure fee percentages are within valid bounds
-            assert!(protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL, "protocol_fee_percent out of bounds");
-            assert!(creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR, "creator_fee_percent out of bounds");
+            assert(protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL, 'protocol fee out');
+            assert(creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR, 'creator_fee out');
 
             // assert!(old_share.amount_owned >= amount, "share to sell > supply");
             // println!("amount{:?}", amount);
             // assert!(total_supply >= quote_amount, "share to sell > supply");
-            assert!(
+            assert(
                 old_pool.liquidity_raised >= quote_amount,
-                "pool_update.liquidity_raised <= quote_amount"
+                'liquidity <= amount'
             );
-            // assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
+            // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
 
             let old_price = old_pool.price.clone();
 
@@ -690,15 +693,15 @@ pub mod LaunchpadMarketplace {
             let remain_liquidity = total_price - amount_protocol_fee;
             let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
             // let remain_liquidity = total_price ;
-            assert!(
+            assert(
                 old_pool.liquidity_raised >= remain_liquidity,
-                "pool_update.liquidity_raised <= remain_liquidity"
+                'liquidity <= amount'
             );
 
             // Ensure fee calculations are correct
-            assert!(
+            assert(
                 amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
-                "fee calculation mismatch"
+                'fee calculation mismatch'
             );
 
             // Assertion: Check if the contract has enough quote tokens to transfer
@@ -720,9 +723,9 @@ pub mod LaunchpadMarketplace {
 
             // Assertion: Ensure the user receives the correct amount
             let user_received = erc20.balance_of(caller) - (old_share.amount_owned);
-            assert!(
+            assert(
                 user_received == amount_to_user,
-                "user did not receive the correct quote amount"
+                'user not receive amount'
             );
 
             // TODO fix amount owned and sellable.
@@ -770,8 +773,8 @@ pub mod LaunchpadMarketplace {
 
             self
                 .shares_by_users
-                .write((get_caller_address(), coin_address.clone()), share_user.clone());
-            self.launched_coins.write(coin_address.clone(), pool_update.clone());
+                .entry((get_caller_address(), coin_address.clone())).write(share_user.clone());
+            self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self.emit(SellToken {
                 caller: caller,
                 key_user: coin_address,
@@ -790,8 +793,8 @@ pub mod LaunchpadMarketplace {
         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
             let pool = self.launched_coins.read(coin_address);
 
-            assert!(pool.liquidity_raised >= pool.threshold_liquidity, "no threshold raised");
-            assert!(pool.is_liquidity_launch == false, "liquidity already launch");
+            assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
+            assert(pool.is_liquidity_launch == false, 'liquidity already launch');
 
             self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
         }
@@ -919,28 +922,28 @@ pub mod LaunchpadMarketplace {
                 token_type: Option::None,
             };
 
-            self.token_created.write(token_address, token);
+            self.token_created.entry(token_address).write(token);
 
             let total_token = self.total_token.read();
             if total_token == 0 {
                 self.total_token.write(1);
-                self.array_coins.write(0, token);
+                self.array_coins.entry(0).write(token);
             } else {
                 self.total_token.write(total_token + 1);
-                self.array_coins.write(total_token, token);
+                self.array_coins.entry(total_token).write(token);
             }
 
-            // self
-            //     .emit(
-            //         CreateToken {
-            //             caller: get_caller_address(),
-            //             token_address: token_address,
-            //             symbol: symbol,
-            //             name: name,
-            //             initial_supply,
-            //             total_supply: initial_supply.clone(),
-            //         }
-            //     );
+            self
+                .emit(
+                    CreateToken {
+                        caller: get_caller_address(),
+                        token_address: token_address,
+                        symbol: symbol,
+                        name: name,
+                        initial_supply,
+                        total_supply: initial_supply.clone(),
+                    }
+                );
             token_address
         }
 
@@ -1016,41 +1019,40 @@ pub mod LaunchpadMarketplace {
             // Check if allowance or balance is ok
 
             if balance_contract < total_supply {
+                assert(allowance >= amount_needed, 'no supply provided');
                 if allowance >= amount_needed {
                     // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
                         .transfer_from(
                             caller, get_contract_address(), total_supply - balance_contract
                         );
-                } else {
-                    panic!("no supply provided")
                 }
             }
 
             // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount_needed);
-            self.launched_coins.write(coin_address, launch_token_pump.clone());
+            self.launched_coins.entry(coin_address).write(launch_token_pump.clone());
 
             let total_launch = self.total_launch.read();
             if total_launch == 0 {
                 self.total_launch.write(1);
-                self.array_launched_coins.write(0, launch_token_pump);
+                self.array_launched_coins.entry(0).write(launch_token_pump);
             } else {
                 self.total_launch.write(total_launch + 1);
-                self.array_launched_coins.write(total_launch, launch_token_pump);
+                self.array_launched_coins.entry(total_launch).write(launch_token_pump);
             }
-        // self
-        //     .emit(
-        //         CreateLaunch {
-        //             caller: get_caller_address(),
-        //             token_address: coin_address,
-        //             amount: 0,
-        //             price: initial_key_price,
-        //             total_supply: total_supply,
-        //             slope: slope,
-        //             threshold_liquidity: threshold,
-        //             quote_token_address: quote_token_address,
-        //         }
-        //     );
+            self
+                .emit(
+                    CreateLaunch {
+                        caller: get_caller_address(),
+                        token_address: coin_address,
+                        amount: 0,
+                        price: initial_key_price,
+                        total_supply: total_supply,
+                        slope: slope,
+                        threshold_liquidity: threshold,
+                        quote_token_address: quote_token_address,
+                    }
+                );
         }
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
@@ -1153,17 +1155,17 @@ pub mod LaunchpadMarketplace {
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
             // TODO Locked LP token
 
-            // self
-            //     .emit(
-            //         LiquidityCreated {
-            //             id: token_id,
-            //             pool: pool,
-            //             quote_token_address: quote_token_address,
-            //             // token_id:token_id,
-            //             owner: launch.owner,
-            //             asset: asset_token_address,
-            //         }
-            //     );
+            self
+                .emit(
+                    LiquidityCreated {
+                        id: token_id,
+                        pool: pool,
+                        quote_token_address: quote_token_address,
+                        // token_id:token_id,
+                        owner: launch.owner,
+                        asset: asset_token_address,
+                    }
+                );
             } else { // TODO 
             // Increase liquidity of this pool.
             }

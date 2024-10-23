@@ -89,7 +89,7 @@ pub mod ERC20Mintable {
     ) {
         self.ownable.initializer(owner);
         self.erc20.initializer(name, symbol);
-        self.erc20._mint(owner, initial_supply);
+        self.erc20.mint(owner, initial_supply);
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, owner);
     }
@@ -104,12 +104,12 @@ pub mod ERC20Mintable {
     impl IERC20MintableImpl of super::IERC20Mintable<ContractState> {
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             self.accesscontrol.assert_only_role(MINTER_ROLE);
-            self.erc20._mint(recipient, amount);
+            self.erc20.mint(recipient, amount);
         }
 
         fn burn(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             self.accesscontrol.assert_only_role(MINTER_ROLE);
-            self.erc20._burn(recipient, amount);
+            self.erc20.burn(recipient, amount);
         }
         fn set_role(
             ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool

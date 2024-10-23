@@ -4,12 +4,14 @@ pub mod RainbowQuest {
     use afk::interfaces::quests::{IQuest, IRainbowQuest};
 
     use starknet::{ContractAddress, get_caller_address};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         art_peace: ContractAddress,
         reward: u32,
-        claimed: LegacyMap<ContractAddress, bool>,
+        claimed: Map<ContractAddress, bool>,
     }
 
     #[derive(Drop, Serde)]
@@ -66,7 +68,7 @@ pub mod RainbowQuest {
 
             assert(self.is_claimable(user, calldata), 'Quest not claimable');
 
-            self.claimed.write(user, true);
+            self.claimed.entry(user).write(true);
             let reward = self.reward.read();
 
             reward

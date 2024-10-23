@@ -32,12 +32,14 @@ pub mod interfaces {
     pub mod quests;
     pub mod username_store;
     pub mod vault;
+    pub mod nameservice;
 }
 
 pub mod afk_id {
     // pub mod afk_identity;
     // pub mod id_factory;
     pub mod username_store;
+    pub mod nameservice;
 }
 
 pub mod defi {

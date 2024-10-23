@@ -11,9 +11,11 @@ mod keys_tests {
     use openzeppelin::utils::serde::SerializedAppend;
 
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp
+        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
+        Event, start_cheat_caller_address, start_cheat_caller_address_global,
+        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        DeclareResultTrait,
+
     };
     // const INITIAL_KEY_PRICE:u256=1/100;
 
@@ -30,7 +32,7 @@ mod keys_tests {
         // println!("request_fixture");
         let erc20_class = declare_erc20();
         let keys_class = declare_marketplace();
-        request_fixture_custom_classes(erc20_class, keys_class)
+        request_fixture_custom_classes(*erc20_class, *keys_class)
     }
 
     fn request_fixture_custom_classes(
@@ -49,12 +51,12 @@ mod keys_tests {
         (sender_address, erc20, keys)
     }
 
-    fn declare_marketplace() -> ContractClass {
-        declare("KeysMarketplace").unwrap()
+    fn declare_marketplace() -> @ContractClass {
+        declare("KeysMarketplace").unwrap().contract_class()
     }
 
-    fn declare_erc20() -> ContractClass {
-        declare("ERC20").unwrap()
+    fn declare_erc20() -> @ContractClass {
+        declare("ERC20").unwrap().contract_class()
     }
 
     fn deploy_marketplace(
@@ -113,7 +115,7 @@ mod keys_tests {
     fn keys_end_to_end() {
         let (sender_address, erc20, keys) = request_fixture();
         let amount_key_buy = 1_u256;
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // start_cheat_caller_address(key_address, sender_address);
         erc20.approve(keys.contract_address, amount_key_buy);

@@ -9,11 +9,14 @@ pub mod UsernameStore {
     use afk::interfaces::username_store::IUsernameStore;
     use starknet::{ContractAddress, contract_address_const, get_caller_address};
     use super::UserNameClaimErrors;
+    use starknet::storage::{
+        StoragePointerWriteAccess, StoragePathEntry, Map
+    };
 
     #[storage]
     struct Storage {
-        usernames: LegacyMap::<felt252, ContractAddress>,
-        user_to_username: LegacyMap::<ContractAddress, felt252>
+        usernames: Map::<felt252, ContractAddress>,
+        user_to_username: Map::<ContractAddress, felt252>
     }
 
     #[event]
@@ -54,8 +57,8 @@ pub mod UsernameStore {
                 UserNameClaimErrors::USERNAME_CLAIMED
             );
 
-            self.usernames.write(key, caller_address);
-            self.user_to_username.write(caller_address, key);
+            self.usernames.entry(key).write(caller_address);
+            self.user_to_username.entry(caller_address).write(key);
 
             self.emit(UserNameClaimed { username: key, address: caller_address });
         }
@@ -71,9 +74,9 @@ pub mod UsernameStore {
                 UserNameClaimErrors::USERNAME_CLAIMED
             );
 
-            self.usernames.write(old_username, contract_address_const::<0>());
-            self.usernames.write(new_username, caller_address);
-            self.user_to_username.write(caller_address, new_username);
+            self.usernames.entry(old_username).write(contract_address_const::<0>());
+            self.usernames.entry(new_username).write(caller_address);
+            self.user_to_username.entry(caller_address).write(new_username);
 
             self
                 .emit(

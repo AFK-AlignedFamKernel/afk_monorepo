@@ -14,7 +14,9 @@ mod ERC4626Vault {
     use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::ContractAddress;
     use super::{TokenPermitted, DepositUser};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const MAKER_ROLE: felt252 = selector!("MAKER_ROLE");
@@ -44,7 +46,7 @@ mod ERC4626Vault {
 
     #[storage]
     struct Storage {
-        token_permitted: LegacyMap<ContractAddress, TokenPermitted>,
+        token_permitted: Map<ContractAddress, TokenPermitted>,
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
         #[substorage(v0)]

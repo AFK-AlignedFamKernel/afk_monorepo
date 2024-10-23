@@ -77,6 +77,9 @@ mod KeysMarketplace {
         StoredName, BuyKeys, SellKeys, CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys,
         KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType,
     };
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
 
     use super::{LinkedNostrAddress};
     use super::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
@@ -108,12 +111,11 @@ mod KeysMarketplace {
 
     #[storage]
     struct Storage {
-        names: LegacyMap::<ContractAddress, felt252>,
-        keys_of_users: LegacyMap::<ContractAddress, Keys>,
-        shares_by_users: LegacyMap::<(ContractAddress, ContractAddress), SharesKeys>,
-        bonding_type: LegacyMap::<ContractAddress, BondingType>,
-        array_keys_of_users: LegacyMap::<u64, Keys>,
-        is_tokens_buy_enable: LegacyMap::<ContractAddress, TokenQuoteBuyKeys>,
+        keys_of_users: Map::<ContractAddress, Keys>,
+        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesKeys>,
+        bonding_type: Map::<ContractAddress, BondingType>,
+        array_keys_of_users: Map::<u64, Keys>,
+        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyKeys>,
         default_token: TokenQuoteBuyKeys,
         initial_key_price: u256,
         protocol_fee_percent: u256,
@@ -185,7 +187,7 @@ mod KeysMarketplace {
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyKeys) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.is_tokens_buy_enable.write(token_quote.token_address, token_quote);
+            self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
         }
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
@@ -259,15 +261,15 @@ mod KeysMarketplace {
                 total_paid: 0
             };
             self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
-            self.keys_of_users.write(get_caller_address(), key.clone());
+            self.keys_of_users.entry(get_caller_address()).write(key.clone());
 
             let total_key = self.total_keys.read();
             if total_key == 0 {
                 self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key);
+                self.array_keys_of_users.entry(0).write(key);
             } else {
                 self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key);
+                self.array_keys_of_users.entry(total_key).write(key);
             }
 
             self
@@ -325,16 +327,16 @@ mod KeysMarketplace {
                 created_at: get_block_timestamp(),
                 total_paid: 0
             };
-            self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
-            self.keys_of_users.write(get_caller_address(), key.clone());
+            self.shares_by_users.entry((get_caller_address(), get_caller_address())).write(share_user);
+            self.keys_of_users.entry(get_caller_address()).write(key.clone());
 
             let total_key = self.total_keys.read();
             if total_key == 0 {
                 self.total_keys.write(1);
-                self.array_keys_of_users.write(0, key.clone());
+                self.array_keys_of_users.entry(0).write(key.clone());
             } else {
                 self.total_keys.write(total_key + 1);
-                self.array_keys_of_users.write(total_key, key.clone());
+                self.array_keys_of_users.entry(total_key).write(key.clone());
             }
 
             self
@@ -435,9 +437,9 @@ mod KeysMarketplace {
             key.price = total_price;
             key.total_supply = key.total_supply + amount;
             // key.total_supply += amount;
-            self.shares_by_users.write((get_caller_address(), address_user), share_user.clone());
+            self.shares_by_users.entry((get_caller_address(), address_user)).write(share_user.clone());
 
-            self.keys_of_users.write(address_user, key.clone());
+            self.keys_of_users.entry(address_user).write(key.clone());
 
             self
                 .emit(
@@ -547,8 +549,8 @@ mod KeysMarketplace {
             // key.total_supply -= amount;
             self
                 .shares_by_users
-                .write((get_caller_address(), address_user.clone()), share_user.clone());
-            self.keys_of_users.write(address_user.clone(), key.clone());
+                .entry((get_caller_address(), address_user.clone())).write(share_user.clone());
+            self.keys_of_users.entry(address_user.clone()).write(key.clone());
 
             self
                 .emit(

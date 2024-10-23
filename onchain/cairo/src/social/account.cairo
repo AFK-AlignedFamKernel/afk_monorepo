@@ -1,5 +1,5 @@
 use starknet::account::Call;
-use starknet::{ContractAddress, get_caller_address, get_contract_address, contract_address_const};
+// use starknet::{ContractAddress, get_caller_address, get_contract_address, contract_address_const};
 use super::profile::NostrProfile;
 use super::request::SocialRequest;
 use super::transfer::Transfer;
@@ -28,8 +28,8 @@ pub mod SocialAccount {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_VERSION, QUERY_OFFSET, execute_calls,
-        is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls,
+        // is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;
@@ -41,12 +41,14 @@ pub mod SocialAccount {
     };
     use super::super::transfer::Transfer;
     use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
-
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     #[storage]
     struct Storage {
         #[key]
         public_key: u256,
-        transfers: LegacyMap<u256, bool>,
+        transfers: Map<u256, bool>,
     }
 
     #[event]
@@ -90,7 +92,7 @@ pub mod SocialAccount {
 
             if let Option::Some(id) = request.verify() {
                 assert!(!self.transfers.read(id), "double spend");
-                self.transfers.write(id, true);
+                self.transfers.entry(id).write(true);
                 erc20.transfer(request.content.recipient_address, request.content.amount);
             } else {
                 panic!("can't verify signature");

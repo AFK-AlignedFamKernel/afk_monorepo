@@ -1,31 +1,30 @@
 #[cfg(test)]
 mod launchpad_tests {
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, spy_events,
+         start_cheat_caller_address, start_cheat_caller_address_global,
+        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        DeclareResultTrait, EventSpyAssertionsTrait
+
+    };
+
     use afk::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::launchpad_types::{
-        MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-        TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
-        LiquidityCanBeAdded
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::types::launchpad_types::{CreateToken,
+        TokenQuoteBuyCoin, BondingType, CreateLaunch,
+        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges,
+        
     };
     use core::num::traits::Zero;
     use core::traits::Into;
-    use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
 
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp
-    };
-    use starknet::syscalls::deploy_syscall;
 
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash, class_hash::class_hash_const
+        ContractAddress, ClassHash, class_hash::class_hash_const
     };
 
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
@@ -118,7 +117,7 @@ mod launchpad_tests {
         // println!("request_fixture");
         let erc20_class = declare_erc20();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(erc20_class, launch_class)
+        request_fixture_custom_classes(*erc20_class, *launch_class)
     }
 
     fn request_fixture_custom_classes(
@@ -176,12 +175,12 @@ mod launchpad_tests {
         ILaunchpadMarketplaceDispatcher { contract_address }
     }
 
-    fn declare_launchpad() -> ContractClass {
-        declare("LaunchpadMarketplace").unwrap()
+    fn declare_launchpad() -> @ContractClass {
+        declare("LaunchpadMarketplace").unwrap().contract_class()
     }
 
-    fn declare_erc20() -> ContractClass {
-        declare("ERC20").unwrap()
+    fn declare_erc20() -> @ContractClass {
+        declare("ERC20").unwrap().contract_class()
     }
 
 
@@ -251,7 +250,7 @@ mod launchpad_tests {
     fn launchpad_buy_with_amount() {
         println!("launchpad_buy_with_amount");
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // Call a view function of the contract
         // Check default token used
@@ -320,7 +319,7 @@ mod launchpad_tests {
     fn launchpad_buy_all_few_steps() {
         println!("launchpad_buy_all_few_steps");
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // Call a view function of the contract
         // Check default token used
@@ -356,7 +355,7 @@ mod launchpad_tests {
     fn launchpad_buy_all() {
         println!("launchpad_buy_all");
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // Call a view function of the contract
         // Check default token used
@@ -387,7 +386,7 @@ mod launchpad_tests {
         println!("launchpad_buy_and_sell");
         let (sender_address, erc20, launchpad) = request_fixture();
         // let amount_key_buy = 1_u256;
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // Call a view function of the contract
         // Check default token used
@@ -435,7 +434,7 @@ mod launchpad_tests {
         println!("launchpad_end_to_end");
         let (sender_address, erc20, launchpad) = request_fixture();
         // let amount_key_buy = 1_u256;
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         // Call a view function of the contract
         // Check default token used
@@ -482,7 +481,7 @@ mod launchpad_tests {
         println!("launchpad_integration");
 
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
@@ -534,7 +533,7 @@ mod launchpad_tests {
     fn launchpad_buy_more_then_liquidity_threshold() {
         println!("launchpad_buy_more_then_liquidity_threshold");
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
@@ -614,7 +613,7 @@ mod launchpad_tests {
     fn launchpad_test_calculation() {
         println!("launchpad_test_calculation");
         let (sender_address, erc20, launchpad) = request_fixture();
-        cheat_caller_address_global(sender_address);
+        start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
@@ -643,7 +642,7 @@ mod launchpad_tests {
     #[test]
     fn test_create_token() {
         let (_, _, launchpad) = request_fixture();
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
@@ -672,7 +671,7 @@ mod launchpad_tests {
     #[test]
     fn test_create_and_launch_token() {
         let (_, erc20, launchpad) = request_fixture();
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
 
@@ -720,7 +719,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("not launch",))]
+    #[should_panic(expected: ('not launch',))]
     fn test_launch_token_with_uncreated_token() {
         let (_, erc20, launchpad) = request_fixture();
 
@@ -728,7 +727,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("no supply provided",))]
+    #[should_panic(expected: ('no supply provided',))]
     fn test_launch_token_with_no_supply_provided() {
         let (_, _, launchpad) = request_fixture();
 
@@ -749,7 +748,7 @@ mod launchpad_tests {
     #[test]
     fn test_launch_token() {
         let (_, erc20, launchpad) = request_fixture();
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
 
@@ -806,7 +805,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("no threshold raised",))]
+    #[should_panic(expected: ('no threshold raised',))]
     fn test_launch_liquidity_when_no_threshold_raised() {
         let (_, _, launchpad) = request_fixture();
 
@@ -1112,7 +1111,7 @@ mod launchpad_tests {
     #[test]
     fn test_set_address_jediswap_factory_v2_ok() {
         let (sender_address, _, launchpad) = request_fixture();
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
         let jediswap_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
@@ -1137,7 +1136,7 @@ mod launchpad_tests {
     #[test]
     fn test_set_address_jediswap_nft_router_v2_ok() {
         let (sender_address, _, launchpad) = request_fixture();
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
         let jediswap_nft_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
@@ -1199,7 +1198,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("share too low",))]
+    #[should_panic(expected: ('share too low',))]
     fn test_sell_coin_when_share_too_low() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
@@ -1221,7 +1220,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("pool_update.liquidity_raised <= quote_amount",))]
+    #[should_panic(expected: ('liquidity <= amount',))]
     fn test_sell_coin_when_quote_amount_is_greaterthan_liquidity_raised() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
@@ -1247,9 +1246,10 @@ mod launchpad_tests {
         let (sender_address, erc20, launchpad) = request_fixture();
         let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
-        let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
+        let mut spy = spy_events();
+        // let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
 
-        // cheat_caller_address_global(sender_address);
+        // start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(erc20.contract_address, sender_address);
 
         let default_token = launchpad.get_default_token();

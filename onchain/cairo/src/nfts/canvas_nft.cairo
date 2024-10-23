@@ -87,7 +87,7 @@ mod CanvasNFT {
         }
 
         fn token_uri(self: @ContractState, token_id: u256) -> ByteArray {
-            assert(self.erc721._exists(token_id), 'Token does not exist');
+            assert(self.erc721.exists(token_id), 'Token does not exist');
             let base_uri = self.erc721._base_uri();
             if base_uri.len() == 0 {
                 return "";
@@ -112,7 +112,7 @@ mod CanvasNFT {
             );
             let token_id = self.nfts.get_nfts_count();
             self.nfts.nfts_data.write(token_id, metadata);
-            self.erc721._mint(receiver, token_id);
+            self.erc721.mint(receiver, token_id);
             self.nfts.nfts_count.write(token_id + 1);
             self.nfts.emit(CanvasNFTMinted { token_id, metadata });
         }
