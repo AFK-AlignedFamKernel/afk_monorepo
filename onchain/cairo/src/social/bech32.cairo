@@ -168,12 +168,12 @@ mod tests {
 
     #[test]
     fn test_bech32() {
-        assert(encode(@"abc",@"\x64\x65\x66", 90)=='abc1v3jkv2rtp78', 'error bech32');
-        assert(encode(@"abc",@"\x64\x65\x66\x67", 90)== 'abc1v3jkveceusavp', 'error bech32');
-        assert(encode(@"abc", @"\x01", 90)== 'abc1qy928epu', 'error bech32');
-        assert(encode(@"abcd",@"\x01", 90)== 'abcd1qynxpyxs', 'error bech32');
-        assert(encode(@"abcd",@"\x00\x00", 90) == 'abcd1qqqqzclr2u', 'errorc bech32');
-        assert(encode(@"abcd",@"\x00\x00\x00\x00", 90)== 'abcd1qqqqqqqgf3j03', 'error bech32');
-        assert(encode(@"abcdef", @"\x00\x00\x00\x00", 90) == 'abcdef1qqqqqqqex27k2', 'error bech32');
+        assert(encode(@"abc",@"\x64\x65\x66", 90)== "abc1v3jkv2rtp78", 'error bech32');
+        assert(encode(@"abc",@"\x64\x65\x66\x67", 90)== "abc1v3jkveceusavp", 'error bech32');
+        assert(encode(@"abc", @"\x01", 90)== "abc1qy928epu", 'error bech32');
+        assert(encode(@"abcd",@"\x01", 90)== "abcd1qynxpyxs", 'error bech32');
+        assert(encode(@"abcd",@"\x00\x00", 90) == "abcd1qqqqzclr2u", 'errorc bech32');
+        assert(encode(@"abcd",@"\x00\x00\x00\x00", 90)== "abcd1qqqqqqqgf3j03", 'error bech32');
+        assert(encode(@"abcdef", @"\x00\x00\x00\x00", 90) == "abcdef1qqqqqqqex27k2", 'error bech32');
     }
 }

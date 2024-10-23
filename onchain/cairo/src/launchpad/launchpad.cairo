@@ -675,7 +675,7 @@ pub mod LaunchpadMarketplace {
             // assert!(total_supply >= quote_amount, "share to sell > supply");
             assert!(
                 old_pool.liquidity_raised >= quote_amount,
-                "pool_update.liquidity_raised <= quote_amount"
+                "liquidity_raised <= amount"
             );
             // assert!( old_pool.liquidity_raised >= quote_amount, "pool_update.liquidity_raised <= quote_amount");
 

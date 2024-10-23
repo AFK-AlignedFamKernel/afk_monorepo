@@ -1220,7 +1220,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    #[should_panic(expected: ("pool_update.liquidity_raised <= quote_amount",))]
+    #[should_panic(expected: ('liquidity_raised <= amount',))]
     fn test_sell_coin_when_quote_amount_is_greaterthan_liquidity_raised() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
