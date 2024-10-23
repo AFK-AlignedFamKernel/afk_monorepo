@@ -132,3 +132,6 @@ dist
 # next
 .next
 next-env.d.ts
+
+# prisma
+.prisma
