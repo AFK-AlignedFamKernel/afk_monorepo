@@ -16,6 +16,11 @@ ARG INDEXER_DATABASE_URL
 # Set the environment variable
 ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL}
 
+# Add an argument for th Backend postgres url
+ARG BACKEND_DATABASE_URL
+
+# Set the environment variable
+ENV BACKEND_DATABASE_URL=${BACKEND_DATABASE_URL}
 
 # Add an argument for Telegram webapp
 ARG TELEGRAM_WEB_APP
@@ -38,10 +43,8 @@ COPY . .
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
-
 # Build the data-backend package
-RUN pnpm --filter data-backend build
-
+RUN pnpm --filter data-backend build:all
 
 # Use a smaller production base image
 FROM node:18-alpine AS production
