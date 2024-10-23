@@ -18,7 +18,7 @@ async function getOtp(
       schema: {
         body: {
           type: "object",
-          required: ["contract_address","phone_number", "nickname"],
+          required: ["phone_number", "nickname"],
           properties: {
             phone_number: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
             nickname: { type: "string", pattern: "^[A-Za-z]{1,20}$" },
