@@ -1,8 +1,8 @@
+import {Proof} from '@cashu/cashu-ts';
 import {createStore} from 'zustand';
 
-import {Proof} from '@cashu/cashu-ts';
-import createBoundedUseStore from './createBoundedUseStore';
 import {Contact} from '../types';
+import createBoundedUseStore from './createBoundedUseStore';
 
 interface State {
   publicKey: string;

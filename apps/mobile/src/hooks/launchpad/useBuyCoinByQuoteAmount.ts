@@ -3,9 +3,8 @@ import {useNetwork} from '@starknet-react/core';
 import {LAUNCHPAD_ADDRESS} from 'common';
 import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
-import {TokenQuoteBuyKeys} from '../../types/keys';
-import {feltToAddress, formatFloatToUint256} from '../../utils/format';
-import {STRK, TOKEN_ADDRESSES} from '../../constants/tokens';
+import {STRK} from '../../constants/tokens';
+import {formatFloatToUint256} from '../../utils/format';
 
 export const useBuyCoinByQuoteAmount = () => {
   const chain = useNetwork();

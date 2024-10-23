@@ -1,7 +1,8 @@
 import {useEffect, useMemo, useState} from 'react';
+
+import {TokenDeployInterface} from '../types/keys';
 import {useGetDeployToken} from './api/indexer/useDeployToken';
 import {useGetTokenLaunch} from './api/indexer/useLaunchTokens';
-import {TokenDeployInterface} from '../types/keys';
 
 export const useCombinedTokenData = (token?: string, launch?: string) => {
   const {

@@ -1,11 +1,11 @@
+import {Invoice} from '@getalby/lightning-tools';
 import NDK, {NDKEvent, NDKNwcResponse} from '@nostr-dev-kit/ndk';
 import {useMutation, useQuery} from '@tanstack/react-query';
+import {SendPaymentResponse} from '@webbtc/webln-types';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
 import {useLN} from '../ln';
-import {Invoice} from '@getalby/lightning-tools';
-import {SendPaymentResponse} from '@webbtc/webln-types';
 
 export const useGetZapInfo = (relayUrl: string) => {
   const ndk = new NDK({

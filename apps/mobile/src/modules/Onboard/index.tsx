@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import {useState} from 'react';
 import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -7,15 +8,13 @@ import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
-import {LightningNetworkWalletView} from '../Lightning';
-import {MainStackNavigationProps, OnboardingWalletScreen} from '../../types';
-import {SelectedTab, TABS_ONBOARDING_WALLET, TABS_WALLET} from '../../types/tab';
-import stylesheet from './styles';
-import {CashuWalletView} from '../Cashu';
-import {DynamicEmailSignIn} from './dynamic/DynamicEmailSignIn';
-import {DynamicWalletOnboarding} from './dynamic';
-import {useNavigation} from '@react-navigation/native';
 import {WalletOnboarding} from '../../modules/Onboard/wallet';
+import {MainStackNavigationProps} from '../../types';
+import {SelectedTab, TABS_ONBOARDING_WALLET} from '../../types/tab';
+import {CashuWalletView} from '../Cashu';
+import {LightningNetworkWalletView} from '../Lightning';
+import {DynamicWalletOnboarding} from './dynamic';
+import stylesheet from './styles';
 
 export const OnboardingComponent: React.FC = () => {
   const styles = useStyles(stylesheet);

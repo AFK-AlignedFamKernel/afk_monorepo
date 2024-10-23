@@ -1,4 +1,5 @@
 import {useInfiniteQuery} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
 

@@ -1,12 +1,12 @@
+import {feltToAddress} from 'common';
 import {FlatList, View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
 import {TokenHoldersInterface} from '../../../types/keys';
+import {AddressComponent} from '../../AddressComponent';
+import Loading from '../../Loading';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import Loading from '../../Loading';
-import {feltToAddress} from 'common';
-import {AddressComponent} from '../../AddressComponent';
 
 export type HoldersProps = {
   loading: boolean;

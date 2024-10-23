@@ -7,11 +7,11 @@ import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
+import {CashuWalletView} from '../../modules/Cashu';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
 import {WalletScreenBTC} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
-import {CashuWalletView} from '../../modules/Cashu';
 
 export const WalletBTC: React.FC<WalletScreenBTC> = ({navigation}) => {
   const styles = useStyles(stylesheet);

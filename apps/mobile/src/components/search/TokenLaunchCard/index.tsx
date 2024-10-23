@@ -1,11 +1,12 @@
 import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
-import {Fraction} from '@uniswap/sdk-core';
 import {useProfile} from 'afk_nostr_sdk';
+import * as Clipboard from 'expo-clipboard';
 import {useState} from 'react';
 import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+
+import {CopyIconStack} from '../../../assets/icons';
 import {useStyles, useTheme, useWaitConnection} from '../../../hooks';
 import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
@@ -14,10 +15,9 @@ import {useToast, useWalletModal} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
 import {feltToAddress} from '../../../utils/format';
+import {Button, Input} from '../..';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import {CopyIconStack} from '../../../assets/icons';
-import {Button, Input} from '../..';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -115,11 +115,11 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   //   if (!event?.id) return;
   //   navigation.navigate('Profile', { publicKey: event?.pubkey });
   // };
-  let priceAmount = token?.price;
+  const priceAmount = token?.price;
   // if (token?.price) {
   //   priceAmount = new Fraction(String(token.price), decimalsScale(18)).toFixed(18);
   // }
-  let created_at = token?.created_at;
+  const created_at = token?.created_at;
 
   // if (token?.created_at) {
   //   created_at = new Fraction(String(token.created_at), decimalsScale(18)).toFixed(18);

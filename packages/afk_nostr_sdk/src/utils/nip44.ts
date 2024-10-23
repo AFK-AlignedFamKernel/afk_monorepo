@@ -3,7 +3,7 @@
 import {chacha20} from '@noble/ciphers/chacha';
 import {ensureBytes, equalBytes} from '@noble/ciphers/utils';
 import {secp256k1} from '@noble/curves/secp256k1';
-import {extract as hkdf_extract, expand as hkdf_expand} from '@noble/hashes/hkdf';
+import {expand as hkdf_expand, extract as hkdf_extract} from '@noble/hashes/hkdf';
 import {hmac} from '@noble/hashes/hmac';
 import {sha256} from '@noble/hashes/sha256';
 import {concatBytes, randomBytes, utf8ToBytes} from '@noble/hashes/utils';

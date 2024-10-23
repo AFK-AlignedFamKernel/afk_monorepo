@@ -1,9 +1,13 @@
-import { PlatformPay, PlatformPayButton, confirmPlatformPayPayment, isPlatformPaySupported } from '@stripe/stripe-react-native';
-import { useEffect, useState } from 'react';
-import { useStripe } from '@stripe/stripe-react-native';
-import { Alert, View } from 'react-native';
+import {
+  confirmPlatformPayPayment,
+  isPlatformPaySupported,
+  PlatformPay,
+  PlatformPayButton,
+} from '@stripe/stripe-react-native';
+import {useEffect, useState} from 'react';
+import {Alert, View} from 'react-native';
 
-const API_URL= process.env.EXPO_PUBLIC_INDEXER_BACKEND_URL;
+const API_URL = process.env.EXPO_PUBLIC_INDEXER_BACKEND_URL;
 export function PayStripe() {
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
 
@@ -23,40 +27,33 @@ export function PayStripe() {
         some: 'value',
       }),
     });
-    const { clientSecret, paymentIntent } = await response.json();
+    const {clientSecret, paymentIntent} = await response.json();
 
     return clientSecret;
   };
 
-
-  
   const pay = async () => {
-    const clientSecret = await fetchPaymentIntentClientSecret()
-    const { error } = await confirmPlatformPayPayment(
-      clientSecret,
-      {
-        applePay: {
-          cartItems: [
-            {
-              label: 'Example item name',
-              amount: '14.00',
-              paymentType: PlatformPay.PaymentType.Immediate,
-            },
-            {
-              label: 'Total',
-              amount: '12.75',
-              paymentType: PlatformPay.PaymentType.Immediate,
-            },
-          ],
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-          requiredShippingAddressFields: [
-            PlatformPay.ContactField.PostalAddress,
-          ],
-          requiredBillingContactFields: [PlatformPay.ContactField.PhoneNumber],
-        },
-      }
-    );
+    const clientSecret = await fetchPaymentIntentClientSecret();
+    const {error} = await confirmPlatformPayPayment(clientSecret, {
+      applePay: {
+        cartItems: [
+          {
+            label: 'Example item name',
+            amount: '14.00',
+            paymentType: PlatformPay.PaymentType.Immediate,
+          },
+          {
+            label: 'Total',
+            amount: '12.75',
+            paymentType: PlatformPay.PaymentType.Immediate,
+          },
+        ],
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        requiredShippingAddressFields: [PlatformPay.ContactField.PostalAddress],
+        requiredBillingContactFields: [PlatformPay.ContactField.PhoneNumber],
+      },
+    });
     if (error) {
       // handle error
     } else {

@@ -326,6 +326,11 @@ export type OnboardingWalletScreen = CompositeScreenProps<
 >;
 // Drawer desktop stack
 
+export type DappBrowserWalletScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'DappBrowser'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
 
 /** TODO delete */

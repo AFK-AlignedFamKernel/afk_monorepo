@@ -1,24 +1,13 @@
-import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {useAuth, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {useState} from 'react';
-import {Platform} from 'react-native';
 
 import {LockIcon} from '../../../assets/icons';
 import {Button, Input, TextButton} from '../../../components';
 import {useTheme} from '../../../hooks';
+import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../../types';
-import {generateRandomKeypair} from '../../../utils/keypair';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  storeCashuMnemonic,
-  storePassword,
-  storePrivateKey,
-  storePublicKey,
-} from '../../../utils/storage';
-import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();

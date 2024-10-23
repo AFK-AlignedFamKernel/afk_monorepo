@@ -1,4 +1,5 @@
 // import {useAuth} from '../../store/auth';
+import {useNavigation} from '@react-navigation/native';
 import {useAuth} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import {TouchableOpacity, View} from 'react-native';
@@ -11,7 +12,6 @@ import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
 import {AuthSaveKeysScreenProps, MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
-import {useNavigation} from '@react-navigation/native';
 
 export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
   const {privateKey, publicKey} = route.params;

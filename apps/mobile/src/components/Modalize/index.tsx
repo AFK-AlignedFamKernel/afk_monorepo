@@ -26,6 +26,7 @@ export const Modalize = forwardRef<RNModalize, ModalizeProps>((props, ref) => {
       ref={ref}
       handlePosition={Platform.OS === 'ios' ? 'inside' : 'outside'}
       adjustToContentHeight
+      // withReactModal={true}
       modalStyle={[styles.modal, modalStyleProp]}
       {...modalizeProps}
     >

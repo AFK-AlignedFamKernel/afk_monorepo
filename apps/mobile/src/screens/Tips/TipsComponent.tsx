@@ -171,7 +171,7 @@ export const TipsComponent: React.FC = () => {
       <FlatList
         ListEmptyComponent={
           <View>
-            <Text style={styles.text}>You don't have any tip atm.</Text>
+            <Text style={styles.text}>You don&apos;t have any tip atm.</Text>
             <Text>Create more notes on Nostr to receive Zap and Starknet tip</Text>
           </View>
         }

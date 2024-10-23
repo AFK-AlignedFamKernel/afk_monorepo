@@ -2,7 +2,6 @@ import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
 import {LAUNCHPAD_ADDRESS} from 'common';
 import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
 
-import {TokenQuoteBuyKeys} from '../../types/keys';
 import {formatFloatToUint256} from '../../utils/format';
 
 export const useSellCoin = () => {

@@ -1,37 +1,20 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {
-  addProofs,
-  ICashuInvoice,
-  useAuth,
-  useCashu,
-  useCashuStore,
-  useNostrContext,
-  useSendZap,
-} from 'afk_nostr_sdk';
+import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
+import {addProofs, ICashuInvoice, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
+import React, {ChangeEvent, useEffect, useState} from 'react';
+import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Text, TextInput} from 'react-native';
 
-import {Button, IconButton, Input} from '../../components';
+import {CopyIconStack} from '../../assets/icons';
+import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
-
+import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import stylesheet from './styles';
+// import QRCode from 'qrcode';  // replace with reactnative qrcode lib
 
 export const ReceiveEcash = () => {
   const tabs = ['lightning', 'ecash'];
@@ -58,6 +41,7 @@ export const ReceiveEcash = () => {
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>();
+  const [qrCodeUrl, setQRCodeUrl] = useState<string | undefined>();
   const [mintsUrls, setMintUrls] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
@@ -165,6 +149,17 @@ export const ReceiveEcash = () => {
     }
   };
 
+  // Encode the Cashu token into a string
+
+  // Generate the QR Code from the Cashu token string
+  useEffect(() => {
+    // QRCode.toDataURL(ecash)
+    //   .then((url: React.SetStateAction<string | undefined>) => {
+    //     setQRCodeUrl(url);  // Set the generated QR code URL
+    //   })
+    //   .catch((err: any) => console.error(err));
+  }, [ecash]);
+
   return (
     <SafeAreaView
     // style={styles.safeArea}
@@ -229,6 +224,15 @@ export const ReceiveEcash = () => {
                       </TouchableOpacity>
                     }
                   />
+
+                  {/* {qrCodeUrl ? (
+                    <Image
+                      href={qrCodeUrl}
+                      style={{ width: 200, height: 200 }}
+                    />
+                  ) : (
+                    <Text>Generating QR Code...</Text>
+                  )} */}
                 </View>
               )}
 

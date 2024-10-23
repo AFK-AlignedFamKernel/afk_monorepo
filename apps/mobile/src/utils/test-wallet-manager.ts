@@ -1,11 +1,8 @@
 // Rod Cashu wallet example
 // File: /WalletManagerTest.ts
 // import crypto from "crypto"
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
-import {Platform} from 'react-native';
-import {generatePrivateKey, generateMnemonic, privateKeyToAccount} from 'viem/accounts';
 import {ec, stark} from 'starknet';
+import {generatePrivateKey, privateKeyToAccount} from 'viem/accounts';
 
 export class TestWalletManager {
   private static SALT_KEY_PREFIX = 'wallet_salt_';
@@ -324,7 +321,7 @@ export class TestWalletManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: WalletManagerTest.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -334,7 +331,7 @@ export class TestWalletManager {
       ['encrypt'],
     );
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, data);
 
     const encryptedArray = new Uint8Array(encryptedData);
     const resultArray = new Uint8Array(iv.length + encryptedArray.length);
@@ -362,7 +359,7 @@ export class TestWalletManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: WalletManagerTest.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -372,7 +369,7 @@ export class TestWalletManager {
       ['decrypt'],
     );
 
-    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv}, key, data);
 
     const decoder = new TextDecoder();
     const decryptedPrivateKey = decoder.decode(decryptedData);

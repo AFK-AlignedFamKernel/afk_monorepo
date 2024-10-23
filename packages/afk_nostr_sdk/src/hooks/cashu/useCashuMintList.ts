@@ -1,6 +1,7 @@
-import {useInfiniteQuery, useMutation} from '@tanstack/react-query';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {useInfiniteQuery} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../context';
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 
 export type UseCashuMintList = {
   authors?: string[];

@@ -1,12 +1,11 @@
-import {getEncodedToken, Proof, Token} from '@cashu/cashu-ts';
-import {getProofs, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {useDialog, useToast} from '../modals';
-import {PasskeyManager} from '../../utils/storage/passkey-manager';
-import {WalletManager} from '../../utils/storage/wallet-manager';
-import {useState} from 'react';
-import {DEFAULT_PASSKEY_VALUES, GeneratePasskeyValues} from '../../types/storage';
-import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {generateRandomKeypair} from 'afk_nostr_sdk/src/utils/keypair';
+import {canUseBiometricAuthentication} from 'expo-secure-store';
+import {useState} from 'react';
+import {Platform} from 'react-native';
+
+import {DEFAULT_PASSKEY_VALUES} from '../../types/storage';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
@@ -14,9 +13,10 @@ import {
   storePrivateKey,
   storePublicKey,
 } from '../../utils/storage';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {Platform} from 'react-native';
-import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+import {PasskeyManager} from '../../utils/storage/passkey-manager';
+import {WalletManager} from '../../utils/storage/wallet-manager';
+import {useDialog, useToast} from '../modals';
 
 export const useInternalAccount = () => {
   const {meltTokens, wallet, generateMnemonic} = useCashu();
@@ -117,7 +117,7 @@ export const useInternalAccount = () => {
       }
     | undefined
   > => {
-    let resultNostr: {
+    const resultNostr: {
       secretKey?: string;
       mnemonic?: string;
       publicKey?: string;
@@ -133,7 +133,7 @@ export const useInternalAccount = () => {
         resultNostr.secretKey = secretKey;
         resultNostr.mnemonic = mnemonic;
         resultNostr.publicKey = publicKey;
-        let resultNostrValue = {
+        const resultNostrValue = {
           secretKey,
           mnemonic,
           publicKey,
@@ -154,7 +154,7 @@ export const useInternalAccount = () => {
           resultNostr.secretKey = secretKey;
           resultNostr.mnemonic = mnemonic;
           resultNostr.publicKey = publicKey;
-          let resultNostrValue = {
+          const resultNostrValue = {
             secretKey,
             mnemonic,
             publicKey,

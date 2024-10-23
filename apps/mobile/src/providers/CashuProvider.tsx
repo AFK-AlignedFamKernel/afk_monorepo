@@ -1,6 +1,6 @@
-import React, {createContext, useContext} from 'react';
 import {useCashu} from 'afk_nostr_sdk';
 import {ICashu} from 'afk_nostr_sdk';
+import React, {createContext, useContext} from 'react';
 
 const CashuContext = createContext<ICashu | undefined>(undefined);
 

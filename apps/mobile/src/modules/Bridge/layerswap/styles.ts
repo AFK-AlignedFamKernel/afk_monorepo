@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+
 import {Spacing, ThemedStyleSheet, Typography} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({

@@ -1,10 +1,10 @@
 import NDK, {NDKNip07Signer, NDKNwc, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import NDKWallet, {NDKCashuWallet} from '@nostr-dev-kit/ndk-wallet';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 
 import {useSettingsStore} from '../store';
 import {useAuth} from '../store/auth';
 import {AFK_RELAYS} from '../utils/relay';
-import NDKWallet, {NDKCashuWallet} from '@nostr-dev-kit/ndk-wallet';
 
 export type NostrContextType = {
   ndk: NDK;

@@ -5,7 +5,6 @@ import {useStyles, useTheme} from '../../hooks';
 import {IconButton} from '../IconButton';
 import {Text} from '../Text';
 import stylesheet from './styles';
-import {TypeToast} from '../../context/Toast/ToastContext';
 
 export type ToastProps = {
   type: 'success' | 'info' | 'error';

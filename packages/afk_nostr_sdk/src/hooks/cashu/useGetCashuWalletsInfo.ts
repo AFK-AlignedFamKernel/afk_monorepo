@@ -1,7 +1,8 @@
-import {useAuth} from '../../store';
-import {useInfiniteQuery, useMutation} from '@tanstack/react-query';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useInfiniteQuery} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../context';
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {useAuth} from '../../store';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
 /** 

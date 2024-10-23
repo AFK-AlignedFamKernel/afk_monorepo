@@ -2,16 +2,15 @@ import {useAccount} from '@starknet-react/core';
 import {useAuth} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
+
 import {Button} from '../../components';
+import Loading from '../../components/Loading';
 import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
 import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useQueryAllLaunch} from '../../hooks/launchpad/useQueryAllLaunch';
-import {useKeyModal} from '../../hooks/modals/useKeyModal';
 import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
+import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
 import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
 import stylesheet from './styles';
-import Loading from '../../components/Loading';
-import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;

@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {generateRandomBytes32} from '@walletconnect/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  type SIWECreateMessageArgs,
+  type SIWEVerifyMessageArgs,
   createSIWEConfig,
   formatMessage,
-  type SIWEVerifyMessageArgs,
-  type SIWECreateMessageArgs,
 } from '@reown/appkit-siwe-react-native';
+import {generateRandomBytes32} from '@walletconnect/utils';
+
 import {chains} from './WagmiUtils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LOGGED_IN_KEY = '@appkit/logged_in';
 const SESSION_KEY = '@appkit/session';
