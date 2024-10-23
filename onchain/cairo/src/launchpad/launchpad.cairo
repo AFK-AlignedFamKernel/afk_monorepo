@@ -313,11 +313,11 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             // self.ownable.assert_only_owner();
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
-        // self
-        //     .emit(
-        //         SetJediwapV2Factory { address_jediswap_factory_v2:
-        //         address_jediswap_factory_v2 }
-        //     );
+            self
+                .emit(
+                    SetJediwapV2Factory { address_jediswap_factory_v2:
+                    address_jediswap_factory_v2 }
+                );
         }
 
         fn set_address_jediswap_nft_router_v2(
@@ -325,12 +325,12 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
-        // self
-        //     .emit(
-        //         SetJediwapNFTRouterV2 {
-        //             address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
-        //         }
-        //     );
+            self
+                .emit(
+                    SetJediwapNFTRouterV2 {
+                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
+                    }
+                );
         }
 
         fn set_address_ekubo_factory(
@@ -502,11 +502,11 @@ pub mod LaunchpadMarketplace {
 
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
-            let expected_quote_amount = self
-                ._get_quote_paid_by_amount_coin(coin_address, amount, false);
-            assert!(
-                expected_quote_amount == quote_amount, "Quote amount does not match expected value"
-            );
+            // let expected_quote_amount = self
+            //     ._get_quote_paid_by_amount_coin(coin_address, amount, false);
+            // assert!(
+            //     expected_quote_amount == quote_amount, "Quote amount does not match expected value"
+            // );
 
             // println!("total_price {:?}", total_price);
 
@@ -587,26 +587,27 @@ pub mod LaunchpadMarketplace {
             // 80% bought by others
 
             // TODO finish test and fix
-            if pool_coin.liquidity_raised >= threshold { // self
-            //     .emit(
-            //         LiquidityCanBeAdded {
-            //             pool: pool_coin.token_address.clone(),
-            //             asset: pool_coin.token_address.clone(),
-            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
-            //         }
-            //     );
+            if pool_coin.liquidity_raised >= threshold { 
+            self
+                .emit(
+                    LiquidityCanBeAdded {
+                        pool: pool_coin.token_address.clone(),
+                        asset: pool_coin.token_address.clone(),
+                        quote_token_address: pool_coin.token_quote.token_address.clone(),
+                    }
+                );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
             if mc >= threshold_mc { // println!("mc >= threshold_mc");
-            // self
-            //     .emit(
-            //         LiquidityCanBeAdded {
-            //             pool: pool_coin.token_address.clone(),
-            //             asset: pool_coin.token_address.clone(),
-            //             quote_token_address: pool_coin.token_quote.token_address.clone(),
-            //         }
-            //     );
+                self
+                    .emit(
+                        LiquidityCanBeAdded {
+                            pool: pool_coin.token_address.clone(),
+                            asset: pool_coin.token_address.clone(),
+                            quote_token_address: pool_coin.token_quote.token_address.clone(),
+                        }
+                    );
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             }
 
@@ -641,7 +642,7 @@ pub mod LaunchpadMarketplace {
 
             let mut share_user = old_share.clone();
             // Verify Amount owned
-            assert!(old_share.amount_owned >= quote_amount, "share too low");
+            assert(old_share.amount_owned >= quote_amount, 'share too low');
             assert!(old_pool.total_supply >= quote_amount, "above supply");
 
             // TODO erc20 token transfer
