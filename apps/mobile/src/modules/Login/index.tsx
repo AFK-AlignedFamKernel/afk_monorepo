@@ -24,13 +24,15 @@ import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
 
 interface ILoginNostr {
     isNavigationAfterLogin?:boolean;
+    navigationProps?:MainStackNavigationProps | any;
+    handleSuccess?:() => void;
 }
-export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}:ILoginNostr) => {
+export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin, navigationProps, handleSuccess}:ILoginNostr) => {
   const {theme} = useTheme();
   const setAuth = useAuth((state) => state.setAuth);
   const publicKey = useAuth((state) => state.publicKey);
 
-  const navigation = useNavigation<MainStackNavigationProps>()
+  // const navigation = useNavigation<MainStackNavigationProps>()
   // const { setIsSeedCashuStorage } = useAuth()
   const {setIsSeedCashuStorage, setSeed, setMnemonic} = useCashuStore();
   const [password, setPassword] = useState('');
@@ -40,7 +42,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}
   const {getPublicKey} = useNip07Extension();
   const {generateMnemonic} = useCashu();
 
-  const navigationMain = useNavigation<MainStackNavigationProps>();
+  // const navigationMain = useNavigation<MainStackNavigationProps>();
 
   useEffect(() => {
     (async () => {
@@ -111,12 +113,13 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}
     } catch (e) {
       console.log('Error mnemonic', e);
     }
-
-    if (publicKey && privateKeyHex && isNavigationAfterLogin) {
-      // navigationMain.navigate("Home", {screen:"Feed"});
-      // navigationMain.push("Home", {screen:"Feed"});
-      navigationMain.navigate('Feed');
+    if(handleSuccess) {
+      handleSuccess()
     }
+    if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
+      navigationProps?.navigate('Feed');
+    }
+  
   };
 
   const handleCreateAccount = () => {
@@ -129,7 +132,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigation.navigate('CreateAccount');
+            navigationProps?.navigate('CreateAccount');
             hideDialog();
           },
         },
@@ -148,7 +151,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigation.navigate('ImportKeys');
+            navigationProps?.navigate('ImportKeys');
             hideDialog();
           },
         },
@@ -169,8 +172,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({isNavigationAfterLogin}
             const publicKey = await getPublicKey();
             // navigation.navigate('ImportKeys');
             hideDialog();
-            if (publicKey) {
-              navigationMain.navigate('Profile', {publicKey});
+            if(handleSuccess) {
+              handleSuccess()
+            }
+            if (publicKey && navigationProps) {
+              navigationProps.navigate('Profile', {publicKey});
             }
           },
         },
