@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
-import { CameraView, BarcodeScanningResult, CameraType, useCameraPermissions } from 'expo-camera';
-import { usePayment } from '../../../hooks/usePayment';
-import { useToast } from '../../../hooks/modals';
+import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
+import React, {useState} from 'react';
+import {Button, StyleSheet, Text, View} from 'react-native';
+
+import {useToast} from '../../../hooks/modals';
+import {usePayment} from '../../../hooks/usePayment';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
 }
 
-const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose }) => {
+const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const { handlePayInvoice, handleGenerateEcash } = usePayment();
-  const { showToast } = useToast();
+  const {handlePayInvoice, handleGenerateEcash} = usePayment();
+  const {showToast} = useToast();
 
-  const handleScannedCode = async ({ data }: BarcodeScanningResult) => {
+  const handleScannedCode = async ({data}: BarcodeScanningResult) => {
     if (!data) {
-      showToast({ title: 'Invalid QR code', type: 'error' });
+      showToast({title: 'Invalid QR code', type: 'error'});
       return;
     }
     if (data.startsWith('lightning:')) {
@@ -29,7 +30,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose }) => {
       await handleGenerateEcash(Number(data.replace('cashu', '')));
       onClose();
     } else {
-      showToast({ title: 'Invalid QR code', type: 'error' });
+      showToast({title: 'Invalid QR code', type: 'error'});
     }
   };
 
@@ -52,7 +53,6 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose }) => {
     <View style={styles.container}>
       <CameraView
         style={StyleSheet.absoluteFillObject}
-        
         onBarcodeScanned={scanned ? undefined : handleScannedCode}
       />
       {scanned && <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />}

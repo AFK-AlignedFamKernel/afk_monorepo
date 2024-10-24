@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 interface GenerateQRCodeProps {
@@ -23,4 +23,3 @@ const styles = StyleSheet.create({
 });
 
 export default GenerateQRCode;
-
