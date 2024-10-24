@@ -1,9 +1,10 @@
-import {useEffect, useMemo, useState} from 'react';
+import {Invoice, LightningAddress} from '@getalby/lightning-tools';
 import {webln} from '@getalby/sdk';
 import {SendPaymentResponse} from '@webbtc/webln-types';
-import {useConnectNWC} from '../zap/useZap';
+import {useEffect, useMemo, useState} from 'react';
+
 import {useAuth} from '../../store';
-import {Invoice, LightningAddress} from '@getalby/lightning-tools';
+import {useConnectNWC} from '../zap/useZap';
 
 export const useLN = () => {
   const {publicKey, setNWCUrl: setNwcUrlStore, nwcUrl: nwcUrlProps} = useAuth();
@@ -193,7 +194,7 @@ export const useLN = () => {
         setNwcUrl(nwcUrl);
 
         mutateConnectNDK(nwcUrl, {
-          onSuccess: () => {},
+          // onSuccess: () => {},
         });
       }
     } catch (e) {

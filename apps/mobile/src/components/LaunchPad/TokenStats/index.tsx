@@ -1,11 +1,10 @@
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
+
 import {useStyles} from '../../../hooks';
 import {TokenStatsInterface} from '../../../types/keys';
+import Loading from '../../Loading';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import {Fraction} from '@uniswap/sdk-core';
-import {decimalsScale} from '../../../utils/helpers';
-import Loading from '../../Loading';
 
 export type TokenStatsProps = {
   loading: boolean;

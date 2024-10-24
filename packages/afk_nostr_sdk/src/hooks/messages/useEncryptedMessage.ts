@@ -1,20 +1,9 @@
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 import {useAuth, useSettingsStore} from '../../store';
-import {
-  generateRandomKeypair,
-  transformStringToUint8Array,
-  generateSharedSecret,
-  generateRandomBytes,
-  randomTimeUpTo2DaysInThePast,
-  deriveSharedKey,
-  stringToHex,
-} from '../../utils/keypair';
-
-import {v2} from '../../utils/nip44';
-import {AFK_RELAYS} from '../../utils/relay';
+import {deriveSharedKey, generateRandomBytes, generateRandomKeypair} from '../../utils/keypair';
 /** NIP-4 Encrypted message: https://nips.nostr.com/4
  * Deprecated
  * Fix private message and user a relay that's enable it
@@ -49,10 +38,10 @@ export const useEncryptedMessage = () => {
       // ["e", "<kind-14-id>", "<relay-url>", "reply"] // if this is a reply
       // ["subject", "<conversation-title>"],
       eventDirectMessage.tags = data.tags ?? [];
-      let {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
-      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
+      const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       // Generate a random IV (initialization vector)
-      let nonce = generateRandomBytes();
+      const nonce = generateRandomBytes();
     },
   });
 };

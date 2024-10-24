@@ -1,9 +1,8 @@
 // Rod Cashu wallet example
 // File: /PasskeyManager.ts
 // import crypto from "crypto"
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import {Platform} from 'react-native';
+
 import {GeneratePasskeyValues} from '../../types/storage';
 const encoder = new TextEncoder();
 export const DEFAULT_PASSKEY = {
@@ -145,7 +144,7 @@ export class PasskeyManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: PasskeyManager.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -155,7 +154,7 @@ export class PasskeyManager {
       ['encrypt'],
     );
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, data);
 
     const encryptedArray = new Uint8Array(encryptedData);
     const resultArray = new Uint8Array(iv.length + encryptedArray.length);
@@ -183,7 +182,7 @@ export class PasskeyManager {
     const key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt,
         iterations: PasskeyManager.PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
@@ -193,7 +192,7 @@ export class PasskeyManager {
       ['decrypt'],
     );
 
-    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, data);
+    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv}, key, data);
 
     const decoder = new TextDecoder();
     const decryptedPrivateKey = decoder.decode(decryptedData);

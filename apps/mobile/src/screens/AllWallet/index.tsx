@@ -4,8 +4,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
 import {Swap} from '../../components/Swap';
-import {TokenSwap} from '../../components/TokenSwap';
 import TabSelector from '../../components/TabSelector';
+import {TokenSwap} from '../../components/TokenSwap';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {CashuWalletView} from '../../modules/Cashu';

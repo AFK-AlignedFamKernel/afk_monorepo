@@ -1,11 +1,12 @@
 import '../../../applyGlobalPolyfills';
 
 import React from 'react';
-import {View, Text} from 'react-native';
-import {useStyles, useTheme} from '../../hooks';
-import stylesheet from './styles';
+import {Text, View} from 'react-native';
+
 import {InfoIcon} from '../../assets/icons';
 import {Button} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
+import stylesheet from './styles';
 
 export const NoMintBanner = () => {
   const styles = useStyles(stylesheet);

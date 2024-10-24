@@ -1,36 +1,19 @@
 import '../../../applyGlobalPolyfills';
 
-import {webln} from '@getalby/sdk';
-import {
-  ICashuInvoice,
-  useAuth,
-  useCashu,
-  useCashuStore,
-  useNostrContext,
-  useSendZap,
-} from 'afk_nostr_sdk';
+import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
+import {ICashuInvoice, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {SetStateAction, useEffect, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
-import {WebView} from 'react-native-webview';
-import PolyfillCrypto from 'react-native-webview-crypto';
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Text, TextInput} from 'react-native';
 
-import {Button, IconButton, Input} from '../../components';
+import {CopyIconStack} from '../../assets/icons';
+import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
-import stylesheet from './styles';
-import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {CopyIconStack} from '../../assets/icons';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {
-  retrieveAndDecryptCashuMnemonic,
-  retrievePassword,
-  storeCashuMnemonic,
-} from '../../utils/storage';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
-
+import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import stylesheet from './styles';
 
 export const GenerateInvoiceCashu = () => {
   const {ndkCashuWallet, ndkWallet} = useNostrContext();

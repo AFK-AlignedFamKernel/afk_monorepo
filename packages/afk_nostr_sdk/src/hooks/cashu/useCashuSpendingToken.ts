@@ -1,17 +1,10 @@
-import {useAuth} from '../../store';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
+
 import {useNostrContext} from '../../context';
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {
-  deriveSharedKey,
-  fixPubKey,
-  generateRandomBytes,
-  generateRandomKeypair,
-  randomTimeUpTo2DaysInThePast,
-} from '../../utils/keypair';
+import {useAuth} from '../../store';
+import {deriveSharedKey, fixPubKey, generateRandomBytes} from '../../utils/keypair';
 import {v2} from '../../utils/nip44';
-import {AFK_RELAYS} from '../../utils/relay';
-import {Proof} from '@cashu/cashu-ts';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
  * https://github.com/nostr-protocol/nips/pull/1369/files 
@@ -65,7 +58,7 @@ export const useCashuSpendingToken = () => {
         relayUrl,
       } = data;
 
-      let receiverPublicKey = fixPubKey(publicKey);
+      const receiverPublicKey = fixPubKey(publicKey);
 
       /** NIP-4 - Encrypted Direct private message  */
 
@@ -83,8 +76,8 @@ export const useCashuSpendingToken = () => {
       // [ "amount", "1", "sats" ],
       // [ "e", "<event-id-of-spent-token>", "<relay-hint>", "created" ],
 
-      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
-      let nonce = generateRandomBytes();
+      const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      const nonce = generateRandomBytes();
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(
         JSON.stringify(amount && unit && direction ? contentProps : content),

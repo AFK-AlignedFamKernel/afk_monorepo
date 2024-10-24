@@ -2,9 +2,9 @@ import {FlatList, View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
 import {TokenTxInterface} from '../../../types/keys';
+import Loading from '../../Loading';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import Loading from '../../Loading';
 
 export type TokenTxProps = {
   loading: boolean;

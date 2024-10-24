@@ -1,9 +1,10 @@
 import {Proof} from '@cashu/cashu-ts';
-import {useCashu} from './useCashu';
 import {useEffect, useMemo, useState} from 'react';
+
+import {getProofs} from '../../storage';
 import {useCashuStore} from '../../store';
 import {ProofInvoice} from '../../types';
-import {getProofs} from '../../storage';
+import {useCashu} from './useCashu';
 
 export const useCashuBalance = () => {
   const {

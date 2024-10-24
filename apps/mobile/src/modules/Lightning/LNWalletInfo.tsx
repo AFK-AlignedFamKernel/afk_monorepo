@@ -1,4 +1,5 @@
 import '../../../applyGlobalPolyfills';
+
 import React from 'react';
 import {Pressable, TouchableOpacity, View} from 'react-native';
 import {ActivityIndicator, Text, TextInput} from 'react-native';

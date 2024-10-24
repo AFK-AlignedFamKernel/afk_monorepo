@@ -1,7 +1,7 @@
 import { ec, RpcProvider, constants } from 'starknet';
 import backendConfigProd from '../configs/backend.config.json';
 import backendConfigDev from '../configs/backend.dev.config.json';
-const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" ? true : false
+const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" || process.env.EXPO_PUBLIC_NODE_ENV == "production" ? true : false
 /** TODO add ENV and config for prod and test */
 /** TODO fix url */
 

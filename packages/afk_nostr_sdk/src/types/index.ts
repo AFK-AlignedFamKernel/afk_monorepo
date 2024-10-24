@@ -1,5 +1,5 @@
-import {NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {NDKUserProfile} from '@nostr-dev-kit/ndk';
 
 export interface Contact extends NDKUserProfile {
   handle?: string;

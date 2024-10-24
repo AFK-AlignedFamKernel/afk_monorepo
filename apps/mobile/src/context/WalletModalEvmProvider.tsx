@@ -3,7 +3,6 @@ import {useAccount, useDisconnect} from 'wagmi';
 
 import {Modalize} from '../components';
 import WalletEvmModal, {ConnectedWalletModal} from '../modules/WalletModal/walletEvmModal';
-import {View} from 'react-native';
 
 // Create a context for the wallet
 export const WalletEVMModalContext = createContext<{

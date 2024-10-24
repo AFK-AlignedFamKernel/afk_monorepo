@@ -1,8 +1,9 @@
+import {View} from 'react-native';
+
 import {useStyles} from '../../hooks';
+import {OnboardingComponent} from '../../modules/Onboard';
 import {OnboardingWalletScreen} from '../../types';
 import stylesheet from './styles';
-import {OnboardingComponent} from '../../modules/Onboard';
-import {View} from 'react-native';
 
 export const Onboarding: React.FC<OnboardingWalletScreen> = ({navigation}) => {
   const styles = useStyles(stylesheet);

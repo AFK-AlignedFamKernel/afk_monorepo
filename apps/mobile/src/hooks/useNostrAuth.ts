@@ -1,15 +1,16 @@
-import {useAuth, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
-import {ColorProp, ThemeColorNames} from '../styles';
-import {useTheme} from './useTheme';
-import {useMemo} from 'react';
-import {useDialog} from './modals';
-import {MainStackNavigationProps} from '../types';
 import {useNavigation} from '@react-navigation/native';
+import {useAuth, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
+import {useMemo} from 'react';
+
+import {MainStackNavigationProps} from '../types';
+import {useDialog} from './modals';
+import {useLoginModal} from './modals/useLoginModal';
 
 export const useNostrAuth = () => {
   const {publicKey, privateKey} = useAuth();
   const {ndk} = useNostrContext();
   const {showDialog, hideDialog} = useDialog();
+  const {show} = useLoginModal();
   const {getPublicKey} = useNip07Extension();
   const navigationMain = useNavigation<MainStackNavigationProps>();
 
@@ -19,7 +20,8 @@ export const useNostrAuth = () => {
 
   const handleCheckNostrAndSendConnectDialog = async () => {
     if (!isNostrConnected) {
-      handleGoLogin();
+      // handleGoLogin();
+      show();
     }
 
     return isNostrConnected;

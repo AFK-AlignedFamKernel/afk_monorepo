@@ -1,4 +1,5 @@
 import {MeltQuoteResponse, Proof, Token} from '@cashu/cashu-ts';
+
 import {ICashuInvoice} from '../types';
 
 export const KEY_CASHU_STORE = {

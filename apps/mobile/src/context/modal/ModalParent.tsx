@@ -1,10 +1,10 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
-import {Pressable, View, Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, View} from 'react-native';
 import {Modalize} from 'react-native-modalize';
+
 import {useStyles, useTheme} from '../../hooks';
-import stylesheet from './styles';
 import {TipSuccessModal} from '../../modules/TipSuccessModal';
+import stylesheet from './styles';
 
 export type Modal = Modalize;
 

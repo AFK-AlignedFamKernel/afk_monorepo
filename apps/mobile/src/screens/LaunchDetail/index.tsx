@@ -1,42 +1,38 @@
-import {useAccount, useProvider} from '@starknet-react/core';
-import {useNostrContext} from 'afk_nostr_sdk';
+import {useAccount} from '@starknet-react/core';
+import {feltToAddress} from 'common';
 import {useEffect, useState} from 'react';
-import {FlatList, KeyboardAvoidingView, View} from 'react-native';
+import {KeyboardAvoidingView, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
+import {Text} from '../../components';
 import {LaunchActionsForm} from '../../components/LaunchActionsForm';
+import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
+import {TokenStats} from '../../components/LaunchPad/TokenStats';
+import {TokenTx} from '../../components/LaunchPad/TokenTx';
+import {UserShare} from '../../components/LaunchPad/UserShare';
 import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
+import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
+import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
+import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
+import {useGetShares} from '../../hooks/api/indexer/useUserShare';
 import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
 import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
 import {useToast, useWalletModal} from '../../hooks/modals';
 import {LaunchDetailScreenProps} from '../../types';
-
 import {
   TokenDeployInterface,
   TokenHoldersInterface,
-  TokenLaunchInterface,
   TokenStatsInterface,
   TokenTxInterface,
   UserShareInterface,
 } from '../../types/keys';
 import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
-import {TokenTx} from '../../components/LaunchPad/TokenTx';
-import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
-import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
-import {TokenStats} from '../../components/LaunchPad/TokenStats';
-import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
-import {useGetDeployToken} from '../../hooks/api/indexer/useDeployToken';
-import {UserShare} from '../../components/LaunchPad/UserShare';
-import {useGetShares} from '../../hooks/api/indexer/useUserShare';
-import {feltToAddress} from 'common';
-import {Text} from '../../components';
-import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
 
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {

@@ -1,8 +1,9 @@
-import {FC, useState} from 'react';
 import {useReactiveClient} from '@dynamic-labs/react-hooks';
-import {dynamicClient} from '../../../app/DynamicClient';
-import {TextInput, View, ScrollView, Text} from 'react-native';
+import {FC, useState} from 'react';
 import React from 'react';
+import {ScrollView, Text, TextInput, View} from 'react-native';
+
+import {dynamicClient} from '../../../app/DynamicClient';
 import {Button} from '../../../components';
 import {useToast} from '../../../hooks/modals';
 

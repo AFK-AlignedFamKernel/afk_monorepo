@@ -1,6 +1,6 @@
 {
   "host": "backend-pixel.onrender.com",
-  "port": 8082,
+  "port": 8081,
   "consumer_port": 8081,
   "scripts": {
     "place_pixel_devnet": "../tests/integration/local/place_pixel.sh",

@@ -1,17 +1,11 @@
-import {useAuth} from '../../store';
-import {useMutation} from '@tanstack/react-query';
-import {useNostrContext} from '../../context';
-import NDK, {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {
-  deriveSharedKey,
-  fixPubKey,
-  generateRandomBytes,
-  generateRandomKeypair,
-  randomTimeUpTo2DaysInThePast,
-} from '../../utils/keypair';
-import {v2} from '../../utils/nip44';
-import {AFK_RELAYS} from '../../utils/relay';
 import {Proof} from '@cashu/cashu-ts';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
+import {useMutation} from '@tanstack/react-query';
+
+import {useNostrContext} from '../../context';
+import {useAuth} from '../../store';
+import {deriveSharedKey, fixPubKey, generateRandomBytes} from '../../utils/keypair';
+import {v2} from '../../utils/nip44';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
 /**
@@ -73,7 +67,7 @@ export const useCashuTokenSend = () => {
       } = data;
 
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
-      let receiverPublicKey = receiverPublicKeyProps
+      const receiverPublicKey = receiverPublicKeyProps
         ? fixPubKey(receiverPublicKeyProps)
         : fixPubKey(publicKey);
 
@@ -85,8 +79,8 @@ export const useCashuTokenSend = () => {
       event.content = data.content;
 
       const contentProps = {
-        mint: mint,
-        proofs: proofs,
+        mint,
+        proofs,
       };
       // nip44_encrypt({
       //   "mint": "https://stablenut.umint.cash",
@@ -100,8 +94,8 @@ export const useCashuTokenSend = () => {
       //     ]
       // })
 
-      let conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
-      let nonce = generateRandomBytes();
+      const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      const nonce = generateRandomBytes();
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(
         JSON.stringify(mint && proofs ? contentProps : content),

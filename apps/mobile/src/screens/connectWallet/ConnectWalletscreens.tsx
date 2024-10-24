@@ -1,6 +1,7 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
-import {useConnect, useAccount} from 'wagmi';
+import {StyleSheet, Text, View} from 'react-native';
+import {useAccount, useConnect} from 'wagmi';
+
 import {TextButton} from '../../components';
 
 const ConnectWalletScreen = () => {

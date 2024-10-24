@@ -1,9 +1,10 @@
-import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 // import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialIcons} from '@expo/vector-icons';
-import stylesheet from './styles';
+import React from 'react';
+import {Alert, Text, TouchableOpacity, View} from 'react-native';
+
 import {useStyles} from '../../hooks';
+import stylesheet from './styles';
 
 interface AddressProps {
   address: string;

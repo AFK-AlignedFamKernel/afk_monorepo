@@ -1,20 +1,19 @@
 import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
+import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
 import {Swap} from '../../components/Swap';
-import {TokenSwap} from '../../components/TokenSwap';
 import TabSelector from '../../components/TabSelector';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
+import {LayerswapView} from '../../modules/Bridge/layerswap';
 import {CashuWalletView} from '../../modules/Cashu';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
-import {LayerswapView} from '../../modules/Bridge/layerswap';
+import TokenSwapView from '../../modules/Swap';
 import {DefiScreenProps} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';
 import stylesheet from './styles';
-import TokenSwapView from '../../modules/Swap';
 
 export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);

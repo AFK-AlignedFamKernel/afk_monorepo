@@ -1,7 +1,8 @@
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
-
+import dotenv from "dotenv"
+dotenv.config()
 const config: Config = {
   title: "AFK Aligned Fam Kernel",
   tagline:
@@ -9,7 +10,7 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://docs.afk-community",
+  url: "https://docs.afk-community.xyz",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -21,6 +22,7 @@ const config: Config = {
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
+  //   defaultLocale: "en",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -32,18 +34,15 @@ const config: Config = {
 
   presets: [
     [
-      '@docusaurus/preset-classic',
-      {
-        gtag: {
-          trackingID: process.env.NEXT_PUBLIC_GTAG_TRACKING_ID,
-          anonymizeIP: true,
-        },
-      },
-    ],
-    [
       "classic",
       {
+        googleAnalytics: {
+          trackingID: process.env.NEXT_PUBLIC_GTAG_TRACKING_ID ?? "",
+          anonymizeIP: true,
+        },
         docs: {
+          id: 'docs',
+          routeBasePath: 'docs',
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
