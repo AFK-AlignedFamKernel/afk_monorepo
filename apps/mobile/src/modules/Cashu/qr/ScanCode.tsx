@@ -4,6 +4,7 @@ import {Button, StyleSheet, Text, View, Dimensions, Clipboard, TouchableOpacity}
 
 import {useToast} from '../../../hooks/modals';
 import {usePayment} from '../../../hooks/usePayment';
+import {useTheme} from '../../../hooks'; // Import useTheme hook
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -13,9 +14,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
-  const [action, setAction] = useState<'send' | 'receive' | null>(null);
   const {handlePayInvoice, handleGenerateEcash} = usePayment();
   const {showToast} = useToast();
+  const {theme} = useTheme(); // Use theme for styling
 
   const handleScannedCode = async ({data}: BarcodeScanningResult) => {
     console.log('Scanned data:', data); // Debugging: Log the scanned data
@@ -24,24 +25,17 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
       return;
     }
     setScanned(true);
-    setScannedData(data);
+    setScannedData(data); 
 
+   
     if (data.startsWith('lnbc')) {
       // Lightning invoice
-      if (action === 'send') {
-        await handlePayInvoice(data);
-        showToast({title: 'Invoice paid successfully', type: 'success'});
-      } else {
-        showToast({title: 'This is a Lightning invoice. Please select "Pay".', type: 'info'});
-      }
+      await handlePayInvoice(data);
+      showToast({title: 'Invoice paid successfully', type: 'success'});
     } else {
       // Assume eCash
-      if (action === 'receive') {
-        await handleGenerateEcash(Number(data.replace('cashu', '')));
-        showToast({title: 'eCash received successfully', type: 'success'});
-      } else {
-        showToast({title: 'This is an eCash token. Please select "Receive".', type: 'info'});
-      }
+      await handleGenerateEcash(Number(data.replace('cashu', '')));
+      showToast({title: 'eCash received successfully', type: 'success'});
     }
     onClose();
   };
@@ -66,29 +60,10 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     );
   }
 
-  if (!action) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.headerText}>Do you want to send or receive?</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => setAction('send')}>
-            <Text style={styles.buttonText}>Pay</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => setAction('receive')}>
-            <Text style={styles.buttonText}>Receive</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity onPress={onClose}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Scan QR Code</Text>
+        <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
       </View>
       <View style={styles.cameraContainer}>
         <CameraView
@@ -99,9 +74,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
       </View>
       {scannedData && (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>
-            {action === 'send' ? 'Pay this invoice' : 'Receive this eCash'}
-          </Text>
+          <Text style={styles.resultText}>Scanned Data: {scannedData}</Text>
           <Button title="Copy to Clipboard" onPress={handleCopyToClipboard} />
         </View>
       )}
@@ -117,7 +90,6 @@ const {width} = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -136,7 +108,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerText: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -167,26 +138,6 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 16,
     marginBottom: 10,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '80%',
-    marginVertical: 20,
-  },
-  actionButton: {
-    backgroundColor: 'rgba(79, 168, 155, 1)', 
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginHorizontal: 5,
-    flex: 1,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   cancelText: {
     color: 'red',
