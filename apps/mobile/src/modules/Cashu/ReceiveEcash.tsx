@@ -189,6 +189,9 @@ export const ReceiveEcash = () => {
                       </TouchableOpacity>
                     }
                   />
+
+                  {/* Generate QR code for the eCash token */}
+                  <GenerateQRCode data={ecash} size={200} />
                 </View>
               )}
 
