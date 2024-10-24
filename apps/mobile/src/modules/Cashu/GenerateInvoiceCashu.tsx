@@ -123,8 +123,6 @@ export const GenerateInvoiceCashu = () => {
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
-        // quote: quote?.request?.quote,
-        // state: quote?.request?.state,
         date: new Date().getTime(),
         amount: Number(invoiceAmount),
         mint: mintUrl,
@@ -134,12 +132,8 @@ export const GenerateInvoiceCashu = () => {
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
-
-        console.log('invoices', invoices);
         storeInvoices([...invoices, cashuInvoice]);
       } else {
-        console.log('no old invoicesLocal', invoicesLocal);
-
         storeInvoices([cashuInvoice]);
       }
     } catch (error) {
@@ -223,6 +217,7 @@ export const GenerateInvoiceCashu = () => {
                   </TouchableOpacity>
                 }
               />
+              {/* Ensure the data prop is correctly passed */}
               <GenerateQRCode data={quote?.request} size={200} />
             </View>
           )}
