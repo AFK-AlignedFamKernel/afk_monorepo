@@ -1,10 +1,10 @@
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
 import React, {useState} from 'react';
-import {Button, StyleSheet, Text, View, Dimensions, Clipboard, TouchableOpacity} from 'react-native';
+import {Button, StyleSheet, Text, View, Dimensions, Clipboard, TouchableOpacity, Modal} from 'react-native';
 
 import {useToast} from '../../../hooks/modals';
 import {usePayment} from '../../../hooks/usePayment';
-import {useTheme} from '../../../hooks'; // Import useTheme hook
+import {useTheme} from '../../../hooks'; 
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -14,30 +14,38 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const {handlePayInvoice, handleGenerateEcash} = usePayment();
   const {showToast} = useToast();
-  const {theme} = useTheme(); // Use theme for styling
+  const {theme} = useTheme(); 
 
-  const handleScannedCode = async ({data}: BarcodeScanningResult) => {
-    console.log('Scanned data:', data); // Debugging: Log the scanned data
+  const handleScannedCode = ({data}: BarcodeScanningResult) => {
+    console.log('Scanned data:', data); 
     if (!data) {
       showToast({title: 'Invalid QR code', type: 'error'});
       return;
     }
     setScanned(true);
-    setScannedData(data); 
+    setScannedData(data);
+    setModalVisible(true); 
+  };
 
-   
-    if (data.startsWith('lnbc')) {
-      // Lightning invoice
-      await handlePayInvoice(data);
+  const handlePay = async () => {
+    if (scannedData) {
+      await handlePayInvoice(scannedData);
       showToast({title: 'Invoice paid successfully', type: 'success'});
-    } else {
-      // Assume eCash
-      await handleGenerateEcash(Number(data.replace('cashu', '')));
-      showToast({title: 'eCash received successfully', type: 'success'});
+      setModalVisible(false);
+      onClose();
     }
-    onClose();
+  };
+
+  const handleReceive = async () => {
+    if (scannedData) {
+      await handleGenerateEcash(Number(scannedData.replace('cashu', '')));
+      showToast({title: 'eCash received successfully', type: 'success'});
+      setModalVisible(false);
+      onClose();
+    }
   };
 
   const handleCopyToClipboard = () => {
@@ -72,6 +80,25 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
         />
         <View style={styles.overlay} />
       </View>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              {scannedData?.startsWith('lnbc') ? 'Pay this invoice?' : 'Receive this eCash?'}
+            </Text>
+            <Button
+              title={scannedData?.startsWith('lnbc') ? 'Pay Invoice' : 'Receive eCash'}
+              onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}
+            />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
       {scannedData && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultText}>Scanned Data: {scannedData}</Text>
@@ -143,6 +170,23 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
   },
 });
 
