@@ -2,12 +2,12 @@
 pub mod FactionQuest {
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
     use afk::interfaces::quests::{IAuthorityQuest, IQuest};
-
-
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+
+
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         art_peace: ContractAddress,

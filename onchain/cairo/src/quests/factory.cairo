@@ -41,20 +41,18 @@ pub mod QuestFactory {
             new_quest.quest_id = self.quest_count.read();
             self.quests.entry(self.quest_count.read()).write(new_quest);
             self.quest_count.write(self.quest_count.read() + 1);
-        //TODO emit add quest event
+            //TODO emit add quest event
         }
 
         fn get_quests(self: @ContractState) -> Span<QuestInfo> {
             let mut quest_array = array![];
             let mut i = 0;
 
-            while i < self
-                .quest_count
-                .read() {
-                    let quest = self.quests.read(i);
-                    quest_array.append(quest);
-                    i += 1;
-                };
+            while i < self.quest_count.read() {
+                let quest = self.quests.read(i);
+                quest_array.append(quest);
+                i += 1;
+            };
 
             quest_array.span()
         }
@@ -103,7 +101,7 @@ pub mod QuestFactory {
 
             self.user_quest_info.entry((caller, quest_id)).write(user_quest);
             self.user_quests.entry(caller).write(quest_id);
-        //TODO emit claim event
+            //TODO emit claim event
         }
 
         fn get_user_quest_info(self: @ContractState, quest_id: u32) -> UserQuestInfo {

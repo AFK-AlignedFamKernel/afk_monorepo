@@ -2,11 +2,11 @@
 pub mod RainbowQuest {
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
     use afk::interfaces::quests::{IQuest, IRainbowQuest};
-
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         art_peace: ContractAddress,
@@ -50,15 +50,14 @@ pub mod RainbowQuest {
 
             let mut result = true;
             let mut i = 0;
-            while i < art_piece
-                .get_color_count() {
-                    if (art_piece.get_user_pixels_placed_color(user, i) == 0) {
-                        result = false;
-                        break;
-                    }
+            while i < art_piece.get_color_count() {
+                if (art_piece.get_user_pixels_placed_color(user, i) == 0) {
+                    result = false;
+                    break;
+                }
 
-                    i += 1;
-                };
+                i += 1;
+            };
 
             result
         }

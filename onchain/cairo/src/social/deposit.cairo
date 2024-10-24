@@ -70,15 +70,11 @@ pub mod DepositEscrow {
     // use starknet::storage::Map;
     use core::num::traits::Zero;
     use starknet::account::Call;
-    use starknet::{
-        get_block_timestamp, get_caller_address, get_contract_address, ContractAddress
-    };
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait,
-    };
+    use starknet::{get_block_timestamp, get_caller_address, get_contract_address, ContractAddress};
+    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait,};
 
     use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
 
@@ -220,9 +216,8 @@ pub mod DepositEscrow {
 
             self
                 .deposits
-                .entry(
-                    deposit_id)
-                    .write(
+                .entry(deposit_id)
+                .write(
                     Deposit {
                         sender: get_caller_address(),
                         amount,
@@ -278,7 +273,8 @@ pub mod DepositEscrow {
             assert!(gas_amount <= *claim.gas_amount, "gas_amount too big");
             let gas_token = IERC20Dispatcher { contract_address: *claim.gas_token_address };
             gas_token.transfer(get_caller_address(), gas_amount);
-            self.emit(
+            self
+                .emit(
                     ClaimEvent {
                         deposit_id: *claim.deposit_id,
                         sender: get_caller_address(),
@@ -296,19 +292,14 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait,
-        start_cheat_caller_address, start_cheat_caller_address_global,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp,
-        DeclareResultTrait
-    };
-    use starknet::{
-        ContractAddress, get_block_timestamp,
-        
-    };
-
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::option::OptionTrait;
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
+        start_cheat_caller_address_global, stop_cheat_caller_address_global,
+        start_cheat_block_timestamp, DeclareResultTrait
+    };
+    use starknet::{ContractAddress, get_block_timestamp,};
 
     use super::super::request::{SocialRequest, Signature};
     use super::{DepositResult, NostrPublicKey, Claim};
@@ -318,7 +309,7 @@ mod tests {
         declare("DepositEscrow").unwrap().contract_class()
     }
 
-    fn declare_erc20() ->  @ContractClass {
+    fn declare_erc20() -> @ContractClass {
         declare("ERC20").unwrap().contract_class()
     }
 
@@ -372,7 +363,8 @@ mod tests {
 
         let recipient_address: ContractAddress = 678.try_into().unwrap();
 
-        // for test data see claim to: https://replit.com/@msghais135/WanIndolentKilobyte-claimto#index.js
+        // for test data see claim to:
+        // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#index.js
         let claim = Claim {
             deposit_id: 1,
             starknet_recipient: recipient_address,
@@ -445,7 +437,7 @@ mod tests {
         assert!(recipient_balance_before_claim == 0, "recipient balance before claim != 0");
         assert!(recipient_balance_after_claim == amount, "recipient balance after claim != 0");
 
-        // Escrow balance 
+        // Escrow balance
         assert!(escrow_balance_before_claim == amount, "escrow before claim != amount");
         let escrow_balance_after_claim = erc20.balance_of(escrow.contract_address);
         assert!(escrow_balance_after_claim == 0, "escrow balance after claim != 0");

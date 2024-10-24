@@ -28,7 +28,7 @@ pub mod ERC20 {
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    
+
     #[storage]
     struct Storage {
         name: felt252,

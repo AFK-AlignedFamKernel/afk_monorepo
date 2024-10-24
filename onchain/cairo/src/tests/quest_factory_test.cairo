@@ -1,26 +1,22 @@
 #[cfg(test)]
 mod quest_factory_tests {
-
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-        stop_cheat_caller_address
-    };
-    use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
-
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::quest::{
-        IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait,
-        IQuestNFTDispatcher, IQuestNFTDispatcherTrait,
-        ITapQuestsDispatcher, ITapQuestsDispatcherTrait
+        IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestNFTDispatcher,
+        IQuestNFTDispatcherTrait, ITapQuestsDispatcher, ITapQuestsDispatcherTrait
     };
 
     use afk::interfaces::vault::{IERCVaultDispatcher};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::quest::{QuestInfo};
+    use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
 
-    use starknet::{
-        ContractAddress
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
+        stop_cheat_caller_address
     };
+
+    use starknet::{ContractAddress};
 
     fn ADMIN() -> ContractAddress {
         123.try_into().unwrap()

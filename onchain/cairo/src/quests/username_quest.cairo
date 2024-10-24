@@ -2,10 +2,10 @@
 pub mod UsernameQuest {
     use afk::interfaces::quests::{IQuest};
     use afk::interfaces::username_store::{IUsernameStoreDispatcher, IUsernameStoreDispatcherTrait,};
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         art_peace: ContractAddress,

@@ -16,14 +16,14 @@ pub trait IJediswapFactoryV2<TState> {
     // * snake_case
     // ************************************
 
-    // Views 
+    // Views
     fn get_pool(
         self: @TState, token_a: ContractAddress, token_b: ContractAddress, fee: u32
     ) -> ContractAddress;
     fn fee_amount_tick_spacing(self: @TState, fee: u32) -> u32;
     fn get_fee_protocol(self: @TState) -> u8;
 
-    // Write 
+    // Write
     fn create_pool(
         ref self: TState, token_a: ContractAddress, token_b: ContractAddress, fee: u32
     ) -> ContractAddress;
@@ -42,7 +42,7 @@ pub trait IJediswapNFTRouterV2<TState> {
     // * snake_case
     // ************************************
 
-    // Write 
+    // Write
     fn mint(ref self: TState, mint: MintParams) -> (u256, u128, u256, u256);
     fn create_and_initialize_pool(
         ref self: TState,
@@ -51,7 +51,8 @@ pub trait IJediswapNFTRouterV2<TState> {
         fee: u32,
         sqrt_price_X96: u256
     ) -> ContractAddress;
-    // fn mint(ref self:TState, token_id:u256, token_b:ContractAddress, fee:u32)-> (u256, u128, u256, u256);
+    // fn mint(ref self:TState, token_id:u256, token_b:ContractAddress, fee:u32)-> (u256, u128,
+    // u256, u256);
 
     // Views
     fn get_position(
