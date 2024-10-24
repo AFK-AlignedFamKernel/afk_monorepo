@@ -18,6 +18,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const {showToast} = useToast();
 
   const handleScannedCode = async ({data}: BarcodeScanningResult) => {
+    console.log('Scanned data:', data); // Debugging: Log the scanned data
     if (!data) {
       showToast({title: 'Invalid QR code', type: 'error'});
       return;
@@ -25,16 +26,24 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     setScanned(true);
     setScannedData(data);
 
-    if (action === 'send' && data.startsWith('lightning:')) {
-      const invoice = data.replace('lightning:', '');
-      await handlePayInvoice(invoice);
-      onClose();
-    } else if (action === 'receive' && data.startsWith('cashu')) {
-      await handleGenerateEcash(Number(data.replace('cashu', '')));
-      onClose();
+    if (data.startsWith('lnbc')) {
+      // Lightning invoice
+      if (action === 'send') {
+        await handlePayInvoice(data);
+        showToast({title: 'Invoice paid successfully', type: 'success'});
+      } else {
+        showToast({title: 'This is a Lightning invoice. Please select "Pay".', type: 'info'});
+      }
     } else {
-      showToast({title: 'Invalid QR code', type: 'error'});
+      // Assume eCash
+      if (action === 'receive') {
+        await handleGenerateEcash(Number(data.replace('cashu', '')));
+        showToast({title: 'eCash received successfully', type: 'success'});
+      } else {
+        showToast({title: 'This is an eCash token. Please select "Receive".', type: 'info'});
+      }
     }
+    onClose();
   };
 
   const handleCopyToClipboard = () => {
@@ -90,7 +99,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
       </View>
       {scannedData && (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>{scannedData}</Text>
+          <Text style={styles.resultText}>
+            {action === 'send' ? 'Pay this invoice' : 'Receive this eCash'}
+          </Text>
           <Button title="Copy to Clipboard" onPress={handleCopyToClipboard} />
         </View>
       )}
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   actionButton: {
-    backgroundColor: 'rgba(79, 168, 155, 1)', // Use your app's primary color
+    backgroundColor: 'rgba(79, 168, 155, 1)', 
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
