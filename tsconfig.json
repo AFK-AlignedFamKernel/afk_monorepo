@@ -1,29 +1,37 @@
 {
-    "compilerOptions": {
-      "rootDir": ".",
-      "target": "ESNext",
-      "lib": ["dom", "dom.iterable", "esnext"],
-      "allowJs": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
-      "noEmit": true,
-      "esModuleInterop": true,
-      "noUnusedLocals": false,
-      "noFallthroughCasesInSwitch": true,
-      "useUnknownInCatchVariables": false,
-      "moduleResolution": "Bundler",
-      "resolveJsonModule": true,
-      "isolatedModules": true,
-      "downlevelIteration": true,
-      "allowSyntheticDefaultImports": true,
-      "jsx": "preserve",
-      "module": "ES2015",
-      "declaration": true,
-      "sourceMap": true,
-      "baseUrl": "./",
-    
-    },
-    "include": ["./packages/**/*", "./apps/**/*"],
-    "exclude": ["node_modules"]
-  }
-  
+  "compilerOptions": {
+    "rootDir": ".",
+    "target": "ESNext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": false,
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "module": "ES2015",
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": "./"
+  },
+  "include": [
+    "./packages/**/*",
+    "./apps/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
+}

@@ -13,6 +13,7 @@ import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import GenerateQRCode from './qr/GenerateQRCode';
 import stylesheet from './styles';
 
 export const GenerateInvoiceCashu = () => {
@@ -122,8 +123,6 @@ export const GenerateInvoiceCashu = () => {
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,
-        // quote: quote?.request?.quote,
-        // state: quote?.request?.state,
         date: new Date().getTime(),
         amount: Number(invoiceAmount),
         mint: mintUrl,
@@ -133,12 +132,8 @@ export const GenerateInvoiceCashu = () => {
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
-
-        console.log('invoices', invoices);
         storeInvoices([...invoices, cashuInvoice]);
       } else {
-        console.log('no old invoicesLocal', invoicesLocal);
-
         storeInvoices([cashuInvoice]);
       }
     } catch (error) {
@@ -222,6 +217,8 @@ export const GenerateInvoiceCashu = () => {
                   </TouchableOpacity>
                 }
               />
+              {/* Ensure the data prop is correctly passed */}
+              <GenerateQRCode data={quote?.request} size={200} />
             </View>
           )}
         </View>
