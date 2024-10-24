@@ -1,19 +1,12 @@
 #[cfg(test)]
 mod tap_tests {
+    use afk::interfaces::quest::{ITapQuestsDispatcher, ITapQuestsDispatcherTrait};
     use snforge_std::{
-        declare,  ContractClassTrait, 
-        DeclareResultTrait,
-        start_cheat_caller_address,
+        declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
         start_cheat_block_timestamp,
     };
-    use afk::interfaces::quest::{
-       ITapQuestsDispatcher, ITapQuestsDispatcherTrait
-    };
 
-    use starknet::{
-        ContractAddress,
-        get_block_timestamp
-    };
+    use starknet::{ContractAddress, get_block_timestamp};
 
     const DAILY_TIMESTAMP_SECONDS: u64 = 60 * 60 * 24;
 

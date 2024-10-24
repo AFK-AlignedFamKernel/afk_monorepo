@@ -12,7 +12,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 pub enum SupportedExchanges {
     Jediswap,
     // Ekubo,
-    // Starkdefi,
+// Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,

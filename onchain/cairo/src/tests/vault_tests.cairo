@@ -1,21 +1,17 @@
 #[cfg(test)]
 mod vault_test {
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events,
-        DeclareResultTrait, EventSpyAssertionsTrait
-    };
-
     use afk::defi::vault::Vault::Event;
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    use afk::tokens::erc20::{ IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::defi_types::{
-        // TokenPermitted, DepositUser, 
-        MintDepositEvent, WithdrawDepositEvent
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::types::defi_types::{// TokenPermitted, DepositUser,
+    MintDepositEvent, WithdrawDepositEvent};
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
+        stop_cheat_caller_address, spy_events, DeclareResultTrait, EventSpyAssertionsTrait
     };
 
- 
+
     use starknet::ContractAddress;
 
     fn ADMIN() -> ContractAddress {
@@ -137,7 +133,8 @@ mod vault_test {
             wbtc_dispatcher.balance_of(vault_dispatcher.contract_address) == amount, 'wrong balance'
         );
         // assert(
-        //     wbtc_dispatcher.balance_of(CALLER()) == caller_initial_balance - amount, 'wrong balance'
+        //     wbtc_dispatcher.balance_of(CALLER()) == caller_initial_balance - amount, 'wrong
+        //     balance'
         // );
 
         let _ratio = vault_dispatcher.get_token_ratio(wbtc_dispatcher.contract_address);

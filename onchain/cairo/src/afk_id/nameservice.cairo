@@ -7,18 +7,18 @@ pub mod UserNameClaimErrors {
 #[starknet::contract]
 pub mod Nameservice {
     use afk::interfaces::username_store::IUsernameStore;
-    use starknet::{ContractAddress, contract_address_const, get_caller_address, get_block_timestamp};
-    use super::UserNameClaimErrors;
-    use starknet::storage::{
-         StoragePointerWriteAccess, StoragePathEntry, Map
+    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
+    use starknet::{
+        ContractAddress, contract_address_const, get_caller_address, get_block_timestamp
     };
+    use super::UserNameClaimErrors;
 
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
         user_to_username: Map::<ContractAddress, felt252>,
-        subscription_price:u256,
-        token_quote:ContractAddress
+        subscription_price: u256,
+        token_quote: ContractAddress
     }
 
     #[event]
@@ -33,7 +33,7 @@ pub mod Nameservice {
         #[key]
         address: ContractAddress,
         username: felt252,
-        timestamp:u64
+        timestamp: u64
     }
 
     #[derive(Drop, starknet::Event)]
@@ -64,7 +64,12 @@ pub mod Nameservice {
             self.usernames.entry(key).write(caller_address);
             self.user_to_username.entry(caller_address).write(key);
 
-            self.emit(UserNameClaimed { username: key, address: caller_address, timestamp:get_block_timestamp()});
+            self
+                .emit(
+                    UserNameClaimed {
+                        username: key, address: caller_address, timestamp: get_block_timestamp()
+                    }
+                );
         }
 
         fn change_username(ref self: ContractState, new_username: felt252) {

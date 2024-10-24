@@ -17,7 +17,7 @@ pub struct LinkedNostrAddress {
 struct LinkedWalletProfileDefault {
     nostr_address: NostrPublicKey,
     starknet_address: ContractAddress,
-// Add NIP-05 and stats profil after. Gonna write a proposal for it
+    // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
 // TODO fix the Content format for Nostr PublicKey as felt252 to send the same as the Nostr content
@@ -47,7 +47,7 @@ pub trait IKeysMarketplace<TContractState> {
     );
     fn instantiate_keys_with_nostr(
         ref self: TContractState, request_nostr: SocialRequest<LinkedNostrAddress>
-    // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
+        // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
     );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn sell_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
@@ -69,6 +69,9 @@ mod KeysMarketplace {
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address,
@@ -76,9 +79,6 @@ mod KeysMarketplace {
     use super::{
         StoredName, BuyKeys, SellKeys, CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys,
         KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType,
-    };
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
 
     use super::{LinkedNostrAddress};
@@ -218,7 +218,7 @@ mod KeysMarketplace {
 
         // Create keys for an user
         fn instantiate_keys(ref self: ContractState, // token_quote: TokenQuoteBuyKeys,
-        // bonding_type: BondingType, 
+        // bonding_type: BondingType,
         ) {
             // let caller = get_caller_address();
             let keys = self.keys_of_users.read(get_caller_address());
@@ -285,8 +285,8 @@ mod KeysMarketplace {
 
         fn instantiate_keys_with_nostr(
             ref self: ContractState, request_nostr: SocialRequest<LinkedNostrAddress>
-        // token_quote: TokenQuoteBuyKeys,
-        // bonding_type: BondingType, 
+            // token_quote: TokenQuoteBuyKeys,
+        // bonding_type: BondingType,
         ) {
             let caller = get_caller_address();
             let keys = self.keys_of_users.read(caller);
@@ -327,7 +327,10 @@ mod KeysMarketplace {
                 created_at: get_block_timestamp(),
                 total_paid: 0
             };
-            self.shares_by_users.entry((get_caller_address(), get_caller_address())).write(share_user);
+            self
+                .shares_by_users
+                .entry((get_caller_address(), get_caller_address()))
+                .write(share_user);
             self.keys_of_users.entry(get_caller_address()).write(key.clone());
 
             let total_key = self.total_keys.read();
@@ -437,7 +440,10 @@ mod KeysMarketplace {
             key.price = total_price;
             key.total_supply = key.total_supply + amount;
             // key.total_supply += amount;
-            self.shares_by_users.entry((get_caller_address(), address_user)).write(share_user.clone());
+            self
+                .shares_by_users
+                .entry((get_caller_address(), address_user))
+                .write(share_user.clone());
 
             self.keys_of_users.entry(address_user).write(key.clone());
 
@@ -472,7 +478,8 @@ mod KeysMarketplace {
                 old_keys.total_supply == 1 && old_keys.owner == get_caller_address(),
                 "can't sell owner key"
             );
-            // assert!(old_keys.total_supply - amount == 0 && old_keys.owner == caller, "cant sell owner key");
+            // assert!(old_keys.total_supply - amount == 0 && old_keys.owner == caller, "cant sell
+            // owner key");
 
             // TODO erc20 token transfer
             let token = old_keys.token_quote.clone();
@@ -549,7 +556,8 @@ mod KeysMarketplace {
             // key.total_supply -= amount;
             self
                 .shares_by_users
-                .entry((get_caller_address(), address_user.clone())).write(share_user.clone());
+                .entry((get_caller_address(), address_user.clone()))
+                .write(share_user.clone());
             self.keys_of_users.entry(address_user.clone()).write(key.clone());
 
             self

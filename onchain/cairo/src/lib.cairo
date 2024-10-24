@@ -25,6 +25,7 @@ pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod jediswap;
+    pub mod nameservice;
     pub mod nfts;
     pub mod pixel;
     pub mod pixel_template;
@@ -32,14 +33,13 @@ pub mod interfaces {
     pub mod quests;
     pub mod username_store;
     pub mod vault;
-    pub mod nameservice;
 }
 
 pub mod afk_id {
     // pub mod afk_identity;
     // pub mod id_factory;
-    pub mod username_store;
     pub mod nameservice;
+    pub mod username_store;
 }
 
 pub mod defi {
@@ -81,7 +81,7 @@ pub mod templates {
 }
 pub mod pixel {
     pub mod art_peace;
-// pub mod templates;
+    // pub mod templates;
 // use art_peace::ArtPeace;
 
 }

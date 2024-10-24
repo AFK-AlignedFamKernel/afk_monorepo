@@ -1,5 +1,6 @@
 use starknet::account::Call;
-// use starknet::{ContractAddress, get_caller_address, get_contract_address, contract_address_const};
+// use starknet::{ContractAddress, get_caller_address, get_contract_address,
+// contract_address_const};
 use super::profile::NostrProfile;
 use super::request::SocialRequest;
 use super::transfer::Transfer;
@@ -9,7 +10,7 @@ use super::transfer::Transfer;
 pub trait ISocialAccount<TContractState> {
     fn get_public_key(self: @TContractState) -> u256;
     fn handle_transfer(ref self: TContractState, request: SocialRequest<Transfer>);
-// fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
+    // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
 // felt252;
@@ -27,12 +28,13 @@ pub trait ISRC6<TState> {
 pub mod SocialAccount {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls,
-        // is_valid_stark_signature
+    use afk::utils::{MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls,// is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
     use super::ISRC6;
 
@@ -41,9 +43,6 @@ pub mod SocialAccount {
     };
     use super::super::transfer::Transfer;
     use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
-    };
     #[storage]
     struct Storage {
         #[key]
@@ -249,15 +248,17 @@ pub mod SocialAccount {
 
 //         let sender = deploy_account(account_class, sender_public_key);
 
-//         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
-//         // just for testing, do not use for anything else
-//         let recipient_public_key =
+//         // recipient private key:
+//         59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
+//         not use for anything else let recipient_public_key =
 //             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 //         let recipient = deploy_account(account_class, recipient_public_key);
 
-//         let joyboy_public_key = 0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40;
+//         let joyboy_public_key =
+//         0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40;
 
-//         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 100, sender.contract_address);
+//         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 100,
+//         sender.contract_address);
 
 //         let transfer = Transfer {
 //             amount: 1,

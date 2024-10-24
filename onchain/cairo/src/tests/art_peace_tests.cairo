@@ -19,12 +19,9 @@ use openzeppelin::token::erc721::interface::{
 
 use snforge_std as snf;
 use snforge_std::{
-    declare, ContractClass, spy_events, EventSpy, Event,
-    start_cheat_caller_address, stop_cheat_caller_address,
-     cheat_block_timestamp, CheatSpan,
-    ContractClassTrait, DeclareResultTrait,
-    
-    
+    declare, ContractClass, spy_events, EventSpy, Event, start_cheat_caller_address,
+    stop_cheat_caller_address, cheat_block_timestamp, CheatSpan, ContractClassTrait,
+    DeclareResultTrait,
 };
 use starknet::{ContractAddress, get_caller_address};
 
@@ -144,16 +141,15 @@ pub(crate) fn deploy_with_quests_contract(
     let mut i = 0;
     let mut dayId = 0;
     let mut days_quests: Array<ContractAddress> = array![];
-    while i < daily_quests
-        .len() {
-            days_quests.append(*daily_quests.at(i));
-            i += 1;
-            if i % daily_quests_count == 0 {
-                art_peace.add_daily_quests(dayId, days_quests.span());
-                dayId += 1;
-                days_quests = array![];
-            }
-        };
+    while i < daily_quests.len() {
+        days_quests.append(*daily_quests.at(i));
+        i += 1;
+        if i % daily_quests_count == 0 {
+            art_peace.add_daily_quests(dayId, days_quests.span());
+            dayId += 1;
+            days_quests = array![];
+        }
+    };
     if days_quests.len() > 0 {
         art_peace.add_daily_quests(dayId, days_quests.span());
     }

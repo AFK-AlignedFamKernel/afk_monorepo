@@ -3,10 +3,10 @@ pub mod TemplateStoreComponent {
     use afk::interfaces::pixel_template::{ITemplateStore, TemplateMetadata};
     use core::num::traits::Zero;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         templates_count: u32,
@@ -34,7 +34,7 @@ pub mod TemplateStoreComponent {
     struct TemplateCompleted {
         #[key]
         id: u32,
-    // TODO: Users rewarded, ...
+        // TODO: Users rewarded, ...
     }
 
     #[embeddable_as(TemplateStoreImpl)]
