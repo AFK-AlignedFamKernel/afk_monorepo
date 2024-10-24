@@ -103,6 +103,13 @@ pub struct SharesTokenUser {
     pub total_paid: u256,
 }
 
+#[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
+pub struct MetadataLaunch {
+    pub token_address: ContractAddress,
+    pub url: ByteArray,
+    pub nostr_event_id: u256,
+}
+
 
 // Events
 
@@ -221,3 +228,11 @@ pub struct TokenClaimed {
     pub timestamp: u64
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct MetadataCoinAdded {
+    #[key]
+    pub token_address: ContractAddress,
+    pub url: ByteArray,
+    pub nostr_event_id: u256,
+    pub timestamp: u64
+}
