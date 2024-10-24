@@ -14,6 +14,7 @@ import {useDialog, useToast} from '../../hooks/modals';
 import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import stylesheet from './styles';
+import GenerateQRCode from './qr/GenerateQRCode';
 
 export const GenerateInvoiceCashu = () => {
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
@@ -222,6 +223,7 @@ export const GenerateInvoiceCashu = () => {
                   </TouchableOpacity>
                 }
               />
+              <GenerateQRCode data={quote?.request} size={200} />
             </View>
           )}
         </View>

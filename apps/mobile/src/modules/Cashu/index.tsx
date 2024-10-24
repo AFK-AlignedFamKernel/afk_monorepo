@@ -25,6 +25,9 @@ import {NoMintBanner} from './NoMintBanner';
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
+import ScanCashuQRCode from './qr/ScanCode';
+import GenerateQRCode from './qr/GenerateQRCode';
+
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -497,3 +500,6 @@ function PayInfo({
     </View>
   );
 }
+
+
+
