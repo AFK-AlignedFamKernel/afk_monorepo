@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Account, constants, ec, json, stark, RpcProvider, hash, CallData } from 'starknet';
+import { Account, constants, ec, json, stark, RpcProvider, hash, CallData, DeployAccountContractPayload } from 'starknet';
 
 export function generateLink(privateKey: string) {
     const baseUrl = process.env.NODE_ENV == "production" ? "https://lfg.afk-community.xyz" : "http://localhost:3000"
@@ -76,11 +76,43 @@ export function generateStarknetWallet() {
             precomputeAddress: AXcontractAddress,
             classHash: argentXaccountClassHash,
             starkKeyPub,
-            privateKey
+            privateKey,
+            constructorCalldata:AXConstructorCallData,
+            provider
         }
     } catch (error) {
         console.log("error generate account",error)
-        return undefined
+        return {
+            precomputeAddress: undefined,
+            classHash: undefined,
+            starkKeyPub:undefined,
+            privateKey:undefined,
+            provider:undefined
+        }
+
+    }
+
+}
+
+
+export async function generateDeployAccount(contractAddress: string, pubkey: string, classHash: string, constructorCalldata: any) {
+    try {
+
+        const deployAccountPayload:DeployAccountContractPayload = {
+            classHash: classHash,
+            constructorCalldata: constructorCalldata,
+            contractAddress: contractAddress,
+            addressSalt: pubkey,
+        };
+
+        return {
+            deployAccountPayload
+        }
+    } catch (error) {
+        console.log("error deployAccount", error)
+        return {
+            contract_address:undefined
+        }
 
     }
 
@@ -106,6 +138,9 @@ export async function deployAccount(provider: RpcProvider, contractAddress: stri
         }
     } catch (error) {
         console.log("error deployAccount", error)
+        return {
+            contract_address:undefined
+        }
 
     }
 

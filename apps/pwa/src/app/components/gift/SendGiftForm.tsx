@@ -14,6 +14,7 @@ import CustomModal from '../modal';
 import axios from 'axios';
 import { TOKENS_ADDRESS } from 'common';
 import { CallData, constants, uint256 } from 'starknet';
+import { deployAccount, generateDeployAccount, generateStarknetWallet } from '@/utils/generate';
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // USDC on Ethereum mainnet
 
 interface SendUSDCFormProps {
@@ -22,18 +23,23 @@ interface SendUSDCFormProps {
 }
 
 type Token = 'ETH' | 'STRK' | 'USDC';
+enum GiftType {
+  'INTERNAL', "EXTERNAL_PRIVATE_KEY", "API"
+}
 const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) => {
   const [amount, setAmount] = useState<string>('');
   const toast = useToast();
   const account = useAccount()
   const { account: accountStarknet } = useAccountStarknet()
   const [token, setToken] = useState<Token>('ETH');
+  const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
   const [usdAmount, setUsdAmount] = useState<string>('');
   const [recipientVaultAddress, setVaultRecipientAddress] = useState<string | undefined>();
   const [recipientVaultStrkAddress, setVaultRecipientStrkAddress] = useState<string | undefined>();
   const [tokenAmount, setTokenAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
   const handleCalculate = () => {
     if (tokenPrice && usdAmount) {
       const usd = parseFloat(usdAmount);
@@ -71,7 +77,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
 
   const handlePresetAmount = (presetAmount: number) => {
     setUsdAmount(presetAmount.toString());
-    const totalPrice =  Number(presetAmount) / Number(tokenPrice) 
+    const totalPrice = Number(presetAmount) / Number(tokenPrice)
     setAmount(totalPrice?.toString())
   };
 
@@ -90,6 +96,16 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
     try {
       // Convert amount to the smallest USDC unit (6 decimals)
       // const value = BigInt(parseFloat(amount) * 1e6); // USDC has 6 decimal places
+
+      if (!amount) {
+        toast({
+          title: 'Error',
+          description: 'Amount is required.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
 
       if (chain == "STARKNET" || !chain) {
 
@@ -115,39 +131,63 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
             isClosable: true,
           });
         }
+        let recipientAddress = recipientVaultStrkAddress ?? accountStarknet?.address
 
-        const recipientAddress = recipientVaultStrkAddress ?? accountStarknet?.address
+        if (giftType == GiftType.EXTERNAL_PRIVATE_KEY) {
 
-        const decimals = token == "USDC" ? 6 : 18
-        if (!amount) {
-          toast({
-            title: 'Error',
-            description: 'Amount is required.',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
+          const { precomputeAddress, provider, privateKey, starkKeyPub: pubkey, classHash, constructorCalldata } = await generateStarknetWallet()
+
+          if (!provider) {
+            toast({
+              title: 'Error when generating the gift',
+              description: 'Please try or contact the support',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
+            return;
+          }
+          recipientAddress = precomputeAddress
+
+          // const walletGenerated = await deployAccount(provider, precomputeAddress, pubkey, privateKey, classHash, constructorCalldata)
+          // const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, pubkey, classHash, constructorCalldata)
+          const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, account?.address, classHash, constructorCalldata)
+          // recipientAddress = walletGenerated?.contract_address
+          const decimals = token == "USDC" ? 6 : 18
+
+
+          if(calldataWalletGenerated?.deployAccountPayload) {
+            const deployedAccount = await accountStarknet?.deployAccount(calldataWalletGenerated?.deployAccountPayload);
+            recipientAddress = deployedAccount?.contract_address;
+            console.log('✅ ArgentX wallet deployed at:', deployedAccount);
+
+          }
+
+
+
+
+          const amountUint256 = uint256.bnToUint256(
+            Math.ceil(Number(amount) * 10 ** decimals),
+          );
+          console.log("amountUint256", amountUint256)
+          const txTransferCalldata = CallData.compile({
+            recipient: recipientAddress ?? "",
+            amountUint256
+          })
+
+          const receipt = await accountStarknet?.execute(
+            [
+              {
+                contractAddress: addressToken,
+                entrypoint: "transfer",
+                calldata: txTransferCalldata,
+              },
+
+            ],
+          );
+          console.log("receipt", receipt)
         }
-        const amountUint256 = uint256.bnToUint256(
-          Math.ceil(Number(amount) * 10 ** decimals),
-        );
-        console.log("amountUint256", amountUint256)
-        const txTransferCalldata = CallData.compile({
-          recipient: recipientAddress ?? "",
-          amountUint256
-        })
 
-        const receipt = await accountStarknet?.execute(
-          [
-            {
-              contractAddress: addressToken,
-              entrypoint: "transfer",
-              calldata: txTransferCalldata,
-            },
-
-          ],
-        );
-        console.log("receipt", receipt)
         // if (!recipientAddress) {
         //   toast({
         //     title: 'Error',
