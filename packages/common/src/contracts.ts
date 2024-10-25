@@ -138,3 +138,13 @@ export const USERNAME_STORE_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     "0x3af00ab1a4d280793d311c610173bdf84b6e2fd2221bacfc52d19531413e00c",
 };
+
+
+export const RPC_URLS_NUMBER: { [key: number]: string } = {
+  11155111: "https://eth-sepolia.public.blastapi.io",
+  1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID', // Ethereum Mainnet
+  137: 'https://polygon-rpc.com', // Polygon
+  56: 'https://bsc-dataseed.binance.org', // Binance Smart Chain
+  920637907288165: "https://sepolia-rpc.kakarot.org"
+  // Add more networks as needed
+};

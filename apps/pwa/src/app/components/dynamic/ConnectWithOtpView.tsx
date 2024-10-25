@@ -1,10 +1,10 @@
 import { FC, FormEventHandler } from 'react';
 import { useConnectWithOtp, useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
-const ConnectWithOrpView: FC = () => {
+const ConnectWithOtpView: FC = () => {
   const { user } = useDynamicContext()
 
-  const { connectWithEmail, verifyOneTimePassword } = useConnectWithOtp();
+  const { connectWithEmail, verifyOneTimePassword, connectWithSms } = useConnectWithOtp();
 
   const onSubmitEmailHandler: FormEventHandler<HTMLFormElement> = async (
     event,
@@ -48,3 +48,6 @@ const ConnectWithOrpView: FC = () => {
     </div>
   )
 }
+
+
+export default ConnectWithOtpView

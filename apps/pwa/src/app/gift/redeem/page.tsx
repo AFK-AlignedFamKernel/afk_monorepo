@@ -3,6 +3,7 @@
 import ReceiveGift from '@/app/components/gift/ReceiveGift';
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
+import { Box } from '@chakra-ui/react';
 const Redeem = () => {
   // const router = useRouter();
   // const router = typeof window !== 'undefined' ? useRouter() : null;
@@ -42,11 +43,13 @@ const Redeem = () => {
   // };
 
   return (
-    <>
+    <Box
+      className="min-h-screen w-full relative bg-black"
+    >
       <Navbar></Navbar>
       <ReceiveGift></ReceiveGift>
       <Footer></Footer>
-    </>
+    </Box>
   );
 };
 

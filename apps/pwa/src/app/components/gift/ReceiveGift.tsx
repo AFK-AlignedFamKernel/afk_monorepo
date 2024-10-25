@@ -1,18 +1,19 @@
 // components/SendUSDCForm.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Input, Text, Stack, useToast } from '@chakra-ui/react';
 import { createWalletClient, custom, formatEther, formatUnits, parseEther, parseUnits } from 'viem';
 import { mainnet } from 'viem/chains';
-import { ethers } from 'ethers';
+import { ethers, JsonRpcProvider } from 'ethers';
 // import { useRouter } from 'next/router';
 import { useRouter } from 'next/navigation';
 
 import { useSearchParams } from 'next/navigation'
-import { TOKENS_ADDRESS } from 'common';
+import { RPC_URLS_NUMBER, TOKENS_ADDRESS } from 'common';
 
 import { useSendTransaction, useAccount, useWriteContract } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
 import { constants } from 'starknet';
+import AccountManagement from '../account';
 
 interface SendUSDCFormProps {
   recipientAddress?: string;
@@ -39,9 +40,50 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
   console.log("amount", amount)
   console.log("network", network)
   const [balance, setBalance] = useState<string | null>(null);
+  const [publicKeyWallet, setPublicKeyWallet] = useState<string | undefined>();
   const [balanceETH, setBalanceETH] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+
+    const fetchBalance = async () => {
+      if (!account) return;
+      const chainId = account?.chainId
+      if (!chainId) return;
+      const { wallet, provider } = await getProvider(chainId)
+      setPublicKeyWallet(wallet?.address)
+      await getBalance(provider, wallet)
+    }
+    fetchBalance()
+  }, [account])
+
+  const getProvider = async (chainId: number) => {
+    const rpcUrl = RPC_URLS_NUMBER[network ? network : chainId ?? 0];
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl, chainId);
+    const wallet = new ethers.Wallet(privateKey as string, provider);
+    return {
+      rpcUrl,
+      provider,
+      wallet
+    }
+  }
+
+  const getBalance = async (provider: JsonRpcProvider, wallet: ethers.Wallet) => {
+    // Get the RPC URL based on chainId or default to Sepolia
+
+
+    let balance = "0"
+    try {
+      const balanceEthWallet = await provider.getBalance(wallet?.address)
+      console.log("balanceEthWallet", balanceEthWallet)
+      balance = formatUnits(balanceEthWallet, 18)
+      setBalanceETH(balance)
+    } catch (error) {
+      console.log("error", error)
+    }
+    return balance;
+  }
   const claimUSDC = async () => {
     if (!privateKey) return;
 
@@ -66,28 +108,20 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         }
         const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString()]["ETH"];
         console.log('addressToken', addressToken)
+        const chainId = await account?.chainId
 
-        const rpcUrls: { [key: number]: string } = {
-          11155111: "https://eth-sepolia.public.blastapi.io",
-          1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID', // Ethereum Mainnet
-          137: 'https://polygon-rpc.com', // Polygon
-          56: 'https://bsc-dataseed.binance.org', // Binance Smart Chain
-          920637907288165: "https://sepolia-rpc.kakarot.org"
-          // Add more networks as needed
-        };
+        if (!chainId) {
+          toast({
+            title: "ChainId not find",
+            status: "warning"
+          })
+          return;
+        }
+        const { wallet, provider } = await getProvider(chainId)
+        await getBalance(provider, wallet)
 
-        // Get the RPC URL based on chainId or default to Sepolia
-        const rpcUrl = rpcUrls[network ? network : chainId ?? 0];
-
-        const provider = new ethers.JsonRpcProvider(rpcUrl, chainId);
-        const wallet = new ethers.Wallet(privateKey as string, provider);
-
-        try {
-          const balanceEthWallet = await provider.getBalance(wallet?.address)
-          console.log("balanceEthWallet", balanceEthWallet)
-          setBalanceETH(formatUnits(balanceEthWallet, 18))
-        } catch (error) {
-          console.log("error", error)
+        if (!wallet && !provider) {
+          return;
         }
         // TODO add ETH check
         if (tokenAddress == "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9") {
@@ -99,18 +133,32 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
 
             // Get current Gas Price from the network
             const gasFeeData = await provider.getFeeData();
-            const gasPrice = gasFeeData?.gasPrice ?? BigInt(0);
+            console.log("gasFeeData", gasFeeData)
+
+            const gasPrice = gasFeeData?.gasPrice ?? BigInt(210000);
 
             // Calculate the total transaction fee
             // const totalFee = gasPrice.mul(gasLimit); // Total Fee in wei
 
             // Format fee into Ether for readability
-            const totalFeeInEther = formatEther(gasPrice * BigInt(gasLimit));
+            const totalFeeInEther = formatEther(gasPrice * BigInt(gasLimit)*BigInt(1000));
+            console.log("totalFeeInEther", totalFeeInEther)
+            const amountValue = parseEther(amount) - parseEther(totalFeeInEther)
+            console.log("amountValue", amountValue)
+
             // const totalFeeInEther = formatEther(gasPrice * gasLimit);
             const tx = await wallet.sendTransaction({
               to: account?.address,
-              value: parseEther(amount) - parseEther(totalFeeInEther),
+              value: amountValue,
             })
+
+            if (tx) {
+              toast({
+                title: "Fund received",
+                description: `Tx hash:`
+              })
+              return;
+            }
           }
 
         } else {
@@ -136,10 +184,6 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           }
         }
 
-        // USDC has 6 decimals
-
-        // Transfer USDC to user's wallet (if balance is sufficient)
-
       }
 
     } catch (e) {
@@ -150,13 +194,25 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
 
   return (
     <Box p={4}>
-      <Text fontSize="lg">Redeem USDC</Text>
+      <Text fontSize="lg">Redeem</Text>
+      <Text fontSize="lg">Token address {tokenAddress}</Text>
+      {amount && <Text>Amount: {amount}</Text>}
       {error && <Text color="red.500">{error}</Text>}
-      {balance && <Text>Gift Balance: {balance} USDC</Text>}
-      {balance && <Text>Gift Fees: {balance} ETH</Text>}
+      {balance && <Text>Gift token Balance: {balance} USDC</Text>}
+
+      {balanceETH && <Text>Gift ETH Balance: {balanceETH} ETH</Text>}
       <Button onClick={claimUSDC} colorScheme="blue" mt={4}>
-        Claim USDC
+        Claim {amount}
       </Button>
+
+
+      <Box>
+
+        {publicKeyWallet && <Text>Public key: {publicKeyWallet}</Text>}
+
+      </Box>
+
+      <AccountManagement></AccountManagement>
     </Box>
   );
 };

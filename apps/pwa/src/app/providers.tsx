@@ -9,7 +9,9 @@ import { Chain } from 'viem';
 import { createConfig, http } from 'wagmi';
 import { WagmiProvider } from 'wagmi';
 import { mainnet, sepolia } from 'wagmi/chains';
-import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
+import { DynamicContextProvider, DynamicWidget } from "@dynamic-labs/sdk-react-core";
+import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector';
+
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { StarknetWalletConnectors } from "@dynamic-labs/starknet";
 // import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
@@ -47,8 +49,9 @@ export const TRANSPORTS = {
   [kakarotEvm.id]: http(),
 }
 export const config = createConfig({
-  chains: CHAINS_CONFIG,
-  transports: TRANSPORTS
+  chains: [mainnet, sepolia, kakarotEvm],
+  transports: TRANSPORTS,
+  multiInjectedProviderDiscovery: false,
 });
 
 const configRainbow = getDefaultConfig({
@@ -79,8 +82,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         >
           <StarknetProvider>
             <WagmiProvider config={config}>
+
               <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider>{children}</RainbowKitProvider>
+                <DynamicWagmiConnector>
+                  <DynamicWidget />
+                  <RainbowKitProvider>{children}</RainbowKitProvider>
+                </DynamicWagmiConnector>
               </QueryClientProvider>
             </WagmiProvider>
           </StarknetProvider>

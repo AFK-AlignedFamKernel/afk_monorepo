@@ -24,6 +24,7 @@
     "@dynamic-labs/ethereum": "^3.4.4",
     "@dynamic-labs/sdk-react-core": "^3.4.4",
     "@dynamic-labs/starknet": "^3.4.4",
+    "@dynamic-labs/wagmi-connector": "^3.4.4",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@nostr-dev-kit/ndk": "2.10.1",
