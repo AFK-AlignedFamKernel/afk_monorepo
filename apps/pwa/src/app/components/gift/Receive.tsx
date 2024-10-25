@@ -4,7 +4,6 @@ import { Box, Button, Input, Text, Stack, useToast } from '@chakra-ui/react';
 import { createWalletClient, custom } from 'viem';
 import { mainnet } from 'viem/chains';
 
-const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // USDC on Ethereum mainnet
 
 interface SendUSDCFormProps {
   recipientAddress?: string;

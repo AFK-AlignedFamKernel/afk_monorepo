@@ -40,13 +40,15 @@ const kakarotEvm: Chain = {
   // testnet: true,
 };
 
+export const CHAINS_CONFIG = [mainnet, sepolia, kakarotEvm]
+export const TRANSPORTS = {
+  [mainnet.id]: http(),
+  [sepolia.id]: http(),
+  [kakarotEvm.id]: http(),
+}
 export const config = createConfig({
-  chains: [mainnet, sepolia, kakarotEvm],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [kakarotEvm.id]: http(),
-  },
+  chains: CHAINS_CONFIG,
+  transports: TRANSPORTS
 });
 
 const configRainbow = getDefaultConfig({

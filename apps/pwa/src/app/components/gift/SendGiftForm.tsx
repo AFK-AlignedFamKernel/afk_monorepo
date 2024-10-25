@@ -1,9 +1,9 @@
 // components/SendUSDCForm.tsx
 import { useState, useEffect } from 'react';
 import { Box, Button, Input, Text, Stack, useToast, Select } from '@chakra-ui/react';
-import { createWalletClient, custom, toEventSignature } from 'viem';
-import { mainnet } from 'viem/chains';
-import { useSendTransaction, useAccount, parseEther } from 'wagmi';
+import { createWalletClient, custom, toEventSignature, parseEther } from 'viem';
+import { mainnet, sepolia } from 'viem/chains';
+import { useSendTransaction, useAccount } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
 import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
 import { connect } from "starknetkit"
@@ -17,29 +17,33 @@ import { CallData, constants, uint256 } from 'starknet';
 import { deployAccount, generateDeployAccount, generateStarknetWallet } from '@/utils/generate';
 const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // USDC on Ethereum mainnet
 
-interface SendUSDCFormProps {
+interface SendFormProps {
   recipientAddress?: string;
-  chain?: "KAKAROT" | "STARKNET"
+  chain?: "KAKAROT" | "STARKNET";
+  tokenAddress?: string;
 }
-
 type Token = 'ETH' | 'STRK' | 'USDC';
 enum GiftType {
   'INTERNAL', "EXTERNAL_PRIVATE_KEY", "API"
 }
-const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) => {
+const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chain }) => {
   const [amount, setAmount] = useState<string>('');
   const toast = useToast();
   const account = useAccount()
   const { account: accountStarknet } = useAccountStarknet()
   const [token, setToken] = useState<Token>('ETH');
-  const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
+  const [giftType, setGiftType] = useState<GiftType>(GiftType.API);
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
   const [usdAmount, setUsdAmount] = useState<string>('');
-  const [recipientVaultAddress, setVaultRecipientAddress] = useState<string | undefined>();
+  const [recipientVaultAddress, setVaultRecipientAddress] = useState<`0x${string}` | undefined | null>();
   const [recipientVaultStrkAddress, setVaultRecipientStrkAddress] = useState<string | undefined>();
   const [tokenAmount, setTokenAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
+  // Initialize `viem` client
+  const walletClient = createWalletClient({
+    chain: sepolia,
+    transport: custom(window?.ethereum),
+  });
   const handleCalculate = () => {
     if (tokenPrice && usdAmount) {
       const usd = parseFloat(usdAmount);
@@ -69,11 +73,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
 
     fetchTokenPrice();
   }, [token])
-  // Initialize `viem` client
-  const walletClient = createWalletClient({
-    chain: mainnet,
-    transport: custom(window.ethereum),
-  });
+
 
   const handlePresetAmount = (presetAmount: number) => {
     setUsdAmount(presetAmount.toString());
@@ -87,7 +87,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
         title: 'Error',
         description: 'Please connect or create your wallet',
         status: 'info',
-        duration: 5000,
+        duration: 3000,
         isClosable: true,
       });
       return;
@@ -102,7 +102,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
           title: 'Error',
           description: 'Amount is required.',
           status: 'error',
-          duration: 5000,
+          duration: 3000,
           isClosable: true,
         });
       }
@@ -127,11 +127,12 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
             title: 'Error',
             description: 'Recipient address is required.',
             status: 'error',
-            duration: 5000,
+            duration: 3000,
             isClosable: true,
           });
         }
         let recipientAddress = recipientVaultStrkAddress ?? accountStarknet?.address
+        const decimals = token == "USDC" ? 6 : 18
 
         if (giftType == GiftType.EXTERNAL_PRIVATE_KEY) {
 
@@ -149,22 +150,29 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
           }
           recipientAddress = precomputeAddress
 
+          if (!accountStarknet?.address) {
+            toast({
+              title: 'Connect or create a wallet',
+              description: 'Please contact the support if you need help',
+              status: 'info',
+              duration: 3000,
+              isClosable: true,
+            });
+            return;
+          }
+
           // const walletGenerated = await deployAccount(provider, precomputeAddress, pubkey, privateKey, classHash, constructorCalldata)
           // const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, pubkey, classHash, constructorCalldata)
-          const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, account?.address, classHash, constructorCalldata)
+          const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, accountStarknet?.address, classHash, constructorCalldata)
           // recipientAddress = walletGenerated?.contract_address
-          const decimals = token == "USDC" ? 6 : 18
 
 
-          if(calldataWalletGenerated?.deployAccountPayload) {
+          if (calldataWalletGenerated?.deployAccountPayload) {
             const deployedAccount = await accountStarknet?.deployAccount(calldataWalletGenerated?.deployAccountPayload);
             recipientAddress = deployedAccount?.contract_address;
             console.log('✅ ArgentX wallet deployed at:', deployedAccount);
 
           }
-
-
-
 
           const amountUint256 = uint256.bnToUint256(
             Math.ceil(Number(amount) * 10 ** decimals),
@@ -186,19 +194,29 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
             ],
           );
           console.log("receipt", receipt)
+        } else if (giftType == GiftType.API) {
+          const amountUint256 = uint256.bnToUint256(
+            Math.ceil(Number(amount) * 10 ** decimals),
+          );
+
+          recipientAddress=process.env.NEXT_PUBLIC_ACCOUNT_ADDRESS;
+          console.log("amountUint256", amountUint256)
+          const txTransferCalldata = CallData.compile({
+            recipient: recipientAddress ?? "",
+            amountUint256
+          })
+
+          const receipt = await accountStarknet?.execute(
+            [
+              {
+                contractAddress: addressToken,
+                entrypoint: "transfer",
+                calldata: txTransferCalldata,
+              },
+
+            ],
+          );
         }
-
-        // if (!recipientAddress) {
-        //   toast({
-        //     title: 'Error',
-        //     description: 'Recipient address is required.',
-        //     status: 'error',
-        //     duration: 5000,
-        //     isClosable: true,
-        //   });
-        //   return;
-        // }
-
 
       } else {
         const recipientAddress = ""
@@ -212,7 +230,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
           });
         }
         if (token == "ETH") {
-          sendTransaction({ to: recipientVaultAddress, value: parseEther(value) })
+          sendTransaction({ to: recipientVaultAddress, value: parseEther(amount) })
         }
         // const { request } = await account.simulateContract({
         //   address: USDC_CONTRACT_ADDRESS,

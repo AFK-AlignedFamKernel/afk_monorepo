@@ -5,7 +5,7 @@ export function Footer() {
         <div className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <img
             src="/assets/pepe-logo.png"
-            className="w-[80px] h-[80px] tab:h-auto tab:w-auto"
+            className="w-[50px] h-[50px] tab:h-auto tab:w-auto"
             alt=""
           />
           <p className="text-base leading-[18px] font-normal mt-[15px] tab:mb-[66px] mb-6 w-[278px]">
