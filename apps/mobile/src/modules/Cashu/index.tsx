@@ -235,11 +235,11 @@ export const CashuView = () => {
             </Button>
           </View>
         </View>
-
         {/* Contacts row */}
         <ContactsRow 
           contacts={storedContacts}
           onAddContact={() => setShowContactsModal(true)}
+          onContactPress={() => {}} // Added missing onContactPress prop
         />
 
         <View>
