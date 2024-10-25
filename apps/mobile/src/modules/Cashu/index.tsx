@@ -22,6 +22,7 @@ import {InvoicesListCashu} from './InvoicesListCashu';
 import {MintListCashu} from './MintListCashu';
 import {MnemonicCashu} from './MnemonicCashu';
 import {NoMintBanner} from './NoMintBanner';
+import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
@@ -108,6 +109,16 @@ export const CashuView = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
   const [showMore, setShowMore] = useState<boolean>(false);
+
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+
+  const handleQRCodeClick = () => {
+    setIsScannerVisible(true);
+  };
+
+  const handleCloseScanner = () => {
+    setIsScannerVisible(false);
+  };
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -199,7 +210,7 @@ export const CashuView = () => {
             </View>
             <Text style={styles.orText}>or</Text>
             <View>
-              <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
+              <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                 <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
               </Button>
             </View>
@@ -297,6 +308,9 @@ export const CashuView = () => {
           )}
         </ScrollView>
       </SafeAreaView>
+      <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
+        <ScanCashuQRCode onClose={handleCloseScanner} />
+      </Modal>
     </View>
   );
 };
