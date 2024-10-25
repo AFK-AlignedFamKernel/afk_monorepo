@@ -10,14 +10,11 @@ export default ThemedStyleSheet((theme) => ({
   // },
 
   container: {
-    // flex:1,
     width: '100%',
-    // maxWidth: 500,
     padding: Spacing.medium,
+    paddingTop: Spacing.xlarge,
     borderRadius: 10,
-    // position: 'relative',
     flex: 1,
-    // backgroundColor: theme.colors.background,
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
   },
@@ -463,5 +460,69 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+  },
+  contactsButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    marginLeft: 16,
+  },
+  contactsButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  contactsRow: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  addContactButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  plusSign: {
+    color: theme.colors.white,
+    fontSize: 24,
+    fontWeight: 'bold',
+    lineHeight: 24, // Ensures the + is vertically centered
+  },
+  contactAvatar: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 50,
+  },
+  avatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginBottom: 4,
+  },
+  contactName: {
+    fontSize: 12,
+    color: theme.colors.text,
+    textAlign: 'center',
+    width: '100%',
+  },
+  contactsContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  contactsScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  contactsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 12,
   },
 }));

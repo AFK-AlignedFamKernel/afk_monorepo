@@ -1,10 +1,10 @@
 import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {useCashu, useCashuStore} from 'afk_nostr_sdk';
+import {getContacts, Contact, useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View, Image} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
@@ -25,6 +25,9 @@ import {NoMintBanner} from './NoMintBanner';
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
+import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
+import {ContactList} from '../Contacts/ContactList';
+import {ContactsRow} from '../../components/ContactsRow';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -109,8 +112,22 @@ export const CashuView = () => {
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
   const [showMore, setShowMore] = useState<boolean>(false);
 
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
+
+  const handleQRCodeClick = () => {
+    setIsScannerVisible(true);
+  };
+
+  const handleCloseScanner = () => {
+    setIsScannerVisible(false);
+  };
+
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
+    if (tab === SelectedTab.CONTACTS) { // Use the enum value instead of string
+      setShowContactsModal(true);
+    }
     if (screen) {
       // navigation.navigate(screen as any);
     }
@@ -175,129 +192,133 @@ export const CashuView = () => {
   //   }
   // };
 
+  const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
+  
+  // Fetch contacts when component mounts
+  useEffect(() => {
+    const fetchContacts = () => {
+      const contactsData = getContacts();
+      if (contactsData) {
+        setStoredContacts(JSON.parse(contactsData));
+      }
+    };
+    fetchContacts();
+  }, [showContactsModal]); // Refresh when modal closes
+
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollView}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.balanceContainer}>
           {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonsContainer}>
-              <Button
-                onPress={onOpenSendModal}
-                style={styles.actionButton}
-                textStyle={styles.actionButtonText}
-              >
-                Send
-              </Button>
-              <Button
-                onPress={onOpenReceiveModal}
-                style={styles.actionButton}
-                textStyle={styles.actionButtonText}
-              >
-                Receive
-              </Button>
-            </View>
-            <Text style={styles.orText}>or</Text>
-            <View>
-              <Button onPress={() => console.log('todo: add scanner')} style={styles.qrButton}>
-                <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
-              </Button>
-            </View>
-
-            <Modal
-              style={{zIndex: 10}}
-              animationType="slide"
-              transparent={true}
-              visible={isZapModalVisible}
-              onRequestClose={() => setIsZapModalVisible(false)}
-            >
-              {/* <ZapUserView
-                isLoading={isLoading}
-                setIsZapModalVisible={setIsZapModalVisible}
-                setZapAmount={setZapAmount}
-                setZapRecipient={setZapRecipient}
-                zapAmount={zapAmount}
-                zapRecipient={zapRecipient}
-                handleZap={handleZap}
-              /> */}
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={isInvoiceModalVisible}
-              onRequestClose={() => setIsInvoiceModalVisible(false)}
-              style={{zIndex: 10}}
-            >
-              {/* <PayInfo
-                setInvoiceMemo={setInvoiceMemo}
-                setInvoiceAmount={setInvoiceAmount}
-                invoiceMemo={invoiceMemo}
-                invoiceAmount={invoiceAmount}
-                setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-                generateInvoice={generateInvoice}
-                isLoading={isLoading}
-              /> */}
-            </Modal>
-          </View>
-
-          <View>
+        </View>
+        <View style={styles.actionsContainer}>
+          <View style={styles.actionButtonsContainer}>
             <Button
-              style={styles.moreButton}
-              right={
-                <ChevronLeftIcon
-                  width={15}
-                  height={15}
-                  color={theme.colors.primary}
-                  style={showMore ? styles.lessButtonIcon : styles.moreButtonIcon}
-                />
-              }
-              onPress={() => {
-                setShowMore((prev) => !prev);
-                if (!showMore) {
-                  setSelectedTab(SelectedTab?.CASHU_MINT);
-                } else {
-                  setSelectedTab(undefined);
-                }
-              }}
+              onPress={onOpenSendModal}
+              style={styles.actionButton}
+              textStyle={styles.actionButtonText}
             >
-              {showMore ? 'Show less' : 'Show more'}
+              Send
+            </Button>
+            <Button
+              onPress={onOpenReceiveModal}
+              style={styles.actionButton}
+              textStyle={styles.actionButtonText}
+            >
+              Receive
             </Button>
           </View>
+          <Text style={styles.orText}>or</Text>
+          <View>
+            <Button onPress={handleQRCodeClick} style={styles.qrButton}>
+              <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+            </Button>
+          </View>
+        </View>
+        {/* Contacts row */}
+        <ContactsRow 
+          contacts={storedContacts}
+          onAddContact={() => setShowContactsModal(true)}
+          onContactPress={() => {}} // Added missing onContactPress prop
+        />
 
-          {showMore && (
-            <TabSelector
-              activeTab={selectedTab}
-              handleActiveTab={handleTabSelected}
-              buttons={TABS_CASHU}
-              addScreenNavigation={false}
-              containerStyle={styles.tabsContainer}
-              tabStyle={styles.tabs}
-              activeTabStyle={styles.active}
-            />
-          )}
+        <View>
+          <Button
+            variant="default"
+            style={styles.moreButton}
+            right={
+              <ChevronLeftIcon
+                width={15}
+                height={15}
+                color={theme.colors.primary}
+                style={showMore ? styles.lessButtonIcon : styles.moreButtonIcon}
+              />
+            }
+            onPress={() => {
+              setShowMore((prev) => !prev);
+              if (!showMore) {
+                setSelectedTab(SelectedTab?.CASHU_MINT);
+              } else {
+                setSelectedTab(undefined);
+              }
+            }}
+          >
+            {showMore ? 'Show less' : 'Show more'}
+          </Button>
+        </View>
 
-          {selectedTab == SelectedTab?.CASHU_INVOICES && <InvoicesListCashu></InvoicesListCashu>}
+        {showMore && (
+          <TabSelector
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={TABS_CASHU}
+            addScreenNavigation={false}
+            containerStyle={styles.tabsContainer}
+            tabStyle={styles.tabs}
+            activeTabStyle={styles.active}
+          />
+        )}
 
-          {selectedTab == SelectedTab?.CASHU_HISTORY && <HistoryTxCashu></HistoryTxCashu>}
+        {selectedTab == SelectedTab?.CASHU_INVOICES && <InvoicesListCashu></InvoicesListCashu>}
 
-          {selectedTab == SelectedTab?.CASHU_MINT && <MintListCashu></MintListCashu>}
+        {selectedTab == SelectedTab?.CASHU_HISTORY && <HistoryTxCashu></HistoryTxCashu>}
 
-          {selectedTab == SelectedTab.CASHU_SETTINGS && (
-            <View>
-              <TouchableOpacity
-                onPress={() => {
-                  connectCashWallet(mint);
-                }}
-              >
-                Connect Cashu
-              </TouchableOpacity>
-              <MnemonicCashu></MnemonicCashu>
-            </View>
-          )}
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+        {selectedTab == SelectedTab?.CASHU_MINT && <MintListCashu></MintListCashu>}
+
+        {selectedTab == SelectedTab.CASHU_SETTINGS && (
+          <View>
+            <TouchableOpacity
+              onPress={() => {
+                connectCashWallet(mint);
+              }}
+            >
+              Connect Cashu
+            </TouchableOpacity>
+            <MnemonicCashu></MnemonicCashu>
+          </View>
+        )}
+
+        {/* Add Contacts tab */}
+        {/* Delete this section
+          <TabSelector
+            activeTab={selectedTab}
+            handleActiveTab={handleTabSelected}
+            buttons={[
+              // ... existing tabs ...
+              {tab: 'Contacts', title: 'contacts'},
+            ]}
+          />
+        */}
+
+        {/* Add the ContactList modal */}
+        {showContactsModal && (
+          <ContactList onClose={() => setShowContactsModal(false)} />
+        )}
+      </ScrollView>
+      <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
+        <ScanCashuQRCode onClose={handleCloseScanner} />
+      </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -497,3 +518,18 @@ function PayInfo({
     </View>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
