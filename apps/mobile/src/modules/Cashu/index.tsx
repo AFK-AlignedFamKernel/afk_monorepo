@@ -26,6 +26,7 @@ import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
 import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
+import {ContactList} from '../Contacts/ContactList';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -111,6 +112,7 @@ export const CashuView = () => {
   const [showMore, setShowMore] = useState<boolean>(false);
 
   const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
 
   const handleQRCodeClick = () => {
     setIsScannerVisible(true);
@@ -122,6 +124,9 @@ export const CashuView = () => {
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
+    if (tab === SelectedTab.CONTACTS) { // Use the enum value instead of string
+      setShowContactsModal(true);
+    }
     if (screen) {
       // navigation.navigate(screen as any);
     }
@@ -206,6 +211,13 @@ export const CashuView = () => {
                 textStyle={styles.actionButtonText}
               >
                 Receive
+              </Button>
+              <Button
+                onPress={() => setShowContactsModal(true)}
+                style={styles.actionButton}
+                textStyle={styles.actionButtonText}
+              >
+                Contacts
               </Button>
             </View>
             <Text style={styles.orText}>or</Text>
@@ -305,6 +317,23 @@ export const CashuView = () => {
               </TouchableOpacity>
               <MnemonicCashu></MnemonicCashu>
             </View>
+          )}
+
+          {/* Add Contacts tab */}
+          {/* Delete this section
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={[
+                // ... existing tabs ...
+                {tab: 'Contacts', title: 'contacts'},
+              ]}
+            />
+          */}
+
+          {/* Add the ContactList modal */}
+          {showContactsModal && (
+            <ContactList onClose={() => setShowContactsModal(false)} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -511,3 +540,6 @@ function PayInfo({
     </View>
   );
 }
+
+
+
