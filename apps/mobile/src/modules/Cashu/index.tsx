@@ -22,10 +22,10 @@ import {InvoicesListCashu} from './InvoicesListCashu';
 import {MintListCashu} from './MintListCashu';
 import {MnemonicCashu} from './MnemonicCashu';
 import {NoMintBanner} from './NoMintBanner';
+import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
-import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 
 export const CashuWalletView: React.FC = () => {
   return (

@@ -1,10 +1,19 @@
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
 import React, {useState} from 'react';
-import {Button, StyleSheet, Text, View, Dimensions, Clipboard, TouchableOpacity, Modal} from 'react-native';
+import {
+  Button,
+  Clipboard,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
+import {useTheme} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {usePayment} from '../../../hooks/usePayment';
-import {useTheme} from '../../../hooks'; 
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -17,17 +26,17 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const {handlePayInvoice, handleGenerateEcash} = usePayment();
   const {showToast} = useToast();
-  const {theme} = useTheme(); 
+  const {theme} = useTheme();
 
   const handleScannedCode = ({data}: BarcodeScanningResult) => {
-    console.log('Scanned data:', data); 
+    console.log('Scanned data:', data);
     if (!data) {
       showToast({title: 'Invalid QR code', type: 'error'});
       return;
     }
     setScanned(true);
     setScannedData(data);
-    setModalVisible(true); 
+    setModalVisible(true);
   };
 
   const handlePay = async () => {
