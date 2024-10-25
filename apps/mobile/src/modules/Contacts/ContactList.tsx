@@ -1,7 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Modal, TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
+import {View, Text, TextInput, Modal, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Image} from 'react-native';
 import {useStyles, useTheme} from '../../hooks';
-import {useProfile} from 'afk_nostr_sdk';
+import {useProfile, Contact, addContacts, getContacts, useEditContacts} from 'afk_nostr_sdk';
+import {useToast} from '../../hooks/modals';
+import {useQueryClient} from '@tanstack/react-query';
 
 interface ContactListProps {
   onClose: () => void;
@@ -10,10 +12,25 @@ interface ContactListProps {
 export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const [nostrAddress, setNostrAddress] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'add'
+  const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
   const { theme } = useTheme();
+  const { showToast } = useToast();
+  const editContacts = useEditContacts();
+  const queryClient = useQueryClient();
 
-  // Add profile data fetching
-  const {data: profile} = useProfile({publicKey: nostrAddress});
+  // Destructure refetch from useProfile hook
+  const { data: profile, refetch } = useProfile({ publicKey: nostrAddress });
+
+  // Fetch contacts when component mounts
+  useEffect(() => {
+    const fetchContacts = () => {
+      const contactsData = getContacts();
+      if (contactsData) {
+        setStoredContacts(JSON.parse(contactsData));
+      }
+    };
+    fetchContacts();
+  }, []);
 
   const styles = StyleSheet.create({
     centeredView: {
@@ -114,11 +131,83 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
       marginBottom: 4,
       lineHeight: 20,
     },
+    contactItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      marginBottom: 8,
+    },
+    contactImage: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+      backgroundColor: theme.colors.messageCard,
+    },
+    contactInfo: {
+      flex: 1,
+    },
+    removeButton: {
+      backgroundColor: theme.colors.red, // Changed from 'error' to 'red'
+      padding: 8,
+      borderRadius: 6,
+    },
+    removeButtonText: {
+      color: theme.colors.white,
+      fontSize: 12,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: theme.colors.background,
+      marginVertical: 8,
+    },
   });
 
-  // Add profile display section
+  // Add handler for Check address button
+  const handleCheckAddress = async () => {
+    if (nostrAddress) {
+      await refetch();
+    }
+  };
+
+  const handleAddContact = () => {
+    if (!profile) return;
+
+    console.log('Adding new contact with profile:', profile);
+
+    const newContact: Contact = {
+      pubkey: nostrAddress,
+      displayName: profile.displayName || profile.name,
+      nip05: profile.nip05,
+      lud16: profile.lud16,
+      about: profile.about,
+      bio: profile.bio
+    };
+
+    console.log('Created contact object:', newContact);
+
+    try {
+      addContacts([newContact]);
+      console.log('Contact successfully added to storage');
+
+      showToast({ 
+        type: 'success', 
+        title: 'Contact added successfully' 
+      });
+      console.log('Toast shown, closing modal');
+      
+      onClose();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      showToast({
+        type: 'error',
+        title: 'Failed to add contact'
+      });
+    }
+  };
+
   const renderProfileInfo = () => {
-    if (!profile) return null;
+    if (!nostrAddress || !profile) return null;
     
     return (
       <View style={styles.profileInfo}>
@@ -156,24 +245,70 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
 
       {renderProfileInfo()}
 
-      <TouchableOpacity style={styles.actionButton}>
+      <TouchableOpacity 
+        style={styles.actionButton}
+        onPress={handleCheckAddress}
+      >
         <Text style={styles.actionButtonText}>Check address</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
         style={styles.actionButton}
         disabled={!profile}
+        onPress={handleAddContact}
       >
         <Text style={styles.actionButtonText}>Add contact</Text>
       </TouchableOpacity>
     </View>
   );
 
+  const handleRemoveContact = async (pubkey: string) => {
+    try {
+      await editContacts.mutateAsync(
+        { pubkey, type: 'remove' },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            showToast({ type: 'success', title: 'Contact removed successfully' });
+            // Update local storage contacts
+            const updatedContacts = storedContacts.filter(c => c.pubkey !== pubkey);
+            setStoredContacts(updatedContacts);
+          },
+        }
+      );
+    } catch (error) {
+      showToast({ type: 'error', title: 'Failed to remove contact' });
+    }
+  };
+
   const renderAllContacts = () => (
-    <View>
-      <Text style={styles.inputLabel}>Your contacts will appear here</Text>
-      {/* Add your contacts list here */}
-    </View>
+    <ScrollView>
+      <Text style={styles.inputLabel}>All contacts</Text>
+      {storedContacts.length === 0 ? (
+        <Text style={styles.profileDetail}>No contacts found</Text>
+      ) : (
+        storedContacts.map((contact, index) => (
+          <View key={contact.pubkey} style={styles.contactItem}>
+            <Image 
+              source={contact.image ? { uri: contact.image } : require('../../assets/pepe-logo.png')}
+              style={styles.contactImage}
+            />
+            <View style={styles.contactInfo}>
+              <Text style={styles.profileDetail}>
+                {contact.displayName || 'Unnamed Contact'}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.removeButton}
+              onPress={() => contact.pubkey && handleRemoveContact(contact.pubkey)}
+            >
+              <Text style={styles.removeButtonText}>Remove</Text>
+            </TouchableOpacity>
+            {index !== storedContacts.length - 1 && <View style={styles.separator} />}
+          </View>
+        ))
+      )}
+    </ScrollView>
   );
 
   return (
