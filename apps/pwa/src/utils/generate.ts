@@ -2,7 +2,8 @@ import { ethers } from 'ethers';
 import { Account, constants, ec, json, stark, RpcProvider, hash, CallData } from 'starknet';
 
 export function generateLink(privateKey: string) {
-    const url = `https://your-app.com/redeem?privateKey=${encodeURIComponent(privateKey)}`;
+    const baseUrl = process.env.NODE_ENV == "production" ? "https://lfg.afk-community.xyz" : "http://localhost:3000"
+    const url = `${baseUrl}/gift/redeem?privateKey=${encodeURIComponent(privateKey)}`;
     return url;
 }
 

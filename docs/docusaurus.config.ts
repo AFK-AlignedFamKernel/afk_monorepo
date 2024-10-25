@@ -41,7 +41,7 @@ const config: Config = {
           anonymizeIP: true,
         },
         docs: {
-          id: 'docs',
+          // id: 'docs',
           routeBasePath: 'docs',
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
@@ -49,13 +49,13 @@ const config: Config = {
           editUrl:
             "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
         },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
-        },
+        // blog: {
+        //   showReadingTime: true,
+        //   // Please change this to your repo.
+        //   // Remove this to remove the "edit this page" links.
+        //   editUrl:
+        //     "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
+        // },
         theme: {
           customCss: "./src/css/custom.css",
         },
