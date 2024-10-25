@@ -21,3 +21,4 @@ export {SquareInput} from './SquareInput';
 export {Text} from './Text';
 export {TextButton} from './TextButton';
 export {Toast} from './Toast';
+export {default as TabSelector} from './TabSelector';
