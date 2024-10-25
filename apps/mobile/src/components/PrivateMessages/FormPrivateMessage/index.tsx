@@ -1,7 +1,7 @@
 import {NDKUser} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
-import {useSendPrivateMessage} from 'afk_nostr_sdk';
-import React from 'react';
+import {useSendPrivateMessage, Contact, getContacts} from 'afk_nostr_sdk';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
@@ -10,6 +10,7 @@ import {Divider} from '../../Divider';
 import {IconButton} from '../../IconButton';
 import {Input} from '../../Input';
 import {KeyboardFixedView} from '../../Skeleton/KeyboardFixedView';
+import {ContactsRow} from '../../ContactsRow';
 import stylesheet from './styles';
 
 interface IFormPrivateMessage {
@@ -18,6 +19,7 @@ interface IFormPrivateMessage {
   receiverPublicKeyProps?: string;
   handleClose?: () => void;
 }
+
 export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   user,
   publicKey,
@@ -25,6 +27,7 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   receiverPublicKeyProps,
 }) => {
   const styles = useStyles(stylesheet);
+  const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
   const avatar = user?.profile?.banner ?? require('../../../assets/pepe-logo.png');
 
   const [receiverPublicKey, setReceiverPublicKey] = React.useState(receiverPublicKeyProps);
@@ -33,15 +36,28 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   const {showToast} = useToast();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    const fetchContacts = () => {
+      const contactsData = getContacts();
+      if (contactsData) {
+        setStoredContacts(JSON.parse(contactsData));
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  const handleContactSelect = (contact: Contact) => {
+    if (contact.pubkey) {
+      setReceiverPublicKey(contact.pubkey);
+    }
+  };
+
   const sendMessage = async (message: string) => {
     if (!receiverPublicKey) {
       showToast({title: 'Please choose a Nostr public key', type: 'error'});
       return;
     }
 
-    //todo: integrate hook here
-    //todo: encrypt message
-    //todo: send message
     await sendPrivateMessage.mutateAsync(
       {receiverPublicKeyProps: receiverPublicKey, content: message},
       {
@@ -59,50 +75,28 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
     );
   };
 
-  const handleSendMessage = () => {
-    if (!message) {
-      showToast({title: 'Please add a content', type: 'error'});
-      return;
-    }
-    if (!receiverPublicKey) {
-      showToast({title: 'Please choose a Nostr public key', type: 'error'});
-      return;
-    }
-
-    sendMessage(message);
-  };
-
   return (
-    <>
-      {/* <View style={styles.header}>
-				<IconButton icon="ChevronLeftIcon" size={20} onPress={handleGoBack} style={styles.backButton} />
-				<View style={styles.headerContent}>
-					<Image source={avatar} style={styles.avatar} />
-					<Text style={styles.name}>{user.name}</Text>
-				</View>
-			</View> */}
-      <View style={styles.container}>
-        <Input
-          value={receiverPublicKey}
-          onChangeText={setReceiverPublicKey}
-          placeholder="Receiver"
-        />
-        <KeyboardFixedView containerProps={{style: styles.commentInputContainer}}>
-          <Divider />
-
-          <View style={styles.commentInputContent}>
-            <Input
-              value={message}
-              onChangeText={setMessage}
-              containerStyle={styles.commentInput}
-              placeholder="Type your message"
-            />
-
-            <IconButton icon="SendIcon" size={20} onPress={handleSendMessage} />
-          </View>
-        </KeyboardFixedView>
-        {/* <MessageInput onSend={handleSendMessage} /> */}
-      </View>
-    </>
+    <View style={styles.container}>
+      <ContactsRow 
+        contacts={storedContacts}
+        onContactPress={handleContactSelect}
+        onAddContact={() => {
+          // Handle add contact action
+          showToast({title: 'Add contact functionality to be implemented', type: 'info'});
+        }}
+      />
+      <KeyboardFixedView containerProps={{style: styles.commentInputContainer}}>
+        <Divider />
+        <View style={styles.commentInputContent}>
+          <Input
+            value={message}
+            onChangeText={setMessage}
+            containerStyle={styles.commentInput}
+            placeholder="Type your message"
+          />
+          <IconButton icon="SendIcon" size={20} onPress={() => message && sendMessage(message)} />
+        </View>
+      </KeyboardFixedView>
+    </View>
   );
 };

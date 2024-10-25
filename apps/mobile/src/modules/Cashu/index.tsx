@@ -1,10 +1,10 @@
 import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {useCashu, useCashuStore} from 'afk_nostr_sdk';
+import {getContacts, Contact, useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View, Image} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
@@ -27,6 +27,7 @@ import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
 import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ContactList} from '../Contacts/ContactList';
+import {ContactsRow} from '../../components/ContactsRow';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -191,22 +192,25 @@ export const CashuView = () => {
   //   }
   // };
 
+  const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
+  
+  // Fetch contacts when component mounts
+  useEffect(() => {
+    const fetchContacts = () => {
+      const contactsData = getContacts();
+      if (contactsData) {
+        setStoredContacts(JSON.parse(contactsData));
+      }
+    };
+    fetchContacts();
+  }, [showContactsModal]); // Refresh when modal closes
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        {/* Add Contacts Button here, above the balance section */}
-        <TouchableOpacity 
-          style={styles.contactsButton}
-          onPress={() => setShowContactsModal(true)}
-        >
-          <Text style={styles.contactsButtonText}>Contacts</Text>
-        </TouchableOpacity>
-
-        {/* Balance and other existing content */}
         <View style={styles.balanceContainer}>
           {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
         </View>
-
         <View style={styles.actionsContainer}>
           <View style={styles.actionButtonsContainer}>
             <Button
@@ -230,46 +234,17 @@ export const CashuView = () => {
               <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
             </Button>
           </View>
-
-          <Modal
-            style={{zIndex: 10}}
-            animationType="slide"
-            transparent={true}
-            visible={isZapModalVisible}
-            onRequestClose={() => setIsZapModalVisible(false)}
-          >
-            {/* <ZapUserView
-              isLoading={isLoading}
-              setIsZapModalVisible={setIsZapModalVisible}
-              setZapAmount={setZapAmount}
-              setZapRecipient={setZapRecipient}
-              zapAmount={zapAmount}
-              zapRecipient={zapRecipient}
-              handleZap={handleZap}
-            /> */}
-          </Modal>
-
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isInvoiceModalVisible}
-            onRequestClose={() => setIsInvoiceModalVisible(false)}
-            style={{zIndex: 10}}
-          >
-            {/* <PayInfo
-              setInvoiceMemo={setInvoiceMemo}
-              setInvoiceAmount={setInvoiceAmount}
-              invoiceMemo={invoiceMemo}
-              invoiceAmount={invoiceAmount}
-              setIsInvoiceModalVisible={setIsInvoiceModalVisible}
-              generateInvoice={generateInvoice}
-              isLoading={isLoading}
-            /> */}
-          </Modal>
         </View>
+
+        {/* Contacts row */}
+        <ContactsRow 
+          contacts={storedContacts}
+          onAddContact={() => setShowContactsModal(true)}
+        />
 
         <View>
           <Button
+            variant="default"
             style={styles.moreButton}
             right={
               <ChevronLeftIcon
@@ -543,6 +518,14 @@ function PayInfo({
     </View>
   );
 }
+
+
+
+
+
+
+
+
 
 
 
