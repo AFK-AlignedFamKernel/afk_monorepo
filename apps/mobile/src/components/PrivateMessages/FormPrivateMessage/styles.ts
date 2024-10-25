@@ -3,7 +3,7 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
   },
   header: {
     padding: 10,

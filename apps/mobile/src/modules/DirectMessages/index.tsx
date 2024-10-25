@@ -3,10 +3,12 @@ import React, {useRef, useState} from 'react';
 import {ActivityIndicator, FlatList, Pressable, Text, View} from 'react-native';
 
 import {AddPostIcon} from '../../assets/icons';
+import {TabSelector} from '../../components';
 import {Conversation as ConversationPreview, Modalize} from '../../components';
 import {Chat} from '../../components/PrivateMessages/Chat';
 import {FormPrivateMessage} from '../../components/PrivateMessages/FormPrivateMessage';
 import {useStyles, useTheme} from '../../hooks';
+import {ContactList} from '../Contacts/ContactList';
 import stylesheet from './styles';
 
 export const DirectMessages: React.FC = () => {
@@ -15,6 +17,7 @@ export const DirectMessages: React.FC = () => {
   const styles = useStyles(stylesheet);
 
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<string>('messages');
 
   const {data, isPending} = useIncomingMessageUsers();
 
@@ -76,6 +79,17 @@ export const DirectMessages: React.FC = () => {
           <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
         </Pressable>
       )}
+
+      <TabSelector
+        activeTab={activeTab}
+        handleActiveTab={setActiveTab}
+        buttons={[
+          {tab: 'messages', title: 'Messages'},
+          {tab: 'contacts', title: 'Contacts'},
+        ]}
+      />
+
+      {activeTab === 'contacts' && <ContactList onClose={() => setActiveTab('messages')} />}
     </>
   );
 };
