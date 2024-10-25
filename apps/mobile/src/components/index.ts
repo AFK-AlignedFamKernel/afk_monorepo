@@ -18,7 +18,7 @@ export {InputAccessoryView} from './Skeleton/InputAccessoryView';
 export {KeyboardFixedView} from './Skeleton/KeyboardFixedView';
 export {RootScreenContainer} from './Skeleton/RootScreenContainer';
 export {SquareInput} from './SquareInput';
+export {default as TabSelector} from './TabSelector';
 export {Text} from './Text';
 export {TextButton} from './TextButton';
 export {Toast} from './Toast';
-export {default as TabSelector} from './TabSelector';

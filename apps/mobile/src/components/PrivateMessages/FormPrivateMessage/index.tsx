@@ -1,16 +1,16 @@
 import {NDKUser} from '@nostr-dev-kit/ndk';
 import {useQueryClient} from '@tanstack/react-query';
-import {useSendPrivateMessage, Contact, getContacts} from 'afk_nostr_sdk';
+import {Contact, getContacts, useSendPrivateMessage} from 'afk_nostr_sdk';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
+import {ContactsRow} from '../../ContactsRow';
 import {Divider} from '../../Divider';
 import {IconButton} from '../../IconButton';
 import {Input} from '../../Input';
 import {KeyboardFixedView} from '../../Skeleton/KeyboardFixedView';
-import {ContactsRow} from '../../ContactsRow';
 import stylesheet from './styles';
 
 interface IFormPrivateMessage {
@@ -77,7 +77,7 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
 
   return (
     <View style={styles.container}>
-      <ContactsRow 
+      <ContactsRow
         contacts={storedContacts}
         onContactPress={handleContactSelect}
         onAddContact={() => {

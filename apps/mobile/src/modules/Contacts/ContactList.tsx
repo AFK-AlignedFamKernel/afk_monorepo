@@ -1,25 +1,36 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Modal, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Image} from 'react-native';
-import {useStyles, useTheme} from '../../hooks';
-import {useProfile, Contact, addContacts, getContacts, useEditContacts} from 'afk_nostr_sdk';
-import {useToast} from '../../hooks/modals';
 import {useQueryClient} from '@tanstack/react-query';
+import {addContacts, Contact, getContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
+import React, {useEffect, useState} from 'react';
+import {
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import {useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 
 interface ContactListProps {
   onClose: () => void;
 }
 
-export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
+export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   const [nostrAddress, setNostrAddress] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'add'
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
-  const { theme } = useTheme();
-  const { showToast } = useToast();
+  const {theme} = useTheme();
+  const {showToast} = useToast();
   const editContacts = useEditContacts();
   const queryClient = useQueryClient();
 
   // Destructure refetch from useProfile hook
-  const { data: profile, refetch } = useProfile({ publicKey: nostrAddress });
+  const {data: profile, refetch} = useProfile({publicKey: nostrAddress});
 
   // Fetch contacts when component mounts
   useEffect(() => {
@@ -181,7 +192,7 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
       nip05: profile.nip05,
       lud16: profile.lud16,
       about: profile.about,
-      bio: profile.bio
+      bio: profile.bio,
     };
 
     console.log('Created contact object:', newContact);
@@ -190,42 +201,36 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
       addContacts([newContact]);
       console.log('Contact successfully added to storage');
 
-      showToast({ 
-        type: 'success', 
-        title: 'Contact added successfully' 
+      showToast({
+        type: 'success',
+        title: 'Contact added successfully',
       });
       console.log('Toast shown, closing modal');
-      
+
       onClose();
     } catch (error) {
       console.error('Error adding contact:', error);
       showToast({
         type: 'error',
-        title: 'Failed to add contact'
+        title: 'Failed to add contact',
       });
     }
   };
 
   const renderProfileInfo = () => {
     if (!nostrAddress || !profile) return null;
-    
+
     return (
       <View style={styles.profileInfo}>
-        <Text style={styles.profileDetail}>
-          NIP05: {profile.nip05 || 'unrecognized'}
-        </Text>
+        <Text style={styles.profileDetail}>NIP05: {profile.nip05 || 'unrecognized'}</Text>
         <Text style={styles.profileDetail}>
           Lightning address: {profile.lud16 || 'unrecognized'}
         </Text>
         <Text style={styles.profileDetail}>
           Name: {profile.displayName || profile.name || 'unrecognized'}
         </Text>
-        <Text style={styles.profileDetail}>
-          About: {profile.about || 'unrecognized'}
-        </Text>
-        <Text style={styles.profileDetail}>
-          Bio: {profile.bio || 'unrecognized'}
-        </Text>
+        <Text style={styles.profileDetail}>About: {profile.about || 'unrecognized'}</Text>
+        <Text style={styles.profileDetail}>Bio: {profile.bio || 'unrecognized'}</Text>
       </View>
     );
   };
@@ -245,18 +250,11 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
 
       {renderProfileInfo()}
 
-      <TouchableOpacity 
-        style={styles.actionButton}
-        onPress={handleCheckAddress}
-      >
+      <TouchableOpacity style={styles.actionButton} onPress={handleCheckAddress}>
         <Text style={styles.actionButtonText}>Check address</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={styles.actionButton}
-        disabled={!profile}
-        onPress={handleAddContact}
-      >
+      <TouchableOpacity style={styles.actionButton} disabled={!profile} onPress={handleAddContact}>
         <Text style={styles.actionButtonText}>Add contact</Text>
       </TouchableOpacity>
     </View>
@@ -265,19 +263,19 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const handleRemoveContact = async (pubkey: string) => {
     try {
       await editContacts.mutateAsync(
-        { pubkey, type: 'remove' },
+        {pubkey, type: 'remove'},
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['contacts'] });
-            showToast({ type: 'success', title: 'Contact removed successfully' });
+            queryClient.invalidateQueries({queryKey: ['contacts']});
+            showToast({type: 'success', title: 'Contact removed successfully'});
             // Update local storage contacts
-            const updatedContacts = storedContacts.filter(c => c.pubkey !== pubkey);
+            const updatedContacts = storedContacts.filter((c) => c.pubkey !== pubkey);
             setStoredContacts(updatedContacts);
           },
-        }
+        },
       );
     } catch (error) {
-      showToast({ type: 'error', title: 'Failed to remove contact' });
+      showToast({type: 'error', title: 'Failed to remove contact'});
     }
   };
 
@@ -289,16 +287,14 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
       ) : (
         storedContacts.map((contact, index) => (
           <View key={contact.pubkey} style={styles.contactItem}>
-            <Image 
-              source={contact.image ? { uri: contact.image } : require('../../assets/pepe-logo.png')}
+            <Image
+              source={contact.image ? {uri: contact.image} : require('../../assets/pepe-logo.png')}
               style={styles.contactImage}
             />
             <View style={styles.contactInfo}>
-              <Text style={styles.profileDetail}>
-                {contact.displayName || 'Unnamed Contact'}
-              </Text>
+              <Text style={styles.profileDetail}>{contact.displayName || 'Unnamed Contact'}</Text>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.removeButton}
               onPress={() => contact.pubkey && handleRemoveContact(contact.pubkey)}
             >
@@ -312,40 +308,23 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   );
 
   return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={true}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="fade" transparent={true} visible={true} onRequestClose={onClose}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <View style={styles.tabContainer}>
-            <TouchableOpacity 
-              style={[
-                styles.tab,
-                activeTab === 'all' ? styles.activeTab : styles.inactiveTab
-              ]}
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
               onPress={() => setActiveTab('all')}
             >
-              <Text style={[
-                styles.tabText,
-                activeTab === 'all' && styles.activeTabText
-              ]}>
+              <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
                 All contacts
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[
-                styles.tab,
-                activeTab === 'add' ? styles.activeTab : styles.inactiveTab
-              ]}
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'add' ? styles.activeTab : styles.inactiveTab]}
               onPress={() => setActiveTab('add')}
             >
-              <Text style={[
-                styles.tabText,
-                activeTab === 'add' && styles.activeTabText
-              ]}>
+              <Text style={[styles.tabText, activeTab === 'add' && styles.activeTabText]}>
                 Add new contact
               </Text>
             </TouchableOpacity>

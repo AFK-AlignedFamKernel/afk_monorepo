@@ -1,5 +1,4 @@
 import {ThemedStyleSheet} from '../../styles';
-import {Spacing} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   contactsContainer: {

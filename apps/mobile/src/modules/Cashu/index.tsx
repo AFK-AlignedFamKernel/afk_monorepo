@@ -1,33 +1,33 @@
 import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {getContacts, Contact, useCashu, useCashuStore} from 'afk_nostr_sdk';
+import {Contact, getContacts, useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View, Image} from 'react-native';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
 import {Button, IconButton, Modalize} from '../../components';
+import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import {ContactList} from '../Contacts/ContactList';
 import {BalanceCashu} from './BalanceCashu';
 import {HistoryTxCashu} from './HistoryTxCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
 import {MintListCashu} from './MintListCashu';
 import {MnemonicCashu} from './MnemonicCashu';
 import {NoMintBanner} from './NoMintBanner';
+import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
-import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
-import {ContactList} from '../Contacts/ContactList';
-import {ContactsRow} from '../../components/ContactsRow';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -125,7 +125,8 @@ export const CashuView = () => {
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
-    if (tab === SelectedTab.CONTACTS) { // Use the enum value instead of string
+    if (tab === SelectedTab.CONTACTS) {
+      // Use the enum value instead of string
       setShowContactsModal(true);
     }
     if (screen) {
@@ -193,7 +194,7 @@ export const CashuView = () => {
   // };
 
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
-  
+
   // Fetch contacts when component mounts
   useEffect(() => {
     const fetchContacts = () => {
@@ -236,7 +237,7 @@ export const CashuView = () => {
           </View>
         </View>
         {/* Contacts row */}
-        <ContactsRow 
+        <ContactsRow
           contacts={storedContacts}
           onAddContact={() => setShowContactsModal(true)}
           onContactPress={() => {}} // Added missing onContactPress prop
@@ -311,9 +312,7 @@ export const CashuView = () => {
         */}
 
         {/* Add the ContactList modal */}
-        {showContactsModal && (
-          <ContactList onClose={() => setShowContactsModal(false)} />
-        )}
+        {showContactsModal && <ContactList onClose={() => setShowContactsModal(false)} />}
       </ScrollView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
         <ScanCashuQRCode onClose={handleCloseScanner} />
@@ -518,18 +517,3 @@ function PayInfo({
     </View>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
