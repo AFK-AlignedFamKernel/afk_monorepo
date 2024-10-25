@@ -1,4 +1,5 @@
 import { constants } from "starknet";
+import { mainnet, sepolia, kakarotSepolia } from 'viem/chains';
 
 export const ESCROW_ADDRESSES = {
   [constants.StarknetChainId.SN_MAIN]: "", // TODO: Add mainnet escrow address
@@ -74,6 +75,16 @@ export const TOKENS_ADDRESS = {
     USDC: "0x02f37c3e00e75ee4135b32bb60c37e0599af264076376a618f138d2f9929ac74",
     BIG_TOKEN:
       "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
+  },
+  [sepolia.id]:{
+    ETH: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+    USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  },
+  [kakarotSepolia.id]:{
+    ETH: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+  },
+  [mainnet.id]:{
+    USDC: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
   },
   [constants.StarknetChainId.SN_MAIN]: {
     ETH: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",

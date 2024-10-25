@@ -1,15 +1,15 @@
 import { ethers } from 'ethers';
 import { Account, constants, ec, json, stark, RpcProvider, hash, CallData, DeployAccountContractPayload } from 'starknet';
 
-export function generateLink(privateKey: string) {
+export function generateLinkReceived(privateKey: string) {
     const baseUrl = process.env.NODE_ENV == "production" ? "https://lfg.afk-community.xyz" : "http://localhost:3000"
     const url = `${baseUrl}/gift/redeem?privateKey=${encodeURIComponent(privateKey)}`;
     return url;
 }
 
-export function generateWallet() {
+export function generateWalletEvm() {
     const wallet = ethers.Wallet.createRandom();
-    const address = wallet.address;
+    const address: `0x${string}` = wallet.address as `0x${string}`;
     const privateKey = wallet.privateKey;
     return { address, privateKey };
 }
@@ -45,7 +45,7 @@ export function generateStarknetWalletOZ() {
     }
 }
 
-export function generateStarknetWallet() {
+export function generateStarknetWallet(address?: string) {
     try {
         // connect provider (Mainnet or Sepolia)
         const provider = new RpcProvider({});
@@ -61,7 +61,7 @@ export function generateStarknetWallet() {
 
         // Calculate future address of the ArgentX account
         const AXConstructorCallData = CallData.compile({
-            owner: starkKeyPub,
+            owner: address ?? starkKeyPub,
             guardian: '0',
         });
         const AXcontractAddress = hash.calculateContractAddressFromHash(
@@ -77,17 +77,17 @@ export function generateStarknetWallet() {
             classHash: argentXaccountClassHash,
             starkKeyPub,
             privateKey,
-            constructorCalldata:AXConstructorCallData,
+            constructorCalldata: AXConstructorCallData,
             provider
         }
     } catch (error) {
-        console.log("error generate account",error)
+        console.log("error generate account", error)
         return {
             precomputeAddress: undefined,
             classHash: undefined,
-            starkKeyPub:undefined,
-            privateKey:undefined,
-            provider:undefined
+            starkKeyPub: undefined,
+            privateKey: undefined,
+            provider: undefined
         }
 
     }
@@ -98,7 +98,7 @@ export function generateStarknetWallet() {
 export async function generateDeployAccount(contractAddress: string, pubkey: string, classHash: string, constructorCalldata: any) {
     try {
 
-        const deployAccountPayload:DeployAccountContractPayload = {
+        const deployAccountPayload: DeployAccountContractPayload = {
             classHash: classHash,
             constructorCalldata: constructorCalldata,
             contractAddress: contractAddress,
@@ -111,7 +111,7 @@ export async function generateDeployAccount(contractAddress: string, pubkey: str
     } catch (error) {
         console.log("error deployAccount", error)
         return {
-            contract_address:undefined
+            contract_address: undefined
         }
 
     }
@@ -139,7 +139,7 @@ export async function deployAccount(provider: RpcProvider, contractAddress: stri
     } catch (error) {
         console.log("error deployAccount", error)
         return {
-            contract_address:undefined
+            contract_address: undefined
         }
 
     }
