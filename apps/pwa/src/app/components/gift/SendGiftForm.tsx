@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Box, Button, Input, Text, Stack, useToast, Select } from '@chakra-ui/react';
 import { createWalletClient, custom, toEventSignature } from 'viem';
-import { mainnet} from 'viem/chains';
+import { mainnet } from 'viem/chains';
 import { useSendTransaction, useAccount, parseEther } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
 import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
@@ -70,7 +70,9 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
   });
 
   const handlePresetAmount = (presetAmount: number) => {
-    setAmount(presetAmount.toString());
+    setUsdAmount(presetAmount.toString());
+    const totalPrice =  Number(presetAmount) / Number(tokenPrice) 
+    setAmount(totalPrice?.toString())
   };
 
   const handleSubmit = async () => {
@@ -102,7 +104,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
         //   });
         // }
         const addressToken = TOKENS_ADDRESS[chainId ?? constants.StarknetChainId.SN_SEPOLIA][token ?? "ETH"]
-        console.log("addressToken",addressToken)
+        console.log("addressToken", addressToken)
 
         if (!addressToken) {
           toast({
@@ -117,7 +119,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
         const recipientAddress = recipientVaultStrkAddress ?? accountStarknet?.address
 
         const decimals = token == "USDC" ? 6 : 18
-        if(!amount) {
+        if (!amount) {
           toast({
             title: 'Error',
             description: 'Amount is required.',
@@ -129,9 +131,9 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
         const amountUint256 = uint256.bnToUint256(
           Math.ceil(Number(amount) * 10 ** decimals),
         );
-        console.log("amountUint256",amountUint256)
+        console.log("amountUint256", amountUint256)
         const txTransferCalldata = CallData.compile({
-          recipient:recipientAddress ?? "",
+          recipient: recipientAddress ?? "",
           amountUint256
         })
 
@@ -145,7 +147,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
 
           ],
         );
-        console.log("receipt",receipt)
+        console.log("receipt", receipt)
         // if (!recipientAddress) {
         //   toast({
         //     title: 'Error',
@@ -170,7 +172,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
           });
         }
         if (token == "ETH") {
-          sendTransaction({ to:recipientVaultAddress, value: parseEther(value) })
+          sendTransaction({ to: recipientVaultAddress, value: parseEther(value) })
         }
         // const { request } = await account.simulateContract({
         //   address: USDC_CONTRACT_ADDRESS,
@@ -285,7 +287,7 @@ const SendGiftForm: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain }) 
         <Text mb={2}>Current {token} Price: ${tokenPrice.toFixed(2)} USD</Text>
       )}
       {/* <Text>Dollar amount</Text> */}
-      <Text>Dollar amount</Text>
+      <Text>Token amount</Text>
       <Input
         placeholder="Enter amount"
         value={Number(amount)}
