@@ -464,4 +464,18 @@ export default ThemedStyleSheet((theme) => ({
     justifyContent: 'space-between',
     marginTop: 16,
   },
+  contactsButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    marginLeft: 16,
+  },
+  contactsButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '500',
+  },
 }));
