@@ -12,21 +12,24 @@ import axios from 'axios';
 import { TOKENS_ADDRESS } from 'common';
 import { CallData, constants, uint256 } from 'starknet';
 import { generateDeployAccount, generateStarknetWallet, generateWalletEvm, generateLinkReceived } from '@/utils/generate';
+import CopyableLink from '../button/CopyLink';
 interface SendFormProps {
   recipientAddress?: string;
-  chain?: "KAKAROT" | "STARKNET";
+  chainProps?: ChainString;
   tokenAddress?: string;
 }
+type ChainString = "KAKAROT" | "STARKNET" | "SEPOLIA";
 type Token = 'ETH' | 'STRK' | 'USDC';
 enum GiftType {
   'INTERNAL', "EXTERNAL_PRIVATE_KEY", "API"
 }
-const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chain }) => {
+const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chainProps }) => {
   const [amount, setAmount] = useState<string>('');
   const toast = useToast();
   const account = useAccount()
   const { account: accountStarknet } = useAccountStarknet()
   const [token, setToken] = useState<Token>('ETH');
+  const [chain, setChain] = useState<ChainString>(chainProps ?? "SEPOLIA");
   const [urlReceived, setUrlReceived] = useState<string | undefined>();
   const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
@@ -36,8 +39,8 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chain }) => {
   const [recipientVaultStrkAddress, setVaultRecipientStrkAddress] = useState<string | undefined>();
   const [tokenAmount, setTokenAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const { data: hash, sendTransaction } = useSendTransaction()
-  const { writeContract } = useWriteContract()
+  const { data: hashSendEth, sendTransaction } = useSendTransaction()
+  const { writeContract, data: hash } = useWriteContract()
 
   // Initialize `viem` client
   const walletClient = createWalletClient({
@@ -229,30 +232,34 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chain }) => {
           });
           return;
         }
-
-        if (token == "ETH") {
-          sendTransaction({ to: recipientAddress as `0x${string}`, value: parseEther(amount) })
-        }
         const chainId = account?.chainId;
         const addressToken = TOKENS_ADDRESS[chainId ?? sepolia.id][token ?? "ETH"]
 
-        console.log("addressToken", addressToken)
-        await writeContract({
-          abi: erc20Abi,
-          address: addressToken ?? '0x6b175474e89094c44da98b954eedeac495271d0f',
-          functionName: 'transfer',
-          args: [
-            recipientAddress as `0x${string}` ?? recipientVaultAddress as `0x${string}`,
-            // '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
-            parseUnits(amount, decimals),
-          ],
-        })
+        if (token == "ETH") {
+          sendTransaction({ to: recipientAddress as `0x${string}`, value: parseEther(amount) })
+          // const generateUrl = await generateLinkReceived(privateKey, addressToken, amount, "KAKAROT")
+          const generateUrl = await generateLinkReceived(privateKey, addressToken, amount, chainId?.toString() ?? "KAKAROT")
+          setUrlReceived(generateUrl)
+        } else {
 
+          console.log("addressToken", addressToken)
+          sendTransaction({ to: recipientAddress as `0x${string}`, value: parseEther("0.00001") })
 
-        const generateUrl = await generateLinkReceived(privateKey)
+          await writeContract({
+            abi: erc20Abi,
+            address: addressToken ?? '0x6b175474e89094c44da98b954eedeac495271d0f',
+            functionName: 'transfer',
+            args: [
+              recipientAddress as `0x${string}` ?? recipientVaultAddress as `0x${string}`,
+              parseUnits(amount, decimals),
+            ],
+          })
+        }
 
-        setUrlReceived(generateUrl)
       }
+
+      // const generateUrl = await generateLinkReceived(privateKey, addressToken, amount, chain)
+      // setUrlReceived(generateUrl)
 
       // toast({
       //   title: 'Transaction Sent',
@@ -363,20 +370,16 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chain }) => {
         Send {token}
       </Button>
 
-
       {urlReceived &&
         <Box>
           <Text>Send this url to your friends.</Text>
           <Text>Everyone with this link can claim your gift.</Text>
-
           <Box>
-            <Text> {urlReceived}</Text>
+            {/* <Text> {urlReceived}</Text> */}
+            <CopyableLink link={urlReceived}></CopyableLink>
           </Box>
         </Box>
       }
-
-
-
 
       {hash && <div>Transaction Hash: {hash}</div>}
     </Box>

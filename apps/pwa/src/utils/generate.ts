@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 import { Account, constants, ec, json, stark, RpcProvider, hash, CallData, DeployAccountContractPayload } from 'starknet';
 
-export function generateLinkReceived(privateKey: string) {
+export function generateLinkReceived(privateKey: string, tokenAddress:string, amount:string, network:string) {
     const baseUrl = process.env.NODE_ENV == "production" ? "https://lfg.afk-community.xyz" : "http://localhost:3000"
-    const url = `${baseUrl}/gift/redeem?privateKey=${encodeURIComponent(privateKey)}`;
+    const url = `${baseUrl}/gift/redeem?amount=${encodeURIComponent(amount)}&network=${encodeURIComponent(network)}&tokenAddress=${encodeURIComponent(tokenAddress)}&privateKey=${encodeURIComponent(privateKey)}`;
     return url;
 }
 
