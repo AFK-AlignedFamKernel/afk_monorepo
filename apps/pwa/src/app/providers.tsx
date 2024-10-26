@@ -82,7 +82,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <DynamicContextProvider
             settings={
               {
-                environmentId: process.env.NEXT_PUBLIC_DYNAMIC_API_KEY ?? "",
+                environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID ?? "",
                 walletConnectors: [EthereumWalletConnectors, StarknetWalletConnectors]
               }
             }

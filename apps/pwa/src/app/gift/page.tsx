@@ -2,7 +2,7 @@
 import {AppRender} from 'pixel_ui';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import SendGiftForm from '../components/gift/SendGiftForm';
+import SendGiftForm from '../../components/gift/SendGiftForm';
 import { Box, useColorModeValue } from '@chakra-ui/react';
 
 

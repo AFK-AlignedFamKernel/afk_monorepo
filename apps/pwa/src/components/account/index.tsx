@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 import { Box, Button, Input, Text, Stack, useToast, Select } from '@chakra-ui/react';
 import { useSendTransaction, useAccount, useWriteContract } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
-import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
-import Account from '../button/starknet/AccountStarknet';
-import CustomModal from '../modal';
-import ConnectWithOtpView from '../dynamic/ConnectWithOtpView';
+import { CustomConnectButtonWallet } from '../../app/components/button/CustomConnectButtonWallet';
+import Account from '../../app/components/button/starknet/AccountStarknet';
+import CustomModal from '../../app/components/modal';
+import ConnectWithOtpView from '../../app/components/dynamic/ConnectWithOtpView';
 
 const AccountManagement: React.FC= () => {
   const toast = useToast();
