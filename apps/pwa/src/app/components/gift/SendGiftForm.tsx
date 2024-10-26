@@ -293,7 +293,9 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chainProps })
     // }
   }
   return (
-    <Box maxWidth="400px" mx="auto" p={5} borderWidth="1px" borderRadius="md" boxShadow="md">
+    <Box maxWidth="400px"
+     mx="auto" p={5} borderWidth="1px" borderRadius="md" boxShadow="md"
+    >
 
       {!account?.address && !accountStarknet?.address
         &&

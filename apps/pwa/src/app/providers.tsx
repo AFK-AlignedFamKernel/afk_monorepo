@@ -71,7 +71,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ChakraProvider
-      theme={theme}
+        theme={theme}
       >
         <ColorModeProvider
           options={{
@@ -92,8 +92,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
                 <QueryClientProvider client={queryClient}>
                   <DynamicWagmiConnector>
-                    <DynamicWidget />
                     <RainbowKitProvider>{children}</RainbowKitProvider>
+                    {/* <DynamicWidget /> */}
                   </DynamicWagmiConnector>
                 </QueryClientProvider>
               </WagmiProvider>

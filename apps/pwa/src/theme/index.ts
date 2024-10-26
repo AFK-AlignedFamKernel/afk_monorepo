@@ -87,13 +87,13 @@ const theme = extendTheme({
         // fontFamily: "body",
         color: mode('gray.800', 'gray.300')(props),
         fontFamily: 'monospace',
-        bg: mode('white', 'gray.700')(props),
+        bg: mode('gray.300', 'gray.700')(props),
         lineHeight: 'base',
       },
       body: {
         // fontFamily: "body",
         color: mode('gray.800', 'gray.300')(props),
-        bg: mode('white', 'gray.700')(props),
+        bg: mode('gray.300', 'gray.700')(props),
 
         fontFamily: 'monospace',
         // bg: props.colorMode === "dark" ? "brand.900" : "brand.50",
@@ -103,12 +103,14 @@ const theme = extendTheme({
       nav: {
         // color: mode('gray.800', 'gray.900')(props),
         fontFamily: 'monospace',
-        bg: mode('white', 'gray.700')(props),
+        // bg: mode('white', 'gray.700')(props),
+        bg: mode('gray.300', 'gray.700')(props),
         lineHeight: 'base',
       },
       div: {
         fontFamily: 'monospace',
-        bg: mode('white', 'gray.700')(props),
+        color: mode('gray.800', 'gray.300')(props),
+        // bg: mode('gray.300', 'gray.700')(props),
         lineHeight: 'base',
       },
       p: {
@@ -117,7 +119,7 @@ const theme = extendTheme({
       },
       input: {
         color: mode('gray.800', 'gray.300')(props),
-        bg: mode('white', 'gray.700')(props),
+        // bg: mode('white', 'gray.700')(props),
         fontFamily: 'monospace',
       },
     }),

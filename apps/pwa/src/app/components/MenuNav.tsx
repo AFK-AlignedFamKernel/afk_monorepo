@@ -30,7 +30,6 @@ const MenuNav: React.FC<IMenuParent> = () => {
               <DynamicManagement></DynamicManagement>
             </MenuItem>
             <MenuItem>
-              <Text>Starknet</Text>
               <AccountStarknet></AccountStarknet>
             </MenuItem>
             {/* Dedicated Close Button */}

@@ -19,16 +19,16 @@ export function Navbar() {
       bg={bgColor}
       color={textColor}
     >
-      <div className="flex items-center gap-x-[10px] text">
+      <Box className="flex items-center gap-x-[10px] text">
         <img
           src="/assets/pepe-logo.png"
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
-          alt=""
+          alt="AFK logo"
         />
         <Link href="/">
           <h5 className="desktop:text-2xl text-lg leading-7 font-bold">AFK</h5>
         </Link>
-      </div>
+      </Box>
       <NavigationLinks />
       {/* <button
         onClick={() => {
