@@ -1,13 +1,18 @@
-import { Box } from "@chakra-ui/react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
 
 export function Footer() {
+  const bgColor = useColorModeValue("gray.300", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.300");
+
   return (
-    <Box 
-    className=" mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px]"
-    // className="bg-footerBg bg-no-repeat bg-contain bg-black mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px] text-white"
-    
+    <Box
+      className=" mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px]"
+      // className="bg-footerBg bg-no-repeat bg-contain bg-black mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px] text-white"
+      bg={bgColor}
+      color={textColor}
     >
-      <div className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]">
+      <Box
+        className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]">
         <div className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <img
             src="/assets/pepe-logo.png"
@@ -52,7 +57,7 @@ export function Footer() {
             <img src="/assets/telegramIcon.svg" alt="AFK Community Telegram " />
           </a>
         </div>
-      </div>
+      </Box>
       <h6 className="text-xs tab:text-sm leading-[14px] font-normal text-center mt-4">
         © {new Date()?.getFullYear()} AFK. All Rights Reserved.
       </h6>

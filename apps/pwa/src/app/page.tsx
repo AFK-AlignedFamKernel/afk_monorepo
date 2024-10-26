@@ -1,12 +1,17 @@
 'use client';
-import {AppRender} from 'pixel_ui';
+import { AppRender } from 'pixel_ui';
 
-import {Navbar} from './components/Navbar';
-import { Box } from '@chakra-ui/react';
+import { Navbar } from './components/Navbar';
+import { Box, useColorModeValue } from '@chakra-ui/react';
 
 export default function App() {
+  const bgColor = useColorModeValue("gray.300", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.300");
   return (
-    <Box className="min-h-screen w-full relative">
+    <Box className="min-h-screen w-full relative"
+      bg={bgColor}
+      color={textColor}
+    >
       <Navbar />
       {typeof window !== 'undefined' && (
         <AppRender

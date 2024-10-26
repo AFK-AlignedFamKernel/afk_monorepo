@@ -41,13 +41,6 @@ const ConnectWithOtpView: FC = () => {
         <button type='submit'>Submit</button>
       </form>
 
-      {!!user && (
-        <>    <p>Authenticated user:</p>
-          {/* <pre>
-            {JSON.stringify(user, null, 2)}
-          </pre> */}
-        </>
-      )}
       {user && !isOpenMenuInfo &&
         <Button onClick={() => {
           setIssOpenMenuInfo(!isOpenMenuInfo)

@@ -12,6 +12,7 @@ import {
     VStack,
     HStack,
     Text,
+    useColorModeValue,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { useRef } from "react";
@@ -22,9 +23,13 @@ import ColorModeToggle from "./button/ColorToggleMode";
 const MobileDrawerNavbar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const btnRef = useRef<HTMLButtonElement>(null);
-
+    const bgColor = useColorModeValue("gray.300", "gray.700");
+    const textColor = useColorModeValue("gray.800", "gray.300");
     return (
-        <Box p={4} boxShadow="md" as="nav">
+        <Box p={4} boxShadow="md" as="nav"
+        bg={bgColor}
+        color={textColor}
+        >
             {/* <HStack justifyContent="space-between" alignItems="center"> */}
             <IconButton
                 ref={btnRef}

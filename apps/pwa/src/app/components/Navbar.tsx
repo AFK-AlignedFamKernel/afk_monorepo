@@ -2,20 +2,22 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-
 import MenuNav from './MenuNav';
-import { MobileNavBar } from './MobileNavBar';
-import { NavigationLinks } from './NavigationLinks';
 import MobileDrawerNavbar from './MobileDrawerNavbar';
-import { Box, useTheme } from '@chakra-ui/react';
+import { Box, useColorModeValue, useTheme } from '@chakra-ui/react';
+import { NavigationLinks } from './NavigationLinks';
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
   const theme = useTheme()
+  const bgColor = useColorModeValue("gray.300", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.300");
+
   return (
     <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center"
-    // background={"bg-black"}
+      // background={"bg-black"}
+      bg={bgColor}
+      color={textColor}
     >
       <div className="flex items-center gap-x-[10px] text">
         <img
@@ -27,8 +29,7 @@ export function Navbar() {
           <h5 className="desktop:text-2xl text-lg leading-7 font-bold">AFK</h5>
         </Link>
       </div>
-      {/* <NavigationLinks /> */}
-
+      <NavigationLinks />
       {/* <button
         onClick={() => {
           setToggleParamsNav(true);
