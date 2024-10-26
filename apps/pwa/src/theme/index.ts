@@ -1,6 +1,6 @@
 // 1. Import the extendTheme function
-import {type ThemeConfig, extendTheme, StyleFunctionProps} from '@chakra-ui/react';
-import {mode} from '@chakra-ui/theme-tools';
+import { type ThemeConfig, extendTheme, StyleFunctionProps } from '@chakra-ui/react';
+import { mode } from '@chakra-ui/theme-tools';
 // 2. Extend the theme to include custom colors, fonts, etc
 const colors = {
   brand: {
@@ -93,8 +93,11 @@ const theme = extendTheme({
       body: {
         // fontFamily: "body",
         color: mode('gray.800', 'gray.300')(props),
-        fontFamily: 'monospace',
         bg: mode('white', 'gray.700')(props),
+
+        fontFamily: 'monospace',
+        // bg: props.colorMode === "dark" ? "brand.900" : "brand.50",
+        // color: props.colorMode === "dark" ? "whiteAlpha.900" : "blackAlpha.900",
         lineHeight: 'base',
       },
       nav: {
@@ -110,6 +113,11 @@ const theme = extendTheme({
       },
       p: {
         color: mode('gray.800', 'gray.300')(props),
+        fontFamily: 'monospace',
+      },
+      input: {
+        color: mode('gray.800', 'gray.300')(props),
+        bg: mode('white', 'gray.700')(props),
         fontFamily: 'monospace',
       },
     }),

@@ -1,8 +1,11 @@
-import { FC, FormEventHandler } from 'react';
+import { FC, FormEventHandler, useState } from 'react';
 import { useConnectWithOtp, useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { Box, Button, Text } from '@chakra-ui/react';
 
 const ConnectWithOtpView: FC = () => {
   const { user } = useDynamicContext()
+  const [isOpenMenuInfo, setIssOpenMenuInfo] = useState<boolean | undefined>(false)
+  const [isOpenCreateAccount, setIsOpenCreateAccount] = useState<boolean | undefined>(false)
 
   const { connectWithEmail, verifyOneTimePassword, connectWithSms } = useConnectWithOtp();
 
@@ -40,11 +43,28 @@ const ConnectWithOtpView: FC = () => {
 
       {!!user && (
         <>    <p>Authenticated user:</p>
-          <pre>
+          {/* <pre>
             {JSON.stringify(user, null, 2)}
-          </pre>
+          </pre> */}
         </>
       )}
+      {user && !isOpenMenuInfo &&
+        <Button onClick={() => {
+          setIssOpenMenuInfo(!isOpenMenuInfo)
+        }}>Open info</Button>
+
+      }
+      {!!user && isOpenMenuInfo && (
+        <>    <p>Authenticated user:</p>
+          <Text>
+            Email {user?.verifiedCredentials[1]?.email}
+          </Text>
+          {/* <pre>
+            {JSON.stringify(user, null, 2)}
+          </pre> */}
+        </>
+      )}
+
     </div>
   )
 }
