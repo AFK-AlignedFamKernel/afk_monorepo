@@ -26,7 +26,13 @@ RUN echo ${BACKEND_DATABASE_URL}
 ARG TELEGRAM_WEB_APP
 
 # Set the environment variable
-RUN echo TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
+RUN echo ${TELEGRAM_WEB_APP}
+
+# Add an argument for Stripe server api key
+ARG STRIPE_SERVER_API_KEY
+
+# Set the environment variable
+RUN echo ${STRIPE_SERVER_API_KEY}
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
