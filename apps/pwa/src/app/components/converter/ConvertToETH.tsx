@@ -1,7 +1,7 @@
 // components/ConvertToETH.tsx
-import { useState, useEffect } from 'react';
-import { Box, Input, Text, Button, Spinner } from '@chakra-ui/react';
+import {Box, Button, Input, Spinner, Text} from '@chakra-ui/react';
 import axios from 'axios';
+import {useEffect, useState} from 'react';
 
 const ConvertToETH: React.FC = () => {
   const [ethPrice, setEthPrice] = useState<number | null>(null);
@@ -15,7 +15,7 @@ const ConvertToETH: React.FC = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd'
+          'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
         );
         setEthPrice(response.data.ethereum.usd);
       } catch (error) {
@@ -38,7 +38,9 @@ const ConvertToETH: React.FC = () => {
 
   return (
     <Box maxWidth="400px" mx="auto" p={5} borderWidth="1px" borderRadius="md" boxShadow="md">
-      <Text fontSize="2xl" mb={4}>Convert USD to ETH</Text>
+      <Text fontSize="2xl" mb={4}>
+        Convert USD to ETH
+      </Text>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -53,9 +55,7 @@ const ConvertToETH: React.FC = () => {
           <Button colorScheme="blue" onClick={handleCalculate}>
             Calculate
           </Button>
-          {ethAmount !== null && (
-            <Text mt={4}>Equivalent in ETH: {ethAmount.toFixed(6)} ETH</Text>
-          )}
+          {ethAmount !== null && <Text mt={4}>Equivalent in ETH: {ethAmount.toFixed(6)} ETH</Text>}
         </>
       )}
     </Box>

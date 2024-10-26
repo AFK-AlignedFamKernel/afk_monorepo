@@ -9,7 +9,6 @@ import {HTTPStatus} from '@/utils/http';
 export async function POST(request: NextRequest) {
   const data = await request.formData();
 
-
   try {
     const stream = Readable.fromWeb(file.stream() as any);
 

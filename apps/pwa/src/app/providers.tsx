@@ -2,21 +2,22 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-import { ChakraProvider, ColorModeProvider } from '@chakra-ui/react';
-import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Chain } from 'viem';
-import { createConfig, http } from 'wagmi';
-import { WagmiProvider } from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
-import { DynamicContextProvider, DynamicWidget } from "@dynamic-labs/sdk-react-core";
-import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector';
+import {ChakraProvider, ColorModeProvider} from '@chakra-ui/react';
+import {EthereumWalletConnectors} from '@dynamic-labs/ethereum';
+import {DynamicContextProvider, DynamicWidget} from '@dynamic-labs/sdk-react-core';
+import {StarknetWalletConnectors} from '@dynamic-labs/starknet';
+import {DynamicWagmiConnector} from '@dynamic-labs/wagmi-connector';
+import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {Chain} from 'viem';
+import {createConfig, http} from 'wagmi';
+import {WagmiProvider} from 'wagmi';
+import {mainnet, sepolia} from 'wagmi/chains';
 
-import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
-import { StarknetWalletConnectors } from "@dynamic-labs/starknet";
 // import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
 import StarknetProvider from '@/context/StarknetProvider';
-import theme from "../theme"; // Import your custom theme
+
+import theme from '../theme'; // Import your custom theme
 
 // import {TanstackProvider} from 'afk_nostr_sdk';
 // import {NostrProvider} from 'afk_nostr_sdk';
@@ -33,22 +34,22 @@ const kakarotEvm: Chain = {
     symbol: 'ETH ',
   },
   rpcUrls: {
-    public: { http: ['https://sepolia-rpc.kakarot.org'] },
-    default: { http: ['https://sepolia-rpc.kakarot.org'] },
+    public: {http: ['https://sepolia-rpc.kakarot.org']},
+    default: {http: ['https://sepolia-rpc.kakarot.org']},
   },
   blockExplorers: {
-    default: { name: 'Explorer', url: 'https://sepolia.kakarotscan.org/' },
-    etherscan: { name: 'Explorer', url: 'https://sepolia.kakarotscan.org/' },
+    default: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
+    etherscan: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
   },
   // testnet: true,
 };
 
-export const CHAINS_CONFIG = [mainnet, sepolia, kakarotEvm]
+export const CHAINS_CONFIG = [mainnet, sepolia, kakarotEvm];
 export const TRANSPORTS = {
   [mainnet.id]: http(),
   [sepolia.id]: http(),
   [kakarotEvm.id]: http(),
-}
+};
 export const config = createConfig({
   chains: [mainnet, sepolia, kakarotEvm],
   transports: TRANSPORTS,
@@ -67,12 +68,10 @@ const configRainbow = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({children}: {children: React.ReactNode}) {
   return (
     <>
-      <ChakraProvider
-        theme={theme}
-      >
+      <ChakraProvider theme={theme}>
         <ColorModeProvider
           options={{
             initialColorMode: theme.config.initialColorMode,
@@ -80,17 +79,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           }}
         >
           <DynamicContextProvider
-            settings={
-              {
-                environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID ?? "",
-                walletConnectors: [EthereumWalletConnectors, StarknetWalletConnectors]
-              }
-            }
+            settings={{
+              environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID ?? '',
+              walletConnectors: [EthereumWalletConnectors, StarknetWalletConnectors],
+            }}
           >
             <StarknetProvider>
-              <WagmiProvider config={config}
-                 reconnectOnMount={false}>
-
+              <WagmiProvider config={config} reconnectOnMount={false}>
                 <QueryClientProvider client={queryClient}>
                   <DynamicWagmiConnector>
                     <RainbowKitProvider>{children}</RainbowKitProvider>
@@ -101,7 +96,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             </StarknetProvider>
           </DynamicContextProvider>
         </ColorModeProvider>
-
       </ChakraProvider>
     </>
   );

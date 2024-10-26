@@ -1,15 +1,15 @@
 // components/CustomModal.tsx
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   Button,
-} from "@chakra-ui/react";
-import { ReactNode } from "react";
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+} from '@chakra-ui/react';
+import {ReactNode} from 'react';
 
 interface CustomModalProps {
   isOpen: boolean;

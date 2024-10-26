@@ -1,6 +1,6 @@
 'use client';
 
-import { Box } from '@chakra-ui/react';
+import {Box} from '@chakra-ui/react';
 import {motion} from 'framer-motion';
 import Link from 'next/link';
 import {useEffect} from 'react';

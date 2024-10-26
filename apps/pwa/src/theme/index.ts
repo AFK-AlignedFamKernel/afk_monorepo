@@ -1,6 +1,6 @@
 // 1. Import the extendTheme function
-import { type ThemeConfig, extendTheme, StyleFunctionProps } from '@chakra-ui/react';
-import { mode } from '@chakra-ui/theme-tools';
+import {type ThemeConfig, extendTheme, StyleFunctionProps} from '@chakra-ui/react';
+import {mode} from '@chakra-ui/theme-tools';
 // 2. Extend the theme to include custom colors, fonts, etc
 const colors = {
   brand: {
@@ -126,7 +126,6 @@ const theme = extendTheme({
   },
   components: {
     Text: {
-
       // The styles all button have in common
       baseStyle: {
         fontFamily: 'monospace',

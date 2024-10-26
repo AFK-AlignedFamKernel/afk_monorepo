@@ -1,10 +1,10 @@
-import { Readable } from 'node:stream';
+import {Readable} from 'node:stream';
 
-import { NextRequest, NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 
-import { pinata } from '@/services/pinata';
-import { ErrorCode } from '@/utils/errors';
-import { HTTPStatus } from '@/utils/http';
+import {pinata} from '@/services/pinata';
+import {ErrorCode} from '@/utils/errors';
+import {HTTPStatus} from '@/utils/http';
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();
@@ -18,28 +18,26 @@ export async function POST(request: NextRequest) {
   //   );
   // }
 
-
   try {
-
     // Verify
     const stream = Readable.fromWeb(file.stream() as any);
 
-    const { IpfsHash } = await pinata.pinFileToIPFS(stream, {
+    const {IpfsHash} = await pinata.pinFileToIPFS(stream, {
       pinataMetadata: {
         name: file.name,
       },
     });
 
     return NextResponse.json(
-      { hash: IpfsHash, url: `${process.env.IPFS_GATEWAY}/${IpfsHash}` },
-      { status: HTTPStatus.OK },
+      {hash: IpfsHash, url: `${process.env.IPFS_GATEWAY}/${IpfsHash}`},
+      {status: HTTPStatus.OK},
     );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { code: ErrorCode.TRANSACTION_ERROR, error },
-      { status: HTTPStatus.InternalServerError },
+      {code: ErrorCode.TRANSACTION_ERROR, error},
+      {status: HTTPStatus.InternalServerError},
     );
   }
 }

@@ -1,6 +1,7 @@
-import { Button, Menu, MenuButton, MenuItem, MenuList, Text } from '@chakra-ui/react';
-import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
+import {Button, Menu, MenuButton, MenuItem, MenuList} from '@chakra-ui/react';
+
 import AccountStarknet from './account/starknet/AccountStarknet';
+import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
 import DynamicManagement from './dynamic';
 
 interface IMenuParent {
@@ -9,7 +10,7 @@ interface IMenuParent {
 const MenuNav: React.FC<IMenuParent> = () => {
   return (
     <Menu closeOnSelect={false}>
-      {({ isOpen, onClose, }) => (
+      {({isOpen, onClose}) => (
         <>
           <MenuButton
           //  as={Button}
@@ -18,7 +19,7 @@ const MenuNav: React.FC<IMenuParent> = () => {
           <MenuButton
             isActive={isOpen}
             as={Button}
-          // rightIcon={<ChevronDownIcon />}
+            // rightIcon={<ChevronDownIcon />}
           >
             {isOpen ? 'Close' : 'Profile'}
           </MenuButton>
@@ -33,17 +34,12 @@ const MenuNav: React.FC<IMenuParent> = () => {
               <AccountStarknet></AccountStarknet>
             </MenuItem>
             {/* Dedicated Close Button */}
-            <MenuItem onClick={onClose}
-              color="red.500"
-              fontWeight="bold">
+            <MenuItem onClick={onClose} color="red.500" fontWeight="bold">
               Close Menu
             </MenuItem>
           </MenuList>
-
         </>
       )}
-
-
     </Menu>
   );
 };

@@ -1,13 +1,20 @@
 // components/CopyableLink.tsx
-import { useState } from 'react';
-import { Box, Input, InputGroup, InputRightElement, Button, useClipboard, useToast } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Input,
+  InputGroup,
+  InputRightElement,
+  useClipboard,
+  useToast,
+} from '@chakra-ui/react';
 
 interface CopyableLinkProps {
   link: string;
 }
 
-const CopyableLink: React.FC<CopyableLinkProps> = ({ link }) => {
-  const { hasCopied, onCopy } = useClipboard(link);
+const CopyableLink: React.FC<CopyableLinkProps> = ({link}) => {
+  const {hasCopied, onCopy} = useClipboard(link);
   const toast = useToast();
 
   const handleCopy = () => {
@@ -24,11 +31,7 @@ const CopyableLink: React.FC<CopyableLinkProps> = ({ link }) => {
   return (
     <Box maxWidth="400px" mx="auto" p={5}>
       <InputGroup size="md">
-        <Input
-          value={link}
-          isReadOnly
-          placeholder="Generated link will appear here"
-        />
+        <Input value={link} isReadOnly placeholder="Generated link will appear here" />
         <InputRightElement width="4.5rem">
           <Button h="1.75rem" size="sm" onClick={handleCopy}>
             {hasCopied ? 'Copied' : 'Copy'}

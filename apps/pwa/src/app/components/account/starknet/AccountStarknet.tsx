@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { AccountInterface, constants, Signature, stark } from 'starknet';
 import './AccountStarknet.css';
-import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
-import {
-  useAccount,
-  useContract,
-  useNetwork,
-  useConnect,
-  Connector
-} from '@starknet-react/core';
-import { disconnect } from 'starknetkit-next';
-import { buildSessionAccount, createSessionRequest, OffChainSession, openSession } from '@argent/x-sessions';
-import { Box, Button } from '@chakra-ui/react';
+
+import {OffChainSession} from '@argent/x-sessions';
+import {Box, Button} from '@chakra-ui/react';
+import {Connector, useAccount, useConnect} from '@starknet-react/core';
+import React, {useEffect, useState} from 'react';
+import {AccountInterface, constants, Signature} from 'starknet';
+import {connect, ConnectorData, StarknetWindowObject} from 'starknetkit-next';
+import {disconnect} from 'starknetkit-next';
 const AccountStarknet = (props) => {
-  const { address, account } = useAccount()
+  const {address, account} = useAccount();
   const [queryAddress, setQueryAddress] = useState('0');
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
@@ -21,8 +16,7 @@ const AccountStarknet = (props) => {
   const [accountState, setAccount] = useState<AccountInterface | undefined>();
   // TODO: Mint rank images when reached w/ button
   const [rankBackground, setRankBackground] = useState({
-    background:
-      'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
+    background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))',
   });
   const [accountRankImg, setAccountRankImg] = useState<any | null>(null);
   const [isOpenConnector, setIsOpenConnector] = useState(true);
@@ -32,7 +26,7 @@ const AccountStarknet = (props) => {
   const [usernameBeforeEdit, setUsernameBeforeEdit] = useState('');
 
   const [isValidUsername, setIsValidUsername] = useState(false);
-  let [usernameTaken, setUsernameTaken] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
   useEffect(() => {
     setUsernameTaken(false);
     if (username === '') {
@@ -59,17 +53,17 @@ const AccountStarknet = (props) => {
     return hex;
   };
 
-
   const connectorLogo = (name) => {
     switch (name) {
-      case 'Argent':
-      case 'ArgentX':
-      case 'argentX':
+      // case 'Argent':
+      // case 'ArgentX':
+      // case 'argentX':
       // case 'Argent X':
       //   return ArgentIcon;
       // case 'Braavos':
       // case 'braavos':
       //   return BraavosIcon;
+
       default:
         return null;
     }
@@ -90,21 +84,23 @@ const AccountStarknet = (props) => {
     }
   };
   const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
+  const [_accountSessionSignature, setAccountSessionSignature] = useState<
+    string[] | Signature | null
+  >(null);
   const [isSessionable, setIsSessionable] = useState(false);
   const [usingSessionKeys, setUsingSessionKeys] = useState(false);
   // TODO: Connect wallet page if no connectors
-  const { connect: connectHook, connectors } = useConnect();
+  const {connect: connectHook, connectors} = useConnect();
   const [connected, setConnected] = useState(false); // TODO: change to only devnet
 
-  let [availableConnectors, setAvailableConnectors] = useState(connectors);
+  const [availableConnectors, setAvailableConnectors] = useState(connectors);
   // Account
   // Starknet wallet
   const [wallet, setWallet] = useState<StarknetWindowObject | undefined | null>(null);
   const [connectorData, setConnectorData] = useState<ConnectorData | undefined | null>(null);
   const [_connector, setConnector] = useState(null);
   const canSession = (wallet) => {
-    let sessionableIds = [
+    const sessionableIds = [
       'argentX',
       'ArgentX',
       'argent',
@@ -112,7 +108,7 @@ const AccountStarknet = (props) => {
       'argentMobile',
       'ArgentMobile',
       'argentWebWallet',
-      'ArgentWebWallet'
+      'ArgentWebWallet',
     ];
     if (sessionableIds.includes(wallet.id)) {
       return true;
@@ -121,45 +117,37 @@ const AccountStarknet = (props) => {
   };
 
   useEffect(() => {
-
     if (address) {
-      setQueryAddress(address)
+      setQueryAddress(address);
     }
-  }, [
-    account, address
-
-  ])
+  }, [account, address]);
   const connectWallet = async () => {
     // if (devnetMode) {
     //   setConnected(true);
     //   return;
     // }
-    console.log("try connect wallet")
-    const { wallet, connectorData, connector } =
-      await connect({
-        modalMode: 'alwaysAsk',
-        // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
-        argentMobileOptions: {
-          dappName: 'afk/pwa',
-          url: window.location.hostname,
-          // chainId: CHAIN_ID,
-          icons: []
-        }
-      });
-    if (wallet && connectorData
-      && connector
-
-    ) {
-      console.log("wallet", wallet)
-      console.log("canSession")
+    console.log('try connect wallet');
+    const {wallet, connectorData, connector} = await connect({
+      modalMode: 'alwaysAsk',
+      // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
+      argentMobileOptions: {
+        dappName: 'afk/pwa',
+        url: window.location.hostname,
+        // chainId: CHAIN_ID,
+        icons: [],
+      },
+    });
+    if (wallet && connectorData && connector) {
+      console.log('wallet', wallet);
+      console.log('canSession');
       const connectorCore = {
         ...connector,
         icon: {
           dark: connector?.icon,
           light: connector?.icon,
-        }
-      } as Connector
-      console.log("connectorCore", connectorCore)
+        },
+      } as Connector;
+      console.log('connectorCore', connectorCore);
       // console.log("wallet?.selectedAddress", wallet?.selectedAddress)
       // // setQueryAddress(connectorData?.account.address?.slice(2).toLowerCase().padStart(64, '0'));
       // // setQueryAddress(connector?.wallet?.address?.slice(2).toLowerCase().padStart(64, '0'));
@@ -172,21 +160,17 @@ const AccountStarknet = (props) => {
       // setAccount(new_account);
       setIsSessionable(canSession(wallet));
       console.log('canSession(wallet):', canSession(wallet));
-      await connectHook({ connector: connectorCore })
-
+      await connectHook({connector: connectorCore});
     }
   };
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
     if (!props.address) return;
     setAddressShort(
-      props.address
-        ? `${props.address.slice(0, 6)}...${props.address.slice(-4)}`
-        : ''
+      props.address ? `${props.address.slice(0, 6)}...${props.address.slice(-4)}` : '',
     );
   }, [props.address]);
   useEffect(() => {
-
     if (!address) {
       setQueryAddress('0');
     } else {
@@ -203,7 +187,6 @@ const AccountStarknet = (props) => {
     } else {
       setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
     }
-
   }, [address, connected, account]);
   const [userAwards, setUserAwards] = useState([]);
   const [claimText, setClaimText] = useState('');
@@ -234,7 +217,6 @@ const AccountStarknet = (props) => {
     //     console.error('Failed to fetch awards:', await response.text());
     //   }
     // };
-
     // fetchAwards();
   }, [queryAddress]);
 
@@ -250,7 +232,7 @@ const AccountStarknet = (props) => {
         },
         closeAction: () => {
           setShowClaimInfo(false);
-        }
+        },
       });
     }
   }, [showClaimInfo, userAwards]);
@@ -259,21 +241,18 @@ const AccountStarknet = (props) => {
     if (!props.address || !props.usernameContract || !props.account) return;
     if (username === '') return;
     const usernameCallData = props.usernameContract.populate('claim_username', {
-      key: toHex(username)
+      key: toHex(username),
     });
-    const { suggestedMaxFee } = await props.estimateInvokeFee({
+    const {suggestedMaxFee} = await props.estimateInvokeFee({
       contractAddress: props.usernameContract.address,
       entrypoint: 'claim_username',
-      calldata: usernameCallData.calldata
+      calldata: usernameCallData.calldata,
     });
     /* global BigInt */
     const maxFee = (suggestedMaxFee * BigInt(15)) / BigInt(10);
-    const result = await props.usernameContract.claim_username(
-      usernameCallData.calldata,
-      {
-        maxFee
-      }
-    );
+    const result = await props.usernameContract.claim_username(usernameCallData.calldata, {
+      maxFee,
+    });
     console.log(result);
   };
 
@@ -281,24 +260,18 @@ const AccountStarknet = (props) => {
     // if (devnetMode) return;
     if (!props.address || !props.usernameContract || !props.account) return;
     if (username === '') return;
-    const usernameCallData = props.usernameContract.populate(
-      'change_username',
-      {
-        new_username: toHex(username)
-      }
-    );
-    const { suggestedMaxFee } = await props.estimateInvokeFee({
+    const usernameCallData = props.usernameContract.populate('change_username', {
+      new_username: toHex(username),
+    });
+    const {suggestedMaxFee} = await props.estimateInvokeFee({
       contractAddress: props.usernameContract.address,
       entrypoint: 'change_username',
-      calldata: usernameCallData.calldata
+      calldata: usernameCallData.calldata,
     });
     const maxFee = (suggestedMaxFee * BigInt(15)) / BigInt(10);
-    const result = await props.usernameContract.change_username(
-      usernameCallData.calldata,
-      {
-        maxFee
-      }
-    );
+    const result = await props.usernameContract.change_username(usernameCallData.calldata, {
+      maxFee,
+    });
     // TODO: Success message
     console.log(result);
   };
@@ -311,9 +284,9 @@ const AccountStarknet = (props) => {
     // }
 
     const checkIfAvailable = async () => {
-      let availableConnectors: any[] = [];
+      const availableConnectors: any[] = [];
       for (let i = 0; i < props.connectors.length; i++) {
-        let available = await props.connectors[i].available();
+        const available = await props.connectors[i].available();
         if (available) {
           availableConnectors.push(props?.connectors[i]);
         }
@@ -329,7 +302,7 @@ const AccountStarknet = (props) => {
     // Check if username is unique
     if (!isValidUsername) return;
     if (usernameTaken) return;
-    let uniqueRequestUrl = `check-username-unique?username=${username}`;
+    const uniqueRequestUrl = `check-username-unique?username=${username}`;
     // const uniqueResponse = await fetchWrapper(uniqueRequestUrl);
     // if (uniqueResponse.data === null) {
     //   console.error('Failed to check if username is unique:', uniqueResponse);
@@ -434,7 +407,9 @@ const AccountStarknet = (props) => {
     const interval = setInterval(() => {
       setAnimatedRankColor((animatedRankColor + 3) % 360);
       setRankBackground({
-        background: `linear-gradient(45deg, hsl(${animatedRankColor}, 100%, 50%), hsl(${(animatedRankColor + btrColorOffset) % 360}, 100%, 50%))`
+        background: `linear-gradient(45deg, hsl(${animatedRankColor}, 100%, 50%), hsl(${
+          (animatedRankColor + btrColorOffset) % 360
+        }, 100%, 50%))`,
       });
     }, 50);
     return () => clearInterval(interval);
@@ -542,7 +517,7 @@ const AccountStarknet = (props) => {
     //   setConnected(false);
     //   return;
     // }
-    console.log("disconnectWallet")
+    console.log('disconnectWallet');
     setWallet(null);
     setConnectorData(null);
     setConnected(false);
@@ -551,9 +526,8 @@ const AccountStarknet = (props) => {
     setAccountSessionSignature(null);
     setUsingSessionKeys(false);
     setIsSessionable(false);
-    setQueryAddress("0")
-    await disconnect()
-
+    setQueryAddress('0');
+    await disconnect();
   };
 
   // TODO: Ethereum login
@@ -569,39 +543,35 @@ const AccountStarknet = (props) => {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center'
+            alignItems: 'center',
           }}
         >
-          <div className='Account__login'>
+          <div className="Account__login">
             <div
-              className='Text__medium Button__primary Account__login__button'
+              className="Text__medium Button__primary Account__login__button"
               onClick={() => {
                 // props.connectWallet
-                console.log("try connect")
-                connectWallet()
+                console.log('try connect');
+                connectWallet();
 
                 // // connect()
                 // setIsOpenConnector(!isOpenConnector)
-              }
-
-              }
+              }}
             >
               Starknet Login
             </div>
           </div>
-          {isOpenConnector &&
-
+          {isOpenConnector && (
             <>
               {availableConnectors.map((connector) => {
                 return (
                   <Button
-                    className='Text__medium Button__primary Account__walletlogin__button'
+                    className="Text__medium Button__primary Account__walletlogin__button"
                     key={connector.id}
                     onClick={() => {
                       // props.connectWallet(connector)
-                      connectHook({connector})
-                    }
-                    }
+                      connectHook({connector});
+                    }}
                   >
                     {/* {connectorLogo(connector.name) && (
                       <img
@@ -614,9 +584,8 @@ const AccountStarknet = (props) => {
                   </Button>
                 );
               })}
-
             </>
-          }
+          )}
 
           <div
             className={
@@ -624,12 +593,12 @@ const AccountStarknet = (props) => {
               (starknetWalletMode ? ' Account__wallet__select--expanded' : '')
             }
           >
-            <div className='Account__walletmode__separator'></div>
-            <div className='Account__walletmode__connect'>
+            <div className="Account__walletmode__separator"></div>
+            <div className="Account__walletmode__connect">
               {availableConnectors.map((connector) => {
                 return (
                   <div
-                    className='Text__medium Button__primary Account__walletlogin__button'
+                    className="Text__medium Button__primary Account__walletlogin__button"
                     key={connector.id}
                     onClick={() => props.connectWallet(connector)}
                   >
@@ -646,28 +615,24 @@ const AccountStarknet = (props) => {
               })}
               {availableConnectors.length === 0 && (
                 <div>
-                  <p className='Text__small Account__wallet__noconnectors'>
+                  <p className="Text__small Account__wallet__noconnectors">
                     Please install a Starknet wallet extension
                   </p>
                   <div
-                    className='Text__medium Button__primary Account__walletlogin__button'
+                    className="Text__medium Button__primary Account__walletlogin__button"
                     onClick={() =>
-                      window.open(
-                        'https://www.argent.xyz/argent-x/',
-                        '_blank',
-                        'noreferrer'
-                      )
+                      window.open('https://www.argent.xyz/argent-x/', '_blank', 'noreferrer')
                     }
                   >
                     Argent X
                   </div>
                   <div
-                    className='Text__medium Button__primary Account__walletlogin__button'
+                    className="Text__medium Button__primary Account__walletlogin__button"
                     onClick={() =>
                       window.open(
                         'https://braavos.app/download-braavos-wallet/',
                         '_blank',
-                        'noreferrer'
+                        'noreferrer',
                       )
                     }
                   >
@@ -681,53 +646,52 @@ const AccountStarknet = (props) => {
       )}
       {queryAddress !== '0' && (
         <div>
-          <h2 className='Text__medium Heading__sub Account__subheader'>Info</h2>
+          <h2 className="Text__medium Heading__sub Account__subheader">Info</h2>
           {usernameSaved && !isEditing ? (
-            <div className='Account__item__user'>
-              <p className='Text__small Account__item__label'>Username</p>
-              <div className='Account__item__username'>
-                <p className='Text__small Account__item__un'>{username}</p>
+            <div className="Account__item__user">
+              <p className="Text__small Account__item__label">Username</p>
+              <div className="Account__item__username">
+                <p className="Text__small Account__item__un">{username}</p>
                 {!props.gameEnded && (
                   <div
-                    className='Text__small Button__primary Account__item__button'
+                    className="Text__small Button__primary Account__item__button"
                     onClick={editUsername}
                   >
                     <img
-                      className='Account__item__icon'
-                      src={"../../resources/icons/Edit.png"}
-                      alt='edit'
+                      className="Account__item__icon"
+                      src={'../../resources/icons/Edit.png'}
+                      alt="edit"
                     />
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className='Account__form'>
-              <p className='Text__small Account__form__label'>Username</p>
-              <form
-                className='Account__item Account__username__form'
-                onSubmit={handleSubmit}
-              >
+            <div className="Account__form">
+              <p className="Text__small Account__form__label">Username</p>
+              <form className="Account__item Account__username__form" onSubmit={handleSubmit}>
                 <input
-                  className='Text__small Input__primary Account__username__input'
-                  type='text'
+                  className="Text__small Input__primary Account__username__input"
+                  type="text"
                   value={username}
                   required
                   onChange={(e) => setUsername(e.target.value)}
                 />
-                <div className='Account__item__pair'>
+                <div className="Account__item__pair">
                   <button
-                    className={`Text__small Button__primary ${isValidUsername && !usernameTaken ? '' : 'Button__disabled'}`}
-                    type='submit'
+                    className={`Text__small Button__primary ${
+                      isValidUsername && !usernameTaken ? '' : 'Button__disabled'
+                    }`}
+                    type="submit"
                     disabled={!isValidUsername || usernameTaken}
                   >
                     submit
                   </button>
                   {isEditing && (
                     <button
-                      className='Text__small Button__primary Account__cancel__button'
+                      className="Text__small Button__primary Account__cancel__button"
                       onClick={handleCancelEdit}
-                      type='button'
+                      type="button"
                     >
                       X
                     </button>
@@ -735,118 +699,101 @@ const AccountStarknet = (props) => {
                 </div>
               </form>
               {!isValidUsername && username.length > 3 && (
-                <p className='Text__xsmall Account__form__error'>
+                <p className="Text__xsmall Account__form__error">
                   Invalid username: 3 - 30 characters, a-z, A-Z, 0-9, -, _, .
                 </p>
               )}
               {usernameTaken && (
-                <p className='Text__xsmall Account__form__error'>
-                  Username is already taken
-                </p>
+                <p className="Text__xsmall Account__form__error">Username is already taken</p>
               )}
             </div>
           )}
 
-          <div className='Account__item Account__item__separator'>
-            <p className='Text__medium Account__item__label'>Rank</p>
-            <div className='Text__small Account__rank'>
-              <div className='Account__rank__outer' style={rankBackground}>
-                <div className='Account__rank__inner'>
-                  <img
-                    className='Account__rank__img'
-                    src={accountRankImg}
-                    alt='rank'
-                  />
-                  <p className='Text__small Account__rank__text'>
-                    {accountRank}
-                  </p>
+          <div className="Account__item Account__item__separator">
+            <p className="Text__medium Account__item__label">Rank</p>
+            <div className="Text__small Account__rank">
+              <div className="Account__rank__outer" style={rankBackground}>
+                <div className="Account__rank__inner">
+                  <img className="Account__rank__img" src={accountRankImg} alt="rank" />
+                  <p className="Text__small Account__rank__text">{accountRank}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className='Account__item'>
-            <p className='Text__small Account__item__label'>Address</p>
-            <p className='Text__small Account__item__text'>{addressShort}</p>
+          <div className="Account__item">
+            <p className="Text__small Account__item__label">Address</p>
+            <p className="Text__small Account__item__text">{addressShort}</p>
           </div>
 
-          <div className='Account__item'>
-            <p className='Text__small Account__item__label'>Network</p>
-            <p className='Text__small Account__item__text'>
+          <div className="Account__item">
+            <p className="Text__small Account__item__label">Network</p>
+            <p className="Text__small Account__item__text">
               {process.env.REACT_APP_CHAIN_ID === constants.NetworkName.SN_MAIN
                 ? 'Mainnet'
                 : 'Sepolia'}
             </p>
           </div>
 
-          <h2 className='Text__medium Heading__sub Account__subheader'>
-            Stats
-          </h2>
-          <div className='Account__item'>
-            <p className='Text__small Account__item__label'>Pixels placed</p>
-            <div className='Account__item__pair'>
-              <p className='Text__small Account__item__label'>{pixelCount}</p>
+          <h2 className="Text__medium Heading__sub Account__subheader">Stats</h2>
+          <div className="Account__item">
+            <p className="Text__small Account__item__label">Pixels placed</p>
+            <div className="Account__item__pair">
+              <p className="Text__small Account__item__label">{pixelCount}</p>
               {false && (
-                <div
-                  className='Button__primary Account__item__button'
-                  onClick={showPixelHistory}
-                >
+                <div className="Button__primary Account__item__button" onClick={showPixelHistory}>
                   <img
-                    className='Account__item__icon'
-                    src={"/resources/icons/Search.png"}
-                    alt='show'
+                    className="Account__item__icon"
+                    src={'/resources/icons/Search.png'}
+                    alt="show"
                   />
                 </div>
               )}
             </div>
           </div>
-          <div className='Account__item'>
-            <p className='Text__small Account__item__label'>Awards</p>
-            <div className='Account__item__pair'>
-              <p className='Text__small Account__item__label'>
+          <div className="Account__item">
+            <p className="Text__small Account__item__label">Awards</p>
+            <div className="Account__item__pair">
+              <p className="Text__small Account__item__label">
                 {userAwards ? `${userAwards.length} awards` : 'No awards'}
               </p>
               <div
-                className='Button__primary Account__item__button'
+                className="Button__primary Account__item__button"
                 onClick={() => setShowClaimInfo(!showClaimInfo)}
                 style={{
-                  display:
-                    userAwards && userAwards.length > 0 ? 'block' : 'none'
+                  display: userAwards && userAwards.length > 0 ? 'block' : 'none',
                 }}
               >
                 Claim
               </div>
             </div>
           </div>
-          <div className='Account__disconnect__button__separator'></div>
-          <div className='Account__footer'>
-            <div className='Account__kudos'>
+          <div className="Account__disconnect__button__separator"></div>
+          <div className="Account__footer">
+            <div className="Account__kudos">
               {!props.usingSessionKeys && props.isSessionable ? (
-                <p className='Text__small Account__kudos__label'>
+                <p className="Text__small Account__kudos__label">
                   Tired of approving each pixel? Sessions coming soon!
                 </p>
               ) : (
-                <p className='Text__small Account__kudos__label'>
-                  Session active
-                </p>
+                <p className="Text__small Account__kudos__label">Session active</p>
               )}
             </div>
             <div>
-              {!props.usingSessionKeys &&
-                // && props.isSessionable 
-                (
-                  <div
-                    className='Text__small Button__primary Button__disabled'
-                    style={{ marginBottom: '0.3rem', backgroundColor: '#f00' }}
-                    onClick={() => {
-                      // startSession()
-                      // props.startSession()
-                    }}
-                  >
-                    Start session
-                  </div>
-                )}
+              {!props.usingSessionKeys && (
+                // && props.isSessionable
+                <div
+                  className="Text__small Button__primary Button__disabled"
+                  style={{marginBottom: '0.3rem', backgroundColor: '#f00'}}
+                  onClick={() => {
+                    // startSession()
+                    // props.startSession()
+                  }}
+                >
+                  Start session
+                </div>
+              )}
               <div
-                className='Text__small Button__primary Account__disconnect__button'
+                className="Text__small Button__primary Account__disconnect__button"
                 onClick={disconnectWallet}
               >
                 Logout

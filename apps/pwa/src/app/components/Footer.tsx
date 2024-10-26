@@ -1,8 +1,8 @@
-import { Box, useColorModeValue } from "@chakra-ui/react";
+import {Box, useColorModeValue} from '@chakra-ui/react';
 
 export function Footer() {
-  const bgColor = useColorModeValue("gray.300", "gray.700");
-  const textColor = useColorModeValue("gray.800", "gray.300");
+  const bgColor = useColorModeValue('gray.300', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'gray.300');
 
   return (
     <Box
@@ -14,7 +14,7 @@ export function Footer() {
       <Box
         // className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]"
         className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-solid pb-[30px]"
-        >
+      >
         <Box className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <img
             src="/assets/afkMascot.png"

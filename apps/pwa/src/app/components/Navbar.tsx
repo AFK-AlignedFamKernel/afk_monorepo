@@ -1,20 +1,22 @@
 'use client';
 
+import {Box, useColorModeValue, useTheme} from '@chakra-ui/react';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
+
 import MenuNav from './MenuNav';
 import MobileDrawerNavbar from './MobileDrawerNavbar';
-import { Box, useColorModeValue, useTheme } from '@chakra-ui/react';
-import { NavigationLinks } from './NavigationLinks';
+import {NavigationLinks} from './NavigationLinks';
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
-  const theme = useTheme()
-  const bgColor = useColorModeValue("gray.300", "gray.700");
-  const textColor = useColorModeValue("gray.800", "gray.300");
+  const theme = useTheme();
+  const bgColor = useColorModeValue('gray.300', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'gray.300');
 
   return (
-    <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center"
+    <Box
+      className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center"
       // background={"bg-black"}
       bg={bgColor}
       color={textColor}
