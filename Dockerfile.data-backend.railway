@@ -4,9 +4,29 @@ FROM node:18-alpine AS base
 # Set the working directory inside the container
 WORKDIR /app
 
+# Add an argument for the Telegram bot token
+ARG TELEGRAM_BOT_TOKEN
+
+# Set the environment variable
+RUN echo ${TELEGRAM_BOT_TOKEN}
+
+# Add an argument for th Indexer postgres url
 ARG INDEXER_DATABASE_URL
 
+# Set the environment variable
 RUN echo $INDEXER_DATABASE_URL
+
+# Add an argument for th Backend postgres url
+ARG BACKEND_DATABASE_URL
+
+# Set the environment variable
+RUN echo ${BACKEND_DATABASE_URL}
+
+# Add an argument for Telegram webapp
+ARG TELEGRAM_WEB_APP
+
+# Set the environment variable
+RUN echo ELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
