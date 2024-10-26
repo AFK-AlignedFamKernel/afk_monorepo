@@ -28,7 +28,7 @@ ARG TELEGRAM_WEB_APP
 # Set the environment variable
 RUN echo ${TELEGRAM_WEB_APP}
 
-# Add an argument for Stripe server api key
+# Add an argument for Stripe  api key
 ARG STRIPE_SERVER_API_KEY
 
 # Set the environment variable
@@ -45,8 +45,6 @@ RUN pnpm install --force
 
 # Copy the entire repository into the Docker container
 COPY . .
-
-RUN pnpm install --filter indexer-prisma
 
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
