@@ -4,6 +4,18 @@ FROM node:18-alpine AS base
 # Set the working directory inside the container
 WORKDIR /app
 
+# Set the environment variable
+ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+
+# Set the environment variable
+ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL}
+
+# Set the environment variable
+ENV BACKEND_DATABASE_URL=${BACKEND_DATABASE_URL}
+
+# Set the environment variable
+ENV TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
+
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
 
