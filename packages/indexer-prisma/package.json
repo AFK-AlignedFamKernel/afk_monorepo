@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx prisma generate && npx prisma db pull && tsc",
+    "build": "pnpm install && npx prisma generate && npx prisma db pull && tsc",
     "generate":"npx prisma generate",
     "pull":"npx prisma db pull"
   },
