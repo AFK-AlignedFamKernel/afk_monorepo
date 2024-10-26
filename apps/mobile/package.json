@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "expo start",
     "build:web": "npx expo export --platform web",
+    "build2:web": "npx expo export --platform web && npx workbox-cli generateSW workbox-config.js",
     "start": "expo start",
     "start:tunnel": "expo start --tunnel",
     "android": "expo run:android",
