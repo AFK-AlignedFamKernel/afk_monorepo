@@ -40,12 +40,10 @@ COPY package.json pnpm-workspace.yaml ./
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Install all dependencies for the workspace, including common and data-backend
-RUN pnpm install --force
-
 # Copy the entire repository into the Docker container
 COPY . .
 
+# Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
 # Build the indexer-prisma package
