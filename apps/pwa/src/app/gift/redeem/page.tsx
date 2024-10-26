@@ -44,7 +44,7 @@ const Redeem = () => {
 
   return (
     <Box
-      className="min-h-screen w-full relative bg-black"
+      className="min-h-screen w-full relative"
     >
       <Navbar></Navbar>
       <ReceiveGift></ReceiveGift>

@@ -83,33 +83,54 @@ const theme = extendTheme({
   config,
   styles: {
     global: (props: StyleFunctionProps) => ({
-      body: {
+      main: {
         // fontFamily: "body",
-        // color: mode("gray.800", "whiteAlpha.900")(props),
-        // color: mode("gray.800", "gray.900")(props),
-        color: mode('gray.800', 'gray.900')(props),
-        fontFamilly: 'monospace',
+        color: mode('gray.800', 'gray.300')(props),
+        fontFamily: 'monospace',
         bg: mode('white', 'gray.700')(props),
         lineHeight: 'base',
+      },
+      body: {
+        // fontFamily: "body",
+        color: mode('gray.800', 'gray.300')(props),
+        fontFamily: 'monospace',
+        bg: mode('white', 'gray.700')(props),
+        lineHeight: 'base',
+      },
+      nav: {
+        // color: mode('gray.800', 'gray.900')(props),
+        fontFamily: 'monospace',
+        bg: mode('white', 'gray.700')(props),
+        lineHeight: 'base',
+      },
+      div: {
+        fontFamily: 'monospace',
+        bg: mode('white', 'gray.700')(props),
+        lineHeight: 'base',
+      },
+      p: {
+        color: mode('gray.800', 'gray.300')(props),
+        fontFamily: 'monospace',
       },
     }),
   },
   components: {
     Text: {
+
       // The styles all button have in common
       baseStyle: {
-        fontFamilly: 'monospace',
+        fontFamily: 'monospace',
         // fontWeight: "bold",
         // textTransform: "uppercase",
         // borderRadius: "base", // <-- border radius is same for all variants and sizes
       },
-      fontFamilly: 'monospace',
+      fontFamily: 'monospace',
       // fontFamilly:"PressStart2P",
 
       // // The default size and variant values
       defaultProps: {
         // size: 'md',
-        fontFamilly: 'monospace',
+        fontFamily: 'monospace',
         // variant: 'outline',
       },
       // Two sizes: sm and md

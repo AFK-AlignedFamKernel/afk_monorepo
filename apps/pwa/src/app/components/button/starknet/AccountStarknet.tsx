@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AccountInterface, constants, Signature, stark } from 'starknet';
-import './Account.css';
+import './AccountStarknet.css';
 import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
 import {
   useAccount,
@@ -12,7 +12,7 @@ import {
 import { disconnect } from 'starknetkit-next';
 import { buildSessionAccount, createSessionRequest, OffChainSession, openSession } from '@argent/x-sessions';
 import { Box, Button } from '@chakra-ui/react';
-const Account = (props) => {
+const AccountStarknet = (props) => {
   const { address, account } = useAccount()
   const [queryAddress, setQueryAddress] = useState('0');
   const [username, setUsername] = useState('');
@@ -859,4 +859,4 @@ const Account = (props) => {
   );
 };
 
-export default Account;
+export default AccountStarknet;

@@ -4,7 +4,7 @@ import { Box, Button, Input, Text, Stack, useToast, Select } from '@chakra-ui/re
 import { useSendTransaction, useAccount, useWriteContract } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
 import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
-import Account from '../button/starknet/Account';
+import Account from '../button/starknet/AccountStarknet';
 import CustomModal from '../modal';
 import ConnectWithOtpView from '../dynamic/ConnectWithOtpView';
 

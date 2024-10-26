@@ -2,10 +2,11 @@
 import {AppRender} from 'pixel_ui';
 
 import {Navbar} from './components/Navbar';
+import { Box } from '@chakra-ui/react';
 
 export default function App() {
   return (
-    <div className="min-h-screen w-full relative bg-black">
+    <Box className="min-h-screen w-full relative">
       <Navbar />
       {typeof window !== 'undefined' && (
         <AppRender
@@ -15,6 +16,6 @@ export default function App() {
         ></AppRender>
       )}
       {/* <Footer /> */}
-    </div>
+    </Box>
   );
 }

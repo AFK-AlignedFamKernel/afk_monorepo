@@ -1,6 +1,12 @@
+import { Box } from "@chakra-ui/react";
+
 export function Footer() {
   return (
-    <div className="bg-footerBg bg-no-repeat bg-contain bg-black mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px] text-white">
+    <Box 
+    className=" mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px]"
+    // className="bg-footerBg bg-no-repeat bg-contain bg-black mt-0 tab:mt-[140px] pt-[200px] tab:pt-[514px] tab:px-[73px] px-6 pb-[42px] text-white"
+    
+    >
       <div className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]">
         <div className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <img
@@ -48,8 +54,8 @@ export function Footer() {
         </div>
       </div>
       <h6 className="text-xs tab:text-sm leading-[14px] font-normal text-center mt-4">
-        © 2024 AFK. All Rights Reserved.
+        © {new Date()?.getFullYear()} AFK. All Rights Reserved.
       </h6>
-    </div>
+    </Box>
   );
 }
