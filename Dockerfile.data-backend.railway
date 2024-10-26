@@ -46,6 +46,8 @@ RUN pnpm install --force
 # Copy the entire repository into the Docker container
 COPY . .
 
+RUN pnpm install --filter indexer-prisma
+
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
