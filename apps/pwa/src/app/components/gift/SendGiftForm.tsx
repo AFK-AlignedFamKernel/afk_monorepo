@@ -5,14 +5,14 @@ import { createWalletClient, custom, parseEther, erc20Abi, parseUnits } from 'vi
 import { sepolia } from 'viem/chains';
 import { useSendTransaction, useAccount, useWriteContract } from 'wagmi';
 import { useAccount as useAccountStarknet } from '@starknet-react/core';
-import { CustomConnectButtonWallet } from '../../app/components/button/CustomConnectButtonWallet';
-import Account from '../../app/components/button/starknet/AccountStarknet';
-import CustomModal from '../../app/components/modal';
+import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
+import Account from '../account/starknet/AccountStarknet';
+import CustomModal from '../modal';
 import axios from 'axios';
 import { TOKENS_ADDRESS } from 'common';
 import { CallData, constants, uint256 } from 'starknet';
 import { generateDeployAccount, generateStarknetWallet, generateWalletEvm, generateLinkReceived } from '@/utils/generate';
-import CopyableLink from '../../app/components/button/CopyLink';
+import CopyableLink from '../button/CopyLink';
 interface SendFormProps {
   recipientAddress?: string;
   chainProps?: ChainString;

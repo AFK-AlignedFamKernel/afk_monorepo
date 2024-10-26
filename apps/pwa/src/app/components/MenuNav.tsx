@@ -1,6 +1,6 @@
 import { Button, Menu, MenuButton, MenuItem, MenuList, Text } from '@chakra-ui/react';
 import { CustomConnectButtonWallet } from './button/CustomConnectButtonWallet';
-import AccountStarknet from './button/starknet/AccountStarknet';
+import AccountStarknet from './account/starknet/AccountStarknet';
 import DynamicManagement from './dynamic';
 
 interface IMenuParent {

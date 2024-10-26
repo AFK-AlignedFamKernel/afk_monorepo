@@ -1,6 +1,6 @@
 "use client";
 
-import ReceiveGift from '@/components/gift/ReceiveGift';
+import ReceiveGift from '@/app/components/gift/ReceiveGift';
 import { Navbar } from '@/app/components/Navbar';
 import { Footer } from '@/app/components/Footer';
 import { Box, useColorModeValue } from '@chakra-ui/react';

@@ -88,12 +88,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             }
           >
             <StarknetProvider>
-              <WagmiProvider config={config}>
+              <WagmiProvider config={config}
+                 reconnectOnMount={false}>
 
                 <QueryClientProvider client={queryClient}>
                   <DynamicWagmiConnector>
                     <RainbowKitProvider>{children}</RainbowKitProvider>
-                    {/* <DynamicWidget /> */}
+                    <DynamicWidget />
                   </DynamicWagmiConnector>
                 </QueryClientProvider>
               </WagmiProvider>
