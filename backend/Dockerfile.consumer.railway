@@ -11,6 +11,42 @@ COPY /go.mod /go.sum ./
 RUN go mod download
 COPY ./ .
 
+# Argument for Redis host and port
+ARG REDIS_HOST
+ARG REDIS_PORT
+
+# Set Redis host and port environment variables
+RUN echo ${REDIS_HOST}
+RUN echo ${REDIS_PORT}
+
+# Argument for Postgres host, port, user, and database
+ARG POSTGRES_HOST
+ARG POSTGRES_PORT
+ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
+ARG POSTGRES_DATABASE
+
+# Set Postgres host, port, user, and database environment variables
+RUN echo ${POSTGRES_HOST}
+RUN echo ${POSTGRES_PORT}
+RUN echo ${POSTGRES_USER}
+RUN echo ${POSTGRES_PASSWORD}
+RUN echo ${POSTGRES_DATABASE}
+
+# Argument for Backend url, port, host, consumer port, and production
+ARG BACKEND_URL
+ARG BACKEND_PORT
+ARG BACKEND_HOST
+ARG CONSUMER_PORT
+ARG PRODUCTION
+
+RUN echo ${BACKEND_URL}
+RUN echo ${BACKEND_PORT}
+RUN echo ${BACKEND_HOST}
+RUN echo ${CONSUMER_PORT}
+RUN echo ${PRODUCTION}
+
+
 RUN go build -o consumer ./cmd/consumer/consumer.go
 
 EXPOSE 5050
