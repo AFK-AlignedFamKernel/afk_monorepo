@@ -26,7 +26,7 @@ RUN echo ${BACKEND_DATABASE_URL}
 ARG TELEGRAM_WEB_APP
 
 # Set the environment variable
-RUN echo ELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
+RUN echo TELEGRAM_WEB_APP=${TELEGRAM_WEB_APP}
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
