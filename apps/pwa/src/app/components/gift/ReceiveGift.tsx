@@ -1,16 +1,17 @@
 // components/SendUSDCForm.tsx
-import {Box, Button, Text, useToast} from '@chakra-ui/react';
-import {useAccount as useAccountStarknet} from '@starknet-react/core';
-import {RPC_URLS_NUMBER, TOKENS_ADDRESS} from 'common';
-import {ethers, JsonRpcProvider} from 'ethers';
+import { Box, Button, Text, useToast } from '@chakra-ui/react';
+import { useAccount as useAccountStarknet } from '@starknet-react/core';
+import { RPC_URLS_NUMBER, TOKENS_ADDRESS } from 'common';
+import { ethers, JsonRpcProvider } from 'ethers';
 // import { useRouter } from 'next/router';
-import {useRouter} from 'next/navigation';
-import {useSearchParams} from 'next/navigation';
-import {useEffect, useState} from 'react';
-import {formatEther, formatUnits, parseEther} from 'viem';
-import {useAccount} from 'wagmi';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { formatEther, formatUnits, parseEther } from 'viem';
+import { useAccount } from 'wagmi';
 
 import AccountManagement from '../account';
+import { Account, CallData, RpcProvider } from 'starknet';
 
 interface SendUSDCFormProps {
   recipientAddress?: string;
@@ -18,11 +19,11 @@ interface SendUSDCFormProps {
   tokenAddressProps?: string;
 }
 
-const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, tokenAddressProps}) => {
+const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tokenAddressProps }) => {
   const router = useRouter();
   const toast = useToast();
   // const router = typeof window !== 'undefined' ? useRouter() : null;
-  const {account: accountStarknet} = useAccountStarknet();
+  const { account: accountStarknet } = useAccountStarknet();
   const account = useAccount();
 
   // const { privateKey, tokenAddress, amount, network } = router.query;
@@ -46,7 +47,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, toke
       if (!account) return;
       const chainId = account?.chainId;
       if (!chainId) return;
-      const {wallet, provider} = await getProvider(chainId);
+      const { wallet, provider } = await getProvider(chainId);
       setPublicKeyWallet(wallet?.address);
       await getBalance(provider, wallet);
     };
@@ -91,6 +92,43 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, toke
 
       if (network == 'STARKNET') {
         console.log('Receive Starknet');
+        if (!accountStarknet?.address) {
+          toast({
+            title: 'Please connect wallet',
+            status: 'info',
+          });
+          return;
+        }
+        if (!amount) {
+          toast({
+            title: 'Amount is required',
+            description:"Please contact support",
+            status: 'info',
+          });
+          return;
+        }
+        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString()]['ETH'];
+        console.log('addressToken', addressToken);
+        const chainId = await account?.chainId;
+
+
+        const provider = new RpcProvider({})
+        const accountAX = new Account(provider, addressToken, privateKey);
+
+
+        const txTransferCalldata = CallData.compile({
+          recipient: accountStarknet?.address,
+          amount,
+        });
+        const receipt = await accountAX?.execute([
+          {
+            contractAddress: addressToken,
+            entrypoint: 'transfer',
+            calldata: txTransferCalldata,
+          },
+        ]);
+        console.log('receipt', receipt);
+
       } else {
         // const addressToken = TOKENS_ADDRESS[chainId?.toString()][tokenAddress ?? "ETH"]
 
@@ -112,7 +150,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, toke
           });
           return;
         }
-        const {wallet, provider} = await getProvider(chainId);
+        const { wallet, provider } = await getProvider(chainId);
         await getBalance(provider, wallet);
 
         if (!wallet && !provider) {
