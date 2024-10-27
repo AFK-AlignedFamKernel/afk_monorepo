@@ -37,7 +37,7 @@ const config: Config = {
       "classic",
       {
         googleAnalytics: {
-          trackingID: process.env.NEXT_PUBLIC_GTAG_TRACKING_ID ?? "",
+          trackingID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS ?? "",
           anonymizeIP: true,
         },
         docs: {
