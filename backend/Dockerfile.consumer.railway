@@ -11,6 +11,38 @@ COPY /go.mod /go.sum ./
 RUN go mod download
 COPY ./ .
 
+# Argument for Redis host and port
+ARG REDIS_HOST
+ARG REDIS_PORT
+
+# Argument for Postgres host, port, user, and database
+ARG POSTGRES_HOST
+ARG POSTGRES_PORT
+ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
+ARG POSTGRES_DATABASE
+
+# Argument for Backend url, port, host, consumer port, and production
+ARG BACKEND_URL
+ARG BACKEND_PORT
+ARG BACKEND_HOST
+ARG CONSUMER_PORT
+ARG PRODUCTION
+
+# Create .env file with environment variables
+RUN echo "REDIS_HOST=${REDIS_HOST}" >> .env && \
+    echo "REDIS_PORT=${REDIS_PORT}" >> .env && \
+    echo "POSTGRES_HOST=${POSTGRES_HOST}" >> .env && \
+    echo "POSTGRES_PORT=${POSTGRES_PORT}" >> .env && \
+    echo "POSTGRES_USER=${POSTGRES_USER}" >> .env && \
+    echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env && \
+    echo "POSTGRES_DATABASE=${POSTGRES_DATABASE}" >> .env && \
+    echo "BACKEND_URL=${BACKEND_URL}" >> .env && \
+    echo "BACKEND_PORT=${BACKEND_PORT}" >> .env && \
+    echo "BACKEND_HOST=${BACKEND_HOST}" >> .env && \
+    echo "CONSUMER_PORT=${CONSUMER_PORT}" >> .env && \
+    echo "PRODUCTION=${PRODUCTION}" >> .env
+
 RUN go build -o consumer ./cmd/consumer/consumer.go
 
 EXPOSE 5050

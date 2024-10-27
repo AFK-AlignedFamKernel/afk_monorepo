@@ -13,8 +13,8 @@ import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
+import GenerateQRCode from './qr/GenerateQRCode'; // Import the QR code component
 import stylesheet from './styles';
-// import QRCode from 'qrcode';  // replace with reactnative qrcode lib
 
 export const ReceiveEcash = () => {
   const tabs = ['lightning', 'ecash'];
@@ -37,7 +37,6 @@ export const ReceiveEcash = () => {
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
 
   const styles = useStyles(stylesheet);
-  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>();
@@ -149,35 +148,10 @@ export const ReceiveEcash = () => {
     }
   };
 
-  // Encode the Cashu token into a string
-
-  // Generate the QR Code from the Cashu token string
-  useEffect(() => {
-    // QRCode.toDataURL(ecash)
-    //   .then((url: React.SetStateAction<string | undefined>) => {
-    //     setQRCodeUrl(url);  // Set the generated QR code URL
-    //   })
-    //   .catch((err: any) => console.error(err));
-  }, [ecash]);
-
   return (
-    <SafeAreaView
-    // style={styles.safeArea}
-    >
-      <View
-      // style={styles.container}
-      >
-        <View
-        //  style={styles.container}
-        >
-          {/* <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
-          </View> */}
+    <SafeAreaView>
+      <View>
+        <View>
           <View style={styles.tabContainer}>
             {tabs.map((tab) => (
               <TouchableOpacity
@@ -193,21 +167,14 @@ export const ReceiveEcash = () => {
           {activeTab == 'ecash' && (
             <>
               <TextInput
-                // className="bg-accent text-white rounded-lg px-4 py-2 hover:bg-opacity-90 transition-colors duration-150"
-                // className="bg-black text-white rounded-lg px-4 py-2 hover:bg-opacity-90 transition-colors duration-150"
                 placeholder="Enter token: cashuXYZ"
-                // keyboardType=""
                 value={ecash}
                 onChangeText={setEcash}
                 style={styles.input}
-              ></TextInput>
+              />
 
               {ecash && (
-                <View
-                  style={{
-                    marginVertical: 3,
-                  }}
-                >
+                <View style={{marginVertical: 3}}>
                   <Text style={styles.text}>ecash token</Text>
 
                   <Input
@@ -216,23 +183,15 @@ export const ReceiveEcash = () => {
                     right={
                       <TouchableOpacity
                         onPress={() => handleCopy('ecash')}
-                        style={{
-                          marginRight: 10,
-                        }}
+                        style={{marginRight: 10}}
                       >
                         <CopyIconStack color={theme.colors.primary} />
                       </TouchableOpacity>
                     }
                   />
 
-                  {/* {qrCodeUrl ? (
-                    <Image
-                      href={qrCodeUrl}
-                      style={{ width: 200, height: 200 }}
-                    />
-                  ) : (
-                    <Text>Generating QR Code...</Text>
-                  )} */}
+                  {/* Generate QR code for the eCash token */}
+                  <GenerateQRCode data={ecash} size={200} />
                 </View>
               )}
 
@@ -253,11 +212,7 @@ export const ReceiveEcash = () => {
               <Button onPress={generateInvoice}>Generate invoice</Button>
 
               {quote?.request && (
-                <View
-                  style={{
-                    marginVertical: 3,
-                  }}
-                >
+                <View style={{marginVertical: 3}}>
                   <Text style={styles.text}>Invoice address</Text>
 
                   <Input
@@ -266,14 +221,15 @@ export const ReceiveEcash = () => {
                     right={
                       <TouchableOpacity
                         onPress={() => handleCopy('lnbc')}
-                        style={{
-                          marginRight: 10,
-                        }}
+                        style={{marginRight: 10}}
                       >
                         <CopyIconStack color={theme.colors.primary} />
                       </TouchableOpacity>
                     }
                   />
+
+                  {/* Display the QR code for the invoice */}
+                  <GenerateQRCode data={quote?.request} size={200} />
                 </View>
               )}
             </>
