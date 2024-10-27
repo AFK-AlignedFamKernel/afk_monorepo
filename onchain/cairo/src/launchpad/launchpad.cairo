@@ -3,8 +3,7 @@ use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
     SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded,
-    MetadataLaunch, TokenClaimed, MetadataCoinAdded
+    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
@@ -37,7 +36,9 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
 
     fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
-    fn add_metadata(ref self: TContractState, coin_address:ContractAddress, metadata:MetadataLaunch);
+    fn add_metadata(
+        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+    );
 
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
@@ -821,37 +822,34 @@ pub mod LaunchpadMarketplace {
             assert(launch.is_liquidity_launch == true, 'not launch yet');
 
             // Verify share of user
-            let mut share_user= self
-            .shares_by_users
-            .read((get_caller_address(), coin_address));
+            let mut share_user = self.shares_by_users.read((get_caller_address(), coin_address));
 
-            let amount_to_receive=share_user.amount_owned;
+            let amount_to_receive = share_user.amount_owned;
             assert(amount_to_receive >= amount, 'share below');
-
 
             // Transfer memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.transfer(caller, amount_to_receive);
 
             // Update new share and emit event
-            share_user.amount_owned-=amount;
+            share_user.amount_owned -= amount;
+            self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
+
             self
-            .shares_by_users
-            .entry((get_caller_address(), coin_address))
-            .write(share_user);
-
-            self.emit(TokenClaimed {
-                token_address: coin_address,
-                owner: caller,
-                timestamp:get_block_timestamp(),
-                amount,
-
-            });
-
+                .emit(
+                    TokenClaimed {
+                        token_address: coin_address,
+                        owner: caller,
+                        timestamp: get_block_timestamp(),
+                        amount,
+                    }
+                );
         }
 
         // TODO finish add Metadata
-        fn add_metadata(ref self: ContractState, coin_address: ContractAddress,metadata:MetadataLaunch) {
+        fn add_metadata(
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+        ) {
             let caller = get_contract_address();
             // Verify if caller is owner
             let mut launch = self.launched_coins.read(coin_address);
@@ -860,16 +858,16 @@ pub mod LaunchpadMarketplace {
             // Add or update metadata
 
             self.metadata_coins.entry(coin_address).write(metadata.clone());
-            self.emit(
-                MetadataCoinAdded {
-                token_address: coin_address,
-                url: metadata.url,
-                timestamp:get_block_timestamp(),
-                nostr_event_id: metadata.nostr_event_id,
-
-            });
+            self
+                .emit(
+                    MetadataCoinAdded {
+                        token_address: coin_address,
+                        url: metadata.url,
+                        timestamp: get_block_timestamp(),
+                        nostr_event_id: metadata.nostr_event_id,
+                    }
+                );
         }
-
 
 
         fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
@@ -1132,10 +1130,8 @@ pub mod LaunchpadMarketplace {
                 // SupportedExchanges::Ekubo => { self._add_liquidity_ekubo(coin_address) }
             }
             let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch=true;
+            launch_to_update.is_liquidity_launch = true;
             self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-
         }
 
         // TODO add liquidity or increase
