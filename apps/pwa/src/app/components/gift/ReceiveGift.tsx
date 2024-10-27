@@ -11,7 +11,9 @@ import { formatEther, formatUnits, parseEther } from 'viem';
 import { useAccount } from 'wagmi';
 
 import AccountManagement from '../account';
-import { Account, CallData, constants, RpcProvider } from 'starknet';
+import { Account, CallData, constants, Contract, RpcProvider, uint256 } from 'starknet';
+import { generateDeployAccount, generateStarknetWallet } from '@/utils/generate';
+import { kakarotSepolia, sepolia } from 'viem/chains';
 
 interface SendUSDCFormProps {
   recipientAddress?: string;
@@ -33,6 +35,10 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
   const tokenAddress = searchParams.get('tokenAddress');
   const amount = searchParams.get('amount');
   const network = searchParams.get('network');
+  const precomputeAddress = searchParams.get('precomputeAddress');
+  const pubkeyStrk = searchParams.get('pubkeyStrk');
+
+
   console.log('privateKey', privateKey);
   console.log('tokenAddress', tokenAddress);
   console.log('amount', amount);
@@ -107,6 +113,24 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           });
           return;
         }
+
+        if (!precomputeAddress) {
+          toast({
+            title: 'pPrecomputeAddress is required',
+            description: "precomputeAddress contact support",
+            status: 'info',
+          });
+          return;
+        }
+
+        if (!privateKey) {
+          toast({
+            title: 'privateKey is required',
+            description: "Please contact support",
+            status: 'info',
+          });
+          return;
+        }
         const chainId = await account?.chainId;
         const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network]['ETH'];
         console.log('addressToken', addressToken);
@@ -114,22 +138,146 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
 
         const rpcUrls = RPC_URLS_NUMBER[network]
         const provider = new RpcProvider({ nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL })
-        const accountAX = new Account(provider, addressToken, privateKey);
+        const accountAX = new Account(provider, precomputeAddress, privateKey);
 
 
-        const txTransferCalldata = CallData.compile({
+        let nonce;
+        try {
+
+          nonce = await accountAX?.getNonce();
+
+        } catch (error) {
+          console.log("Error get nonce", error)
+
+
+        }
+
+        if (!nonce) {
+          console.log("nonce not created")
+          const {
+            // precomputeAddress,
+            provider: providerTest,
+            privateKey,
+            starkKeyPub: pubkey,
+            classHash,
+            constructorCalldata,
+          } = await generateStarknetWallet(pubkeyStrk);
+          const calldataWalletGenerated = await generateDeployAccount(
+            precomputeAddress,
+            pubkeyStrk ?? "",
+            classHash ?? "",
+            constructorCalldata,
+          );
+          if (calldataWalletGenerated?.deployAccountPayload) {
+            try {
+
+              const deployedAccount = await accountAX?.deployAccount(
+                calldataWalletGenerated?.deployAccountPayload,
+              );
+
+              recipientAddress = deployedAccount?.contract_address;
+              console.log('✅ ArgentX wallet deployed at:', deployedAccount);
+
+            } catch (error) {
+              console.log("error deploy account", error)
+            }
+
+            // try {
+            //     const deployedAccount = await accountStarknet?.deployAccount(
+            //         calldataWalletGenerated?.deployAccountPayload,
+            //     );
+            //     recipientAddress = deployedAccount?.contract_address;
+            //     console.log('✅ ArgentX wallet deployed at:', deployedAccount);
+
+            // } catch (error) {
+            //     console.log("error deploy")
+            // }
+
+          }
+
+        }
+
+        console.log("try transfer")
+
+
+        /** @TODO determine paymaster master specs to send the TX */
+        const prepareAndConnectContract = async (
+          contractAddress: string,
+          account: Account
+        ) => {
+          // read abi of Test contract
+          const { abi: testAbi } = await provider.getClassAt(contractAddress);
+
+          const contract = new Contract(testAbi, contractAddress, provider);
+          // Connect account with the contract
+          contract.connect(account);
+          return contract;
+        };
+
+
+        const contract = await prepareAndConnectContract(addressToken, accountAX)
+
+        const balanceOf = await contract.balance_of(precomputeAddress)
+
+        console.log("balanceOf", balanceOf)
+
+        const amountUint256 = uint256.bnToUint256(Math.ceil(Number(amount) * 10 ** decimals));
+
+        const balanceUint256 = uint256.bnToUint256(balanceOf)
+        let txTransferCalldata = CallData.compile({
           recipient: accountStarknet?.address,
-          amount,
+          balance: balanceUint256 ?? amountUint256,
         });
-        const receipt = await accountAX?.execute([
+
+        let calls = [
           {
             contractAddress: addressToken,
             entrypoint: 'transfer',
             calldata: txTransferCalldata,
           },
-        ]);
+        ]
+        const fees = await accountAX.estimateInvokeFee(calls)
+        console.log('fees', fees);
+
+        const toSend = uint256.bnToUint256(balanceOf - fees?.overall_fee)
+        console.log('toSend', toSend);
+
+        txTransferCalldata = CallData.compile({
+          recipient: accountStarknet?.address,
+          balance: toSend
+        });
+
+        calls = [
+          {
+            contractAddress: addressToken,
+            entrypoint: 'transfer',
+            calldata: txTransferCalldata,
+          },
+        ]
+        const receipt = await accountAX?.execute(calls);
         console.log('receipt', receipt);
 
+        const finishTx = await accountStarknet?.waitForTransaction(receipt?.transaction_hash)
+
+        if (finishTx && finishTx?.value && finishTx?.statusReceipt) {
+          toast({
+            title: "Gift received",
+            description: "",
+            status: "success",
+            isClosable: true,
+
+          })
+
+        } else {
+          toast({
+            title: "Gift not working",
+            description: "Please contact the support",
+            status: "warning",
+            isClosable: true,
+
+          })
+
+        }
       } else {
         // const addressToken = TOKENS_ADDRESS[chainId?.toString()][tokenAddress ?? "ETH"]
 
@@ -141,8 +289,8 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           return;
         }
         const chainId = await account?.chainId;
-
-        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network]['ETH'];
+        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network ?? sepolia.id]['ETH'];
+        // const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network ?? kakarotSepolia.id]['ETH'];
         console.log('addressToken', addressToken);
 
         if (!chainId) {

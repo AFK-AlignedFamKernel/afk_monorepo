@@ -14,7 +14,8 @@ export function generateLinkReceived(
   tokenAddress: string,
   amount: string,
   network: string,
-  precomputeAddress?:string
+  precomputeAddress?:string,
+  pubkeyStrk?:string
 ) {
   const baseUrl =
     process.env.NODE_ENV == 'production'
@@ -24,7 +25,7 @@ export function generateLinkReceived(
     amount,
   )}&network=${encodeURIComponent(network)}&tokenAddress=${encodeURIComponent(
     tokenAddress,
-  )}&privateKey=${encodeURIComponent(privateKey)}&precumputeAddress=${precomputeAddress?? ""}`;
+  )}&privateKey=${encodeURIComponent(privateKey)}&precomputeAddress=${precomputeAddress?? ""}&pubkeyStrk=${pubkeyStrk}`;
   return url;
 }
 
@@ -63,7 +64,7 @@ export function generateStarknetWalletOZ() {
   };
 }
 
-export function generateStarknetWallet(address?: string) {
+export function generateStarknetWallet(address?: string | null) {
   try {
     // connect provider (Mainnet or Sepolia)
     const provider = new RpcProvider({});
@@ -84,7 +85,7 @@ export function generateStarknetWallet(address?: string) {
       guardian: '0',
     });
     const AXcontractAddress = hash.calculateContractAddressFromHash(
-      starkKeyPub,
+      address ?? starkKeyPub,
       argentXaccountClassHash,
       AXConstructorCallData,
       0,

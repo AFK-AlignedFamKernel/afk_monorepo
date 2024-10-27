@@ -167,7 +167,8 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 starkKeyPub: pubkey,
                 classHash,
                 constructorCalldata,
-            } = await generateStarknetWallet(addressStrk);
+            } = await generateStarknetWallet();
+            //   await generateStarknetWallet(addressStrk);
 
             if (!precomputeAddress && !privateKey) {
                 toast({
@@ -184,7 +185,8 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 addressToken,
                 amount,
                 chainId?.toString() ?? 'STARKNET',
-                precomputeAddress
+                precomputeAddress,
+                pubkey
             );
             setUrlReceived(generateUrl);
 
@@ -205,7 +207,7 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 return;
             }
             recipientAddress = precomputeAddress;
-            console.log("starknet precomputeAddress")
+            console.log("starknet precomputeAddress", precomputeAddress)
 
             // const walletGenerated = await deployAccount(provider, precomputeAddress, pubkey, privateKey, classHash, constructorCalldata)
             // const calldataWalletGenerated = await generateDeployAccount(precomputeAddress, pubkey, classHash, constructorCalldata)
@@ -215,7 +217,6 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 classHash,
                 constructorCalldata,
             );
-
 
             // const gasFees = await accountStarknet?.estimateAccountDeployFee(calldataWalletGenerated?.deployAccountPayload)
 
@@ -248,11 +249,7 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
 
             }
 
-
-
-
             console.log('token', token);
-
 
             if (token == "ETH") {
 
@@ -265,7 +262,7 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 console.log('totalAmount', totalAmount);
 
                 const txTransferCalldata = CallData.compile({
-                    recipient: precomputeAddress ?? '',
+                    recipient: precomputeAddress,
                     totalAmount,
                 });
                 const receipt = await accountStarknet?.execute([
@@ -277,10 +274,12 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                 ]);
                 console.log('receipt', receipt);
 
+
+                await accountStarknet?.waitForTransaction(receipt?.transaction_hash)
                 if (calldataWalletGenerated?.deployAccountPayload) {
                     try {
 
-                        const deployedAccount = await accountStarknet?.deployAccount(
+                        const deployedAccount = await accountAX?.deployAccount(
                             calldataWalletGenerated?.deployAccountPayload,
                         );
 
@@ -289,18 +288,21 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
 
                     } catch (error) {
                         console.log("error deploy account", error)
+
+
+                        // try {
+                        //     const deployedAccount = await accountStarknet?.deployAccount(
+                        //         calldataWalletGenerated?.deployAccountPayload,
+                        //     );
+                        //     recipientAddress = deployedAccount?.contract_address;
+                        //     console.log('✅ ArgentX wallet deployed at:', deployedAccount);
+
+                        // } catch (error) {
+                        //     console.log("error deploy")
+                        // }
+
                     }
 
-                    // try {
-                    //     const deployedAccount = await accountStarknet?.deployAccount(
-                    //         calldataWalletGenerated?.deployAccountPayload,
-                    //     );
-                    //     recipientAddress = deployedAccount?.contract_address;
-                    //     console.log('✅ ArgentX wallet deployed at:', deployedAccount);
-
-                    // } catch (error) {
-                    //     console.log("error deploy")
-                    // }
 
                 }
             } else {
@@ -326,9 +328,10 @@ export const useGift = ({ chainProps, recipientAddress, tokenAddress }: IGiftHoo
                     txTransferEth, txTransfer
                 ]);
                 console.log('receipt', receipt);
+                await accountStarknet?.waitForTransaction(receipt?.transaction_hash)
 
                 if (calldataWalletGenerated?.deployAccountPayload) {
-                    const deployedAccount = await accountStarknet?.deployAccount(
+                    const deployedAccount = await accountAX?.deployAccount(
                         calldataWalletGenerated?.deployAccountPayload,
                     );
                     recipientAddress = deployedAccount?.contract_address;
