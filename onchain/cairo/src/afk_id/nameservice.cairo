@@ -1,5 +1,3 @@
-use starknet::ContractAddress;
-
 pub mod UserNameClaimErrors {
     pub const USERNAME_CLAIMED: felt252 = 'Username already claimed';
     pub const USER_HAS_USERNAME: felt252 = 'User already has a username';
@@ -7,16 +5,23 @@ pub mod UserNameClaimErrors {
     pub const SUBSCRIPTION_EXPIRED: felt252 = 'Subscription has expired';
     pub const INVALID_PAYMENT: felt252 = 'Invalid payment amount';
     pub const INVALID_PRICE: felt252 = 'Invalid price setting';
+    pub const INVALID_USERNAME: felt252 = 'Invalid username format';
+    pub const INVALID_DOMAIN_SUFFIX: felt252 = 'Domain must end with .afk';
+
 }
+
+const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+
 
 #[starknet::contract]
 pub mod Nameservice {
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::username_store::IUsernameStore;
-    // use openzeppelin::access::accesscontrol::{AccessControlComponent, interface::IAccessControl};
+    use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::introspection::interface::ISRC5;
-    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
@@ -25,14 +30,16 @@ pub mod Nameservice {
         get_contract_address, ClassHash
     };
     use super::UserNameClaimErrors;
+    use super::ADMIN_ROLE;
 
     const YEAR_IN_SECONDS: u64 = 31536000_u64; // 365 days in seconds
-    const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
     // Components
-    // component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
     /// Ownable
     #[abi(embed_v0)]
@@ -42,6 +49,22 @@ pub mod Nameservice {
     /// Upgradeable
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
+    // AccessControl
+    #[abi(embed_v0)]
+    impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+
+    // SRC5
+    #[abi(embed_v0)]
+    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
+
+    // // ERC20
+    // #[abi(embed_v0)]
+    // impl ERC20Impl = ERC20Component::ERC20Impl<ContractState>;
+    // #[abi(embed_v0)]
+    // impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
+    // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+    
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
@@ -49,12 +72,17 @@ pub mod Nameservice {
         subscription_expiry: Map::<ContractAddress, u64>,
         subscription_price: u256,
         token_quote: ContractAddress,
-        // #[substorage(v0)]
-        // accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        accesscontrol: AccessControlComponent::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage
+        // #[substorage(v0)]
+        // erc20: ERC20Component::Storage
+
     }
 
     #[event]
@@ -64,8 +92,12 @@ pub mod Nameservice {
         UserNameChanged: UserNameChanged,
         SubscriptionRenewed: SubscriptionRenewed,
         PriceUpdated: PriceUpdated,
+        #[flat]
+        AccessControlEvent: AccessControlComponent::Event,
+        #[flat]
+        SRC5Event: SRC5Component::Event,
         // #[flat]
-        // AccessControlEvent: AccessControlComponent::Event,
+        // ERC20Event: ERC20Component::Event,
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         #[flat]
@@ -102,8 +134,14 @@ pub mod Nameservice {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
+    fn constructor(ref self: ContractState,
+        owner: ContractAddress,
+        admin: ContractAddress
+    ) {
         self.ownable.initializer(owner);
+
+        self.accesscontrol.initializer();
+        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
     }
 
     // External interfaces implementation
@@ -207,7 +245,7 @@ pub mod Nameservice {
 
 
         fn withdraw_fees(ref self: ContractState, amount: u256) {
-            // self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
             token.transfer(self.ownable.owner(), amount);
         }
