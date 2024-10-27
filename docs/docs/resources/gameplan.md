@@ -2,7 +2,10 @@
 sidebar_position: 1
 ---
 
-# What we have
+# Gameplan
+
+
+## What we have
 
 Social network with Nostr to share thoughts and discuss.
 
@@ -12,6 +15,8 @@ Connected to Bitcoin & Ethereum ecosystem with Cashu & Starknet/EVM.
 # Roadmap
 
 Keep building public good stuff.
+
+Ship ship more, get feedback and iterate.
 
 Cyperphunk, let us know.
 
