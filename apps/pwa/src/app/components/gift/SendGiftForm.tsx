@@ -1,26 +1,16 @@
 // components/SendUSDCForm.tsx
-import { Box, Button, Input, Select, Stack, Text, useToast } from '@chakra-ui/react';
-import { useAccount as useAccountStarknet } from '@starknet-react/core';
+import {Box, Button, Input, Select, Stack, Text, useToast} from '@chakra-ui/react';
+import {useAccount as useAccountStarknet} from '@starknet-react/core';
 import axios from 'axios';
-import { TOKENS_ADDRESS } from 'common';
-import { useEffect, useState } from 'react';
-import { CallData, constants, uint256 } from 'starknet';
-import { createWalletClient, custom, erc20Abi, parseEther, parseUnits } from 'viem';
-import { sepolia } from 'viem/chains';
-import { useAccount, useSendTransaction, useWriteContract } from 'wagmi';
+import {useEffect, useState} from 'react';
+import {useAccount, useSendTransaction, useWriteContract} from 'wagmi';
 
-import {
-  generateDeployAccount,
-  generateLinkReceived,
-  generateStarknetWallet,
-  generateWalletEvm,
-} from '@/utils/generate';
+import {useGift} from '@/hooks/useGift';
 
 import Account from '../account/starknet/AccountStarknet';
 import CopyableLink from '../button/CopyLink';
-import { CustomConnectButtonWallet } from '../button/CustomConnectButtonWallet';
+import {CustomConnectButtonWallet} from '../button/CustomConnectButtonWallet';
 import CustomModal from '../modal';
-import { useGift } from '@/hooks/useGift';
 interface SendFormProps {
   recipientAddress?: string;
   chainProps?: ChainString;
@@ -33,11 +23,11 @@ enum GiftType {
   'EXTERNAL_PRIVATE_KEY',
   'API',
 }
-const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chainProps }) => {
+const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) => {
   const [amount, setAmount] = useState<string>('');
   const toast = useToast();
   const account = useAccount();
-  const { account: accountStarknet } = useAccountStarknet();
+  const {account: accountStarknet} = useAccountStarknet();
   const [token, setToken] = useState<Token>('ETH');
   const [chain, setChain] = useState<ChainString>(chainProps ?? 'SEPOLIA');
   const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
@@ -50,9 +40,9 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chainProps })
   const [recipientVaultStrkAddress, setVaultRecipientStrkAddress] = useState<string | undefined>();
   const [tokenAmount, setTokenAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const { data: hashSendEth, sendTransaction } = useSendTransaction();
-  const { writeContract, data: hash } = useWriteContract();
-  const {handleSubmit, urlReceived, setUrlReceived} = useGift({})
+  const {data: hashSendEth, sendTransaction} = useSendTransaction();
+  const {writeContract, data: hash} = useWriteContract();
+  const {handleSubmit, urlReceived, setUrlReceived} = useGift({});
 
   // Initialize `viem` client
   // const walletClient = createWalletClient({
@@ -181,13 +171,12 @@ const SendGiftForm: React.FC<SendFormProps> = ({ recipientAddress, chainProps })
         <Button onClick={() => handlePresetAmount(3)}>💸 $3</Button>
         <Button onClick={() => handlePresetAmount(5)}>💰 $5</Button>
       </Stack>
-      <Button 
-      colorScheme="blue"
-      // onClick={handleSubmit}
-      onClick={() => {
-
-        handleSubmit(amount, token, chain)
-      }}
+      <Button
+        colorScheme="blue"
+        // onClick={handleSubmit}
+        onClick={() => {
+          handleSubmit(amount, token, chain);
+        }}
       >
         Send {token}
       </Button>

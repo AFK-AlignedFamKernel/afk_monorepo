@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers';
+import {Wallet} from 'ethers';
 import {
   Account,
   CallData,
@@ -14,8 +14,8 @@ export function generateLinkReceived(
   tokenAddress: string,
   amount: string,
   network: string,
-  precomputeAddress?:string,
-  pubkeyStrk?:string
+  precomputeAddress?: string,
+  pubkeyStrk?: string,
 ) {
   const baseUrl =
     process.env.NODE_ENV == 'production'
@@ -25,7 +25,9 @@ export function generateLinkReceived(
     amount,
   )}&network=${encodeURIComponent(network)}&tokenAddress=${encodeURIComponent(
     tokenAddress,
-  )}&privateKey=${encodeURIComponent(privateKey)}&precomputeAddress=${precomputeAddress?? ""}&pubkeyStrk=${pubkeyStrk}`;
+  )}&privateKey=${encodeURIComponent(privateKey)}&precomputeAddress=${
+    precomputeAddress ?? ''
+  }&pubkeyStrk=${pubkeyStrk}`;
   return url;
 }
 
@@ -33,11 +35,10 @@ export function generateWalletEvm() {
   const wallet = Wallet.createRandom();
   const address: `0x${string}` = wallet.address as `0x${string}`;
   const privateKey = wallet.privateKey;
-  return { address, privateKey };
+  return {address, privateKey};
 }
 
 export function generateStarknetWalletOZ() {
-
   // new Open Zeppelin account v0.8.1
   // Generate public and private key pair.
   const privateKey = stark.randomAddress();
@@ -47,7 +48,7 @@ export function generateStarknetWalletOZ() {
 
   const OZaccountClassHash = '0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f';
   // Calculate future address of the account
-  const OZaccountConstructorCallData = CallData.compile({ publicKey: starkKeyPub });
+  const OZaccountConstructorCallData = CallData.compile({publicKey: starkKeyPub});
   const OZcontractAddress = hash.calculateContractAddressFromHash(
     starkKeyPub,
     OZaccountClassHash,
@@ -128,7 +129,6 @@ export async function generateDeployAccount(
   return {
     deployAccountPayload,
   };
-
 }
 
 export async function deployAccount(
@@ -149,7 +149,7 @@ export async function deployAccount(
       addressSalt: pubkey,
     };
 
-    const { transaction_hash: AXdAth, contract_address: AXcontractFinalAddress } =
+    const {transaction_hash: AXdAth, contract_address: AXcontractFinalAddress} =
       await accountAX.deployAccount(deployAccountPayload);
     console.log('✅ ArgentX wallet deployed at:', AXcontractFinalAddress);
 

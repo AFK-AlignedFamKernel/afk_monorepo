@@ -1,19 +1,20 @@
 // components/SendUSDCForm.tsx
-import { Box, Button, Text, useToast } from '@chakra-ui/react';
-import { useAccount as useAccountStarknet } from '@starknet-react/core';
-import { RPC_URLS_NUMBER, TOKENS_ADDRESS } from 'common';
-import { ethers, JsonRpcProvider } from 'ethers';
+import {Box, Button, Text, useToast} from '@chakra-ui/react';
+import {useAccount as useAccountStarknet} from '@starknet-react/core';
+import {RPC_URLS_NUMBER, TOKENS_ADDRESS} from 'common';
+import {ethers, JsonRpcProvider} from 'ethers';
 // import { useRouter } from 'next/router';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { formatEther, formatUnits, parseEther } from 'viem';
-import { useAccount } from 'wagmi';
+import {useRouter} from 'next/navigation';
+import {useSearchParams} from 'next/navigation';
+import {useEffect, useState} from 'react';
+import {Account, CallData, constants, Contract, RpcProvider, uint256} from 'starknet';
+import {formatEther, formatUnits, parseEther} from 'viem';
+import {sepolia} from 'viem/chains';
+import {useAccount} from 'wagmi';
+
+import {generateDeployAccount, generateStarknetWallet} from '@/utils/generate';
 
 import AccountManagement from '../account';
-import { Account, CallData, constants, Contract, RpcProvider, uint256 } from 'starknet';
-import { generateDeployAccount, generateStarknetWallet } from '@/utils/generate';
-import { kakarotSepolia, sepolia } from 'viem/chains';
 
 interface SendUSDCFormProps {
   recipientAddress?: string;
@@ -21,11 +22,11 @@ interface SendUSDCFormProps {
   tokenAddressProps?: string;
 }
 
-const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tokenAddressProps }) => {
+const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, tokenAddressProps}) => {
   const router = useRouter();
   const toast = useToast();
   // const router = typeof window !== 'undefined' ? useRouter() : null;
-  const { account: accountStarknet } = useAccountStarknet();
+  const {account: accountStarknet} = useAccountStarknet();
   const account = useAccount();
 
   // const { privateKey, tokenAddress, amount, network } = router.query;
@@ -37,7 +38,6 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
   const network = searchParams.get('network');
   const precomputeAddress = searchParams.get('precomputeAddress');
   const pubkeyStrk = searchParams.get('pubkeyStrk');
-
 
   console.log('privateKey', privateKey);
   console.log('tokenAddress', tokenAddress);
@@ -53,7 +53,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
       if (!account) return;
       const chainId = account?.chainId;
       if (!chainId) return;
-      const { wallet, provider } = await getProvider(chainId);
+      const {wallet, provider} = await getProvider(chainId);
       setPublicKeyWallet(wallet?.address);
       await getBalance(provider, wallet);
     };
@@ -96,7 +96,11 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
       const chainId = await account?.chainId;
       const decimals = tokenAddress == 'USDC' ? 6 : 18;
 
-      if (network == 'STARKNET' || network == constants.StarknetChainId.SN_MAIN || network == constants.StarknetChainId.SN_SEPOLIA) {
+      if (
+        network == 'STARKNET' ||
+        network == constants.StarknetChainId.SN_MAIN ||
+        network == constants.StarknetChainId.SN_SEPOLIA
+      ) {
         console.log('Receive Starknet');
         if (!accountStarknet?.address) {
           toast({
@@ -108,7 +112,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         if (!amount) {
           toast({
             title: 'Amount is required',
-            description: "Please contact support",
+            description: 'Please contact support',
             status: 'info',
           });
           return;
@@ -117,7 +121,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         if (!precomputeAddress) {
           toast({
             title: 'pPrecomputeAddress is required',
-            description: "precomputeAddress contact support",
+            description: 'precomputeAddress contact support',
             status: 'info',
           });
           return;
@@ -126,7 +130,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         if (!privateKey) {
           toast({
             title: 'privateKey is required',
-            description: "Please contact support",
+            description: 'Please contact support',
             status: 'info',
           });
           return;
@@ -135,25 +139,19 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network]['ETH'];
         console.log('addressToken', addressToken);
 
-
-        const rpcUrls = RPC_URLS_NUMBER[network]
-        const provider = new RpcProvider({ nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL })
+        const rpcUrls = RPC_URLS_NUMBER[network];
+        const provider = new RpcProvider({nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL});
         const accountAX = new Account(provider, precomputeAddress, privateKey);
-
 
         let nonce;
         try {
-
           nonce = await accountAX?.getNonce();
-
         } catch (error) {
-          console.log("Error get nonce", error)
-
-
+          console.log('Error get nonce', error);
         }
 
         if (!nonce) {
-          console.log("nonce not created")
+          console.log('nonce not created');
           const {
             // precomputeAddress,
             provider: providerTest,
@@ -164,22 +162,20 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           } = await generateStarknetWallet(pubkeyStrk);
           const calldataWalletGenerated = await generateDeployAccount(
             precomputeAddress,
-            pubkeyStrk ?? "",
-            classHash ?? "",
+            pubkeyStrk ?? '',
+            classHash ?? '',
             constructorCalldata,
           );
           if (calldataWalletGenerated?.deployAccountPayload) {
             try {
-
               const deployedAccount = await accountAX?.deployAccount(
                 calldataWalletGenerated?.deployAccountPayload,
               );
 
               recipientAddress = deployedAccount?.contract_address;
               console.log('✅ ArgentX wallet deployed at:', deployedAccount);
-
             } catch (error) {
-              console.log("error deploy account", error)
+              console.log('error deploy account', error);
             }
 
             // try {
@@ -192,21 +188,15 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
             // } catch (error) {
             //     console.log("error deploy")
             // }
-
           }
-
         }
 
-        console.log("try transfer")
-
+        console.log('try transfer');
 
         /** @TODO determine paymaster master specs to send the TX */
-        const prepareAndConnectContract = async (
-          contractAddress: string,
-          account: Account
-        ) => {
+        const prepareAndConnectContract = async (contractAddress: string, account: Account) => {
           // read abi of Test contract
-          const { abi: testAbi } = await provider.getClassAt(contractAddress);
+          const {abi: testAbi} = await provider.getClassAt(contractAddress);
 
           const contract = new Contract(testAbi, contractAddress, provider);
           // Connect account with the contract
@@ -214,16 +204,15 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           return contract;
         };
 
+        const contract = await prepareAndConnectContract(addressToken, accountAX);
 
-        const contract = await prepareAndConnectContract(addressToken, accountAX)
+        const balanceOf = await contract.balance_of(precomputeAddress);
 
-        const balanceOf = await contract.balance_of(precomputeAddress)
-
-        console.log("balanceOf", balanceOf)
+        console.log('balanceOf', balanceOf);
 
         const amountUint256 = uint256.bnToUint256(Math.ceil(Number(amount) * 10 ** decimals));
 
-        const balanceUint256 = uint256.bnToUint256(balanceOf)
+        const balanceUint256 = uint256.bnToUint256(balanceOf);
         let txTransferCalldata = CallData.compile({
           recipient: accountStarknet?.address,
           balance: balanceUint256 ?? amountUint256,
@@ -235,16 +224,16 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
             entrypoint: 'transfer',
             calldata: txTransferCalldata,
           },
-        ]
-        const fees = await accountAX.estimateInvokeFee(calls)
+        ];
+        const fees = await accountAX.estimateInvokeFee(calls);
         console.log('fees', fees);
 
-        const toSend = uint256.bnToUint256(balanceOf - fees?.overall_fee)
+        const toSend = uint256.bnToUint256(balanceOf - fees?.overall_fee);
         console.log('toSend', toSend);
 
         txTransferCalldata = CallData.compile({
           recipient: accountStarknet?.address,
-          balance: toSend
+          balance: toSend,
         });
 
         calls = [
@@ -253,30 +242,26 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
             entrypoint: 'transfer',
             calldata: txTransferCalldata,
           },
-        ]
+        ];
         const receipt = await accountAX?.execute(calls);
         console.log('receipt', receipt);
 
-        const finishTx = await accountStarknet?.waitForTransaction(receipt?.transaction_hash)
+        const finishTx = await accountStarknet?.waitForTransaction(receipt?.transaction_hash);
 
         if (finishTx && finishTx?.value && finishTx?.statusReceipt) {
           toast({
-            title: "Gift received",
-            description: "",
-            status: "success",
+            title: 'Gift received',
+            description: '',
+            status: 'success',
             isClosable: true,
-
-          })
-
+          });
         } else {
           toast({
-            title: "Gift not working",
-            description: "Please contact the support",
-            status: "warning",
+            title: 'Gift not working',
+            description: 'Please contact the support',
+            status: 'warning',
             isClosable: true,
-
-          })
-
+          });
         }
       } else {
         // const addressToken = TOKENS_ADDRESS[chainId?.toString()][tokenAddress ?? "ETH"]
@@ -289,7 +274,8 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           return;
         }
         const chainId = await account?.chainId;
-        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network ?? sepolia.id]['ETH'];
+        const addressToken =
+          tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network ?? sepolia.id]['ETH'];
         // const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network ?? kakarotSepolia.id]['ETH'];
         console.log('addressToken', addressToken);
 
@@ -300,7 +286,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           });
           return;
         }
-        const { wallet, provider } = await getProvider(chainId);
+        const {wallet, provider} = await getProvider(chainId);
         await getBalance(provider, wallet);
 
         if (!wallet && !provider) {
