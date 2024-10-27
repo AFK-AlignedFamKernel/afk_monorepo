@@ -14,6 +14,7 @@ export function generateLinkReceived(
   tokenAddress: string,
   amount: string,
   network: string,
+  precomputeAddress?:string
 ) {
   const baseUrl =
     process.env.NODE_ENV == 'production'
@@ -23,7 +24,7 @@ export function generateLinkReceived(
     amount,
   )}&network=${encodeURIComponent(network)}&tokenAddress=${encodeURIComponent(
     tokenAddress,
-  )}&privateKey=${encodeURIComponent(privateKey)}`;
+  )}&privateKey=${encodeURIComponent(privateKey)}&precumputeAddress=${precomputeAddress?? ""}`;
   return url;
 }
 
@@ -35,9 +36,6 @@ export function generateWalletEvm() {
 }
 
 export function generateStarknetWalletOZ() {
-  // connect provider (Mainnet or Sepolia)
-  const provider = new RpcProvider({});
-  // const provider = new RpcProvider({});
 
   // new Open Zeppelin account v0.8.1
   // Generate public and private key pair.

@@ -11,7 +11,7 @@ import { formatEther, formatUnits, parseEther } from 'viem';
 import { useAccount } from 'wagmi';
 
 import AccountManagement from '../account';
-import { Account, CallData, RpcProvider } from 'starknet';
+import { Account, CallData, constants, RpcProvider } from 'starknet';
 
 interface SendUSDCFormProps {
   recipientAddress?: string;
@@ -90,7 +90,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
       const chainId = await account?.chainId;
       const decimals = tokenAddress == 'USDC' ? 6 : 18;
 
-      if (network == 'STARKNET') {
+      if (network == 'STARKNET' || network == constants.StarknetChainId.SN_MAIN || network == constants.StarknetChainId.SN_SEPOLIA) {
         console.log('Receive Starknet');
         if (!accountStarknet?.address) {
           toast({
@@ -102,17 +102,18 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
         if (!amount) {
           toast({
             title: 'Amount is required',
-            description:"Please contact support",
+            description: "Please contact support",
             status: 'info',
           });
           return;
         }
-        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString()]['ETH'];
-        console.log('addressToken', addressToken);
         const chainId = await account?.chainId;
+        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network]['ETH'];
+        console.log('addressToken', addressToken);
 
 
-        const provider = new RpcProvider({})
+        const rpcUrls = RPC_URLS_NUMBER[network]
+        const provider = new RpcProvider({ nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL })
         const accountAX = new Account(provider, addressToken, privateKey);
 
 
@@ -139,9 +140,10 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({ recipientAddress, chain, tok
           });
           return;
         }
-        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString()]['ETH'];
-        console.log('addressToken', addressToken);
         const chainId = await account?.chainId;
+
+        const addressToken = tokenAddress ?? TOKENS_ADDRESS[chainId?.toString() ?? network]['ETH'];
+        console.log('addressToken', addressToken);
 
         if (!chainId) {
           toast({

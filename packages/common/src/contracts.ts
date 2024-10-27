@@ -147,4 +147,7 @@ export const RPC_URLS_NUMBER: { [key: number]: string } = {
   56: 'https://bsc-dataseed.binance.org', // Binance Smart Chain
   920637907288165: "https://sepolia-rpc.kakarot.org"
   // Add more networks as needed
+
+  // [constants.StarknetChainId.SN_SEPOLIA]:process.env.PROVIDER_URL
 };
+
