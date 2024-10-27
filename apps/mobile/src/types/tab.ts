@@ -43,6 +43,7 @@ export enum SelectedTab {
   ONRAMP_OFFRAMP,
   PAY_WALLET,
   WALLET_INTERNAL,
+  CONTACTS = 'contacts',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -287,6 +288,11 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
     title: 'History',
     screen: 'History',
     tab: SelectedTab.CASHU_HISTORY,
+  },
+  {
+    title: 'Contacts',
+    screen: 'Contacts',
+    tab: SelectedTab.CONTACTS,
   },
 ];
 
