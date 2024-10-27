@@ -6,7 +6,7 @@ dotenv.config()
 const config: Config = {
   title: "AFK Aligned Fam Kernel",
   tagline:
-    "Decentralized social built with Nostr and powered by Starknet Account Abstraction",
+    "Social payment network to exchange money, data, and thoughts.",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
@@ -79,7 +79,11 @@ const config: Config = {
           position: "left",
           label: "Documentation",
         },
-
+        {
+          href: "https://afk-community.xyz",
+          label: "App",
+          position: "right",
+        },
         {
           href: "https://github.com/AFK-AlignedFamKernel/afk_monorepo",
           label: "GitHub",
