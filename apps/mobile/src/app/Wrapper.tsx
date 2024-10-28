@@ -10,6 +10,7 @@ import {DialogProvider} from '../context/Dialog';
 import {KeyModalProvider} from '../context/KeysModal';
 import {LoginModalProvider} from '../context/LoginModalProvider';
 import {ModalParentProvider} from '../context/modal/ModalParent';
+import {SocketProvider} from '../context/SocketContext';
 import {SwapModalEVMProvider} from '../context/SwapModalProvider';
 import {ThemeProvider} from '../context/Theme';
 import {TipModalProvider} from '../context/TipModal';
@@ -64,18 +65,20 @@ export const Wrapper: React.FC = () => {
               <RootScreenContainer>
                 <PortalizeProvider>
                   <DialogProvider>
-                    <StarknetProvider>
-                      <EVMProvider>
-                        <CashuProvider>
-                          {/* <dynamicClient.reactNative.WebView /> */}
-                          {/* <DynamicProvider> */}
-                          <ModalProviders>
-                            <App />
-                          </ModalProviders>
-                          {/* </DynamicProvider> */}
-                        </CashuProvider>
-                      </EVMProvider>
-                    </StarknetProvider>
+                    <SocketProvider>
+                      <StarknetProvider>
+                        <EVMProvider>
+                          <CashuProvider>
+                            {/* <dynamicClient.reactNative.WebView /> */}
+                            {/* <DynamicProvider> */}
+                            <ModalProviders>
+                              <App />
+                            </ModalProviders>
+                            {/* </DynamicProvider> */}
+                          </CashuProvider>
+                        </EVMProvider>
+                      </StarknetProvider>
+                    </SocketProvider>
                   </DialogProvider>
                 </PortalizeProvider>
               </RootScreenContainer>

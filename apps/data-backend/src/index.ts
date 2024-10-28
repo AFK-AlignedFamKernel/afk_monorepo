@@ -1,6 +1,8 @@
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
+import fastifyIO from "fastify-socket.io";
 import declareRoutes from "./router";
+import { Server as SocketIOServer } from "socket.io";
 import jwt from "jsonwebtoken";
 import { launchBot } from "./services/telegram-app";
 import { NODE_URL } from "./constants/contracts";
@@ -8,9 +10,20 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import { Account } from "starknet";
 import twilio from "twilio";
+
+import path from "path";
+import { setupWebSocket } from "./services/livestream/connection";
+
 /**
  * @type {import('fastify').FastifyInstance} Instance of Fastify
  */
+
+// Add this type declaration to extend FastifyInstance
+declare module "fastify" {
+  interface FastifyInstance {
+    io: SocketIOServer;
+  }
+}
 const fastify = Fastify({
   logger: true,
 });
@@ -19,6 +32,25 @@ fastify.register(fastifyCors, {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+});
+// Then register Socket.IO with matching CORS settings
+fastify.register(fastifyIO, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
+export const publicDir = path.join(__dirname, "public");
+fastify.register(require("@fastify/static"), {
+  root: publicDir,
+  prefix: "/public/", // optional: default '/'
+});
+
+// Initialize WebSocket handlers
+fastify.ready((err) => {
+  if (err) throw err;
+  setupWebSocket(fastify.io);
 });
 
 const JWT_SECRET = process.env.JWT_SECRET;
