@@ -4,9 +4,8 @@ use afk::types::launchpad_types::{
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
     SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded,
-    MetadataLaunch, TokenClaimed, MetadataCoinAdded
+    MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters
 };
-use afk::interfaces::factory::{IFactoryDispatcher, IFactoryDispatcherTrait};
 use starknet::ClassHash;
 use starknet::ContractAddress;
 
@@ -33,7 +32,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
     // fn buy_coin(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn buy_coin_by_quote_amount(
-        ref self: TContractState, coin_address: ContractAddress, quote_amount: u256
+        ref self: TContractState, coin_address: ContractAddress, quote_amount: u256, ekubo_pool_params: Option<EkuboPoolParameters>,
     );
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
 
@@ -99,6 +98,7 @@ pub mod LaunchpadMarketplace {
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
+    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{sqrt};
     use core::num::traits::Zero;
@@ -116,7 +116,7 @@ pub mod LaunchpadMarketplace {
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
         SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded
+        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,  EkuboPoolParameters, LaunchParameters
     };
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -816,7 +816,7 @@ pub mod LaunchpadMarketplace {
             assert(pool.is_liquidity_launch == false, 'liquidity already launch');
 
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-            self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
 
         // TODO Finish this function
@@ -1138,8 +1138,9 @@ pub mod LaunchpadMarketplace {
             match exchange {
                 SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
                 SupportedExchanges::Ekubo => { 
-                    if ekubo_pool_params.is_some() {
-                        self._add_liquidity_ekubo(coin_address, ekubo_pool_params.unwrap()) 
+                    match ekubo_pool_params {
+                       Option::Some(params) => self._add_liquidity_ekubo(coin_address, params),
+                       Option::None => panic!("add Ekubo Pool Parameters to launch on  ekubo"),
                     }
                 }
             }
@@ -1271,18 +1272,18 @@ pub mod LaunchpadMarketplace {
             let fee = 3000; // Example fee, adjust as needed
 
             // Check if the pool exists
-            let pool = factory.get_pool(token_a, token_b, fee);
+            // let pool = factory.get_pool(token_a, token_b, fee);
 
-            if pool.is_zero() {
-                // Create the pool if it doesn't exist
-                factory.create_pool(token_a, token_b, fee);
-            }
+            // if pool.is_zero() {
+            //     // Create the pool if it doesn't exist
+            //     factory.create_pool(token_a, token_b, fee);
+            // }
 
-            //TODO revisit initial_holders_amounts
+            //TODO revisit initial_holders_amounts, transfer_restriction_delay, max_percentage_buy_launch
             let launch_params = LaunchParameters {
                 memecoin_address: launch.token_address.clone(),
-                transfer_restriction_delay: TRANSFER_RESTRICTION_DELAY,
-                max_percentage_buy_launch: MAX_PERCENTAGE_BUY_LAUNCH,
+                transfer_restriction_delay: 1000,
+                max_percentage_buy_launch: 200, // 2%
                 quote_address: launch.token_quote.token_address.clone(),
                 initial_holders: array![launch.owner].span(),
                 initial_holders_amounts: array![launch.token_holded].span(),

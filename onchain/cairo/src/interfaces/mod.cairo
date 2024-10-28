@@ -8,4 +8,5 @@ pub mod interfaces {
     pub mod quests;
     pub mod username_store;
     pub mod vault;
+    pub mod factory;
 }
