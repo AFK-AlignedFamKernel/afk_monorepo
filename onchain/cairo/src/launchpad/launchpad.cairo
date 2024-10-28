@@ -6,6 +6,7 @@ use afk::types::launchpad_types::{
     LiquidityCanBeAdded,
     MetadataLaunch, TokenClaimed, MetadataCoinAdded
 };
+use afk::interfaces::factory::{IFactoryDispatcher, IFactoryDispatcherTrait};
 use starknet::ClassHash;
 use starknet::ContractAddress;
 
@@ -196,6 +197,8 @@ pub mod LaunchpadMarketplace {
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
+        //Factory
+        factory_address: ContractAddress,
     }
 
     #[event]
@@ -228,7 +231,8 @@ pub mod LaunchpadMarketplace {
         step_increase_linear: u256,
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
-        threshold_market_cap: u256
+        threshold_market_cap: u256,
+        factory_address: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
@@ -257,6 +261,7 @@ pub mod LaunchpadMarketplace {
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
+        self.factory_address.write(factory_address);
     }
 
     // Public functions inside an impl block
@@ -429,7 +434,7 @@ pub mod LaunchpadMarketplace {
         // Buy coin by quote amount
         // Get amount of coin receive based on token IN
         fn buy_coin_by_quote_amount(
-            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256
+            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256, ekubo_pool_params: Option<EkuboPoolParameters>
         ) {
             // assert!(quote_amount > 0, "amount == 0");
             let caller = get_caller_address();
@@ -604,6 +609,7 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+                self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             if mc >= threshold_mc { // println!("mc >= threshold_mc");
@@ -616,6 +622,7 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+                self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             // TODO check reetrancy guard
@@ -808,7 +815,8 @@ pub mod LaunchpadMarketplace {
             assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
             assert(pool.is_liquidity_launch == false, 'liquidity already launch');
 
-            self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+            self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
 
         // TODO Finish this function
@@ -1125,11 +1133,15 @@ pub mod LaunchpadMarketplace {
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
         // TODO Increased liquidity if pool already exist
         fn _add_liquidity(
-            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges
+            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges, ekubo_pool_params: Option<EkuboPoolParameters>
         ) {
             match exchange {
-                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) }
-                // SupportedExchanges::Ekubo => { self._add_liquidity_ekubo(coin_address) }
+                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
+                SupportedExchanges::Ekubo => { 
+                    if ekubo_pool_params.is_some() {
+                        self._add_liquidity_ekubo(coin_address, ekubo_pool_params.unwrap()) 
+                    }
+                }
             }
             let mut launch_to_update = self.launched_coins.read(coin_address);
             launch_to_update.is_liquidity_launch=true;
@@ -1243,63 +1255,51 @@ pub mod LaunchpadMarketplace {
             }
         }
 
-        // fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress) {
-        //     let factory_address = self.address_ekubo_factory.read();
-        //     let router_address = self.address_ekubo_router.read();
+        fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) {
+            let factory_address = self.factory_address.read();
+            // let router_address = self.address_ekubo_router.read();
 
-        //     if router_address.is_zero() || factory_address.is_zero() {
-        //         panic!("Ekubo factory or router address not set");
-        //     }
+            if factory_address.is_zero() {
+                panic!("Factory address not set");
+            }
 
-        //     let router = IEkuboRouterDispatcher { contract_address: router_address };
-        //     let factory = IEkuboFactoryDispatcher { contract_address: factory_address };
+            let factory = IFactoryDispatcher { contract_address: factory_address };
 
-        //     let launch = self.launched_coins.read(coin_address);
-        //     let token_a = launch.token_address.clone();
-        //     let token_b = launch.token_quote.token_address.clone();
-        //     let fee = 3000; // Example fee, adjust as needed
+            let launch = self.launched_coins.read(coin_address);
+            let token_a = launch.token_address.clone();
+            let token_b = launch.token_quote.token_address.clone();
+            let fee = 3000; // Example fee, adjust as needed
 
-        //     // Check if the pool exists
-        //     let pool = factory.get_pool(token_a, token_b, fee);
+            // Check if the pool exists
+            let pool = factory.get_pool(token_a, token_b, fee);
 
-        //     if pool.is_zero() {
-        //         // Create the pool if it doesn't exist
-        //         factory.create_pool(token_a, token_b, fee);
-        //     }
+            if pool.is_zero() {
+                // Create the pool if it doesn't exist
+                factory.create_pool(token_a, token_b, fee);
+            }
 
-        //     // Approve tokens to router
-        //     let erc20_a = IERC20Dispatcher { contract_address: token_a };
-        //     let erc20_b = IERC20Dispatcher { contract_address: token_b };
+            //TODO revisit initial_holders_amounts
+            let launch_params = LaunchParameters {
+                memecoin_address: launch.token_address.clone(),
+                transfer_restriction_delay: TRANSFER_RESTRICTION_DELAY,
+                max_percentage_buy_launch: MAX_PERCENTAGE_BUY_LAUNCH,
+                quote_address: launch.token_quote.token_address.clone(),
+                initial_holders: array![launch.owner].span(),
+                initial_holders_amounts: array![launch.token_holded].span(),
+            };
 
-        //     erc20_a.approve(router_address, launch.token_holded);
-        //     erc20_b.approve(router_address, launch.liquidity_raised);
+            // launch liquidity on ekubo
+            let (id, position_info) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
 
-        //     // Define mint parameters
-        //     let mint_params = MintParams {
-        //         token0: token_a,
-        //         token1: token_b,
-        //         fee: fee,
-        //         tick_lower: 0,
-        //         tick_upper: 0,
-        //         amount0_desired: launch.token_holded,
-        //         amount1_desired: launch.liquidity_raised,
-        //         amount0_min: 0,
-        //         amount1_min: 0,
-        //         recipient: launch.owner,
-        //         deadline: get_block_timestamp(),
-        //     };
-
-        //     // Mint liquidity via Ekubo router
-        //     router.mint(mint_params);
-
-        //     // Emit LiquidityCreated event
-        //     self.emit(LiquidityCreated {
-        //         pool: pool,
-        //         asset: token_a,
-        //         quote_token_address: token_b,
-        //         owner: launch.owner,
-        //     });
-        // }
+            //TODO
+            // Emit LiquidityCreated event
+            // self.emit(LiquidityCreated {
+            //     pool: pool,
+            //     asset: token_a,
+            //     quote_token_address: token_b,
+            //     owner: launch.owner,
+            // });
+        }
 
         // Function to calculate the price for the next token to be minted
         fn _get_linear_price(

@@ -12,6 +12,7 @@ openzeppelin = { git = "https://github.com/openzeppelin/cairo-contracts", tag="v
 
 [dev-dependencies]
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.30.0" }
+ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
 
 #[lib]
 

@@ -3,6 +3,10 @@ use starknet::{
     get_block_timestamp, get_contract_address,
 };
 
+use ekubo::types::bounds::Bounds;
+use ekubo::types::i129::{i129, i129Add};
+use ekubo::types::keys::PoolKey;
+
 pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 pub const BURNER_ROLE: felt252 = selector!("BURNER_ROLE");
@@ -11,7 +15,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 #[derive(Drop, Copy, Serde, Hash)]
 pub enum SupportedExchanges {
     Jediswap,
-    // Ekubo,
+    Ekubo,
 // Starkdefi,
 }
 
@@ -235,4 +239,48 @@ pub struct MetadataCoinAdded {
     pub url: ByteArray,
     pub nostr_event_id: u256,
     pub timestamp: u64
+}
+
+#[derive(Copy, Drop, Serde)]
+struct LaunchParameters {
+    memecoin_address: starknet::ContractAddress,
+    transfer_restriction_delay: u64,
+    max_percentage_buy_launch: u16,
+    quote_address: starknet::ContractAddress,
+    initial_holders: Span<starknet::ContractAddress>,
+    initial_holders_amounts: Span<u256>,
+}
+
+#[derive(Copy, Drop, Serde)]
+struct EkuboLaunchParameters {
+    owner: ContractAddress,
+    token_address: ContractAddress,
+    quote_address: ContractAddress,
+    lp_supply: u256,
+    pool_params: EkuboPoolParameters
+}
+
+#[derive(Copy, Drop, Serde)]
+struct EkuboLP {
+    owner: ContractAddress,
+    quote_address: ContractAddress,
+    pool_key: PoolKey,
+    bounds: Bounds,
+}
+
+#[derive(Drop, Copy, starknet::Store, Serde)]
+struct EkuboPoolParameters {
+    fee: u128,
+    tick_spacing: u128,
+    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true) otherwise
+    starting_price: i129,
+    // The LP providing bound, upper/lower determined by the address of the LPed tokens
+    bound: u128,
+}
+
+#[derive(Copy, Drop, starknet::Store, Serde)]
+enum LiquidityType {
+    JediERC20: ContractAddress,
+    StarkDeFiERC20: ContractAddress,
+    EkuboNFT: u64
 }
