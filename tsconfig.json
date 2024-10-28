@@ -2,7 +2,11 @@
   "compilerOptions": {
     "rootDir": ".",
     "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -20,9 +24,14 @@
     "module": "ES2015",
     "declaration": true,
     "sourceMap": true,
-    "baseUrl": "./",
-  
+    "baseUrl": "./"
   },
-  "include": ["./packages/**/*", "./apps/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./packages/**/*",
+    "./apps/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }
