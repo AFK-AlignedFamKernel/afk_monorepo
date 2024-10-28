@@ -19,105 +19,18 @@ model registration {
   evmAddress       String?
 }
 
-model token_deploy {
-  memecoin_address String?
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String    @id
-  owner_address    String?
-  name             String?
-  symbol           String?
-  initial_supply   String?
-  total_supply     String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
-}
 
-model token_launch {
-  memecoin_address String?
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String    @id
-  quote_token      String?
-  exchange_name    String?
+model gift {
+  contract_address String    @id
+  nickname         String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
-  total_supply     String?
-  current_supply   String?
-  liquidity_raised String?
-  price            String?
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
-}
-
-model token_transactions {
-  transfer_id      String    @id
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
-  memecoin_address String?
-  owner_address    String?
-  last_price       String?
-  quote_amount     String?
-  coin_received    String?
-  initial_supply   String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  total_supply     String?
-  current_supply   String?
-  liquidity_raised String?
-  price            String?
-  protocol_fee     String?
-  amount           Decimal?  @db.Decimal
-  cursor           BigInt?   @map("_cursor")
-  transaction_type String
-  time_stamp       String?
-}
-
-model unrugmeme_deploy {
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
-  memecoin_address String    @id
-  owner_address    String?
-  name             String?
-  symbol           String?
-  initial_supply   String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-}
-
-model unrugmeme_launch {
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
-  memecoin_address String    @id
-  quote_token      String?
-  exchange_name    String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-}
-
-model unrugmeme_transfers {
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String?
-  transfer_id      String    @id
-  from_address     String?
-  to_address       String?
-  memecoin_address String?
-  amount           String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
+  claimed_at       DateTime? @db.Timestamp(6)
+  is_confirmed     Boolean?  @default(false)
+  is_social_handle     Boolean?  @default(false)
+  social_network    String?
+  is_claimed     Boolean?  @default(false)
+  amount Int?
+  network_id String?
+  evmAddress String?
+  starknetAddress String?
 }
