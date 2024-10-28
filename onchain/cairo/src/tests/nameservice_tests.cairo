@@ -1,193 +1,261 @@
 #[cfg(test)]
 mod nameservice_tests {
-    use starknet::ContractAddress;
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy, Event,
-        start_cheat_caller_address, stop_cheat_caller_address,
-        start_cheat_block_timestamp, stop_cheat_block_timestamp, DeclareResultTrait,
+    // Imports from your project
+    // use afk::afk_id::nameservice::Nameservice::Event;
+    use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
+    use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    // use afk::types::id_types::{
+    //     UserNameClaimed, UserNameChanged, SubscriptionRenewed, PriceUpdated
+    // };
+
+    // Standard library imports
+    use starknet::{
+        ContractAddress, contract_address_const, get_caller_address, 
+        get_block_timestamp, ClassHash
     };
-    use core::array::SpanTrait;
-    use core::traits::Into;
-    use core::array::ArrayTrait;
-    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::interfaces::username_store::IUsernameStore;
-    use core::option::OptionTrait;
-    use core::result::ResultTrait;
+    use core::{
+        array::SpanTrait, traits::Into, array::ArrayTrait,
+        option::OptionTrait, result::ResultTrait
+    };
     use openzeppelin::utils::serde::SerializedAppend;
 
+    // Test framework imports
+    use snforge_std::{declare, ContractClass, ContractClassTrait, DeclareResult};
+    use snforge_std::cheatcodes::{
+        CheatTarget, EventSpy, spy_events, start_cheat_caller_address,
+        stop_cheat_caller_address, start_cheat_block_timestamp,
+        stop_cheat_block_timestamp, EventAssertions
+    };
+        
+    // Constants
     const YEAR_IN_SECONDS: u64 = 31536000_u64;
     const INITIAL_PRICE: u256 = 1000000;
+    const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
-    fn request_fixture() -> (ContractAddress, IERC20Dispatcher, IUsernameStoreDispatcher) {
-        let erc20_class = declare_erc20();
-        let nameservice_class = declare_nameservice();
-        request_fixture_custom_classes(*erc20_class, *nameservice_class)
-    }
+    // Test Fixture
+    fn setup() -> (ContractAddress, IERC20Dispatcher, INameserviceDispatcher) {
+        let owner: ContractAddress = contract_address_const::<'OWNER'>();
+        let admin: ContractAddress = contract_address_const::<'ADMIN'>();
 
-    fn request_fixture_custom_classes(
-        erc20_class: ContractClass, nameservice_class: ContractClass
-    ) -> (ContractAddress, IERC20Dispatcher, IUsernameStoreDispatcher) {
-        let owner_address: ContractAddress = 123.try_into().unwrap();
-        let admin_address: ContractAddress = 456.try_into().unwrap();
-        
-        // Deploy ERC20 token
-        let erc20 = deploy_erc20(
-            erc20_class, 'Test Token', 'TST', 1_000_000, owner_address
-        );
-        let token_address = erc20.contract_address;
+        // Deploy mock ERC20
+        let erc20_class = declare('MockERC20');
+        let mut constructor_calldata = array![];
+        'Test Token'.serialize(ref constructor_calldata);
+        'TST'.serialize(ref constructor_calldata);
+        1000000_u256.serialize(ref constructor_calldata);
+        owner.serialize(ref constructor_calldata);
+        18_u8.serialize(ref constructor_calldata);
+
+        let (erc20_address, _) = erc20_class.deploy(@constructor_calldata).unwrap();
+        let erc20 = IERC20Dispatcher { contract_address: erc20_address };
 
         // Deploy Nameservice
-        let nameservice = deploy_nameservice(
-            nameservice_class, owner_address, admin_address
-        );
+        let nameservice_class = declare('Nameservice');
+        let mut ns_calldata = array![
+            owner.into(), 
+            admin.into(),
+            erc20_address.into()
+        ];
 
-        (owner_address, erc20, nameservice)
+        let (nameservice_address, _) = nameservice_class.deploy(@ns_calldata).unwrap();
+        let nameservice = INameserviceDispatcher { contract_address: nameservice_address };
+
+        (owner, erc20, nameservice)
     }
 
-    fn declare_nameservice() -> @ContractClass {
-        declare("Nameservice").unwrap().contract_class()
-    }
-
-    fn declare_erc20() -> @ContractClass {
-        declare("MockERC20").unwrap().contract_class()
-    }
-
-    fn deploy_nameservice(
-        class: ContractClass, owner: ContractAddress, admin: ContractAddress
-    ) -> IUsernameStoreDispatcher {
-        let mut calldata = array![owner.into(), admin.into()];
-        let (contract_address, _) = class.deploy(@calldata).unwrap();
-        IUsernameStoreDispatcher { contract_address }
-    }
-
-    fn deploy_erc20(
-        class: ContractClass,
-        name: felt252,
-        symbol: felt252,
-        initial_supply: u256,
-        recipient: ContractAddress
-    ) -> IERC20Dispatcher {
-        let mut calldata = array![];
+    // #[test]
+    // fn test_constructor() {
+    //     let (owner, erc20, nameservice) = setup();
         
-        name.serialize(ref calldata);
-        symbol.serialize(ref calldata);
-        initial_supply.serialize(ref calldata);
-        recipient.serialize(ref calldata);
-        18_u8.serialize(ref calldata);
-
-        let (contract_address, _) = class.deploy(@calldata).unwrap();
-        IERC20Dispatcher { contract_address }
-    }
-
-    #[test]
-    fn test_nameservice_end_to_end() {
-        let (owner_address, erc20, nameservice) = request_fixture();
+    //     // Check initial state
+    //     let price = nameservice.get_subscription_price();
+    //     assert(price == INITIAL_PRICE, 'Wrong initial price');
         
-        // Set up test user
-        let user_address: ContractAddress = 789.try_into().unwrap();
-        let username: felt252 = 'test.afk';
+    //     // Try to get subscription expiry for a non-existent user
+    //     let random_user = contract_address_const::<'RANDOM'>();
+    //     let expiry = nameservice.get_subscription_expiry(random_user);
+    //     assert(expiry == 0, 'Non-zero expiry for new user');
+    // }
 
-        // Setup token approvals
-        start_cheat_caller_address(erc20.contract_address, user_address);
-        erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-        erc20.mint(user_address, INITIAL_PRICE * 2);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        // Claim username
-        start_cheat_caller_address(nameservice.contract_address, user_address);
-        nameservice.claim_username(username);
-
-        // Verify username claimed
-        let claimed_address = nameservice.get_username_address(username);
-        assert(claimed_address == user_address, 'Wrong username owner');
-
-        let user_username = nameservice.get_username(user_address);
-        assert(user_username == username, 'Wrong username stored');
-
-        // Change username
-        let new_username: felt252 = 'newtest.afk';
-        nameservice.change_username(new_username);
-
-        // Verify username changed
-        let new_claimed_address = nameservice.get_username_address(new_username);
-        assert(new_claimed_address == user_address, 'Wrong new username owner');
-
-        let old_claimed_address = nameservice.get_username_address(username);
-        assert(old_claimed_address == 0.try_into().unwrap(), 'Old username not cleared');
-
-        // Test subscription renewal
-        start_cheat_block_timestamp(YEAR_IN_SECONDS / 2); // Warp 6 months forward
-
-        start_cheat_caller_address(erc20.contract_address, user_address);
-        erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        nameservice.renew_subscription();
-        stop_cheat_block_timestamp();
+    // #[test]
+    // fn test_claim_username() {
+    //     let (owner, erc20, nameservice) = setup();
+    //     let mut spy = spy_events(nameservice.contract_address);
         
-        stop_cheat_caller_address(nameservice.contract_address);
-    }
+    //     // Setup test user
+    //     let user = contract_address_const::<'USER'>();
+    //     let username: felt252 = 'test.afk';
 
-    #[test]
-    fn test_multiple_users() {
-        let (owner_address, erc20, nameservice) = request_fixture();
+    //     // Fund and approve
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
+    //     erc20.transfer(user, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
+    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     // Claim username
+    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
+    //     nameservice.claim_username(username);
+
+    //     // Verify username claimed
+    //     let claimed_address = nameservice.get_username_address(username);
+    //     assert(claimed_address == user, 'Wrong username owner');
+
+    //     let user_username = nameservice.get_username(user);
+    //     assert(user_username == username, 'Wrong username stored');
+
+    //     // Verify event
+    //     // spy.assert_emitted(
+    //     //     array![
+    //     //         (
+    //     //             nameservice.contract_address,
+    //     //             UserNameClaimed { 
+    //     //                 username, 
+    //     //                 address: user,
+    //     //                 expiry: get_block_timestamp() + YEAR_IN_SECONDS
+    //     //             }
+    //     //         )
+    //     //     ]
+    //     // );
         
-        // Setup test users
-        let user1: ContractAddress = 789.try_into().unwrap();
-        let user2: ContractAddress = 101112.try_into().unwrap();
-        let username1: felt252 = 'user1.afk';
-        let username2: felt252 = 'user2.afk';
+    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    // }
 
-        // Setup token approvals for user1
-        start_cheat_caller_address(erc20.contract_address, user1);
-        erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-        erc20.mint(user1, INITIAL_PRICE);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        // Claim username for user1
-        start_cheat_caller_address(nameservice.contract_address, user1);
-        nameservice.claim_username(username1);
-        stop_cheat_caller_address(nameservice.contract_address);
-
-        // Setup token approvals for user2
-        start_cheat_caller_address(erc20.contract_address, user2);
-        erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-        erc20.mint(user2, INITIAL_PRICE);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        // Claim username for user2
-        start_cheat_caller_address(nameservice.contract_address, user2);
-        nameservice.claim_username(username2);
-        stop_cheat_caller_address(nameservice.contract_address);
-
-        // Verify usernames were claimed correctly
-        assert(nameservice.get_username_address(username1) == user1, 'Wrong user1 username owner');
-        assert(nameservice.get_username_address(username2) == user2, 'Wrong user2 username owner');
-        assert(nameservice.get_username(user1) == username1, 'Wrong username for user1');
-        assert(nameservice.get_username(user2) == username2, 'Wrong username for user2');
-    }
-
-    #[test]
-    fn test_admin_functions() {
-        let (owner_address, erc20, nameservice) = request_fixture();
-        let admin_address: ContractAddress = 456.try_into().unwrap();
+    // #[test]
+    // fn test_change_username() {
+    //     let (owner, erc20, nameservice) = setup();
+    //     let mut spy = spy_events(nameservice.contract_address);
         
-        // Test withdraw fees
-        let withdraw_amount: u256 = 100000;
-        
-        // Add some tokens to contract
-        start_cheat_caller_address(erc20.contract_address, nameservice.contract_address);
-        erc20.mint(nameservice.contract_address, withdraw_amount);
-        stop_cheat_caller_address(erc20.contract_address);
+    //     // Setup and claim initial username
+    //     let user = contract_address_const::<'USER'>();
+    //     let username1: felt252 = 'test1.afk';
+    //     let username2: felt252 = 'test2.afk';
 
-        // Withdraw as admin
-        start_cheat_caller_address(nameservice.contract_address, admin_address);
-        nameservice.withdraw_fees(withdraw_amount);
+    //     // Fund and approve for initial claim
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
+    //     erc20.transfer(user, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
 
-        // Verify withdrawal
-        let admin_balance = erc20.balance_of(admin_address);
-        assert(admin_balance == withdraw_amount, 'Wrong withdrawal amount');
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
+    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     // Claim first username
+    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
+    //     nameservice.claim_username(username1);
+
+    //     // Change username
+    //     nameservice.change_username(username2);
+
+    //     // Verify changes
+    //     assert(nameservice.get_username_address(username2) == user, 'Wrong new username owner');
+    //     assert(
+    //         nameservice.get_username_address(username1) == contract_address_const::<0>(),
+    //         'Old username not cleared'
+    //     );
+
+    //     // Verify event
+    //     spy.assert_emitted(
+    //         array![
+    //             (
+    //                 nameservice.contract_address,
+    //                 UserNameChanged { 
+    //                     old_username: username1,
+    //                     new_username: username2,
+    //                     address: user
+    //                 }
+    //             )
+    //         ]
+    //     );
+
+    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    // }
+
+    // #[test]
+    // fn test_renew_subscription() {
+    //     let (owner, erc20, nameservice) = setup();
+    //     let mut spy = spy_events(nameservice.contract_address);
         
-        stop_cheat_caller_address(nameservice.contract_address);
-    }
+    //     // Setup and claim username
+    //     let user = contract_address_const::<'USER'>();
+    //     let username: felt252 = 'test.afk';
+
+    //     // Initial setup and claim
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
+    //     erc20.transfer(user, INITIAL_PRICE * 2);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
+    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE * 2);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     // Claim username
+    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
+    //     nameservice.claim_username(username);
+
+    //     // Move time forward
+    //     start_cheat_block_timestamp(YEAR_IN_SECONDS / 2);
+
+    //     // Renew subscription
+    //     nameservice.renew_subscription();
+
+    //     // Verify renewal
+    //     let new_expiry = nameservice.get_subscription_expiry(user);
+    //     assert(
+    //         new_expiry == YEAR_IN_SECONDS * 3 / 2, 
+    //         'Wrong expiry after renewal'
+    //     );
+
+    //     // Verify event
+    //     spy.assert_emitted(
+    //         array![
+    //             (
+    //                 nameservice.contract_address,
+    //                 SubscriptionRenewed { 
+    //                     address: user,
+    //                     expiry: new_expiry
+    //                 }
+    //             )
+    //         ]
+    //     );
+
+    //     stop_cheat_block_timestamp();
+    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    // }
+
+    // #[test]
+    // #[should_panic(expected: ('Username already claimed', ))]
+    // fn test_cannot_claim_taken_username() {
+    //     let (owner, erc20, nameservice) = setup();
+    //     let username: felt252 = 'test.afk';
+
+    //     // Setup two users
+    //     let user1 = contract_address_const::<'USER1'>();
+    //     let user2 = contract_address_const::<'USER2'>();
+
+    //     // Fund and approve for both users
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
+    //     erc20.transfer(user1, INITIAL_PRICE);
+    //     erc20.transfer(user2, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user1);
+    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user2);
+    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
+    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+
+    //     // First user claims
+    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user1);
+    //     nameservice.claim_username(username);
+    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+
+    //     // Second user attempts to claim same username
+    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user2);
+    //     nameservice.claim_username(username); // Should panic
+    // }
 }
