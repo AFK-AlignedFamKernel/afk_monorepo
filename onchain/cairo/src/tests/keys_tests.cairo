@@ -11,11 +11,9 @@ mod keys_tests {
     use openzeppelin::utils::serde::SerializedAppend;
 
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
-        Event, start_cheat_caller_address, start_cheat_caller_address_global,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
-        DeclareResultTrait,
-
+        declare, ContractClass, ContractClassTrait, spy_events, EventSpy, Event,
+        start_cheat_caller_address, start_cheat_caller_address_global, stop_cheat_caller_address,
+        stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
     };
     // const INITIAL_KEY_PRICE:u256=1/100;
 

@@ -13,10 +13,10 @@ mod ERC4626Vault {
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::ContractAddress;
-    use super::{TokenPermitted, DepositUser};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+    use super::{TokenPermitted, DepositUser};
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const MAKER_ROLE: felt252 = selector!("MAKER_ROLE");

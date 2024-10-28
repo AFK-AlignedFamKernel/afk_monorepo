@@ -19,7 +19,7 @@ pub struct LinkedStarknetAddress {
 struct LinkedWalletProfileDefault {
     nostr_address: NostrPublicKey,
     starknet_address: ContractAddress,
-// Add NIP-05 and stats profil after. Gonna write a proposal for it
+    // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
 // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
@@ -38,7 +38,7 @@ impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
 #[derive(Copy, Debug, Drop, Serde)]
 pub enum LinkedResult {
     Transfer: ContractAddress,
-// LinkedStarknetAddress: LinkedStarknetAddress
+    // LinkedStarknetAddress: LinkedStarknetAddress
 }
 
 #[starknet::interface]
@@ -59,7 +59,7 @@ pub trait INamespace<TContractState> {
     fn linked_nostr_default_account(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>
     );
-// // External call protocol
+    // // External call protocol
 // fn protocol_linked_nostr_default_account(
 //     ref self: TContractState,
 //     nostr_public_key: NostrPublicKey,
@@ -77,6 +77,9 @@ pub mod Namespace {
     use openzeppelin::introspection::src5::SRC5Component;
 
     use starknet::account::Call;
+    use starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+    };
     use starknet::{
         get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
     };
@@ -87,9 +90,6 @@ pub mod Namespace {
     use super::{
         LinkedWalletProfileDefault, LinkedResult, INamespace, NostrPublicKey,
         LinkedStarknetAddressEncodeImpl, LinkedStarknetAddress, OPERATOR_ROLE, ADMIN_ROLE
-    };
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -214,7 +214,7 @@ pub mod Namespace {
                     }
                 );
         }
-    // Protocol request with OPERATOR_ROLE
+        // Protocol request with OPERATOR_ROLE
     // Call by Deposit Escrow at this stage in claim or deposit functions
     // fn protocol_linked_nostr_default_account(
     //     ref self: ContractState,
@@ -236,18 +236,17 @@ pub mod Namespace {
 
 #[cfg(test)]
 mod tests {
+    use core::array::SpanTrait;
+    use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy,
-        DeclareResultTrait,
-        Event, start_cheat_caller_address, start_cheat_caller_address_global,
+        declare, ContractClass, ContractClassTrait, spy_events, EventSpy, DeclareResultTrait, Event,
+        start_cheat_caller_address, start_cheat_caller_address_global,
         stop_cheat_caller_address_global, start_cheat_block_timestamp, EventSpyAssertionsTrait,
     };
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
         contract_address_const,
     };
-    use core::array::SpanTrait;
-    use core::traits::Into;
 
     use super::super::request::{SocialRequest, Signature, Encode};
     use super::super::transfer::Transfer;
@@ -294,9 +293,10 @@ mod tests {
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
 
-        // TODO change with the correct signature with the content LinkedWalletProfileDefault id and strk recipient
-        // TODO Uint256 to felt on Starknet js
-        // for test data see claim to:   https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
+        // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
+        // strk recipient TODO Uint256 to felt on Starknet js
+        // for test data see claim to:
+        // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
 
         let linked_wallet = LinkedStarknetAddress {
             starknet_address: sender_address.try_into().unwrap()
@@ -312,7 +312,7 @@ mod tests {
             sig: Signature {
                 r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
                 s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
-            // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
+                // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             }
         };

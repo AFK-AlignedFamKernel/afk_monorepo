@@ -3,10 +3,10 @@ pub mod HodlQuest {
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
     use afk::interfaces::quests::{IQuest};
     use core::traits::TryInto;
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         art_peace: ContractAddress,

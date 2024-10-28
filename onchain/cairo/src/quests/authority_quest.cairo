@@ -2,11 +2,11 @@
 pub mod AuthorityQuest {
     use afk::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
     use afk::interfaces::quests::{IAuthorityQuest, IQuest};
-
-    use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+
+    use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         art_peace: ContractAddress,
@@ -39,11 +39,10 @@ pub mod AuthorityQuest {
         fn mark_claimable(ref self: ContractState, calldata: Span<felt252>) {
             assert(get_caller_address() == self.authority.read(), 'Only authority address allowed');
             let mut i = 0;
-            while i < calldata
-                .len() {
-                    self.claimable.entry((*calldata[i]).try_into().unwrap()).write(true);
-                    i += 1;
-                }
+            while i < calldata.len() {
+                self.claimable.entry((*calldata[i]).try_into().unwrap()).write(true);
+                i += 1;
+            }
         }
     }
 

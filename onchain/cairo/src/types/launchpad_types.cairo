@@ -12,7 +12,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 pub enum SupportedExchanges {
     Jediswap,
     // Ekubo,
-    // Starkdefi,
+// Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,
@@ -101,6 +101,13 @@ pub struct SharesTokenUser {
     pub amount_sell: u256,
     pub created_at: u64,
     pub total_paid: u256,
+}
+
+#[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
+pub struct MetadataLaunch {
+    pub token_address: ContractAddress,
+    pub url: ByteArray,
+    pub nostr_event_id: u256,
 }
 
 
@@ -221,3 +228,11 @@ pub struct TokenClaimed {
     pub timestamp: u64
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct MetadataCoinAdded {
+    #[key]
+    pub token_address: ContractAddress,
+    pub url: ByteArray,
+    pub nostr_event_id: u256,
+    pub timestamp: u64
+}

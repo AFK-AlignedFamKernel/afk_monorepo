@@ -1,36 +1,31 @@
 #[cfg(test)]
 mod launchpad_tests {
-    use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events,
-         start_cheat_caller_address, start_cheat_caller_address_global,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp,
-        DeclareResultTrait, EventSpyAssertionsTrait
-
-    };
-
     use afk::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::launchpad_types::{CreateToken,
-        TokenQuoteBuyCoin, BondingType, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges,
-        
+    use afk::types::launchpad_types::{
+        CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediwapNFTRouterV2,
+        SetJediwapV2Factory, SupportedExchanges,
     };
     use core::num::traits::Zero;
     use core::traits::Into;
     use openzeppelin::utils::serde::SerializedAppend;
-
-
-    use starknet::{
-        ContractAddress, ClassHash, class_hash::class_hash_const
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, spy_events, start_cheat_caller_address,
+        start_cheat_caller_address_global, stop_cheat_caller_address,
+        stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
+        EventSpyAssertionsTrait
     };
+
+
+    use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
 
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
         // 21_000_000 * pow_256(10, 18)
         100_000_000
-    // * pow_256(10, 18)
+        // * pow_256(10, 18)
     }
 
     // const INITIAL_KEY_PRICE:u256=1/100;
@@ -295,12 +290,12 @@ mod launchpad_tests {
             token_address,
             sender_address,
         );
-    //  All buy
+        //  All buy
     //    let res = run_buy_by_amount(
     //     launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY , token_address, sender_address,
     // );
 
-    // let token_address_2 = launchpad
+        // let token_address_2 = launchpad
     // .create_and_launch_token(
     //     // owner: OWNER(),
     //     symbol: SYMBOL(),
@@ -421,7 +416,7 @@ mod launchpad_tests {
         run_sell_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
-    // //  Threshold buy - 1
+        // //  Threshold buy - 1
     // run_buy_by_amount(
     //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
     // );
@@ -579,12 +574,12 @@ mod launchpad_tests {
         run_buy_by_amount(
             launchpad, erc20, memecoin, amount_second, token_address, sender_address,
         );
-    // // //  First buy with 10 quote token
+        // // //  First buy with 10 quote token
     // let res = run_sell_by_amount(
     //     launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
     // );
 
-    // //  Final buy
+        // //  Final buy
     // let res = run_buy_by_amount(
     //     launchpad,
     //     erc20,
