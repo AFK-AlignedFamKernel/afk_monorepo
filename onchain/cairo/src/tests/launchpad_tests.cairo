@@ -50,6 +50,11 @@ mod launchpad_tests {
 
     const LIQUIDITY_RATIO: u256 = 5;
 
+    const FACTORY_ADDRESS: felt252 = 0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc;
+
+    // fn FACTORY_ADDRESS() -> ContractAddress {
+    //     '0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc'.try_into().unwrap()
+    // }
 
     fn SALT() -> felt252 {
         'salty'.try_into().unwrap()
@@ -129,7 +134,8 @@ mod launchpad_tests {
             STEP_LINEAR_INCREASE,
             erc20_class.class_hash,
             THRESHOLD_LIQUIDITY,
-            THRESHOLD_MARKET_CAP
+            THRESHOLD_MARKET_CAP,
+            FACTORY_ADDRESS.try_into().unwrap(),
         );
         // let launchpad = deploy_launchpad(
         //     launch_class,
@@ -157,6 +163,7 @@ mod launchpad_tests {
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_marketcap: u256,
+        factory_address: ContractAddress,
     ) -> ILaunchpadMarketplaceDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
@@ -166,6 +173,7 @@ mod launchpad_tests {
         calldata.append_serde(coin_class_hash);
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
+        calldata.append_serde(factory_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
     }
@@ -216,7 +224,7 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("buy coin",);
-        launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
+        launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
     }
 
 

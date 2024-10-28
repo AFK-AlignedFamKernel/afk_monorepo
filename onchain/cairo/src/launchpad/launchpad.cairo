@@ -608,8 +608,9 @@ pub mod LaunchpadMarketplace {
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
                         }
                     );
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-                self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+                    //TODO choose from supported exchanges
+                self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             if mc >= threshold_mc { // println!("mc >= threshold_mc");
@@ -621,8 +622,9 @@ pub mod LaunchpadMarketplace {
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
                         }
                     );
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-                self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+                    //TODO choose from supported exchanges
+                self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             // TODO check reetrancy guard
@@ -815,7 +817,7 @@ pub mod LaunchpadMarketplace {
             assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
             assert(pool.is_liquidity_launch == false, 'liquidity already launch');
 
-            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
+            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
             // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
 
@@ -1140,7 +1142,7 @@ pub mod LaunchpadMarketplace {
                 SupportedExchanges::Ekubo => { 
                     match ekubo_pool_params {
                        Option::Some(params) => self._add_liquidity_ekubo(coin_address, params),
-                       Option::None => panic!("add Ekubo Pool Parameters to launch on  ekubo"),
+                       Option::None => panic!("add Ekubo Pool Parameters to launch on ekubo"),
                     }
                 }
             }
