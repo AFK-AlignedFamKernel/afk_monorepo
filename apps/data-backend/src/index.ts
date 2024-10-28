@@ -57,6 +57,6 @@ fastify.listen({ port: port || 5050, host: host }, function (err, address) {
   // try {
   //   launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
   // } catch (error) {
-  //   console.error("Error launching bot:", error)
+  //   console.error("Error launching bot:", error);
   // }
 });
