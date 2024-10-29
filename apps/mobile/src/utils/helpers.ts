@@ -63,5 +63,5 @@ export const getImageRatio = (width: number, height: number, minRatio = 0.75, ma
 };
 
 export function removeHashFn(str: string) {
-  return str.replace(/#/g, '');
+  return str?.replace(/#/g, '');
 }
