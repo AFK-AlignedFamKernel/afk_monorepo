@@ -1,17 +1,6 @@
 import * as fs from "fs";
-import { v2 as cloudinary } from "cloudinary";
 import { retryOperation } from "./util";
-
-// Cloudinary configuration with validation
-export const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
-const api_key = process.env.CLOUDINARY_API_KEY;
-const api_secret = process.env.CLOUDINARY_API_SECRET;
-
-if (!cloud_name || !api_key || !api_secret) {
-  throw new Error("Missing required Cloudinary configuration");
-}
-
-cloudinary.config({ cloud_name, api_key, api_secret });
+import cloudinary from "../../config";
 
 // Store all segments for each stream type
 const streamSegments = new Map<string, Map<number, string>>();

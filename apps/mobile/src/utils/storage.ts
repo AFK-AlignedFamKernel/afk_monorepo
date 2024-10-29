@@ -11,6 +11,7 @@ export const KEY_STORE = {
   ENCRYPTED_PRIVATE_KEY: 'encryptedPrivateKey',
   ENCRYPTED_CASHU_MNEMONIC: 'encryptedCashuMnemonic',
   ENCRYPTED_CASHU_SEED: 'encryptedCashuSeed',
+  AUTH_DATA: 'authData',
 };
 export const storePublicKey = async (publicKey: string) => {
   if (isSecureStoreAvailable) {
@@ -43,6 +44,35 @@ export const storePrivateKey = async (privateKeyHex: string, password: string) =
     // We shouldn't throw the original error for security reasons
     throw new Error('Error storing private key');
   }
+};
+
+export const storeAuthData = async (data: {
+  user: {
+    id: string;
+    userAddress: string;
+    email: string | null;
+    verified: boolean;
+  };
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+}) => {
+  const dataString = JSON.stringify(data);
+
+  if (isSecureStoreAvailable) {
+    await SecureStore.setItemAsync(KEY_STORE.AUTH_DATA, dataString);
+  } else {
+    await AsyncStorage.setItem(KEY_STORE.AUTH_DATA, dataString);
+  }
+};
+export const getAuthData = async () => {
+  let dataString;
+  if (isSecureStoreAvailable) {
+    dataString = await SecureStore.getItemAsync(KEY_STORE.AUTH_DATA);
+  } else {
+    dataString = await AsyncStorage.getItem(KEY_STORE.AUTH_DATA);
+  }
+  return dataString ? JSON.parse(dataString) : null;
 };
 
 export const retrieveAndDecryptPrivateKey = async (password: string): Promise<false | Buffer> => {

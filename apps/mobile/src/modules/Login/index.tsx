@@ -20,6 +20,7 @@ import {
   storeCashuMnemonic,
   storeCashuSeed,
 } from '../../utils/storage';
+import {LoginStarknet} from './StarknetLogin';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -244,6 +245,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       >
         <TextButton onPress={handleImportAccount}>Import Account</TextButton>
         <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
+        <LoginStarknet />
       </View>
 
       {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}
