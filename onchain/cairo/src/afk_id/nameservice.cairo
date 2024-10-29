@@ -87,7 +87,7 @@ pub mod Nameservice {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         UserNameClaimed: UserNameClaimed,
         UserNameChanged: UserNameChanged,
         SubscriptionRenewed: SubscriptionRenewed,
@@ -254,15 +254,22 @@ pub mod Nameservice {
     // Admin functions
     #[external(v0)]
     fn update_subscription_price(ref self: ContractState, new_price: u256) {
-        // self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        self.accesscontrol.assert_only_role(ADMIN_ROLE);
         assert(new_price > 0, UserNameClaimErrors::INVALID_PRICE);
-
+    
         let old_price = self.subscription_price.read();
         self.subscription_price.write(new_price);
-
+    
         self.emit(PriceUpdated { old_price, new_price });
     }
-
+    
+    #[external(v0)]
+    fn set_token_quote(ref self: ContractState, token_quote: ContractAddress) {
+        self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        self.token_quote.write(token_quote);
+    }
+    
+    
     //Internal function to check the maximum of two
     #[generate_trait]
     fn max(a: u64, b: u64) -> u64 {

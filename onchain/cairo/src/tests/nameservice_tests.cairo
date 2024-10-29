@@ -1,261 +1,266 @@
 #[cfg(test)]
 mod nameservice_tests {
-    // Imports from your project
-    // use afk::afk_id::nameservice::Nameservice::Event;
-    use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
+    use afk::afk_id::nameservice::Nameservice::Event;
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    // use afk::types::id_types::{
-    //     UserNameClaimed, UserNameChanged, SubscriptionRenewed, PriceUpdated
-    // };
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
+    use snforge_std::{
+        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
+        stop_cheat_caller_address, spy_events, DeclareResultTrait, EventSpyAssertionsTrait,
+    };
 
-    // Standard library imports
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, 
-        get_block_timestamp, ClassHash
+        ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
+        get_block_timestamp, get_contract_address, ClassHash
     };
-    use core::{
-        array::SpanTrait, traits::Into, array::ArrayTrait,
-        option::OptionTrait, result::ResultTrait
-    };
-    use openzeppelin::utils::serde::SerializedAppend;
-
-    // Test framework imports
-    use snforge_std::{declare, ContractClass, ContractClassTrait, DeclareResult};
-    use snforge_std::cheatcodes::{
-        CheatTarget, EventSpy, spy_events, start_cheat_caller_address,
-        stop_cheat_caller_address, start_cheat_block_timestamp,
-        stop_cheat_block_timestamp, EventAssertions
-    };
-        
-    // Constants
-    const YEAR_IN_SECONDS: u64 = 31536000_u64;
-    const INITIAL_PRICE: u256 = 1000000;
-    const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
-
-    // Test Fixture
-    fn setup() -> (ContractAddress, IERC20Dispatcher, INameserviceDispatcher) {
-        let owner: ContractAddress = contract_address_const::<'OWNER'>();
-        let admin: ContractAddress = contract_address_const::<'ADMIN'>();
-
-        // Deploy mock ERC20
-        let erc20_class = declare('MockERC20');
-        let mut constructor_calldata = array![];
-        'Test Token'.serialize(ref constructor_calldata);
-        'TST'.serialize(ref constructor_calldata);
-        1000000_u256.serialize(ref constructor_calldata);
-        owner.serialize(ref constructor_calldata);
-        18_u8.serialize(ref constructor_calldata);
-
-        let (erc20_address, _) = erc20_class.deploy(@constructor_calldata).unwrap();
-        let erc20 = IERC20Dispatcher { contract_address: erc20_address };
-
-        // Deploy Nameservice
-        let nameservice_class = declare('Nameservice');
-        let mut ns_calldata = array![
-            owner.into(), 
-            admin.into(),
-            erc20_address.into()
-        ];
-
-        let (nameservice_address, _) = nameservice_class.deploy(@ns_calldata).unwrap();
-        let nameservice = INameserviceDispatcher { contract_address: nameservice_address };
-
-        (owner, erc20, nameservice)
+    
+    fn ADMIN() -> ContractAddress {
+        starknet::contract_address_const::<1>()  // Using 1 instead of 123
     }
 
-    // #[test]
-    // fn test_constructor() {
-    //     let (owner, erc20, nameservice) = setup();
+    fn CALLER() -> ContractAddress {
+        starknet::contract_address_const::<2>()  // Using 2 instead of 5
+    }
+
+    const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+    const YEAR_IN_SECONDS: u64 = 31536000_u64;
+
+    fn setup() -> (INameserviceDispatcher, IERC20Dispatcher, IERC20MintableDispatcher) {
+        let erc20_mintable_class = declare("ERC20Mintable").unwrap().contract_class();
+        let (payment_token_dispatcher, payment_token_mintable_dispatcher) = deploy_erc20_mint(
+            *erc20_mintable_class, "PaymentToken", "PAY", ADMIN(), 1_000_000_u256,
+        );
+    
+        let nameservice_class = declare("Nameservice").unwrap().contract_class();
+    
+        let mut calldata = array![];
+        ADMIN().serialize(ref calldata); // owner
+        ADMIN().serialize(ref calldata); // admin
+    
+        let (nameservice_address, _) = nameservice_class.deploy(@calldata).unwrap();
+    
+        let nameservice_dispatcher = INameserviceDispatcher { contract_address: nameservice_address };
+    
+        // Set the token_quote in the nameservice contract
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_token_quote(payment_token_dispatcher.contract_address);
+        nameservice_dispatcher.update_subscription_price(100_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    
+        (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)
+    }
+    
+    
+    fn deploy_erc20_mint(
+        class: ContractClass,
+        name: ByteArray,
+        symbol: ByteArray,
+        owner: ContractAddress,
+        initial_supply: u256,
+    ) -> (IERC20Dispatcher, IERC20MintableDispatcher) {
+        let mut calldata: Array<felt252> = ArrayTrait::new();
+    
+        name.serialize(ref calldata);
+        symbol.serialize(ref calldata);
+        owner.serialize(ref calldata);
+        initial_supply.serialize(ref calldata);
+    
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+    
+        let erc20_dispatcher = IERC20Dispatcher { contract_address };
+        let erc20_mintable_dispatcher = IERC20MintableDispatcher { contract_address };
+    
+        (erc20_dispatcher, erc20_mintable_dispatcher)
+    }
         
-    //     // Check initial state
-    //     let price = nameservice.get_subscription_price();
-    //     assert(price == INITIAL_PRICE, 'Wrong initial price');
-        
-    //     // Try to get subscription expiry for a non-existent user
-    //     let random_user = contract_address_const::<'RANDOM'>();
-    //     let expiry = nameservice.get_subscription_expiry(random_user);
-    //     assert(expiry == 0, 'Non-zero expiry for new user');
-    // }
+    #[test]
+    fn test_claim_username() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+    
+        // Mint tokens to CALLER
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher.mint(CALLER(), 1000_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+    
+        // Approve Nameservice contract to spend CALLER's tokens
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+    
+        // CALLER claims a username
+        let username = "test".try_into().unwrap();
+    
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    
+        // Verify username mapping
+        let stored_username = nameservice_dispatcher.get_username(CALLER());
+        assert(stored_username == username, 'Username was not set correctly');
+    
+        let stored_address = nameservice_dispatcher.get_username_address(username);
+        assert(stored_address == CALLER(), 'Address was not set correctly');
+    
+        // Verify subscription expiry
+        let expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+        let current_time = get_block_timestamp();
+        assert(expiry > current_time, 'Subscription expiry not set correctly');
+    
+        // Verify token balances
+        let caller_balance = payment_token_dispatcher.balance_of(CALLER());
+        assert(caller_balance == 900_u256, 'Payment token balance incorrect');
+    
+        let contract_balance = payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
+        assert(contract_balance == 100_u256, 'Contract token balance incorrect');
+    }    
 
-    // #[test]
-    // fn test_claim_username() {
-    //     let (owner, erc20, nameservice) = setup();
-    //     let mut spy = spy_events(nameservice.contract_address);
-        
-    //     // Setup test user
-    //     let user = contract_address_const::<'USER'>();
-    //     let username: felt252 = 'test.afk';
-
-    //     // Fund and approve
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
-    //     erc20.transfer(user, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
-
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
-    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
-
-    //     // Claim username
-    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
-    //     nameservice.claim_username(username);
-
-    //     // Verify username claimed
-    //     let claimed_address = nameservice.get_username_address(username);
-    //     assert(claimed_address == user, 'Wrong username owner');
-
-    //     let user_username = nameservice.get_username(user);
-    //     assert(user_username == username, 'Wrong username stored');
-
-    //     // Verify event
-    //     // spy.assert_emitted(
-    //     //     array![
-    //     //         (
-    //     //             nameservice.contract_address,
-    //     //             UserNameClaimed { 
-    //     //                 username, 
-    //     //                 address: user,
-    //     //                 expiry: get_block_timestamp() + YEAR_IN_SECONDS
-    //     //             }
-    //     //         )
-    //     //     ]
-    //     // );
-        
-    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
-    // }
-
+    
     // #[test]
     // fn test_change_username() {
-    //     let (owner, erc20, nameservice) = setup();
-    //     let mut spy = spy_events(nameservice.contract_address);
-        
-    //     // Setup and claim initial username
-    //     let user = contract_address_const::<'USER'>();
-    //     let username1: felt252 = 'test1.afk';
-    //     let username2: felt252 = 'test2.afk';
+    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
 
-    //     // Fund and approve for initial claim
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
-    //     erc20.transfer(user, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     // Mint and approve tokens
+    //     start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+    //     payment_token_mintable_dispatcher.mint(CALLER(), 1000_u256);
+    //     stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
-    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
-    //     // Claim first username
-    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
-    //     nameservice.claim_username(username1);
+    //     // Claim initial username
+    //     let username = 'test'.try_into().unwrap();
+
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.claim_username(username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
     //     // Change username
-    //     nameservice.change_username(username2);
+    //     let new_username = 'new'.try_into().unwrap();
+
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.change_username(new_username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
     //     // Verify changes
-    //     assert(nameservice.get_username_address(username2) == user, 'Wrong new username owner');
-    //     assert(
-    //         nameservice.get_username_address(username1) == contract_address_const::<0>(),
-    //         'Old username not cleared'
-    //     );
+    //     let stored_username = nameservice_dispatcher.get_username(CALLER());
+    //     assert(stored_username == new_username, 'Username was not changed correctly');
 
-    //     // Verify event
-    //     spy.assert_emitted(
-    //         array![
-    //             (
-    //                 nameservice.contract_address,
-    //                 UserNameChanged { 
-    //                     old_username: username1,
-    //                     new_username: username2,
-    //                     address: user
-    //                 }
-    //             )
-    //         ]
-    //     );
+    //     let old_username_address = nameservice_dispatcher.get_username_address(username);
+    //     assert(old_username_address == starknet::contract_address_const::<0>(), 'Old username still mapped');
 
-    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    //     let new_username_address = nameservice_dispatcher.get_username_address(new_username);
+    //     assert(new_username_address == CALLER(), 'New username not mapped correctly');
     // }
 
     // #[test]
     // fn test_renew_subscription() {
-    //     let (owner, erc20, nameservice) = setup();
-    //     let mut spy = spy_events(nameservice.contract_address);
-        
-    //     // Setup and claim username
-    //     let user = contract_address_const::<'USER'>();
-    //     let username: felt252 = 'test.afk';
+    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
 
-    //     // Initial setup and claim
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
-    //     erc20.transfer(user, INITIAL_PRICE * 2);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     // Mint and approve tokens
+    //     start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+    //     payment_token_mintable_dispatcher.mint(CALLER(), 1000_u256);
+    //     stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user);
-    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE * 2);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
     //     // Claim username
-    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user);
-    //     nameservice.claim_username(username);
+    //     let username = 'test'.try_into().unwrap();
 
-    //     // Move time forward
-    //     start_cheat_block_timestamp(YEAR_IN_SECONDS / 2);
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.claim_username(username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+    //     // Get current expiry
+    //     let current_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+
+    //     // Advance time by half a year
+    //     let half_year = 15768000_u64;
+    //     let new_timestamp = get_block_timestamp() + half_year;
+    //     start_warp(nameservice_dispatcher.contract_address, new_timestamp);
 
     //     // Renew subscription
-    //     nameservice.renew_subscription();
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.renew_subscription();
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     // Verify renewal
-    //     let new_expiry = nameservice.get_subscription_expiry(user);
-    //     assert(
-    //         new_expiry == YEAR_IN_SECONDS * 3 / 2, 
-    //         'Wrong expiry after renewal'
-    //     );
+    //     // Verify new expiry
+    //     let new_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+    //     assert(new_expiry == current_expiry + YEAR_IN_SECONDS, 'Subscription not renewed correctly');
 
-    //     // Verify event
-    //     spy.assert_emitted(
-    //         array![
-    //             (
-    //                 nameservice.contract_address,
-    //                 SubscriptionRenewed { 
-    //                     address: user,
-    //                     expiry: new_expiry
-    //                 }
-    //             )
-    //         ]
-    //     );
-
-    //     stop_cheat_block_timestamp();
-    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    //     // Verify token balance
+    //     let caller_balance = payment_token_dispatcher.balance_of(CALLER());
+    //     assert(caller_balance == 800_u256, 'Payment token balance incorrect after renewal');
     // }
 
     // #[test]
-    // #[should_panic(expected: ('Username already claimed', ))]
-    // fn test_cannot_claim_taken_username() {
-    //     let (owner, erc20, nameservice) = setup();
-    //     let username: felt252 = 'test.afk';
+    // fn test_withdraw_fees() {
+    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
 
-    //     // Setup two users
-    //     let user1 = contract_address_const::<'USER1'>();
-    //     let user2 = contract_address_const::<'USER2'>();
+    //     // Mint and approve tokens
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, ADMIN());
+    //     payment_token_dispatcher.mint(CALLER(), 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
-    //     // Fund and approve for both users
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), owner);
-    //     erc20.transfer(user1, INITIAL_PRICE);
-    //     erc20.transfer(user2, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user1);
-    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     // Claim username
+    //     let username = 'test'.try_into().unwrap();
 
-    //     start_cheat_caller_address(CheatTarget::One(erc20.contract_address), user2);
-    //     erc20.approve(nameservice.contract_address, INITIAL_PRICE);
-    //     stop_cheat_caller_address(CheatTarget::One(erc20.contract_address));
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.claim_username(username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     // First user claims
-    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user1);
-    //     nameservice.claim_username(username);
-    //     stop_cheat_caller_address(CheatTarget::One(nameservice.contract_address));
+    //     // Withdraw fees
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+    //     nameservice_dispatcher.withdraw_fees(100_u256);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     // Second user attempts to claim same username
-    //     start_cheat_caller_address(CheatTarget::One(nameservice.contract_address), user2);
-    //     nameservice.claim_username(username); // Should panic
+    //     // Verify ADMIN balance
+    //     let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
+    //     assert(admin_balance == 1_000_000_u256 + 100_u256, 'Admin did not receive fees');
+
+    //     // Verify contract balance
+    //     let contract_balance = payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
+    //     assert(contract_balance == 0_u256, 'Contract balance not zero after withdrawal');
     // }
+
+    // #[test]
+    // #[should_panic(expected: ('Username already claimed',))]
+    // fn test_claim_username_already_claimed() {
+    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+
+    //     let other_user: ContractAddress = 6.try_into().unwrap();
+
+    //     // Mint and approve tokens for CALLER and other_user
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, ADMIN());
+    //     payment_token_dispatcher.mint(CALLER(), 1000_u256);
+    //     payment_token_dispatcher.mint(other_user, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, other_user);
+    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 1000_u256);
+    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+    //     // CALLER claims a username
+    //     let username = 'test'.try_into().unwrap();
+
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+    //     nameservice_dispatcher.claim_username(username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+    //     // other_user tries to claim the same username
+    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, other_user);
+    //     nameservice_dispatcher.claim_username(username);
+    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    // }
+
 }
