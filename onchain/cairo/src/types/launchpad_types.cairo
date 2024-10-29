@@ -80,6 +80,7 @@ pub struct TokenLaunch {
     pub is_liquidity_launch: bool,
     pub slope: u256,
     pub threshold_liquidity: u256,
+    pub liquidity_type: Option<LiquidityType>,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
