@@ -284,3 +284,28 @@ pub enum LiquidityType {
     StarkDeFiERC20: ContractAddress,
     EkuboNFT: u64
 }
+
+#[derive(Copy, Drop, starknet::Store, Serde)]
+pub struct EkuboLiquidityParameters {
+    ekubo_pool_parameters: EkuboPoolParameters,
+    quote_address: ContractAddress,
+}
+
+#[derive(Copy, Drop, starknet::Store, Serde)]
+pub struct JediswapLiquidityParameters {
+    quote_address: ContractAddress,
+    quote_amount: u256,
+}
+
+// #[derive(Copy, Drop, starknet::Store, Serde)]
+// struct StarkDeFiLiquidityParameters {
+//     quote_address: ContractAddress,
+//     quote_amount: u256,
+// }
+
+#[derive(Copy, Drop, starknet::Store, Serde)]
+pub enum LiquidityParameters {
+    Ekubo: EkuboLiquidityParameters,
+    Jediswap: (JediswapLiquidityParameters, ContractAddress),
+    // StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
+}

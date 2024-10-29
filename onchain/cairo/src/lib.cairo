@@ -68,6 +68,7 @@ pub mod tokens {
     pub mod erc20_mintable;
     pub mod quest_nft;
     pub mod token;
+    pub mod memecoin;
 }
 
 // TODO upgrade to correct OZ version
@@ -86,6 +87,9 @@ pub mod pixel {
 // use art_peace::ArtPeace;
 
 }
+
+pub mod errors;
+pub mod math;
 
 #[cfg(test)]
 pub mod tests {

@@ -1,8 +1,8 @@
-afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_all_few_steps
-afk::tests::launchpad_tests::launchpad_tests::test_launch_token_with_uncreated_token
-afk::tests::launchpad_tests::launchpad_tests::launchpad_end_to_end
-afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_more_then_liquidity_threshold
-afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_with_amount
-afk::tests::launchpad_tests::launchpad_tests::launchpad_integration
-afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
 afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_and_sell
+afk::tests::launchpad_tests::launchpad_tests::launchpad_integration
+afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_more_then_liquidity_threshold
+afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_all_few_steps
+afk::tests::launchpad_tests::launchpad_tests::launchpad_end_to_end
+afk::tests::launchpad_tests::launchpad_tests::test_launch_token_with_uncreated_token
+afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
+afk::tests::launchpad_tests::launchpad_tests::launchpad_buy_with_amount

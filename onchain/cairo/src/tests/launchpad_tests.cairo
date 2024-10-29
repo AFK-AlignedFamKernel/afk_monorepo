@@ -186,6 +186,10 @@ mod launchpad_tests {
         declare("ERC20").unwrap().contract_class()
     }
 
+    fn declare_memecoin() -> @ContractClass {
+        declare("Memecoin").unwrap().contract_class()
+    }
+
 
     fn deploy_erc20(
         class: ContractClass,
