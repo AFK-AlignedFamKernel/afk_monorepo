@@ -116,12 +116,13 @@ mod launchpad_tests {
     fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         // println!("request_fixture");
         let erc20_class = declare_erc20();
+        let meme_class = declare_memecoin();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(*erc20_class, *launch_class)
+        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class)
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -132,7 +133,7 @@ mod launchpad_tests {
             token_address.clone(),
             INITIAL_KEY_PRICE,
             STEP_LINEAR_INCREASE,
-            erc20_class.class_hash,
+            meme_class.class_hash,
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
             FACTORY_ADDRESS.try_into().unwrap(),
