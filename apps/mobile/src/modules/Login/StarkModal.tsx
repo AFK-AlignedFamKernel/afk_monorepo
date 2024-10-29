@@ -8,7 +8,7 @@ import {Button, Modal, Text} from '../../components';
 import {ARGENT_X_INSTALL_URL, BRAAVOS_INSTALL_URL} from '../../constants/urls';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog} from '../../hooks/modals/useDialog';
-import {SignMessageModal} from './StarkSign'; // Import the new component
+import {SignMessageModal} from './StarknetSigner'; // Import the new component
 import stylesheet from './styles';
 
 export type WalletModalProps = {
