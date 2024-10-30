@@ -4,6 +4,10 @@ sidebar_position: 3
 
 # Modules
 
+AFK is a monorepo on Github.
+
+We used Turborepo.
+
 **MOBILE**
 
 The AFK Mobile app is built with React-native.

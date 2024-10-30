@@ -2,7 +2,11 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {ChakraProvider} from '@chakra-ui/react';
+import {ChakraProvider, ColorModeProvider} from '@chakra-ui/react';
+import {EthereumWalletConnectors} from '@dynamic-labs/ethereum';
+import {DynamicContextProvider, DynamicWidget} from '@dynamic-labs/sdk-react-core';
+import {StarknetWalletConnectors} from '@dynamic-labs/starknet';
+import {DynamicWagmiConnector} from '@dynamic-labs/wagmi-connector';
 import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {Chain} from 'viem';
@@ -10,7 +14,10 @@ import {createConfig, http} from 'wagmi';
 import {WagmiProvider} from 'wagmi';
 import {mainnet, sepolia} from 'wagmi/chains';
 
+// import { BitcoinWalletConnectors } from "@dynamic-labs/bitcoin";
 import StarknetProvider from '@/context/StarknetProvider';
+
+import theme from '../theme'; // Import your custom theme
 
 // import {TanstackProvider} from 'afk_nostr_sdk';
 // import {NostrProvider} from 'afk_nostr_sdk';
@@ -37,13 +44,16 @@ const kakarotEvm: Chain = {
   // testnet: true,
 };
 
+export const CHAINS_CONFIG = [mainnet, sepolia, kakarotEvm];
+export const TRANSPORTS = {
+  [mainnet.id]: http(),
+  [sepolia.id]: http(),
+  [kakarotEvm.id]: http(),
+};
 export const config = createConfig({
   chains: [mainnet, sepolia, kakarotEvm],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [kakarotEvm.id]: http(),
-  },
+  transports: TRANSPORTS,
+  multiInjectedProviderDiscovery: false,
 });
 
 const configRainbow = getDefaultConfig({
@@ -61,16 +71,31 @@ const queryClient = new QueryClient();
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
     <>
-      <ChakraProvider
-      // theme={theme}
-      >
-        <StarknetProvider>
-          <WagmiProvider config={config}>
-            <QueryClientProvider client={queryClient}>
-              <RainbowKitProvider>{children}</RainbowKitProvider>
-            </QueryClientProvider>
-          </WagmiProvider>
-        </StarknetProvider>
+      <ChakraProvider theme={theme}>
+        <ColorModeProvider
+          options={{
+            initialColorMode: theme.config.initialColorMode,
+            useSystemColorMode: theme.config.useSystemColorMode,
+          }}
+        >
+          <DynamicContextProvider
+            settings={{
+              environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID ?? '',
+              walletConnectors: [EthereumWalletConnectors, StarknetWalletConnectors],
+            }}
+          >
+            <StarknetProvider>
+              <WagmiProvider config={config} reconnectOnMount={false}>
+                <QueryClientProvider client={queryClient}>
+                  <DynamicWagmiConnector>
+                    <RainbowKitProvider>{children}</RainbowKitProvider>
+                    <DynamicWidget />
+                  </DynamicWagmiConnector>
+                </QueryClientProvider>
+              </WagmiProvider>
+            </StarknetProvider>
+          </DynamicContextProvider>
+        </ColorModeProvider>
       </ChakraProvider>
     </>
   );

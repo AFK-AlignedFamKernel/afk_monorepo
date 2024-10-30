@@ -6,7 +6,7 @@ dotenv.config()
 const config: Config = {
   title: "AFK Aligned Fam Kernel",
   tagline:
-    "Decentralized social built with Nostr and powered by Starknet Account Abstraction",
+    "Social payment network to exchange money, data, and thoughts.",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
@@ -37,11 +37,11 @@ const config: Config = {
       "classic",
       {
         googleAnalytics: {
-          trackingID: process.env.NEXT_PUBLIC_GTAG_TRACKING_ID ?? "",
+          trackingID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS ?? "",
           anonymizeIP: true,
         },
         docs: {
-          id: 'docs',
+          // id: 'docs',
           routeBasePath: 'docs',
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
@@ -49,13 +49,13 @@ const config: Config = {
           editUrl:
             "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
         },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
-        },
+        // blog: {
+        //   showReadingTime: true,
+        //   // Please change this to your repo.
+        //   // Remove this to remove the "edit this page" links.
+        //   editUrl:
+        //     "https://github.com/AFK-AlignedFamKernel/afk_monorepo/blob/main/docs/",
+        // },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -79,7 +79,11 @@ const config: Config = {
           position: "left",
           label: "Documentation",
         },
-
+        {
+          href: "https://afk-community.xyz",
+          label: "App",
+          position: "right",
+        },
         {
           href: "https://github.com/AFK-AlignedFamKernel/afk_monorepo",
           label: "GitHub",

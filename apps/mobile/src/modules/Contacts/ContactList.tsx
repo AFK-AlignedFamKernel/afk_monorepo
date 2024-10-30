@@ -1,6 +1,6 @@
-import {useQueryClient} from '@tanstack/react-query';
-import {addContacts, Contact, getContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
-import React, {useEffect, useState} from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { addContacts, Contact, getContacts, updateContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -13,26 +13,27 @@ import {
   View,
 } from 'react-native';
 
-import {useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {useStyles} from '../../hooks';
+import { useTheme } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { useStyles } from '../../hooks';
 import stylesheet from './styles';
+import { Avatar } from '../../components';
 
 interface ContactListProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
+export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const [nostrAddress, setNostrAddress] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'add'
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
-  const {theme} = useTheme();
-  const {showToast} = useToast();
+  const { theme } = useTheme();
+  const { showToast } = useToast();
   const editContacts = useEditContacts();
   const queryClient = useQueryClient();
 
   // Destructure refetch from useProfile hook
-  const {data: profile, refetch} = useProfile({publicKey: nostrAddress});
+  const { data: profile, refetch } = useProfile({ publicKey: nostrAddress });
 
   // Fetch contacts when component mounts
   useEffect(() => {
@@ -54,19 +55,41 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
     }
   };
 
-  const handleAddContact = () => {
-    if (!profile) return;
-
+  const handleAddContact = async () => {
+    if (!profile) {
+      showToast({
+        title: "Profile is not find",
+        type: "error"
+      })
+      return;
+    }
     console.log('Adding new contact with profile:', profile);
 
     const newContact: Contact = {
       pubkey: nostrAddress,
-      displayName: profile.displayName || profile.name,
-      nip05: profile.nip05,
-      lud16: profile.lud16,
-      about: profile.about,
+      displayName: profile?.displayName || profile?.name,
+      nip05: profile?.nip05,
+      lud16: profile?.lud16,
+      about: profile?.about,
+      image: profile?.image,
       bio: profile.bio,
     };
+
+    if (profile?.pubkey) {
+      await editContacts.mutateAsync(
+        { pubkey: profile?.pubkey?.toString(), type: "add" },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            showToast({ type: 'success', title: 'Contact removed successfully' });
+            // Update local storage contacts
+            const updatedContacts = storedContacts.filter((c) => c.pubkey !== profile?.pubkey);
+            setStoredContacts(updatedContacts);
+          },
+        },
+      );
+    }
+
 
     console.log('Created contact object:', newContact);
 
@@ -80,7 +103,7 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
       });
       console.log('Toast shown, closing modal');
 
-      onClose();
+      onClose && onClose();
     } catch (error) {
       console.error('Error adding contact:', error);
       showToast({
@@ -96,14 +119,23 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
     return (
       <View style={styles.profileInfo}>
         <Text style={styles.profileDetail}>NIP05: {profile.nip05 || 'unrecognized'}</Text>
+
+        {profile?.image &&
+          <Image style={styles.profileDetail} src={profile?.image}></Image>
+        }
         <Text style={styles.profileDetail}>
           Lightning address: {profile.lud16 || 'unrecognized'}
         </Text>
         <Text style={styles.profileDetail}>
           Name: {profile.displayName || profile.name || 'unrecognized'}
         </Text>
-        <Text style={styles.profileDetail}>About: {profile.about || 'unrecognized'}</Text>
-        <Text style={styles.profileDetail}>Bio: {profile.bio || 'unrecognized'}</Text>
+        {profile?.about &&
+          <Text style={styles.profileDetail}>About: {profile.about || 'unrecognized'}</Text>
+        }
+        {profile?.bio &&
+          <Text style={styles.profileDetail}>Bio: {profile.bio || 'unrecognized'}</Text>
+        }
+
       </View>
     );
   };
@@ -135,20 +167,26 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
 
   const handleRemoveContact = async (pubkey: string) => {
     try {
+      /** TODO remove contact */
+
+      const contacts = storedContacts.filter((c) => c?.pubkey != pubkey)
+      updateContacts(contacts)
+
       await editContacts.mutateAsync(
-        {pubkey, type: 'remove'},
+        { pubkey, type: 'remove' },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['contacts']});
-            showToast({type: 'success', title: 'Contact removed successfully'});
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            showToast({ type: 'success', title: 'Contact removed successfully' });
             // Update local storage contacts
             const updatedContacts = storedContacts.filter((c) => c.pubkey !== pubkey);
             setStoredContacts(updatedContacts);
           },
         },
       );
+
     } catch (error) {
-      showToast({type: 'error', title: 'Failed to remove contact'});
+      showToast({ type: 'error', title: 'Failed to remove contact' });
     }
   };
 
@@ -159,17 +197,17 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
         <Text style={styles.profileDetail}>No contacts found</Text>
       ) : (
         storedContacts.map((contact, index) => (
-          <View key={contact.pubkey} style={styles.contactItem}>
+          <View key={contact?.pubkey} style={styles.contactItem}>
             <Image
-              source={contact.image ? {uri: contact.image} : require('../../assets/pepe-logo.png')}
+              source={contact.image ? { uri: contact?.image } : require('../../assets/pepe-logo.png')}
               style={styles.contactImage}
             />
             <View style={styles.contactInfo}>
-              <Text style={styles.profileDetail}>{contact.displayName || 'Unnamed Contact'}</Text>
+              <Text style={styles.profileDetail}>{contact?.displayName || 'Unnamed Contact'}</Text>
             </View>
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => contact.pubkey && handleRemoveContact(contact.pubkey)}
+              onPress={() => contact?.pubkey && handleRemoveContact(contact?.pubkey)}
             >
               <Text style={styles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
@@ -181,35 +219,35 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   );
 
   return (
-    <Modal animationType="fade" transparent={true} visible={true} onRequestClose={onClose}>
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
-              onPress={() => setActiveTab('all')}
-            >
-              <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
-                All contacts
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'add' ? styles.activeTab : styles.inactiveTab]}
-              onPress={() => setActiveTab('add')}
-            >
-              <Text style={[styles.tabText, activeTab === 'add' && styles.activeTabText]}>
-                Add new contact
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {activeTab === 'all' ? renderAllContacts() : renderAddNewContact()}
-
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
+    // <Modal animationType="fade" transparent={true} visible={true} onRequestClose={onClose}>
+    <View style={styles.centeredView}>
+      <View style={styles.modalView}>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
+            onPress={() => setActiveTab('all')}
+          >
+            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+              All contacts
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'add' ? styles.activeTab : styles.inactiveTab]}
+            onPress={() => setActiveTab('add')}
+          >
+            <Text style={[styles.tabText, activeTab === 'add' && styles.activeTabText]}>
+              Add new contact
+            </Text>
           </TouchableOpacity>
         </View>
+
+        {activeTab === 'all' ? renderAllContacts() : renderAddNewContact()}
+
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Text style={styles.closeButtonText}>Close</Text>
+        </TouchableOpacity>
       </View>
-    </Modal>
+    </View>
+    // </Modal>
   );
 };
