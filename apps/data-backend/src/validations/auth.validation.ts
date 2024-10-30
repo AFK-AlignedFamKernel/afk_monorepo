@@ -3,6 +3,8 @@ import { z } from "zod";
 export const authSchema = {
   login: z.object({
     userAddress: z.string().min(1, "User address is required"),
+    loginType: z.enum(["starknet", "ethereum", "other"]),
+    signature: z.array(z.string()).min(2),
   }),
 
   refreshToken: z.object({

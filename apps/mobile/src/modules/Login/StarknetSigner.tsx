@@ -1,11 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
 import {useAccount, useDisconnect} from '@starknet-react/core';
+import axios from 'axios';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {shortString, WeierstrassSignatureType} from 'starknet';
+import {WeierstrassSignatureType} from 'starknet';
 
 import {Button, Modal, Text} from '../../components';
 import {LoadingSpinner} from '../../components/Loading';
+import {typedDataValidate} from '../../constants/contracts';
 import {useStyles} from '../../hooks';
 import {useLogin} from '../../hooks/api/useLogin';
 import {useToast} from '../../hooks/modals';
@@ -14,26 +16,6 @@ import stylesheet from './styles';
 
 export type SignMessageModalProps = {
   hide: () => void;
-};
-
-const DEFAULT_TYPED_DATA = {
-  types: {
-    StarkNetDomain: [
-      {name: 'name', type: 'felt'},
-      {name: 'chainId', type: 'felt'},
-      {name: 'version', type: 'felt'},
-    ],
-    Message: [{name: 'message', type: 'felt'}],
-  },
-  primaryType: 'Message',
-  domain: {
-    name: 'Afk',
-    chainId: shortString.encodeShortString(process.env.EXPO_PUBLIC_NETWORK || 'SN_MAIN'),
-    version: '0.0.1',
-  },
-  message: {
-    message: 'Verify Account Signature',
-  },
 };
 
 export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
@@ -55,7 +37,7 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
       }
 
       //:Attempt to sign message
-      const sig = (await account.signMessage(DEFAULT_TYPED_DATA)) as string[];
+      const sig = (await account.signMessage(typedDataValidate)) as string[];
       if (!sig) {
         toast.showToast({title: 'Failed to sign message', type: 'error'});
         return;
@@ -64,16 +46,20 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
       //:Adjust signature format if necessary
       if (sig.length === 3) sig.shift();
 
-      const signed = {
+      const signedMessage = {
         r: BigInt(sig[0]),
         s: BigInt(sig[1]),
       } as WeierstrassSignatureType;
 
-      //:Verify the signature
-      const isValid = await account.verifyMessage(DEFAULT_TYPED_DATA, signed).catch((error) => {
-        toast.showToast({title: error.message, type: 'error'});
-        throw error;
-      });
+      console.log(signedMessage, 'signeds');
+
+      //Validate Signature
+      const isValid = await account
+        .verifyMessage(typedDataValidate, signedMessage)
+        .catch((error) => {
+          toast.showToast({title: error?.cause || error?.message, type: 'error'});
+          throw error;
+        });
 
       if (!isValid) {
         toast.showToast({title: 'Invalid Signature', type: 'error'});
@@ -82,9 +68,14 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
 
       // API call to create or login user
       mutate(
-        {userAddress: address as string},
+        {
+          userAddress: address as string,
+          signature: signedMessage,
+          loginType: 'starknet',
+        },
         {
           onSuccess(data) {
+            setSignatureLoading(false);
             toast.showToast({type: 'success', title: 'Message signed successfully'});
             storeAuthData(data?.data?.data);
             hide();
@@ -92,18 +83,21 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
             navigation.navigate('Feed');
           },
           onError(error) {
-            toast.showToast({type: 'error', title: error.message});
+            setSignatureLoading(false);
+            // Check if the error is an Axios error
+            if (axios.isAxiosError(error) && error.response) {
+              const message = error.response.data?.message || 'An error occurred';
+              toast.showToast({type: 'error', title: message});
+            } else {
+              toast.showToast({type: 'error', title: 'An unexpected error occurred'});
+            }
           },
         },
       );
     } catch (error: any) {
-      // Handle user rejection and other errors
-      if (error?.message === 'An error occurred (USER_REFUSED_OP)') {
-        toast.showToast({title: 'Request rejected by user', type: 'error'});
-      } else {
-        toast.showToast({title: error?.message || 'An unexpected error occurred', type: 'error'});
-        console.error('Error occurred:', error);
-      }
+      setSignatureLoading(false);
+      toast.showToast({title: error?.cause || 'An unexpected error occurred', type: 'error'});
+      console.error('Error occurred:', error);
     } finally {
       setSignatureLoading(false);
     }

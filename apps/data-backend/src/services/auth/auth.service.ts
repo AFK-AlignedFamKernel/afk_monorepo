@@ -5,7 +5,7 @@ import { config } from "../../config";
 export class AuthService {
   constructor(private prisma: PrismaClient, private fastify: FastifyInstance) {}
 
-  async loginOrCreateUser(userAddress: string) {
+  async loginOrCreateUser(userAddress: string, loginType: string) {
     let user = await this.prisma.user.findUnique({
       where: { userAddress },
     });
@@ -15,6 +15,7 @@ export class AuthService {
         data: {
           userAddress,
           verified: false,
+          loginType,
         },
       });
     }

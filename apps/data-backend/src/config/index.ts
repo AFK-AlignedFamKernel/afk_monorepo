@@ -22,6 +22,12 @@ const rawConfig = {
     api_key: process.env.CLOUDINARY_API_KEY || "",
     api_secret: process.env.CLOUDINARY_API_SECRET || "",
   },
+  rpc: {
+    starknetRpcUrl: process.env.STARKNET_RPC_PROVIDER_URL || "",
+    starknetNetwork: process.env.STARKNET_RPC_NETWORK || "",
+    api_key: process.env.RPC_NODE_API_KEY || "",
+    network: process.env.SN_NETWORK || "",
+  },
 } as const;
 
 // Parse and validate the configuration

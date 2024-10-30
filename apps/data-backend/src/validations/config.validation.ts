@@ -15,4 +15,10 @@ export const ConfigSchema = z.object({
     api_key: z.string().min(1, "Cloudinary API key is required"),
     api_secret: z.string().min(1, "Cloudinary API secret is required"),
   }),
+  rpc: z.object({
+    starknetRpcUrl: z.string().min(1, "RPC url required"),
+    starknetNetwork: z.string().min(1, "StarknetNetwork required"),
+    api_key: z.string().min(1, "Rpc apikey required"),
+    network: z.string().min(1, "Rpc network required"),
+  }),
 });

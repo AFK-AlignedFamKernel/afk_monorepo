@@ -30,6 +30,7 @@ model User {
   id          String    @id @default(cuid())
   userAddress String    @unique
   email       String?   @unique
+  loginType   String
   verified    Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

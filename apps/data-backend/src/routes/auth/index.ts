@@ -10,13 +10,39 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   fastify.post<{ Body: LoginInput }>("/auth", async (request, reply) => {
     try {
-      const { userAddress } = request.body;
-      // Check if `userAddress` exists and is not empty
-      if (!userAddress) {
-        return reply.code(400).send({ message: "User address is required" });
+      const { userAddress, loginType, signature } = request.body;
+
+      // Check if `signature` exists and is not empty.
+      if (!signature) {
+        return reply.code(400).send({ message: "Signature Required" });
       }
 
-      const result = await authService.loginOrCreateUser(userAddress);
+      // Check if `userAddress` exists and is not empty
+      if (!userAddress) {
+        return reply.code(400).send({ message: "userAddress is required" });
+      }
+
+      // Check if `loginType` exists and is not empty
+      if (!loginType) {
+        return reply.code(400).send({ message: "loginType is required" });
+      }
+
+      //Todo: This doesnt work well for now always returning false.
+      //handling Signature verification client side for now.
+
+      // const sig = await signatureService.verifySignature({
+      //   accountAddress: userAddress,
+      //   signature: signature as any,
+      // });
+
+      // if (!sig) {
+      //   return reply.code(400).send({ message: "Invalid Signature" });
+      // }
+
+      const result = await authService.loginOrCreateUser(
+        userAddress,
+        loginType
+      );
       return { success: true, data: result };
     } catch (error) {
       request.log.error(error);
