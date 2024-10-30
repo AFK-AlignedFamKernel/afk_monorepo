@@ -7,7 +7,7 @@
     "rewrites": [
       {
         "source": "/:path*",
-        "destination": "/apps/mobile"
+        "destination": "/"
       }
     ]
   }

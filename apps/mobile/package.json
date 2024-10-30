@@ -134,6 +134,7 @@
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@types/pbkdf2": "^3.1.2",
     "@types/react": "~18.3.1",
+    "@types/react-native": "^0.73.0",
     "@uniswap/eslint-config": "^1.2.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
