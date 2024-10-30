@@ -91,7 +91,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
 
-    fn add_liquidity_ekubo(ref self: TContractState, coin_address: ContractAddress, exchange: SupportedExchanges, ekubo_pool_params: EkuboPoolParameters);
+    fn add_liquidity_ekubo(ref self: TContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP);
 }
 
 #[starknet::contract]
@@ -967,10 +967,10 @@ pub mod LaunchpadMarketplace {
             self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
 
-        fn add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges, ekubo_pool_params: EkuboPoolParameters) {
+        fn add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP) {
             //TODO restrict fn?
 
-            self._add_liquidity_ekubo(coin_address, ekubo_pool_params);
+            self._add_liquidity_ekubo(coin_address, ekubo_pool_params)
         }
     }
 
@@ -1267,7 +1267,7 @@ pub mod LaunchpadMarketplace {
             }
         }
 
-        fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) {
+        fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP) {
             let factory_address = self.factory_address.read();
             // let router_address = self.address_ekubo_router.read();
 
@@ -1316,6 +1316,8 @@ pub mod LaunchpadMarketplace {
             //     quote_token_address: token_b,
             //     owner: launch.owner,
             // });
+
+            (id, position) 
         }
 
         // Function to calculate the price for the next token to be minted

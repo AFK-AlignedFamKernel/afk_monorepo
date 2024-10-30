@@ -26,3 +26,8 @@ sort-module-level-items = true
 casm = true
 sierra = true
 allowed-libfuncs-list.name = "experimental"
+
+[[tool.snforge.fork]]
+name = "Mainnet"
+url = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
+block_id.number = "757500"

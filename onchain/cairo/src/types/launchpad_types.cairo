@@ -263,20 +263,20 @@ pub struct EkuboLaunchParameters {
 
 #[derive(Copy, Drop, Serde)]
 pub struct EkuboLP {
-    owner: ContractAddress,
-    quote_address: ContractAddress,
-    pool_key: PoolKey,
-    bounds: Bounds,
+    pub owner: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub pool_key: PoolKey,
+    pub bounds: Bounds,
 }
 
 #[derive(Drop, Copy, starknet::Store, Serde)]
 pub struct EkuboPoolParameters {
-    fee: u128,
-    tick_spacing: u128,
+    pub fee: u128,
+    pub tick_spacing: u128,
     // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true) otherwise
-    starting_price: i129,
+    pub starting_price: i129,
     // The LP providing bound, upper/lower determined by the address of the LPed tokens
-    bound: u128,
+    pub bound: u128,
 }
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
