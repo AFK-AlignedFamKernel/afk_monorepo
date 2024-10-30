@@ -68,29 +68,6 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation}) => {
       return null; // Placeholder for native camera view
     }
 
-    // if (!isStreamer && (remoteStream || playbackUrl)) {
-    //   if (Platform.OS === 'web') {
-    //     return remoteStream ? (
-    //       <video
-    //         ref={(ref) => {
-    //           if (ref) ref.srcObject = remoteStream;
-    //         }}
-    //         autoPlay
-    //         playsInline
-    //         style={styles.videoStream}
-    //       />
-    //     ) : (
-    //       <video src={playbackUrl || undefined} autoPlay playsInline style={styles.videoStream} />
-    //     );
-    //   }
-
-    //   return remoteStream ? (
-    //     <RTCView streamURL={remoteStream.toURL()} style={styles.videoStream} />
-    //   ) : (
-    //     <Video source={{uri: playbackUrl || ''}} shouldPlay isLooping style={styles.videoStream} />
-    //   );
-    // }
-
     return null;
   };
 
@@ -173,12 +150,12 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation}) => {
           <Feather name="message-square" size={20} style={styles.actionButtonText} />
         </Pressable>
 
-        <Pressable
+        {/* <Pressable
           style={styles.iconButton}
           onPress={() => navigation.navigate('WatchStream', {streamId: publicKey})}
         >
           <Feather name="eye" size={20} style={styles.actionButtonText} />
-        </Pressable>
+        </Pressable> */}
       </View>
 
       {isChatOpen && (

@@ -1,4 +1,4 @@
-import {constants} from 'starknet';
+import {constants, shortString} from 'starknet';
 
 export const ESCROW_ADDRESSES = {
   [constants.StarknetChainId.SN_MAIN]: '', // TODO: Add mainnet escrow address
@@ -46,4 +46,24 @@ export const LAUNCHPAD_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x5cf19613d54ae5e7c229c87cc26322f2ff6c473d2183723010676b8337c0af3",
   [constants.StarknetChainId.SN_SEPOLIA]:
     '0x19084523bd7307c2169ee32a336be3f9d9eb6bf24197156cb6fc7a42feb7a5',
+};
+
+export const typedDataValidate = {
+  types: {
+    StarkNetDomain: [
+      {name: 'name', type: 'felt'},
+      {name: 'version', type: 'felt'},
+      {name: 'chainId', type: 'felt'},
+    ],
+    Message: [{name: 'message', type: 'felt'}],
+  },
+  primaryType: 'Message',
+  domain: {
+    name: 'Afk',
+    chainId: shortString.encodeShortString(process.env.EXPO_PUBLIC_NETWORK || 'SN_MAIN'),
+    version: '0.0.1',
+  },
+  message: {
+    message: 'Sign Signature',
+  },
 };

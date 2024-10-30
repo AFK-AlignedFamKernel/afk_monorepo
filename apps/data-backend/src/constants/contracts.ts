@@ -1,4 +1,4 @@
-import { constants } from "starknet";
+import { constants, hash, shortString } from "starknet";
 
 // type SupportedChainId = Exclude<
 //   constants.StarknetChainId,
@@ -26,7 +26,10 @@ export const VAULT_FACTORY_ADDRESSES: AddressesMap = {
 // eslint-disable-next-line import/no-unused-modules
 export const SN_CHAIN_ID = (constants.StarknetChainId[
   (process.env.SN_NETWORK ?? "") as constants.NetworkName
-] ?? constants.StarknetChainId[constants.NetworkName.SN_SEPOLIA]) as SupportedChainId;
+] ??
+  constants.StarknetChainId[
+    constants.NetworkName.SN_SEPOLIA
+  ]) as SupportedChainId;
 
 // const NODE_URLS = {
 //   [constants.StarknetChainId.SN_MAIN]: (apiKey: string) => `https://rpc.nethermind.io/mainnet-juno/?apikey=${apiKey}`,
@@ -42,3 +45,30 @@ const NODE_URLS = {
 };
 
 export const NODE_URL = NODE_URLS[SN_CHAIN_ID](process.env.RPC_NODE_API_KEY!);
+
+/**
+ * Starkent Message Signature Structure
+ */
+export const typedDataValidate = {
+  types: {
+    StarkNetDomain: [
+      { name: "name", type: "felt" },
+      { name: "version", type: "felt" },
+      { name: "chainId", type: "felt" },
+    ],
+    Message: [{ name: "message", type: "felt" }],
+  },
+  primaryType: "Message",
+  domain: {
+    name: "Afk",
+    chainId: shortString.encodeShortString(
+      process.env.EXPO_PUBLIC_NETWORK || "SN_MAIN"
+    ),
+    version: "1",
+  },
+  message: {
+    message: {
+      message: "Sign Signature",
+    },
+  },
+};

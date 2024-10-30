@@ -25,3 +25,15 @@ model registration {
   starknet_address String?
   evm_address      String?
 }
+
+model User {
+  id          String    @id @default(cuid())
+  userAddress String    @unique
+  email       String?   @unique
+  loginType   String
+  verified    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("users")
+}
