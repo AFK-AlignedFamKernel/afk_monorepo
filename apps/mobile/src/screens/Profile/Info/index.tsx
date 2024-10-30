@@ -100,7 +100,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
                 textStyle={styles.secondaryButtonText}
                 onPress={onEditProfilePress}
               >
-                Edit profile
+                Edit
               </Button>
 
               <IconButton

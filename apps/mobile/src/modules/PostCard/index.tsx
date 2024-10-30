@@ -49,8 +49,8 @@ const ClickableHashtag = ({hashtag, onPress}: any) => {
 };
 
 export const ContentWithClickableHashtags = ({content, onHashtagPress}: any) => {
-  const parts = content.split(hashtags);
-  const matches = content.match(hashtags);
+  const parts = content?.split(hashtags);
+  const matches = content?.match(hashtags);
 
   return (
     <Text color="textStrong" fontSize={13} lineHeight={20}>

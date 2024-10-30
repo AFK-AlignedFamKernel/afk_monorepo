@@ -4,7 +4,14 @@ sidebar_position: 1
 
 # Introduction
 
-**AFK is a Decentralized social built with Nostr and powered by Starknet account abstraction**.
+
+**AFK is a Social payment network to exchange money, data, and thoughts.**
+
+Social graph of Bitcoin and Ethereum through Nostr and Starknet, the Cypherpunk app of Communication, Data, and Money.
+
+Building the public good to gives ownership of your speech, privacy, identity, money, and data, powered by the BTC & ETH ecosystem.
+
+*AFK is a Decentralized social built with Nostr and powered by Starknet account abstraction*.
 
 ## Origin story
 
