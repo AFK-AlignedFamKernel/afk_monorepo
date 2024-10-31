@@ -25,7 +25,7 @@ export const VAULT_FACTORY_ADDRESSES: AddressesMap = {
 
 // eslint-disable-next-line import/no-unused-modules
 export const SN_CHAIN_ID = (constants.StarknetChainId[
-  (process.env.SN_NETWORK ?? "") as constants.NetworkName
+  (process.env.SN_NETWORK ?? "SN_SN_SEPOLIA") as constants.NetworkName
 ] ??
   constants.StarknetChainId[
     constants.NetworkName.SN_SEPOLIA

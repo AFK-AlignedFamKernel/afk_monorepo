@@ -46,7 +46,8 @@ export function HeroSection() {
         </div>
       </motion.div>
       <motion.img
-        src="/assets/degen-logo.png"
+        src="/assets/afkMascot.png"
+        // src="/assets/degen-logo.png"
         className="absolute left-[-31px] desktop:left-2 bottom-[39px] desktop:bottom-[49px] z-[250] desktop:w-[380px] w-[210px]"
         alt=""
         animate={{x: [-500, 0]}}
