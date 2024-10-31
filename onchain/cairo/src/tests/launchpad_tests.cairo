@@ -55,8 +55,6 @@ mod launchpad_tests {
 
     const LIQUIDITY_RATIO: u256 = 5;
 
-    // const FACTORY_ADDRESS: felt252 = 0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc;
-
     fn FACTORY_ADDRESS() -> ContractAddress {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }
