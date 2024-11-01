@@ -8,6 +8,8 @@ import {useToast} from '../../../hooks/modals';
 import {IconButton} from '../../IconButton';
 import {MessageInput} from '../PrivateMessageInput';
 import stylesheet from './styles';
+import { sendNotificationForEvent } from '../../../utils/notifications';
+
 
 export type ChatProps = {
   item: {
@@ -51,11 +53,24 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
         receiverPublicKeyProps: receiverPublicKey,
       },
       {
-        onSuccess: () => {
-          // showToast({title: 'Message sent', type: 'success'});
+        onSuccess: async () => {
           queryClient.invalidateQueries({
             queryKey: ['messagesSent'],
           });
+          
+          try {
+            await sendNotificationForEvent(
+              receiverPublicKey,
+              'privateMessage',
+              {
+                senderName: user?.name || 'Someone',
+                conversationId: item.id.toString(),
+                authorName: message.substring(0, 50) + (message.length > 50 ? '...' : '')
+              }
+            );
+          } catch (error) {
+            console.error('Failed to send notification:', error);
+          }
         },
         onError() {
           showToast({title: 'Error sending message', type: 'error'});

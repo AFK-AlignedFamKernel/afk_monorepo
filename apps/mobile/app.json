@@ -37,7 +37,8 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.INTERNET",
         "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "NOTIFICATIONS"
       ]
     },
     "web": {
@@ -87,6 +88,14 @@
         {
           "merchantIdentifier": "",
           "enableGooglePay": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": ["./assets/notification-sound.wav"]
         }
       ]
     ],
