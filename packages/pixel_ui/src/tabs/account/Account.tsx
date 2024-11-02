@@ -324,12 +324,19 @@ const Account = (props) => {
 
     const checkIfAvailable = async () => {
       let availableConnectors: any[] = [];
-      for (let i = 0; i < props.connectors.length; i++) {
-        let available = await props.connectors[i].available();
+      for (let i = 0; i < connectors.length; i++) {
+        let available = await connectors[i].available();
         if (available) {
-          availableConnectors.push(props?.connectors[i]);
+          availableConnectors.push(connectors[i]);
         }
       }
+      // let availableConnectors: any[] = [];
+      // for (let i = 0; i < props.connectors.length; i++) {
+      //   let available = await props.connectors[i].available();
+      //   if (available) {
+      //     availableConnectors.push(props?.connectors[i]);
+      //   }
+      // }
       setAvailableConnectors(availableConnectors);
     };
     checkIfAvailable();

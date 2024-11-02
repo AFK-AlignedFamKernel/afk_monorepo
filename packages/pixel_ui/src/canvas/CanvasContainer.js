@@ -70,9 +70,9 @@ const CanvasContainer = (props) => {
   };
 
   useEffect(() => {
-    window.addEventListener('pointerup', handlePointerUp);
+    window?.addEventListener('pointerup', handlePointerUp);
     return () => {
-      window.removeEventListener('pointerup', handlePointerUp);
+      window?.removeEventListener('pointerup', handlePointerUp);
     };
   }, [isDragging, canvasX, canvasY]);
 
@@ -177,13 +177,13 @@ const CanvasContainer = (props) => {
   };
 
   useEffect(() => {
-    canvasContainerRef.current.addEventListener('wheel', zoom);
-    canvasContainerRef.current.addEventListener('touchstart', handleTouchStart);
-    canvasContainerRef.current.addEventListener('touchmove', handleTouchMove);
+    canvasContainerRef?.current.addEventListener('wheel', zoom);
+    canvasContainerRef?.current.addEventListener('touchstart', handleTouchStart);
+    canvasContainerRef?.current.addEventListener('touchmove', handleTouchMove);
     return () => {
-      canvasContainerRef.current.removeEventListener('wheel', zoom);
-      canvasContainerRef.current.removeEventListener('touchstart', handleTouchStart);
-      canvasContainerRef.current.removeEventListener('touchmove', handleTouchMove);
+      canvasContainerRef?.current?.removeEventListener('wheel', zoom);
+      canvasContainerRef?.current?.removeEventListener('touchstart', handleTouchStart);
+      canvasContainerRef?.current?.removeEventListener('touchmove', handleTouchMove);
     };
   }, [canvasScale, canvasX, canvasY, touchInitialDistance]);
 

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'afk community portal',
   description: 'afk community portal',
 };
+import {Box, useColorModeValue} from '@chakra-ui/react';
 import {AppProps} from 'next/app';
 import {useRouter} from 'next/router';
 import Script from 'next/script';
@@ -17,6 +18,9 @@ const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with
 
 function MyApp({Component, pageProps}: AppProps) {
   const router = useRouter();
+
+  const bgColor = useColorModeValue('gray.300', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'gray.300');
 
   // Track page views
   useEffect(() => {
@@ -53,7 +57,9 @@ function MyApp({Component, pageProps}: AppProps) {
           `,
         }}
       />
-      <Component {...pageProps} />
+      <Box bg={bgColor} color={textColor}>
+        <Component {...pageProps} />
+      </Box>
     </Providers>
   );
 }

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@avnu/avnu-sdk": "^2.0.0",
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
     "@chakra-ui/theme-tools": "^2.1.2",
@@ -30,6 +31,7 @@
     "@starknet-wc/core": "0.0.4",
     "@starknet-wc/react": "0.0.4",
     "@tanstack/react-query": "^5.40.0",
+    "axios": "^1.7.2",
     "common": "workspace:*",
     "d3": "^7.9.0",
     "ethers": "^6.13.1",
@@ -48,10 +50,7 @@
     "viem": "~2.21.2",
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2",
-    "starknetkit-next": "npm:starknetkit@2.3.0",
-    "@argent/x-sessions": "^6.7.4"
-
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -70,6 +70,8 @@ export type MainStackParams = {
   Whatever: undefined;
   RightDrawer: undefined;
   WalletBTC: undefined;
+  StreamStudio: undefined;
+  WatchStream: {streamId: string};
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
@@ -328,6 +330,16 @@ export type OnboardingWalletScreen = CompositeScreenProps<
 
 export type DappBrowserWalletScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'DappBrowser'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+// Stream Studio
+export type StreamStudio = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'StreamStudio'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type WatchStream = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'WatchStream'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
