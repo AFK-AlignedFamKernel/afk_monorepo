@@ -4,11 +4,13 @@ import {starknetChainId, useAccount} from '@starknet-react/core';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {View, Platform} from 'react-native';
 
 import {useTips} from '../hooks';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
+import {registerForPushNotificationsAsync} from '../services/notifications';
+import * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -80,6 +82,19 @@ export default function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tips.data]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      registerForPushNotificationsAsync()
+        .then(token => {
+          if (token) {
+            console.log('Push token:', token);
+            // Store token in your state management system
+          }
+        })
+        .catch(err => console.error('Failed to get push token:', err));
+    }
+  }, []);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
