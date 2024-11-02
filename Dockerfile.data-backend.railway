@@ -4,35 +4,37 @@ FROM node:18-alpine AS base
 # Set the working directory inside the container
 WORKDIR /app
 
-# Add an argument for the Telegram bot token
 ARG TELEGRAM_BOT_TOKEN
-
-# Set the environment variable
-RUN echo ${TELEGRAM_BOT_TOKEN}
-
-# Add an argument for th Indexer postgres url
 ARG INDEXER_DATABASE_URL
-
-# Set the environment variable
-RUN echo $INDEXER_DATABASE_URL
-
-# Add an argument for th Backend postgres url
 ARG BACKEND_DATABASE_URL
-
-# Set the environment variable
-RUN echo ${BACKEND_DATABASE_URL}
-
-# Add an argument for Telegram webapp
 ARG TELEGRAM_WEB_APP
-
-# Set the environment variable
-RUN echo ${TELEGRAM_WEB_APP}
-
-# Add an argument for Stripe  api key
+ARG BACKEND_DATABASE_URL
 ARG STRIPE_SERVER_API_KEY
+ARG CLOUDINARY_CLOUD_NAME
+ARG CLOUDINARY_API_KEY
+ARG CLOUDINARY_API_SECRET
+ARG STARKNET_RPC_PROVIDER_URl
+ARG STARKNET_RPC_NETWORK
+ARG SN_NETWORK
+ARG RPC_NODE_API_KEY
+ARG JWT_SECRET
+ARG ACCESS_TOKEN_EXPIRY
+ARG REFRESH_TOKEN_EXPIRY
 
-# Set the environment variable
+RUN echo ${TELEGRAM_BOT_TOKEN}
+RUN echo $INDEXER_DATABASE_URL
+RUN echo ${BACKEND_DATABASE_URL}
+RUN echo ${TELEGRAM_WEB_APP}
 RUN echo ${STRIPE_SERVER_API_KEY}
+RUN echo ${CLOUDINARY_CLOUD_NAME}
+RUN echo ${CLOUDINARY_API_KEY}
+RUN echo ${CLOUDINARY_API_SECRET}
+RUN echo ${STARKNET_RPC_PROVIDER_URl}
+RUN echo ${SN_NETWORK}
+RUN echo ${RPC_NODE_API_KEY}
+RUN echo ${JWT_SECRET}
+RUN echo ${ACCESS_TOKEN_EXPIRY}
+RUN echo ${REFRESH_TOKEN_EXPIRY}
 
 ARG TELEGRAM_WEB_APP
 RUN echo ${TELEGRAM_WEB_APP}
