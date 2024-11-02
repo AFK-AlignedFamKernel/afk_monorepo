@@ -14,3 +14,8 @@ export type NotificationData = {
     message?: string;
   };
 };
+
+export const registerForPushNotificationsAsync = async () => {
+  // Implementation here
+  return null;
+};

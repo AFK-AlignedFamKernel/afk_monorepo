@@ -1,14 +1,12 @@
 import '@walletconnect/react-native-compat';
-
 import {starknetChainId, useAccount} from '@starknet-react/core';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {useCallback, useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';
-
+import {registerForPushNotificationsAsync} from '../services/notifications';
 import {useTips} from '../hooks';
 import {useDialog, useToast} from '../hooks/modals';
-import {registerForPushNotificationsAsync} from '../services/notifications';
 import {Router} from './Router';
 
 SplashScreen.preventAutoHideAsync();
@@ -16,7 +14,6 @@ SplashScreen.preventAutoHideAsync();
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
-
   const tips = useTips();
   const {showToast} = useToast();
 
@@ -39,59 +36,15 @@ export default function App() {
     })();
   }, []);
 
-  const {showDialog, hideDialog} = useDialog();
-
-  const account = useAccount();
-
-  useEffect(() => {
-    const chainId = account.chainId ? starknetChainId(account.chainId) : undefined;
-
-    if (chainId) {
-      // if (chainId !== CHAIN_ID) {
-      //   showDialog({
-      //     title: 'Wrong Network',
-      //     description:
-      //       'AFK currently only supports the Starknet Sepolia network. Please switch to the Sepolia network to continue.',
-      //     buttons: [],
-      //   });
-      // } else {
-      //   hideDialog();
-      // }
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account.chainId]);
-
-  useEffect(() => {
-    const interval = setInterval(() => tips.refetch(), 2 * 60 * 1_000);
-    return () => clearInterval(interval);
-  }, [tips]);
-
-  useEffect(() => {
-    if (sentTipNotification) return;
-
-    const hasUnclaimedTip = (tips.data ?? []).some((tip) => !tip.claimed && tip.depositId);
-    if (hasUnclaimedTip) {
-      setSentTipNotification(true);
-      showToast({
-        type: 'info',
-        title: 'You have unclaimed tips',
-      });
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tips.data]);
-
   useEffect(() => {
     if (Platform.OS !== 'web') {
       registerForPushNotificationsAsync()
-        .then((token) => {
+        .then((token: string | null) => {
           if (token) {
             console.log('Push token:', token);
-            // Store token in your state management system
           }
         })
-        .catch((err) => console.error('Failed to get push token:', err));
+        .catch((error: Error) => console.error('Failed to get push token:', error));
     }
   }, []);
 

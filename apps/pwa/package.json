@@ -15,6 +15,7 @@
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
@@ -45,13 +46,11 @@
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
     "starknet": "6.9.0",
+    "starknetkit-next": "npm:starknetkit@2.3.0",
     "viem": "~2.21.2",
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2",
-    "starknetkit-next": "npm:starknetkit@2.3.0",
-    "@argent/x-sessions": "^6.7.4"
-
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -62,6 +61,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.4",
     "framer-motion": "^11.2.4",
+    "pino-pretty": "^11.3.0",
     "postcss": "^8.4.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

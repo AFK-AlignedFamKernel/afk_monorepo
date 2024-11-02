@@ -43,8 +43,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "deepLinking": true,
-      "bundler": "metro"
+      "bundler": "metro",
+      "fonts": [
+        {
+          "asset": "./assets/fonts/PublicPixel-z84yD.ttf"
+        }
+      ]
     },
     "plugins": [
       [
