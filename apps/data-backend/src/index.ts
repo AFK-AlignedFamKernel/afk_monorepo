@@ -7,10 +7,12 @@ import path from "path";
 import { config } from "./config";
 import { setupWebSocket } from "./services/livestream/connection";
 import { authRoutes } from "./routes/auth";
+import { indexerRoutes } from "./routes/indexer/index";
 import authPlugin from "./plugins/auth";
 import jwt from "jsonwebtoken";
 import prismaPlugin from "./plugins/prisma";
 import { launchBot } from "./services/telegram-app";
+import declareRoutes from "./router";
 
 // Type declarations
 declare module "fastify" {
@@ -72,7 +74,10 @@ async function buildServer() {
   });
 
   // Register routes
-  await fastify.register(authRoutes);
+  // Auth
+  // await fastify.register(authRoutes);
+  // Indexer
+  await declareRoutes(fastify)
 
   // Initialize WebSocket handlers
   fastify.ready((err) => {
