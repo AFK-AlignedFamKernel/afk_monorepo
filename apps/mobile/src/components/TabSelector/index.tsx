@@ -43,7 +43,7 @@ const TabSelector: React.FC<ITabSelector> = ({
               key={i}
               style={[
                 tabStyle ?? styles.tab,
-                activeTab === b?.tab ? activeTabStyle ?? styles.active : null,
+                activeTab === b?.tab ? (activeTabStyle ?? styles.active) : null,
               ]}
               onPress={() => handlePress(b?.tab, b?.screen)}
             >
