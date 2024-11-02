@@ -5,11 +5,10 @@ import {FlatList, Image, Text, View} from 'react-native';
 
 import {useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
+import {sendNotificationForEvent} from '../../../utils/notifications';
 import {IconButton} from '../../IconButton';
 import {MessageInput} from '../PrivateMessageInput';
 import stylesheet from './styles';
-import { sendNotificationForEvent } from '../../../utils/notifications';
-
 
 export type ChatProps = {
   item: {
@@ -57,17 +56,13 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
           queryClient.invalidateQueries({
             queryKey: ['messagesSent'],
           });
-          
+
           try {
-            await sendNotificationForEvent(
-              receiverPublicKey,
-              'privateMessage',
-              {
-                senderName: user?.name || 'Someone',
-                conversationId: item.id.toString(),
-                authorName: message.substring(0, 50) + (message.length > 50 ? '...' : '')
-              }
-            );
+            await sendNotificationForEvent(receiverPublicKey, 'privateMessage', {
+              senderName: user?.name || 'Someone',
+              conversationId: item.id.toString(),
+              authorName: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
+            });
           } catch (error) {
             console.error('Failed to send notification:', error);
           }

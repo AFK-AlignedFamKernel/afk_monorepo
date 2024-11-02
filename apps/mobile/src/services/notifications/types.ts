@@ -12,4 +12,4 @@ export type NotificationData = {
     noteId?: string;
     liquidityAmount?: string;
   };
-}; 
+};

@@ -13,4 +13,4 @@ export type NotificationData = {
     liquidityAmount?: string;
     message?: string;
   };
-}; 
+};

@@ -3,7 +3,7 @@ import {NotificationData} from '../services/notifications/types';
 export const sendNotificationForEvent = async (
   receiverPublicKey: string,
   type: NotificationData['type'],
-  data: NotificationData['data']
+  data: NotificationData['data'],
 ) => {
   try {
     // Implementation for sending notifications
@@ -13,4 +13,4 @@ export const sendNotificationForEvent = async (
     console.error('Error sending notification:', error);
     throw error;
   }
-}; 
+};

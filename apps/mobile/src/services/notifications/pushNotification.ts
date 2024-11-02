@@ -1,14 +1,10 @@
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import {Platform} from 'react-native';
-import Constants from 'expo-constants';
 import {NotificationData} from './types';
 
 export async function sendPushNotification(
   expoPushToken: string,
   title: string,
   body: string,
-  data?: NotificationData
+  data?: NotificationData,
 ) {
   const message = {
     to: expoPushToken,
@@ -25,4 +21,4 @@ export async function sendPushNotification(
     },
     body: JSON.stringify(message),
   });
-} 
+}
