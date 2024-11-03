@@ -1390,8 +1390,8 @@ mod launchpad_tests {
         let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
             .balance_of(core.contract_address);
 
-        println!("Liquidity: {}", liquidity);
-        println!("reserve_memecoin: {}", reserve_memecoin);
-        println!("reserve_quote: {}", reserve_quote);
+        // println!("Liquidity: {}", liquidity);
+        // println!("reserve_memecoin: {}", reserve_memecoin);
+        // println!("reserve_quote: {}", reserve_quote);
     }
 }
