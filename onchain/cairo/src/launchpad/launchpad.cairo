@@ -3,8 +3,8 @@ use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
     SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded,
-    MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType
+    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
+    LaunchParameters, EkuboLP, LiquidityType
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
@@ -32,12 +32,17 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
     // fn buy_coin(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn buy_coin_by_quote_amount(
-        ref self: TContractState, coin_address: ContractAddress, quote_amount: u256, ekubo_pool_params: Option<EkuboPoolParameters>,
+        ref self: TContractState,
+        coin_address: ContractAddress,
+        quote_amount: u256,
+        ekubo_pool_params: Option<EkuboPoolParameters>,
     );
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
 
     fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
-    fn add_metadata(ref self: TContractState, coin_address:ContractAddress, metadata:MetadataLaunch);
+    fn add_metadata(
+        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+    );
 
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
@@ -91,19 +96,24 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
 
-    fn add_liquidity_ekubo(ref self: TContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP);
+    fn add_liquidity_ekubo(
+        ref self: TContractState,
+        coin_address: ContractAddress,
+        ekubo_pool_params: EkuboPoolParameters
+    ) -> (u64, EkuboLP);
 }
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
+    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
-    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{sqrt};
     use core::num::traits::Zero;
+    use ekubo::types::keys::PoolKey;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::storage::{
@@ -118,9 +128,9 @@ pub mod LaunchpadMarketplace {
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
         SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,  EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType
+        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
+        EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType
     };
-    use ekubo::types::keys::PoolKey;
 
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -438,7 +448,10 @@ pub mod LaunchpadMarketplace {
         // Buy coin by quote amount
         // Get amount of coin receive based on token IN
         fn buy_coin_by_quote_amount(
-            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256, ekubo_pool_params: Option<EkuboPoolParameters>
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            quote_amount: u256,
+            ekubo_pool_params: Option<EkuboPoolParameters>
         ) {
             // assert!(quote_amount > 0, "amount == 0");
             let caller = get_caller_address();
@@ -612,9 +625,9 @@ pub mod LaunchpadMarketplace {
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
                         }
                     );
-                
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap,
+            // ekubo_pool_params);
+            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             if mc >= threshold_mc { // println!("mc >= threshold_mc");
@@ -626,9 +639,9 @@ pub mod LaunchpadMarketplace {
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
                         }
                     );
-                  
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap,
+            // ekubo_pool_params);
+            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
             }
 
             // TODO check reetrancy guard
@@ -820,9 +833,8 @@ pub mod LaunchpadMarketplace {
 
             assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
             assert(pool.is_liquidity_launch == false, 'liquidity already launch');
-
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
 
         // TODO Finish this function
@@ -835,37 +847,34 @@ pub mod LaunchpadMarketplace {
             assert(launch.is_liquidity_launch == true, 'not launch yet');
 
             // Verify share of user
-            let mut share_user= self
-            .shares_by_users
-            .read((get_caller_address(), coin_address));
+            let mut share_user = self.shares_by_users.read((get_caller_address(), coin_address));
 
-            let amount_to_receive=share_user.amount_owned;
+            let amount_to_receive = share_user.amount_owned;
             assert(amount_to_receive >= amount, 'share below');
-
 
             // Transfer memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.transfer(caller, amount_to_receive);
 
             // Update new share and emit event
-            share_user.amount_owned-=amount;
+            share_user.amount_owned -= amount;
+            self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
+
             self
-            .shares_by_users
-            .entry((get_caller_address(), coin_address))
-            .write(share_user);
-
-            self.emit(TokenClaimed {
-                token_address: coin_address,
-                owner: caller,
-                timestamp:get_block_timestamp(),
-                amount,
-
-            });
-
+                .emit(
+                    TokenClaimed {
+                        token_address: coin_address,
+                        owner: caller,
+                        timestamp: get_block_timestamp(),
+                        amount,
+                    }
+                );
         }
 
         // TODO finish add Metadata
-        fn add_metadata(ref self: ContractState, coin_address: ContractAddress,metadata:MetadataLaunch) {
+        fn add_metadata(
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+        ) {
             let caller = get_contract_address();
             // Verify if caller is owner
             let mut launch = self.launched_coins.read(coin_address);
@@ -874,16 +883,16 @@ pub mod LaunchpadMarketplace {
             // Add or update metadata
 
             self.metadata_coins.entry(coin_address).write(metadata.clone());
-            self.emit(
-                MetadataCoinAdded {
-                token_address: coin_address,
-                url: metadata.url,
-                timestamp:get_block_timestamp(),
-                nostr_event_id: metadata.nostr_event_id,
-
-            });
+            self
+                .emit(
+                    MetadataCoinAdded {
+                        token_address: coin_address,
+                        url: metadata.url,
+                        timestamp: get_block_timestamp(),
+                        nostr_event_id: metadata.nostr_event_id,
+                    }
+                );
         }
-
 
 
         fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
@@ -967,7 +976,11 @@ pub mod LaunchpadMarketplace {
             self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
 
-        fn add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP) {
+        fn add_liquidity_ekubo(
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            ekubo_pool_params: EkuboPoolParameters
+        ) -> (u64, EkuboLP) {
             //TODO restrict fn?
 
             self._add_liquidity_ekubo(coin_address, ekubo_pool_params)
@@ -1150,15 +1163,12 @@ pub mod LaunchpadMarketplace {
         ) {
             match exchange {
                 SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
-                SupportedExchanges::Ekubo => { 
-                    //self._add_liquidity_ekubo(coin_address) 
+                SupportedExchanges::Ekubo => { //self._add_liquidity_ekubo(coin_address)
                 },
             }
             let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch=true;
+            launch_to_update.is_liquidity_launch = true;
             self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-
         }
 
 
@@ -1267,7 +1277,11 @@ pub mod LaunchpadMarketplace {
             }
         }
 
-        fn _add_liquidity_ekubo(ref self: ContractState, coin_address: ContractAddress, ekubo_pool_params: EkuboPoolParameters) -> (u64, EkuboLP) {
+        fn _add_liquidity_ekubo(
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            ekubo_pool_params: EkuboPoolParameters
+        ) -> (u64, EkuboLP) {
             let factory_address = self.factory_address.read();
             // let router_address = self.address_ekubo_router.read();
 
@@ -1275,7 +1289,11 @@ pub mod LaunchpadMarketplace {
                 panic!("Factory address not set");
             }
 
-            let factory = IFactoryDispatcher { contract_address: factory_address };
+            println!("factory_address: {:?}", factory_address);
+
+            let factory = IFactoryDispatcher {
+                contract_address: factory_address.try_into().unwrap()
+            };
 
             let launch = self.launched_coins.read(coin_address);
             let token_a = launch.token_address.clone();
@@ -1290,7 +1308,8 @@ pub mod LaunchpadMarketplace {
             //     factory.create_pool(token_a, token_b, fee);
             // }
 
-            //TODO revisit initial_holders_amounts, transfer_restriction_delay, max_percentage_buy_launch
+            //TODO revisit initial_holders_amounts, transfer_restriction_delay,
+            //max_percentage_buy_launch
             let launch_params = LaunchParameters {
                 memecoin_address: launch.token_address.clone(),
                 transfer_restriction_delay: 1000,
@@ -1304,7 +1323,7 @@ pub mod LaunchpadMarketplace {
             let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
 
             let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch=true;
+            launch_to_update.is_liquidity_launch = true;
             launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
             self.launched_coins.entry(coin_address).write(launch_to_update.clone());
 
@@ -1317,7 +1336,7 @@ pub mod LaunchpadMarketplace {
             //     owner: launch.owner,
             // });
 
-            (id, position) 
+            (id, position)
         }
 
         // Function to calculate the price for the next token to be minted

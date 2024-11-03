@@ -1,11 +1,10 @@
+use ekubo::types::bounds::Bounds;
+use ekubo::types::i129::{i129};
+use ekubo::types::keys::PoolKey;
 use starknet::{
     ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
     get_block_timestamp, get_contract_address,
 };
-
-use ekubo::types::bounds::Bounds;
-use ekubo::types::i129::{i129};
-use ekubo::types::keys::PoolKey;
 
 pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
@@ -16,7 +15,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 pub enum SupportedExchanges {
     Jediswap,
     Ekubo,
-// Starkdefi,
+    // Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,
@@ -273,7 +272,8 @@ pub struct EkuboLP {
 pub struct EkuboPoolParameters {
     pub fee: u128,
     pub tick_spacing: u128,
-    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true) otherwise
+    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true)
+    // otherwise
     pub starting_price: i129,
     // The LP providing bound, upper/lower determined by the address of the LPed tokens
     pub bound: u128,

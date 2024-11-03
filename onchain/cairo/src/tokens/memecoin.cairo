@@ -1,5 +1,8 @@
+use afk::types::launchpad_types::{
+    LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
+    EkuboLiquidityParameters, EkuboPoolParameters
+};
 use starknet::ContractAddress;
-use afk::types::launchpad_types::{ LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters, EkuboLiquidityParameters, EkuboPoolParameters};
 
 #[starknet::interface]
 pub trait IERC20<TContractState> {
@@ -48,18 +51,22 @@ pub trait IMemecoin<TState> {
 
     /// Sets the memecoin as launched and transfers ownership to the zero address.
     ///
-    /// This function can only be called by the factory contract. It sets the memecoin as launched, records the liquidity position and the launch time, and transfers ownership of the memecoin to the zero address.
+    /// This function can only be called by the factory contract. It sets the memecoin as launched,
+    /// records the liquidity position and the launch time, and transfers ownership of the memecoin
+    /// to the zero address.
     ///
     /// # Arguments
     ///
     /// * `liquidity_type` - The liquidity position at the time of launch.
-    /// * `transfer_restriction_delay` - The delay in seconds before transfers are no longer limited.
+    /// * `transfer_restriction_delay` - The delay in seconds before transfers are no longer
+    /// limited.
     ///
     /// # Panics
     ///
     /// This function will panic if:
     ///
-    /// * The caller's address is not the same as the `factory` of the memecoin (error code: `errors::CALLER_NOT_FACTORY`).
+    /// * The caller's address is not the same as the `factory` of the memecoin (error code:
+    /// `errors::CALLER_NOT_FACTORY`).
     /// * The memecoin has already been launched (error code: `errors::ALREADY_LAUNCHED`).
     ///
     fn set_launched(
@@ -75,6 +82,9 @@ pub trait IMemecoin<TState> {
 
 #[starknet::contract]
 pub mod Memecoin {
+    use afk::errors;
+    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
+    use afk::math::PercentageMath;
     use core::num::traits::Zero;
     // use core::OptionTrait;
     // use core::Option;
@@ -85,10 +95,10 @@ pub mod Memecoin {
         ContractAddress, contract_address_const, get_caller_address, get_tx_info,
         get_block_timestamp, get_block_info
     };
-    use afk::errors;
-    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};    
-    use afk::math::PercentageMath;
-    use super::{ LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters, EkuboLiquidityParameters, EkuboPoolParameters};
+    use super::{
+        LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
+        EkuboLiquidityParameters, EkuboPoolParameters
+    };
 
     // Constants.
     /// The minimum maximum percentage of the supply that can be bought at once.
@@ -288,9 +298,8 @@ pub mod Memecoin {
             // transfers are limited to a certain amount.
             self.max_percentage_buy_launch.write(max_percentage_buy_launch);
             self.transfer_restriction_delay.write(transfer_restriction_delay);
-
             //TODO renounce ownership
-            // self.ownable._transfer_ownership(0.try_into().unwrap());
+        // self.ownable._transfer_ownership(0.try_into().unwrap());
         }
     }
 
@@ -334,7 +343,8 @@ pub mod Memecoin {
         /// Initializes the state of the memecoin contract.
         ///
         /// This function sets the factory contract address, enables a transfer limit delay,
-        /// checks and allocates the team supply of the memecoin, and mints the remaining supply to the factory.
+        /// checks and allocates the team supply of the memecoin, and mints the remaining supply to
+        /// the factory.
         ///
         /// # Arguments
         ///
@@ -350,9 +360,8 @@ pub mod Memecoin {
         ) {
             // Internal Registry
             self.factory_contract.write(factory_address);
-
             // Mint remaining supply to the contract
-            // self.erc20._mint(recipient: factory_address, amount: initial_supply);
+        // self.erc20._mint(recipient: factory_address, amount: initial_supply);
         }
 
         /// Transfers tokens from the sender to the recipient, by applying relevant restrictions.
@@ -362,8 +371,8 @@ pub mod Memecoin {
             recipient: ContractAddress,
             amount: u256
         ) {
-            // When we launch on jediswap on the factory, we invoke the add_liquidity() of the router,
-            // which performs a transferFrom() to send the tokens to the pool.
+            // When we launch on jediswap on the factory, we invoke the add_liquidity() of the
+            // router, which performs a transferFrom() to send the tokens to the pool.
             // Therefore, we need to bypass this validation if the sender is the factory contract.
             if sender != self.factory_contract.read() {
                 self.apply_transfer_restrictions(sender, recipient, amount)
@@ -371,15 +380,19 @@ pub mod Memecoin {
             self.transfer_helper(sender, recipient, amount);
         }
 
-        /// Applies the relevant transfer restrictions, if the timing for restrictions has not elapsed yet.
-        /// - Before launch, the number of holders and their allocation does not exceed the maximum allowed.
-        /// - After launch, the transfer amount does not exceed a certain percentage of the total supply.
+        /// Applies the relevant transfer restrictions, if the timing for restrictions has not
+        /// elapsed yet.
+        /// - Before launch, the number of holders and their allocation does not exceed the maximum
+        /// allowed.
+        /// - After launch, the transfer amount does not exceed a certain percentage of the total
+        /// supply.
         /// and the recipient has not already received tokens in the current transaction.
         ///
-        /// By returning early if the transaction performed is not a direct buy from the pair / ekubo core,
-        /// we ensure that the restrictions only trigger once, when the coin is moved from pools.
-        /// As such, this keeps compatibility with aggregators and routers that perform multiple transfers
-        /// when swapping tokens.
+        /// By returning early if the transaction performed is not a direct buy from the pair /
+        /// ekubo core, we ensure that the restrictions only trigger once, when the coin is moved
+        /// from pools.
+        /// As such, this keeps compatibility with aggregators and routers that perform multiple
+        /// transfers when swapping tokens.
         ///
         /// # Arguments
         ///
@@ -406,7 +419,8 @@ pub mod Memecoin {
                 LiquidityType::JediERC20(pair) => {
                     if (get_caller_address() != pair) {
                         // When buying from jediswap, the caller_address is the pair,
-                        // so we return early if the caller is not the pair to not apply restrictions.
+                        // so we return early if the caller is not the pair to not apply
+                        // restrictions.
                         return;
                     }
                 },

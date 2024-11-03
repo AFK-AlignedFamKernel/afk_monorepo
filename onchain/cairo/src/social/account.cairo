@@ -28,7 +28,8 @@ pub trait ISRC6<TState> {
 pub mod SocialAccount {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::utils::{MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls,// is_valid_stark_signature
+    use afk::utils::{
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;

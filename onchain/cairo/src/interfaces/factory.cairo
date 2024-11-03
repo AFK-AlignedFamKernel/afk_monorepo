@@ -1,13 +1,15 @@
+use afk::types::launchpad_types::{
+    SupportedExchanges, LaunchParameters, EkuboLaunchParameters, EkuboLP, EkuboPoolParameters,
+    LiquidityType
+};
 use ekubo::types::i129::i129;
 use openzeppelin::token::erc20::ERC20ABIDispatcher;
 use starknet::ContractAddress;
-use afk::types::launchpad_types::{
-     SupportedExchanges, LaunchParameters, EkuboLaunchParameters, EkuboLP, EkuboPoolParameters, LiquidityType
-};
 
 #[starknet::interface]
 pub trait IFactory<TContractState> {
-    /// Deploys a new memecoin, using the class hash that was registered in the factory upon initialization.
+    /// Deploys a new memecoin, using the class hash that was registered in the factory upon
+    /// initialization.
     ///
     /// This function deploys a new memecoin contract with the given parameters,
     /// and emits a `MemecoinCreated` event.
@@ -17,7 +19,8 @@ pub trait IFactory<TContractState> {
     /// * `symbol` - The symbol of the Memecoin.
     /// * `initial_supply` - The initial supply of the Memecoin.
     /// * `initial_holders` - An array containing the initial holders' addresses.
-    /// * `initial_holders_amounts` - An array containing the initial amounts held by each corresponding initial holder.
+    /// * `initial_holders_amounts` - An array containing the initial amounts held by each
+    /// corresponding initial holder.
     /// * `quote_token` - The address of the quote token
     /// * `contract_address_salt` - A unique salt value for contract deployment
     ///
@@ -35,15 +38,20 @@ pub trait IFactory<TContractState> {
 
     /// Launches the memecoin on Jediswap by creating a liquidity pair and adding liquidity to it.
     ///
-    /// This function can only be called by the owner of the memecoin and only if the memecoin has not been launched yet.
-    /// Launching on jediswap requires `quote_amount` quote tokens to be approved for transfer to the factory.
-    /// It creates a liquidity pair for the memecoin and the quote token on Jediswap, adds liquidity to it, and sets the memecoin as launched.
+    /// This function can only be called by the owner of the memecoin and only if the memecoin has
+    /// not been launched yet.
+    /// Launching on jediswap requires `quote_amount` quote tokens to be approved for transfer to
+    /// the factory.
+    /// It creates a liquidity pair for the memecoin and the quote token on Jediswap, adds liquidity
+    /// to it, and sets the memecoin as launched.
     ///
     /// # Arguments
     /// * launch_parameters - The parameters for the launch, including:
     ///     * `memecoin_address` - The address of the memecoin contract.
-    ///     * `transfer_restriction_delay` - The delay in seconds during which transfers will be limited to a % of max supply after launch.
-    ///     * `max_percentage_buy_launch` - The max buyable amount in % of the max supply after launch and during the transfer restriction delay.
+    ///     * `transfer_restriction_delay` - The delay in seconds during which transfers will be
+    ///     limited to a % of max supply after launch.
+    ///     * `max_percentage_buy_launch` - The max buyable amount in % of the max supply after
+    ///     launch and during the transfer restriction delay.
     ///     * `quote_address` - The address of the quote token contract.
     /// * `quote_amount` - The amount of quote tokens to add as liquidity.
     /// * `unlock_time` - The timestamp when the liquidity can be unlocked.
@@ -56,7 +64,8 @@ pub trait IFactory<TContractState> {
     ///
     /// This function will panic if:
     ///
-    /// * The caller's address is not the same as the `owner` of the memecoin (error code: `errors::CALLER_NOT_OWNER`).
+    /// * The caller's address is not the same as the `owner` of the memecoin (error code:
+    /// `errors::CALLER_NOT_OWNER`).
     /// * The memecoin has already been launched (error code: `errors::ALREADY_LAUNCHED`).
     ///
     fn launch_on_jediswap(
@@ -66,23 +75,29 @@ pub trait IFactory<TContractState> {
         unlock_time: u64,
     ) -> ContractAddress;
 
-    /// Launches the memecoin on Ekubo by creating a pool with a set price and adding the memetoken to it.
+    /// Launches the memecoin on Ekubo by creating a pool with a set price and adding the memetoken
+    /// to it.
     ///
-    /// This function can only be called by the owner of the memecoin and only if the memecoin has not been launched yet.
-    /// It creates a liquidity pair for the memecoin and a quote token on Ekubo, adds liquidity to it, and sets the memecoin as launched.
+    /// This function can only be called by the owner of the memecoin and only if the memecoin has
+    /// not been launched yet.
+    /// It creates a liquidity pair for the memecoin and a quote token on Ekubo, adds liquidity to
+    /// it, and sets the memecoin as launched.
     ///
     /// # Arguments
     ///
     /// * launch_parameters - The parameters for the launch, including:
     ///     * `memecoin_address` - The address of the memecoin contract.
-    ///     * `transfer_restriction_delay` - The delay in seconds during which transfers will be limited to a % of max supply after launch.
-    ///     * `max_percentage_buy_launch` - The max buyable amount in % of the max supply after launch and during the transfer restriction delay.
+    ///     * `transfer_restriction_delay` - The delay in seconds during which transfers will be
+    ///     limited to a % of max supply after launch.
+    ///     * `max_percentage_buy_launch` - The max buyable amount in % of the max supply after
+    ///     launch and during the transfer restriction delay.
     ///     * `quote_address` - The address of the quote token contract.
     /// * `ekubo_parameters` - The parameters for the ekubo liquidity pool, including:
     ///     - `fee` - The fee for the liquidity pair.
     ///     - `tick_spacing` - The spacing between ticks for the liquidity pool.
     ///     - `starting_price` - The starting tick for the liquidity pool.
-    ///     - `bound` - The bound for the liquidity pool - should be set to the max tick for this pool (the sign is determined in the contract).
+    ///     - `bound` - The bound for the liquidity pool - should be set to the max tick for this
+    ///     pool (the sign is determined in the contract).
     ///
     /// # Returns
     ///
@@ -93,7 +108,8 @@ pub trait IFactory<TContractState> {
     ///
     /// This function will panic if:
     ///
-    /// * The caller's address is not the same as the `owner` of the memecoin (error code: `errors::CALLER_NOT_OWNER`).
+    /// * The caller's address is not the same as the `owner` of the memecoin (error code:
+    /// `errors::CALLER_NOT_OWNER`).
     /// * The memecoin has already been launched (error message: 'memecoin already launched').
     ///
     fn launch_on_ekubo(
@@ -104,10 +120,13 @@ pub trait IFactory<TContractState> {
 
     /// Launches the memecoin on StarkDeFi by creating a liquidity pool and adding liquidity to it.
     ///
-    /// This function can only be called by the owner of the memecoin and only if the memecoin has not been launched yet.
+    /// This function can only be called by the owner of the memecoin and only if the memecoin has
+    /// not been launched yet.
     /// The launch is set to be a volatile pool with a 1% fee.
-    /// Launching on StarkDeFi requires `quote_amount` quote tokens to be approved for transfer to the factory.
-    /// It creates a liquidity pair for the memecoin and the quote token on StarkDeFi, adds liquidity to it, and sets the memecoin as launched.
+    /// Launching on StarkDeFi requires `quote_amount` quote tokens to be approved for transfer to
+    /// the factory.
+    /// It creates a liquidity pair for the memecoin and the quote token on StarkDeFi, adds
+    /// liquidity to it, and sets the memecoin as launched.
     ///
     /// # Arguments
     /// same as launch_on_jediswap

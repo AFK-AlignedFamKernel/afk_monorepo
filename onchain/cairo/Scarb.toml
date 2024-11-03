@@ -30,4 +30,4 @@ allowed-libfuncs-list.name = "experimental"
 [[tool.snforge.fork]]
 name = "Mainnet"
 url = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
-block_id.number = "857909"
+block_id.number = "615925"

@@ -1,7 +1,10 @@
 pub mod bip340;
+
+pub mod errors;
 // pub mod interfaces;
 pub mod keys;
 pub mod launchpad;
+pub mod math;
 pub mod sha256;
 pub mod social;
 pub mod utils;
@@ -24,6 +27,7 @@ pub mod quests {
 pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
+    pub mod factory;
     pub mod jediswap;
     pub mod nameservice;
     pub mod nfts;
@@ -33,7 +37,6 @@ pub mod interfaces {
     pub mod quests;
     pub mod username_store;
     pub mod vault;
-    pub mod factory;
 }
 
 pub mod afk_id {
@@ -66,9 +69,9 @@ pub mod examples {
 pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;
+    pub mod memecoin;
     pub mod quest_nft;
     pub mod token;
-    pub mod memecoin;
 }
 
 // TODO upgrade to correct OZ version
@@ -87,9 +90,6 @@ pub mod pixel {
 // use art_peace::ArtPeace;
 
 }
-
-pub mod errors;
-pub mod math;
 
 #[cfg(test)]
 pub mod tests {
