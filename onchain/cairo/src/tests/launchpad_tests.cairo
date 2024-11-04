@@ -1364,7 +1364,7 @@ mod launchpad_tests {
         stop_cheat_caller_address(quote_token.contract_address);
 
         let (id, position) = launchpad
-            .add_liquidity_ekubo(
+            .add_liquidity_unrug(
                 token_address,
                 EkuboPoolParameters {
                     fee: 0xc49ba5e353f7d00000000000000000,
@@ -1389,9 +1389,8 @@ mod launchpad_tests {
             .balance_of(core.contract_address);
         let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
             .balance_of(core.contract_address);
-
         // println!("Liquidity: {}", liquidity);
-        // println!("reserve_memecoin: {}", reserve_memecoin);
-        // println!("reserve_quote: {}", reserve_quote);
+    // println!("reserve_memecoin: {}", reserve_memecoin);
+    // println!("reserve_quote: {}", reserve_quote);
     }
 }
