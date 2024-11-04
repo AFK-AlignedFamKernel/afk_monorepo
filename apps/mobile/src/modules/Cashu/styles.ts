@@ -26,15 +26,15 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 16,
   },
   tab: {
+    backgroundColor: 'transparent',
+    color: theme.colors.text,
+    borderRadius: 0,
     flex: 1,
-    paddingVertical: Spacing.small,
-    paddingHorizontal: Spacing.medium,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.divider,
+    padding: 10,
   },
   activeTab: {
-    backgroundColor: theme.colors.divider,
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
   },
   tabText: {
     fontSize: 18,
@@ -64,10 +64,6 @@ export default ThemedStyleSheet((theme) => ({
     // overflow:"scroll",
     backgroundColor: theme.colors.surface,
   },
-  flatListContent: {
-    paddingVertical: Spacing.large,
-  },
-
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
@@ -101,12 +97,14 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 999,
     borderColor: theme.colors.inputBorder,
     flex: 1,
-    height: '100%',
-    paddingHorizontal: Spacing.large,
-    paddingVertical: Spacing.large,
+    height: 80,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     color: theme.colors.inputText,
     backgroundColor: theme.colors.inputBackground,
     fontSize: 15,
+    marginBottom: 15,
+    marginTop: 10,
   },
   button: {
     backgroundColor: theme.colors.primary,
@@ -129,8 +127,9 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
   },
   text: {
-    // textAlign: 'center',
     color: theme.colors.text,
+    marginTop: 5,
+    marginBottom: 5,
   },
   modalOverlay: {
     flex: 1,
@@ -318,7 +317,6 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
   },
   tabsContainer: {
-    justifyContent: 'center',
     maxWidth: '100%',
   },
   tabs: {
@@ -460,8 +458,7 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 16,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
+    flexDirection: 'column',
+    gap: 15,
   },
 }));

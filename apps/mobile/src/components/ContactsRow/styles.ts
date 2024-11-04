@@ -6,10 +6,10 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 16,
   },
   contactsTitle: {
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 10,
     color: theme.colors.text,
-    marginBottom: 12,
   },
   contactsScrollContent: {
     flexDirection: 'row',

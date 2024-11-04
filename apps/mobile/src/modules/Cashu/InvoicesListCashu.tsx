@@ -266,6 +266,7 @@ export const InvoicesListCashu = () => {
                   <Input
                     value={item?.bolt11}
                     editable={false}
+                    style={{marginBottom: 10}}
                     right={
                       <TouchableOpacity
                         onPress={() => handleCopy(item?.bolt11)}
@@ -277,14 +278,31 @@ export const InvoicesListCashu = () => {
                       </TouchableOpacity>
                     }
                   />
-                  <Text style={styles.text}>Amount: {item?.amount}</Text>
-                  <Text style={styles.text}>Mint: {item?.mint}</Text>
-                  <Text style={styles.text}>Status: {item?.state}</Text>
-                  {date && <Text style={styles.text}>Date: {date}</Text>}
+                  <Text style={styles.text}>
+                    <span style={{fontWeight: 'bold'}}>Amount:</span> {item?.amount}
+                  </Text>
+                  <Text style={styles.text}>
+                    <span style={{fontWeight: 'bold'}}>Mint:</span> {item?.mint}
+                  </Text>
+                  <Text style={styles.text}>
+                    <span style={{fontWeight: 'bold'}}>Status:</span> {item?.state}
+                  </Text>
+                  {date && (
+                    <Text style={styles.text}>
+                      <span style={{fontWeight: 'bold'}}>Date:</span> {date}
+                    </Text>
+                  )}
                 </View>
 
                 <View>
-                  <Button onPress={() => handleVerify(item?.quote)}>Verify</Button>
+                  <Button
+                    onPress={() => handleVerify(item?.quote)}
+                    style={{
+                      marginTop: 15,
+                    }}
+                  >
+                    Verify
+                  </Button>
                 </View>
               </View>
             );
