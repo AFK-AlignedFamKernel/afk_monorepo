@@ -38,15 +38,8 @@ RUN echo "REDIS_HOST=${REDIS_HOST}" >> .env && \
     echo "BACKEND_PORT=${BACKEND_PORT}" >> .env && \
     echo "BACKEND_HOST=${BACKEND_HOST}" >> .env && \
     echo "CONSUMER_PORT=${CONSUMER_PORT}" >> .env && \
-    echo "PRODUCTION=${PRODUCTION}" >> .env \
-    echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env \
-    echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env \
-    echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env \
-    echo "STARKNET_RPC_PROVIDER_URL=${STARKNET_RPC_PROVIDER_URL}" >> .env \
-    echo "STARKNET_RPC_NETWORK=${STARKNET_RPC_NETWORK}" >> .env \
-    echo "RPC_NODE_API_KEY=${RPC_NODE_API_KEY}" >> .env \
-    echo "RPC_NODE_API_KEY=${SN_NETWORK}" >> .env
-
+    echo "PRODUCTION=${PRODUCTION}" >> .env
+    
 RUN go build -o main ./cmd/backend/backend.go
 
 EXPOSE 8080
