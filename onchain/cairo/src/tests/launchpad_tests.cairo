@@ -1,16 +1,22 @@
 #[cfg(test)]
 mod launchpad_tests {
+    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::memecoin::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediwapNFTRouterV2,
-        SetJediwapV2Factory, SupportedExchanges,
+        SetJediwapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters
     };
+
     use core::num::traits::Zero;
     use core::traits::Into;
+    use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
+
+    use ekubo::types::i129::i129;
+    use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, start_cheat_caller_address,
@@ -18,7 +24,7 @@ mod launchpad_tests {
         stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
         EventSpyAssertionsTrait
     };
-
+    use starknet::syscalls::call_contract_syscall;
 
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
 
@@ -50,6 +56,13 @@ mod launchpad_tests {
 
     const LIQUIDITY_RATIO: u256 = 5;
 
+    fn FACTORY_ADDRESS() -> ContractAddress {
+        0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
+    }
+
+    fn EKUBO_CORE() -> ContractAddress {
+        0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
+    }
 
     fn SALT() -> felt252 {
         'salty'.try_into().unwrap()
@@ -111,12 +124,13 @@ mod launchpad_tests {
     fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         // println!("request_fixture");
         let erc20_class = declare_erc20();
+        let meme_class = declare_memecoin();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(*erc20_class, *launch_class)
+        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class)
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -127,9 +141,10 @@ mod launchpad_tests {
             token_address.clone(),
             INITIAL_KEY_PRICE,
             STEP_LINEAR_INCREASE,
-            erc20_class.class_hash,
+            meme_class.class_hash,
             THRESHOLD_LIQUIDITY,
-            THRESHOLD_MARKET_CAP
+            THRESHOLD_MARKET_CAP,
+            FACTORY_ADDRESS(),
         );
         // let launchpad = deploy_launchpad(
         //     launch_class,
@@ -157,6 +172,7 @@ mod launchpad_tests {
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_marketcap: u256,
+        factory_address: ContractAddress,
     ) -> ILaunchpadMarketplaceDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
@@ -166,6 +182,7 @@ mod launchpad_tests {
         calldata.append_serde(coin_class_hash);
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
+        calldata.append_serde(factory_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
     }
@@ -176,6 +193,10 @@ mod launchpad_tests {
 
     fn declare_erc20() -> @ContractClass {
         declare("ERC20").unwrap().contract_class()
+    }
+
+    fn declare_memecoin() -> @ContractClass {
+        declare("Memecoin").unwrap().contract_class()
     }
 
 
@@ -216,7 +237,7 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("buy coin",);
-        launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
+        launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
     }
 
 
@@ -1316,5 +1337,60 @@ mod launchpad_tests {
                     (launchpad.contract_address, expected_launch_token_event)
                 ]
             );
+    }
+
+
+    #[test]
+    #[fork("Mainnet")]
+    fn test_add_liquidity_ekubo() {
+        let (_, quote_token, launchpad) = request_fixture();
+        let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
+        let quote_to_deposit = 215_000;
+        let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+        stop_cheat_caller_address(launchpad.contract_address);
+
+        start_cheat_caller_address(quote_token.contract_address, OWNER());
+        IERC20Dispatcher { contract_address: quote_token.contract_address }
+            .transfer(factory.contract_address, quote_to_deposit);
+        stop_cheat_caller_address(quote_token.contract_address);
+
+        let (id, position) = launchpad
+            .add_liquidity_unrug(
+                token_address,
+                EkuboPoolParameters {
+                    fee: 0xc49ba5e353f7d00000000000000000,
+                    tick_spacing: 5982,
+                    starting_price,
+                    bound: 88719042
+                }
+            );
+
+        let pool_key = PoolKey {
+            token0: position.pool_key.token0,
+            token1: position.pool_key.token1,
+            fee: position.pool_key.fee.try_into().unwrap(),
+            tick_spacing: position.pool_key.tick_spacing.try_into().unwrap(),
+            extension: position.pool_key.extension
+        };
+
+        let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
+        let liquidity = core.get_pool_liquidity(pool_key);
+        let price = core.get_pool_price(pool_key);
+        let reserve_memecoin = IERC20Dispatcher { contract_address: token_address }
+            .balance_of(core.contract_address);
+        let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
+            .balance_of(core.contract_address);
+        // println!("Liquidity: {}", liquidity);
+    // println!("reserve_memecoin: {}", reserve_memecoin);
+    // println!("reserve_quote: {}", reserve_quote);
     }
 }
