@@ -52,6 +52,7 @@
     "typescript": "^5.5.4"
   },
   "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.27",
     "@types/express": "^4.17.21",
     "@types/node": "^20.16.1",
     "fastify": "^4.28.1",

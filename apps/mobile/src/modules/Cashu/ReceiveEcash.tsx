@@ -174,7 +174,15 @@ export const ReceiveEcash = () => {
               />
 
               {ecash && (
-                <View style={{marginVertical: 3}}>
+                <View
+                  style={{
+                    marginVertical: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 20,
+                    marginBottom: 20,
+                  }}
+                >
                   <Text style={styles.text}>ecash token</Text>
 
                   <Input
@@ -212,7 +220,9 @@ export const ReceiveEcash = () => {
               <Button onPress={generateInvoice}>Generate invoice</Button>
 
               {quote?.request && (
-                <View style={{marginVertical: 3}}>
+                <View
+                  style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}
+                >
                   <Text style={styles.text}>Invoice address</Text>
 
                   <Input

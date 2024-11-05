@@ -8,6 +8,7 @@ edition = "2023_11"
 [dependencies]
 starknet = ">=2.8.2"
 openzeppelin = { git = "https://github.com/openzeppelin/cairo-contracts", tag="v0.18.0" }
+ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
 
 
 [dev-dependencies]
@@ -25,3 +26,8 @@ sort-module-level-items = true
 casm = true
 sierra = true
 allowed-libfuncs-list.name = "experimental"
+
+[[tool.snforge.fork]]
+name = "Mainnet"
+url = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
+block_id.number = "615925"

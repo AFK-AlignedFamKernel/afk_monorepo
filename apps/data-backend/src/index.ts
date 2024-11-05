@@ -5,7 +5,7 @@ import fastifyIO from "fastify-socket.io";
 import { Server as SocketIOServer } from "socket.io";
 import path from "path";
 import { config } from "./config";
-import { setupWebSocket } from "./services/livestream/connection";
+import { setupWebSocket } from "./services/livestream/socket";
 import { authRoutes } from "./routes/auth";
 import { indexerRoutes } from "./routes/indexer/index";
 import authPlugin from "./plugins/auth";
@@ -45,18 +45,6 @@ async function buildServer() {
     },
   });
 
-  //Create Public folder if doesnt exist
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
-    console.log("Public directory created at:", publicDir);
-  }
-
-  // Static files setup
-  await fastify.register(require("@fastify/static"), {
-    root: publicDir,
-    prefix: "/public/",
-  });
-
   // Register core plugins
   await fastify.register(prismaPlugin);
   await fastify.register(authPlugin);
@@ -88,9 +76,11 @@ async function buildServer() {
   return fastify;
 }
 
+let server: any = null;
+
 async function start() {
   try {
-    const server = await buildServer();
+    server = await buildServer();
     const host =
       process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1";
 
@@ -112,6 +102,26 @@ async function start() {
     process.exit(1);
   }
 }
+
+// Graceful shutdown handling
+async function shutdown() {
+  console.log("Received shutdown signal");
+  if (server) {
+    try {
+      await server.close();
+      console.log("Server closed successfully");
+      process.exit(0);
+    } catch (err) {
+      console.error("Error during shutdown:", err);
+      process.exit(1);
+    }
+  }
+}
+
+// Handle shutdown signals
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+process.on("SIGHUP", shutdown);
 
 // Start server if not in test environment
 if (process.env.NODE_ENV !== "test") {

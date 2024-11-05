@@ -1,7 +1,7 @@
 import {schnorr} from '@noble/curves/secp256k1';
 import {getSharedSecret} from '@noble/secp256k1';
 import * as secp from '@noble/secp256k1';
-import {getRandomBytes} from 'expo-crypto';
+import {CryptoDigestAlgorithm, digestStringAsync, getRandomBytes} from 'expo-crypto';
 export const generateRandomKeypair = () => {
   try {
     const privateKey = getRandomBytes(32);
@@ -260,3 +260,16 @@ export function fixPubKey(pubkey: string): string {
 
   return fixedPubKey;
 }
+
+// Function to hash the tag using expo-crypto
+export const hashTag = async (tag) => {
+  return await digestStringAsync(CryptoDigestAlgorithm.SHA256, tag);
+};
+export const generateRandomIdentifier = async (length = 16) => {
+  // Generate random bytes
+  const randomBytes = getRandomBytes(length);
+  // Convert bytes to a hexadecimal string
+  return Array.from(randomBytes)
+    .map((byte) => byte.toString(16).padStart(2, '0')) // Convert to hex and pad
+    .join('');
+};
