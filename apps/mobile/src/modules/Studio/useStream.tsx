@@ -1,4 +1,3 @@
-import {useAuth} from 'afk_nostr_sdk';
 import {Camera} from 'expo-camera';
 import {useCallback, useEffect, useState} from 'react';
 import {Platform} from 'react-native';
@@ -11,17 +10,16 @@ import {useWebTRC} from './useWebTrc';
 interface UseWebRTCProps {
   socketRef: React.MutableRefObject<Socket | null>;
   isStreamer: boolean;
+  streamKey: string;
+  streamerUserId: string;
 }
-export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
-  const {publicKey} = useAuth();
-  const streamKey = publicKey;
+export const useStream = ({socketRef, isStreamer, streamKey, streamerUserId}: UseWebRTCProps) => {
   const styles = useStyles(stylesheet);
 
   // State
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
-  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
+  const [playbackUrl, setPlaybackUrl] = useState<any>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<any>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -41,25 +39,22 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
     toggleVideo,
     toggleAudio,
     setupPeerConnection,
-  } = useWebTRC({socketRef, streamKey, isStreamer});
+  } = useWebTRC({socketRef, streamKey, isStreamer, streamerUserId});
 
   const joinStream = useCallback(async () => {
     if (!streamKey || !socketRef.current) return;
 
     socketRef.current.emit('join-stream', {
       streamKey,
-      userId: socketRef?.current.id,
+      userId: streamerUserId,
     });
 
     setupPeerConnection();
-  }, [streamKey, socketRef, setupPeerConnection]);
-
-  useEffect(() => {
-    console.log(playbackUrl);
-  }, [playbackUrl]);
+  }, [streamKey, socketRef, streamerUserId, setupPeerConnection]);
 
   // Initialize socket connection and camera permissions
   useEffect(() => {
+    const socks = socketRef?.current;
     // Request camera permissions
     const requestPermissions = async () => {
       if (Platform.OS !== 'web') {
@@ -72,28 +67,26 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
 
     requestPermissions();
 
-    if (socketRef.current) {
+    if (socks) {
       // Basic socket event handlers
-      socketRef.current.on('connect', () => setIsConnected(true));
-      socketRef.current.on('disconnect', () => setIsConnected(false));
-      socketRef.current.on('viewer-count', (count: number) => setViewerCount(count));
-      socketRef.current.on('playback-url', (url: string) => setPlaybackUrl(url));
+      socks.on('viewer-count', (count: number) => setViewerCount(count));
+
+      //Camera playback
+      //Todo: Update Nips with this PlaybackUrl
+      socks.on('playback-url', (data: any) => setPlaybackUrl(data?.url));
 
       // WebRTC-related socket events
-      socketRef.current.on(
-        'ice-candidate',
-        ({candidate, senderId}: {candidate: any; senderId: any}) => {
-          // Prevent loopback by checking sender ID
-          if (senderId !== socketRef.current?.id) {
-            const peerConnection = setupPeerConnection();
-            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-          }
-        },
-      );
+      socks.on('ice-candidate', ({candidate, senderId}: {candidate: any; senderId: any}) => {
+        // Prevent loopback by checking sender ID
+        if (senderId !== streamerUserId) {
+          const peerConnection = setupPeerConnection();
+          peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      });
 
       // Handle incoming offers (for viewers)
-      socketRef.current.on('offer', async ({offer, senderId}: {offer: any; senderId: any}) => {
-        if (!isStreamer && senderId !== socketRef.current?.id) {
+      socks.on('offer', async ({offer, senderId}: {offer: any; senderId: any}) => {
+        if (!isStreamer && senderId !== streamerUserId) {
           const peerConnection = setupPeerConnection();
           await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
 
@@ -109,15 +102,15 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
       });
 
       // Handle incoming answers (for streamers)
-      socketRef.current.on('answer', async ({answer, senderId}: {answer: any; senderId: any}) => {
-        if (isStreamer && senderId !== socketRef.current?.id) {
+      socks.on('answer', async ({answer, senderId}: {answer: any; senderId: any}) => {
+        if (isStreamer && senderId !== streamerUserId) {
           const peerConnection = setupPeerConnection();
           await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         }
       });
 
       // Chat events
-      socketRef.current.on('chat-message', ({message, sender}: {message: any; sender: any}) => {
+      socks.on('chat-message', ({message, sender}: {message: any; sender: any}) => {
         setMessages((prev: any) => [...prev, {id: Date.now(), text: message, sender}]);
       });
     }
@@ -125,11 +118,9 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
     // Cleanup function
     return () => {
       stopStream();
-      //NB: This disconnect the socket when i uncomment
-      //   if (socketRef.current) {
-      //     socketRef.current.disconnect();
-      //     console.log('Disconnected socket');
-      //   }
+      if (socks) {
+        socks.disconnect();
+      }
     };
   }, [setupPeerConnection]);
 
@@ -138,7 +129,7 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
       const messageData = {
         text: newMessage,
         streamKey,
-        sender: publicKey,
+        sender: streamerUserId,
         timestamp: Date.now(),
       };
 
@@ -146,14 +137,12 @@ export const useStream = ({socketRef, isStreamer}: UseWebRTCProps) => {
       setMessages((prev: any) => [...prev, {...messageData, id: Date.now()}]);
       setNewMessage('');
     }
-  }, [newMessage, streamKey, publicKey, socketRef]);
+  }, [newMessage, socketRef, streamKey, streamerUserId]);
 
   return {
-    publicKey,
     streamKey,
     styles,
     hasPermission,
-    isConnected,
     viewerCount,
     playbackUrl,
     isChatOpen,

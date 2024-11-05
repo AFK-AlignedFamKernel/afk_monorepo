@@ -59,6 +59,7 @@ import {ThemedStyleSheet} from '../styles';
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
 import {ViewStreamModuleView} from '../modules/Studio/ViewStream';
+import {SingleStreamModuleView} from '../modules/Studio/SingleStream';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -299,7 +300,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Cashu" component={CashuScreen} />
       <MainStack.Screen name="WalletBTC" component={WalletBTC} />
       <MainStack.Screen name="StreamStudio" component={StudioModuleView} />
-      <MainStack.Screen name="WatchStream" component={ViewStreamModuleView} />
+      <MainStack.Screen name="WatchStream" component={SingleStreamModuleView} />
+      <MainStack.Screen name="ViewStreamGuest" component={ViewStreamModuleView} />
 
       <MainStack.Screen name="Login" component={LoginNostr} />
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />
