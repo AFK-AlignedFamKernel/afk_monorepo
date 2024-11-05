@@ -72,6 +72,7 @@ export type MainStackParams = {
   WalletBTC: undefined;
   StreamStudio: undefined;
   WatchStream: {streamId: string};
+  ViewStreamGuest: {streamId: string};
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
@@ -340,6 +341,10 @@ export type StreamStudio = CompositeScreenProps<
 >;
 export type WatchStream = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'WatchStream'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type ViewStreamGuest = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'ViewStreamGuest'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

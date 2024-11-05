@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = ".prisma/client"
 }
 
 datasource db {
@@ -27,13 +26,13 @@ model registration {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  userAddress String    @unique
-  email       String?   @unique
+  id          String   @id @default(cuid())
+  userAddress String   @unique
+  email       String?  @unique
   loginType   String
-  verified    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("users")
 }

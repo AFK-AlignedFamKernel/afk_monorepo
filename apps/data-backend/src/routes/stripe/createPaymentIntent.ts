@@ -1,17 +1,14 @@
 import type { FastifyInstance } from "fastify";
-import { PrismaClient } from "../../../prisma/.prisma/client";
-import dotenv from "dotenv"
-dotenv.config()
-const stripe = require('stripe')(process.env.STRIPE_SERVER_API_KEY);
+import dotenv from "dotenv";
+dotenv.config();
+const stripe = require("stripe")(process.env.STRIPE_SERVER_API_KEY);
 
 interface CreatePaymentIntent {
   currency: string;
-  amount:number;
+  amount: number;
 }
 
-async function createPaymentIntent(
-  fastify: FastifyInstance,
-) {
+async function createPaymentIntent(fastify: FastifyInstance) {
   fastify.post<{ Body: CreatePaymentIntent }>(
     "/create-payment-intent",
 
@@ -22,26 +19,24 @@ async function createPaymentIntent(
           required: ["currency", "amount"],
           properties: {
             currency: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
-            amount:{type:"number"}
-          },
-        },
-      },
+            amount: { type: "number" }
+          }
+        }
+      }
     },
 
     async (request, reply) => {
-
-  
       try {
         const { currency } = request.body;
 
         const paymentIntent = await stripe.paymentIntents.create({
           amount: 1000, // Example amount in smallest currency unit (cents)
           currency: currency,
-          payment_method_types: ['card'],
+          payment_method_types: ["card"]
         });
-      
+
         reply.send({
-          clientSecret: paymentIntent.client_secret,
+          clientSecret: paymentIntent.client_secret
         });
 
         return reply.code(200).send({ ok: true });

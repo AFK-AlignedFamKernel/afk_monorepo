@@ -7,3 +7,5 @@ export const LAUNCHPAD_ADDRESS = {
   // SEPOLIA: "0x3798921000573bfc442d8153fc088db97bd3794f5ed19ea8c0846db5378f4af",
   SEPOLIA: "0x595d9c14d5b52bae1bd5a88f3aefb521eca956fde4de95e400197f1080fa862",
 };
+
+export const SEPOLIA_STREAM_URL="https://sepolia.starknet.a5a.ch"

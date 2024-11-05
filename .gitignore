@@ -25,3 +25,6 @@ node_modules/
 
 
 pnpm-lock.yaml
+.vercel
+
+onchain/cairo/.snfoundry_cache/https___starknet_mainnet_public_blastapi_io_rpc_v0_7_615925_v3.json

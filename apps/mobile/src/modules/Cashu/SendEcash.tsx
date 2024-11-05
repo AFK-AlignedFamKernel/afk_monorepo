@@ -200,9 +200,15 @@ export const SendEcash = () => {
           <View
           // style={styles.text}
           >
-            <Text style={styles.text}>Name: {infoMint?.name}</Text>
-            <Text style={styles.text}>Description: {infoMint?.description}</Text>
-            <Text style={styles.text}>MOTD: {infoMint?.motd}</Text>
+            <Text style={styles.text}>
+              <span style={{fontWeight: 'bold'}}>Name:</span> {infoMint?.name}
+            </Text>
+            <Text style={styles.text}>
+              <span style={{fontWeight: 'bold'}}>Description:</span> {infoMint?.description}
+            </Text>
+            <Text style={styles.text}>
+              <span style={{fontWeight: 'bold'}}>MOTD:</span> {infoMint?.motd}
+            </Text>
           </View>
 
           {activeTab == 'lightning' && (
