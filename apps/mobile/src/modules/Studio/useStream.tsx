@@ -72,8 +72,8 @@ export const useStream = ({socketRef, isStreamer, streamKey, streamerUserId}: Us
       socks.on('viewer-count', (count: number) => setViewerCount(count));
 
       //Camera playback
+      //Todo: Update Nips with this PlaybackUrl
       socks.on('playback-url', (data: any) => setPlaybackUrl(data?.url));
-      //Screen playback
 
       // WebRTC-related socket events
       socks.on('ice-candidate', ({candidate, senderId}: {candidate: any; senderId: any}) => {
