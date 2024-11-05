@@ -4,9 +4,12 @@ import {
   LoginInput,
   RefreshTokenInput,
 } from "../../validations/auth.validation";
+import { SignatureService } from "../../services/auth/signature.service";
 
 export async function authRoutes(fastify: FastifyInstance) {
   const authService = new AuthService(fastify.prisma, fastify);
+  const signatureService = new SignatureService();
+
 
   fastify.post<{ Body: LoginInput }>("/auth", async (request, reply) => {
     try {
@@ -30,14 +33,16 @@ export async function authRoutes(fastify: FastifyInstance) {
       //Todo: This doesnt work well for now always returning false.
       //handling Signature verification client side for now.
 
-      // const sig = await signatureService.verifySignature({
-      //   accountAddress: userAddress,
-      //   signature: signature as any,
-      // });
+      const sig = await signatureService.verifySignature({
+        accountAddress: userAddress,
+        signature: signature as any,
+      });
 
-      // if (!sig) {
-      //   return reply.code(400).send({ message: "Invalid Signature" });
-      // }
+      console.log("sig is valid",sig)
+
+      if (!sig) {
+        return reply.code(400).send({ message: "Invalid Signature" });
+      }
 
       const result = await authService.loginOrCreateUser(
         userAddress,

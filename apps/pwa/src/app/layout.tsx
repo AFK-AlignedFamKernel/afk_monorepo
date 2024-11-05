@@ -3,9 +3,8 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import {Box} from '@chakra-ui/react';
 import type {Metadata} from 'next';
-import {useRouter} from 'next/router';
+// import {useRouter} from 'next/router';
 import Script from 'next/script';
-import {useEffect} from 'react';
 
 import Providers from './providers';
 
@@ -16,22 +15,21 @@ export const metadata: Metadata = {
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
-  const router = useRouter();
-
-  // Track page views
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      if (typeof window !== 'undefined') {
-        window.gtag('config', GA_TRACKING_ID, {
-          page_path: url,
-        });
-      }
-    };
-    router.events.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events]);
+  // // Track page views
+  // const router = useRouter();
+  // useEffect(() => {
+  //   const handleRouteChange = (url: string) => {
+  //     if (typeof window !== 'undefined') {
+  //       window.gtag('config', GA_TRACKING_ID, {
+  //         page_path: url,
+  //       });
+  //     }
+  //   };
+  //   router.events.on('routeChangeComplete', handleRouteChange);
+  //   return () => {
+  //     router.events.off('routeChangeComplete', handleRouteChange);
+  //   };
+  // }, [router.events]);
   return (
     <html lang="en">
       <Providers>
