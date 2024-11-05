@@ -1,19 +1,12 @@
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
 import React, {useState} from 'react';
-import {
-  Button,
-  Clipboard,
-  Dimensions,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Clipboard, Modal, Text, TouchableOpacity, View} from 'react-native';
 
-import {useTheme} from '../../../hooks';
+import {Button} from '../../../components';
+import {useStyles, useTheme} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {usePayment} from '../../../hooks/usePayment';
+import stylesheet from './styles';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -27,6 +20,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const {handlePayInvoice, handleGenerateEcash} = usePayment();
   const {showToast} = useToast();
   const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
 
   const handleScannedCode = ({data}: BarcodeScanningResult) => {
     console.log('Scanned data:', data);
@@ -72,7 +66,13 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     return (
       <View style={styles.permissionContainer}>
         <Text>We need your permission to use the camera</Text>
-        <Button title="Grant Permission" onPress={requestPermission} />
+        <Button
+          onPress={requestPermission}
+          style={styles.actionButton}
+          textStyle={styles.actionButtonText}
+        >
+          Grant Permission
+        </Button>
       </View>
     );
   }
@@ -100,103 +100,25 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
             <Text style={styles.modalText}>
               {scannedData?.startsWith('lnbc') ? 'Pay this invoice?' : 'Receive this eCash?'}
             </Text>
-            <Button
-              title={scannedData?.startsWith('lnbc') ? 'Pay Invoice' : 'Receive eCash'}
-              onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}
-            />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            <Button onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}>
+              {scannedData?.startsWith('lnbc') ? 'Pay Invoice' : 'Receive eCash'}
+            </Button>
+            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
           </View>
         </View>
       </Modal>
       {scannedData && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultText}>Scanned Data: {scannedData}</Text>
-          <Button title="Copy to Clipboard" onPress={handleCopyToClipboard} />
+          <Button onPress={handleCopyToClipboard}>Copy to Clipboard</Button>
         </View>
       )}
-      {scanned && <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />}
+      {scanned && <Button onPress={() => setScanned(false)}>Tap to Scan Again</Button>}
       <TouchableOpacity onPress={onClose}>
         <Text style={styles.cancelText}>Close Scanner</Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-const {width} = Dimensions.get('window');
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  header: {
-    position: 'absolute',
-    top: 50,
-    width: '100%',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  cameraContainer: {
-    width: width * 0.8,
-    height: width * 0.8,
-    overflow: 'hidden',
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
-    marginBottom: 20,
-  },
-  camera: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-  },
-  resultContainer: {
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    alignItems: 'center',
-    width: width * 0.8,
-  },
-  resultText: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  cancelText: {
-    color: 'red',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 20,
-  },
-});
 
 export default ScanCashuQRCode;

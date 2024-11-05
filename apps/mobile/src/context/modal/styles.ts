@@ -19,7 +19,8 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     padding: Spacing.large,
     marginTop: 'auto',
-    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
     width: '100%',
   },
   modalTitle: {
