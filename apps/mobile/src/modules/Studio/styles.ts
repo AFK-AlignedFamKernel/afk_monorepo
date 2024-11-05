@@ -10,6 +10,21 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     position: 'relative',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 8,
+  },
   streamContainer: {
     position: 'relative',
     width: '100%',
@@ -190,6 +205,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: theme.colors.divider,
+    marginBottom: 'auto',
   },
   chatInput: {
     flex: 1,
@@ -215,5 +231,23 @@ export default ThemedStyleSheet((theme) => ({
 
   actionButtonText: {
     color: theme.colors.text,
+  },
+
+  //Share button
+  share_button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+  },
+  share_icon: {
+    marginRight: 8,
+  },
+  share_buttonText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
 }));

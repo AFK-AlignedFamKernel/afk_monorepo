@@ -28,6 +28,27 @@ export const LightTheme = {
     messageReplyCard: '#E0E0E0',
     messageReplyCardText: '#14142C',
 
+    // Stream Studio specific colors
+    streamStudio_background: '#F4F9FF',
+    streamStudio_surface: '#FFFFFF',
+    streamStudio_cardBackground: '#F0F0F0',
+    streamStudio_inputBackground: '#FFFFFF',
+    streamStudio_text: '#14142C',
+    streamStudio_text_dim: '#14142C',
+    streamStudio_textSecondary: '#6B6B8C',
+    streamStudio_primary: '#4FA89B',
+    streamStudio_inputText: '#14142C',
+    streamStudio_inputBorder: '#DDDDEE',
+    streamStudio_inputPlaceholder: '#A1A1C7',
+    streamStudio_buttonBackground: '#4FA89B',
+    streamStudio_buttonText: '#FFFFFF',
+    streamStudio_divider: '#e4e4e7',
+
+    streamStudio_activeStatus: '#48BB78',
+    streamStudio_pendingStatus: '#ECC94B',
+    streamStudio_tagBackground: '#E2E8F0',
+    streamStudio_tagText: '#4A5568',
+
     //Swap
     swap_background: '#F4F9FF',
     swap_surface: '#FFFFFF',
@@ -108,6 +129,27 @@ export const DarkTheme = {
 
     messageReplyCard: '#1F1F1F',
     messageReplyCardText: '#E0E0E0',
+
+    // Stream Studio specific colors
+    streamStudio_background: '#1A1A1A',
+    streamStudio_surface: '#242424',
+    streamStudio_cardBackground: '#242424',
+    streamStudio_inputBackground: '#1F1F1F',
+    streamStudio_text: '#FFFFFF',
+    streamStudio_text_dim: '#EEEEEE',
+    streamStudio_textSecondary: '#A1A1C7',
+    streamStudio_primary: '#4FA89B',
+    streamStudio_inputText: '#FFFFFF',
+    streamStudio_inputBorder: '#3A3A3A',
+    streamStudio_inputPlaceholder: '#6B6B8C',
+    streamStudio_buttonBackground: '#4FA89B',
+    streamStudio_buttonText: '#FFFFFF',
+    streamStudio_divider: '#3A3A3A',
+
+    streamStudio_activeStatus: '#48BB78',
+    streamStudio_pendingStatus: '#ECC94B',
+    streamStudio_tagBackground: '#4A5568',
+    streamStudio_tagText: '#E2E8F0',
 
     //Swap
     swap_background: '#1A1A1A',
