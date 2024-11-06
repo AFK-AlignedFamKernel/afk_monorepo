@@ -15,7 +15,6 @@
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/next-js": "^2.2.0",
@@ -52,11 +51,9 @@
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
     "zustand": "^4.5.2",
-    "@dynamic-labs/bitcoin": "^3.5.1",
-    "@dynamic-labs/ethereum": "^3.5.1",
-    "@dynamic-labs/sdk-react-core": "^3.5.1",
-    "@dynamic-labs/starknet": "^3.5.1",
-    "@dynamic-labs/wagmi-connector": "^3.5.1"
+    "@argent/x-sessions": "^6.7.4",
+    "starknetkit-next": "npm:starknetkit@2.3.3"
+    
   },
   "devDependencies": {
     "@types/node": "^20",
