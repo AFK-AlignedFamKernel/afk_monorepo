@@ -50,7 +50,14 @@
     "viem": "~2.21.2",
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@dynamic-labs/bitcoin": "^3.4.4",
+    "@dynamic-labs/ethereum": "^3.4.4",
+    "@dynamic-labs/sdk-react-core": "^3.4.4",
+    "@dynamic-labs/starknet": "^3.4.4",
+    "@dynamic-labs/wagmi-connector": "^3.4.4",
+    "@argent/x-sessions": "^6.7.4",
+    "starknetkit-next": "2.3.0"
     
   },
   "devDependencies": {
