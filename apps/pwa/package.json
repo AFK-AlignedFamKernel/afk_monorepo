@@ -21,11 +21,6 @@
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
     "@chakra-ui/theme-tools": "^2.1.2",
-    "@dynamic-labs/bitcoin": "^3.4.4",
-    "@dynamic-labs/ethereum": "^3.4.4",
-    "@dynamic-labs/sdk-react-core": "^3.4.4",
-    "@dynamic-labs/starknet": "^3.4.4",
-    "@dynamic-labs/wagmi-connector": "^3.4.4",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@nostr-dev-kit/ndk": "2.10.1",
@@ -57,11 +52,11 @@
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
     "zustand": "^4.5.2",
-    "@dynamic-labs/bitcoin": "^3.4.4",
-    "@dynamic-labs/ethereum": "^3.4.4",
-    "@dynamic-labs/sdk-react-core": "^3.4.4",
-    "@dynamic-labs/starknet": "^3.4.4",
-    "@dynamic-labs/wagmi-connector": "^3.4.4"
+    "@dynamic-labs/bitcoin": "^3.5.1",
+    "@dynamic-labs/ethereum": "^3.5.1",
+    "@dynamic-labs/sdk-react-core": "^3.5.1",
+    "@dynamic-labs/starknet": "^3.5.1",
+    "@dynamic-labs/wagmi-connector": "^3.5.1"
   },
   "devDependencies": {
     "@types/node": "^20",
