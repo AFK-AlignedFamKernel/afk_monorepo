@@ -61,8 +61,7 @@
     "@dynamic-labs/ethereum": "^3.4.4",
     "@dynamic-labs/sdk-react-core": "^3.4.4",
     "@dynamic-labs/starknet": "^3.4.4",
-    "@dynamic-labs/wagmi-connector": "^3.4.4",
-    "@argent/x-sessions": "^6.7.4"
+    "@dynamic-labs/wagmi-connector": "^3.4.4"
   },
   "devDependencies": {
     "@types/node": "^20",
