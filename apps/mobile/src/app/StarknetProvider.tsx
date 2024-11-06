@@ -24,13 +24,12 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
   }[NETWORK_NAME];
 
   const provider = providers(chain);
+  const argentMobileConnector = useArgentMobileConnector();
 
   const {connectors: injected} = useInjectedConnectors({
     recommended: [argent(), braavos()],
     includeRecommended: 'always',
   });
-
-  const argentMobileConnector = useArgentMobileConnector();
 
   return (
     <RpcProviderProvider provider={provider}>
