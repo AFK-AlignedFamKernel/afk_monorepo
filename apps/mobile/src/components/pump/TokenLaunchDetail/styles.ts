@@ -1,4 +1,5 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
+
 export default ThemedStyleSheet((theme) => ({
   container: {
     // alignItems: 'center',
@@ -36,5 +37,12 @@ export default ThemedStyleSheet((theme) => ({
   },
   marginBottom: {
     marginBottom: 10,
+  },
+  actionButton: {
+    backgroundColor: theme.colors.primary,
+    padding: Spacing.medium,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: Spacing.small,
   },
 }));

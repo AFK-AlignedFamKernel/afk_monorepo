@@ -254,14 +254,17 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
-          onSellPress={sellKeys}
-        ></LaunchActionsForm>
+          onSellPress={sellKeys} onHandleAction={function (amountProps?: number): void {
+            throw new Error('Function not implemented.');
+          } } onSetAmount={function (e: number): void {
+            throw new Error('Function not implemented.');
+          } }        ></LaunchActionsForm>
       )}
 
       {!isViewDetailDisabled && (
         <View>
-          {' '}
           <Button
+            style={styles.actionButton}
             onPress={() => {
               if (launch && launch?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {

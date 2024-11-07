@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+import {Spacing} from '../../../styles';
 
 export default (theme: any) =>
   StyleSheet.create({
@@ -59,10 +60,10 @@ export default (theme: any) =>
       fontSize: 16,
     },
     actionButton: {
-      backgroundColor: '#4CAF50',
-      padding: 12,
+      backgroundColor: theme.colors.primary,
+      padding: Spacing.medium,
       borderRadius: 8,
       alignItems: 'center',
-      marginTop: 16,
+      marginTop: Spacing.small,
     }
   });
