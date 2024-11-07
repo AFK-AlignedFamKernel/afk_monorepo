@@ -99,9 +99,18 @@ pub trait ILaunchpadMarketplace<TContractState> {
     //TODO
     fn add_liquidity_unrug(
         ref self: TContractState,
-        coin_address: ContractAddress,
+        launch_params: LaunchParameters,
         ekubo_pool_params: EkuboPoolParameters
     ) -> (u64, EkuboLP);
+
+    fn create_unrug_token(
+        ref self: TContractState,
+        owner: ContractAddress,
+        name: felt252,
+        symbol: felt252,
+        initial_supply: u256,
+        contract_address_salt: felt252
+    ) -> ContractAddress;
 }
 
 #[starknet::contract]
@@ -980,12 +989,23 @@ pub mod LaunchpadMarketplace {
         //TODO refac
         fn add_liquidity_unrug(
             ref self: ContractState,
-            coin_address: ContractAddress,
+            launch_params: LaunchParameters,
             ekubo_pool_params: EkuboPoolParameters
         ) -> (u64, EkuboLP) {
             //TODO restrict fn?
 
-            self._add_liquidity_unrug(coin_address, ekubo_pool_params)
+            self._add_liquidity_unrug(launch_params, ekubo_pool_params)
+        }
+
+        fn create_unrug_token(
+            ref self: ContractState,
+            owner: ContractAddress,
+            name: felt252,
+            symbol: felt252,
+            initial_supply: u256,
+            contract_address_salt: felt252
+        ) -> ContractAddress {
+            self._create_unrug_token(owner, name, symbol, initial_supply, contract_address_salt)
         }
     }
 
@@ -1340,53 +1360,41 @@ pub mod LaunchpadMarketplace {
         //TODO: refac & fix
         fn _add_liquidity_unrug(
             ref self: ContractState,
-            coin_address: ContractAddress,
+            launch_params: LaunchParameters,
             ekubo_pool_params: EkuboPoolParameters
         ) -> (u64, EkuboLP) {
+            let fee = 3000; // Example fee, adjust as needed
             let factory_address = self.factory_address.read();
-            // let router_address = self.address_ekubo_router.read();
 
             if factory_address.is_zero() {
                 panic!("Factory address not set");
             }
 
-            println!("factory_address: {:?}", factory_address);
-
             let factory = IFactoryDispatcher {
                 contract_address: factory_address.try_into().unwrap()
             };
 
-            let launch = self.launched_coins.read(coin_address);
-            let token_a = launch.token_address.clone();
-            let token_b = launch.token_quote.token_address.clone();
-            let fee = 3000; // Example fee, adjust as needed
+            //TODO: Check if the pool exists
 
-            // Check if the pool exists
-            // let pool = factory.get_pool(token_a, token_b, fee);
-
-            // if pool.is_zero() {
-            //     // Create the pool if it doesn't exist
-            //     factory.create_pool(token_a, token_b, fee);
-            // }
-
-            //TODO revisit initial_holders_amounts, transfer_restriction_delay,
-            //max_percentage_buy_launch
-            let launch_params = LaunchParameters {
-                memecoin_address: launch.token_address.clone(),
-                transfer_restriction_delay: 1000,
-                max_percentage_buy_launch: 200, // 2%
-                quote_address: launch.token_quote.token_address.clone(),
-                initial_holders: array![launch.owner].span(),
-                initial_holders_amounts: array![launch.token_holded].span(),
-            };
+            // //TODO revisit initial_holders_amounts, transfer_restriction_delay,
+            // //max_percentage_buy_launch
+            // let launch_params = LaunchParameters {
+            //     memecoin_address: launch.token_address.clone(),
+            //     transfer_restriction_delay: 1000,
+            //     max_percentage_buy_launch: 200, // 2%
+            //     quote_address: launch.token_quote.token_address.clone(),
+            //     initial_holders: array![launch.owner].span(),
+            //     initial_holders_amounts: array![launch.token_holded].span(),
+            // };
 
             // launch liquidity on ekubo
             let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
 
-            let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch = true;
-            launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
-            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+            //TODO
+            // let mut launch_to_update = self.launched_coins.read(coin_address);
+            // launch_to_update.is_liquidity_launch = true;
+            // launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
+            // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
 
             //TODO
             // Emit LiquidityCreated event
@@ -1398,6 +1406,31 @@ pub mod LaunchpadMarketplace {
             // });
 
             (id, position)
+        }
+
+        fn _create_unrug_token(
+            ref self: ContractState,
+            owner: ContractAddress,
+            name: felt252,
+            symbol: felt252,
+            initial_supply: u256,
+            contract_address_salt: felt252
+        ) -> ContractAddress {
+            let factory_address = self.factory_address.read();
+
+            if factory_address.is_zero() {
+                panic!("Factory address not set");
+            }
+
+            let factory = IFactoryDispatcher {
+                contract_address: factory_address.try_into().unwrap()
+            };
+
+            let memecoin = factory
+                .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
+
+            println!("memecoin {:?}", memecoin);
+            memecoin
         }
 
         // Function to calculate the price for the next token to be minted

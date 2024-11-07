@@ -8,7 +8,7 @@ mod launchpad_tests {
     use afk::tokens::memecoin::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediwapNFTRouterV2,
-        SetJediwapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters
+        SetJediwapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, LaunchParameters
     };
 
     use core::num::traits::Zero;
@@ -1340,9 +1340,66 @@ mod launchpad_tests {
     }
 
 
+    // #[test]
+    // #[fork("Mainnet")]
+    // fn test_add_liquidity_ekubo() {
+    //     let (_, quote_token, launchpad) = request_fixture();
+    //     let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
+    //     let quote_to_deposit = 215_000;
+    //     let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
+
+    //     start_cheat_caller_address(launchpad.contract_address, OWNER());
+    //     let token_address = launchpad
+    //         .create_unrug_token(
+    //             owner: OWNER(),
+    //             name: NAME(),
+    //             symbol: SYMBOL(),
+    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+    //             contract_address_salt: SALT(),
+    //         );
+
+    //         println!("token_address {:?}", token_address);
+    //     stop_cheat_caller_address(launchpad.contract_address);
+
+    //     start_cheat_caller_address(quote_token.contract_address, OWNER());
+    //     IERC20Dispatcher { contract_address: quote_token.contract_address }
+    //         .transfer(factory.contract_address, quote_to_deposit);
+    //     stop_cheat_caller_address(quote_token.contract_address);
+
+    //     let (id, position) = launchpad
+    //         .add_liquidity_unrug(
+    //             token_address,
+    //             EkuboPoolParameters {
+    //                 fee: 0xc49ba5e353f7d00000000000000000,
+    //                 tick_spacing: 5982,
+    //                 starting_price,
+    //                 bound: 88719042
+    //             }
+    //         );
+
+    //     let pool_key = PoolKey {
+    //         token0: position.pool_key.token0,
+    //         token1: position.pool_key.token1,
+    //         fee: position.pool_key.fee.try_into().unwrap(),
+    //         tick_spacing: position.pool_key.tick_spacing.try_into().unwrap(),
+    //         extension: position.pool_key.extension
+    //     };
+
+    //     let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
+    //     let liquidity = core.get_pool_liquidity(pool_key);
+    //     let price = core.get_pool_price(pool_key);
+    //     let reserve_memecoin = IERC20Dispatcher { contract_address: token_address }
+    //         .balance_of(core.contract_address);
+    //     let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
+    //         .balance_of(core.contract_address);
+    //     println!("Liquidity: {}", liquidity);
+    // println!("reserve_memecoin: {}", reserve_memecoin);
+    // println!("reserve_quote: {}", reserve_quote);
+    // }
+
     #[test]
     #[fork("Mainnet")]
-    fn test_add_liquidity_ekubo() {
+    fn test_create_and_add_liquidity_unrug() {
         let (_, quote_token, launchpad) = request_fixture();
         let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
         let quote_to_deposit = 215_000;
@@ -1350,29 +1407,47 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
-            .create_and_launch_token(
-                symbol: SYMBOL(),
+            .create_unrug_token(
+                owner: OWNER(),
                 name: NAME(),
+                symbol: SYMBOL(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
             );
-        stop_cheat_caller_address(launchpad.contract_address);
 
-        start_cheat_caller_address(quote_token.contract_address, OWNER());
-        IERC20Dispatcher { contract_address: quote_token.contract_address }
-            .transfer(factory.contract_address, quote_to_deposit);
-        stop_cheat_caller_address(quote_token.contract_address);
+        println!("token_address {:?}", token_address);
 
-        let (id, position) = launchpad
-            .add_liquidity_unrug(
-                token_address,
-                EkuboPoolParameters {
+        let token_holded: u256 = u256 { low: 5000000000, high: 0 };
+
+        let launch_params = LaunchParameters {
+            memecoin_address: token_address,
+            transfer_restriction_delay: 1000,
+            max_percentage_buy_launch: 200, // 2%
+            quote_address: quote_token.contract_address,
+            initial_holders: array![OWNER()].span(),
+            initial_holders_amounts: array![token_holded].span(),
+        };
+
+        let ekubo_pool_params =  EkuboPoolParameters {
                     fee: 0xc49ba5e353f7d00000000000000000,
                     tick_spacing: 5982,
                     starting_price,
                     bound: 88719042
-                }
-            );
+                };
+        
+        let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
+
+
+        // let (id, position) = launchpad
+        //     .add_liquidity_unrug(
+        //         launch_params,
+        //         EkuboPoolParameters {
+        //             fee: 0xc49ba5e353f7d00000000000000000,
+        //             tick_spacing: 5982,
+        //             starting_price,
+        //             bound: 88719042
+        //         }
+        //     );
 
         let pool_key = PoolKey {
             token0: position.pool_key.token0,
@@ -1389,8 +1464,8 @@ mod launchpad_tests {
             .balance_of(core.contract_address);
         let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
             .balance_of(core.contract_address);
-        // println!("Liquidity: {}", liquidity);
-    // println!("reserve_memecoin: {}", reserve_memecoin);
-    // println!("reserve_quote: {}", reserve_quote);
+        println!("Liquidity: {}", liquidity);
+        println!("reserve_memecoin: {}", reserve_memecoin);
+        println!("reserve_quote: {}", reserve_quote);
     }
 }
