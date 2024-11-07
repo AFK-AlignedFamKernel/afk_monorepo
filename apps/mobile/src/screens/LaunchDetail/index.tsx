@@ -25,8 +25,10 @@ import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
 import { useToast, useWalletModal } from '../../hooks/modals';
 import { LaunchDetailScreenProps } from '../../types';
 import {
+  LaunchDataMerged,
   TokenDeployInterface,
   TokenHoldersInterface,
+  TokenLaunchInterface,
   TokenStatsInterface,
   TokenTxInterface,
   UserShareInterface,
@@ -40,6 +42,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const styles = useStyles(stylesheet);
   const [loading, setLoading] = useState<false | number>(false);
   const account = useAccount();
+  const [typeAction, setTypeAction] = useState<"SELL" | "BUY">("BUY")
 
   console.log(account, 'account');
 
@@ -48,7 +51,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
   const [token, setToken] = useState<TokenDeployInterface | undefined>();
-  const [launch, setLaunch] = useState<TokenDeployInterface | undefined>();
+  const [launch, setLaunch] = useState<LaunchDataMerged | undefined>();
 
   const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
 
@@ -86,7 +89,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const { showToast } = useToast();
   const walletModal = useWalletModal();
 
-  const [amount, setAmount] = useState<number | undefined>();
+  const [amount, setAmount] = useState<number | undefined>(0);
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -137,9 +140,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     }
   };
 
-  const sellKeys = async () => {
-    if (!amount) {
-      return showToast({ title: 'Select an amount to buy', type: 'info' });
+
+  const sellCoin = async (amountSellProps?: number) => {
+    if (!amount && !amountSellProps) {
+      return showToast({ title: 'Select an amount to sell', type: 'info' });
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -152,17 +156,17 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     const sellResult = await handleSellCoins(
       account?.account,
       feltToAddress(BigInt(token?.memecoin_address)),
-      Number(amount),
+      Number(amount) ?? amountSellProps,
       token?.quote_token,
       undefined,
     );
 
     if (sellResult && sellResult?.value) {
-      return showToast({ title: 'Buy done', type: 'success' });
+      return showToast({ title: 'Sell done', type: 'success' });
     }
   };
 
-  const buyCoin = async () => {
+  const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
       return showToast({ title: 'Select an amount to buy', type: 'info' });
@@ -183,7 +187,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
       token?.quote_token,
     );
 
-    return showToast({ title: 'Buy done', type: 'success' });
+
+    if (buyResult) {
+      return showToast({ title: 'Buy successful', type: 'success' });
+    }
   };
 
   const handleConnect = async () => {
@@ -191,6 +198,15 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
     if (!account || !account?.account) return;
 
+  }
+
+  const onHandleAction = async (amountProps?: number) => {
+
+    if (typeAction == "BUY") {
+      await buyCoin(amountProps)
+    } else {
+      await sellCoin(amountProps)
+    }
   }
 
   if (!coinAddress) {
@@ -212,10 +228,19 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
         </TextButton>
       </SafeAreaView>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
+        {/* TODO smooth UI */}
+
         <LaunchActionsForm
+          amount={amount}
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
-          onSellPress={sellKeys}
+          onSellPress={sellCoin}
+          launch={launch}
+          setTypeAction={setTypeAction}
+          typeAction={typeAction}
+          onHandleAction={onHandleAction}
+          userShare={share}
+          onSetAmount={setAmount}
         ></LaunchActionsForm>
 
         <TabSelector
@@ -242,15 +267,19 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               <>
                 <View style={styles.holdersTotal}>
                   <Text weight="medium" fontSize={14}>
-                    Total Owner Address:
-                  </Text>
-                  <Text weight="bold" fontSize={14}>
-                    {holdings?.data?.[0]?._count.owner_address ?? 0}
+                    Total Owner Address: {holdings?.data?.length}
                   </Text>
                 </View>
                 <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
               </>
             )}
+
+            {selectedTab == SelectedTab.LAUNCH_GRAPH &&
+              <View>
+                <Text>Graph coming soon</Text>
+
+              </View>
+            }
 
             {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
               <>

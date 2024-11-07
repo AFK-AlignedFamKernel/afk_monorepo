@@ -1,5 +1,7 @@
-import {Uint256} from 'starknet';
+import { Uint256 } from 'starknet';
 
+
+export type ACTION_LAUNCHPAD = "BUY" | "SELL"
 export interface KeysUser {
   owner: string;
   token_address: string;
@@ -29,6 +31,8 @@ export interface TokenLaunchInterface {
   token_quote: TokenQuoteBuyKeys;
   threshold_liquidity?: Uint256;
   slope?: Uint256;
+  quote_token_address?: string;
+  quote_token?: string;
 }
 
 export interface UserShareInterface {
