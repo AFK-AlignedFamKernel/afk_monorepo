@@ -1,56 +1,36 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {StyleSheet} from 'react-native';
 
-export default ThemedStyleSheet((theme) => ({
-  container: {
-    position: 'relative',
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    color: theme.colors.text,
-  },
-
-  flatListContent: {
-    // paddingHorizontal: Spacing.pagePadding,
-    paddingVertical: Spacing.medium,
-  },
-
-  separator: {
-    height: Spacing.xsmall,
-  },
-
-  tip: {
-    backgroundColor: theme.colors.surface,
-    padding: Spacing.xsmall,
-    borderRadius: 8,
-    gap: Spacing.xsmall,
-  },
-  tokenInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  token: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: Spacing.xsmall,
-  },
-
-  senderInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.medium,
-  },
-  sender: {
-    flex: 1,
-  },
-
-  text: {
-    color: theme.colors.text,
-    fontSize: 12,
-    backgroundColor: theme.colors.background,
-  },
-
-  buttonIndicator: {
-    marginRight: Spacing.xsmall,
-  },
-}));
+export default (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+    },
+    header: {
+      marginBottom: 24,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      marginBottom: 8,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      marginBottom: 24,
+    },
+    createButton: {
+      marginBottom: 24,
+    },
+    flatListContent: {
+      gap: 16,
+    },
+    separator: {
+      height: 16,
+    },
+    gridContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    }
+  });

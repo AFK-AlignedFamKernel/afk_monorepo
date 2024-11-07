@@ -1,40 +1,68 @@
-import {Spacing, ThemedStyleSheet} from '../../../styles';
-export default ThemedStyleSheet((theme) => ({
-  container: {
-    // alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: Spacing.normal,
-    borderRadius: 8,
-    gap: Spacing.xsmall,
-    overflowWrap: 'break-word',
-    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
-    // width:"100%"
-    width: '100%',
-  },
-  imageContainer: {
-    // position: 'relative',
-    // display: 'flex',
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    borderRadius: 15,
-  },
-  text: {},
-  image: {
-    position: 'absolute',
-    width: 35,
-    height: 35,
-    borderRadius: 15,
-  },
-  name: {
-    paddingTop: Spacing.xxsmall,
-  },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#b5b5b5',
-    paddingBottom: 10,
-    marginBottom: 15,
-  },
-  marginBottom: {
-    marginBottom: 10,
-  },
-}));
+import {StyleSheet} from 'react-native';
+
+export default (theme: any) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: '#1E1E1E',
+      borderRadius: 16,
+      padding: 20,
+      margin: 8,
+      borderWidth: 1,
+      borderColor: '#2A2A2A',
+      flex: 1,
+      maxWidth: '100%',
+    },
+    header: {
+      flexDirection: 'column',
+      gap: 8,
+      marginBottom: 20,
+    },
+    tokenName: {
+      fontSize: 24,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
+    addressContainer: {
+      backgroundColor: '#2A2A2A',
+      padding: 8,
+      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    priceTag: {
+      backgroundColor: '#2A2A2A',
+      paddingVertical: 4,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      alignSelf: 'flex-start',
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginVertical: 16,
+    },
+    statBox: {
+      backgroundColor: '#2A2A2A',
+      padding: 12,
+      borderRadius: 8,
+      width: '48%',
+    },
+    statLabel: {
+      color: '#808080',
+      marginBottom: 4,
+    },
+    statValue: {
+      color: '#FFFFFF',
+      fontSize: 16,
+    },
+    actionButton: {
+      backgroundColor: '#4CAF50',
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 16,
+    }
+  });
