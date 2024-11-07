@@ -1,28 +1,91 @@
-import {ContractWriteVariables, useContractWrite} from '@starknet-react/core';
-import {GetTransactionReceiptResponse} from 'starknet';
+import { InjectedConnector, useAccount, useExplorer, useSendTransaction } from '@starknet-react/core';
+import { Call, GetTransactionReceiptResponse } from 'starknet';
 
-import {useTransactionModal} from './useTransactionModal';
+import { useTransactionModal } from './useTransactionModal';
+import { useContractWrite } from 'wagmi';
+import { useEffect, useState } from 'react';
+import { useToast } from './useToast';
 
-export const useTransaction = () => {
-  const {show: showTransactionModal, hide: hideTransactionModal, shown} = useTransactionModal();
-  const {writeAsync} = useContractWrite({});
+interface UseTransactionInterface {
+  callsProps?: Call[]
+}
+export const useTransaction = ({ callsProps }: UseTransactionInterface) => {
+  const { show: showTransactionModal, hide: hideTransactionModal, shown } = useTransactionModal();
+  // const {writeAsync} = useContractWrite({});
 
-  const sendTransaction = async (args: ContractWriteVariables) => {
+  const { showToast } = useToast()
+  const [calls, setCalls] = useState<Call[]>(callsProps ?? [])
+
+  const explorer = useExplorer();
+  const kakarotScanTxUrl = "https://sepolia.kakarotscan.org/tx/";
+  const [txUrl, setTxUrl] = useState<string | undefined>(undefined);
+  const { address, isConnected, connector } = useAccount();
+  let walletType;
+  if (connector instanceof InjectedConnector) {
+    walletType = 0;
+  } else {
+    walletType = 1;
+  }
+  const {
+    send: sendTransactionTx,
+    data,
+    isPending,
+    isError,
+    error,
+  } = useSendTransaction({ calls });
+
+  useEffect(() => {
+    if (!data) return;
+    if (walletType === 0) {
+      setTxUrl(explorer.transaction(data!.transaction_hash));
+    } else {
+      //TODO: fix returned data to be akin to InvokeTransactionResult
+      setTxUrl(kakarotScanTxUrl + data);
+      showTransactionModal(data?.transaction_hash, () => {
+
+      });
+
+    }
+  }, [data]);
+
+
+
+  const sendTransaction = async (callsInputs?: Call[]) => {
+
+
     if (shown) return;
+
+    if (!callsInputs && calls?.length == 0) {
+      showToast({
+        title: "Impossible to create your TX",
+        type: "info",
+
+      })
+      return;
+    }
+
+    if(callsInputs) {
+      setCalls(callsInputs)
+    }
 
     showTransactionModal();
 
     try {
-      const {transaction_hash} = await writeAsync(args);
+      // const {transaction_hash} = await writeAsync(args)
+      const transaction_hash = await sendTransactionTx();
 
-      return new Promise<GetTransactionReceiptResponse>((resolve) => {
-        showTransactionModal(transaction_hash, resolve);
-      });
+      return true;
+      // return new Promise<GetTransactionReceiptResponse>((resolve) => {
+      //   showTransactionModal(transaction_hash, resolve);
+      // });
     } catch (error) {
       hideTransactionModal();
       return undefined;
     }
   };
 
-  return sendTransaction;
+  return {
+    sendTransaction,
+    txUrl
+  };
 };

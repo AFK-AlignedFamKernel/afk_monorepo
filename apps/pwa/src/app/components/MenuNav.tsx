@@ -2,7 +2,7 @@ import {Button, Menu, MenuButton, MenuItem, MenuList} from '@chakra-ui/react';
 
 import AccountStarknet from './account/starknet/AccountStarknet';
 import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
-import DynamicManagement from './dynamic';
+// import DynamicManagement from './dynamic';
 
 interface IMenuParent {
   children?: React.ReactNode;
@@ -27,9 +27,9 @@ const MenuNav: React.FC<IMenuParent> = () => {
             <MenuItem>
               <CustomConnectButtonWallet></CustomConnectButtonWallet>
             </MenuItem>
-            <MenuItem>
+            {/* <MenuItem>
               <DynamicManagement></DynamicManagement>
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem>
               <AccountStarknet></AccountStarknet>
             </MenuItem>

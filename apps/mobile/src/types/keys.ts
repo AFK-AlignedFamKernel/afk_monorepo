@@ -10,6 +10,10 @@ export interface KeysUser {
   token_quote: TokenQuoteBuyKeys;
 }
 
+
+export interface LaunchDataMerged extends TokenLaunchInterface, TokenDeployInterface {
+
+}
 export interface TokenLaunchInterface {
   owner: string;
   token_address: string;
@@ -18,7 +22,7 @@ export interface TokenLaunchInterface {
   available_supply: Uint256;
   bonding_curve_type?: BondingType;
   total_supply: Uint256;
-  created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;
@@ -59,7 +63,7 @@ export interface TokenDeployIndexerInterface {
   network: string;
   owner: string;
   total_supply: Uint256;
-  created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;

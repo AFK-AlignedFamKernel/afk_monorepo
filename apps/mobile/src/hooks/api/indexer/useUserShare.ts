@@ -2,10 +2,17 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
 
-export const useGetShares = (tokenAddress: string, userId: string) => {
+export const useGetShares = (tokenAddress: string, userId?: string) => {
   return useQuery({
     queryKey: ['user_shares', tokenAddress, userId],
     queryFn: async () => {
+
+      if(!userId) {
+        return {
+          status:500,
+          message:"NO_USER_CONNECTED"
+        }
+      }
       const endpoint = `/my-share/${tokenAddress}/${userId}`;
       const res = await ApiIndexerInstance.get(endpoint);
 

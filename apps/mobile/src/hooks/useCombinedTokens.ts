@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 
-import {TokenDeployInterface} from '../types/keys';
+import {LaunchDataMerged, TokenDeployInterface, TokenLaunchInterface} from '../types/keys';
 import {useGetDeployToken} from './api/indexer/useDeployToken';
 import {useGetTokenLaunch} from './api/indexer/useLaunchTokens';
 
@@ -18,7 +18,7 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
     isFetching: launchIsFetching,
   } = useGetTokenLaunch(launch);
 
-  const [tokens, setTokens] = useState<TokenDeployInterface[]>([]);
+  const [tokens, setTokens] = useState<LaunchDataMerged[]>([]);
 
   const combinedData = useMemo(() => {
     return [

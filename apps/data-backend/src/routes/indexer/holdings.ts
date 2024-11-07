@@ -21,6 +21,17 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
     }
 
     try {
+      // const distributions = await prisma.token_transactions.groupBy({
+      //   by: ["owner_address"],
+      //   where: { memecoin_address: tokenAddress },
+      //   _sum: {
+      //     amount: true,
+      //   },
+      //   _count: {
+      //     owner_address: true,
+      //   },
+      // });
+
       const distributions = await prisma.token_transactions.groupBy({
         by: ["owner_address"],
         where: { memecoin_address: tokenAddress },
