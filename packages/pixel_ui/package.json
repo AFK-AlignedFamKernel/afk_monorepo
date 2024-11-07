@@ -19,7 +19,7 @@
     "starknet": "^6.9.0",
     "@argent/x-sessions": "^6.7.4",
     "@argent/x-shared": "^1.32.1",
-    "starknetkit-next": "npm:starknetkit@2.3.0",
+    "starknetkit-next": "npm:starknetkit@2.3.3",
     "common": "workspace:*"
   },
   "scripts": {

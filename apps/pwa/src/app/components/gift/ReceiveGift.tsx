@@ -39,7 +39,7 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, toke
   const precomputeAddress = searchParams.get('precomputeAddress');
   const pubkeyStrk = searchParams.get('pubkeyStrk');
 
-  console.log('privateKey', privateKey);
+  // console.log('privateKey', privateKey);
   console.log('tokenAddress', tokenAddress);
   console.log('amount', amount);
   console.log('network', network);
