@@ -263,8 +263,8 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
 
       {!isViewDetailDisabled && (
         <View>
+          {' '}
           <Button
-            style={styles.actionButton}
             onPress={() => {
               if (launch && launch?.memecoin_address) {
                 navigation.navigate('LaunchDetail', {
