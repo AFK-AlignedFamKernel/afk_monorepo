@@ -23,14 +23,14 @@ export const AFK_RELAYS =
       ]
     : [
         // ...RELAYS_PROD,
-        'ws://nostr-relay-nestjs-production.up.railway.app',
+        // 'ws://nostr-relay-nestjs-production.up.railway.app',
         // ...RELAYS_PROD,
 
         // 'wss://nostr.joyboy.community',
         // 'wss://nostr-relay-nestjs-production.up.railway.app',
         // 'wss://nostr-relay-nestjs-production.up.railway.app',
-        ...RELAYS_TEST,
-        // 'ws://localhost:8080', // comment if you don't run a relayer in localhost
+        // ...RELAYS_TEST,
+        'ws://localhost:8080', // comment if you don't run a relayer in localhost
         // 'ws://localhost:3000', // comment if you don't run a relayer in localhost
       ];
 

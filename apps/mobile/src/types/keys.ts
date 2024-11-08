@@ -1,5 +1,7 @@
-import {Uint256} from 'starknet';
+import { Uint256 } from 'starknet';
 
+
+export type ACTION_LAUNCHPAD = "BUY" | "SELL"
 export interface KeysUser {
   owner: string;
   token_address: string;
@@ -10,6 +12,10 @@ export interface KeysUser {
   token_quote: TokenQuoteBuyKeys;
 }
 
+
+export interface LaunchDataMerged extends TokenLaunchInterface, TokenDeployInterface {
+
+}
 export interface TokenLaunchInterface {
   owner: string;
   token_address: string;
@@ -18,13 +24,15 @@ export interface TokenLaunchInterface {
   available_supply: Uint256;
   bonding_curve_type?: BondingType;
   total_supply: Uint256;
-  created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;
   token_quote: TokenQuoteBuyKeys;
   threshold_liquidity?: Uint256;
   slope?: Uint256;
+  quote_token_address?: string;
+  quote_token?: string;
 }
 
 export interface UserShareInterface {
@@ -59,7 +67,7 @@ export interface TokenDeployIndexerInterface {
   network: string;
   owner: string;
   total_supply: Uint256;
-  created_at: Uint256;
+  created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;

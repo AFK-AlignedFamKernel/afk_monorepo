@@ -1,6 +1,7 @@
 import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
+    background:theme.colors.swap_background,
     borderRadius: 8,
     gap: Spacing.xsmall,
     overflowWrap: 'break-word',

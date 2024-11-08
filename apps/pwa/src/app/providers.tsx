@@ -3,10 +3,10 @@
 import '@rainbow-me/rainbowkit/styles.css';
 
 import {ChakraProvider, ColorModeProvider} from '@chakra-ui/react';
-import {EthereumWalletConnectors} from '@dynamic-labs/ethereum';
-import {DynamicContextProvider, DynamicWidget} from '@dynamic-labs/sdk-react-core';
-import {StarknetWalletConnectors} from '@dynamic-labs/starknet';
-import {DynamicWagmiConnector} from '@dynamic-labs/wagmi-connector';
+// import {EthereumWalletConnectors} from '@dynamic-labs/ethereum';
+// import {DynamicContextProvider, DynamicWidget} from '@dynamic-labs/sdk-react-core';
+// import {StarknetWalletConnectors} from '@dynamic-labs/starknet';
+// import {DynamicWagmiConnector} from '@dynamic-labs/wagmi-connector';
 import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {Chain} from 'viem';
@@ -78,23 +78,23 @@ export default function Providers({children}: {children: React.ReactNode}) {
             useSystemColorMode: theme.config.useSystemColorMode,
           }}
         >
-          <DynamicContextProvider
+          {/* <DynamicContextProvider
             settings={{
               environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID ?? '',
               walletConnectors: [EthereumWalletConnectors, StarknetWalletConnectors],
             }}
-          >
-            <StarknetProvider>
-              <WagmiProvider config={config} reconnectOnMount={false}>
-                <QueryClientProvider client={queryClient}>
-                  <DynamicWagmiConnector>
-                    <RainbowKitProvider>{children}</RainbowKitProvider>
+          > */}
+          <StarknetProvider>
+            <WagmiProvider config={config} reconnectOnMount={false}>
+              <QueryClientProvider client={queryClient}>
+                <RainbowKitProvider>{children}</RainbowKitProvider>
+                {/* <DynamicWagmiConnector>
                     <DynamicWidget />
-                  </DynamicWagmiConnector>
-                </QueryClientProvider>
-              </WagmiProvider>
-            </StarknetProvider>
-          </DynamicContextProvider>
+                  </DynamicWagmiConnector> */}
+              </QueryClientProvider>
+            </WagmiProvider>
+          </StarknetProvider>
+          {/* </DynamicContextProvider> */}
         </ColorModeProvider>
       </ChakraProvider>
     </>

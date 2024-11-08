@@ -269,36 +269,6 @@ export const useLiveActivity = (eventId?: string) => {
             },
           };
 
-          // Parse tags
-          // event.tags.forEach((tag) => {
-          //   const [tagType, ...tagValues] = tag;
-
-          //   switch (tagType) {
-          //     case 'e':
-          //       // Handle reply/mention references
-          //       if (tagValues[2] === '' && tagValues[3]) {
-          //         parsed.replyTo = {
-          //           id: tagValues[0],
-          //           marker: tagValues[3], // 'reply' or 'mention'
-          //         };
-          //       }
-          //       break;
-
-          //     case 'a':
-          //       // Parse activity root tag
-          //       // Format: "30311:<pubkey>:<identifier>"
-          //       if (tagValues[3] === 'root') {
-          //         const [type, authorPubkey, identifier] = tagValues[0].split(':');
-          //         parsed.root = {
-          //           type,
-          //           id: identifier,
-          //           relay: tagValues[1] || undefined, // Optional relay URL
-          //         };
-          //       }
-          //       break;
-          //   }
-          // });
-
           // Parse all tags
           event.tags.forEach((tag) => {
             // Handle activity tag (always present)

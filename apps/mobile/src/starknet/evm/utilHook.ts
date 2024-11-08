@@ -48,7 +48,7 @@ export function useBalanceUtil({
   token: token_,
   address,
   enabled: enabled_ = true,
-  blockIdentifier = BlockTag.latest,
+  blockIdentifier = BlockTag.LATEST,
   ...props
 }: UseBalanceProps) {
   const {chain} = useNetwork();

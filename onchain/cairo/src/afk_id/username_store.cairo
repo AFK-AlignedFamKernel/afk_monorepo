@@ -86,6 +86,10 @@ pub mod UsernameStore {
                 );
         }
 
+        fn withdraw_fees(ref self: ContractState, amount: u256) {}
+
+        fn renew_subscription(ref self: ContractState) {}
+
         fn get_username(self: @ContractState, address: ContractAddress) -> felt252 {
             self.user_to_username.read(address)
         }

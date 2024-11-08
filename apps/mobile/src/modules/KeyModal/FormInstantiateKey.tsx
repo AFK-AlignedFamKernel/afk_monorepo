@@ -1,24 +1,24 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useAccount} from '@starknet-react/core';
-import {useProfile} from 'afk_nostr_sdk';
-import {useEffect, useState} from 'react';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useAccount } from '@starknet-react/core';
+import { useProfile } from 'afk_nostr_sdk';
+import { useEffect, useState } from 'react';
 import React from 'react';
-import {View} from 'react-native';
-import {CallData, constants} from 'starknet';
+import { View } from 'react-native';
+import { CallData, constants } from 'starknet';
 
-import {Button, Text} from '../../components';
-import {KEYS_ADDRESS} from '../../constants/contracts';
-import {TokenSymbol} from '../../constants/tokens';
-import {useStyles, useWaitConnection} from '../../hooks';
-import {useDataKeys} from '../../hooks/keys/useDataKeys';
-import {useInstantiateKeys} from '../../hooks/keys/useInstantiateKeys';
-import {useTransactionModal} from '../../hooks/modals';
-import {useDialog} from '../../hooks/modals/useDialog';
-import {useTransaction} from '../../hooks/modals/useTransaction';
-import {useWalletModal} from '../../hooks/modals/useWalletModal';
-import {KeysUser} from '../../types/keys';
-import {TipSuccessModalProps} from '../TipSuccessModal';
-import {KeyModalAction} from '.';
+import { Button, Text } from '../../components';
+import { KEYS_ADDRESS } from '../../constants/contracts';
+import { TokenSymbol } from '../../constants/tokens';
+import { useStyles, useWaitConnection } from '../../hooks';
+import { useDataKeys } from '../../hooks/keys/useDataKeys';
+import { useInstantiateKeys } from '../../hooks/keys/useInstantiateKeys';
+import { useTransactionModal } from '../../hooks/modals';
+import { useDialog } from '../../hooks/modals/useDialog';
+import { useTransaction } from '../../hooks/modals/useTransaction';
+import { useWalletModal } from '../../hooks/modals/useWalletModal';
+import { KeysUser } from '../../types/keys';
+import { TipSuccessModalProps } from '../TipSuccessModal';
+import { KeyModalAction } from '.';
 import stylesheet from './styles';
 
 export type FormInstantiateKeyProps = {
@@ -44,19 +44,19 @@ export const FormInstantiateKey = ({
   const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
   const [amount, setAmount] = useState<string>('');
 
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const [myKey, setMyKey] = useState<KeysUser | undefined>();
   const [keySelected, setKeySelected] = useState<KeysUser | undefined>();
   const [isCanInstantiateKey, setCanInstantiateKey] = useState<boolean | undefined>(false);
 
   const account = useAccount();
   const walletModal = useWalletModal();
-  const sendTransaction = useTransaction();
-  const {hide: hideTransactionModal} = useTransactionModal();
+  const {sendTransaction, txUrl} = useTransaction({});
+  const { hide: hideTransactionModal } = useTransactionModal();
   const waitConnection = useWaitConnection();
-  const {handleInstantiateKeys} = useInstantiateKeys();
-  const {getAllKeys, getKeyByAddress} = useDataKeys();
-  const {showDialog, hideDialog} = useDialog();
+  const { handleInstantiateKeys } = useInstantiateKeys();
+  const { getAllKeys, getKeyByAddress } = useDataKeys();
+  const { showDialog, hideDialog } = useDialog();
   const isActive = !!amount && !!token;
 
   useEffect(() => {
@@ -96,16 +96,14 @@ export const FormInstantiateKey = ({
     };
     if (!account || !account?.account) return;
 
-    const receipt = await sendTransaction({
-      calls: [
-        call,
-        // {
-        //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-        //   entrypoint: Entrypoint.DEPOSIT,
-        //   calldata: depositCallData,
-        // },
-      ],
-    });
+    const receipt = await sendTransaction(
+      [call]
+      // {
+      //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+      //   entrypoint: Entrypoint.DEPOSIT,
+      //   calldata: depositCallData,
+      // },
+    );
     // const tx = await account?.account?.execute([call], undefined, {});
     // console.log('tx hash', tx?.transaction_hash);
     // if (tx?.transaction_hash) {
@@ -113,7 +111,7 @@ export const FormInstantiateKey = ({
     //   // await handleInstantiateKeys(account?.account);
     // }
 
-    if (receipt?.isSuccess()) {
+    if (receipt) {
       hideTransactionModal();
       showSuccess({
         amount: Number(amount),
@@ -132,14 +130,14 @@ export const FormInstantiateKey = ({
       });
     } else {
       let description = 'Please Try Again Later.';
-      if (receipt?.isRejected()) {
-        description = receipt.transaction_failure_reason.error_message;
-      }
+      // if (receipt) {
+      //   description = receipt.transaction_failure_reason.error_message;
+      // }
 
       showDialog({
         title: 'Failed to send the tip',
         description,
-        buttons: [{type: 'secondary', label: 'Close', onPress: () => hideDialog()}],
+        buttons: [{ type: 'secondary', label: 'Close', onPress: () => hideDialog() }],
       });
     }
   };

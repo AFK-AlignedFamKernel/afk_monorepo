@@ -2,8 +2,9 @@ import {LightningAddress} from '@getalby/lightning-tools';
 import {Picker} from '@react-native-picker/picker';
 import {Contact, useCashuStore} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
-import {Button, Text, TextInput, View} from 'react-native';
+import {Text, TextInput, View} from 'react-native';
 
+import {Button} from '../../components';
 import {useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
@@ -127,18 +128,24 @@ const SendNostrContact: React.FC<SendModalProps> = ({onClose}) => {
           <Text style={styles.confirmText}>
             Confirm payment of {amount} sats to {recipient}
           </Text>
-          <Button title="Confirm Payment" onPress={handleConfirm} />
+          <Button onPress={handleConfirm}>Confirm Payment</Button>
         </View>
       )}
 
       <View style={styles.buttonContainer}>
-        {step !== 'amount' && <Button title="Back" onPress={handleBack} color="#777" />}
+        {step !== 'amount' && (
+          <Button onPress={handleBack} textStyle={{color: '#777'}}>
+            Back
+          </Button>
+        )}
         {step !== 'confirm' && (
           <Button
-            title="Next"
             onPress={handleNext}
             disabled={(!amount && step === 'amount') || (!recipient && step === 'recipient')}
-          />
+            style={{width: '100%'}}
+          >
+            Next
+          </Button>
         )}
       </View>
     </View>

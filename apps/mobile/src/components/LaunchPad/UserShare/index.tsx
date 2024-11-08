@@ -1,32 +1,35 @@
-import {useEffect, useState} from 'react';
-import {Pressable, View} from 'react-native';
-import {useAccount} from 'wagmi';
+import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { useAccount } from 'wagmi';
 
-import {useStyles, useWaitConnection} from '../../../hooks';
-import {useGetShares} from '../../../hooks/api/indexer/useUserShare';
-import {useWalletModal} from '../../../hooks/modals';
-import {TokenStatsInterface, UserShareInterface} from '../../../types/keys';
+import { useStyles, useWaitConnection } from '../../../hooks';
+import { useGetShares } from '../../../hooks/api/indexer/useUserShare';
+import { useWalletModal } from '../../../hooks/modals';
+import { TokenStatsInterface, UserShareInterface } from '../../../types/keys';
 import Loading from '../../Loading';
-import {Text} from '../../Text';
+import { Text } from '../../Text';
 import stylesheet from './styles';
 
 export type UserShareProps = {
   loading: boolean;
   coinAddress: string;
   shares?: UserShareInterface[];
+  share?: UserShareInterface;
 };
 
-export const UserShare: React.FC<UserShareProps> = ({shares, loading, coinAddress}) => {
+export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, coinAddress }) => {
   const styles = useStyles(stylesheet);
   const [stats, setStats] = useState<TokenStatsInterface | undefined>();
-  const [sharesState, setShares] = useState<UserShareInterface | undefined>();
+  const [sharesState, setShares] = useState<UserShareInterface | undefined>(share);
+  console.log('share', share);
+  console.log('sharesState', sharesState);
 
   const account = useAccount();
   const {
     data: sharesData,
     isLoading: sharesLoading,
     refetch,
-  } = useGetShares(coinAddress, account?.address ?? '');
+  } = useGetShares(coinAddress, account?.address);
 
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
@@ -38,12 +41,10 @@ export const UserShare: React.FC<UserShareProps> = ({shares, loading, coinAddres
       if (!result) return;
     }
   };
-  console.log('sharesData', sharesData);
-  useEffect(() => {
-    const data = sharesData || [];
-    setStats(data);
-    setShares(sharesData);
-  }, [sharesData]);
+  // console.log('sharesData', sharesData);
+  // useEffect(() => {
+  //   setShares(sharesData);
+  // }, [sharesData]);
 
   // return loading ? (
   //   <Loading />
@@ -63,14 +64,47 @@ export const UserShare: React.FC<UserShareProps> = ({shares, loading, coinAddres
           </Pressable>
         </View>
       )}
-      {sharesState && (
+      {share ? (
+        <View style={[styles.container, styles.borderBottom]}>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Amount to claim
+            </Text>
+            <Text fontSize={14}>
+              {Number(share?.total_buy) - Number(share?.total_sell)}
+              {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
+            </Text>
+          </View>
+
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total sell
+            </Text>
+            <Text fontSize={14}>{share?.total_sell}</Text>
+          </View>
+
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total Buy
+            </Text>
+            <Text fontSize={14}>{share?.total_buy}</Text>
+          </View>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Quote amount paid
+            </Text>
+            <Text fontSize={14}>{sharesState?.quote_amount}</Text>
+          </View>
+        </View>
+      ) :
+        sharesState &&
         <View style={[styles.container, styles.borderBottom]}>
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Total
             </Text>
             <Text fontSize={14}>
-              {Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
+              {sharesState?.total ? Number(sharesState?.total) : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
             </Text>
           </View>
 
@@ -80,6 +114,13 @@ export const UserShare: React.FC<UserShareProps> = ({shares, loading, coinAddres
             </Text>
             <Text fontSize={14}>{sharesState?.total_sell}</Text>
           </View>
+
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total Buy
+            </Text>
+            <Text fontSize={14}>{sharesState?.total_buy}</Text>
+          </View>
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Quote amount paid
@@ -87,7 +128,39 @@ export const UserShare: React.FC<UserShareProps> = ({shares, loading, coinAddres
             <Text fontSize={14}>{sharesState?.quote_amount}</Text>
           </View>
         </View>
-      )}
+      }
+      {/* {sharesState && (
+        <View style={[styles.container, styles.borderBottom]}>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total
+            </Text>
+            <Text fontSize={14}>
+              {sharesState?.total ? Number(sharesState?.total) : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
+            </Text>
+          </View>
+
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total sell
+            </Text>
+            <Text fontSize={14}>{sharesState?.total_sell}</Text>
+          </View>
+
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total Buy
+            </Text>
+            <Text fontSize={14}>{sharesState?.total_buy}</Text>
+          </View>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Quote amount paid
+            </Text>
+            <Text fontSize={14}>{sharesState?.quote_amount}</Text>
+          </View>
+        </View>
+      )} */}
 
       {/* <FlatList
         data={stats}

@@ -5,7 +5,7 @@ import {useState} from 'react';
 import {useAccount} from 'wagmi';
 
 import {CustomConnectButtonWallet} from '../button/CustomConnectButtonWallet';
-import ConnectWithOtpView from '../dynamic/ConnectWithOtpView';
+// import ConnectWithOtpView from '../dynamic/ConnectWithOtpView';
 import CustomModal from '../modal';
 import Account from './starknet/AccountStarknet';
 
@@ -57,12 +57,12 @@ const AccountManagement: React.FC = () => {
         </Box>
       )}
 
-      <Box>
+      {/* <Box>
         <Text>Onboard in Web3 space</Text>
         <Box>
           <ConnectWithOtpView></ConnectWithOtpView>
         </Box>
-      </Box>
+      </Box> */}
     </Box>
   );
 };
