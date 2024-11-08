@@ -2,7 +2,16 @@ import {Feather} from '@expo/vector-icons';
 import {useQueryClient} from '@tanstack/react-query';
 import {useAuth, useLiveActivity} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
-import {FlatList, Modal, Pressable, SafeAreaView, Text, TextInput, View} from 'react-native';
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  RefreshControl,
+  SafeAreaView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import {LoadingSpinner} from '../../components/Loading';
 import {useStyles} from '../../hooks';
@@ -135,6 +144,13 @@ export function LiveChatView({
         keyExtractor={(item) => item.id}
         renderItem={({item}) => <MessageCard item={item} handleLongPress={handleLongPress} />}
         inverted
+        refreshControl={
+          <RefreshControl
+            refreshing={chatMessages.isFetching}
+            onRefresh={() => chatMessages.refetch()}
+          />
+        }
+        onEndReached={() => chatMessages.fetchNextPage()}
       />
 
       {replyToId && <ReplyIndicator message={replyToContent} onCancel={cancelReply} />}
