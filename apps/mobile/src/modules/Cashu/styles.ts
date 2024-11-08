@@ -21,25 +21,6 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  tab: {
-    backgroundColor: 'transparent',
-    color: theme.colors.text,
-    borderRadius: 0,
-    flex: 1,
-    padding: 10,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderColor: theme.colors.primary,
-  },
-  tabText: {
-    fontSize: 18,
-    color: theme.colors.text,
-  },
   tabSelector: {
     // flex:1,
     // maxWidth: 500,
@@ -460,5 +441,49 @@ export default ThemedStyleSheet((theme) => ({
   buttonContainer: {
     flexDirection: 'column',
     gap: 15,
+  },
+  // send modal
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Customizable backdrop color
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  sendMainContainer: {
+    backgroundColor: theme.colors.background,
+    width: '100%',
+    alignItems: 'center',
+    maxWidth: 400,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  tabContainer: {
+    flexDirection: 'column',
+    width: '80%',
+    marginBottom: 30,
+  },
+  modalSendTitle: {
+    padding: 20,
+    textTransform: 'uppercase',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  tab: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 50,
+    flex: 1,
+    padding: 10,
+    marginBottom: 10,
+  },
+  activeTab: {
+    // borderBottomWidth: 2,
+    // borderColor: theme.colors.primary,
+  },
+  tabText: {
+    fontSize: 18,
+    color: theme.colors.white,
+    textAlign: 'center',
+    fontWeight: 'medium',
   },
 }));

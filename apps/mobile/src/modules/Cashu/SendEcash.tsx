@@ -154,52 +154,21 @@ export const SendEcash = () => {
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
   return (
-    <SafeAreaView
-    // style={styles.safeArea}
-    >
-      <View
-      // style={styles.container}
-      >
-        {/* 
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={[
-            {
-              title: "Lightning",
-              tab: undefined
-            }
-          ]}
-          addScreenNavigation={false}
-        ></TabSelector> */}
-
-        <View style={styles.tabContainer}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.activeTab]}
-              onPress={() => handleTabChange(tab)}
-            >
-              <Text style={styles.tabText}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View
-        //  style={styles.container}
-        >
-          {/* <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
-          </View> */}
-
-          <View
-          // style={styles.text}
+    <SafeAreaView style={styles.sendMainContainer}>
+      <View style={styles.tabContainer}>
+        <Text style={styles.modalSendTitle}>Send</Text>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            onPress={() => handleTabChange(tab)}
           >
+            <Text style={styles.tabText}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* <View>
+          <View>
             <Text style={styles.text}>
               <span style={{fontWeight: 'bold'}}>Name:</span> {infoMint?.name}
             </Text>
@@ -274,7 +243,7 @@ export const SendEcash = () => {
               <SendNostrContact />
             </>
           )}
-        </View>
+        </View> */}
       </View>
     </SafeAreaView>
   );

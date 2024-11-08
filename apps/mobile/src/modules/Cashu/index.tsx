@@ -4,18 +4,28 @@ import {MintQuoteResponse} from '@cashu/cashu-ts';
 import {useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
+import {
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
 import {Button, IconButton, Modalize} from '../../components';
+import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import {ContactList} from '../Contacts/ContactList';
 import {BalanceCashu} from './BalanceCashu';
 import {HistoryTxCashu} from './HistoryTxCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
@@ -26,8 +36,6 @@ import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
-import {ContactsRow} from '../../components/ContactsRow';
-import {ContactList} from '../Contacts/ContactList';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -135,26 +143,31 @@ export const CashuView = () => {
 
   const sendModalizeRef = useRef<Modalize>(null);
 
-  const onOpenSendModal = () => {
-    sendModalizeRef.current?.close();
+  const [sendModalOpen, setSendModalOpen] = useState<boolean>(false);
+  const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <SendEcash></SendEcash>
-      </>,
-    );
+  const onOpenSendModal = () => {
+    setSendModalOpen(true);
+    // sendModalizeRef.current?.close();
+
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <SendEcash></SendEcash>
+    //   </>,
+    // );
   };
 
   const onOpenReceiveModal = () => {
-    sendModalizeRef.current?.close();
+    setReceiveModalOpen(true);
+    // sendModalizeRef.current?.close();
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <ReceiveEcash></ReceiveEcash>
-      </>,
-    );
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <ReceiveEcash></ReceiveEcash>
+    //   </>,
+    // );
   };
   const handleZap = async () => {
     if (!zapAmount || !zapRecipient) return;
@@ -194,6 +207,20 @@ export const CashuView = () => {
 
   return (
     <View style={styles.container}>
+      <Modal animationType="slide" transparent={true} visible={sendModalOpen}>
+        <TouchableWithoutFeedback onPress={() => setSendModalOpen(false)}>
+          <View style={styles.modalBackdrop}>
+            <SendEcash></SendEcash>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+      <Modal animationType="slide" transparent={true} visible={receiveModalOpen}>
+        <TouchableWithoutFeedback onPress={() => setReceiveModalOpen(false)}>
+          <View style={styles.modalBackdrop}>
+            <ReceiveEcash></ReceiveEcash>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
