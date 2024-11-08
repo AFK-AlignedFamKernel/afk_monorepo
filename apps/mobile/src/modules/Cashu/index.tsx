@@ -4,15 +4,7 @@ import {MintQuoteResponse} from '@cashu/cashu-ts';
 import {useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
@@ -207,19 +199,15 @@ export const CashuView = () => {
 
   return (
     <View style={styles.container}>
-      <Modal animationType="slide" transparent={true} visible={sendModalOpen}>
-        <TouchableWithoutFeedback onPress={() => setSendModalOpen(false)}>
-          <View style={styles.modalBackdrop}>
-            <SendEcash></SendEcash>
-          </View>
-        </TouchableWithoutFeedback>
+      <Modal animationType="fade" transparent={true} visible={sendModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <SendEcash onClose={() => setSendModalOpen(false)}></SendEcash>
+        </View>
       </Modal>
-      <Modal animationType="slide" transparent={true} visible={receiveModalOpen}>
-        <TouchableWithoutFeedback onPress={() => setReceiveModalOpen(false)}>
-          <View style={styles.modalBackdrop}>
-            <ReceiveEcash></ReceiveEcash>
-          </View>
-        </TouchableWithoutFeedback>
+      <Modal animationType="fade" transparent={true} visible={receiveModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <ReceiveEcash onClose={() => setReceiveModalOpen(false)}></ReceiveEcash>
+        </View>
       </Modal>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>

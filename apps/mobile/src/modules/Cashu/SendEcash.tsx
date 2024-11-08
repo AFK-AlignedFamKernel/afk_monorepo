@@ -16,7 +16,19 @@ import {SelectedTab} from '../../types/tab';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
-export const SendEcash = () => {
+interface SendEcashProps {
+  onClose: () => void;
+}
+
+export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
+  type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
+  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const [activeTab, setActiveTab] = useState<TabType>('none');
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
+
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
   const {
     wallet,
@@ -34,11 +46,7 @@ export const SendEcash = () => {
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const tabs = ['lightning', 'ecash', 'contact'];
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
+
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
@@ -66,10 +74,6 @@ export const SendEcash = () => {
   const {handleGenerateEcash, handlePayInvoice} = usePayment();
 
   const {showToast} = useToast();
-
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
-    SelectedTab.LIGHTNING_NETWORK_WALLET,
-  );
 
   const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -133,13 +137,6 @@ export const SendEcash = () => {
     return ecash;
   };
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    if (screen) {
-      // navigation.navigate(screen as any);
-    }
-  };
-
   const handleCopy = async (type: 'ecash') => {
     if (!generatedEcash) return;
     if (type == 'ecash') {
@@ -153,21 +150,49 @@ export const SendEcash = () => {
     // }
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
-  return (
-    <SafeAreaView style={styles.sendMainContainer}>
-      <View style={styles.tabContainer}>
-        <Text style={styles.modalSendTitle}>Send</Text>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-            onPress={() => handleTabChange(tab)}
-          >
-            <Text style={styles.tabText}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
 
-        {/* <View>
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'none':
+        return (
+          <SafeAreaView style={styles.modalTabsMainContainer}>
+            <View style={styles.tabContainer}>
+              <Text style={styles.modalTabsTitle}>Send</Text>
+              {tabs.map((tab) => (
+                <TouchableOpacity key={tab} style={styles.tab} onPress={() => handleTabChange(tab)}>
+                  <Text style={styles.tabText}>{tab}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </SafeAreaView>
+        );
+      case 'lightning':
+        return (
+          <SafeAreaView style={styles.modalTabContentContainer}>
+            <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
+          </SafeAreaView>
+        );
+      case 'ecash':
+        return (
+          <SafeAreaView style={styles.modalTabContentContainer}>
+            <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
+          </SafeAreaView>
+        );
+      case 'contact':
+        return (
+          <SafeAreaView style={styles.modalTabContentContainer}>
+            <Text style={styles.modalTabContentTitle}>Send Contact</Text>
+          </SafeAreaView>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return renderTabContent();
+
+  {
+    /* <View>
           <View>
             <Text style={styles.text}>
               <span style={{fontWeight: 'bold'}}>Name:</span> {infoMint?.name}
@@ -243,8 +268,6 @@ export const SendEcash = () => {
               <SendNostrContact />
             </>
           )}
-        </View> */}
-      </View>
-    </SafeAreaView>
-  );
+        </View> */
+  }
 };

@@ -3,21 +3,32 @@ import '../../../applyGlobalPolyfills';
 import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
 import {addProofs, ICashuInvoice, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, useEffect, useState} from 'react';
-import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import React, {ChangeEvent, useState} from 'react';
+import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
+import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import GenerateQRCode from './qr/GenerateQRCode'; // Import the QR code component
+import ScanCashuQRCode from './qr/ScanCode';
 import stylesheet from './styles';
 
-export const ReceiveEcash = () => {
-  const tabs = ['lightning', 'ecash'];
+interface ReceiveEcashProps {
+  onClose: () => void;
+}
+
+export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
+  type TabType = 'lightning' | 'ecash' | 'none';
+  const tabs = ['lightning', 'ecash'] as const;
+  const [activeTab, setActiveTab] = useState<TabType>('none');
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
 
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
   const {
@@ -48,10 +59,6 @@ export const ReceiveEcash = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
   const [zapRecipient, setZapRecipient] = useState('');
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [connectionData, setConnectionData] = useState<any>(null);
 
@@ -73,9 +80,11 @@ export const ReceiveEcash = () => {
     const value = event.target.value;
     setEcash(value);
   };
-  useEffect(() => {}, []);
+
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<boolean>(false);
 
   const generateInvoice = async () => {
+    setIsGeneratingInvoice(true);
     const mintUrl = mintUrls?.[activeMintIndex]?.url;
     if (!mintUrl || !invoiceAmount) return;
     try {
@@ -111,6 +120,7 @@ export const ReceiveEcash = () => {
       console.error('Error generating invoice:', error);
     } finally {
       setIsLoading(false);
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -148,90 +158,169 @@ export const ReceiveEcash = () => {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.sendMainContainer}>
-      <View style={styles.tabContainer}>
-        <Text style={styles.modalSendTitle}>Receive</Text>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-            onPress={() => handleTabChange(tab)}
-          >
-            <Text style={styles.tabText}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+  const handlePaste = async () => {
+    try {
+      const text = await Clipboard.getStringAsync();
+      if (text) {
+        setEcash(text);
+      }
+    } catch (error) {
+      console.error('Failed to paste content:', error);
+    }
+  };
 
-      {/* {activeTab == 'ecash' && (
-        <>
-          <TextInput
-            placeholder="Enter token: cashuXYZ"
-            value={ecash}
-            onChangeText={setEcash}
-            style={styles.input}
-          />
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
 
-          {ecash && (
-            <View
-              style={{
-                marginVertical: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 20,
-                marginBottom: 20,
-              }}
+  const handleQRCodeClick = () => {
+    setIsScannerVisible(true);
+  };
+
+  const handleCloseScanner = () => {
+    setIsScannerVisible(false);
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'none':
+        return (
+          <SafeAreaView style={styles.modalTabsMainContainer}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
             >
-              <Text style={styles.text}>ecash token</Text>
-
-              <Input
-                value={ecash}
-                editable={false}
-                right={
-                  <TouchableOpacity onPress={() => handleCopy('ecash')} style={{marginRight: 10}}>
-                    <CopyIconStack color={theme.colors.primary} />
-                  </TouchableOpacity>
-                }
-              />
-              <GenerateQRCode data={ecash} size={200} />
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.tabContainer}>
+              <Text style={styles.modalTabsTitle}>Receive</Text>
+              {tabs.map((tab) => (
+                <TouchableOpacity key={tab} style={styles.tab} onPress={() => handleTabChange(tab)}>
+                  <Text style={styles.tabText}>{tab}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          )}
+          </SafeAreaView>
+        );
+      case 'lightning':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Create Invoice</Text>
+              <>
+                <TextInput
+                  placeholder="Amount"
+                  keyboardType="numeric"
+                  value={invoiceAmount}
+                  onChangeText={setInvoiceAmount}
+                  style={styles.input}
+                />
 
-          <Button onPress={handleReceiveEcash}>Receive ecash</Button>
-        </>
-      )}
+                <Button
+                  onPress={generateInvoice}
+                  style={styles.modalActionButton}
+                  disabled={isGeneratingInvoice}
+                >
+                  {isGeneratingInvoice ? 'Generating...' : 'Generate invoice'}
+                </Button>
 
-      {activeTab == 'lightning' && (
-        <>
-          <TextInput
-            placeholder="Amount"
-            keyboardType="numeric"
-            value={invoiceAmount}
-            onChangeText={setInvoiceAmount}
-            style={styles.input}
-          />
+                {quote?.request && (
+                  <View
+                    style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}
+                  >
+                    <Text style={styles.text}>Invoice address</Text>
 
-          <Button onPress={generateInvoice}>Generate invoice</Button>
+                    <Input
+                      value={quote?.request}
+                      editable={false}
+                      right={
+                        <TouchableOpacity
+                          onPress={() => handleCopy('lnbc')}
+                          style={{marginRight: 10}}
+                        >
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
+                    />
 
-          {quote?.request && (
-            <View style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}>
-              <Text style={styles.text}>Invoice address</Text>
-
-              <Input
-                value={quote?.request}
-                editable={false}
-                right={
-                  <TouchableOpacity onPress={() => handleCopy('lnbc')} style={{marginRight: 10}}>
-                    <CopyIconStack color={theme.colors.primary} />
-                  </TouchableOpacity>
-                }
-              />
-
-              <GenerateQRCode data={quote?.request} size={200} />
+                    <GenerateQRCode data={quote?.request} size={200} />
+                  </View>
+                )}
+              </>
             </View>
-          )}
-        </>
-      )} */}
-    </SafeAreaView>
-  );
+          </>
+        );
+      case 'ecash':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Receive Ecash</Text>
+              <>
+                <TextInput
+                  placeholder="Enter token: cashuXYZ"
+                  value={ecash}
+                  onChangeText={setEcash}
+                  style={styles.input}
+                />
+                <TouchableOpacity style={styles.button} onPress={handlePaste}>
+                  <Text style={styles.buttonText}>PASTE</Text>
+                </TouchableOpacity>
+                <View>
+                  <TouchableOpacity onPress={handleQRCodeClick} style={styles.qrButton}>
+                    <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
+                  </TouchableOpacity>
+                </View>
+                {ecash && (
+                  <View
+                    style={{
+                      marginVertical: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 20,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <Text style={styles.text}>TOKEN</Text>
+
+                    <Input
+                      value={ecash}
+                      editable={false}
+                      right={
+                        <TouchableOpacity
+                          onPress={() => handleCopy('ecash')}
+                          style={{marginRight: 10}}
+                        >
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
+                    />
+                    <GenerateQRCode data={ecash} size={200} />
+                  </View>
+                )}
+                <Button onPress={handleReceiveEcash} style={styles.modalActionButton}>
+                  Receive ecash
+                </Button>
+              </>
+              <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
+                <ScanCashuQRCode onClose={handleCloseScanner} />
+              </Modal>
+            </View>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return renderTabContent();
 };
