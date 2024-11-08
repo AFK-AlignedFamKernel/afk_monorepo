@@ -1,32 +1,65 @@
 import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
-    background:theme.colors.swap_background,
-    borderRadius: 8,
+    width: '100%',
+  },
+  tradingCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: Spacing.normal,
+    gap: Spacing.small,
+  },
+  tokenInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.small,
+  },
+  tokenName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  tokenPrice: {
+    fontSize: 18,
+    color: theme.colors.text,
+  },
+  actionToggle: {
+    flexDirection: 'row',
     gap: Spacing.xsmall,
-    overflowWrap: 'break-word',
-    marginBottom: Spacing.normal,
+    marginBottom: Spacing.small,
   },
-  imageContainer: {
-    borderRadius: 15,
+  toggleButton: {
+    flex: 1,
+    borderRadius: 8,
   },
-  text: {},
-  image: {
-    position: 'absolute',
-    width: 35,
-    height: 35,
-    borderRadius: 15,
+  activeToggle: {
+    backgroundColor: theme.colors.primary,
   },
-  name: {
-    paddingTop: Spacing.xxsmall,
+  inputContainer: {
+    gap: Spacing.xsmall,
   },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#b5b5b5',
-    paddingBottom: 10,
-    marginBottom: 15,
+  input: {
+    width: '100%',
+    borderRadius: 8,
+    backgroundColor: theme.colors.inputBackground,
   },
-  marginBottom: {
-    marginBottom: 10,
+  balanceInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    color: theme.colors.textSecondary,
+  },
+  maxButton: {
+    paddingHorizontal: Spacing.small,
+    paddingVertical: Spacing.xxsmall,
+    backgroundColor: theme.colors.secondary,
+  },
+  actionButton: {
+    width: '100%',
+    marginTop: Spacing.small,
+    backgroundColor: theme.colors.primary,
   },
 }));
