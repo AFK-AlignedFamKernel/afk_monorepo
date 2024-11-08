@@ -1,5 +1,7 @@
 import React from 'react';
 import {ScrollView, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import {Spacing} from '../../styles';
+import {useTheme} from '../../hooks';
 
 import {Button} from '../Button';
 
@@ -22,6 +24,25 @@ const TabSelector: React.FC<ITabSelector> = ({
   tabStyle,
   activeTabStyle,
 }) => {
+  const {theme} = useTheme();
+
+  const dynamicStyles = StyleSheet.create({
+    tabContainer: {
+      height: 50,
+      backgroundColor: theme.colors.surface,
+    },
+    active: {
+      borderBottomWidth: 2,
+      borderColor: theme.colors.primary,
+    },
+    tabText: {
+      color: theme.colors.text,
+    },
+    activeTabText: {
+      color: theme.colors.primary,
+    }
+  });
+
   const handlePress = (tab: string | any, screen?: string) => {
     if (addScreenNavigation) {
       handleActiveTab(tab, screen);
@@ -42,8 +63,9 @@ const TabSelector: React.FC<ITabSelector> = ({
             <Button
               key={i}
               style={[
-                tabStyle ?? styles.tab,
-                activeTab === b?.tab ? activeTabStyle ?? styles.active : null,
+                styles.tab,
+                tabStyle,
+                activeTab === b?.tab ? activeTabStyle ?? dynamicStyles.active : null,
               ]}
               onPress={() => handlePress(b?.tab, b?.screen)}
             >
@@ -57,27 +79,20 @@ const TabSelector: React.FC<ITabSelector> = ({
 };
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    height: 50, // Set a fixed height for the tab container
-    backgroundColor: '#f0f0f0', // Optional: background color for the entire tab bar
-  },
   container: {
-    alignItems: 'center', // Ensure the tabs are vertically centered
+    alignItems: 'center',
     paddingVertical: 5,
     flexDirection: 'row',
   },
-
   tab: {
     height: '100%',
+    minWidth: 100,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: Spacing.small,
   },
   button: {
-    // padding: 10,
-  },
-  active: {
-    borderBottomWidth: 2,
-    borderColor: 'blue',
+    padding: Spacing.xsmall,
   },
 });
 
