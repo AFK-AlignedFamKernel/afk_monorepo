@@ -43,3 +43,25 @@ export interface UseLiveEventsOptions {
   hashtag?: string;
   limit?: number;
 }
+
+export interface ParsedLiveChatMessage {
+  id: string;
+  pubkey: string;
+  content: string;
+  created_at: number;
+  replyTo?: {
+    id: string;
+    marker: string;
+  };
+  root?: {
+    type: string;
+    id: string;
+    relay?: string;
+  };
+  activityTag: {
+    type: string;
+    pubkey: string;
+    identifier: string;
+    relay?: string;
+  };
+}

@@ -9,7 +9,9 @@ export default ThemedStyleSheet((theme) => ({
   },
   scrollContent: {
     padding: 16,
-    flexGrow: 1,
+    // flexGrow: 1,
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
   headerText: {
     fontSize: 24,

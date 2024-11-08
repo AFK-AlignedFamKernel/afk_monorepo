@@ -138,16 +138,11 @@ export default ThemedStyleSheet((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.swap_divider,
   },
+
+  // Chat section
   chatContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: '30%',
-    minWidth: 280,
-    backgroundColor: theme.colors.surface,
-    borderLeftWidth: 1,
-    borderLeftColor: theme.colors.divider,
+    flex: 1,
+    backgroundColor: '#fff',
   },
   chatHeader: {
     flexDirection: 'row',
@@ -155,80 +150,12 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
+    borderBottomColor: '#e0e0e0',
   },
   chatTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.text,
+    fontWeight: 'bold',
   },
-  chatMessages: {
-    flex: 1,
-    padding: 16,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  avatarText: {
-    color: theme.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  messageContent: {
-    flex: 1,
-    backgroundColor: theme.colors.messageCard,
-    padding: 12,
-    borderRadius: 12,
-  },
-  messageSender: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.messageCardText,
-    marginBottom: 4,
-  },
-  messageText: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-  },
-  chatInputContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.divider,
-    marginBottom: 'auto',
-  },
-  chatInput: {
-    flex: 1,
-    backgroundColor: theme.colors.inputBackground,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    fontSize: 14,
-    color: theme.colors.inputText,
-  },
-  sendButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    justifyContent: 'center',
-  },
-  sendButtonText: {
-    color: theme.colors.onPrimary,
-    fontWeight: '600',
-  },
-
   actionButtonText: {
     color: theme.colors.text,
   },
