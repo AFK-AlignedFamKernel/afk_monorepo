@@ -1,7 +1,7 @@
 import { useAccount } from '@starknet-react/core';
 import { feltToAddress } from 'common';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, View } from 'react-native';
+import { KeyboardAvoidingView, View, ViewStyle, useWindowDimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,11 +36,23 @@ import {
 import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
 import stylesheet from './styles';
 
+interface LaunchDetailStyles {
+  container: ViewStyle;
+  header: ViewStyle;
+  cancelButton: ViewStyle;
+  mainContent: ViewStyle;
+  leftColumn: ViewStyle;
+  rightColumn: ViewStyle;
+  tabContent: ViewStyle;
+  mobileContent: ViewStyle;
+  mobileTabBar: ViewStyle;
+}
+
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
   const { theme } = useTheme();
-  const styles = useStyles(stylesheet);
-  const [loading, setLoading] = useState<false | number>(false);
+  const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
+  const [loading, setLoading] = useState(false);
   const account = useAccount();
   const [typeAction, setTypeAction] = useState<"SELL" | "BUY">("BUY")
 
@@ -209,6 +221,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     }
   }
 
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768; // Common breakpoint for mobile
+
   if (!coinAddress) {
     return (
       <>
@@ -221,101 +236,83 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   return (
     <View style={styles.container}>
-      {/* <Header showLogo /> */}
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
         <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
           Back
         </TextButton>
       </SafeAreaView>
-      <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        {/* TODO smooth UI */}
 
-        <LaunchActionsForm
-          amount={amount}
-          onChangeText={(e) => setAmount(Number(e))}
-          onBuyPress={buyCoin}
-          onSellPress={sellCoin}
-          launch={launch}
-          setTypeAction={setTypeAction}
-          typeAction={typeAction}
-          onHandleAction={onHandleAction}
-          userShare={share}
-          onSetAmount={setAmount}
-        ></LaunchActionsForm>
-
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_LAUNCH}
-          addScreenNavigation={false}
-        ></TabSelector>
-
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
-          <ScrollView>
+      {isMobile ? (
+        // Mobile Layout
+        <View style={styles.mobileContent}>
+          <LaunchActionsForm
+            amount={amount}
+            onChangeText={(e) => setAmount(Number(e))}
+            onBuyPress={buyCoin}
+            onSellPress={sellCoin}
+            launch={launch}
+            setTypeAction={setTypeAction}
+            typeAction={typeAction}
+            onHandleAction={onHandleAction}
+            userShare={share}
+            onSetAmount={setAmount}
+          />
+          <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
-              <>
+              <TokenLaunchDetail
+                isViewDetailDisabled={true}
+                launch={launch}
+                isDisabledInfo={true}
+                isDisabledForm
+              />
+            )}
+          </ScrollView>
+          <View style={styles.mobileTabBar}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+          </View>
+        </View>
+      ) : (
+        // Web Layout (keep existing layout)
+        <View style={styles.mainContent}>
+          <View style={styles.leftColumn}>
+            <LaunchActionsForm
+              amount={amount}
+              onChangeText={(e) => setAmount(Number(e))}
+              onBuyPress={buyCoin}
+              onSellPress={sellCoin}
+              launch={launch}
+              setTypeAction={setTypeAction}
+              typeAction={typeAction}
+              onHandleAction={onHandleAction}
+              userShare={share}
+              onSetAmount={setAmount}
+            />
+          </View>
+          <View style={styles.rightColumn}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+            <ScrollView style={styles.tabContent}>
+              {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
                 <TokenLaunchDetail
                   isViewDetailDisabled={true}
                   launch={launch}
                   isDisabledInfo={true}
                   isDisabledForm
                 />
-              </>
-            )}
-
-            {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
-              <>
-                <View style={styles.holdersTotal}>
-                  <Text weight="medium" fontSize={14}>
-                    Total Owner Address: {holdings?.data?.length}
-                  </Text>
-                </View>
-                <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
-              </>
-            )}
-
-            {selectedTab == SelectedTab.LAUNCH_GRAPH &&
-              <View>
-                <Text>Graph coming soon</Text>
-
-              </View>
-            }
-
-            {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
-              <>
-                <TokenTx tx={transactions} loading={txLoading} />
-              </>
-            )}
-
-            {selectedTab == SelectedTab.TOKEN_STATS && transactions && (
-              <>
-                <TokenStats loading={statsLoading} stats={stats} />
-              </>
-            )}
-
-            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ?
-              (
-                <>
-                  <UserShare
-                    loading={sharesLoading}
-                    shares={shares}
-                    share={share}
-                    coinAddress={launch?.memecoin_address}
-                  />
-                </>
-              ) :
-
-              !account?.address &&
-              selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address &&
-
-              <View>
-                <Text>Please connect</Text>
-                <Button onPress={handleConnect}>Connect</Button>
-              </View>
-            }
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
