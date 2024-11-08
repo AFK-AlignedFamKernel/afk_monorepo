@@ -18,7 +18,7 @@ export default ThemedStyleSheet((theme) => ({
     // position: 'relative',
     flex: 1,
     // backgroundColor: theme.colors.background,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: 'transparent',
     color: theme.colors.text,
   },
   tabSelector: {

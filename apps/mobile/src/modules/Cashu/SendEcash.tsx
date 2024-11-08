@@ -7,12 +7,11 @@ import React, {ChangeEvent, useEffect, useState} from 'react';
 import {SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
+import {CloseIcon, CopyIconStack} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
-import {SelectedTab} from '../../types/tab';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
@@ -156,6 +155,12 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
       case 'none':
         return (
           <SafeAreaView style={styles.modalTabsMainContainer}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
             <View style={styles.tabContainer}>
               <Text style={styles.modalTabsTitle}>Send</Text>
               {tabs.map((tab) => (
@@ -168,21 +173,86 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
         );
       case 'lightning':
         return (
-          <SafeAreaView style={styles.modalTabContentContainer}>
-            <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
-          </SafeAreaView>
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
+              <>
+                <TextInput
+                  placeholder="Invoice to paid"
+                  value={invoice}
+                  onChangeText={setInvoice}
+                  style={styles.input}
+                />
+
+                <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
+              </>
+            </View>
+          </>
         );
       case 'ecash':
         return (
-          <SafeAreaView style={styles.modalTabContentContainer}>
-            <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
-          </SafeAreaView>
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
+              <>
+                <TextInput
+                  placeholder="Amount"
+                  keyboardType="numeric"
+                  value={invoiceAmount}
+                  onChangeText={setInvoiceAmount}
+                  style={styles.input}
+                />
+                <Button onPress={handleEcash}>Generate eCash</Button>
+
+                {generatedEcash && (
+                  <View
+                    style={{
+                      marginVertical: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>eCash token</Text>
+
+                    <Input
+                      value={generatedEcash}
+                      editable={false}
+                      right={
+                        <TouchableOpacity onPress={() => handleCopy('ecash')}>
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
+                    />
+                  </View>
+                )}
+              </>
+            </View>
+          </>
         );
       case 'contact':
         return (
-          <SafeAreaView style={styles.modalTabContentContainer}>
-            <Text style={styles.modalTabContentTitle}>Send Contact</Text>
-          </SafeAreaView>
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Send Contact</Text>
+              <SendNostrContact />
+            </View>
+          </>
         );
       default:
         return null;
@@ -190,84 +260,4 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
   };
 
   return renderTabContent();
-
-  {
-    /* <View>
-          <View>
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>Name:</span> {infoMint?.name}
-            </Text>
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>Description:</span> {infoMint?.description}
-            </Text>
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>MOTD:</span> {infoMint?.motd}
-            </Text>
-          </View>
-
-          {activeTab == 'lightning' && (
-            <>
-              <TextInput
-                placeholder="Invoice to paid"
-                value={invoice}
-                onChangeText={setInvoice}
-                style={styles.input}
-              ></TextInput>
-
-              <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
-            </>
-          )}
-
-          {activeTab == 'ecash' && (
-            <>
-              <TextInput
-                placeholder="Amount"
-                keyboardType="numeric"
-                value={invoiceAmount}
-                onChangeText={setInvoiceAmount}
-                style={styles.input}
-              />
-              <Button
-                onPress={handleEcash}
-                // onPress={() =>  handleEcash}
-              >
-                Generate eCash
-              </Button>
-
-              {generatedEcash && (
-                <View
-                  style={{
-                    marginVertical: 3,
-                  }}
-                >
-                  <Text style={styles.text}>eCash token</Text>
-
-                  <Input
-                    value={generatedEcash}
-                    editable={false}
-                    right={
-                      <TouchableOpacity
-                        onPress={() => handleCopy('ecash')}
-                        style={
-                          {
-                            // marginRight: 10,
-                          }
-                        }
-                      >
-                        <CopyIconStack color={theme.colors.primary} />
-                      </TouchableOpacity>
-                    }
-                  />
-                </View>
-              )}
-            </>
-          )}
-
-          {activeTab == 'contact' && (
-            <>
-              <SendNostrContact />
-            </>
-          )}
-        </View> */
-  }
 };
