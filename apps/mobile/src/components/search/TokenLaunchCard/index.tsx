@@ -3,18 +3,15 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {useState} from 'react';
 import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
 
 import {CopyIconStack} from '../../../assets/icons';
-import {useStyles, useTheme, useWaitConnection} from '../../../hooks';
-import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
-import {useToast, useWalletModal} from '../../../hooks/modals';
+import {useStyles, useTheme} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
 import {feltToAddress} from '../../../utils/format';
-import {Button, Input} from '../..';
+import {Button} from '../..';
 import {Text} from '../../Text';
 import stylesheet from './styles';
 
@@ -58,9 +55,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.tokenName}>
-          {token?.name || 'Unnamed Token'}
-        </Text>
+        <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
         <View style={styles.addressContainer}>
           <Text numberOfLines={1} ellipsizeMode="middle" style={{color: '#808080', flex: 1}}>
             {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
@@ -81,11 +76,15 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Raised</Text>
-          <Text style={styles.statValue}>{Number(token?.liquidity_raised || 0).toLocaleString()}</Text>
+          <Text style={styles.statValue}>
+            {Number(token?.liquidity_raised || 0).toLocaleString()}
+          </Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Threshold</Text>
-          <Text style={styles.statValue}>{Number(token?.threshold_liquidity || 0).toLocaleString()}</Text>
+          <Text style={styles.statValue}>
+            {Number(token?.threshold_liquidity || 0).toLocaleString()}
+          </Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Network</Text>

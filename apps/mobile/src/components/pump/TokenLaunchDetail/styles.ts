@@ -60,5 +60,5 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: '700',
     color: theme.colors.text,
     marginBottom: Spacing.small,
-  }
+  },
 }));

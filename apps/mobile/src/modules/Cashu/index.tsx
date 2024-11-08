@@ -10,12 +10,14 @@ import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
 import {Button, IconButton, Modalize} from '../../components';
+import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import {ContactList} from '../Contacts/ContactList';
 import {BalanceCashu} from './BalanceCashu';
 import {HistoryTxCashu} from './HistoryTxCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
@@ -26,8 +28,6 @@ import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
-import {ContactsRow} from '../../components/ContactsRow';
-import {ContactList} from '../Contacts/ContactList';
 
 export const CashuWalletView: React.FC = () => {
   return (

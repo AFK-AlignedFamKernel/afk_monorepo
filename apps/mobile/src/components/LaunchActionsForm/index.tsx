@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { View } from 'react-native';
+import {useAccount} from '@starknet-react/core';
+import {useState} from 'react';
+import {View} from 'react-native';
 
-import { useStyles } from '../../hooks';
-import { Button } from '../Button';
-import { Input } from '../Input';
-import { Text } from '../Text';
+import {useStyles} from '../../hooks';
+import {useWalletModal} from '../../hooks/modals';
+import {useBalanceUtil} from '../../starknet/evm/utilHook';
+import {LaunchDataMerged, UserShareInterface} from '../../types/keys';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {Text} from '../Text';
 import stylesheet from './styles';
-import { useBalanceUtil } from '../../starknet/evm/utilHook';
-import { useAccount } from '@starknet-react/core';
-import { LaunchDataMerged, TokenLaunchInterface, UserShareInterface } from '../../types/keys';
-import { useWalletModal } from '../../hooks/modals';
 
 export type LaunchActionsFormProps = {
   onBuyPress: () => void;
@@ -17,11 +17,11 @@ export type LaunchActionsFormProps = {
   onHandleAction: (amountProps?: number) => void;
   onChangeText: (e: any) => void;
   onSetAmount: (e: number) => void;
-  typeAction?: "BUY" | "SELL";
-  setTypeAction?: (type: "BUY" | "SELL") => void;
+  typeAction?: 'BUY' | 'SELL';
+  setTypeAction?: (type: 'BUY' | 'SELL') => void;
   launch?: LaunchDataMerged;
   amount?: number;
-  userShare?: UserShareInterface
+  userShare?: UserShareInterface;
 };
 
 enum AmountType {
@@ -38,7 +38,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   onSellPress,
   onHandleAction,
   onChangeText,
-  onSetAmount
+  onSetAmount,
 }) => {
   const styles = useStyles(stylesheet);
   const walletModal = useWalletModal();
@@ -51,18 +51,18 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
     }
   };
 
-  const account = useAccount()
+  const account = useAccount();
   const [isActive, setIsActive] = useState(false);
 
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT);
 
-  const { data: toBalance, } = useBalanceUtil({
+  const {data: toBalance} = useBalanceUtil({
     address: account?.address,
     token: launch?.quote_token,
   });
 
-  console.log("toBalance", toBalance)
-  console.log("userShare", userShare)
+  console.log('toBalance', toBalance);
+  console.log('userShare', userShare);
   return (
     <View style={styles.container}>
       <View style={styles.tradingCard}>
@@ -74,21 +74,15 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
         {/* Buy/Sell Toggle */}
         <View style={styles.actionToggle}>
-          <Button 
-            onPress={() => setTypeAction?.("BUY")}
-            style={[
-              styles.toggleButton,
-              typeAction === "BUY" && styles.activeToggle
-            ]}
+          <Button
+            onPress={() => setTypeAction?.('BUY')}
+            style={[styles.toggleButton, typeAction === 'BUY' && styles.activeToggle]}
           >
             Buy
           </Button>
           <Button
-            onPress={() => setTypeAction?.("SELL")}
-            style={[
-              styles.toggleButton,
-              typeAction === "SELL" && styles.activeToggle
-            ]}
+            onPress={() => setTypeAction?.('SELL')}
+            style={[styles.toggleButton, typeAction === 'SELL' && styles.activeToggle]}
           >
             Sell
           </Button>
@@ -105,9 +99,11 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           />
           <View style={styles.balanceInfo}>
             <Text style={styles.balanceLabel}>Balance:</Text>
-            <Button 
+            <Button
               style={styles.maxButton}
-              onPress={() => {/* Set max balance */}}
+              onPress={() => {
+                /* Set max balance */
+              }}
             >
               MAX
             </Button>
@@ -116,18 +112,12 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
         {/* Action Button */}
         {!account?.address ? (
-          <Button 
-            style={styles.actionButton}
-            onPress={onConnect}
-          >
+          <Button style={styles.actionButton} onPress={onConnect}>
             Connect Wallet
           </Button>
         ) : (
-          <Button 
-            style={styles.actionButton}
-            onPress={() => onHandleAction()}
-          >
-            {typeAction || "BUY"}
+          <Button style={styles.actionButton} onPress={() => onHandleAction()}>
+            {typeAction || 'BUY'}
           </Button>
         )}
       </View>

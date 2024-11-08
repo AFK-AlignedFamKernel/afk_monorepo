@@ -1,7 +1,7 @@
 // import Clipboard from '@react-native-clipboard/clipboard';
 import {MaterialIcons} from '@expo/vector-icons';
 import React from 'react';
-import {Alert, Text, TouchableOpacity, View, StyleProp, ViewStyle, TextStyle} from 'react-native';
+import {Alert, StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle} from 'react-native';
 
 import {useStyles} from '../../hooks';
 import stylesheet from './styles';

@@ -1,8 +1,7 @@
 import React from 'react';
 import {ScrollView, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
-import {Spacing} from '../../styles';
-import {useTheme} from '../../hooks';
 
+import {useTheme} from '../../hooks';
 import {Button} from '../Button';
 
 interface ITabSelector {
@@ -54,7 +53,7 @@ const TabSelector: React.FC<ITabSelector> = ({
     activeTabText: {
       color: theme.colors.onPrimary,
       fontWeight: '600',
-    }
+    },
   });
 
   const handlePress = (tab: string | any, screen?: string) => {
@@ -82,7 +81,7 @@ const TabSelector: React.FC<ITabSelector> = ({
             ]}
             textStyle={[
               dynamicStyles.tabText,
-              activeTab === b?.tab ? dynamicStyles.activeTabText : null
+              activeTab === b?.tab ? dynamicStyles.activeTabText : null,
             ]}
             onPress={() => handlePress(b?.tab, b?.screen)}
           >

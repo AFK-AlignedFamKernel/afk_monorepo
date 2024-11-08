@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+
 import {Spacing} from '../../../styles';
 
 export default (theme: any) =>
@@ -65,5 +66,5 @@ export default (theme: any) =>
       borderRadius: 8,
       alignItems: 'center',
       marginTop: Spacing.small,
-    }
+    },
   });

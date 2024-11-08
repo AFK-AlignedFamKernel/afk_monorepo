@@ -1,39 +1,34 @@
-import { useAccount } from '@starknet-react/core';
-import { feltToAddress } from 'common';
-import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, View, ViewStyle, useWindowDimensions } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useAccount} from '@starknet-react/core';
+import {feltToAddress} from 'common';
+import {useEffect, useState} from 'react';
+import {useWindowDimensions, View, ViewStyle} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { Button, TextButton } from '../../components';
-import { Text } from '../../components';
-import { LaunchActionsForm } from '../../components/LaunchActionsForm';
-import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
-import { TokenStats } from '../../components/LaunchPad/TokenStats';
-import { TokenTx } from '../../components/LaunchPad/TokenTx';
-import { UserShare } from '../../components/LaunchPad/UserShare';
-import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
+import {TextButton} from '../../components';
+import {Text} from '../../components';
+import {LaunchActionsForm} from '../../components/LaunchActionsForm';
+import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import { useStyles, useTheme } from '../../hooks';
-import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
-import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
-import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
-import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
-import { useGetShares } from '../../hooks/api/indexer/useUserShare';
-import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
-import { useToast, useWalletModal } from '../../hooks/modals';
-import { LaunchDetailScreenProps } from '../../types';
+import {useStyles, useTheme} from '../../hooks';
+import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
+import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
+import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
+import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
+import {useGetShares} from '../../hooks/api/indexer/useUserShare';
+import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
+import {useToast, useWalletModal} from '../../hooks/modals';
+import {LaunchDetailScreenProps} from '../../types';
 import {
   LaunchDataMerged,
   TokenDeployInterface,
   TokenHoldersInterface,
-  TokenLaunchInterface,
   TokenStatsInterface,
   TokenTxInterface,
   UserShareInterface,
 } from '../../types/keys';
-import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
+import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
 
 interface LaunchDetailStyles {
@@ -48,17 +43,17 @@ interface LaunchDetailStyles {
   mobileTabBar: ViewStyle;
 }
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
+export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
   const [loading, setLoading] = useState(false);
   const account = useAccount();
-  const [typeAction, setTypeAction] = useState<"SELL" | "BUY">("BUY")
+  const [typeAction, setTypeAction] = useState<'SELL' | 'BUY'>('BUY');
 
   console.log(account, 'account');
 
-  const { coinAddress } = route.params;
+  const {coinAddress} = route.params;
 
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
@@ -79,26 +74,23 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
+  const {data: holdingsData, isLoading: holdingsLoading} = useGetHoldings(coinAddress);
 
-  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
+  const {data: transactionData, isLoading: txLoading} = useGetTransactions(coinAddress);
 
-  const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
+  const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
-  const { data: sharesData, isLoading: sharesLoading } = useGetShares(
-    coinAddress,
-    account?.address,
-  );
+  const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
 
-  const { data: launchData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress);
+  const {data: launchData, isLoading: tokenLoading} = useGetTokenLaunch(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
-  const { handleSellCoins } = useSellCoin();
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleSellCoins} = useSellCoin();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
 
-  const { showToast } = useToast();
+  const {showToast} = useToast();
   const walletModal = useWalletModal();
 
   const [amount, setAmount] = useState<number | undefined>(0);
@@ -135,7 +127,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     const data = sharesData || [];
     const dataShare = sharesData;
     setShares(data);
-    setShare(dataShare)
+    setShare(dataShare);
   }, [sharesData]);
 
   // useEffect(() => {
@@ -152,10 +144,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     }
   };
 
-
   const sellCoin = async (amountSellProps?: number) => {
     if (!amount && !amountSellProps) {
-      return showToast({ title: 'Select an amount to sell', type: 'info' });
+      return showToast({title: 'Select an amount to sell', type: 'info'});
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -174,14 +165,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     );
 
     if (sellResult && sellResult?.value) {
-      return showToast({ title: 'Sell done', type: 'success' });
+      return showToast({title: 'Sell done', type: 'success'});
     }
   };
 
   const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
-      return showToast({ title: 'Select an amount to buy', type: 'info' });
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
 
     if (!account || !account?.account) return;
@@ -199,9 +190,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
       token?.quote_token,
     );
 
-
     if (buyResult) {
-      return showToast({ title: 'Buy successful', type: 'success' });
+      return showToast({title: 'Buy successful', type: 'success'});
     }
   };
 
@@ -209,19 +199,17 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     await onConnect();
 
     if (!account || !account?.account) return;
-
-  }
+  };
 
   const onHandleAction = async (amountProps?: number) => {
-
-    if (typeAction == "BUY") {
-      await buyCoin(amountProps)
+    if (typeAction == 'BUY') {
+      await buyCoin(amountProps);
     } else {
-      await sellCoin(amountProps)
+      await sellCoin(amountProps);
     }
-  }
+  };
 
-  const { width } = useWindowDimensions();
+  const {width} = useWindowDimensions();
   const isMobile = width < 768; // Common breakpoint for mobile
 
   if (!coinAddress) {

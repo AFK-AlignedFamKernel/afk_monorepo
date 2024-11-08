@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import {useState} from 'react';
-import {ImageSourcePropType, Pressable, View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
 import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
@@ -172,7 +172,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           <>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Coin address</Text>
-              <AddressComponent 
+              <AddressComponent
                 address={feltToAddress(BigInt(launch.memecoin_address))}
                 textStyle={styles.addressValue}
               />
@@ -195,9 +195,9 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           <Text style={styles.label}>Supply</Text>
           <Text style={styles.value}>{Number(launch?.total_supply).toLocaleString()}</Text>
         </View>
-        
+
         <View style={styles.divider} />
-        
+
         <View style={styles.detailRow}>
           <Text style={styles.label}>Price</Text>
           <Text style={styles.value}>${Number(launch?.price ?? 0).toFixed(4)}</Text>
@@ -215,11 +215,13 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
       {!isDisabledInfoState && (
         <View style={styles.detailCard}>
           <Text style={styles.sectionTitle}>Additional Details</Text>
-          
+
           {launch?.threshold_liquidity && (
             <View style={styles.detailRow}>
               <Text style={styles.label}>Threshold liquidity</Text>
-              <Text style={styles.value}>{Number(launch?.threshold_liquidity).toLocaleString()}</Text>
+              <Text style={styles.value}>
+                {Number(launch?.threshold_liquidity).toLocaleString()}
+              </Text>
             </View>
           )}
 
@@ -233,14 +235,16 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           {launch?.is_liquidity_launch && (
             <View style={styles.detailRow}>
               <Text style={styles.label}>Is launched in DEX</Text>
-              <Text style={styles.value}>{Number(launch?.is_liquidity_launch).toLocaleString()}</Text>
+              <Text style={styles.value}>
+                {Number(launch?.is_liquidity_launch).toLocaleString()}
+              </Text>
             </View>
           )}
 
           {launch?.quote_token && (
             <View style={styles.detailRow}>
               <Text style={styles.label}>Quote token</Text>
-              <AddressComponent 
+              <AddressComponent
                 address={launch?.quote_token || ''}
                 textStyle={styles.addressValue}
               />
@@ -250,7 +254,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           {launch?.token_quote && (
             <View style={styles.detailRow}>
               <Text style={styles.label}>Token quote</Text>
-              <AddressComponent 
+              <AddressComponent
                 address={feltToAddress(BigInt(launch.token_quote?.token_address))}
                 textStyle={styles.addressValue}
               />
@@ -263,11 +267,14 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         <LaunchActionsForm
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
-          onSellPress={sellKeys} onHandleAction={function (amountProps?: number): void {
+          onSellPress={sellKeys}
+          onHandleAction={function (amountProps?: number): void {
             throw new Error('Function not implemented.');
-          } } onSetAmount={function (e: number): void {
+          }}
+          onSetAmount={function (e: number): void {
             throw new Error('Function not implemented.');
-          } }        ></LaunchActionsForm>
+          }}
+        ></LaunchActionsForm>
       )}
 
       {!isViewDetailDisabled && (

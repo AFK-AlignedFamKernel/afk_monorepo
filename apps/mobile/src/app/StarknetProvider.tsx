@@ -1,4 +1,4 @@
-import { mainnet, sepolia } from '@starknet-react/chains';
+import {mainnet, sepolia} from '@starknet-react/chains';
 import {
   argent,
   braavos,
@@ -7,19 +7,16 @@ import {
   useInjectedConnectors,
   voyager,
 } from '@starknet-react/core';
-import {
-  ConnectorProvider as StarknetWCProvider,
-  useArgentMobileConnector,
-} from '@starknet-wc/react';
-import { Platform } from 'react-native';
+import {kakarotConnectors} from '@starknet-react/kakarot';
+import {ConnectorProvider as StarknetWCProvider} from '@starknet-wc/react';
+import {Platform} from 'react-native';
 
-import { NETWORK_NAME, WALLET_CONNECT_ID } from '../constants/env';
-import { RpcProviderProvider } from '../context/RpcProvider';
-import { WalletQRModal } from '../modules/WalletQRModal';
-import { providers } from '../services/provider';
-import { kakarotConnectors } from "@starknet-react/kakarot";
+import {NETWORK_NAME} from '../constants/env';
+import {RpcProviderProvider} from '../context/RpcProvider';
+import {WalletQRModal} from '../modules/WalletQRModal';
+import {providers} from '../services/provider';
 
-export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const chain = {
     SN_MAIN: mainnet,
     SN_SEPOLIA: sepolia,
@@ -29,13 +26,10 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({ child
   const providerRpc = publicProvider();
   // const argentMobileConnector = useArgentMobileConnector();
 
-  const { connectors: injected } = useInjectedConnectors({
-    recommended: [argent(), braavos(),
-    ...kakarotConnectors(providerRpc)
-
-    ],
+  const {connectors: injected} = useInjectedConnectors({
+    recommended: [argent(), braavos(), ...kakarotConnectors(providerRpc)],
     includeRecommended: 'always',
-    order: "alphabetical"
+    order: 'alphabetical',
     // Randomize the order of the connectors.
     // order: "alphabetical",
   });
@@ -55,7 +49,6 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({ child
           //   url: 'https://afk-community.xyz',
           //   provider,
           // }),
-
         ]}
         explorer={voyager}
       >
@@ -65,7 +58,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({ child
   );
 };
 
-export const StarknetProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const StarknetProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   return (
     <StarknetWCProvider modal={WalletQRModal}>
       <StarknetReactProvider>{children}</StarknetReactProvider>

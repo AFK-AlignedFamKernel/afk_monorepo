@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet, Theme} from '../../styles';
+import {Spacing, Theme, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme: Theme) => ({
   container: {
@@ -51,5 +51,5 @@ export default ThemedStyleSheet((theme: Theme) => ({
     borderTopColor: theme.colors.divider,
     backgroundColor: theme.colors.surface,
     paddingVertical: Spacing.small,
-  }
+  },
 }));
