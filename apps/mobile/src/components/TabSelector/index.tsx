@@ -27,19 +27,33 @@ const TabSelector: React.FC<ITabSelector> = ({
   const {theme} = useTheme();
 
   const dynamicStyles = StyleSheet.create({
-    tabContainer: {
-      height: 50,
+    container: {
       backgroundColor: theme.colors.surface,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.divider,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+    },
+    tab: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      marginHorizontal: 4,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
     },
     active: {
-      borderBottomWidth: 2,
-      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.primary,
     },
     tabText: {
-      color: theme.colors.text,
+      fontSize: 15,
+      fontWeight: '500',
+      color: theme.colors.textSecondary,
     },
     activeTabText: {
-      color: theme.colors.primary,
+      color: theme.colors.onPrimary,
+      fontWeight: '600',
     }
   });
 
@@ -52,48 +66,32 @@ const TabSelector: React.FC<ITabSelector> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[dynamicStyles.container, containerStyle]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={containerStyle ?? styles.container}
+        contentContainerStyle={dynamicStyles.scrollContent}
       >
-        {buttons?.map((b, i) => {
-          return (
-            <Button
-              key={i}
-              style={[
-                styles.tab,
-                tabStyle,
-                activeTab === b?.tab ? activeTabStyle ?? dynamicStyles.active : null,
-              ]}
-              onPress={() => handlePress(b?.tab, b?.screen)}
-            >
-              {b?.title}
-            </Button>
-          );
-        })}
+        {buttons?.map((b, i) => (
+          <Button
+            key={i}
+            style={[
+              dynamicStyles.tab,
+              tabStyle,
+              activeTab === b?.tab ? [dynamicStyles.active, activeTabStyle] : null,
+            ]}
+            textStyle={[
+              dynamicStyles.tabText,
+              activeTab === b?.tab ? dynamicStyles.activeTabText : null
+            ]}
+            onPress={() => handlePress(b?.tab, b?.screen)}
+          >
+            {b?.title}
+          </Button>
+        ))}
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 5,
-    flexDirection: 'row',
-  },
-  tab: {
-    height: '100%',
-    minWidth: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.small,
-  },
-  button: {
-    padding: Spacing.xsmall,
-  },
-});
 
 export default TabSelector;
