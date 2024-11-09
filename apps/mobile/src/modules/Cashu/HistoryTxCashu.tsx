@@ -14,15 +14,16 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
-import {FlatList, Platform, TouchableOpacity, View} from 'react-native';
+import {FlatList, Modal, Platform, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
-import {CopyIconStack, InfoIcon} from '../../assets/icons';
-import {Button, Divider, Input} from '../../components';
+import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../assets/icons';
+import {Button, Divider} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
 import {SelectedTab} from '../../types/tab';
+import {getRelativeTime} from '../../utils/helpers';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import stylesheet from './styles';
@@ -57,7 +58,6 @@ export const HistoryTxCashu = () => {
   useEffect(() => {
     const handleGetInvoices = async () => {
       const invoicesLocal = await getInvoices();
-      let invoicesIn: ICashuInvoice[] = [];
 
       if (invoicesLocal) {
         const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
@@ -65,10 +65,8 @@ export const HistoryTxCashu = () => {
           (i) => i?.state === MintQuoteState?.ISSUED || i?.state === MintQuoteState.PAID,
         );
         const invoicesSorted = invoicesPaid
-          // .sort((a, b) => Number(a?.date) - Number(b?.date))
+          .map((invoice) => ({...invoice, direction: 'in'} as ICashuInvoice))
           .reverse();
-
-        invoicesIn = invoicesSorted;
         setTxInvoices([...invoicesSorted]);
       }
 
@@ -77,12 +75,10 @@ export const HistoryTxCashu = () => {
       if (proofsLocal) {
         const proofsSpent: ProofInvoice[] = JSON.parse(proofsLocal);
         const proofsSpentSorted = proofsSpent
-          .map((c) => {
-            return c;
-          })
+          .map((proof) => ({...proof, direction: 'out'} as ProofInvoice))
           .reverse();
         console.log('proofsSpentSorted', proofsSpentSorted);
-        setTxInvoices([...invoicesIn, ...proofsSpentSorted]);
+        setTxInvoices((invoices) => [...invoices, ...proofsSpentSorted]);
       }
     };
     handleGetInvoices();
@@ -100,7 +96,7 @@ export const HistoryTxCashu = () => {
         if (isSeedCashuStorage) setHasSeedCashu(true);
       }
     })();
-  }, []);
+  }, [isSeedCashuStorage]);
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
@@ -118,6 +114,7 @@ export const HistoryTxCashu = () => {
   const {showDialog, hideDialog} = useDialog();
 
   const {showToast} = useToast();
+  const [selectedTx, setSelectedTx] = useState<string>('');
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LIGHTNING_NETWORK_WALLET,
@@ -262,57 +259,109 @@ export const HistoryTxCashu = () => {
     <View style={styles.tabContentContainer}>
       <Text style={styles.tabTitle}>Cashu History</Text>
       {txInvoices?.length > 0 ? (
-        <FlatList
-          ItemSeparatorComponent={() => <Divider></Divider>}
-          data={txInvoices?.flat().reverse()}
-          contentContainerStyle={styles.flatListContent}
-          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-          renderItem={({item}) => {
-            const date = item?.date && new Date(item?.date)?.toISOString();
-            return (
-              <View style={styles.card}>
-                <View>
-                  <Input
-                    value={item?.bolt11}
-                    editable={false}
-                    style={{marginBottom: 10}}
-                    right={
-                      <TouchableOpacity
-                        onPress={() => handleCopy(item?.bolt11)}
-                        style={{
-                          marginRight: 10,
-                        }}
+        <>
+          <View style={styles.tableHeadersContainer}>
+            <View style={styles.txDirectionColumn}>
+              <Text style={styles.tableHeading}>DIR</Text>
+            </View>
+            <View style={styles.txAmountColumn}>
+              <Text style={styles.tableHeading}>AMOUNT</Text>
+            </View>
+            <View style={styles.txActionsColumn}>
+              <Text style={styles.tableHeading}>ACTIONS</Text>
+            </View>
+          </View>
+          <FlatList
+            ItemSeparatorComponent={() => <Divider></Divider>}
+            data={txInvoices
+              .filter((invoice) => invoice.bolt11)
+              ?.flat()
+              .reverse()}
+            contentContainerStyle={styles.txListContainer}
+            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+            renderItem={({item}) => {
+              return (
+                <>
+                  <TouchableOpacity style={styles.txContainer}>
+                    <View style={styles.txDirectionColumn}>
+                      <Text
+                        style={[
+                          styles.dirText,
+                          item.direction === 'out'
+                            ? styles.dirOutText
+                            : item.direction === 'in'
+                            ? styles.dirInText
+                            : null,
+                        ]}
                       >
-                        <CopyIconStack color={theme.colors.primary} />
+                        {item?.direction}
+                      </Text>
+                    </View>
+                    <View style={styles.txAmountColumn}>
+                      <Text style={styles.amountText}>{item?.amount} sat</Text>
+                    </View>
+                    <View style={styles.txActionsColumn}>
+                      <TouchableOpacity
+                        onPress={() => handleCopy(item.bolt11)}
+                        style={styles.txActionButton}
+                      >
+                        <CopyIconStack width={20} height={20} />
                       </TouchableOpacity>
-                    }
-                  />
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Amount:</span> {item?.amount}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Mint:</span> {item?.mint}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Status:</span> {item?.state}
-                  </Text>
-                  {date && (
-                    <Text style={styles.text}>
-                      <span style={{fontWeight: 'bold'}}>Date: </span>
-                      {date}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <Button onPress={() => handleVerify(item?.quote)} style={{marginTop: 15}}>
-                    Verify
-                  </Button>
-                </View>
-              </View>
-            );
-          }}
-        />
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedTx(item.bolt11 || '');
+                        }}
+                        style={styles.txActionButton}
+                      >
+                        <ViewIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleVerify(item?.quote)}
+                        style={styles.txActionButton}
+                      >
+                        <RefreshIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                  <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={selectedTx === item.bolt11}
+                  >
+                    <View style={styles.txModalContainer}>
+                      <View style={styles.txModalContent}>
+                        <Text style={styles.txModalTitle}>Transaction Details</Text>
+                        <Text style={styles.txModalTextAmount}>
+                          <b>Amount:</b> {item.amount} sat
+                        </Text>
+                        <Text style={styles.txModalTextTime}>
+                          {getRelativeTime(item.date || '')}
+                        </Text>
+                        <Text style={styles.txModalTextState}>{item.state}</Text>
+                        <View style={styles.txModalActionsContainer}>
+                          <Button
+                            onPress={() => handleCopy(item.bolt11)}
+                            style={styles.txModalActionButton}
+                            textStyle={styles.txModalActionButtonText}
+                          >
+                            Copy
+                          </Button>
+                          <Button
+                            onPress={() => setSelectedTx('')}
+                            style={styles.txModalActionButton}
+                            textStyle={styles.txModalActionButtonText}
+                          >
+                            Close
+                          </Button>
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
+                </>
+              );
+            }}
+          />
+        </>
       ) : (
         <View style={styles.noDataContainer}>
           <InfoIcon width={30} height={30} color={theme.colors.primary} />
