@@ -64,7 +64,7 @@ export const ContactsRow: React.FC<ContactsRowProps> = ({
 
   return (
     <View style={styles.contactsContainer}>
-      <Text style={styles.contactsTitle}>Contacts</Text>
+      <Text style={styles.contactsTitle}>Cashu Contacts</Text>
       <View style={styles.contactsContentContainer}>
         <View style={styles.contactsListContainer}>
           {storedContacts?.map((contact) => (
