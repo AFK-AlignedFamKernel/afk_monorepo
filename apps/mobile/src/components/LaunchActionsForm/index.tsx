@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { View } from 'react-native';
+import {useAccount} from '@starknet-react/core';
+import {useState} from 'react';
+import {View} from 'react-native';
 
-import { useStyles } from '../../hooks';
-import { Button } from '../Button';
-import { Input } from '../Input';
-import { Text } from '../Text';
+import {useStyles} from '../../hooks';
+import {useWalletModal} from '../../hooks/modals';
+import {useBalanceUtil} from '../../starknet/evm/utilHook';
+import {LaunchDataMerged, UserShareInterface} from '../../types/keys';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {Text} from '../Text';
 import stylesheet from './styles';
-import { useBalanceUtil } from '../../starknet/evm/utilHook';
-import { useAccount } from '@starknet-react/core';
-import { LaunchDataMerged, TokenLaunchInterface, UserShareInterface } from '../../types/keys';
-import { useWalletModal } from '../../hooks/modals';
 
 export type LaunchActionsFormProps = {
   onBuyPress: () => void;
@@ -17,11 +17,11 @@ export type LaunchActionsFormProps = {
   onHandleAction: (amountProps?: number) => void;
   onChangeText: (e: any) => void;
   onSetAmount: (e: number) => void;
-  typeAction?: "BUY" | "SELL";
-  setTypeAction?: (type: "BUY" | "SELL") => void;
+  typeAction?: 'BUY' | 'SELL';
+  setTypeAction?: (type: 'BUY' | 'SELL') => void;
   launch?: LaunchDataMerged;
   amount?: number;
-  userShare?: UserShareInterface
+  userShare?: UserShareInterface;
 };
 
 enum AmountType {
@@ -38,7 +38,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   onSellPress,
   onHandleAction,
   onChangeText,
-  onSetAmount
+  onSetAmount,
 }) => {
   const styles = useStyles(stylesheet);
   const walletModal = useWalletModal();
@@ -51,143 +51,76 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
     }
   };
 
-  const account = useAccount()
+  const account = useAccount();
   const [isActive, setIsActive] = useState(false);
 
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT);
 
-  const { data: toBalance, } = useBalanceUtil({
+  const {data: toBalance} = useBalanceUtil({
     address: account?.address,
     token: launch?.quote_token,
   });
 
-  console.log("toBalance", toBalance)
-  console.log("userShare", userShare)
+  console.log('toBalance', toBalance);
+  console.log('userShare', userShare);
   return (
     <View style={styles.container}>
+      <View style={styles.tradingCard}>
+        {/* Token Info Header */}
+        <View style={styles.tokenInfo}>
+          <Text style={styles.tokenName}>{launch?.name || 'Token'}</Text>
+          <Text style={styles.tokenPrice}>{`$${launch?.price || '0.00'}`}</Text>
+        </View>
 
-      <View
-        style={{ display: "flex", flexDirection: "row" }}
-      >
-        <Button onPress={() => setTypeAction && setTypeAction("BUY")} style={{ backgroundColor: 'green', width: 'auto', flexGrow: 1 }}>
-          <Text>Buy</Text>
-        </Button>
+        {/* Buy/Sell Toggle */}
+        <View style={styles.actionToggle}>
+          <Button
+            onPress={() => setTypeAction?.('BUY')}
+            style={[styles.toggleButton, typeAction === 'BUY' && styles.activeToggle]}
+          >
+            Buy
+          </Button>
+          <Button
+            onPress={() => setTypeAction?.('SELL')}
+            style={[styles.toggleButton, typeAction === 'SELL' && styles.activeToggle]}
+          >
+            Sell
+          </Button>
+        </View>
 
-        <Button onPress={() => setTypeAction && setTypeAction("SELL")} style={{ backgroundColor: 'red', width: 'auto', flexGrow: 1 }}>
-          <Text>Sell</Text>
-        </Button>
-      </View>
-
-      <View
-      // style={{ display: "flex", flex: 1, flexDirection: "row" }}
-      >
-        <Input
-          keyboardType="decimal-pad"
-          // keyboardType=
-          // value={amount ? String(amount) : "0"}
-          style={{ borderColor: isActive ? '#A1A1C7' : '#000', marginTop: 15, width: "85%" }}
-          // onFocus={() => setIsActive(true)}
-          // onBlur={() => setIsActive(false)}
-          onChangeText={(e) => {
-            if(e && !isNaN(Number(e))) {
-              onChangeText(e)
-            }
-          }}
-          placeholder="Amount"
-          value={Number(amount).toString()}
-          
-        />
-
-        {(typeAction == "BUY" || !typeAction) ?
-          <>
-            {toBalance ?
-              <Button
-                style={{ width: "auto" }}
-                onPress={() => {
-                  let formatedBalance = Number(toBalance?.formatted)
-                  // setTypeAmount(formatedBalance)
-                  onSetAmount(formatedBalance)
-
-
-                }}
-              >
-                <Text>
-                  {toBalance?.formatted}
-                </Text>
-              </Button>
-              :
-              <Button
-                style={{ width: "auto" }}
-              >
-                <Text>
-                  Balance not found
-                </Text>
-              </Button>
-            }
-          </>
-          : <>
+        {/* Amount Input */}
+        <View style={styles.inputContainer}>
+          <Input
+            keyboardType="decimal-pad"
+            style={styles.input}
+            onChangeText={onChangeText}
+            placeholder="Amount"
+            value={amount?.toString()}
+          />
+          <View style={styles.balanceInfo}>
+            <Text style={styles.balanceLabel}>Balance:</Text>
             <Button
-              style={{ width: "auto" }}
+              style={styles.maxButton}
               onPress={() => {
-                let remainTotal = Number(userShare?.total_buy) - Number(userShare?.total_sell)
-                // setTypeAmount(remainTotal)
-                onSetAmount(remainTotal)
-
+                /* Set max balance */
               }}
             >
-              {userShare ?
-                <Text
-
-
-                >
-                  {Number(userShare?.total_buy) - Number(userShare?.total_sell)}
-                </Text>
-                : <>
-                  <Text>Share not found</Text></>
-              }
+              MAX
             </Button>
-          </>
-        }
+          </View>
+        </View>
 
+        {/* Action Button */}
+        {!account?.address ? (
+          <Button style={styles.actionButton} onPress={onConnect}>
+            Connect Wallet
+          </Button>
+        ) : (
+          <Button style={styles.actionButton} onPress={() => onHandleAction()}>
+            {typeAction || 'BUY'}
+          </Button>
+        )}
       </View>
-
-      <View
-        style={{
-          display: 'flex',
-          flex: 1,
-          flexDirection: 'row',
-          gap: 3,
-          width: '100%',
-          justifyContent: 'space-between',
-        }}
-      >
-
-
-        {!account?.address &&
-
-          <Button onPress={() => {
-            const handleConnect = async () => {
-              await onConnect();
-
-              if (!account || !account?.account) return;
-
-            }
-            handleConnect()
-          }}>Connect</Button>
-        }
-        <Button onPress={() => onHandleAction()} style={{ backgroundColor: (typeAction == "BUY" || !typeAction) ? 'green' : "red", flexGrow: 1 }}>
-          <Text>{typeAction ?? "BUY"}</Text>
-        </Button>
-
-
-        {/* <Button onPress={onBuyPress} style={{ backgroundColor: 'green', width: 'auto', flexGrow: 1 }}>
-          <Text>Buy</Text>
-        </Button>
-
-        <Button onPress={onSellPress} style={{ backgroundColor: 'red', width: 'auto', flexGrow: 1 }}>
-          Sell
-        </Button> */}
-      </View>
-    </View >
+    </View>
   );
 };

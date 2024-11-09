@@ -1,39 +1,35 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { addContacts, Contact, getContacts, updateContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
-import React, { useEffect, useState } from 'react';
+import {useQueryClient} from '@tanstack/react-query';
 import {
-  Dimensions,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+  addContacts,
+  Contact,
+  getContacts,
+  updateContacts,
+  useEditContacts,
+  useProfile,
+} from 'afk_nostr_sdk';
+import React, {useEffect, useState} from 'react';
+import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 
-import { useTheme } from '../../hooks';
-import { useToast } from '../../hooks/modals';
-import { useStyles } from '../../hooks';
+import {useTheme} from '../../hooks';
+import {useStyles} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import stylesheet from './styles';
-import { Avatar } from '../../components';
 
 interface ContactListProps {
   onClose?: () => void;
 }
 
-export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
+export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   const [nostrAddress, setNostrAddress] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' or 'add'
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
-  const { theme } = useTheme();
-  const { showToast } = useToast();
+  const {theme} = useTheme();
+  const {showToast} = useToast();
   const editContacts = useEditContacts();
   const queryClient = useQueryClient();
 
   // Destructure refetch from useProfile hook
-  const { data: profile, refetch } = useProfile({ publicKey: nostrAddress });
+  const {data: profile, refetch} = useProfile({publicKey: nostrAddress});
 
   // Fetch contacts when component mounts
   useEffect(() => {
@@ -58,9 +54,9 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const handleAddContact = async () => {
     if (!profile) {
       showToast({
-        title: "Profile is not find",
-        type: "error"
-      })
+        title: 'Profile is not find',
+        type: 'error',
+      });
       return;
     }
     console.log('Adding new contact with profile:', profile);
@@ -77,11 +73,11 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
 
     if (profile?.pubkey) {
       await editContacts.mutateAsync(
-        { pubkey: profile?.pubkey?.toString(), type: "add" },
+        {pubkey: profile?.pubkey?.toString(), type: 'add'},
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['contacts'] });
-            showToast({ type: 'success', title: 'Contact removed successfully' });
+            queryClient.invalidateQueries({queryKey: ['contacts']});
+            showToast({type: 'success', title: 'Contact removed successfully'});
             // Update local storage contacts
             const updatedContacts = storedContacts.filter((c) => c.pubkey !== profile?.pubkey);
             setStoredContacts(updatedContacts);
@@ -89,7 +85,6 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
         },
       );
     }
-
 
     console.log('Created contact object:', newContact);
 
@@ -120,22 +115,19 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
       <View style={styles.profileInfo}>
         <Text style={styles.profileDetail}>NIP05: {profile.nip05 || 'unrecognized'}</Text>
 
-        {profile?.image &&
-          <Image style={styles.profileDetail} src={profile?.image}></Image>
-        }
+        {profile?.image && <Image style={styles.profileDetail} src={profile?.image}></Image>}
         <Text style={styles.profileDetail}>
           Lightning address: {profile.lud16 || 'unrecognized'}
         </Text>
         <Text style={styles.profileDetail}>
           Name: {profile.displayName || profile.name || 'unrecognized'}
         </Text>
-        {profile?.about &&
+        {profile?.about && (
           <Text style={styles.profileDetail}>About: {profile.about || 'unrecognized'}</Text>
-        }
-        {profile?.bio &&
+        )}
+        {profile?.bio && (
           <Text style={styles.profileDetail}>Bio: {profile.bio || 'unrecognized'}</Text>
-        }
-
+        )}
       </View>
     );
   };
@@ -169,24 +161,23 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
     try {
       /** TODO remove contact */
 
-      const contacts = storedContacts.filter((c) => c?.pubkey != pubkey)
-      updateContacts(contacts)
+      const contacts = storedContacts.filter((c) => c?.pubkey != pubkey);
+      updateContacts(contacts);
 
       await editContacts.mutateAsync(
-        { pubkey, type: 'remove' },
+        {pubkey, type: 'remove'},
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['contacts'] });
-            showToast({ type: 'success', title: 'Contact removed successfully' });
+            queryClient.invalidateQueries({queryKey: ['contacts']});
+            showToast({type: 'success', title: 'Contact removed successfully'});
             // Update local storage contacts
             const updatedContacts = storedContacts.filter((c) => c.pubkey !== pubkey);
             setStoredContacts(updatedContacts);
           },
         },
       );
-
     } catch (error) {
-      showToast({ type: 'error', title: 'Failed to remove contact' });
+      showToast({type: 'error', title: 'Failed to remove contact'});
     }
   };
 
@@ -199,7 +190,7 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
         storedContacts.map((contact, index) => (
           <View key={contact?.pubkey} style={styles.contactItem}>
             <Image
-              source={contact.image ? { uri: contact?.image } : require('../../assets/pepe-logo.png')}
+              source={contact.image ? {uri: contact?.image} : require('../../assets/pepe-logo.png')}
               style={styles.contactImage}
             />
             <View style={styles.contactInfo}>

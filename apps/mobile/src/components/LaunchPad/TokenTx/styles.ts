@@ -1,32 +1,61 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
+
 export default ThemedStyleSheet((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
     padding: Spacing.normal,
-    borderRadius: 8,
-    gap: Spacing.xsmall,
-    overflowWrap: 'break-word',
+    borderRadius: 16,
+    marginBottom: Spacing.small,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  imageContainer: {
-    borderRadius: 15,
+  txRow: {
+    backgroundColor: theme.colors.messageCard,
+    padding: Spacing.normal,
+    borderRadius: 12,
+    marginBottom: Spacing.small,
   },
-  text: {},
-  image: {
-    position: 'absolute',
-    width: 35,
-    height: 35,
-    borderRadius: 15,
+  rowItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xsmall,
   },
-  name: {
-    paddingTop: Spacing.xxsmall,
+  label: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
   },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#b5b5b5',
-    paddingBottom: 10,
-    marginBottom: 15,
+  value: {
+    color: theme.colors.text,
+    fontSize: 14,
+    fontWeight: '600',
   },
-  marginBottom: {
-    marginBottom: 10,
+  addressContainer: {
+    flex: 1,
+    marginLeft: Spacing.small,
   },
+  txType: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: Spacing.small,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  txTypeText: {
+    color: theme.colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  emptyState: {
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  }
 }));

@@ -1,38 +1,31 @@
-import { InjectedConnector, useAccount, useExplorer, useSendTransaction } from '@starknet-react/core';
-import { Call, GetTransactionReceiptResponse } from 'starknet';
+import {InjectedConnector, useAccount, useExplorer, useSendTransaction} from '@starknet-react/core';
+import {useEffect, useState} from 'react';
+import {Call} from 'starknet';
 
-import { useTransactionModal } from './useTransactionModal';
-import { useContractWrite } from 'wagmi';
-import { useEffect, useState } from 'react';
-import { useToast } from './useToast';
+import {useToast} from './useToast';
+import {useTransactionModal} from './useTransactionModal';
 
 interface UseTransactionInterface {
-  callsProps?: Call[]
+  callsProps?: Call[];
 }
-export const useTransaction = ({ callsProps }: UseTransactionInterface) => {
-  const { show: showTransactionModal, hide: hideTransactionModal, shown } = useTransactionModal();
+export const useTransaction = ({callsProps}: UseTransactionInterface) => {
+  const {show: showTransactionModal, hide: hideTransactionModal, shown} = useTransactionModal();
   // const {writeAsync} = useContractWrite({});
 
-  const { showToast } = useToast()
-  const [calls, setCalls] = useState<Call[]>(callsProps ?? [])
+  const {showToast} = useToast();
+  const [calls, setCalls] = useState<Call[]>(callsProps ?? []);
 
   const explorer = useExplorer();
-  const kakarotScanTxUrl = "https://sepolia.kakarotscan.org/tx/";
+  const kakarotScanTxUrl = 'https://sepolia.kakarotscan.org/tx/';
   const [txUrl, setTxUrl] = useState<string | undefined>(undefined);
-  const { address, isConnected, connector } = useAccount();
+  const {address, isConnected, connector} = useAccount();
   let walletType;
   if (connector instanceof InjectedConnector) {
     walletType = 0;
   } else {
     walletType = 1;
   }
-  const {
-    send: sendTransactionTx,
-    data,
-    isPending,
-    isError,
-    error,
-  } = useSendTransaction({ calls });
+  const {send: sendTransactionTx, data, isPending, isError, error} = useSendTransaction({calls});
 
   useEffect(() => {
     if (!data) return;
@@ -41,31 +34,23 @@ export const useTransaction = ({ callsProps }: UseTransactionInterface) => {
     } else {
       //TODO: fix returned data to be akin to InvokeTransactionResult
       setTxUrl(kakarotScanTxUrl + data);
-      showTransactionModal(data?.transaction_hash, () => {
-
-      });
-
+      showTransactionModal(data?.transaction_hash, () => {});
     }
   }, [data]);
 
-
-
   const sendTransaction = async (callsInputs?: Call[]) => {
-
-
     if (shown) return;
 
     if (!callsInputs && calls?.length == 0) {
       showToast({
-        title: "Impossible to create your TX",
-        type: "info",
-
-      })
+        title: 'Impossible to create your TX',
+        type: 'info',
+      });
       return;
     }
 
-    if(callsInputs) {
-      setCalls(callsInputs)
+    if (callsInputs) {
+      setCalls(callsInputs);
     }
 
     showTransactionModal();
@@ -86,6 +71,6 @@ export const useTransaction = ({ callsProps }: UseTransactionInterface) => {
 
   return {
     sendTransaction,
-    txUrl
+    txUrl,
   };
 };

@@ -44,9 +44,14 @@ export enum SelectedTab {
   PAY_WALLET,
   WALLET_INTERNAL,
   CONTACTS = 'contacts',
+  HOLDERS = "HOLDERS",
+  TX = "TX",
+  SHARES = "SHARES",
+  STATS = "STATS",
+  GRAPH = "GRAPH",
 }
 
-export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -75,7 +80,7 @@ export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }
   // },
 ];
 
-export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -94,7 +99,7 @@ export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'Feed',
@@ -119,7 +124,7 @@ export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Notes',
     screen: 'PostCreate',
@@ -149,7 +154,7 @@ export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTa
   // },
 ];
 
-export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Pump',
     screen: 'Launchpad',
@@ -199,7 +204,7 @@ export const TABS_MENU: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -234,7 +239,7 @@ export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] =
   // },
 ];
 
-export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Overview',
     screen: 'overview',
@@ -273,7 +278,7 @@ export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[]
   },
 ];
 
-export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = [
   // {
   //   title: 'General',
   //   screen: 'General',
@@ -301,7 +306,7 @@ export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] 
   },
 ];
 
-export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -330,7 +335,7 @@ export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[]
   },
 ];
 
-export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -343,7 +348,7 @@ export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab
   },
 ];
 
-export const TABS_ONBOARDING_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
+export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
     title: 'Dynamic',
     screen: 'Dynamic',

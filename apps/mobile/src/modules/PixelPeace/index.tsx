@@ -1,5 +1,3 @@
-import {ART_PEACE_ADDRESS, USERNAME_STORE_ADDRESS} from 'common';
-import {AppRender} from 'pixel_ui';
 import React from 'react';
 import {Platform, View} from 'react-native';
 import WebView from 'react-native-webview';

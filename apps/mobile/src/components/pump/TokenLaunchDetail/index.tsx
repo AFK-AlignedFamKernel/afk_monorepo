@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import {useState} from 'react';
-import {ImageSourcePropType, Pressable, View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
 import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
@@ -167,87 +167,100 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
 
   return (
     <View style={styles.container}>
-      <View>
+      <View style={styles.detailCard}>
         {launch?.memecoin_address && (
-          <View style={styles.borderBottom}>
-            <Text weight="semiBold">Coin address:</Text>
-            <AddressComponent address={feltToAddress(BigInt(launch.memecoin_address))} />
-          </View>
+          <>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Coin address</Text>
+              <AddressComponent
+                address={feltToAddress(BigInt(launch.memecoin_address))}
+                textStyle={styles.addressValue}
+              />
+            </View>
+            <View style={styles.divider} />
+          </>
         )}
 
         {launch?.owner && (
-          <View style={styles.borderBottom}>
-            <Text weight="semiBold">Owner:</Text>
-            <Text>{feltToAddress(BigInt(launch.owner))}</Text>
-          </View>
+          <>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Owner</Text>
+              <Text style={styles.value}>{feltToAddress(BigInt(launch.owner))}</Text>
+            </View>
+            <View style={styles.divider} />
+          </>
         )}
 
-        <View style={styles.borderBottom}>
-          <Text weight="semiBold">Supply:</Text>
-          <Text>{Number(launch?.total_supply)}</Text>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Supply</Text>
+          <Text style={styles.value}>{Number(launch?.total_supply).toLocaleString()}</Text>
         </View>
-        <View style={styles.borderBottom}>
-          <Text weight="semiBold">Price:</Text>
-          <Text>{Number(launch?.price ?? 0)}</Text>
+
+        <View style={styles.divider} />
+
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Price</Text>
+          <Text style={styles.value}>${Number(launch?.price ?? 0).toFixed(4)}</Text>
         </View>
       </View>
 
-      <Pressable
-        onPress={() => {
-          setIsDisabledInfoState(!isDisabledInfoState);
-        }}
+      <Button
+        style={styles.toggleButton}
+        textStyle={styles.toggleText}
+        onPress={() => setIsDisabledInfoState(!isDisabledInfoState)}
       >
-        <Text>{isDisabledInfoState ? 'View more info' : 'Close info'}</Text>
-      </Pressable>
+        {isDisabledInfoState ? 'View more info' : 'Hide details'}
+      </Button>
+
       {!isDisabledInfoState && (
-        <>
-          <View>
-            {launch?.threshold_liquidity && (
-              <View style={styles.borderBottom}>
-                <Text weight="semiBold">Threshold liquidity:</Text>
-                <Text>{Number(launch?.threshold_liquidity)}</Text>
-              </View>
-            )}
+        <View style={styles.detailCard}>
+          <Text style={styles.sectionTitle}>Additional Details</Text>
 
-            {launch?.liquidity_raised && (
-              <View>
-                <Text weight="semiBold">Raised:</Text>
-                <Text>{Number(launch?.liquidity_raised)}</Text>
-              </View>
-            )}
+          {launch?.threshold_liquidity && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Threshold liquidity</Text>
+              <Text style={styles.value}>
+                {Number(launch?.threshold_liquidity).toLocaleString()}
+              </Text>
+            </View>
+          )}
 
-            {launch?.is_liquidity_launch && (
-              <View style={styles.borderBottom}>
-                <Text weight="semiBold">Is launched in DEX:</Text>
-                <Text>{Number(launch?.is_liquidity_launch)}</Text>
-              </View>
-            )}
-          </View>
+          {launch?.liquidity_raised && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Raised</Text>
+              <Text style={styles.value}>{Number(launch?.liquidity_raised).toLocaleString()}</Text>
+            </View>
+          )}
+
+          {launch?.is_liquidity_launch && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Is launched in DEX</Text>
+              <Text style={styles.value}>
+                {Number(launch?.is_liquidity_launch).toLocaleString()}
+              </Text>
+            </View>
+          )}
 
           {launch?.quote_token && (
-            <View style={styles.borderBottom}>
-              <Text weight="semiBold">Quote token:</Text>
-              <Text>{launch?.quote_token}</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Quote token</Text>
+              <AddressComponent
+                address={launch?.quote_token || ''}
+                textStyle={styles.addressValue}
+              />
             </View>
           )}
+
           {launch?.token_quote && (
-            <View
-            // style={styles.imageContainer}
-            >
-              <Text weight="bold" fontSize={18} style={styles.marginBottom}>
-                Token quote
-              </Text>
-              <View style={styles.borderBottom}>
-                <Text weight="semiBold">Quote token:</Text>
-                <Text>{feltToAddress(BigInt(launch.token_quote?.token_address))}</Text>
-              </View>
-              <View>
-                <Text weight="semiBold">Step increase: </Text>
-                <Text>{Number(launch.token_quote?.step_increase_linear)}</Text>
-              </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Token quote</Text>
+              <AddressComponent
+                address={feltToAddress(BigInt(launch.token_quote?.token_address))}
+                textStyle={styles.addressValue}
+              />
             </View>
           )}
-        </>
+        </View>
       )}
 
       {!isDisabledForm && (
@@ -255,6 +268,12 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           onChangeText={(e) => setAmount(Number(e))}
           onBuyPress={buyCoin}
           onSellPress={sellKeys}
+          onHandleAction={function (amountProps?: number): void {
+            throw new Error('Function not implemented.');
+          }}
+          onSetAmount={function (e: number): void {
+            throw new Error('Function not implemented.');
+          }}
         ></LaunchActionsForm>
       )}
 

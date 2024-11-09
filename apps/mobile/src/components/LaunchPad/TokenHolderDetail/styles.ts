@@ -1,40 +1,45 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
+
 export default ThemedStyleSheet((theme) => ({
   container: {
-    // alignItems: 'center',
     backgroundColor: theme.colors.surface,
     padding: Spacing.normal,
+    borderRadius: 16,
+    marginBottom: Spacing.small,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  holderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.small,
+  },
+  label: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  value: {
+    color: theme.colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  addressContainer: {
+    backgroundColor: theme.colors.messageCard,
+    padding: Spacing.small,
     borderRadius: 8,
-    gap: Spacing.xsmall,
-    overflowWrap: 'break-word',
-    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%"
-    // width:"100%"
-    // width:300,
+    marginTop: Spacing.xsmall,
   },
-  imageContainer: {
-    // position: 'relative',
-    // display: 'flex',
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    borderRadius: 15,
+  emptyState: {
+    paddingTop: 40,
+    alignItems: 'center',
   },
-  text: {},
-  image: {
-    position: 'absolute',
-    width: 35,
-    height: 35,
-    borderRadius: 15,
-  },
-  name: {
-    paddingTop: Spacing.xxsmall,
-  },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#b5b5b5',
-    paddingBottom: 10,
-    marginBottom: 15,
-  },
-  marginBottom: {
-    marginBottom: 10,
-  },
+  emptyText: {
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  }
 }));

@@ -1,4 +1,5 @@
 import {Dimensions} from 'react-native';
+
 import {ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({

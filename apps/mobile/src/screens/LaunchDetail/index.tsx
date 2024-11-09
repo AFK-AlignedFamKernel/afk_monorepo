@@ -1,52 +1,64 @@
-import { useAccount } from '@starknet-react/core';
-import { feltToAddress } from 'common';
-import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useAccount} from '@starknet-react/core';
+import {feltToAddress} from 'common';
+import {useEffect, useState} from 'react';
+import {StyleProp, useWindowDimensions, View, ViewStyle} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { Button, TextButton } from '../../components';
-import { Text } from '../../components';
-import { LaunchActionsForm } from '../../components/LaunchActionsForm';
-import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
-import { TokenStats } from '../../components/LaunchPad/TokenStats';
-import { TokenTx } from '../../components/LaunchPad/TokenTx';
-import { UserShare } from '../../components/LaunchPad/UserShare';
-import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
+import {Button, TextButton} from '../../components';
+import {Text} from '../../components';
+import {LaunchActionsForm} from '../../components/LaunchActionsForm';
+import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import { useStyles, useTheme } from '../../hooks';
-import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
-import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
-import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
-import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
-import { useGetShares } from '../../hooks/api/indexer/useUserShare';
-import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
-import { useToast, useWalletModal } from '../../hooks/modals';
-import { LaunchDetailScreenProps } from '../../types';
+import {useStyles, useTheme} from '../../hooks';
+import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
+import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
+import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
+import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
+import {useGetShares} from '../../hooks/api/indexer/useUserShare';
+import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
+import {useToast, useWalletModal} from '../../hooks/modals';
+import {LaunchDetailScreenProps} from '../../types';
 import {
   LaunchDataMerged,
   TokenDeployInterface,
   TokenHoldersInterface,
-  TokenLaunchInterface,
   TokenStatsInterface,
   TokenTxInterface,
   UserShareInterface,
 } from '../../types/keys';
-import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
+import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
+import { TokenStats } from '../../components/LaunchPad/TokenStats';
+import { UserShare } from '../../components/LaunchPad/UserShare';
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
+interface LaunchDetailStyles {
+  holdersTotal: ViewStyle;
+  container: ViewStyle;
+  header: ViewStyle;
+  cancelButton: ViewStyle;
+  mainContent: ViewStyle;
+  leftColumn: ViewStyle;
+  rightColumn: ViewStyle;
+  tabContent: ViewStyle;
+  mobileContent: ViewStyle;
+  mobileTabBar: ViewStyle;
+}
+
+export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
-  const { theme } = useTheme();
-  const styles = useStyles(stylesheet);
-  const [loading, setLoading] = useState<false | number>(false);
+  const {theme} = useTheme();
+  const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
+  const [loading, setLoading] = useState(false);
   const account = useAccount();
-  const [typeAction, setTypeAction] = useState<"SELL" | "BUY">("BUY")
+  const [typeAction, setTypeAction] = useState<'SELL' | 'BUY'>('BUY');
 
   console.log(account, 'account');
 
-  const { coinAddress } = route.params;
+  const {coinAddress} = route.params;
 
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
@@ -67,26 +79,23 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
+  const {data: holdingsData, isLoading: holdingsLoading} = useGetHoldings(coinAddress);
 
-  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
+  const {data: transactionData, isLoading: txLoading} = useGetTransactions(coinAddress);
 
-  const { data: statsData, isLoading: statsLoading } = useGetTokenStats(coinAddress);
+  const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
-  const { data: sharesData, isLoading: sharesLoading } = useGetShares(
-    coinAddress,
-    account?.address,
-  );
+  const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
 
-  const { data: launchData, isLoading: tokenLoading } = useGetTokenLaunch(coinAddress);
+  const {data: launchData, isLoading: tokenLoading} = useGetTokenLaunch(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
-  const { handleSellCoins } = useSellCoin();
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleSellCoins} = useSellCoin();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
 
-  const { showToast } = useToast();
+  const {showToast} = useToast();
   const walletModal = useWalletModal();
 
   const [amount, setAmount] = useState<number | undefined>(0);
@@ -123,7 +132,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     const data = sharesData || [];
     const dataShare = sharesData;
     setShares(data);
-    setShare(dataShare)
+    setShare(dataShare);
   }, [sharesData]);
 
   // useEffect(() => {
@@ -140,10 +149,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     }
   };
 
-
   const sellCoin = async (amountSellProps?: number) => {
     if (!amount && !amountSellProps) {
-      return showToast({ title: 'Select an amount to sell', type: 'info' });
+      return showToast({title: 'Select an amount to sell', type: 'info'});
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -162,14 +170,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     );
 
     if (sellResult && sellResult?.value) {
-      return showToast({ title: 'Sell done', type: 'success' });
+      return showToast({title: 'Sell done', type: 'success'});
     }
   };
 
   const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
-      return showToast({ title: 'Select an amount to buy', type: 'info' });
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
 
     if (!account || !account?.account) return;
@@ -187,9 +195,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
       token?.quote_token,
     );
 
-
     if (buyResult) {
-      return showToast({ title: 'Buy successful', type: 'success' });
+      return showToast({title: 'Buy successful', type: 'success'});
     }
   };
 
@@ -197,17 +204,18 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
     await onConnect();
 
     if (!account || !account?.account) return;
-
-  }
+  };
 
   const onHandleAction = async (amountProps?: number) => {
-
-    if (typeAction == "BUY") {
-      await buyCoin(amountProps)
+    if (typeAction == 'BUY') {
+      await buyCoin(amountProps);
     } else {
-      await sellCoin(amountProps)
+      await sellCoin(amountProps);
     }
-  }
+  };
+
+  const {width} = useWindowDimensions();
+  const isMobile = width < 768; // Common breakpoint for mobile
 
   if (!coinAddress) {
     return (
@@ -221,48 +229,37 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   return (
     <View style={styles.container}>
-      {/* <Header showLogo /> */}
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
         <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
           Back
         </TextButton>
       </SafeAreaView>
-      <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        {/* TODO smooth UI */}
 
-        <LaunchActionsForm
-          amount={amount}
-          onChangeText={(e) => setAmount(Number(e))}
-          onBuyPress={buyCoin}
-          onSellPress={sellCoin}
-          launch={launch}
-          setTypeAction={setTypeAction}
-          typeAction={typeAction}
-          onHandleAction={onHandleAction}
-          userShare={share}
-          onSetAmount={setAmount}
-        ></LaunchActionsForm>
-
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_LAUNCH}
-          addScreenNavigation={false}
-        ></TabSelector>
-
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
-          <ScrollView>
+      {isMobile ? (
+        // Mobile Layout
+        <View style={styles.mobileContent}>
+          <LaunchActionsForm
+            amount={amount}
+            onChangeText={(e) => setAmount(Number(e))}
+            onBuyPress={buyCoin}
+            onSellPress={sellCoin}
+            launch={launch}
+            setTypeAction={setTypeAction}
+            typeAction={typeAction}
+            onHandleAction={onHandleAction}
+            userShare={share}
+            onSetAmount={setAmount}
+          />
+          <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
-              <>
-                <TokenLaunchDetail
-                  isViewDetailDisabled={true}
-                  launch={launch}
-                  isDisabledInfo={true}
-                  isDisabledForm
-                />
-              </>
+              <TokenLaunchDetail
+                isViewDetailDisabled={true}
+                launch={launch}
+                isDisabledInfo={true}
+                isDisabledForm
+              />
             )}
-
+            
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
                 <View style={styles.holdersTotal}>
@@ -274,48 +271,127 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               </>
             )}
 
-            {selectedTab == SelectedTab.LAUNCH_GRAPH &&
+            {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
+              <TokenTx tx={transactions} loading={txLoading} />
+            )}
+
+            {selectedTab == SelectedTab.TOKEN_STATS && (
+              <TokenStats loading={statsLoading} stats={stats} />
+            )}
+
+            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+              <UserShare
+                loading={sharesLoading}
+                shares={shares}
+                share={share}
+                coinAddress={launch?.memecoin_address}
+              />
+            ) : (
+              !account?.address &&
+              selectedTab == SelectedTab.USER_SHARE && 
+              launch?.memecoin_address && (
+                <View>
+                  <Text>Please connect</Text>
+                  <Button onPress={handleConnect}>Connect</Button>
+                </View>
+              )
+            )}
+
+            {selectedTab == SelectedTab.LAUNCH_GRAPH && (
               <View>
                 <Text>Graph coming soon</Text>
-
               </View>
-            }
-
-            {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
-              <>
-                <TokenTx tx={transactions} loading={txLoading} />
-              </>
             )}
-
-            {selectedTab == SelectedTab.TOKEN_STATS && transactions && (
-              <>
-                <TokenStats loading={statsLoading} stats={stats} />
-              </>
-            )}
-
-            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ?
-              (
-                <>
-                  <UserShare
-                    loading={sharesLoading}
-                    shares={shares}
-                    share={share}
-                    coinAddress={launch?.memecoin_address}
-                  />
-                </>
-              ) :
-
-              !account?.address &&
-              selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address &&
-
-              <View>
-                <Text>Please connect</Text>
-                <Button onPress={handleConnect}>Connect</Button>
-              </View>
-            }
           </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+          <View style={styles.mobileTabBar}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+          </View>
+        </View>
+      ) : (
+        // Web Layout (keep existing layout)
+        <View style={styles.mainContent}>
+          <View style={styles.leftColumn}>
+            <LaunchActionsForm
+              amount={amount}
+              onChangeText={(e) => setAmount(Number(e))}
+              onBuyPress={buyCoin}
+              onSellPress={sellCoin}
+              launch={launch}
+              setTypeAction={setTypeAction}
+              typeAction={typeAction}
+              onHandleAction={onHandleAction}
+              userShare={share}
+              onSetAmount={setAmount}
+            />
+          </View>
+          <View style={styles.rightColumn}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+            <ScrollView style={styles.tabContent}>
+              {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
+                <TokenLaunchDetail
+                  isViewDetailDisabled={true}
+                  launch={launch}
+                  isDisabledInfo={true}
+                  isDisabledForm
+                />
+              )}
+              
+              {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
+                <>
+                  <View style={styles.holdersTotal}>
+                    <Text weight="medium" fontSize={14}>
+                      Total Owner Address: {holdings?.data?.length}
+                    </Text>
+                  </View>
+                  <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+                </>
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
+                <TokenTx tx={transactions} loading={txLoading} />
+              )}
+
+              {selectedTab == SelectedTab.TOKEN_STATS && (
+                <TokenStats loading={statsLoading} stats={stats} />
+              )}
+
+              {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+                <UserShare
+                  loading={sharesLoading}
+                  shares={shares}
+                  share={share}
+                  coinAddress={launch?.memecoin_address}
+                />
+              ) : (
+                !account?.address &&
+                selectedTab == SelectedTab.USER_SHARE && 
+                launch?.memecoin_address && (
+                  <View>
+                    <Text>Please connect</Text>
+                    <Button onPress={handleConnect}>Connect</Button>
+                  </View>
+                )
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_GRAPH && (
+                <View>
+                  <Text>Graph coming soon</Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
