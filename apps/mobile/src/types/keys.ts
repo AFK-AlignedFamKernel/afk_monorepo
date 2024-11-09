@@ -1,7 +1,6 @@
-import { Uint256 } from 'starknet';
+import {Uint256} from 'starknet';
 
-
-export type ACTION_LAUNCHPAD = "BUY" | "SELL"
+export type ACTION_LAUNCHPAD = 'BUY' | 'SELL';
 export interface KeysUser {
   owner: string;
   token_address: string;
@@ -12,10 +11,7 @@ export interface KeysUser {
   token_quote: TokenQuoteBuyKeys;
 }
 
-
-export interface LaunchDataMerged extends TokenLaunchInterface, TokenDeployInterface {
-
-}
+export interface LaunchDataMerged extends TokenLaunchInterface, TokenDeployInterface {}
 export interface TokenLaunchInterface {
   owner: string;
   token_address: string;

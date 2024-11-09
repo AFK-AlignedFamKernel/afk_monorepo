@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 
-import {LaunchDataMerged, TokenDeployInterface, TokenLaunchInterface} from '../types/keys';
+import {LaunchDataMerged} from '../types/keys';
 import {useGetDeployToken} from './api/indexer/useDeployToken';
 import {useGetTokenLaunch} from './api/indexer/useLaunchTokens';
 

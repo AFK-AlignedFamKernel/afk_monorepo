@@ -6,12 +6,11 @@ export const useGetShares = (tokenAddress: string, userId?: string) => {
   return useQuery({
     queryKey: ['user_shares', tokenAddress, userId],
     queryFn: async () => {
-
-      if(!userId) {
+      if (!userId) {
         return {
-          status:500,
-          message:"NO_USER_CONNECTED"
-        }
+          status: 500,
+          message: 'NO_USER_CONNECTED',
+        };
       }
       const endpoint = `/my-share/${tokenAddress}/${userId}`;
       const res = await ApiIndexerInstance.get(endpoint);

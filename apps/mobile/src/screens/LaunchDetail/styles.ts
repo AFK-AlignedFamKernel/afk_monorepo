@@ -1,87 +1,55 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, Theme, ThemedStyleSheet} from '../../styles';
 
-export default ThemedStyleSheet((theme) => ({
+export default ThemedStyleSheet((theme: Theme) => ({
   container: {
-    position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
-    color: theme.colors.text,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: Spacing.pagePadding,
-    // borderBottomWidth: StyleSheet.hairlineWidth,
-    // borderBottomColor: theme.colors.divider,
+    paddingHorizontal: Spacing.normal,
+    paddingVertical: Spacing.small,
   },
-  flatListContent: {
-    paddingHorizontal: Spacing.pagePadding,
-    paddingVertical: Spacing.medium,
+  mainContent: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: Spacing.normal,
+    padding: Spacing.normal,
+  },
+  leftColumn: {
+    width: '35%',
+    maxWidth: 400,
+    minWidth: 300,
+  },
+  rightColumn: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: theme.colors.divider,
+    paddingLeft: Spacing.normal,
+  },
+  tabContent: {
+    flex: 1,
+    marginBottom: 50,
   },
   cancelButton: {
-    paddingVertical: Spacing.small,
-    paddingHorizontal: Spacing.xsmall,
-  },
-  content: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    margin: Spacing.pagePadding,
-    // color: theme.colors.text,
+    alignSelf: 'flex-start',
   },
   overview: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    // color: theme.colors.text,
-  },
-  separator: {
-    height: Spacing.xsmall,
-  },
-
-  tip: {
-    backgroundColor: theme.colors.surface,
-    padding: Spacing.xsmall,
-    borderRadius: 8,
-    gap: Spacing.xsmall,
-  },
-  tokenInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  token: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: Spacing.xsmall,
-  },
-
-  senderInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.medium,
-  },
-  sender: {
-    flex: 1,
-  },
-
-  text: {
-    color: theme.colors.text,
-    fontSize: 12,
-  },
-
-  buttonIndicator: {
-    marginRight: Spacing.xsmall,
   },
   holdersTotal: {
-    flex: 1,
     flexDirection: 'row',
     gap: 10,
     paddingTop: 10,
     marginBottom: 10,
-
-    heading: {
-      fontSize: 30,
-    },
+  },
+  mobileContent: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  mobileTabBar: {
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.divider,
+    backgroundColor: theme.colors.surface,
+    paddingVertical: Spacing.small,
   },
 }));
