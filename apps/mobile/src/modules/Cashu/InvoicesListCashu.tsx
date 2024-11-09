@@ -251,49 +251,6 @@ export const InvoicesListCashu = () => {
     });
   };
 
-  const getRelativeTime = (date: string | number | Date) => {
-    const now = new Date();
-    const timestamp = new Date(date);
-    const secondsAgo = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
-
-    // Handle invalid dates
-    if (isNaN(secondsAgo)) {
-      return 'Invalid date';
-    }
-
-    // Define time intervals in seconds
-    const intervals = {
-      year: 31536000,
-      month: 2592000,
-      week: 604800,
-      day: 86400,
-      hour: 3600,
-      minute: 60,
-      second: 1,
-    };
-
-    // Handle future dates
-    if (secondsAgo < 0) {
-      return 'in the future';
-    }
-
-    // Less than a minute
-    if (secondsAgo < 60) {
-      return 'just now';
-    }
-
-    // Check each interval
-    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-      const interval = Math.floor(secondsAgo / secondsInUnit);
-
-      if (interval >= 1) {
-        return interval === 1 ? `about ${interval} ${unit} ago` : `about ${interval} ${unit}s ago`;
-      }
-    }
-
-    return 'just now';
-  };
-
   return (
     <View style={styles.tabContentContainer}>
       <Text style={styles.tabTitle}>Cashu Invoices</Text>
