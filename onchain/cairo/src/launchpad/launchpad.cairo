@@ -102,6 +102,10 @@ pub trait ILaunchpadMarketplace<TContractState> {
         coin_address: ContractAddress,
         ekubo_pool_params: EkuboPoolParameters
     ) -> (u64, EkuboLP);
+
+    fn add_liquidity_ekubo(
+        ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+    ) -> (u64, EkuboLP);
 }
 
 #[starknet::contract]
@@ -1014,6 +1018,12 @@ pub mod LaunchpadMarketplace {
 
             self._add_liquidity_unrug(coin_address, ekubo_pool_params)
         }
+
+        fn add_liquidity_ekubo(
+            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+        ) -> (u64, EkuboLP) {
+            self._add_liquidity_ekubo(coin_address, params)
+        }
     }
 
     #[external(v0)]
@@ -1413,9 +1423,6 @@ pub mod LaunchpadMarketplace {
             registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
 
             let launch = self.launched_coins.read(coin_address);
-            let starting_price = i129 {
-                sign: true, mag: launch.token_quote.initial_key_price.try_into().unwrap()
-            };
 
             // Call the core with a callback to deposit and mint the LP tokens.
             let (id, position) = call_core_with_callback::<
