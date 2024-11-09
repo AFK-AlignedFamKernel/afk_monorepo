@@ -468,7 +468,7 @@ export default ThemedStyleSheet((theme) => ({
     bottom: 0,
   },
   modalTabContentContainer: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
     width: '100%',
     alignItems: 'center',
     maxWidth: 400,
@@ -489,6 +489,7 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: theme.colors.inputText,
   },
   modalTabContentTitle: {
     padding: 20,
@@ -496,6 +497,7 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: theme.colors.inputText,
   },
   tab: {
     backgroundColor: theme.colors.primary,
@@ -513,5 +515,9 @@ export default ThemedStyleSheet((theme) => ({
   modalActionButton: {
     marginBottom: 20,
     marginTop: Spacing.small,
+    backgroundColor: theme.colors.primary,
+  },
+  modalActionButtonText: {
+    color: theme.colors.white,
   },
 }));

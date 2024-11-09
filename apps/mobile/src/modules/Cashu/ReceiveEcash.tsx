@@ -224,6 +224,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                   onPress={generateInvoice}
                   style={styles.modalActionButton}
                   disabled={isGeneratingInvoice}
+                  textStyle={styles.modalActionButtonText}
                 >
                   {isGeneratingInvoice ? 'Generating...' : 'Generate invoice'}
                 </Button>
@@ -307,7 +308,11 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                     <GenerateQRCode data={ecash} size={200} />
                   </View>
                 )}
-                <Button onPress={handleReceiveEcash} style={styles.modalActionButton}>
+                <Button
+                  onPress={handleReceiveEcash}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
                   Receive ecash
                 </Button>
               </>

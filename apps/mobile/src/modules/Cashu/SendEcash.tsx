@@ -190,7 +190,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   style={styles.input}
                 />
 
-                <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
+                <Button
+                  onPress={() => handlePayInvoice(invoice)}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
+                  Pay invoice
+                </Button>
               </>
             </View>
           </>
@@ -214,7 +220,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   onChangeText={setInvoiceAmount}
                   style={styles.input}
                 />
-                <Button onPress={handleEcash}>Generate eCash</Button>
+                <Button
+                  onPress={handleEcash}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
+                  Generate eCash
+                </Button>
 
                 {generatedEcash && (
                   <View
