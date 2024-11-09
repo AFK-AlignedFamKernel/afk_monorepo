@@ -1,5 +1,5 @@
 {
-  "host": "backend-pixel.onrender.com",
+  "host": "https://pixel-backend-production.up.railway.app",
   "port": 8081,
   "consumer_port": 8081,
   "scripts": {
