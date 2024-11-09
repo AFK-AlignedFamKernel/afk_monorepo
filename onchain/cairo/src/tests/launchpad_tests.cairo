@@ -14,6 +14,10 @@ mod launchpad_tests {
     use core::num::traits::Zero;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
+    use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
+    use ekubo::interfaces::token_registry::{
+        ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
+    };
 
     use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
@@ -62,6 +66,14 @@ mod launchpad_tests {
 
     fn EKUBO_CORE() -> ContractAddress {
         0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
+    }
+
+    fn EKUBO_POSITIONS() -> ContractAddress {
+        0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067.try_into().unwrap()
+    }
+
+    fn EKUBO_REGISTRY() -> ContractAddress {
+        0x0013e25867b6eef62703735aa4cfa7754e72f4e94a56c9d3d9ad8ebe86cee4aa.try_into().unwrap()
     }
 
     fn SALT() -> felt252 {
@@ -145,6 +157,9 @@ mod launchpad_tests {
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
             FACTORY_ADDRESS(),
+            ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
+            ICoreDispatcher { contract_address: EKUBO_CORE() },
+            IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
         );
         // let launchpad = deploy_launchpad(
         //     launch_class,
@@ -173,6 +188,9 @@ mod launchpad_tests {
         threshold_liquidity: u256,
         threshold_marketcap: u256,
         factory_address: ContractAddress,
+        ekubo_registry: ITokenRegistryDispatcher,
+        core: ICoreDispatcher,
+        positions: IPositionsDispatcher,
     ) -> ILaunchpadMarketplaceDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
@@ -183,6 +201,9 @@ mod launchpad_tests {
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
         calldata.append_serde(factory_address);
+        calldata.append_serde(ekubo_registry);
+        calldata.append_serde(core);
+        calldata.append_serde(positions);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
     }
@@ -1393,4 +1414,18 @@ mod launchpad_tests {
     // println!("reserve_memecoin: {}", reserve_memecoin);
     // println!("reserve_quote: {}", reserve_quote);
     }
+    // //TODO: refac
+// let params: EkuboLaunchParameters = EkuboLaunchParameters {
+//        owner: launch.owner,
+//         token_address: launch.token_address,
+//         quote_address: launch.token_quote.token_address,
+//         lp_supply: launch.liquidity_raised,
+//         pool_params: EkuboPoolParameters {
+//              fee: 0xc49ba5e353f7d00000000000000000,
+//              tick_spacing: 5982,
+//              starting_price,
+//              initial_key_price,
+//              bound: 88719042,
+//         }
+// }
 }
