@@ -1,11 +1,11 @@
 import {useAccount} from '@starknet-react/core';
 import {feltToAddress} from 'common';
 import {useEffect, useState} from 'react';
-import {useWindowDimensions, View, ViewStyle} from 'react-native';
+import {StyleProp, useWindowDimensions, View, ViewStyle} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
+import {Button, TextButton} from '../../components';
 import {Text} from '../../components';
 import {LaunchActionsForm} from '../../components/LaunchActionsForm';
 import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
@@ -30,8 +30,13 @@ import {
 } from '../../types/keys';
 import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
+import { TokenStats } from '../../components/LaunchPad/TokenStats';
+import { UserShare } from '../../components/LaunchPad/UserShare';
 
 interface LaunchDetailStyles {
+  holdersTotal: ViewStyle;
   container: ViewStyle;
   header: ViewStyle;
   cancelButton: ViewStyle;
@@ -254,6 +259,49 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 isDisabledForm
               />
             )}
+            
+            {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
+              <>
+                <View style={styles.holdersTotal}>
+                  <Text weight="medium" fontSize={14}>
+                    Total Owner Address: {holdings?.data?.length}
+                  </Text>
+                </View>
+                <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+              </>
+            )}
+
+            {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
+              <TokenTx tx={transactions} loading={txLoading} />
+            )}
+
+            {selectedTab == SelectedTab.TOKEN_STATS && (
+              <TokenStats loading={statsLoading} stats={stats} />
+            )}
+
+            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+              <UserShare
+                loading={sharesLoading}
+                shares={shares}
+                share={share}
+                coinAddress={launch?.memecoin_address}
+              />
+            ) : (
+              !account?.address &&
+              selectedTab == SelectedTab.USER_SHARE && 
+              launch?.memecoin_address && (
+                <View>
+                  <Text>Please connect</Text>
+                  <Button onPress={handleConnect}>Connect</Button>
+                </View>
+              )
+            )}
+
+            {selectedTab == SelectedTab.LAUNCH_GRAPH && (
+              <View>
+                <Text>Graph coming soon</Text>
+              </View>
+            )}
           </ScrollView>
           <View style={styles.mobileTabBar}>
             <TabSelector
@@ -296,6 +344,49 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                   isDisabledInfo={true}
                   isDisabledForm
                 />
+              )}
+              
+              {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
+                <>
+                  <View style={styles.holdersTotal}>
+                    <Text weight="medium" fontSize={14}>
+                      Total Owner Address: {holdings?.data?.length}
+                    </Text>
+                  </View>
+                  <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+                </>
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
+                <TokenTx tx={transactions} loading={txLoading} />
+              )}
+
+              {selectedTab == SelectedTab.TOKEN_STATS && (
+                <TokenStats loading={statsLoading} stats={stats} />
+              )}
+
+              {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+                <UserShare
+                  loading={sharesLoading}
+                  shares={shares}
+                  share={share}
+                  coinAddress={launch?.memecoin_address}
+                />
+              ) : (
+                !account?.address &&
+                selectedTab == SelectedTab.USER_SHARE && 
+                launch?.memecoin_address && (
+                  <View>
+                    <Text>Please connect</Text>
+                    <Button onPress={handleConnect}>Connect</Button>
+                  </View>
+                )
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_GRAPH && (
+                <View>
+                  <Text>Graph coming soon</Text>
+                </View>
               )}
             </ScrollView>
           </View>
