@@ -1,8 +1,12 @@
-import { Contact, getContacts } from 'afk_nostr_sdk';
-import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {useQueryClient} from '@tanstack/react-query';
+import {Contact, getContacts, updateContacts, useEditContacts} from 'afk_nostr_sdk';
+import React, {useEffect, useState} from 'react';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 
-import { useStyles } from '../../hooks';
+import {TrashIcon} from '../../assets/icons';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import {Button} from '../Button';
 import stylesheet from './styles';
 
 interface ContactsRowProps {
@@ -16,6 +20,12 @@ export const ContactsRow: React.FC<ContactsRowProps> = ({
   onContactPress,
   onAddContact,
 }) => {
+  const {showToast} = useToast();
+  const styles = useStyles(stylesheet);
+  const {theme} = useTheme();
+  const editContacts = useEditContacts();
+  const queryClient = useQueryClient();
+
   const [storedContacts, setStoredContacts] = useState<Contact[]>(contacts ?? []);
 
   useEffect(() => {
@@ -28,41 +38,74 @@ export const ContactsRow: React.FC<ContactsRowProps> = ({
     fetchContacts();
   }, []);
 
-  // const handleContactSelect = (contact: Contact) => {
+  const handleRemoveContact = async (pubkey: string) => {
+    try {
+      /** TODO remove contact */
 
-  //   if (onContactPress) {
-  //     onContactPress(contact)
-  //   }
-  //   if (contact.pubkey) {
-  //     setReceiverPublicKey(contact.pubkey);
-  //   }
-  // };
+      const contacts = storedContacts.filter((c) => c?.pubkey != pubkey);
+      updateContacts(contacts);
 
-  const styles = useStyles(stylesheet);
+      await editContacts.mutateAsync(
+        {pubkey, type: 'remove'},
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['contacts']});
+            showToast({type: 'success', title: 'Contact removed successfully'});
+            // Update local storage contacts
+            const updatedContacts = storedContacts.filter((c) => c.pubkey !== pubkey);
+            setStoredContacts(updatedContacts);
+          },
+        },
+      );
+    } catch (error) {
+      showToast({type: 'error', title: 'Failed to remove contact'});
+    }
+  };
+
   return (
     <View style={styles.contactsContainer}>
       <Text style={styles.contactsTitle}>Contacts</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.contactsScrollContent}
-      >
-        <TouchableOpacity style={styles.addContactButton} onPress={onAddContact}>
-          <Text style={styles.plusSign}>+</Text>
-        </TouchableOpacity>
-
-        {storedContacts?.map((contact) => (
-          <View key={contact.pubkey} style={styles.contactAvatar}>
-            <Image
-              source={contact.image ? { uri: contact.image } : require('../../assets/pepe-logo.png')}
-              style={styles.avatarImage}
-            />
-            <Text style={styles.contactName} numberOfLines={1}>
-              {contact.displayName || 'Unnamed'}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
+      <View style={styles.contactsContentContainer}>
+        <View style={styles.contactsListContainer}>
+          {storedContacts?.map((contact) => (
+            <TouchableOpacity
+              key={contact.pubkey}
+              style={styles.contactContainer}
+              onPress={() => onContactPress?.(contact)}
+            >
+              <Image
+                source={
+                  contact.image ? {uri: contact.image} : require('../../assets/pepe-logo.png')
+                }
+                style={styles.avatarImage}
+              />
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName} numberOfLines={1}>
+                  {contact.displayName || 'Unnamed'}
+                </Text>
+                <Text style={styles.contactAddress} numberOfLines={1}>
+                  {contact.pubkey}
+                </Text>
+              </View>
+              <View style={styles.actionsContainer}>
+                <TouchableOpacity
+                  onPress={() => handleRemoveContact(contact.pubkey || '')}
+                  style={styles.actionButton}
+                >
+                  <TrashIcon width={20} height={20} color={theme.colors.errorDark} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Button
+          onPress={onAddContact}
+          style={styles.addContactButton}
+          textStyle={styles.addContactButtonText}
+        >
+          Add Contact
+        </Button>
+      </View>
     </View>
   );
 };

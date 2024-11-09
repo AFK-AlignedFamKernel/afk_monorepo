@@ -42,8 +42,8 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     height: '95%',
     // flexGrow: 1,
-    // overflow:"scroll",
-    backgroundColor: theme.colors.surface,
+    overflow: 'scroll',
+    backgroundColor: 'transparent',
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -318,7 +318,7 @@ export default ThemedStyleSheet((theme) => ({
     borderColor: theme.colors.primary,
   },
   tabContentContainer: {
-    padding: 20,
+    padding: 10,
   },
   tabTitle: {
     fontWeight: 'bold',
