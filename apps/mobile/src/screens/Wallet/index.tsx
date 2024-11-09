@@ -40,6 +40,7 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
             handleActiveTab={handleTabSelected}
             buttons={TABS_WALLET}
             addScreenNavigation={false}
+            useDefaultStyles={false}
           ></TabSelector>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
             {selectedTab == SelectedTab.BRIDGE_LAYERSWAP && (
