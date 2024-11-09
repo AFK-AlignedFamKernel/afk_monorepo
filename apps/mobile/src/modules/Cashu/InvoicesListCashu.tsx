@@ -11,11 +11,11 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
-import {FlatList, Platform, TouchableOpacity, View} from 'react-native';
+import {FlatList, Modal, Platform, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
-import {CopyIconStack, InfoIcon} from '../../assets/icons';
-import {Button, Divider, Input} from '../../components';
+import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../assets/icons';
+import {Button, Divider} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
@@ -46,6 +46,7 @@ export const InvoicesListCashu = () => {
 
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
   const [invoices, setInvoices] = useState<ICashuInvoice[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
   useEffect(() => {
     (async () => {
@@ -249,65 +250,139 @@ export const InvoicesListCashu = () => {
     });
   };
 
+  const getRelativeTime = (date: string | number | Date) => {
+    const now = new Date();
+    const timestamp = new Date(date);
+    const secondsAgo = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
+
+    // Handle invalid dates
+    if (isNaN(secondsAgo)) {
+      return 'Invalid date';
+    }
+
+    // Define time intervals in seconds
+    const intervals = {
+      year: 31536000,
+      month: 2592000,
+      week: 604800,
+      day: 86400,
+      hour: 3600,
+      minute: 60,
+      second: 1,
+    };
+
+    // Handle future dates
+    if (secondsAgo < 0) {
+      return 'in the future';
+    }
+
+    // Less than a minute
+    if (secondsAgo < 60) {
+      return 'just now';
+    }
+
+    // Check each interval
+    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+      const interval = Math.floor(secondsAgo / secondsInUnit);
+
+      if (interval >= 1) {
+        return interval === 1 ? `about ${interval} ${unit} ago` : `about ${interval} ${unit}s ago`;
+      }
+    }
+
+    return 'just now';
+  };
+
   return (
     <View style={styles.tabContentContainer}>
       <Text style={styles.tabTitle}>Cashu Invoices</Text>
       {invoices?.length > 0 ? (
-        <FlatList
-          ItemSeparatorComponent={() => <Divider></Divider>}
-          data={invoices?.flat().reverse()}
-          contentContainerStyle={styles.flatListContent}
-          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-          renderItem={({item}) => {
-            const date = item?.date && new Date(item?.date)?.toISOString();
-            return (
-              <View style={styles.card}>
-                <View>
-                  <Input
-                    value={item?.bolt11}
-                    editable={false}
-                    style={{marginBottom: 10}}
-                    right={
+        <>
+          <View style={styles.tableHeadersContainer}>
+            <View style={styles.amountColumn}>
+              <Text style={styles.tableHeading}>AMOUNT</Text>
+            </View>
+            <View style={styles.actionsColumn}>
+              <Text style={styles.tableHeading}>ACTIONS</Text>
+            </View>
+          </View>
+          <FlatList
+            ItemSeparatorComponent={() => <Divider></Divider>}
+            data={invoices
+              .filter((invoice) => invoice.bolt11)
+              ?.flat()
+              .reverse()}
+            contentContainerStyle={styles.invoicesListContainer}
+            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+            renderItem={({item}) => {
+              return (
+                <>
+                  <TouchableOpacity style={styles.invoiceContainer}>
+                    <View style={styles.amountColumn}>
+                      <Text style={styles.amountText}>{item?.amount} sat</Text>
+                    </View>
+                    <View style={styles.actionsColumn}>
                       <TouchableOpacity
-                        onPress={() => handleCopy(item?.bolt11)}
-                        style={{
-                          marginRight: 10,
-                        }}
+                        onPress={() => handleCopy(item.bolt11)}
+                        style={styles.invoicesActionButton}
                       >
-                        <CopyIconStack color={theme.colors.primary} />
+                        <CopyIconStack width={20} height={20} />
                       </TouchableOpacity>
-                    }
-                  />
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Amount:</span> {item?.amount}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Mint:</span> {item?.mint}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Status:</span> {item?.state}
-                  </Text>
-                  {date && (
-                    <Text style={styles.text}>
-                      <span style={{fontWeight: 'bold'}}>Date:</span> {date}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <Button
-                    onPress={() => handleVerify(item?.quote)}
-                    style={{
-                      marginTop: 15,
-                    }}
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedInvoice(item.bolt11 || '');
+                        }}
+                        style={styles.invoicesActionButton}
+                      >
+                        <ViewIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleVerify(item?.quote)}
+                        style={styles.invoicesActionButton}
+                      >
+                        <RefreshIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                  <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={selectedInvoice === item.bolt11}
                   >
-                    Verify
-                  </Button>
-                </View>
-              </View>
-            );
-          }}
-        />
+                    <View style={styles.invoiceModalContainer}>
+                      <View style={styles.invoiceModalContent}>
+                        <Text style={styles.invoiceModalTitle}>Lightning invoice</Text>
+                        <Text style={styles.invoiceModalTextAmount}>
+                          <b>Amount:</b> {item.amount} sat
+                        </Text>
+                        <Text style={styles.invoiceModalTextTime}>
+                          {getRelativeTime(item.date || '')}
+                        </Text>
+                        <Text style={styles.invoiceModalTextState}>{item.state}</Text>
+                        <View style={styles.invoiceModalActionsContainer}>
+                          <Button
+                            onPress={() => handleCopy(item.bolt11)}
+                            style={styles.invoiceModalActionButton}
+                            textStyle={styles.invoiceModalActionButtonText}
+                          >
+                            Copy
+                          </Button>
+                          <Button
+                            onPress={() => setSelectedInvoice('')}
+                            style={styles.invoiceModalActionButton}
+                            textStyle={styles.invoiceModalActionButtonText}
+                          >
+                            Close
+                          </Button>
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
+                </>
+              );
+            }}
+          />
+        </>
       ) : (
         <View style={styles.noDataContainer}>
           <InfoIcon width={30} height={30} color={theme.colors.primary} />

@@ -135,26 +135,31 @@ export const CashuView = () => {
 
   const sendModalizeRef = useRef<Modalize>(null);
 
-  const onOpenSendModal = () => {
-    sendModalizeRef.current?.close();
+  const [sendModalOpen, setSendModalOpen] = useState<boolean>(false);
+  const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <SendEcash></SendEcash>
-      </>,
-    );
+  const onOpenSendModal = () => {
+    setSendModalOpen(true);
+    // sendModalizeRef.current?.close();
+
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <SendEcash></SendEcash>
+    //   </>,
+    // );
   };
 
   const onOpenReceiveModal = () => {
-    sendModalizeRef.current?.close();
+    setReceiveModalOpen(true);
+    // sendModalizeRef.current?.close();
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <ReceiveEcash></ReceiveEcash>
-      </>,
-    );
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <ReceiveEcash></ReceiveEcash>
+    //   </>,
+    // );
   };
   const handleZap = async () => {
     if (!zapAmount || !zapRecipient) return;
@@ -194,6 +199,16 @@ export const CashuView = () => {
 
   return (
     <View style={styles.container}>
+      <Modal animationType="fade" transparent={true} visible={sendModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <SendEcash onClose={() => setSendModalOpen(false)}></SendEcash>
+        </View>
+      </Modal>
+      <Modal animationType="fade" transparent={true} visible={receiveModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <ReceiveEcash onClose={() => setReceiveModalOpen(false)}></ReceiveEcash>
+        </View>
+      </Modal>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
