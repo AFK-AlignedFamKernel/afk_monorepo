@@ -1,15 +1,9 @@
 import {useQueryClient} from '@tanstack/react-query';
-import {
-  addContacts,
-  Contact,
-  getContacts,
-  updateContacts,
-  useEditContacts,
-  useProfile,
-} from 'afk_nostr_sdk';
+import {addContacts, Contact, getContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
 import React, {useEffect, useState} from 'react';
-import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Image, Text, TextInput, View} from 'react-native';
 
+import {Button} from '../../components';
 import {useTheme} from '../../hooks';
 import {useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
@@ -21,7 +15,8 @@ interface ContactListProps {
 
 export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   const [nostrAddress, setNostrAddress] = useState('');
-  const [activeTab, setActiveTab] = useState('all'); // 'all' or 'add'
+  const [name, setName] = useState('');
+  const [showProfileInfo, setShowProfileInfo] = useState(false);
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
   const {theme} = useTheme();
   const {showToast} = useToast();
@@ -30,6 +25,10 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
 
   // Destructure refetch from useProfile hook
   const {data: profile, refetch} = useProfile({publicKey: nostrAddress});
+
+  useEffect(() => {
+    setShowProfileInfo(false);
+  }, [nostrAddress]);
 
   // Fetch contacts when component mounts
   useEffect(() => {
@@ -46,29 +45,21 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
 
   // Add handler for Check address button
   const handleCheckAddress = async () => {
+    setShowProfileInfo(true);
     if (nostrAddress) {
       await refetch();
     }
   };
 
   const handleAddContact = async () => {
-    if (!profile) {
-      showToast({
-        title: 'Profile is not find',
-        type: 'error',
-      });
-      return;
-    }
-    console.log('Adding new contact with profile:', profile);
-
     const newContact: Contact = {
       pubkey: nostrAddress,
-      displayName: profile?.displayName || profile?.name,
+      displayName: profile?.displayName || profile?.name || name,
       nip05: profile?.nip05,
       lud16: profile?.lud16,
       about: profile?.about,
       image: profile?.image,
-      bio: profile.bio,
+      bio: profile?.bio,
     };
 
     if (profile?.pubkey) {
@@ -86,21 +77,16 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
       );
     }
 
-    console.log('Created contact object:', newContact);
-
     try {
       addContacts([newContact]);
-      console.log('Contact successfully added to storage');
 
       showToast({
         type: 'success',
         title: 'Contact added successfully',
       });
-      console.log('Toast shown, closing modal');
 
       onClose && onClose();
     } catch (error) {
-      console.error('Error adding contact:', error);
       showToast({
         type: 'error',
         title: 'Failed to add contact',
@@ -109,136 +95,98 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   };
 
   const renderProfileInfo = () => {
-    if (!nostrAddress || !profile) return null;
+    if (!nostrAddress) return null;
+
+    if (Object.keys(profile as object).length === 0)
+      return (
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileDetail}>Unrecognized address.</Text>
+        </View>
+      );
 
     return (
       <View style={styles.profileInfo}>
-        <Text style={styles.profileDetail}>NIP05: {profile.nip05 || 'unrecognized'}</Text>
+        <Text style={styles.infoTitle}>Profile Info:</Text>
+        <Text style={styles.profileDetail}>
+          <b>NIP05:</b> {profile?.nip05 || 'unrecognized'}
+        </Text>
 
         {profile?.image && <Image style={styles.profileDetail} src={profile?.image}></Image>}
         <Text style={styles.profileDetail}>
-          Lightning address: {profile.lud16 || 'unrecognized'}
+          <b>Lightning address:</b> {profile?.lud16 || 'unrecognized'}
         </Text>
         <Text style={styles.profileDetail}>
-          Name: {profile.displayName || profile.name || 'unrecognized'}
+          <b>Name:</b> {profile?.displayName || profile?.name || 'unrecognized'}
         </Text>
         {profile?.about && (
-          <Text style={styles.profileDetail}>About: {profile.about || 'unrecognized'}</Text>
+          <Text style={styles.profileDetail}>
+            <b>About:</b> {profile.about || 'unrecognized'}
+          </Text>
         )}
         {profile?.bio && (
-          <Text style={styles.profileDetail}>Bio: {profile.bio || 'unrecognized'}</Text>
+          <Text style={styles.profileDetail}>
+            <b>Bio:</b> {profile.bio || 'unrecognized'}
+          </Text>
         )}
+        <Button
+          style={styles.hideInfoButton}
+          textStyle={styles.hideInfoButtonText}
+          onPress={() => setShowProfileInfo(false)}
+        >
+          Hide profile info
+        </Button>
       </View>
     );
   };
 
-  const renderAddNewContact = () => (
-    <View>
-      <View style={styles.inputSection}>
-        <Text style={styles.inputLabel}>Add a contact with Nostr address</Text>
-        <TextInput
-          style={styles.input}
-          value={nostrAddress}
-          onChangeText={setNostrAddress}
-          placeholder="Enter Nostr address"
-          placeholderTextColor={theme.colors.textSecondary}
-        />
-      </View>
-
-      {renderProfileInfo()}
-
-      <TouchableOpacity style={styles.actionButton} onPress={handleCheckAddress}>
-        <Text style={styles.actionButtonText}>Check address</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.actionButton} disabled={!profile} onPress={handleAddContact}>
-        <Text style={styles.actionButtonText}>Add contact</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const handleRemoveContact = async (pubkey: string) => {
-    try {
-      /** TODO remove contact */
-
-      const contacts = storedContacts.filter((c) => c?.pubkey != pubkey);
-      updateContacts(contacts);
-
-      await editContacts.mutateAsync(
-        {pubkey, type: 'remove'},
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['contacts']});
-            showToast({type: 'success', title: 'Contact removed successfully'});
-            // Update local storage contacts
-            const updatedContacts = storedContacts.filter((c) => c.pubkey !== pubkey);
-            setStoredContacts(updatedContacts);
-          },
-        },
-      );
-    } catch (error) {
-      showToast({type: 'error', title: 'Failed to remove contact'});
-    }
-  };
-
-  const renderAllContacts = () => (
-    <ScrollView>
-      <Text style={styles.inputLabel}>All contacts</Text>
-      {storedContacts.length === 0 ? (
-        <Text style={styles.profileDetail}>No contacts found</Text>
-      ) : (
-        storedContacts.map((contact, index) => (
-          <View key={contact?.pubkey} style={styles.contactItem}>
-            <Image
-              source={contact.image ? {uri: contact?.image} : require('../../assets/pepe-logo.png')}
-              style={styles.contactImage}
-            />
-            <View style={styles.contactInfo}>
-              <Text style={styles.profileDetail}>{contact?.displayName || 'Unnamed Contact'}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => contact?.pubkey && handleRemoveContact(contact?.pubkey)}
-            >
-              <Text style={styles.removeButtonText}>Remove</Text>
-            </TouchableOpacity>
-            {index !== storedContacts.length - 1 && <View style={styles.separator} />}
-          </View>
-        ))
-      )}
-    </ScrollView>
-  );
-
   return (
-    // <Modal animationType="fade" transparent={true} visible={true} onRequestClose={onClose}>
-    <View style={styles.centeredView}>
-      <View style={styles.modalView}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
-            onPress={() => setActiveTab('all')}
-          >
-            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
-              All contacts
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'add' ? styles.activeTab : styles.inactiveTab]}
-            onPress={() => setActiveTab('add')}
-          >
-            <Text style={[styles.tabText, activeTab === 'add' && styles.activeTabText]}>
-              Add new contact
-            </Text>
-          </TouchableOpacity>
+    <View style={styles.addContactMainContainer}>
+      <View style={styles.addContactContent}>
+        <Text style={styles.addContactTitle}>Add Contact</Text>
+        <View style={styles.addContactForm}>
+          <TextInput
+            style={styles.addContactFormInput}
+            value={name}
+            onChangeText={setName}
+            placeholder="Name"
+            placeholderTextColor={theme.colors.textSecondary}
+          />
+          <TextInput
+            style={styles.addContactFormInput}
+            value={nostrAddress}
+            onChangeText={setNostrAddress}
+            placeholder="Address"
+            placeholderTextColor={theme.colors.textSecondary}
+          />
         </View>
-
-        {activeTab === 'all' ? renderAllContacts() : renderAddNewContact()}
-
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
+        {showProfileInfo ? renderProfileInfo() : null}
+        {nostrAddress !== '' && !showProfileInfo ? (
+          <Button
+            style={styles.checkAddressButton}
+            textStyle={styles.checkAddressButtonText}
+            onPress={handleCheckAddress}
+          >
+            Check address
+          </Button>
+        ) : null}
+        <View style={styles.formButtonsContainer}>
+          <Button
+            style={[styles.formActionButton, styles.formCancelButton]}
+            textStyle={styles.formCancelButtonText}
+            onPress={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            style={[styles.formActionButton, styles.formAddButton]}
+            textStyle={styles.formAddButtonText}
+            onPress={handleAddContact}
+            disabled={nostrAddress === '' || name === ''}
+          >
+            Add
+          </Button>
+        </View>
       </View>
     </View>
-    // </Modal>
   );
 };
