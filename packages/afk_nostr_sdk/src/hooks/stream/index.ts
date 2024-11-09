@@ -11,6 +11,7 @@ import {
   LiveChatMessage,
   LiveEventData,
   LiveEventStatus,
+  ParsedLiveChatMessage,
   Role,
   UseLiveEventsOptions,
 } from './types';
@@ -196,29 +197,46 @@ export const useLiveActivity = (eventId?: string) => {
   });
 
   // Chat functionality
-  const sendChatMessage = useMutation({
+  const useSendLiveChatMessage = useMutation({
     mutationKey: ['sendLiveChatMessage', eventId],
-    mutationFn: async (data: LiveChatMessage) => {
+    mutationFn: async (
+      data: LiveChatMessage & {
+        replyTo?: {
+          id: string;
+          marker: 'reply' | 'mention';
+        };
+      },
+    ) => {
       const event = new NDKEvent(ndk);
       event.kind = LIVE_CHAT_KIND;
-
-      event.tags = [
-        ['a', `${LIVE_EVENT_KIND}:${currentUserPubkey}:${data.eventId}`, '', 'root'],
-        ['p', event?.pubkey],
-      ];
       event.content = data.content;
+
+      // Base tags - always include the activity tag with root marker
+      const tags: string[][] = [
+        ['a', `${LIVE_EVENT_KIND}:${currentUserPubkey}:${data.eventId}`, '', 'root'],
+        ['p', data.pubkey],
+      ];
+
+      // Add reply or mention if present
+      if (data.replyTo) {
+        tags.push(['e', data.replyTo.id, '', data.replyTo.marker]);
+      }
+
+      event.tags = tags;
 
       return event.publish();
     },
   });
 
   // Chat messages query
+  const useGetLiveChat = (options?: UseLiveEventsOptions & {eventId: string}) => {
+    const {ndk} = useNostrContext();
+    const {publicKey: currentUserPubkey} = useAuth();
 
-  const useGetLiveChat = (options?: UseLiveEventsOptions) => {
     return useInfiniteQuery({
       initialPageParam: 0,
-      queryKey: ['liveChatMessages', eventId],
-      getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
+      queryKey: ['liveChatMessages', options?.eventId],
+      getNextPageParam: (lastPage: ParsedLiveChatMessage[], allPages, lastPageParam) => {
         if (!lastPage?.length) return undefined;
 
         const pageParam = lastPage[lastPage.length - 1].created_at - 1;
@@ -229,13 +247,52 @@ export const useLiveActivity = (eventId?: string) => {
       queryFn: async ({pageParam}) => {
         const filter: NDKFilter = {
           kinds: [LIVE_CHAT_KIND as any],
-          '#a': [`${LIVE_EVENT_KIND}:${currentUserPubkey}:${eventId}`],
+          '#a': [`${LIVE_EVENT_KIND}:${currentUserPubkey}:${options.eventId}`],
           until: pageParam || Math.round(Date.now() / 1000),
           limit: options?.limit || 20,
         };
 
         const events = await ndk.fetchEvents(filter);
-        return [...events];
+
+        console.log([...events], 'evt');
+        // Parse each event to extract reply structure and root information
+        return [...events].map((event) => {
+          const parsed: ParsedLiveChatMessage = {
+            id: event.id,
+            pubkey: event.pubkey,
+            content: event.content,
+            created_at: event.created_at,
+            activityTag: {
+              type: '',
+              pubkey: '',
+              identifier: '',
+            },
+          };
+
+          // Parse all tags
+          event.tags.forEach((tag) => {
+            // Handle activity tag (always present)
+            if (tag[0] === 'a' && tag[3] === 'root') {
+              const [type, pubkey, identifier] = tag[1].split(':');
+              parsed.activityTag = {
+                type,
+                pubkey,
+                identifier,
+                relay: tag[2] || undefined,
+              };
+            }
+
+            // Handle reply tag
+            if (tag[0] === 'e' && tag[2] === '' && tag[3] === 'reply') {
+              parsed.replyTo = {
+                id: tag[1],
+                marker: tag[3],
+              };
+            }
+          });
+
+          return parsed;
+        });
       },
       placeholderData: {pages: [], pageParams: []},
     });
@@ -253,7 +310,7 @@ export const useLiveActivity = (eventId?: string) => {
     removeParticipant,
 
     // Chat functionality
-    sendChatMessage,
+    useSendLiveChatMessage,
     useGetLiveChat,
   };
 };

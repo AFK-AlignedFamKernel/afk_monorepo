@@ -273,15 +273,8 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
   const {showToast} = useToast();
   const {publicKey} = useAuth();
 
-  const {
-    createEvent,
-    updateEvent,
-    sendChatMessage,
-    addParticipant,
-    removeParticipant,
-    deleteEvent,
-    event,
-  } = useLiveActivity();
+  const {createEvent, updateEvent, addParticipant, removeParticipant, deleteEvent, event} =
+    useLiveActivity();
 
   const styles = useStyles(styleSheet);
   const {theme} = useTheme();

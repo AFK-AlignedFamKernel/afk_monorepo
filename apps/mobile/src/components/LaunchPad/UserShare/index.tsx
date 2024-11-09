@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { useAccount } from 'wagmi';
+import {useState} from 'react';
+import {Pressable, View} from 'react-native';
+import {useAccount} from 'wagmi';
 
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useGetShares } from '../../../hooks/api/indexer/useUserShare';
-import { useWalletModal } from '../../../hooks/modals';
-import { TokenStatsInterface, UserShareInterface } from '../../../types/keys';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {useGetShares} from '../../../hooks/api/indexer/useUserShare';
+import {useWalletModal} from '../../../hooks/modals';
+import {TokenStatsInterface, UserShareInterface} from '../../../types/keys';
 import Loading from '../../Loading';
-import { Text } from '../../Text';
+import {Text} from '../../Text';
 import stylesheet from './styles';
 
 export type UserShareProps = {
@@ -17,7 +17,7 @@ export type UserShareProps = {
   share?: UserShareInterface;
 };
 
-export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, coinAddress }) => {
+export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coinAddress}) => {
   const styles = useStyles(stylesheet);
   const [stats, setStats] = useState<TokenStatsInterface | undefined>();
   const [sharesState, setShares] = useState<UserShareInterface | undefined>(share);
@@ -96,39 +96,42 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
             <Text fontSize={14}>{sharesState?.quote_amount}</Text>
           </View>
         </View>
-      ) :
-        sharesState &&
-        <View style={[styles.container, styles.borderBottom]}>
-          <View style={styles.borderBottom}>
-            <Text fontSize={14} weight="semiBold">
-              Total
-            </Text>
-            <Text fontSize={14}>
-              {sharesState?.total ? Number(sharesState?.total) : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
-            </Text>
-          </View>
+      ) : (
+        sharesState && (
+          <View style={[styles.container, styles.borderBottom]}>
+            <View style={styles.borderBottom}>
+              <Text fontSize={14} weight="semiBold">
+                Total
+              </Text>
+              <Text fontSize={14}>
+                {sharesState?.total
+                  ? Number(sharesState?.total)
+                  : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
+              </Text>
+            </View>
 
-          <View style={styles.borderBottom}>
-            <Text fontSize={14} weight="semiBold">
-              Total sell
-            </Text>
-            <Text fontSize={14}>{sharesState?.total_sell}</Text>
-          </View>
+            <View style={styles.borderBottom}>
+              <Text fontSize={14} weight="semiBold">
+                Total sell
+              </Text>
+              <Text fontSize={14}>{sharesState?.total_sell}</Text>
+            </View>
 
-          <View style={styles.borderBottom}>
-            <Text fontSize={14} weight="semiBold">
-              Total Buy
-            </Text>
-            <Text fontSize={14}>{sharesState?.total_buy}</Text>
+            <View style={styles.borderBottom}>
+              <Text fontSize={14} weight="semiBold">
+                Total Buy
+              </Text>
+              <Text fontSize={14}>{sharesState?.total_buy}</Text>
+            </View>
+            <View style={styles.borderBottom}>
+              <Text fontSize={14} weight="semiBold">
+                Quote amount paid
+              </Text>
+              <Text fontSize={14}>{sharesState?.quote_amount}</Text>
+            </View>
           </View>
-          <View style={styles.borderBottom}>
-            <Text fontSize={14} weight="semiBold">
-              Quote amount paid
-            </Text>
-            <Text fontSize={14}>{sharesState?.quote_amount}</Text>
-          </View>
-        </View>
-      }
+        )
+      )}
       {/* {sharesState && (
         <View style={[styles.container, styles.borderBottom]}>
           <View style={styles.borderBottom}>

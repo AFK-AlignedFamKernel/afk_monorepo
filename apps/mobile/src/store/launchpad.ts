@@ -1,15 +1,14 @@
-import { Proof } from '@cashu/cashu-ts';
-import { createStore } from 'zustand';
+import {createStore} from 'zustand';
 
+import {UserShareProps} from '../components/LaunchPad/UserShare';
+import {TokenDeployInterface, TokenLaunchInterface} from '../types/keys';
 import createBoundedUseStore from './createBoundedUseStore';
-import { UserShareProps } from '../components/LaunchPad/UserShare';
-import { TokenDeployInterface, TokenLaunchInterface } from '../types/keys';
 
 type State = {
-  userShare?: UserShareProps
-  userShares?: UserShareProps[]
-  tokens?: TokenDeployInterface[]
-  launchs?: TokenLaunchInterface[]
+  userShare?: UserShareProps;
+  userShares?: UserShareProps[];
+  tokens?: TokenDeployInterface[];
+  launchs?: TokenLaunchInterface[];
 };
 
 type Action = {
@@ -27,18 +26,17 @@ export const launchpadStore = createStore<State & Action>((set, get) => ({
   tokens: undefined as unknown as TokenDeployInterface[],
   launchs: undefined as unknown as TokenLaunchInterface[],
 
-
   setUserShare: (userShare) => {
-    set({ userShare });
+    set({userShare});
   },
   setUserShares: (userShares) => {
-    set({ userShares });
+    set({userShares});
   },
   setTokens: (tokens) => {
-    set({ tokens });
+    set({tokens});
   },
   setLaunchs: (launchs) => {
-    set({ launchs });
+    set({launchs});
   },
 }));
 
