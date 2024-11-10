@@ -2,7 +2,8 @@ import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-came
 import React, {useState} from 'react';
 import {Clipboard, Modal, Text, TouchableOpacity, View} from 'react-native';
 
-import {Button} from '../../../components';
+import {CopyIconStack} from '../../../assets/icons';
+import {Button, Input} from '../../../components';
 import {useStyles, useTheme} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {usePayment} from '../../../hooks/usePayment';
@@ -109,47 +110,79 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
-      </View>
-      <View style={styles.cameraContainer}>
-        <CameraView
-          style={styles.camera}
-          onBarcodeScanned={(scanningResult) => console.log(scanningResult)}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr'],
-          }}
-          mirror
-        />
-      </View>
+      {!scanned ? (
+        <>
+          <View style={styles.header}>
+            <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
+          </View>
+          <View style={styles.cameraContainer}>
+            <CameraView
+              style={styles.camera}
+              onBarcodeScanned={(scanningResult) => handleScannedCode(scanningResult)}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr'],
+              }}
+              mirror
+            />
+          </View>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.cancelText}>Close Scanner</Text>
+          </TouchableOpacity>
+        </>
+      ) : null}
       <Modal
         visible={modalVisible}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            <Text style={styles.resultText}>Scanned Data</Text>
+            {scannedData ? (
+              <Input
+                autoFocus={false}
+                value={scannedData}
+                style={{height: 45, marginHorizontal: 20}}
+                editable={false}
+                right={
+                  <TouchableOpacity
+                    onPress={handleCopyToClipboard}
+                    style={{
+                      marginRight: 10,
+                    }}
+                  >
+                    <CopyIconStack color={theme.colors.primary} />
+                  </TouchableOpacity>
+                }
+              />
+            ) : null}
             <Text style={styles.modalText}>
               {scannedData?.startsWith('lnbc') ? 'Pay this invoice?' : 'Receive this eCash?'}
             </Text>
-            <Button onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}>
-              {scannedData?.startsWith('lnbc') ? 'Pay Invoice' : 'Receive eCash'}
-            </Button>
-            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+            <View style={styles.scannedModalButtonsContainer}>
+              <Button
+                style={[styles.scannedModalActionButton, styles.scannedModalCancelButton]}
+                textStyle={styles.scannedModalCancelButtonText}
+                onPress={() => {
+                  setModalVisible(false);
+                  setScanned(false);
+                  setScannedData(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
+                textStyle={styles.scannedModalOKButtonText}
+                onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}
+              >
+                {scannedData?.startsWith('lnbc') ? 'Pay' : 'Receive'}
+              </Button>
+            </View>
           </View>
         </View>
       </Modal>
-      {scannedData && (
-        <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>Scanned Data: {scannedData}</Text>
-          <Button onPress={handleCopyToClipboard}>Copy to Clipboard</Button>
-        </View>
-      )}
-      {scanned && <Button onPress={() => setScanned(false)}>Tap to Scan Again</Button>}
-      <TouchableOpacity onPress={onClose}>
-        <Text style={styles.cancelText}>Close Scanner</Text>
-      </TouchableOpacity>
     </View>
   );
 };

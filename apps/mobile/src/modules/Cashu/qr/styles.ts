@@ -24,6 +24,7 @@ export default ThemedStyleSheet((theme) => ({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    maxWidth: 450,
   },
   grantPermissionText: {
     fontSize: 16,
@@ -104,8 +105,10 @@ export default ThemedStyleSheet((theme) => ({
     width: width * 0.8,
   },
   resultText: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 20,
+    marginVertical: 20,
+    fontWeight: 'bold',
+    paddingHorizontal: 20,
   },
   cancelText: {
     color: 'red',
@@ -120,22 +123,40 @@ export default ThemedStyleSheet((theme) => ({
   },
   modalContent: {
     width: '80%',
-    padding: 20,
+    maxWidth: 400,
     backgroundColor: '#fff',
     borderRadius: 10,
     alignItems: 'center',
   },
   modalText: {
     fontSize: 18,
+    marginTop: 30,
     marginBottom: 20,
+    paddingHorizontal: 20,
   },
-  actionButton: {
-    maxWidth: '40%',
-    backgroundColor: theme.colors.primary,
-    height: 50,
-    marginTop: 40,
+  scannedModalButtonsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
   },
-  actionButtonText: {
-    color: theme.colors.white,
+  scannedModalActionButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+  },
+  scannedModalCancelButton: {
+    borderTopWidth: 1,
+    borderRightWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  scannedModalCancelButtonText: {
+    color: theme.colors.errorDark,
+  },
+  scannedModalOKButton: {
+    borderTopWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  scannedModalOKButtonText: {
+    color: theme.colors.primary,
   },
 }));
