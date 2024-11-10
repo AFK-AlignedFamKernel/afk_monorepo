@@ -14,9 +14,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "jsEngine": "jsc",
       "supportsTablet": true,
@@ -69,8 +67,8 @@
         "expo-image-picker",
         {
           "photosPermission": "The ${PRODUCT_NAME} accesses your photos to let you share them with your friends.",
-          "cameraPermission":"Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission":"Allow $(PRODUCT_NAME) to access your microphone"
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ],
       [

@@ -59,35 +59,68 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   };
 
   if (!permission) {
-    return <Text>Requesting camera permission</Text>;
+    return (
+      <Modal animationType="fade" transparent={true} visible={true}>
+        <View style={styles.grantPermissionMainContainer}>
+          <View style={styles.grantPermissionContent}>
+            <Text style={styles.grantPermissionText}>Requesting camera permission</Text>
+            <Button
+              style={styles.modalActionButton}
+              textStyle={styles.modalActionButtonText}
+              onPress={onClose}
+            >
+              Cancel
+            </Button>
+          </View>
+        </View>
+      </Modal>
+    );
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.permissionContainer}>
-        <Text>We need your permission to use the camera</Text>
-        <Button
-          onPress={requestPermission}
-          style={styles.actionButton}
-          textStyle={styles.actionButtonText}
-        >
-          Grant Permission
-        </Button>
-      </View>
+      <Modal animationType="fade" transparent={true} visible={true}>
+        <View style={styles.grantPermissionMainContainer}>
+          <View style={styles.grantPermissionContent}>
+            <Text style={styles.grantPermissionText}>
+              We need your permission to use the camera
+            </Text>
+            <View style={styles.grantModalButtonsContainer}>
+              <Button
+                style={[styles.grantActionButton, styles.grantCancelButton]}
+                textStyle={styles.grantCancelButtonText}
+                onPress={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                style={[styles.grantActionButton, styles.grantAcceptButton]}
+                textStyle={styles.grantAcceptButtonText}
+                onPress={requestPermission}
+              >
+                Grant Permission
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
     );
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
       </View>
       <View style={styles.cameraContainer}>
         <CameraView
           style={styles.camera}
-          onBarcodeScanned={scanned ? undefined : handleScannedCode}
+          onBarcodeScanned={(scanningResult) => console.log(scanningResult)}
+          barcodeScannerSettings={{
+            barcodeTypes: ['qr'],
+          }}
+          mirror
         />
-        <View style={styles.overlay} />
       </View>
       <Modal
         visible={modalVisible}
