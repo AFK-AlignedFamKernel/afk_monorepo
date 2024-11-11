@@ -1,5 +1,6 @@
 import '../../../applyGlobalPolyfills';
 
+import {GetInfoResponse} from '@cashu/cashu-ts';
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {
   countMintRecommenderMapping,
@@ -10,20 +11,104 @@ import {
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import React, {useEffect, useState} from 'react';
-import {FlatList, TouchableOpacity, View} from 'react-native';
+import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {InfoIcon, ScanQrIcon, TrashIcon} from '../../assets/icons';
+import {CloseIcon, InfoIcon, ScanQrIcon, TrashIcon} from '../../assets/icons';
 import {Button} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
+import {formatCurrency} from '../../utils/helpers';
 import stylesheet from './styles';
 
-export const MintListCashu = () => {
-  const tabs = ['Lightning', 'Ecash'];
+export interface UnitInfo {
+  unit: string;
+  balance: number;
+}
 
-  const {mintUrls, activeMintIndex, setActiveMintIndex, mint, setMintUrls} = useCashuContext()!;
+export const MintListCashu = () => {
+  const {
+    mintUrls,
+    activeMintIndex,
+    setActiveMintIndex,
+    setMintUrls,
+    getMintInfo,
+    getUnits,
+    getUnitBalance,
+  } =
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    useCashuContext()!;
+
+  const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
+
+  // Load units and their balances for each mint
+  useEffect(() => {
+    const loadMintUnits = async () => {
+      const newMintUnitsMap = new Map<string, UnitInfo[]>();
+
+      for (const mint of mintUrls) {
+        try {
+          const units = await getUnits();
+          // Get balance for each unit
+          const unitsWithBalance = await Promise.all(
+            units.map(async (unit) => {
+              const balance = await getUnitBalance(unit);
+              return {
+                unit,
+                balance,
+              };
+            }),
+          );
+
+          newMintUnitsMap.set(mint.url, unitsWithBalance);
+        } catch (error) {
+          console.error(`Error loading units for mint ${mint.url}:`, error);
+          newMintUnitsMap.set(mint.url, []);
+        }
+      }
+
+      setMintUnitsMap(newMintUnitsMap);
+    };
+
+    loadMintUnits();
+  }, [getUnitBalance, getUnits, mintUrls]);
+
+  const renderMintItem = ({item}: {item: MintData}) => {
+    const isSelected = mintUrls[activeMintIndex].url === item.url;
+    const unitsInfo = mintUnitsMap.get(item.url) || [];
+
+    return (
+      <TouchableOpacity style={styles.mint} onPress={() => handleSelectMint(item)}>
+        <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+          {isSelected && <View style={styles.radioInner} />}
+        </View>
+        <View style={styles.mintContentContainer}>
+          <View style={styles.textsContainer}>
+            <Text style={styles.title}>{item.alias}</Text>
+            <Text style={styles.title}>{item.url}</Text>
+            <View style={styles.unitsContainer}>
+              {unitsInfo.map((unitInfo) => (
+                <View style={styles.unit} key={unitInfo.unit}>
+                  <Text>{formatCurrency(unitInfo.balance, unitInfo.unit)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          <View style={styles.mintActionsContainer}>
+            <TouchableOpacity onPress={() => handleGetInfo(item)}>
+              <InfoIcon width={20} height={20} color={theme.colors.primary} />
+            </TouchableOpacity>
+            {item.alias !== 'Default Mint' && (
+              <TouchableOpacity onPress={() => handleDeleteMint(item)}>
+                <TrashIcon width={20} height={20} color={theme.colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const {ndkCashuWallet, ndkWallet, ndk} = useNostrContext();
   const mintList = useCashuMintList();
@@ -39,6 +124,7 @@ export const MintListCashu = () => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getMintUrls = () => {
     if (isLoad) return;
 
@@ -74,7 +160,7 @@ export const MintListCashu = () => {
     if (isLoad) return;
     if (mintList?.data?.pages?.length == 0) return;
     getMintUrls();
-  }, [mintList, isLoad]);
+  }, [mintList, isLoad, getMintUrls]);
 
   const handleCopy = async (url: string) => {
     await Clipboard.setStringAsync(url);
@@ -94,8 +180,12 @@ export const MintListCashu = () => {
     setNewUrl('');
   };
 
+  const [mintInfo, setMintInfo] = useState<GetInfoResponse | null>(null);
+
   const handleGetInfo = (item: MintData) => {
-    console.log('todo: get info');
+    getMintInfo(item.url).then((info) => {
+      setMintInfo(info);
+    });
   };
 
   const handleDeleteMint = (item: MintData) => {
@@ -117,35 +207,7 @@ export const MintListCashu = () => {
     }
 
     setNewMintError('');
-  }, [newAlias, newUrl]);
-
-  const mintItem = (item: MintData) => {
-    const isSelected = mintUrls[activeMintIndex].url === item.url;
-
-    return (
-      <TouchableOpacity style={styles.mint} onPress={() => handleSelectMint(item)}>
-        <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
-          {isSelected && <View style={styles.radioInner} />}
-        </View>
-        <View style={styles.mintContentContainer}>
-          <View style={styles.textsContainer}>
-            <Text style={styles.title}>{item.alias}</Text>
-            <Text style={styles.title}>{item.url}</Text>
-          </View>
-          <View style={styles.mintActionsContainer}>
-            <TouchableOpacity onPress={() => handleGetInfo(item)}>
-              <InfoIcon width={20} height={20} color={theme.colors.primary} />
-            </TouchableOpacity>
-            {item.alias != 'Default Mint' && (
-              <TouchableOpacity onPress={() => handleDeleteMint(item)}>
-                <TrashIcon width={20} height={20} color={theme.colors.primary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  }, [mintUrls, newAlias, newUrl]);
 
   useEffect(() => {
     const getMapping = async () => {
@@ -165,17 +227,13 @@ export const MintListCashu = () => {
     if (!isLoad) {
       getMapping();
     }
-  }, [isLoad, mintList]);
+  }, [isLoad, mintList, ndk]);
 
   return (
     <View style={styles.tabContentContainer}>
       <View>
         <Text style={styles.tabTitle}>Cashu Mints</Text>
-        <FlatList
-          data={mintUrls}
-          renderItem={({item}) => mintItem(item)}
-          keyExtractor={(item) => item.url}
-        />
+        <FlatList data={mintUrls} renderItem={renderMintItem} keyExtractor={(item) => item.url} />
       </View>
       <View>
         <Text style={[styles.tabTitle, styles.titleMargin]}>Add Cashu Mint</Text>
@@ -213,6 +271,33 @@ export const MintListCashu = () => {
           </>
         )}
       </View>
+      <Modal animationType="fade" transparent={true} visible={mintInfo !== null}>
+        <View style={styles.mintInfoModalMainContainer}>
+          <View style={styles.mintInfoModalContent}>
+            <TouchableOpacity
+              onPress={() => setMintInfo(null)}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <Text style={[styles.mintInfoModalText, styles.mintInfoModalTitle]}>
+              {mintInfo?.name}
+            </Text>
+            <Text style={[styles.mintInfoModalText, styles.mintInfoModalDescription]}>
+              {mintInfo?.description}
+            </Text>
+            <Text style={[styles.mintInfoModalText, styles.mintInfoModalDescription]}>
+              {mintInfo?.description_long}
+            </Text>
+            <Text style={[styles.mintInfoModalText, styles.mintInfoModalVersion]}>
+              Version: {mintInfo?.version}
+            </Text>
+            <Text style={[styles.mintInfoModalText, styles.mintInfoModalNuts]}>
+              Nuts: {Object.keys(mintInfo?.nuts || {}).join(', ')}
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

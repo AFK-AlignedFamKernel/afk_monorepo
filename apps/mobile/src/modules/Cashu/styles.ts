@@ -543,6 +543,7 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     flex: 1,
   },
   textsContainer: {
@@ -552,6 +553,18 @@ export default ThemedStyleSheet((theme) => ({
   },
   title: {
     fontSize: 12,
+    color: theme.colors.text,
+  },
+  unitsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  unit: {
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primary,
     color: theme.colors.text,
   },
   radioOuter: {
@@ -576,7 +589,6 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     gap: 10,
-    alignSelf: 'flex-end',
     height: '100%',
     alignItems: 'center',
   },
@@ -716,5 +728,53 @@ export default ThemedStyleSheet((theme) => ({
   },
   modalActionButtonText: {
     color: theme.colors.white,
+  },
+
+  //mint info modal
+  mintInfoModalMainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  mintInfoModalContent: {
+    width: Dimensions.get('window').width * 0.85,
+    maxHeight: Dimensions.get('window').height * 0.8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    maxWidth: 450,
+    position: 'relative',
+    paddingVertical: 30,
+    paddingHorizontal: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  mintInfoModalText: {
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  mintInfoModalTitle: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 25,
+    marginBottom: 20,
+  },
+  mintInfoModalDescription: {
+    fontSize: 12,
+  },
+  mintInfoModalVersion: {
+    fontSize: 10,
+  },
+  mintInfoModalNuts: {
+    fontSize: 10,
   },
 }));

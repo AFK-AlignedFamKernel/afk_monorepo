@@ -11,11 +11,13 @@ import {
   MintActiveKeys,
   MintAllKeysets,
   MintKeys,
+  MintKeyset,
   MintQuoteResponse,
   Proof,
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
+import {getProofs as getProofsLocal} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -72,7 +74,11 @@ export interface ICashu {
   }>;
   receiveP2PK: (encoded: string) => Promise<Proof[]>;
   meltTokens: (invoice: string, proofsProps?: Proof[]) => Promise<MeltTokensResponse>;
-  getKeySets: () => Promise<MintActiveKeys>;
+  getKeySets: () => Promise<MintAllKeysets>;
+  getUnits: () => Promise<string[]>;
+  getUnitKeysets: (unit: string) => Promise<MintKeyset[]>;
+  getUnitProofs: (unit: string) => Promise<Proof[]>;
+  getUnitBalance: (unit: string) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
@@ -155,7 +161,7 @@ export const useCashu = (): ICashu => {
     //     keys: mintKeysset,
     //     // unit:"sat"
     // })
-  }, [walletCashu, mint, seed, mnemonic]);
+  }, [mint, mnemonic, seed, mintKeysset]);
 
   /** TODO saved in secure store */
   const generateMnemonic = () => {
@@ -216,8 +222,42 @@ export const useCashu = (): ICashu => {
     return proofsCheck;
   };
   const getKeySets = async () => {
-    const keyssets = await mint?.getKeys();
+    const keyssets = await mint?.getKeySets();
     return keyssets;
+  };
+  const getUnits = async () => {
+    let units = [];
+    await mint?.getKeySets().then(({keysets}) => {
+      units = keysets
+        .map((k) => k.unit)
+        .filter((value, index, self) => self.indexOf(value) === index);
+    });
+    return units;
+  };
+  const getUnitKeysets = async (unit: string): Promise<MintKeyset[]> => {
+    let unitKeysets: MintKeyset[];
+    await mint?.getKeySets().then(({keysets}) => {
+      unitKeysets = keysets.filter((k) => k.unit === unit);
+    });
+    return unitKeysets;
+  };
+  const getUnitProofs = async (unit: string): Promise<Proof[]> => {
+    let unitProofs: Proof[] = [];
+    const proofsLocal = getProofsLocal();
+    if (proofsLocal) {
+      const proofs: Proof[] = JSON.parse(proofsLocal);
+      await getUnitKeysets(unit).then((unitKeySets) => {
+        unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+      });
+    }
+    return unitProofs;
+  };
+  const getUnitBalance = async (unit: string): Promise<number> => {
+    let unitBalance = 0;
+    await getUnitProofs(unit).then((unitProofs) => {
+      unitBalance = unitProofs.reduce((sum, p) => sum + p.amount, 0);
+    });
+    return unitBalance;
   };
 
   const requestMintQuote = async (nb: number) => {
@@ -449,6 +489,10 @@ export const useCashu = (): ICashu => {
     receiveP2PK,
     meltTokens,
     getKeySets,
+    getUnits,
+    getUnitKeysets,
+    getUnitProofs,
+    getUnitBalance,
     getKeys,
     getProofs,
     getFeesForExternalInvoice,

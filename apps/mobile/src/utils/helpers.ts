@@ -108,3 +108,25 @@ export const getRelativeTime = (date: string | number | Date) => {
 
   return 'just now';
 };
+
+export const formatCurrency = (value: number, currency: string): string => {
+  if (currency === 'sat') {
+    return formatSat(value, 'sat');
+  }
+  if (currency === 'msat') {
+    return formatSat(value, 'msat');
+  }
+  let newValue = value;
+  if (currency === 'usd' || currency === 'eur') {
+    newValue = value / 100;
+  }
+
+  return new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency,
+  }).format(newValue);
+};
+
+export const formatSat = (value: number, currencyString: string) => {
+  return new Intl.NumberFormat('en').format(value) + ` ${currencyString}`;
+};
