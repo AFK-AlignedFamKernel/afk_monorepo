@@ -36,6 +36,7 @@ export const MintListCashu = () => {
     getMintInfo,
     getUnits,
     getUnitBalance,
+    setActiveCurrency,
   } =
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     useCashuContext()!;
@@ -171,6 +172,7 @@ export const MintListCashu = () => {
     const index = mintUrls.findIndex((mint) => mint.url === item.url);
     if (index !== -1) {
       setActiveMintIndex(index);
+      setActiveCurrency('sat');
     }
   };
 

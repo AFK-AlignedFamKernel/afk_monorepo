@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
@@ -7,10 +8,12 @@ import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';
 import {Text} from 'react-native';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
+import {formatCurrency} from '../../utils/helpers';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import stylesheet from './styles';
 
@@ -24,6 +27,9 @@ export const BalanceCashu = () => {
     derivedSeedFromMnenomicAndSaved,
     activeMintIndex,
     mintUrls,
+    activeCurrency,
+    getUnits,
+    setActiveCurrency,
   } = useCashuContext()!;
 
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
@@ -41,6 +47,8 @@ export const BalanceCashu = () => {
   const [newSeed, setNewSeed] = useState<string | undefined>();
   const {showToast} = useToast();
 
+  const [mintUnits, setMintUnits] = useState<string[]>([]);
+
   useEffect(() => {
     (async () => {
       const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
@@ -56,40 +64,37 @@ export const BalanceCashu = () => {
       }
     })();
 
-    // (async () => {
-
-    //   console.log("ndkCashuWallet", ndkCashuWallet)
-    //   console.log("ndkWallet", ndkWallet)
-
-    //   const availableTokens = await ndkCashuWallet?.availableTokens;
-    //   console.log("availableTokens", availableTokens)
-
-    //   const mintBalances = await ndkCashuWallet?.mintBalances;
-    //   console.log("mintBalances", mintBalances)
-
-    //   console.log("mintBalances", mintBalances)
-    //   const wallets = await ndkWallet?.wallets;
-    //   console.log("wallets", wallets)
-
-    //   const balance = await ndkCashuWallet?.balance;
-
-    //   console.log("balance", balance)
-
-    //   if (mint) {
-    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-    //     console.log("mintBalance", mintBalance)
-
-    //   }
-
-    // })();
-
     getProofsWalletAndBalance();
-  }, []);
+  }, [getProofsWalletAndBalance, isSeedCashuStorage]);
+
+  // Load units and their balances for each mint
+  useEffect(() => {
+    const loadMintUnits = async () => {
+      const mint = mintUrls[activeMintIndex];
+      try {
+        const units = await getUnits(mint);
+        setMintUnits(units);
+      } catch (error) {
+        console.error(`Error loading units for mint ${mint.url}:`, error);
+      }
+    };
+
+    loadMintUnits();
+  }, [activeMintIndex, getUnits, mintUrls]);
+
+  const handleCurrencyChange = () => {
+    const currentIndex = mintUnits.indexOf(activeCurrency);
+    const nextIndex = (currentIndex + 1) % mintUnits.length;
+    setActiveCurrency(mintUnits[nextIndex]);
+  };
 
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
-      <Text style={styles.balance}>{balance}</Text>
+      <TouchableOpacity style={styles.currencyButton} onPress={handleCurrencyChange}>
+        {activeCurrency.toUpperCase()}
+      </TouchableOpacity>
+      <Text style={styles.balance}>{formatCurrency(balance, activeCurrency)}</Text>
       <Text style={styles.activeMintText}>
         Connected to: <b>{mintUrls?.[activeMintIndex]?.alias}</b>
       </Text>

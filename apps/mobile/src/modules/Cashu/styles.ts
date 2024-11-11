@@ -497,6 +497,14 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 900,
     color: theme.colors.primary,
   },
+  currencyButton: {
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.text,
+    color: theme.colors.text,
+  },
   activeMintText: {
     fontSize: 12,
     color: theme.colors.text,

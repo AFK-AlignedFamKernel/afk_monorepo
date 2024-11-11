@@ -111,6 +111,8 @@ export interface ICashu {
   mintInfo: GetInfoResponse;
   setMintInfo: React.Dispatch<React.SetStateAction<GetInfoResponse>>;
   mintProps: CashuMint;
+  activeCurrency: string;
+  setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const useCashu = (): ICashu => {
@@ -119,6 +121,7 @@ export const useCashu = (): ICashu => {
   const {setSeed, seed, mnemonic, setMnemonic} = useCashuStore();
 
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
+  const [activeCurrency, setActiveCurrency] = useState('sat');
   const [mintUrls, setMintUrls] = useState<MintData[]>([
     {
       url: 'https://mint.minibits.cash/Bitcoin',
@@ -513,5 +516,7 @@ export const useCashu = (): ICashu => {
     mintInfo,
     setMintInfo,
     mintProps,
+    activeCurrency,
+    setActiveCurrency,
   };
 };
