@@ -92,7 +92,7 @@ export const BalanceCashu = () => {
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
       <TouchableOpacity style={styles.currencyButton} onPress={handleCurrencyChange}>
-        {activeCurrency.toUpperCase()}
+        <Text style={styles.currencyButtonText}>{activeCurrency.toUpperCase()}</Text>
       </TouchableOpacity>
       <Text style={styles.balance}>{formatCurrency(balance, activeCurrency)}</Text>
       <Text style={styles.activeMintText}>

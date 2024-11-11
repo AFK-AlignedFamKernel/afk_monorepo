@@ -282,7 +282,6 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.inputBackground,
     fontSize: 15,
     marginBottom: 15,
-    marginTop: 10,
     width: '80%',
     marginHorizontal: 20,
   },
@@ -503,6 +502,8 @@ export default ThemedStyleSheet((theme) => ({
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: theme.colors.text,
+  },
+  currencyButtonText: {
     color: theme.colors.text,
   },
   activeMintText: {
@@ -715,6 +716,15 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
     textAlign: 'center',
     color: theme.colors.inputText,
+  },
+  modalTabLabel: {
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.inputText,
+    textAlign: 'left',
+    width: '80%',
   },
   tab: {
     backgroundColor: theme.colors.primary,
