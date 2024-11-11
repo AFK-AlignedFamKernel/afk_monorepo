@@ -49,11 +49,11 @@ export const MintListCashu = () => {
 
       for (const mint of mintUrls) {
         try {
-          const units = await getUnits();
+          const units = await getUnits(mint);
           // Get balance for each unit
           const unitsWithBalance = await Promise.all(
             units.map(async (unit) => {
-              const balance = await getUnitBalance(unit);
+              const balance = await getUnitBalance(unit, mint);
               return {
                 unit,
                 balance,

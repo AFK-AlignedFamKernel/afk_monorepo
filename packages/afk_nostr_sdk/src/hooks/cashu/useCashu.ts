@@ -75,10 +75,10 @@ export interface ICashu {
   receiveP2PK: (encoded: string) => Promise<Proof[]>;
   meltTokens: (invoice: string, proofsProps?: Proof[]) => Promise<MeltTokensResponse>;
   getKeySets: () => Promise<MintAllKeysets>;
-  getUnits: () => Promise<string[]>;
-  getUnitKeysets: (unit: string) => Promise<MintKeyset[]>;
-  getUnitProofs: (unit: string) => Promise<Proof[]>;
-  getUnitBalance: (unit: string) => Promise<number>;
+  getUnits: (pMint: MintData) => Promise<string[]>;
+  getUnitKeysets: (unit: string, pMint: MintData) => Promise<MintKeyset[]>;
+  getUnitProofs: (unit: string, pMint: MintData) => Promise<Proof[]>;
+  getUnitBalance: (unit: string, pMint: MintData) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
@@ -225,36 +225,38 @@ export const useCashu = (): ICashu => {
     const keyssets = await mint?.getKeySets();
     return keyssets;
   };
-  const getUnits = async () => {
+  const getUnits = async (pMint: MintData) => {
     let units = [];
-    await mint?.getKeySets().then(({keysets}) => {
+    const currentMint = new CashuMint(pMint.url);
+    await currentMint?.getKeySets().then(({keysets}) => {
       units = keysets
         .map((k) => k.unit)
         .filter((value, index, self) => self.indexOf(value) === index);
     });
     return units;
   };
-  const getUnitKeysets = async (unit: string): Promise<MintKeyset[]> => {
+  const getUnitKeysets = async (unit: string, pMint: MintData): Promise<MintKeyset[]> => {
+    const currentMint = new CashuMint(pMint.url);
     let unitKeysets: MintKeyset[];
-    await mint?.getKeySets().then(({keysets}) => {
+    await currentMint?.getKeySets().then(({keysets}) => {
       unitKeysets = keysets.filter((k) => k.unit === unit);
     });
     return unitKeysets;
   };
-  const getUnitProofs = async (unit: string): Promise<Proof[]> => {
+  const getUnitProofs = async (unit: string, pMint: MintData): Promise<Proof[]> => {
     let unitProofs: Proof[] = [];
     const proofsLocal = getProofsLocal();
     if (proofsLocal) {
       const proofs: Proof[] = JSON.parse(proofsLocal);
-      await getUnitKeysets(unit).then((unitKeySets) => {
+      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
         unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
       });
     }
     return unitProofs;
   };
-  const getUnitBalance = async (unit: string): Promise<number> => {
+  const getUnitBalance = async (unit: string, pMint: MintData): Promise<number> => {
     let unitBalance = 0;
-    await getUnitProofs(unit).then((unitProofs) => {
+    await getUnitProofs(unit, pMint).then((unitProofs) => {
       unitBalance = unitProofs.reduce((sum, p) => sum + p.amount, 0);
     });
     return unitBalance;
