@@ -14,8 +14,8 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 #[derive(Drop, Copy, Serde, Hash)]
 pub enum SupportedExchanges {
     Jediswap,
-    Ekubo,
-    // Starkdefi,
+    // Ekubo,
+// Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,
@@ -253,11 +253,11 @@ pub struct LaunchParameters {
 
 #[derive(Copy, Drop, Serde)]
 pub struct EkuboLaunchParameters {
-    owner: ContractAddress,
-    token_address: ContractAddress,
-    quote_address: ContractAddress,
-    lp_supply: u256,
-    pool_params: EkuboPoolParameters
+    pub owner: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub lp_supply: u256,
+    pub pool_params: EkuboPoolParameters
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -288,14 +288,14 @@ pub enum LiquidityType {
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct EkuboLiquidityParameters {
-    ekubo_pool_parameters: EkuboPoolParameters,
-    quote_address: ContractAddress,
+    pub ekubo_pool_parameters: EkuboPoolParameters,
+    pub quote_address: ContractAddress,
 }
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct JediswapLiquidityParameters {
-    quote_address: ContractAddress,
-    quote_amount: u256,
+    pub quote_address: ContractAddress,
+    pub quote_amount: u256,
 }
 
 // #[derive(Copy, Drop, starknet::Store, Serde)]
@@ -307,6 +307,24 @@ pub struct JediswapLiquidityParameters {
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub enum LiquidityParameters {
     Ekubo: EkuboLiquidityParameters,
-    Jediswap: (JediswapLiquidityParameters, ContractAddress),
-    // StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
+    // pub Jediswap: (JediswapLiquidityParameters, ContractAddress),
+// StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
+}
+
+#[derive(Serde, Drop, Copy)]
+pub struct LaunchCallback {
+    pub params: EkuboLaunchParameters,
+}
+
+// #[derive(Serde, Drop, Copy)]
+// struct WithdrawFeesCallback {
+//     id: u64,
+//     liquidity_type: EkuboLP,
+//     recipient: ContractAddress,
+// }
+
+#[derive(Serde, Drop, Copy)]
+pub enum CallbackData {
+    // WithdrawFeesCallback: WithdrawFeesCallback,
+    LaunchCallback: LaunchCallback,
 }

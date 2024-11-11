@@ -44,7 +44,8 @@ COPY . .
 RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
-RUN pnpm --filter data-backend build:all
+# RUN pnpm --filter data-backend build:all
+RUN pnpm --filter data-backend build:all_repo
 
 # Use a smaller production base image
 FROM node:18-alpine AS production

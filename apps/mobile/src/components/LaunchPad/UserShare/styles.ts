@@ -1,32 +1,27 @@
 import {Spacing, ThemedStyleSheet} from '../../../styles';
+
 export default ThemedStyleSheet((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
     padding: Spacing.normal,
-    borderRadius: 8,
-    gap: Spacing.xsmall,
-    overflowWrap: 'break-word',
-  },
-  imageContainer: {
-    borderRadius: 15,
-  },
-  text: {},
-  image: {
-    position: 'absolute',
-    width: 35,
-    height: 35,
-    borderRadius: 15,
-  },
-  name: {
-    paddingTop: Spacing.xxsmall,
+    borderRadius: 16,
+    marginBottom: Spacing.small,
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: '#b5b5b5',
-    paddingBottom: 10,
-    marginBottom: 15,
+    borderBottomColor: theme.colors.divider,
+    paddingVertical: Spacing.small,
   },
-  marginBottom: {
-    marginBottom: 10,
+  connectButton: {
+    backgroundColor: theme.colors.primary,
+    padding: Spacing.normal,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: Spacing.medium,
+  },
+  connectText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 }));

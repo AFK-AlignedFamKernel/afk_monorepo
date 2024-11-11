@@ -40,7 +40,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
 
     const account = useAccount();
     const walletModal = useWalletModal();
-    const sendTransaction = useTransaction();
+    const {sendTransaction} = useTransaction({});
     const {hide: hideTransactionModal} = useTransactionModal();
     const waitConnection = useWaitConnection();
 
@@ -72,46 +72,44 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
         DEFAULT_TIMELOCK, // timelock
       ]);
 
-      const receipt = await sendTransaction({
-        calls: [
-          {
-            contractAddress: TOKENS[token][CHAIN_ID].address,
-            entrypoint: Entrypoint.APPROVE,
-            calldata: approveCallData,
-          },
-          {
-            contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-            entrypoint: Entrypoint.DEPOSIT,
-            calldata: depositCallData,
-          },
-        ],
-      });
+      const receipt = await sendTransaction([
+        {
+          contractAddress: TOKENS[token][CHAIN_ID].address,
+          entrypoint: Entrypoint.APPROVE,
+          calldata: approveCallData,
+        },
+        {
+          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+          entrypoint: Entrypoint.DEPOSIT,
+          calldata: depositCallData,
+        },
+      ]);
 
-      if (receipt?.isSuccess()) {
-        hideTipModal();
-        hideTransactionModal();
-        showSuccess({
-          amount: Number(amount),
-          symbol: token,
-          user:
-            (profile?.nip05 && `@${profile.nip05}`) ??
-            profile?.displayName ??
-            profile?.name ??
-            event?.pubkey,
-          hide: hideSuccess,
-        });
-      } else {
-        let description = 'Please Try Again Later.';
-        if (receipt?.isRejected()) {
-          description = receipt.transaction_failure_reason.error_message;
-        }
+      // if (receipt?.isSuccess()) {
+      //   hideTipModal();
+      //   hideTransactionModal();
+      //   showSuccess({
+      //     amount: Number(amount),
+      //     symbol: token,
+      //     user:
+      //       (profile?.nip05 && `@${profile.nip05}`) ??
+      //       profile?.displayName ??
+      //       profile?.name ??
+      //       event?.pubkey,
+      //     hide: hideSuccess,
+      //   });
+      // } else {
+      //   let description = 'Please Try Again Later.';
+      //   if (receipt?.isRejected()) {
+      //     description = receipt.transaction_failure_reason.error_message;
+      //   }
 
-        showDialog({
-          title: 'Failed to send the tip',
-          description,
-          buttons: [{type: 'secondary', label: 'Close', onPress: () => hideDialog()}],
-        });
-      }
+      //   showDialog({
+      //     title: 'Failed to send the tip',
+      //     description,
+      //     buttons: [{ type: 'secondary', label: 'Close', onPress: () => hideDialog() }],
+      //   });
+      // }
     };
 
     return (

@@ -1,200 +1,402 @@
-import {Feather, MaterialIcons} from '@expo/vector-icons';
-import React from 'react';
-import {Platform, Pressable, Text, View} from 'react-native';
-import {ScrollView, TextInput} from 'react-native';
+import {Feather} from '@expo/vector-icons';
+import {Picker} from '@react-native-picker/picker';
+import {useQueryClient} from '@tanstack/react-query';
+import {useAuth, useGetLiveEvents, useLiveActivity} from 'afk_nostr_sdk';
+import React, {useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  RefreshControl,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
+import Badge from '../../components/Badge';
+import {LoadingSpinner} from '../../components/Loading';
 import {useSocketContext} from '../../context/SocketContext';
-import {useStyles} from '../../hooks';
+// import {DatePicker} from '../../components/DateComponent';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
 import {StreamStudio} from '../../types';
-import {PictureInPicture} from './PictureInPicture';
-import stylesheet from './styles';
+import styleSheet from './event.styles';
 import {useStream} from './useStream';
 
-// Platform-specific import for RTCView
-let RTCView: any;
-if (Platform.OS !== 'web') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  RTCView = require('react-native-webrtc').RTCView;
-}
+type Event = {
+  eventId: string;
+  title: string;
+  summary: string;
+  status: string;
+  startDate: Date;
+  endDate: Date;
+  hashtags: string[];
+  participants: {
+    role: 'Host' | 'Speaker' | 'Participant';
+    pubkey: string;
+  }[];
+};
 
-export const StudioModuleView: React.FC<StreamStudio> = ({navigation}) => {
-  const {socketRef} = useSocketContext();
-  const isStreamer = true;
-  const styles = useStyles(stylesheet);
-  const {
-    cameraStream,
-    handleSendMessage,
-    hasPermission,
-    isAudioEnabled,
-    isChatOpen,
-    isScreenSharing,
-    joinStream,
-    isVideoEnabled,
-    setNewMessage,
-    stopStream,
-    isStreaming,
-    messages,
-    newMessage,
-    setIsChatOpen,
-    startStream,
-    toggleAudio,
-    toggleVideo,
-    toggleScreenShare,
-    viewerCount,
-    screenStream,
-    publicKey,
-  } = useStream({socketRef, isStreamer});
+export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) => {
+  const {publicKey} = useAuth();
+  const {data, isFetching, fetchNextPage, refetch, isPending} = useGetLiveEvents({
+    limit: 10,
+  });
 
-  const renderStream = () => {
-    if (isStreamer) {
-      if (Platform.OS === 'web') {
-        return (
-          <View style={styles.streamContainer}>
-            <video
-              ref={(video) => {
-                if (video) video.srcObject = isScreenSharing ? screenStream : cameraStream;
-              }}
-              autoPlay
-              playsInline
-              muted
-              style={styles.mainVideoStream}
-            />
+  const {theme} = useTheme();
+  const styles = useStyles(styleSheet);
 
-            {/* Enhanced Picture-in-Picture camera view */}
-            {isScreenSharing && <PictureInPicture stream={cameraStream as any} />}
-          </View>
-        );
-      }
-      return null; // Placeholder for native camera view
-    }
+  const [isModalVisible, setModalVisible] = useState(false);
 
-    return null;
+  const handleNavigate = (id: string) => {
+    navigation.navigate('WatchStream', {streamId: id});
   };
 
-  if (hasPermission === null) {
+  const handleNavigateToStreamView = (id: string) => {
+    navigation.navigate('ViewStreamGuest', {streamId: id});
+  };
+
+  if (isPending) {
     return (
       <View style={styles.container}>
-        <Text>Requesting permissions...</Text>
+        <SafeAreaView style={styles.scrollContent}>
+          <Text style={styles.headerText}>Stream Studio Events</Text>
+          <ActivityIndicator></ActivityIndicator>;
+        </SafeAreaView>
       </View>
     );
   }
 
-  if (hasPermission === false) {
+  if (data?.pages?.flat().length === 0) {
     return (
       <View style={styles.container}>
-        <Text>No access to camera</Text>
+        <SafeAreaView style={styles.scrollContent}>
+          <Text style={styles.headerText}>Stream Studio Events</Text>
+          <RenderEmptyState
+            isVisible={isModalVisible}
+            handleModalOpen={() => setModalVisible(!isModalVisible)}
+          />
+          ;
+        </SafeAreaView>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.videoContainer}>
-        {renderStream()}
-        {isStreaming && (
-          <View style={styles.overlay}>
-            <View style={styles.liveIndicator}>
-              <Text style={styles.liveText}>LIVE</Text>
-            </View>
-            <View style={styles.viewerContainer}>
-              <Text style={styles.viewerCount}>{viewerCount} viewers</Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.controls}>
-        <Pressable
-          style={[styles.button, isStreaming ? styles.buttonDestructive : styles.buttonPrimary]}
-          onPress={() => {
-            if (isStreaming) {
-              stopStream();
-            } else if (isStreamer) {
-              startStream();
-              console.log('Starting stream...');
-            } else {
-              joinStream();
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>
-            {isStreaming ? 'End' : isStreamer ? 'Start Stream' : 'Join Stream'}
-          </Text>
-        </Pressable>
-
-        <Pressable style={styles.iconButton} onPress={toggleVideo}>
-          <MaterialIcons
-            style={styles.actionButtonText}
-            name={isVideoEnabled ? 'videocam' : 'videocam-off'}
-            size={24}
-          />
-        </Pressable>
-
-        <Pressable style={styles.iconButton} onPress={toggleScreenShare}>
-          <MaterialIcons
-            name={!isScreenSharing ? 'screen-share' : 'stop-screen-share'}
-            size={20}
-            style={styles.actionButtonText}
-          />
-        </Pressable>
-
-        <Pressable style={styles.iconButton} onPress={toggleAudio}>
-          <MaterialIcons
-            name={isAudioEnabled ? 'mic' : 'mic-off'}
-            size={24}
-            style={styles.actionButtonText}
-          />
-        </Pressable>
-
-        <Pressable style={styles.iconButton} onPress={() => setIsChatOpen(!isChatOpen)}>
-          <Feather name="message-square" size={20} style={styles.actionButtonText} />
-        </Pressable>
-
-        {/* <Pressable
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('WatchStream', {streamId: publicKey})}
-        >
-          <Feather name="eye" size={20} style={styles.actionButtonText} />
-        </Pressable> */}
-      </View>
-
-      {isChatOpen && (
-        <View style={styles.chatContainer}>
-          <View style={styles.chatHeader}>
-            <Text style={styles.chatTitle}>Live Chat</Text>
-            <Pressable onPress={() => setIsChatOpen(false)}>
-              <Feather name="x" size={20} style={styles.actionButtonText} />
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.chatMessages}>
-            {messages.map((message: any) => (
-              <View key={message.id} style={styles.messageContainer}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{message.sender[0]}</Text>
-                </View>
-                <View style={styles.messageContent}>
-                  <Text style={styles.messageSender}>{message.sender}</Text>
-                  <Text style={styles.messageText}>{message.text}</Text>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          <View style={styles.chatInputContainer}>
-            <TextInput
-              style={styles.chatInput}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Type a message..."
-              placeholderTextColor="#666"
+      <SafeAreaView style={styles.scrollContent}>
+        <Text style={styles.headerText}>Stream Studio Events</Text>
+        <FlatList
+          data={data?.pages.flat()}
+          renderItem={({item}) => (
+            <RenderEventCard
+              handleNavigateToStreamView={() => handleNavigateToStreamView(item.eventId)}
+              streamKey={item.eventId}
+              handleNavigation={() => handleNavigate(item.eventId)}
+              pubKey={publicKey}
+              event={item}
             />
-            <Pressable style={styles.sendButton} onPress={handleSendMessage}>
-              <Text style={styles.sendButtonText}>Send</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
+          )}
+          keyExtractor={(item: any) => item.id}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => refetch()} />}
+          onEndReached={() => fetchNextPage()}
+        />
+      </SafeAreaView>
+
+      <TouchableOpacity style={styles.floatingCreateButton} onPress={() => setModalVisible(true)}>
+        <Feather name="plus" size={24} color={theme.colors.streamStudio_buttonText} />
+      </TouchableOpacity>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <CreateEventModal handleModal={() => setModalVisible(false)} />
+      </Modal>
     </View>
   );
 };
+
+const RenderEventCard = ({
+  event,
+  pubKey,
+  handleNavigation,
+  streamKey,
+  handleNavigateToStreamView,
+}: {
+  event: Event;
+  pubKey: string;
+  handleNavigation: () => void;
+  handleNavigateToStreamView: () => void;
+  streamKey: string;
+}) => {
+  const isStreamer = false;
+  const {socketRef} = useSocketContext();
+  const toast = useToast();
+  const {theme} = useTheme();
+  const styles = useStyles(styleSheet);
+  const isOwner =
+    event?.participants.findIndex((item) => item.pubkey === pubKey) !== -1 ? true : false;
+
+  const {addParticipant} = useLiveActivity();
+
+  const {joinStream} = useStream({
+    socketRef,
+    streamerUserId: pubKey,
+    streamKey,
+    isStreamer,
+  });
+
+  const handleJoinEvent = () => {
+    if (!pubKey) {
+      toast.showToast({title: 'Must be signed in', type: 'error'});
+      return;
+    }
+
+    addParticipant.mutate(
+      {
+        pubkey: pubKey,
+        role: 'Participant',
+      },
+      {
+        onSuccess() {
+          handleNavigateToStreamView();
+          //Emit join stream socket
+          joinStream();
+        },
+        onError() {
+          toast.showToast({title: 'Error joining Stream', type: 'error'});
+        },
+      },
+    );
+  };
+
+  return (
+    <View key={event.eventId} style={styles.eventCard}>
+      <View style={styles.eventHeader}>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 4,
+          }}
+        >
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor:
+                  event?.status === 'planned'
+                    ? theme.colors.primary
+                    : theme.colors.streamStudio_pendingStatus,
+              },
+            ]}
+          >
+            <Text style={styles.statusText}>{event?.status}</Text>
+          </View>
+          {isOwner ? <Badge value="Host" /> : ''}
+        </View>
+      </View>
+      <Text style={styles.eventDescription}>{event.summary}</Text>
+      <View style={styles.tagContainer}>
+        <View style={styles.hashTagsContainer}>
+          {event?.hashtags?.map((hashTag, index) => (
+            <View key={index}>
+              <Badge value={`#${hashTag}`} />
+            </View>
+          ))}
+        </View>
+        {/* ))} */}
+      </View>
+
+      <View
+        style={{
+          display: 'flex',
+          gap: 4,
+          flex: 1,
+          flexDirection: 'row',
+        }}
+      >
+        {isOwner ? (
+          <TouchableOpacity style={styles.viewButton} onPress={handleNavigation}>
+            <Text style={styles.viewButtonText}>View Event</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.viewButton} onPress={handleJoinEvent}>
+            <Text style={styles.viewButtonText}>Join Event</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+const RenderEmptyState = ({
+  handleModalOpen,
+  isVisible,
+}: {
+  handleModalOpen: () => void;
+  isVisible: boolean;
+}) => {
+  const {theme} = useTheme();
+  const styles = useStyles(styleSheet);
+  return (
+    <>
+      <View style={styles.emptyStateContainer}>
+        <Feather name="calendar" size={64} color={theme.colors.streamStudio_textSecondary} />
+        <Text style={styles.emptyStateText}>No events available</Text>
+        <TouchableOpacity style={styles.createButton} onPress={() => handleModalOpen()}>
+          <Feather name="plus" size={20} color={theme.colors.streamStudio_buttonText} />
+          <Text style={styles.createButtonText}>Create Event</Text>
+        </TouchableOpacity>
+      </View>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isVisible}
+        onRequestClose={() => handleModalOpen()}
+      >
+        <CreateEventModal handleModal={() => handleModalOpen()} />
+      </Modal>
+    </>
+  );
+};
+
+function CreateEventModal({handleModal}: {handleModal: () => void}) {
+  const queryClient = useQueryClient();
+  const {showToast} = useToast();
+  const {publicKey} = useAuth();
+
+  const {createEvent, updateEvent, addParticipant, removeParticipant, deleteEvent, event} =
+    useLiveActivity();
+
+  const styles = useStyles(styleSheet);
+  const {theme} = useTheme();
+  // const [startDate, setStartDate] = useState(new Date());
+  // const [endDate, setEndDate] = useState(new Date());
+  const [newEvent, setNewEvent] = useState<Partial<Event>>({
+    title: '',
+    summary: '',
+    hashtags: [],
+    status: 'planned',
+    // startDate: new Date(),
+    // endDate: new Date(),
+  });
+  const handleCreateEvent = () => {
+    if (newEvent.title && newEvent.status && newEvent.summary) {
+      createEvent.mutate(
+        {
+          title: newEvent?.title,
+          identifier: publicKey,
+          status: newEvent?.status as any,
+          summary: newEvent?.summary,
+          participants: [
+            {
+              pubkey: publicKey,
+              role: 'Host',
+            },
+          ],
+          currentParticipants: 1,
+          hashtags: newEvent.hashtags || [],
+          totalParticipants: 1,
+
+          // startsAt: newEvent.startDate,
+          // endsAt: newEvent.endDate,
+        },
+        {
+          onSuccess() {
+            showToast({title: 'Event Created Successfully', type: 'success'});
+            queryClient.invalidateQueries({queryKey: ['liveEvents']});
+            handleModal();
+          },
+          onError() {
+            showToast({title: 'Error creating event', type: 'error'});
+          },
+        },
+      );
+    }
+  };
+  return (
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalView}>
+        <Text style={styles.modalTitle}>Create New Event</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Event Title"
+          placeholderTextColor={theme.colors.inputPlaceholder}
+          value={newEvent.title}
+          onChangeText={(text) => setNewEvent({...newEvent, title: text})}
+        />
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Event Description"
+          placeholderTextColor={theme.colors.inputPlaceholder}
+          value={newEvent.summary}
+          onChangeText={(text) => setNewEvent({...newEvent, summary: text})}
+          multiline
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Tags (comma-separated)"
+          placeholderTextColor={theme.colors.inputPlaceholder}
+          value={newEvent.hashtags?.join(', ')}
+          onChangeText={(text) =>
+            setNewEvent({...newEvent, hashtags: text.split(',').map((tag) => tag.trim())})
+          }
+        />
+
+        <Picker
+          selectedValue={newEvent.status}
+          style={styles.picker}
+          onValueChange={(text) => setNewEvent({...newEvent, status: text})}
+        >
+          {['planned', 'live', 'ended'].map((val) => (
+            <Picker.Item
+              key={val}
+              label={val}
+              value={val}
+              color={theme.colors.streamStudio_inputText}
+            />
+          ))}
+        </Picker>
+
+        {/* <View
+          style={{
+            display: 'flex',
+            gap: 14,
+            marginTop: 4,
+            marginBottom: 10,
+          }}
+        >
+          <View>
+            <Text style={styles.dateLabel}>Start Date and Time</Text>
+
+            <DatePicker onDateChange={(date) => setEndDate(date)} initialDate={startDate} />
+          </View>
+
+          <View>
+            <Text style={styles.dateLabel}>End Date and Time</Text>
+            <DatePicker onDateChange={(date) => setEndDate(date)} initialDate={endDate} />
+          </View>
+        </View> */}
+        <TouchableOpacity
+          disabled={createEvent.isPending}
+          style={styles.modalButton}
+          onPress={handleCreateEvent}
+        >
+          <Text style={styles.modalButtonText}>Create Event</Text>
+          {createEvent.isPending && <LoadingSpinner />}
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={handleModal}>
+          <Text style={styles.modalButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}

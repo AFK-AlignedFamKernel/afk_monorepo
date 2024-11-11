@@ -1,5 +1,3 @@
-import {ART_PEACE_ADDRESS, USERNAME_STORE_ADDRESS} from 'common';
-import {AppRender} from 'pixel_ui';
 import React from 'react';
 import {Platform, View} from 'react-native';
 import WebView from 'react-native-webview';
@@ -17,17 +15,17 @@ export const PixelPeace: React.FC = () => {
       {Platform.OS == 'web' && (
         // && process.env.EXPO_PUBLIC_PIXEL_URL
         <>
-          <AppRender
+          {/* <AppRender
             artPeaceAddress={ART_PEACE_ADDRESS['0x534e5f5345504f4c4941']}
             // nftCanvasAddress={}
             usernameAddress={USERNAME_STORE_ADDRESS['0x534e5f5345504f4c4941']}
-          ></AppRender>
-          {/* <iframe
+          ></AppRender> */}
+          <iframe
             src={process.env.EXPO_PUBLIC_PIXEL_URL}
             // height={isDesktop ? 750 : 550}
             height={550}
             width="100%"
-          ></iframe> */}
+          ></iframe>
         </>
       )}
 

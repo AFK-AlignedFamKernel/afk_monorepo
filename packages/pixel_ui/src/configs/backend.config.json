@@ -1,5 +1,5 @@
 {
-  "host": "backend-pixel.onrender.com",
+  "host": "https://pixel-backend-production.up.railway.app",
   "port": 8081,
   "consumer_port": 8081,
   "scripts": {
@@ -9,6 +9,7 @@
     "mint_nft_devnet": "../tests/integration/local/mint_nft.sh"
   },
   "production": true,
+  "local":false,
   "websocket": {
     "read_buffer_size": 1024,
     "write_buffer_size": 1024

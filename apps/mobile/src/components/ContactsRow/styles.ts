@@ -1,39 +1,51 @@
-import {ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   contactsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    padding: 10,
   },
   contactsTitle: {
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 10,
     color: theme.colors.text,
-    marginBottom: 12,
   },
-  contactsScrollContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  contactsContentContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 20,
+    marginTop: 20,
   },
   addContactButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    borderRadius: 20,
     backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  plusSign: {
     color: theme.colors.white,
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 24,
-  },
-  contactAvatar: {
     alignItems: 'center',
-    marginRight: 12,
-    width: 50,
+    justifyContent: 'center',
+    flex: 1,
+  },
+  addContactButtonText: {
+    color: theme.colors.white,
+  },
+  contactsListContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+  },
+  contactContainer: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 5,
+    borderColor: theme.colors.divider,
+    borderBottomWidth: 1,
+  },
+  contactInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
   },
   avatarImage: {
     width: 50,
@@ -42,9 +54,25 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 4,
   },
   contactName: {
+    fontSize: 14,
+    color: theme.colors.text,
+    width: '100%',
+  },
+  contactAddress: {
     fontSize: 12,
     color: theme.colors.text,
-    textAlign: 'center',
     width: '100%',
+  },
+  actionsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 5,
+    position: 'absolute',
+    right: 0,
+  },
+  actionButton: {
+    backgroundColor: 'transparent',
+    marginTop: Spacing.small,
+    marginBottom: Spacing.small,
   },
 }));

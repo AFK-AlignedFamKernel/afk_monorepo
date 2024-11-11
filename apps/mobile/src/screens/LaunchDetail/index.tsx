@@ -1,17 +1,13 @@
 import {useAccount} from '@starknet-react/core';
 import {feltToAddress} from 'common';
 import {useEffect, useState} from 'react';
-import {KeyboardAvoidingView, View} from 'react-native';
+import {StyleProp, useWindowDimensions, View, ViewStyle} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
+import {Button, TextButton} from '../../components';
 import {Text} from '../../components';
 import {LaunchActionsForm} from '../../components/LaunchActionsForm';
-import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
-import {TokenStats} from '../../components/LaunchPad/TokenStats';
-import {TokenTx} from '../../components/LaunchPad/TokenTx';
-import {UserShare} from '../../components/LaunchPad/UserShare';
 import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
@@ -25,6 +21,7 @@ import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
 import {useToast, useWalletModal} from '../../hooks/modals';
 import {LaunchDetailScreenProps} from '../../types';
 import {
+  LaunchDataMerged,
   TokenDeployInterface,
   TokenHoldersInterface,
   TokenStatsInterface,
@@ -33,13 +30,31 @@ import {
 } from '../../types/keys';
 import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
+import { TokenStats } from '../../components/LaunchPad/TokenStats';
+import { UserShare } from '../../components/LaunchPad/UserShare';
+
+interface LaunchDetailStyles {
+  holdersTotal: ViewStyle;
+  container: ViewStyle;
+  header: ViewStyle;
+  cancelButton: ViewStyle;
+  mainContent: ViewStyle;
+  leftColumn: ViewStyle;
+  rightColumn: ViewStyle;
+  tabContent: ViewStyle;
+  mobileContent: ViewStyle;
+  mobileTabBar: ViewStyle;
+}
 
 export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
   const {theme} = useTheme();
-  const styles = useStyles(stylesheet);
-  const [loading, setLoading] = useState<false | number>(false);
+  const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
+  const [loading, setLoading] = useState(false);
   const account = useAccount();
+  const [typeAction, setTypeAction] = useState<'SELL' | 'BUY'>('BUY');
 
   console.log(account, 'account');
 
@@ -48,7 +63,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
   const [token, setToken] = useState<TokenDeployInterface | undefined>();
-  const [launch, setLaunch] = useState<TokenDeployInterface | undefined>();
+  const [launch, setLaunch] = useState<LaunchDataMerged | undefined>();
 
   const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
 
@@ -56,7 +71,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const [transactions, setTransaction] = useState<TokenTxInterface[]>([]);
 
-  const [shares, setShares] = useState<UserShareInterface[]>([]);
+  const [shares, setShares] = useState<UserShareInterface[]>();
+  const [share, setShare] = useState<UserShareInterface>();
 
   const [stats, setStats] = useState<TokenStatsInterface | undefined>();
 
@@ -69,10 +85,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
-  const {data: sharesData, isLoading: sharesLoading} = useGetShares(
-    coinAddress,
-    account?.address ?? '',
-  );
+  const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
 
   const {data: launchData, isLoading: tokenLoading} = useGetTokenLaunch(coinAddress);
 
@@ -85,7 +98,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const {showToast} = useToast();
   const walletModal = useWalletModal();
 
-  const [amount, setAmount] = useState<number | undefined>();
+  const [amount, setAmount] = useState<number | undefined>(0);
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -117,7 +130,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   useEffect(() => {
     const data = sharesData || [];
-    setStats(data);
+    const dataShare = sharesData;
+    setShares(data);
+    setShare(dataShare);
   }, [sharesData]);
 
   // useEffect(() => {
@@ -134,9 +149,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   };
 
-  const sellKeys = async () => {
-    if (!amount) {
-      return showToast({title: 'Select an amount to buy', type: 'info'});
+  const sellCoin = async (amountSellProps?: number) => {
+    if (!amount && !amountSellProps) {
+      return showToast({title: 'Select an amount to sell', type: 'info'});
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -149,17 +164,17 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     const sellResult = await handleSellCoins(
       account?.account,
       feltToAddress(BigInt(token?.memecoin_address)),
-      Number(amount),
+      Number(amount) ?? amountSellProps,
       token?.quote_token,
       undefined,
     );
 
-    if (sellResult) {
-      return showToast({title: 'Buy done', type: 'success'});
+    if (sellResult && sellResult?.value) {
+      return showToast({title: 'Sell done', type: 'success'});
     }
   };
 
-  const buyCoin = async () => {
+  const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
       return showToast({title: 'Select an amount to buy', type: 'info'});
@@ -180,8 +195,27 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
       token?.quote_token,
     );
 
-    return showToast({title: 'Buy done', type: 'success'});
+    if (buyResult) {
+      return showToast({title: 'Buy successful', type: 'success'});
+    }
   };
+
+  const handleConnect = async () => {
+    await onConnect();
+
+    if (!account || !account?.account) return;
+  };
+
+  const onHandleAction = async (amountProps?: number) => {
+    if (typeAction == 'BUY') {
+      await buyCoin(amountProps);
+    } else {
+      await sellCoin(amountProps);
+    }
+  };
+
+  const {width} = useWindowDimensions();
+  const isMobile = width < 768; // Common breakpoint for mobile
 
   if (!coinAddress) {
     return (
@@ -195,47 +229,42 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   return (
     <View style={styles.container}>
-      {/* <Header showLogo /> */}
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
         <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
           Back
         </TextButton>
       </SafeAreaView>
-      <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        <LaunchActionsForm
-          onChangeText={(e) => setAmount(Number(e))}
-          onBuyPress={buyCoin}
-          onSellPress={sellKeys}
-        ></LaunchActionsForm>
 
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_LAUNCH}
-          addScreenNavigation={false}
-        ></TabSelector>
-
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.overview}>
-          <ScrollView>
+      {isMobile ? (
+        // Mobile Layout
+        <View style={styles.mobileContent}>
+          <LaunchActionsForm
+            amount={amount}
+            onChangeText={(e) => setAmount(Number(e))}
+            onBuyPress={buyCoin}
+            onSellPress={sellCoin}
+            launch={launch}
+            setTypeAction={setTypeAction}
+            typeAction={typeAction}
+            onHandleAction={onHandleAction}
+            userShare={share}
+            onSetAmount={setAmount}
+          />
+          <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
-              <>
-                <TokenLaunchDetail
-                  isViewDetailDisabled={true}
-                  launch={launch}
-                  isDisabledInfo={true}
-                  isDisabledForm
-                />
-              </>
+              <TokenLaunchDetail
+                isViewDetailDisabled={true}
+                launch={launch}
+                isDisabledInfo={true}
+                isDisabledForm
+              />
             )}
-
+            
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
                 <View style={styles.holdersTotal}>
                   <Text weight="medium" fontSize={14}>
-                    Total Owner Address:
-                  </Text>
-                  <Text weight="bold" fontSize={14}>
-                    {holdings?.data?.[0]?._count.owner_address ?? 0}
+                    Total Owner Address: {holdings?.data?.length}
                   </Text>
                 </View>
                 <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
@@ -243,29 +272,126 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
             )}
 
             {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
-              <>
+              <TokenTx tx={transactions} loading={txLoading} />
+            )}
+
+            {selectedTab == SelectedTab.TOKEN_STATS && (
+              <TokenStats loading={statsLoading} stats={stats} />
+            )}
+
+            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+              <UserShare
+                loading={sharesLoading}
+                shares={shares}
+                share={share}
+                coinAddress={launch?.memecoin_address}
+              />
+            ) : (
+              !account?.address &&
+              selectedTab == SelectedTab.USER_SHARE && 
+              launch?.memecoin_address && (
+                <View>
+                  <Text>Please connect</Text>
+                  <Button onPress={handleConnect}>Connect</Button>
+                </View>
+              )
+            )}
+
+            {selectedTab == SelectedTab.LAUNCH_GRAPH && (
+              <View>
+                <Text>Graph coming soon</Text>
+              </View>
+            )}
+          </ScrollView>
+          <View style={styles.mobileTabBar}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+          </View>
+        </View>
+      ) : (
+        // Web Layout (keep existing layout)
+        <View style={styles.mainContent}>
+          <View style={styles.leftColumn}>
+            <LaunchActionsForm
+              amount={amount}
+              onChangeText={(e) => setAmount(Number(e))}
+              onBuyPress={buyCoin}
+              onSellPress={sellCoin}
+              launch={launch}
+              setTypeAction={setTypeAction}
+              typeAction={typeAction}
+              onHandleAction={onHandleAction}
+              userShare={share}
+              onSetAmount={setAmount}
+            />
+          </View>
+          <View style={styles.rightColumn}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+            <ScrollView style={styles.tabContent}>
+              {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
+                <TokenLaunchDetail
+                  isViewDetailDisabled={true}
+                  launch={launch}
+                  isDisabledInfo={true}
+                  isDisabledForm
+                />
+              )}
+              
+              {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
+                <>
+                  <View style={styles.holdersTotal}>
+                    <Text weight="medium" fontSize={14}>
+                      Total Owner Address: {holdings?.data?.length}
+                    </Text>
+                  </View>
+                  <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+                </>
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
                 <TokenTx tx={transactions} loading={txLoading} />
-              </>
-            )}
+              )}
 
-            {selectedTab == SelectedTab.TOKEN_STATS && transactions && (
-              <>
+              {selectedTab == SelectedTab.TOKEN_STATS && (
                 <TokenStats loading={statsLoading} stats={stats} />
-              </>
-            )}
+              )}
 
-            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && (
-              <>
+              {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
                 <UserShare
                   loading={sharesLoading}
                   shares={shares}
+                  share={share}
                   coinAddress={launch?.memecoin_address}
                 />
-              </>
-            )}
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+              ) : (
+                !account?.address &&
+                selectedTab == SelectedTab.USER_SHARE && 
+                launch?.memecoin_address && (
+                  <View>
+                    <Text>Please connect</Text>
+                    <Button onPress={handleConnect}>Connect</Button>
+                  </View>
+                )
+              )}
+
+              {selectedTab == SelectedTab.LAUNCH_GRAPH && (
+                <View>
+                  <Text>Graph coming soon</Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

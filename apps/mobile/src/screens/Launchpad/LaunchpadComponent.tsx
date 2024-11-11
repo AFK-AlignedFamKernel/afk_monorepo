@@ -1,6 +1,6 @@
 import {useAccount} from '@starknet-react/core';
 import {useAuth} from 'afk_nostr_sdk';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
 
 import {Button} from '../../components';
@@ -10,6 +10,7 @@ import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
 import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
 import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
+import {useLaunchpadStore} from '../../store/launchpad';
 import stylesheet from './styles';
 
 interface AllKeysComponentInterface {
@@ -27,7 +28,17 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {publicKey} = useAuth();
   const {width} = useWindowDimensions();
   const isDesktop = width >= 1024 ? true : false;
+  const {tokens: tokensStore, setTokens, setLaunchs} = useLaunchpadStore();
 
+  useEffect(() => {
+    if (tokens?.length != tokensStore?.length) {
+      setTokens(tokens);
+      setLaunchs(tokens);
+    }
+
+    console.log('tokens', tokens);
+    console.log('tokensStore', tokensStore);
+  }, [tokens, tokensStore]);
   return (
     <View style={styles.container}>
       {isLoading && <ActivityIndicator></ActivityIndicator>}

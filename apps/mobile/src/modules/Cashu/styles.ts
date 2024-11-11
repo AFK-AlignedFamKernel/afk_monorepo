@@ -1,13 +1,109 @@
-import {Platform, StatusBar} from 'react-native';
+import {Dimensions, Platform, StatusBar} from 'react-native';
 
 import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  // container: {
-  //   position: 'relative',
-  //   flex: 1,
-  //   backgroundColor: theme.colors.background,
-  // },
+  // invoices
+  invoicesListContainer: {
+    display: 'flex',
+  },
+  invoiceContainer: {
+    paddingVertical: 10,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  tableHeadersContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    paddingBottom: 3,
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
+    marginTop: 15,
+  },
+  tableHeading: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: theme.colors.text,
+  },
+  amountColumn: {
+    width: '40%',
+  },
+  actionsColumn: {
+    width: '60%',
+    justifyContent: 'flex-end',
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  amountText: {
+    color: theme.colors.text,
+  },
+  invoicesActionButton: {
+    backgroundColor: 'transparent',
+  },
+  invoiceModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  invoiceModalContent: {
+    width: Dimensions.get('window').width * 0.85,
+    maxHeight: Dimensions.get('window').height * 0.8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    padding: 20,
+  },
+  invoiceModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+    borderBottomWidth: 1,
+    borderColor: theme.colors.primary,
+    paddingBottom: 10,
+  },
+  invoiceModalTextAmount: {
+    fontSize: 16,
+    color: theme.colors.text,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  invoiceModalTextTime: {
+    fontSize: 12,
+    color: theme.colors.text,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  invoiceModalTextState: {
+    fontWeight: 'bold',
+    color: theme.colors.errorDark,
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  invoiceModalActionsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  invoiceModalActionButton: {
+    backgroundColor: 'transparent',
+    paddingBottom: 0,
+  },
+  invoiceModalActionButtonText: {
+    color: theme.colors.text,
+  },
 
   container: {
     // flex:1,
@@ -18,26 +114,7 @@ export default ThemedStyleSheet((theme) => ({
     // position: 'relative',
     flex: 1,
     // backgroundColor: theme.colors.background,
-    backgroundColor: theme.colors.surface,
-    color: theme.colors.text,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: Spacing.small,
-    paddingHorizontal: Spacing.medium,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.divider,
-  },
-  activeTab: {
-    backgroundColor: theme.colors.divider,
-  },
-  tabText: {
-    fontSize: 18,
+    backgroundColor: 'transparent',
     color: theme.colors.text,
   },
   tabSelector: {
@@ -61,13 +138,9 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     height: '95%',
     // flexGrow: 1,
-    // overflow:"scroll",
-    backgroundColor: theme.colors.surface,
+    overflow: 'scroll',
+    backgroundColor: 'transparent',
   },
-  flatListContent: {
-    paddingVertical: Spacing.large,
-  },
-
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
@@ -98,22 +171,27 @@ export default ThemedStyleSheet((theme) => ({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: 5,
     borderColor: theme.colors.inputBorder,
     flex: 1,
-    height: '100%',
-    paddingHorizontal: Spacing.large,
-    paddingVertical: Spacing.large,
+    height: 80,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     color: theme.colors.inputText,
     backgroundColor: theme.colors.inputBackground,
     fontSize: 15,
+    marginBottom: 15,
+    marginTop: 10,
+    width: '80%',
+    marginHorizontal: 20,
   },
   button: {
     backgroundColor: theme.colors.primary,
     padding: Spacing.medium,
-    borderRadius: 999,
+    borderRadius: 20,
     alignItems: 'center',
     marginTop: Spacing.small,
+    marginBottom: Spacing.small,
   },
   buttonText: {
     color: theme.colors.onPrimary,
@@ -129,8 +207,11 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
   },
   text: {
-    // textAlign: 'center',
     color: theme.colors.text,
+    marginTop: 5,
+    marginBottom: 5,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
@@ -284,6 +365,8 @@ export default ThemedStyleSheet((theme) => ({
   },
   qrButton: {
     backgroundColor: 'transparent',
+    marginTop: Spacing.small,
+    marginBottom: Spacing.small,
   },
   moreButton: {
     flex: 1,
@@ -318,7 +401,6 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
   },
   tabsContainer: {
-    justifyContent: 'center',
     maxWidth: '100%',
   },
   tabs: {
@@ -332,7 +414,7 @@ export default ThemedStyleSheet((theme) => ({
     borderColor: theme.colors.primary,
   },
   tabContentContainer: {
-    padding: 20,
+    padding: 10,
   },
   tabTitle: {
     fontWeight: 'bold',
@@ -460,8 +542,78 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 16,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
+    flexDirection: 'column',
+    gap: 15,
+  },
+  // send and receive modals
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    position: 'relative',
+    alignItems: 'center',
+    width: '100%',
+  },
+  modalTabsMainContainer: {
+    backgroundColor: theme.colors.background,
+    width: '100%',
+    alignItems: 'center',
+    maxWidth: 400,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    position: 'absolute',
+    bottom: 0,
+  },
+  modalTabContentContainer: {
+    backgroundColor: theme.colors.surface,
+    width: '100%',
+    alignItems: 'center',
+    maxWidth: 400,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    maxHeight: '95%',
+    overflow: 'scroll',
+    paddingBottom: 20,
+  },
+  tabContainer: {
+    flexDirection: 'column',
+    width: '80%',
+    marginBottom: 30,
+  },
+  modalTabsTitle: {
+    padding: 20,
+    textTransform: 'uppercase',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: theme.colors.inputText,
+  },
+  modalTabContentTitle: {
+    padding: 20,
+    textTransform: 'uppercase',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: theme.colors.inputText,
+  },
+  tab: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 50,
+    flex: 1,
+    padding: 10,
+    marginBottom: 10,
+  },
+  tabText: {
+    fontSize: 18,
+    color: theme.colors.white,
+    textAlign: 'center',
+    fontWeight: 'medium',
+  },
+  modalActionButton: {
+    marginBottom: 20,
+    marginTop: Spacing.small,
+    backgroundColor: theme.colors.primary,
+  },
+  modalActionButtonText: {
+    color: theme.colors.white,
   },
 }));

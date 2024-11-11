@@ -2,17 +2,16 @@ import {mainnet, sepolia} from '@starknet-react/chains';
 import {
   argent,
   braavos,
+  publicProvider,
   StarknetConfig,
   useInjectedConnectors,
   voyager,
 } from '@starknet-react/core';
-import {
-  ConnectorProvider as StarknetWCProvider,
-  useArgentMobileConnector,
-} from '@starknet-wc/react';
+import {kakarotConnectors} from '@starknet-react/kakarot';
+import {ConnectorProvider as StarknetWCProvider} from '@starknet-wc/react';
 import {Platform} from 'react-native';
 
-import {NETWORK_NAME, WALLET_CONNECT_ID} from '../constants/env';
+import {NETWORK_NAME} from '../constants/env';
 import {RpcProviderProvider} from '../context/RpcProvider';
 import {WalletQRModal} from '../modules/WalletQRModal';
 import {providers} from '../services/provider';
@@ -24,13 +23,16 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
   }[NETWORK_NAME];
 
   const provider = providers(chain);
+  const providerRpc = publicProvider();
+  // const argentMobileConnector = useArgentMobileConnector();
 
   const {connectors: injected} = useInjectedConnectors({
-    recommended: [argent(), braavos()],
+    recommended: [argent(), braavos(), ...kakarotConnectors(providerRpc)],
     includeRecommended: 'always',
+    order: 'alphabetical',
+    // Randomize the order of the connectors.
+    // order: "alphabetical",
   });
-
-  const argentMobileConnector = useArgentMobileConnector();
 
   return (
     <RpcProviderProvider provider={provider}>
@@ -38,16 +40,15 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
         chains={[chain]}
         provider={providers}
         connectors={[
-          argentMobileConnector({
-            chain: NETWORK_NAME,
-            wcProjectId: WALLET_CONNECT_ID,
-            dappName: 'AFK',
-            description: 'AFK Starknet dApp',
-            url: 'https://afk-community.xyz',
-            provider,
-          }),
-
           ...(Platform.OS === 'web' ? injected : []),
+          // argentMobileConnector({
+          //   chain: NETWORK_NAME,
+          //   wcProjectId: WALLET_CONNECT_ID,
+          //   dappName: 'AFK',
+          //   description: 'AFK Starknet dApp',
+          //   url: 'https://afk-community.xyz',
+          //   provider,
+          // }),
         ]}
         explorer={voyager}
       >

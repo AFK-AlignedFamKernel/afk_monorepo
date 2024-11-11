@@ -44,6 +44,11 @@ export enum SelectedTab {
   PAY_WALLET,
   WALLET_INTERNAL,
   CONTACTS = 'contacts',
+  HOLDERS = "HOLDERS",
+  TX = "TX",
+  SHARES = "SHARES",
+  STATS = "STATS",
+  GRAPH = "GRAPH",
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -265,6 +270,11 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'STATS',
     screen: 'Stats',
     tab: SelectedTab.TOKEN_STATS,
+  },
+  {
+    title: 'GRAPH',
+    screen: 'GRAPH',
+    tab: SelectedTab.LAUNCH_GRAPH,
   },
 ];
 

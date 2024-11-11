@@ -1,32 +1,33 @@
 import { ec, RpcProvider, constants } from 'starknet';
 import backendConfigProd from '../configs/backend.config.json';
 import backendConfigDev from '../configs/backend.dev.config.json';
-const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" || process.env.EXPO_PUBLIC_NODE_ENV == "production" ? true : false
+const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" ||
+  process.env.NEXT_PUBLIC_NODE_ENV == "production" || process.env.EXPO_PUBLIC_NODE_ENV == "production" ? true : false
 /** TODO add ENV and config for prod and test */
 /** TODO fix url */
-
 const backendConfig = isProduction ? backendConfigProd : backendConfigDev
+const isLocal = backendConfig.local
 
 console.log("isProduction", isProduction)
 
-export const backendUrl = isProduction
+export const backendUrl = isProduction && !isLocal
   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
   : 'http://' + backendConfig.host + ':' + backendConfig.port;
 console.log("backendUrl", backendUrl)
 
-export const wsUrl = isProduction
+export const wsUrl = isProduction && !isLocal
   // ? 'wss://' + backendConfig.host + '/ws'
-  ? 'wss://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL + "/ws": backendConfig.host + "/ws"
+  ? 'wss://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL + "/ws" : backendConfig.host + "/ws"
   : 'ws://' + backendConfig.host + ':' + backendConfig.consumer_port + '/ws';
 console.log("wsUrl", wsUrl)
 
-export const nftUrl = isProduction
+export const nftUrl = isProduction && !isLocal
   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
   : 'http://' + backendConfig.host + ':' + backendConfig.consumer_port;
 
 console.log("nftUrl", nftUrl)
 
-export const templateUrl = isProduction
+export const templateUrl = isProduction && !isLocal
   ? 'https://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host
   : 'http://' + typeof process.env.NEXT_PUBLIC_BACKEND_URL !== "undefined" ? process.env.NEXT_PUBLIC_BACKEND_URL : backendConfig.host + ':' + backendConfig.port;
 

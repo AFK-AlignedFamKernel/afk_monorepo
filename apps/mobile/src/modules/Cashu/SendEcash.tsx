@@ -7,16 +7,27 @@ import React, {ChangeEvent, useEffect, useState} from 'react';
 import {SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
+import {CloseIcon, CopyIconStack} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
-import {SelectedTab} from '../../types/tab';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
-export const SendEcash = () => {
+interface SendEcashProps {
+  onClose: () => void;
+}
+
+export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
+  type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
+  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const [activeTab, setActiveTab] = useState<TabType>('none');
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
+
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
   const {
     wallet,
@@ -34,11 +45,7 @@ export const SendEcash = () => {
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const tabs = ['lightning', 'ecash', 'contact'];
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
+
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
@@ -66,10 +73,6 @@ export const SendEcash = () => {
   const {handleGenerateEcash, handlePayInvoice} = usePayment();
 
   const {showToast} = useToast();
-
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
-    SelectedTab.LIGHTNING_NETWORK_WALLET,
-  );
 
   const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -133,13 +136,6 @@ export const SendEcash = () => {
     return ecash;
   };
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    if (screen) {
-      // navigation.navigate(screen as any);
-    }
-  };
-
   const handleCopy = async (type: 'ecash') => {
     if (!generatedEcash) return;
     if (type == 'ecash') {
@@ -153,123 +149,127 @@ export const SendEcash = () => {
     // }
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
-  return (
-    <SafeAreaView
-    // style={styles.safeArea}
-    >
-      <View
-      // style={styles.container}
-      >
-        {/* 
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={[
-            {
-              title: "Lightning",
-              tab: undefined
-            }
-          ]}
-          addScreenNavigation={false}
-        ></TabSelector> */}
 
-        <View style={styles.tabContainer}>
-          {tabs.map((tab) => (
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'none':
+        return (
+          <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.activeTab]}
-              onPress={() => handleTabChange(tab)}
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
             >
-              <Text style={styles.tabText}>{tab}</Text>
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
-          ))}
-        </View>
+            <View style={styles.tabContainer}>
+              <Text style={styles.modalTabsTitle}>Send</Text>
+              {tabs.map((tab) => (
+                <TouchableOpacity key={tab} style={styles.tab} onPress={() => handleTabChange(tab)}>
+                  <Text style={styles.tabText}>{tab}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </SafeAreaView>
+        );
+      case 'lightning':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
+              <>
+                <TextInput
+                  placeholder="Invoice to paid"
+                  value={invoice}
+                  onChangeText={setInvoice}
+                  style={styles.input}
+                />
 
-        <View
-        //  style={styles.container}
-        >
-          {/* <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
-          </View> */}
-
-          <View
-          // style={styles.text}
-          >
-            <Text style={styles.text}>Name: {infoMint?.name}</Text>
-            <Text style={styles.text}>Description: {infoMint?.description}</Text>
-            <Text style={styles.text}>MOTD: {infoMint?.motd}</Text>
-          </View>
-
-          {activeTab == 'lightning' && (
-            <>
-              <TextInput
-                placeholder="Invoice to paid"
-                value={invoice}
-                onChangeText={setInvoice}
-                style={styles.input}
-              ></TextInput>
-
-              <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
-            </>
-          )}
-
-          {activeTab == 'ecash' && (
-            <>
-              <TextInput
-                placeholder="Amount"
-                keyboardType="numeric"
-                value={invoiceAmount}
-                onChangeText={setInvoiceAmount}
-                style={styles.input}
-              />
-              <Button
-                onPress={handleEcash}
-                // onPress={() =>  handleEcash}
-              >
-                Generate eCash
-              </Button>
-
-              {generatedEcash && (
-                <View
-                  style={{
-                    marginVertical: 3,
-                  }}
+                <Button
+                  onPress={() => handlePayInvoice(invoice)}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
                 >
-                  <Text style={styles.text}>eCash token</Text>
+                  Pay invoice
+                </Button>
+              </>
+            </View>
+          </>
+        );
+      case 'ecash':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
+              <>
+                <TextInput
+                  placeholder="Amount"
+                  keyboardType="numeric"
+                  value={invoiceAmount}
+                  onChangeText={setInvoiceAmount}
+                  style={styles.input}
+                />
+                <Button
+                  onPress={handleEcash}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
+                  Generate eCash
+                </Button>
 
-                  <Input
-                    value={generatedEcash}
-                    editable={false}
-                    right={
-                      <TouchableOpacity
-                        onPress={() => handleCopy('ecash')}
-                        style={
-                          {
-                            // marginRight: 10,
-                          }
-                        }
-                      >
-                        <CopyIconStack color={theme.colors.primary} />
-                      </TouchableOpacity>
-                    }
-                  />
-                </View>
-              )}
-            </>
-          )}
+                {generatedEcash && (
+                  <View
+                    style={{
+                      marginVertical: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>eCash token</Text>
 
-          {activeTab == 'contact' && (
-            <>
+                    <Input
+                      value={generatedEcash}
+                      editable={false}
+                      right={
+                        <TouchableOpacity onPress={() => handleCopy('ecash')}>
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
+                    />
+                  </View>
+                )}
+              </>
+            </View>
+          </>
+        );
+      case 'contact':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+            >
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.modalTabContentContainer}>
+              <Text style={styles.modalTabContentTitle}>Send Contact</Text>
               <SendNostrContact />
-            </>
-          )}
-        </View>
-      </View>
-    </SafeAreaView>
-  );
+            </View>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return renderTabContent();
 };
