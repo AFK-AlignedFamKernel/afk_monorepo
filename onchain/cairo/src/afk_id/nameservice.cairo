@@ -72,6 +72,7 @@ pub mod Nameservice {
         subscription_expiry: Map::<ContractAddress, u64>,
         subscription_price: u256,
         token_quote: ContractAddress,
+        is_payment_enabled: bool,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
         #[substorage(v0)]
@@ -178,9 +179,11 @@ pub mod Nameservice {
             );
 
             // Payment
-            let price = self.subscription_price.read();
-            let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
-            payment_token.transfer_from(caller_address, get_contract_address(), price);
+            if self.is_payment_enabled.read() {
+                let price = self.subscription_price.read();
+                let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+                payment_token.transfer_from(caller_address, get_contract_address(), price);
+            }
 
             let expiry = current_time + YEAR_IN_SECONDS;
             self.usernames.entry(key).write(caller_address);
@@ -267,6 +270,17 @@ pub mod Nameservice {
     fn set_token_quote(ref self: ContractState, token_quote: ContractAddress) {
         self.accesscontrol.assert_only_role(ADMIN_ROLE);
         self.token_quote.write(token_quote);
+    }
+
+    #[external(v0)]
+    fn set_is_payment_enabled(ref self: ContractState, new_status: bool) {
+        self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        self.is_payment_enabled.write(new_status);
+    }
+
+    #[external(v0)]
+    fn get_is_payment_enabled(self: @ContractState) -> bool {
+        self.is_payment_enabled.read()
     }
     
     
