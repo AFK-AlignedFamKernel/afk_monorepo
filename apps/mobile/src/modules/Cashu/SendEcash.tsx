@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
 import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {Picker} from '@react-native-picker/picker';
+import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import React, {ChangeEvent, useEffect, useState} from 'react';
 import {SafeAreaView, TouchableOpacity, View} from 'react-native';
@@ -12,6 +15,8 @@ import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
+import {useCashuContext} from '../../providers/CashuProvider';
+import {UnitInfo} from './MintListCashu';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
@@ -41,7 +46,9 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     mintTokens,
     mintUrls,
     activeMintIndex,
-  } = useCashu();
+    getUnits,
+    getUnitBalance,
+  } = useCashuContext()!;
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
@@ -150,6 +157,47 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
+  const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
+  const [selectedMint, setSelectedMint] = useState<MintData>(mintUrls[activeMintIndex]);
+  const [selectedCurrency, setSelectedCurrency] = useState('sat');
+  // Load units and their balances for each mint
+  useEffect(() => {
+    const loadMintUnits = async () => {
+      const newMintUnitsMap = new Map<string, UnitInfo[]>();
+
+      for (const mint of mintUrls) {
+        try {
+          const units = await getUnits(mint);
+          // Get balance for each unit
+          const unitsWithBalance = await Promise.all(
+            units.map(async (unit) => {
+              const balance = await getUnitBalance(unit, mint);
+              return {
+                unit,
+                balance,
+              };
+            }),
+          );
+
+          newMintUnitsMap.set(mint.url, unitsWithBalance);
+        } catch (error) {
+          console.error(`Error loading units for mint ${mint.url}:`, error);
+          newMintUnitsMap.set(mint.url, []);
+        }
+      }
+
+      setMintUnitsMap(newMintUnitsMap);
+    };
+
+    loadMintUnits();
+  }, [getUnitBalance, getUnits, mintUrls]);
+
+  const handleOnChangeSelectedMint = (newSelection: string) => {
+    console.log(newSelection);
+    const newSelectedMint = mintUrls.find((mint) => mint.url === newSelection);
+    if (newSelectedMint) setSelectedMint(newSelectedMint);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'none':
@@ -213,6 +261,55 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
               <>
+                <Text style={styles.modalTabLabel}>Select Mint</Text>
+                <Picker
+                  selectedValue={selectedMint.url}
+                  style={[
+                    styles.picker,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      color: theme.colors.inputText,
+                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      width: '80%',
+                    },
+                  ]}
+                  onValueChange={(newSelectedMint) => handleOnChangeSelectedMint(newSelectedMint)}
+                >
+                  {mintUrls.map((mintUrl) => (
+                    <Picker.Item
+                      key={mintUrl.url}
+                      label={mintUrl.url}
+                      value={mintUrl.url}
+                      color={theme.colors.inputText}
+                    />
+                  ))}
+                </Picker>
+                <Text style={styles.modalTabLabel}>Select Currency</Text>
+                <Picker
+                  selectedValue={selectedCurrency}
+                  style={[
+                    styles.picker,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      color: theme.colors.inputText,
+                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      width: '80%',
+                    },
+                  ]}
+                  onValueChange={setSelectedCurrency}
+                >
+                  {mintUnitsMap.get(selectedMint.url)?.map((unitInfo) => (
+                    <Picker.Item
+                      key={unitInfo.unit}
+                      label={unitInfo.unit.toUpperCase()}
+                      value={unitInfo.unit}
+                      color={theme.colors.inputText}
+                    />
+                  ))}
+                </Picker>
+                <Text style={styles.modalTabLabel}>Amount</Text>
                 <TextInput
                   placeholder="Amount"
                   keyboardType="numeric"

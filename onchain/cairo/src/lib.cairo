@@ -3,11 +3,15 @@ pub mod bip340;
 pub mod errors;
 // pub mod interfaces;
 pub mod keys;
-pub mod launchpad;
+
 pub mod math;
 pub mod sha256;
 pub mod social;
 pub mod utils;
+pub mod launchpad {
+    pub mod launchpad;
+    pub mod utils;
+}
 pub mod quests {
     pub mod authority_quest;
     pub mod chain_faction_quest;

@@ -105,6 +105,107 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
   },
 
+  // history
+  txListContainer: {
+    display: 'flex',
+  },
+  txContainer: {
+    paddingVertical: 10,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  txDirectionColumn: {
+    width: '10%',
+  },
+  txAmountColumn: {
+    width: '40%',
+    alignItems: 'flex-end',
+  },
+  dirText: {
+    textTransform: 'uppercase',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  dirOutText: {
+    color: theme.colors.errorDark,
+  },
+  dirInText: {
+    color: theme.colors.primary,
+  },
+  txActionsColumn: {
+    width: '50%',
+    justifyContent: 'flex-end',
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  txActionButton: {
+    backgroundColor: 'transparent',
+  },
+  txModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  txModalContent: {
+    width: Dimensions.get('window').width * 0.85,
+    maxHeight: Dimensions.get('window').height * 0.8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    padding: 20,
+  },
+  txModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+    borderBottomWidth: 1,
+    borderColor: theme.colors.primary,
+    paddingBottom: 10,
+  },
+  txModalTextAmount: {
+    fontSize: 16,
+    color: theme.colors.text,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  txModalTextTime: {
+    fontSize: 12,
+    color: theme.colors.text,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  txModalTextState: {
+    fontWeight: 'bold',
+    color: theme.colors.errorDark,
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  txModalActionsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  txModalActionButton: {
+    backgroundColor: 'transparent',
+    paddingBottom: 0,
+  },
+  txModalActionButtonText: {
+    color: theme.colors.text,
+  },
+
   container: {
     // flex:1,
     width: '100%',
@@ -181,7 +282,6 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.inputBackground,
     fontSize: 15,
     marginBottom: 15,
-    marginTop: 10,
     width: '80%',
     marginHorizontal: 20,
   },
@@ -396,6 +496,16 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 900,
     color: theme.colors.primary,
   },
+  currencyButton: {
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.text,
+  },
+  currencyButtonText: {
+    color: theme.colors.text,
+  },
   activeMintText: {
     fontSize: 12,
     color: theme.colors.text,
@@ -442,6 +552,7 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     flex: 1,
   },
   textsContainer: {
@@ -451,6 +562,18 @@ export default ThemedStyleSheet((theme) => ({
   },
   title: {
     fontSize: 12,
+    color: theme.colors.text,
+  },
+  unitsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  unit: {
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primary,
     color: theme.colors.text,
   },
   radioOuter: {
@@ -475,7 +598,6 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     gap: 10,
-    alignSelf: 'flex-end',
     height: '100%',
     alignItems: 'center',
   },
@@ -595,6 +717,15 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     color: theme.colors.inputText,
   },
+  modalTabLabel: {
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.inputText,
+    textAlign: 'left',
+    width: '80%',
+  },
   tab: {
     backgroundColor: theme.colors.primary,
     borderRadius: 50,
@@ -615,5 +746,53 @@ export default ThemedStyleSheet((theme) => ({
   },
   modalActionButtonText: {
     color: theme.colors.white,
+  },
+
+  //mint info modal
+  mintInfoModalMainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  mintInfoModalContent: {
+    width: Dimensions.get('window').width * 0.85,
+    maxHeight: Dimensions.get('window').height * 0.8,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    maxWidth: 450,
+    position: 'relative',
+    paddingVertical: 30,
+    paddingHorizontal: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  mintInfoModalText: {
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  mintInfoModalTitle: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 25,
+    marginBottom: 20,
+  },
+  mintInfoModalDescription: {
+    fontSize: 12,
+  },
+  mintInfoModalVersion: {
+    fontSize: 10,
+  },
+  mintInfoModalNuts: {
+    fontSize: 10,
   },
 }));
