@@ -1405,26 +1405,29 @@ mod launchpad_tests {
         let quote_to_deposit = 215_000;
         let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
 
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
             .create_unrug_token(
-                owner: OWNER(),
+                owner: launchpad.contract_address,
                 name: NAME(),
                 symbol: SYMBOL(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
+                initial_supply: 21_000_000 * pow_256(10, 18),
+                contract_address_salt: SALT() + 1,
             );
 
-        println!("token_address {:?}", token_address);
+        // start_cheat_caller_address(token_address, launchpad.contract_address);
+        // IERC20Dispatcher { contract_address: token_address}.approve()
+        // stop_cheat_caller_address(token_address);
 
-        let token_holded: u256 = u256 { low: 5000000000, high: 0 };
+        let token_holded: u256 = 1_000 * pow_256(10, 18);
+        // let token_holded: u256 = 1_000;
 
         let launch_params = LaunchParameters {
             memecoin_address: token_address,
-            transfer_restriction_delay: 1000,
+            transfer_restriction_delay: 100,
             max_percentage_buy_launch: 200, // 2%
             quote_address: quote_token.contract_address,
-            initial_holders: array![OWNER()].span(),
+            initial_holders: array![launchpad.contract_address].span(),
             initial_holders_amounts: array![token_holded].span(),
         };
 
@@ -1434,20 +1437,17 @@ mod launchpad_tests {
                     starting_price,
                     bound: 88719042
                 };
-        
-        let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
 
-
-        // let (id, position) = launchpad
-        //     .add_liquidity_unrug(
-        //         launch_params,
-        //         EkuboPoolParameters {
-        //             fee: 0xc49ba5e353f7d00000000000000000,
-        //             tick_spacing: 5982,
-        //             starting_price,
-        //             bound: 88719042
-        //         }
-        //     );
+        let (id, position) = launchpad
+            .add_liquidity_unrug(
+                launch_params,
+                EkuboPoolParameters {
+                    fee: 0xc49ba5e353f7d00000000000000000,
+                    tick_spacing: 5982,
+                    starting_price,
+                    bound: 88719042
+                }
+            );
 
         let pool_key = PoolKey {
             token0: position.pool_key.token0,
@@ -1469,3 +1469,5 @@ mod launchpad_tests {
         println!("reserve_quote: {}", reserve_quote);
     }
 }
+
+
