@@ -297,7 +297,7 @@ export const CashuView = () => {
             </Button>
           </View>
 
-          {showMore && (
+          {showMore ? (
             <TabSelector
               activeTab={selectedTab}
               handleActiveTab={handleTabSelected}
@@ -306,8 +306,9 @@ export const CashuView = () => {
               containerStyle={styles.tabsContainer}
               tabStyle={styles.tabs}
               activeTabStyle={styles.active}
+              useDefaultStyles={false}
             />
-          )}
+          ) : null}
 
           {selectedTab == SelectedTab?.CONTACTS && (
             <ContactsRow onAddContact={handleCloseContactManagement}></ContactsRow>

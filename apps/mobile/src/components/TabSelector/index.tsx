@@ -12,6 +12,7 @@ interface ITabSelector {
   containerStyle?: StyleProp<ViewStyle>;
   tabStyle?: StyleProp<ViewStyle>;
   activeTabStyle?: StyleProp<ViewStyle>;
+  useDefaultStyles?: boolean;
 }
 
 const TabSelector: React.FC<ITabSelector> = ({
@@ -22,6 +23,7 @@ const TabSelector: React.FC<ITabSelector> = ({
   containerStyle,
   tabStyle,
   activeTabStyle,
+  useDefaultStyles = true,
 }) => {
   const {theme} = useTheme();
 
@@ -65,23 +67,26 @@ const TabSelector: React.FC<ITabSelector> = ({
   };
 
   return (
-    <View style={[dynamicStyles.container, containerStyle]}>
+    <View style={useDefaultStyles ? dynamicStyles.container : null}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={dynamicStyles.scrollContent}
+        contentContainerStyle={useDefaultStyles ? dynamicStyles.scrollContent : containerStyle}
       >
         {buttons?.map((b, i) => (
           <Button
             key={i}
             style={[
-              dynamicStyles.tab,
-              tabStyle,
-              activeTab === b?.tab ? [dynamicStyles.active, activeTabStyle] : null,
+              useDefaultStyles ? dynamicStyles.tab : tabStyle,
+              activeTab === b?.tab
+                ? useDefaultStyles
+                  ? dynamicStyles.active
+                  : activeTabStyle
+                : null,
             ]}
             textStyle={[
-              dynamicStyles.tabText,
-              activeTab === b?.tab ? dynamicStyles.activeTabText : null,
+              useDefaultStyles ? dynamicStyles.tabText : null,
+              activeTab === b?.tab && useDefaultStyles ? dynamicStyles.activeTabText : null,
             ]}
             onPress={() => handlePress(b?.tab, b?.screen)}
           >

@@ -65,3 +65,68 @@ export const getImageRatio = (width: number, height: number, minRatio = 0.75, ma
 export function removeHashFn(str: string) {
   return str?.replace(/#/g, '');
 }
+
+export const getRelativeTime = (date: string | number | Date) => {
+  const now = new Date();
+  const timestamp = new Date(date);
+  const secondsAgo = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
+
+  // Handle invalid dates
+  if (isNaN(secondsAgo)) {
+    return 'Invalid date';
+  }
+
+  // Define time intervals in seconds
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1,
+  };
+
+  // Handle future dates
+  if (secondsAgo < 0) {
+    return 'in the future';
+  }
+
+  // Less than a minute
+  if (secondsAgo < 60) {
+    return 'just now';
+  }
+
+  // Check each interval
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(secondsAgo / secondsInUnit);
+
+    if (interval >= 1) {
+      return interval === 1 ? `about ${interval} ${unit} ago` : `about ${interval} ${unit}s ago`;
+    }
+  }
+
+  return 'just now';
+};
+
+export const formatCurrency = (value: number, currency: string): string => {
+  if (currency === 'sat') {
+    return formatSat(value, 'sat');
+  }
+  if (currency === 'msat') {
+    return formatSat(value, 'msat');
+  }
+  let newValue = value;
+  if (currency === 'usd' || currency === 'eur') {
+    newValue = value / 100;
+  }
+
+  return new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency,
+  }).format(newValue);
+};
+
+export const formatSat = (value: number, currencyString: string) => {
+  return new Intl.NumberFormat('en').format(value) + ` ${currencyString}`;
+};

@@ -11,11 +11,13 @@ import {
   MintActiveKeys,
   MintAllKeysets,
   MintKeys,
+  MintKeyset,
   MintQuoteResponse,
   Proof,
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
+import {getProofs as getProofsLocal} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -72,7 +74,11 @@ export interface ICashu {
   }>;
   receiveP2PK: (encoded: string) => Promise<Proof[]>;
   meltTokens: (invoice: string, proofsProps?: Proof[]) => Promise<MeltTokensResponse>;
-  getKeySets: () => Promise<MintActiveKeys>;
+  getKeySets: () => Promise<MintAllKeysets>;
+  getUnits: (pMint: MintData) => Promise<string[]>;
+  getUnitKeysets: (unit: string, pMint: MintData) => Promise<MintKeyset[]>;
+  getUnitProofs: (unit: string, pMint: MintData) => Promise<Proof[]>;
+  getUnitBalance: (unit: string, pMint: MintData) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
@@ -105,6 +111,8 @@ export interface ICashu {
   mintInfo: GetInfoResponse;
   setMintInfo: React.Dispatch<React.SetStateAction<GetInfoResponse>>;
   mintProps: CashuMint;
+  activeCurrency: string;
+  setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const useCashu = (): ICashu => {
@@ -113,6 +121,7 @@ export const useCashu = (): ICashu => {
   const {setSeed, seed, mnemonic, setMnemonic} = useCashuStore();
 
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
+  const [activeCurrency, setActiveCurrency] = useState('sat');
   const [mintUrls, setMintUrls] = useState<MintData[]>([
     {
       url: 'https://mint.minibits.cash/Bitcoin',
@@ -155,7 +164,7 @@ export const useCashu = (): ICashu => {
     //     keys: mintKeysset,
     //     // unit:"sat"
     // })
-  }, [walletCashu, mint, seed, mnemonic]);
+  }, [mint, mnemonic, seed, mintKeysset]);
 
   /** TODO saved in secure store */
   const generateMnemonic = () => {
@@ -216,8 +225,44 @@ export const useCashu = (): ICashu => {
     return proofsCheck;
   };
   const getKeySets = async () => {
-    const keyssets = await mint?.getKeys();
+    const keyssets = await mint?.getKeySets();
     return keyssets;
+  };
+  const getUnits = async (pMint: MintData) => {
+    let units = [];
+    const currentMint = new CashuMint(pMint.url);
+    await currentMint?.getKeySets().then(({keysets}) => {
+      units = keysets
+        .map((k) => k.unit)
+        .filter((value, index, self) => self.indexOf(value) === index);
+    });
+    return units;
+  };
+  const getUnitKeysets = async (unit: string, pMint: MintData): Promise<MintKeyset[]> => {
+    const currentMint = new CashuMint(pMint.url);
+    let unitKeysets: MintKeyset[];
+    await currentMint?.getKeySets().then(({keysets}) => {
+      unitKeysets = keysets.filter((k) => k.unit === unit);
+    });
+    return unitKeysets;
+  };
+  const getUnitProofs = async (unit: string, pMint: MintData): Promise<Proof[]> => {
+    let unitProofs: Proof[] = [];
+    const proofsLocal = getProofsLocal();
+    if (proofsLocal) {
+      const proofs: Proof[] = JSON.parse(proofsLocal);
+      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
+        unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+      });
+    }
+    return unitProofs;
+  };
+  const getUnitBalance = async (unit: string, pMint: MintData): Promise<number> => {
+    let unitBalance = 0;
+    await getUnitProofs(unit, pMint).then((unitProofs) => {
+      unitBalance = unitProofs.reduce((sum, p) => sum + p.amount, 0);
+    });
+    return unitBalance;
   };
 
   const requestMintQuote = async (nb: number) => {
@@ -449,6 +494,10 @@ export const useCashu = (): ICashu => {
     receiveP2PK,
     meltTokens,
     getKeySets,
+    getUnits,
+    getUnitKeysets,
+    getUnitProofs,
+    getUnitBalance,
     getKeys,
     getProofs,
     getFeesForExternalInvoice,
@@ -467,5 +516,7 @@ export const useCashu = (): ICashu => {
     mintInfo,
     setMintInfo,
     mintProps,
+    activeCurrency,
+    setActiveCurrency,
   };
 };
