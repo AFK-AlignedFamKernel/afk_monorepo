@@ -245,7 +245,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
         <>
           <video
             ref={videoRef as React.RefObject<HTMLVideoElement>}
-            style={styles.camera}
+            style={styles.cameraWeb}
             playsInline
           />
           <canvas ref={canvasRef} style={{display: 'none'}} />
@@ -254,14 +254,16 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     }
 
     return (
-      <CameraView
-        style={styles.camera}
-        onBarcodeScanned={scanned ? undefined : handleScannedCode}
-        barcodeScannerSettings={{
-          barcodeTypes: ['qr'],
-        }}
-        mirror
-      />
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={styles.camera}
+          onBarcodeScanned={scanned ? undefined : handleScannedCode}
+          barcodeScannerSettings={{
+            barcodeTypes: ['qr'],
+          }}
+          mirror
+        />
+      </View>
     );
   };
 
@@ -269,13 +271,20 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     <View style={styles.container}>
       {!scanned ? (
         <>
-          <View style={styles.header}>
-            <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
-          </View>
-          <View style={styles.cameraContainer}>{renderCamera()}</View>
-          <TouchableOpacity onPress={handleScannerClose}>
-            <Text style={styles.cancelText}>Close Scanner</Text>
-          </TouchableOpacity>
+          {Platform.OS !== 'web' || webPermissionGranted ? (
+            <View style={styles.header}>
+              <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
+            </View>
+          ) : null}
+          {renderCamera()}
+          {Platform.OS === 'web' && !webPermissionGranted ? (
+            <Text style={styles.waitingText}>Waiting for permissions...</Text>
+          ) : null}
+          {Platform.OS !== 'web' || webPermissionGranted ? (
+            <TouchableOpacity onPress={handleScannerClose}>
+              <Text style={styles.cancelText}>Close Scanner</Text>
+            </TouchableOpacity>
+          ) : null}
         </>
       ) : null}
       <Modal
