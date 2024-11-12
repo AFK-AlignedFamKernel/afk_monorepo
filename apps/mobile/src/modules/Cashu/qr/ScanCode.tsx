@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
-import React, {useState} from 'react';
-import {Clipboard, Modal, Text, TouchableOpacity, View} from 'react-native';
+import jsQR from 'jsqr';
+import React, {useEffect, useRef, useState} from 'react';
+import {Clipboard, Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
 
 import {CopyIconStack} from '../../../assets/icons';
 import {Button, Input} from '../../../components';
@@ -13,15 +15,40 @@ interface ScanCashuQRCodeProps {
   onClose: () => void;
 }
 
+interface VideoElementRef extends HTMLVideoElement {
+  srcObject: MediaStream | null;
+}
+
 const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false);
+  const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
   const {handlePayInvoice, handleGenerateEcash} = usePayment();
   const {showToast} = useToast();
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
+
+  // Web-specific refs and state
+  const videoRef = useRef<VideoElementRef | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [webStream, setWebStream] = useState<MediaStream | null>(null);
+  const scanningRef = useRef<boolean>(false);
+
+  const cleanup = () => {
+    stopScanning();
+    if (webStream) {
+      webStream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setWebStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.load();
+    }
+  };
 
   const handleScannedCode = ({data}: BarcodeScanningResult) => {
     console.log('Scanned data:', data);
@@ -34,32 +61,136 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     setModalVisible(true);
   };
 
-  const handlePay = async () => {
+  const handlePay = async (): Promise<void> => {
     if (scannedData) {
       await handlePayInvoice(scannedData);
       showToast({title: 'Invoice paid successfully', type: 'success'});
       setModalVisible(false);
+      cleanup();
       onClose();
     }
   };
 
-  const handleReceive = async () => {
+  const handleReceive = async (): Promise<void> => {
     if (scannedData) {
       await handleGenerateEcash(Number(scannedData.replace('cashu', '')));
       showToast({title: 'eCash received successfully', type: 'success'});
       setModalVisible(false);
+      cleanup();
       onClose();
     }
   };
 
-  const handleCopyToClipboard = () => {
+  const handleCopyToClipboard = (): void => {
     if (scannedData) {
       Clipboard.setString(scannedData);
       showToast({title: 'Copied to clipboard', type: 'success'});
     }
   };
 
-  if (!permission) {
+  // Web-specific camera handling
+  const startWebCamera = async (): Promise<void> => {
+    try {
+      if (!webPermissionGranted) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {facingMode: 'environment'},
+        });
+        setWebStream(stream);
+        setWebPermissionGranted(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      showToast({title: 'Error accessing camera', type: 'error'});
+    }
+  };
+
+  const scanQRCode = (): void => {
+    if (!scanningRef.current || !canvasRef.current || !videoRef.current) return;
+
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext('2d');
+
+    if (context && video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        handleScannedCode({
+          data: code.data,
+          type: 'qr',
+          bounds: {
+            origin: {
+              x: code.location.topLeftCorner.x,
+              y: code.location.topLeftCorner.y,
+            },
+            size: {
+              width: code.location.bottomRightCorner.x - code.location.topLeftCorner.x,
+              height: code.location.bottomRightCorner.y - code.location.topLeftCorner.y,
+            },
+          },
+          cornerPoints: [],
+        });
+      }
+    }
+
+    if (scanningRef.current) {
+      requestAnimationFrame(scanQRCode);
+    }
+  };
+
+  const startScanning = () => {
+    scanningRef.current = true;
+    scanQRCode();
+  };
+
+  const stopScanning = () => {
+    scanningRef.current = false;
+  };
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      startWebCamera();
+    }
+    return () => {
+      cleanup();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && videoRef.current && webStream) {
+      videoRef.current.onloadedmetadata = () => {
+        if (videoRef.current) {
+          videoRef.current.play();
+          startScanning();
+        }
+      };
+    }
+  }, [webStream]);
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setScanned(false);
+    setScannedData(null);
+    cleanup();
+    onClose();
+  };
+
+  const handleScannerClose = () => {
+    cleanup();
+    onClose();
+  };
+
+  if (!permission && Platform.OS !== 'web') {
     return (
       <Modal animationType="fade" transparent={true} visible={true}>
         <View style={styles.grantPermissionMainContainer}>
@@ -78,7 +209,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     );
   }
 
-  if (!permission.granted) {
+  if (!permission?.granted && Platform.OS !== 'web') {
     return (
       <Modal animationType="fade" transparent={true} visible={true}>
         <View style={styles.grantPermissionMainContainer}>
@@ -108,6 +239,32 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     );
   }
 
+  const renderCamera = () => {
+    if (Platform.OS === 'web') {
+      return (
+        <>
+          <video
+            ref={videoRef as React.RefObject<HTMLVideoElement>}
+            style={styles.camera}
+            playsInline
+          />
+          <canvas ref={canvasRef} style={{display: 'none'}} />
+        </>
+      );
+    }
+
+    return (
+      <CameraView
+        style={styles.camera}
+        onBarcodeScanned={scanned ? undefined : handleScannedCode}
+        barcodeScannerSettings={{
+          barcodeTypes: ['qr'],
+        }}
+        mirror
+      />
+    );
+  };
+
   return (
     <View style={styles.container}>
       {!scanned ? (
@@ -115,17 +272,8 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
           <View style={styles.header}>
             <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
           </View>
-          <View style={styles.cameraContainer}>
-            <CameraView
-              style={styles.camera}
-              onBarcodeScanned={(scanningResult) => handleScannedCode(scanningResult)}
-              barcodeScannerSettings={{
-                barcodeTypes: ['qr'],
-              }}
-              mirror
-            />
-          </View>
-          <TouchableOpacity onPress={onClose}>
+          <View style={styles.cameraContainer}>{renderCamera()}</View>
+          <TouchableOpacity onPress={handleScannerClose}>
             <Text style={styles.cancelText}>Close Scanner</Text>
           </TouchableOpacity>
         </>
@@ -134,7 +282,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
         visible={modalVisible}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -143,7 +291,12 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               <Input
                 autoFocus={false}
                 value={scannedData}
-                style={{height: 45, marginHorizontal: 20}}
+                style={{
+                  height: 45,
+                  marginHorizontal: 20,
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.text,
+                }}
                 editable={false}
                 right={
                   <TouchableOpacity
@@ -164,11 +317,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               <Button
                 style={[styles.scannedModalActionButton, styles.scannedModalCancelButton]}
                 textStyle={styles.scannedModalCancelButtonText}
-                onPress={() => {
-                  setModalVisible(false);
-                  setScanned(false);
-                  setScannedData(null);
-                }}
+                onPress={handleModalClose}
               >
                 Cancel
               </Button>

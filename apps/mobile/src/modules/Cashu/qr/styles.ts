@@ -109,6 +109,7 @@ export default ThemedStyleSheet((theme) => ({
     marginVertical: 20,
     fontWeight: 'bold',
     paddingHorizontal: 20,
+    color: theme.colors.text,
   },
   cancelText: {
     color: 'red',
@@ -124,7 +125,7 @@ export default ThemedStyleSheet((theme) => ({
   modalContent: {
     width: '80%',
     maxWidth: 400,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -133,6 +134,7 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 30,
     marginBottom: 20,
     paddingHorizontal: 20,
+    color: theme.colors.text,
   },
   scannedModalButtonsContainer: {
     display: 'flex',
