@@ -19,6 +19,8 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'white',
   },
 });
 

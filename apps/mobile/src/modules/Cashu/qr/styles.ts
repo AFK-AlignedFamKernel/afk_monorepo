@@ -73,6 +73,7 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     padding: 20,
     backgroundColor: theme.colors.surface,
+    position: 'relative',
   },
   header: {
     width: '100%',
@@ -83,6 +84,17 @@ export default ThemedStyleSheet((theme) => ({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  waitingText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    textAlign: 'center',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 200000,
   },
   cameraContainer: {
     width: width * 0.8,
@@ -97,6 +109,10 @@ export default ThemedStyleSheet((theme) => ({
   camera: {
     flex: 1,
   },
+  cameraWeb: {
+    maxWidth: width * 0.8,
+    borderRadius: 20,
+  },
   resultContainer: {
     padding: 10,
     backgroundColor: '#fff',
@@ -109,6 +125,7 @@ export default ThemedStyleSheet((theme) => ({
     marginVertical: 20,
     fontWeight: 'bold',
     paddingHorizontal: 20,
+    color: theme.colors.text,
   },
   cancelText: {
     color: 'red',
@@ -124,7 +141,7 @@ export default ThemedStyleSheet((theme) => ({
   modalContent: {
     width: '80%',
     maxWidth: 400,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -133,6 +150,7 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 30,
     marginBottom: 20,
     paddingHorizontal: 20,
+    color: theme.colors.text,
   },
   scannedModalButtonsContainer: {
     display: 'flex',
