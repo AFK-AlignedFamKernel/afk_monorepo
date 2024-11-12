@@ -96,6 +96,7 @@
     "formik": "^2.4.6",
     "get-starknet-core": "^3.3.0",
     "install": "^0.13.0",
+    "jsqr": "^1.4.0",
     "memoize-one": "^6.0.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "npx": "^10.2.2",
