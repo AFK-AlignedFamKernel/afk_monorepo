@@ -150,11 +150,11 @@ pub mod Memecoin {
         symbol: felt252,
         initial_supply: u256,
         recipient: ContractAddress,
-        // decimals: u8,
+        decimals: u8,
     ) {
         self.name.write(name);
         self.symbol.write(symbol);
-        // self.decimals.write(decimals);
+        self.decimals.write(decimals);
         assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
         self.total_supply.write(initial_supply);
         self.balances.entry(recipient).write(initial_supply);

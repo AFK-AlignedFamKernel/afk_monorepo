@@ -247,9 +247,9 @@ pub mod LaunchpadMarketplace {
         src5: SRC5Component::Storage,
         //Factory
         factory_address: ContractAddress,
-        ekubo_registry: ITokenRegistryDispatcher,
-        core: ICoreDispatcher,
-        positions: IPositionsDispatcher,
+        ekubo_registry: ContractAddress,
+        core: ContractAddress,
+        positions: ContractAddress,
     }
 
     #[event]
@@ -284,9 +284,9 @@ pub mod LaunchpadMarketplace {
         threshold_liquidity: u256,
         threshold_market_cap: u256,
         factory_address: ContractAddress,
-        ekubo_registry: ITokenRegistryDispatcher,
-        core: ICoreDispatcher,
-        positions: IPositionsDispatcher,
+        ekubo_registry: ContractAddress,
+        core: ContractAddress,
+        positions: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
@@ -458,6 +458,7 @@ pub mod LaunchpadMarketplace {
             token_address
         }
 
+        // recipient, caller, symbol, name, initial_supply, contract_address_salt
         // Creat coin and launch
         fn create_and_launch_token(
             ref self: ContractState,
@@ -1049,107 +1050,8 @@ pub mod LaunchpadMarketplace {
     impl LockerImpl of ILocker<ContractState> {
         /// Callback function called by the core contract.
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-            let core = self.core.read();
-
-            match consume_callback_data::<CallbackData>(core, data) {
-                CallbackData::LaunchCallback(params) => {
-                    let launch_params: EkuboLaunchParameters = params.params;
-                    let (token0, token1) = sort_tokens(
-                        launch_params.token_address, launch_params.quote_address
-                    );
-                    let pool_key = PoolKey {
-                        token0: token0,
-                        token1: token1,
-                        fee: launch_params.pool_params.fee,
-                        tick_spacing: launch_params.pool_params.tick_spacing,
-                        extension: 0.try_into().unwrap(),
-                    };
-
-                    // The initial_tick must correspond to the wanted initial price in quote/MEME
-                    // The ekubo prices are always in TOKEN1/TOKEN0.
-                    // The initial_tick is the lower bound if the quote is token1, the upper bound
-                    // otherwise.
-                    let is_token1_quote = launch_params.quote_address == token1;
-                    let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
-                        launch_params.pool_params.starting_price,
-                        launch_params.pool_params.bound,
-                        is_token1_quote
-                    );
-
-                    // Initialize the pool at the initial tick.
-                    core.maybe_initialize_pool(:pool_key, :initial_tick);
-
-                    // // 1. Provide liq that must be put in the pool by the creator, equal
-                    // // to the percentage of the total supply allocated to the team,
-                    // // only at the starting_price price.
-                    // let launched_token = IUnruggableMemecoinDispatcher {
-                    //     contract_address: launch_params.token_address
-                    // };
-                    // let this = get_contract_address();
-                    // let liquidity_for_team = launched_token.balanceOf(this)
-                    //     - launch_params.lp_supply;
-                    // let single_tick_bound = get_next_tick_bounds(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.tick_spacing,
-                    //     is_token1_quote
-                    // );
-                    // self
-                    //     .supply_liquidity(
-                    //         pool_key,
-                    //         launch_params.token_address,
-                    //         liquidity_for_team,
-                    //         single_tick_bound
-                    //     );
-
-                    // let ekubo_router = self.router.read();
-                    // let market_depth = ekubo_router
-                    //     .get_market_depth(pool_key, 985392111309755760868507187842908160);
-
-                    // 2. Provide the liquidity to actually initialize the public pool with
-                    // The pool bounds must be set according to the tick spacing.
-                    // The bounds were previously computed to provide yield covering the entire
-                    // interval [lower_bound, starting_price]  or [starting_price, upper_bound]
-                    // depending on the quote.
-                    let id = self
-                        .supply_liquidity(
-                            pool_key,
-                            launch_params.token_address,
-                            launch_params.lp_supply,
-                            full_range_bounds
-                        );
-
-                    // At this point, the pool is composed by:
-                    // n% of liquidity at precise starting tick, reserved for the team to buy
-                    // the rest of the liquidity, in bounds [starting_price, +inf];
-
-                    let mut return_data: Array<felt252> = Default::default();
-                    Serde::serialize(@id, ref return_data);
-                    Serde::serialize(
-                        @EkuboLP {
-                            owner: launch_params.owner,
-                            quote_address: launch_params.quote_address,
-                            pool_key,
-                            bounds: full_range_bounds
-                        },
-                        ref return_data
-                    );
-                    return_data.span()
-                }
-            }
-        }
-
-        fn add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
-        ) -> (u64, EkuboLP) {
-            self._add_liquidity_ekubo(coin_address, params)
-        }
-    }
-
-    #[external(v0)]
-    impl LockerImpl of ILocker<ContractState> {
-        /// Callback function called by the core contract.
-        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-            let core = self.core.read();
+            let core_address = self.core.read();
+            let core =  ICoreDispatcher { contract_address: core_address };
 
             match consume_callback_data::<CallbackData>(core, data) {
                 CallbackData::LaunchCallback(params) => {
@@ -1534,25 +1436,26 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
             // Register the token in Ekubo Registry
-            let registry = self.ekubo_registry.read();
+            let registry_address = self.ekubo_registry.read();
+            let registry = ITokenRegistryDispatcher { contract_address: registry_address};
             let base_token = EKIERC20Dispatcher { contract_address: params.token_address };
 
             //TODO token decimal, amount of 1 token?
             base_token.transfer(registry.contract_address, 1000000000000000000);
             registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
 
-            let launch = self.launched_coins.read(coin_address);
+            let core = ICoreDispatcher { contract_address: self.core.read()};
 
             // Call the core with a callback to deposit and mint the LP tokens.
             let (id, position) = call_core_with_callback::<
                 CallbackData, (u64, EkuboLP)
-            >(self.core.read(), @CallbackData::LaunchCallback(LaunchCallback { params }));
+            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
             // Clear remaining balances. This is done _after_ the callback by core,
             // otherwise the caller in the context would be the core.
             let caller = get_caller_address();
             let ekubo_clear = IClearDispatcher {
-                contract_address: self.positions.read().contract_address
+                contract_address: self.positions.read()
             };
             ekubo_clear
                 .clear_minimum_to_recipient(
@@ -1856,7 +1759,8 @@ pub mod LaunchpadMarketplace {
             amount: u256,
             bounds: Bounds
         ) -> u64 {
-            let positions = self.positions.read();
+            let positions_address = self.positions.read();
+            let positions =  IPositionsDispatcher { contract_address: positions_address };
             // The token must be transferred to the positions contract before calling mint.
             IERC20Dispatcher { contract_address: token }
                 .transfer(recipient: positions.contract_address, :amount);
