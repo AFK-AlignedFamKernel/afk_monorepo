@@ -320,7 +320,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               />
             ) : null}
             <Text style={styles.modalText}>
-              {scannedData?.startsWith('lnbc') ? 'Pay this invoice?' : 'Receive this eCash?'}
+              {scannedData?.toLowerCase().startsWith('lnbc')
+                ? 'Pay this invoice?'
+                : 'Receive this eCash?'}
             </Text>
             <View style={styles.scannedModalButtonsContainer}>
               <Button
@@ -333,9 +335,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               <Button
                 style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
                 textStyle={styles.scannedModalOKButtonText}
-                onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}
+                onPress={scannedData?.toLowerCase().startsWith('lnbc') ? handlePay : handleReceive}
               >
-                {scannedData?.startsWith('lnbc') ? 'Pay' : 'Receive'}
+                {scannedData?.toLowerCase().startsWith('lnbc') ? 'Pay' : 'Receive'}
               </Button>
             </View>
           </View>

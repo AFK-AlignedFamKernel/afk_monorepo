@@ -203,13 +203,13 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
       case 'lightning':
         return (
           <>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
-            >
-              <CloseIcon width={30} height={30} color={theme.colors.primary} />
-            </TouchableOpacity>
             <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Create Invoice</Text>
               <>
                 <TextInput
@@ -258,13 +258,13 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
       case 'ecash':
         return (
           <>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
-            >
-              <CloseIcon width={30} height={30} color={theme.colors.primary} />
-            </TouchableOpacity>
             <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Receive Ecash</Text>
               <>
                 <TextInput
@@ -273,10 +273,12 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                   onChangeText={setEcash}
                   style={styles.input}
                 />
-                <TouchableOpacity style={styles.button} onPress={handlePaste}>
-                  <Text style={styles.buttonText}>PASTE</Text>
-                </TouchableOpacity>
-                <View>
+                <View
+                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                >
+                  <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
+                    <Text style={styles.pasteButtonText}>PASTE</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity onPress={handleQRCodeClick} style={styles.qrButton}>
                     <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
                   </TouchableOpacity>

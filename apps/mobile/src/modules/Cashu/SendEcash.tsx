@@ -7,16 +7,17 @@ import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import React, {ChangeEvent, useEffect, useState} from 'react';
-import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CloseIcon, CopyIconStack} from '../../assets/icons';
+import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
 import {useCashuContext} from '../../providers/CashuProvider';
 import {UnitInfo} from './MintListCashu';
+import ScanCashuQRCode from './qr/ScanCode';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
@@ -198,6 +199,27 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     if (newSelectedMint) setSelectedMint(newSelectedMint);
   };
 
+  const handlePaste = async () => {
+    try {
+      const text = await Clipboard.getStringAsync();
+      if (text) {
+        setInvoice(text);
+      }
+    } catch (error) {
+      console.error('Failed to paste content:', error);
+    }
+  };
+
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+
+  const handleQRCodeClick = () => {
+    setIsScannerVisible(true);
+  };
+
+  const handleCloseScanner = () => {
+    setIsScannerVisible(false);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'none':
@@ -222,13 +244,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
       case 'lightning':
         return (
           <>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
-            >
-              <CloseIcon width={30} height={30} color={theme.colors.primary} />
-            </TouchableOpacity>
             <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
               <>
                 <TextInput
@@ -237,6 +259,16 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   onChangeText={setInvoice}
                   style={styles.input}
                 />
+                <View
+                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                >
+                  <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
+                    <Text style={styles.pasteButtonText}>PASTE</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleQRCodeClick} style={styles.qrButton}>
+                    <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
+                  </TouchableOpacity>
+                </View>
 
                 <Button
                   onPress={() => handlePayInvoice(invoice)}
@@ -247,18 +279,21 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                 </Button>
               </>
             </View>
+            <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
+              <ScanCashuQRCode onClose={handleCloseScanner} />
+            </Modal>
           </>
         );
       case 'ecash':
         return (
           <>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
-            >
-              <CloseIcon width={30} height={30} color={theme.colors.primary} />
-            </TouchableOpacity>
             <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
               <>
                 <Text style={styles.modalTabLabel}>Select Mint</Text>
@@ -351,13 +386,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
       case 'contact':
         return (
           <>
-            <TouchableOpacity
-              onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
-            >
-              <CloseIcon width={30} height={30} color={theme.colors.primary} />
-            </TouchableOpacity>
             <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Send Contact</Text>
               <SendNostrContact />
             </View>
