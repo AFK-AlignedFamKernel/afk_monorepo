@@ -60,40 +60,29 @@ pub struct Token {
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
+    pub is_unruggable:bool,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct TokenLaunch {
-    pub owner: ContractAddress,
+    pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
+    pub creator: ContractAddress,
     pub token_address: ContractAddress,
-    pub initial_key_price: u256,
-    pub price: u256,
-    pub available_supply: u256,
-    pub initial_pool_supply: u256,
-    pub total_supply: u256,
+    pub price: u256, // Last price of the token. In TODO
+    pub available_supply: u256, // Available to buy
+    pub initial_pool_supply: u256, // Liquidity token to add in the DEX
+    pub initial_available_supply: u256, // Init available to buy
+    pub total_supply: u256, // Total supply to buy
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyCoin,
-    pub liquidity_raised: u256,
-    pub token_holded: u256,
-    pub is_liquidity_launch: bool,
+    pub token_quote: TokenQuoteBuyCoin, // Token launched
+    pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
+    pub total_token_holded: u256, // Number of token holded and buy
+    pub is_liquidity_launch: bool, // Liquidity launch through Ekubo or Unrug
     pub slope: u256,
-    pub threshold_liquidity: u256,
+    pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
-}
-
-#[derive(Drop, Serde, Copy, starknet::Store)]
-pub struct TokenLaunchFair {
-    // pub struct Keys<C> {
-    pub owner: ContractAddress,
-    pub token_address: ContractAddress,
-    pub price: u256,
     pub initial_key_price: u256,
-    pub total_supply: u256,
-    pub bonding_curve_type: Option<BondingType>,
-    pub created_at: u64,
-    pub token_quote: TokenQuoteBuyCoin,
-    pub final_time: u64,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]
@@ -111,7 +100,22 @@ pub struct SharesTokenUser {
 pub struct MetadataLaunch {
     pub token_address: ContractAddress,
     pub url: ByteArray,
+    // pub ipfs_hash: ByteArray,
     pub nostr_event_id: u256,
+}
+
+#[derive(Drop, Serde, Copy, starknet::Store)]
+pub struct TokenLaunchFair {
+    // pub struct Keys<C> {
+    pub owner: ContractAddress,
+    pub token_address: ContractAddress,
+    pub price: u256,
+    pub initial_key_price: u256,
+    pub total_supply: u256,
+    pub bonding_curve_type: Option<BondingType>,
+    pub created_at: u64,
+    pub token_quote: TokenQuoteBuyCoin,
+    pub final_time: u64,
 }
 
 

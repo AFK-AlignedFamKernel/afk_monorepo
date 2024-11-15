@@ -1,5 +1,5 @@
 import { Block, hash, shortString, Pool } from "./deps.ts";
-import { FACTORY_ADDRESS, STARTING_BLOCK } from "./constants.ts";
+import { FACTORY_ADDRESS, STARTING_BLOCK, UNRUGGABLE_FACTORY_ADDRESS } from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -19,7 +19,7 @@ const filter = {
   },
   events: [
     {
-      fromAddress: FACTORY_ADDRESS,
+      fromAddress: UNRUGGABLE_FACTORY_ADDRESS,
       keys: [hash.getSelectorFromName("MemecoinLaunched")],
       includeReceipt: false,
     },

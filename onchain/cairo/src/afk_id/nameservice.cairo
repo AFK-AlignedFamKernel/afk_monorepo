@@ -7,7 +7,6 @@ pub mod UserNameClaimErrors {
     pub const INVALID_PRICE: felt252 = 'Invalid price setting';
     pub const INVALID_USERNAME: felt252 = 'Invalid username format';
     pub const INVALID_DOMAIN_SUFFIX: felt252 = 'Domain must end with .afk';
-
 }
 
 const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
@@ -17,20 +16,20 @@ const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 pub mod Nameservice {
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::username_store::IUsernameStore;
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
 
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
+    use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin_introspection::src5::SRC5Component;
+    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
     use starknet::{
         ContractAddress, contract_address_const, get_caller_address, get_block_timestamp,
         get_contract_address, ClassHash
     };
-    use super::UserNameClaimErrors;
     use super::ADMIN_ROLE;
+    use super::UserNameClaimErrors;
 
     const YEAR_IN_SECONDS: u64 = 31536000_u64; // 365 days in seconds
 
@@ -51,7 +50,8 @@ pub mod Nameservice {
 
     // AccessControl
     #[abi(embed_v0)]
-    impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
 
     // SRC5
@@ -64,7 +64,7 @@ pub mod Nameservice {
     // #[abi(embed_v0)]
     // impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
     // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
-    
+
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
@@ -82,7 +82,7 @@ pub mod Nameservice {
         #[substorage(v0)]
         src5: SRC5Component::Storage
         // #[substorage(v0)]
-        // erc20: ERC20Component::Storage
+    // erc20: ERC20Component::Storage
 
     }
 
@@ -135,10 +135,7 @@ pub mod Nameservice {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState,
-        owner: ContractAddress,
-        admin: ContractAddress
-    ) {
+    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress) {
         self.ownable.initializer(owner);
 
         self.accesscontrol.initializer();
@@ -259,13 +256,13 @@ pub mod Nameservice {
     fn update_subscription_price(ref self: ContractState, new_price: u256) {
         self.accesscontrol.assert_only_role(ADMIN_ROLE);
         assert(new_price > 0, UserNameClaimErrors::INVALID_PRICE);
-    
+
         let old_price = self.subscription_price.read();
         self.subscription_price.write(new_price);
-    
+
         self.emit(PriceUpdated { old_price, new_price });
     }
-    
+
     #[external(v0)]
     fn set_token_quote(ref self: ContractState, token_quote: ContractAddress) {
         self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -282,8 +279,8 @@ pub mod Nameservice {
     fn get_is_payment_enabled(self: @ContractState) -> bool {
         self.is_payment_enabled.read()
     }
-    
-    
+
+
     //Internal function to check the maximum of two
     #[generate_trait]
     fn max(a: u64, b: u64) -> u64 {
