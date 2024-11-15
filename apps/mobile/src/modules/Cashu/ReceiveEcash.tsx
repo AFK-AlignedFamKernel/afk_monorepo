@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
-import {addProofs, ICashuInvoice, useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {addProofs, ICashuInvoice, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {ChangeEvent, useState} from 'react';
 import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
@@ -11,6 +11,7 @@ import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
+import {useCashuContext} from '../../providers/CashuProvider';
 import {SelectedTab} from '../../types/tab';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import GenerateQRCode from './qr/GenerateQRCode'; // Import the QR code component
@@ -43,7 +44,8 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
     mintTokens,
     mintUrls,
     activeMintIndex,
-  } = useCashu();
+    activeCurrency,
+  } = useCashuContext();
   const [ecash, setEcash] = useState<string | undefined>();
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
 
@@ -106,6 +108,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
         amount: Number(invoiceAmount),
         mint: mintUrl,
         quoteResponse: quote?.request,
+        unit: activeCurrency,
       };
 
       if (invoicesLocal) {

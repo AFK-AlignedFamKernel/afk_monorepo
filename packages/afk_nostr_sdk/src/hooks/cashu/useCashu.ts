@@ -17,7 +17,7 @@ import {
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
-import {getProofs as getProofsLocal} from 'afk_nostr_sdk';
+import {getTransactions, ICashuInvoice} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -77,7 +77,7 @@ export interface ICashu {
   getKeySets: () => Promise<MintAllKeysets>;
   getUnits: (pMint: MintData) => Promise<string[]>;
   getUnitKeysets: (unit: string, pMint: MintData) => Promise<MintKeyset[]>;
-  getUnitProofs: (unit: string, pMint: MintData) => Promise<Proof[]>;
+  getUnitProofs: (unit: string, pMint: MintData) => Promise<ICashuInvoice[]>;
   getUnitBalance: (unit: string, pMint: MintData) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
@@ -242,18 +242,16 @@ export const useCashu = (): ICashu => {
     const currentMint = new CashuMint(pMint.url);
     let unitKeysets: MintKeyset[];
     await currentMint?.getKeySets().then(({keysets}) => {
-      unitKeysets = keysets.filter((k) => k.unit === unit);
+      unitKeysets = keysets.filter((k) => k.unit === unit && k.active);
     });
     return unitKeysets;
   };
-  const getUnitProofs = async (unit: string, pMint: MintData): Promise<Proof[]> => {
-    let unitProofs: Proof[] = [];
-    const proofsLocal = getProofsLocal();
+  const getUnitProofs = async (unit: string, pMint: MintData): Promise<ICashuInvoice[]> => {
+    let unitProofs: ICashuInvoice[] = [];
+    const proofsLocal = getTransactions();
     if (proofsLocal) {
-      const proofs: Proof[] = JSON.parse(proofsLocal);
-      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
-        unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
-      });
+      const proofs: ICashuInvoice[] = JSON.parse(proofsLocal);
+      unitProofs = proofs.filter((p) => p.unit === unit && p.mint === pMint.url);
     }
     return unitProofs;
   };
