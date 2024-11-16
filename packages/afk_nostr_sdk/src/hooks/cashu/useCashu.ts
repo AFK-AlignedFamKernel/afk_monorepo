@@ -17,7 +17,7 @@ import {
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
-import {getTransactions, ICashuInvoice} from 'afk_nostr_sdk';
+import {getProofs as getProofsLocal} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -77,7 +77,7 @@ export interface ICashu {
   getKeySets: () => Promise<MintAllKeysets>;
   getUnits: (pMint: MintData) => Promise<string[]>;
   getUnitKeysets: (unit: string, pMint: MintData) => Promise<MintKeyset[]>;
-  getUnitProofs: (unit: string, pMint: MintData) => Promise<ICashuInvoice[]>;
+  getUnitProofs: (unit: string, pMint: MintData) => Promise<Proof[]>;
   getUnitBalance: (unit: string, pMint: MintData) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
@@ -113,6 +113,8 @@ export interface ICashu {
   mintProps: CashuMint;
   activeCurrency: string;
   setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
+  proofs: Proof[];
+  setProofs: React.Dispatch<React.SetStateAction<Proof[]>>;
 }
 
 export const useCashu = (): ICashu => {
@@ -246,12 +248,14 @@ export const useCashu = (): ICashu => {
     });
     return unitKeysets;
   };
-  const getUnitProofs = async (unit: string, pMint: MintData): Promise<ICashuInvoice[]> => {
-    let unitProofs: ICashuInvoice[] = [];
-    const proofsLocal = getTransactions();
+  const getUnitProofs = async (unit: string, pMint: MintData): Promise<Proof[]> => {
+    let unitProofs: Proof[] = [];
+    const proofsLocal = getProofsLocal();
     if (proofsLocal) {
-      const proofs: ICashuInvoice[] = JSON.parse(proofsLocal);
-      unitProofs = proofs.filter((p) => p.unit === unit && p.mint === pMint.url);
+      const proofs: Proof[] = JSON.parse(proofsLocal);
+      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
+        unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+      });
     }
     return unitProofs;
   };
@@ -516,5 +520,7 @@ export const useCashu = (): ICashu => {
     mintProps,
     activeCurrency,
     setActiveCurrency,
+    proofs,
+    setProofs,
   };
 };

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {getEncodedToken, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
 import {
   getProofs,
   ICashuInvoice,
@@ -29,24 +29,10 @@ import stylesheet from './styles';
 export const InvoicesListCashu = () => {
   const styles = useStyles(stylesheet);
 
-  const {
-    wallet,
-    connectCashMint,
-    connectCashWallet,
-    requestMintQuote,
-    generateMnemonic,
-    derivedSeedFromMnenomicAndSaved,
-    getKeySets,
-    getKeys,
-    checkMeltQuote,
-    checkMintQuote,
-    checkProofSpent,
-    receiveP2PK,
-    mintTokens,
-    mint,
-  } = useCashuContext()!;
+  const {checkMintQuote, receiveP2PK, mintTokens, mint, activeCurrency, setProofs} =
+    useCashuContext()!;
 
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
+  const {isSeedCashuStorage} = useCashuStore();
   const [invoices, setInvoices] = useState<ICashuInvoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
@@ -70,25 +56,7 @@ export const InvoicesListCashu = () => {
         if (isSeedCashuStorage) setHasSeedCashu(true);
       }
     })();
-
-    (async () => {
-      // const keysSet = await getKeySets()
-      // const keys = await getKeys()
-      // console.log("keysSet", keysSet)
-      // console.log("keys", keys)
-      // const mintBalances = await ndkCashuWallet?.mintBalances;
-      // console.log("mintBalances", mintBalances)
-      // const availableTokens = await ndkCashuWallet?.availableTokens;
-      // console.log("availableTokens", availableTokens)
-      // const wallets = await ndkWallet?.wallets;
-      // console.log("wallets", wallets)
-      // const balance = await ndkCashuWallet?.balance;
-      // console.log("balance", balance)
-      // if (mint) {
-      //   const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-      //   console.log("mintBalance", mintBalance)
-      // }
-    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
@@ -146,11 +114,8 @@ export const InvoicesListCashu = () => {
 
   const handleVerify = async (quote?: string) => {
     try {
-      console.log('handleVerify');
       if (!quote) return;
-      console.log('quote', quote);
       const check = await checkMintQuote(quote);
-      console.log('check', check);
       if (check?.state === MintQuoteState.UNPAID) {
         showToast({title: 'Unpaid', type: 'success'});
       } else if (check?.state === MintQuoteState.PAID) {
@@ -161,7 +126,6 @@ export const InvoicesListCashu = () => {
           invoices?.map((i) => {
             if (i?.quote === quote) {
               i.state = MintQuoteState.PAID;
-
               return i;
             }
             return i;
@@ -171,10 +135,7 @@ export const InvoicesListCashu = () => {
         storeTransactions(invoicesUpdated);
 
         if (invoice && invoice?.quote) {
-          console.log('invoice', invoice);
-
           const received = await handleReceivePaymentPaid(invoice);
-          console.log('received', received);
 
           if (received) {
             showToast({title: 'Payment received', type: 'success'});
@@ -182,7 +143,6 @@ export const InvoicesListCashu = () => {
         }
       } else if (check?.state === MintQuoteState.ISSUED) {
         showToast({title: 'Invoice is paid', type: 'success'});
-        const invoice = invoices?.find((i) => i?.quote == quote);
         const invoicesUpdated =
           invoices?.map((i) => {
             if (i?.quote === quote) {
@@ -193,12 +153,6 @@ export const InvoicesListCashu = () => {
           }) ?? [];
         storeInvoices(invoicesUpdated);
         storeTransactions(invoicesUpdated);
-        if (invoice && invoice?.quote) {
-          const received = await handleReceivePaymentPaid(invoice);
-          if (received) {
-            showToast({title: 'Received', type: 'success'});
-          }
-        }
       }
     } catch (e) {
       console.log('handleVerify', e);
@@ -212,26 +166,33 @@ export const InvoicesListCashu = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
-        console.log('receive', receive);
+        // let encoded: string;
+        // const token = {
+        //   token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
+        //   unit: activeCurrency,
+        // } as Token;
+        // try {
+        //   encoded = getEncodedTokenV4(token);
+        // } catch (error) {
+        //   encoded = getEncodedToken(token);
+        // }
 
-        const encoded = getEncodedToken({
-          token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
-        });
         // const response = await wallet?.receive(encoded);
-        const response = await receiveP2PK(encoded);
-        console.log('response', response);
+        // const response = await receiveP2PK(encoded);
+        // console.log('response', response);
         const proofsLocal = await getProofs();
         if (!proofsLocal) {
-          setInvoices(invoices);
-          await storeProofs([...(receive?.proofs as Proof[]), ...(response as Proof[])]);
-          return response;
+          storeProofs([...(receive?.proofs as Proof[])]);
+          setProofs([...(receive?.proofs as Proof[])]);
+          return '';
         } else {
           const proofs: Proof[] = JSON.parse(proofsLocal);
           console.log('invoices', invoices);
           setInvoices(invoices);
           console.log('receive', receive);
-          await storeProofs([...proofs, ...(receive?.proofs as Proof[]), ...(response as Proof[])]);
-          return response;
+          storeProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          setProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          return '';
         }
       }
 

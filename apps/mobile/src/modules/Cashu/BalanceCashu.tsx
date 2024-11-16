@@ -31,6 +31,7 @@ export const BalanceCashu = () => {
     getUnits,
     setActiveCurrency,
     getUnitBalance,
+    proofs,
   } = useCashuContext()!;
 
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
@@ -66,7 +67,8 @@ export const BalanceCashu = () => {
     })();
 
     getProofsWalletAndBalance();
-  }, [getProofsWalletAndBalance, isSeedCashuStorage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load units and their balances for each mint
   useEffect(() => {
@@ -98,7 +100,7 @@ export const BalanceCashu = () => {
     };
     fetchBalanceData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCurrency]);
+  }, [activeCurrency, proofs]);
 
   return (
     <View style={styles.balanceContainer}>
