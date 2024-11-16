@@ -118,7 +118,7 @@ pub fn get_current_price(key: @Keys, supply: u256, amount_to_buy: u256) -> u256 
 
 
 pub fn get_linear_price( // key: @Keys, 
-key: Keys, supply: u256, //  amount_to_buy: u256
+    key: Keys, supply: u256, //  amount_to_buy: u256
 ) -> u256 {
     let step_increase_linear = key.token_quote.step_increase_linear.clone();
     let initial_key_price = key.token_quote.initial_key_price.clone();
