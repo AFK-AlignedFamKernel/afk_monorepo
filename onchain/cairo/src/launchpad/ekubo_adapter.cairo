@@ -1,3 +1,10 @@
+use afk::errors;
+use afk::exchanges::ekubo::launcher::{
+    IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
+};
+use afk::interface::memecoin::{IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait,};
+use afk::utils::math::PercentageMath;
+use afk::utils::sort_tokens;
 use array::ArrayTrait;
 use core::option::OptionTrait;
 use core::traits::TryInto;
@@ -13,15 +20,6 @@ use openzeppelin::token::erc20::interface::{
     IERC20, IERC20Metadata, ERC20ABIDispatcher, ERC20ABIDispatcherTrait
 };
 use starknet::{get_contract_address, ContractAddress, ClassHash};
-use afk::errors;
-use afk::exchanges::ekubo::launcher::{
-    IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
-};
-use afk::interface::memecoin::{
-    IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait,
-};
-use afk::utils::math::PercentageMath;
-use afk::utils::sort_tokens;
 
 
 #[derive(Copy, Drop, Serde)]
@@ -37,7 +35,8 @@ struct EkuboLaunchParameters {
 struct EkuboPoolParameters {
     fee: u128,
     tick_spacing: u128,
-    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true) otherwise
+    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true)
+    // otherwise
     starting_price: i129,
     // The LP providing bound, upper/lower determined by the address of the LPed tokens
     bound: u128,
@@ -69,7 +68,8 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         assert(ekubo_launchpad.contract_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
 
         // Transfer all tokens to the launchpad contract.
-        // The team will buyback the tokens from the pool after the LPing operation to earn their initial allocation.
+        // The team will buyback the tokens from the pool after the LPing operation to earn their
+        // initial allocation.
         let memecoin = IUnruggableMemecoinDispatcher { contract_address: token_address, };
         let this = get_contract_address();
         memecoin.transfer(ekubo_launchpad.contract_address, memecoin.balance_of(this));
@@ -78,7 +78,8 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         // for the team allocation and one on the range [initial_tick, inf] for the initial LP.
         let (id, position) = ekubo_launchpad.launch_token(ekubo_launch_params);
 
-        // Ensure that the LPing operation has not returned more than 0.5% of the provided liquidity to the caller.
+        // Ensure that the LPing operation has not returned more than 0.5% of the provided liquidity
+        // to the caller.
         // Otherwise, there was an error in the LP parameters.
         let total_supply = memecoin.total_supply();
         let max_returned_tokens = PercentageMath::percent_mul(total_supply, 50);
@@ -110,7 +111,8 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
 
 /// Buys tokens from a liquidity pool.
 ///
-/// It first determines the square root price limits for the swap based on whether the quote token is token1 or token0 in the pool.
+/// It first determines the square root price limits for the swap based on whether the quote token
+/// is token1 or token0 in the pool.
 /// It then creates a route node for the swap, transfers the quote tokens to the router contract,
 /// and calls the router's swap function with an exact output amount.
 /// Finally, it calls the clearer's clear function for both the token to buy and the quote token.

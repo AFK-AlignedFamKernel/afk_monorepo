@@ -60,7 +60,7 @@ pub struct Token {
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
-    pub is_unruggable:bool,
+    pub is_unruggable: bool,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]

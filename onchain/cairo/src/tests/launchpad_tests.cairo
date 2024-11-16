@@ -290,7 +290,7 @@ mod launchpad_tests {
         println!("test allowance meme coin{}", allowance);
         launchpad.sell_coin(token_address, amount_quote);
     }
-    
+
     fn run_calculation(
         launchpad: ILaunchpadMarketplaceDispatcher,
         amount_quote: u256,
@@ -512,8 +512,6 @@ mod launchpad_tests {
     // //     sender_address,
     // // );
     // }
-
-
 
     #[test]
     // #[fork("Mainnet")]
@@ -995,20 +993,19 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
-        .create_and_launch_token(
-            symbol: SYMBOL(),
-            name: NAME(),
-            initial_supply: DEFAULT_INITIAL_SUPPLY(),
-            contract_address_salt: SALT(),
-        );
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
         println!("token_address ekubo launch: {:?}", token_address);
 
         let launch = launchpad.get_coin_launch(token_address);
 
         let starting_price = i129 { sign: true, mag: 100_u128 };
 
-
-        let lp_meme_supply=launch.initial_available_supply - launch.available_supply;
+        let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         start_cheat_caller_address(memecoin.contract_address, OWNER());
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
@@ -1030,7 +1027,7 @@ mod launchpad_tests {
             }
         };
         start_cheat_caller_address(erc20.contract_address, OWNER());
-   
+
         // memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY());
         let erc20 = IERC20Dispatcher { contract_address: launch.token_address };
         // erc20.transfer(launchpad.contract_address, launch.liquidity_raised);
@@ -1038,7 +1035,7 @@ mod launchpad_tests {
         println!("buy threshold liquidity");
 
         run_buy_by_amount(launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),);
-        let balance_quote_launch=erc20.balance_of(launchpad.contract_address);
+        let balance_quote_launch = erc20.balance_of(launchpad.contract_address);
         println!("balance quote {:?}", balance_quote_launch);
 
         println!("add liquidity ekubo");
@@ -1061,7 +1058,7 @@ mod launchpad_tests {
                 symbol: SYMBOL(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT() + 1,
-                is_launch_bonding_now:true
+                is_launch_bonding_now: true
             );
         println!("token_address unrug: {:?}", token_address);
 
@@ -1098,7 +1095,9 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         println!("buy liquidity threshold unrug");
 
-        run_buy_by_amount(launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),);
+        run_buy_by_amount(
+            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
+        );
 
         println!("add liquidity unrug");
         let (id, position) = launchpad
@@ -1132,7 +1131,7 @@ mod launchpad_tests {
 
     }
 
-    
+
     #[test]
     #[should_panic(expected: ('Caller is missing role',))]
     fn test_set_token_with_non_admin() {
@@ -1384,127 +1383,125 @@ mod launchpad_tests {
 
         launchpad.sell_coin(erc20.contract_address, 50_u256);
     }
-
-    
     // #[test]
-    // #[fork("Mainnet")]
-    // fn launchpad_buy_all_few_steps() {
-    //     println!("launchpad_buy_all_few_steps");
-    //     let (sender_address, erc20, launchpad) = request_fixture();
-    //     start_cheat_caller_address_global(sender_address);
-    //     start_cheat_caller_address(erc20.contract_address, sender_address);
-    //     // Call a view function of the contract
-    //     // Check default token used
-    //     let default_token = launchpad.get_default_token();
-    //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-    //     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
-    //     start_cheat_caller_address(launchpad.contract_address, sender_address);
-    //     println!("create and launch token");
-    //     let token_address = launchpad
-    //         .create_and_launch_token(
-    //             // owner: OWNER(),
-    //             symbol: SYMBOL(),
-    //             name: NAME(),
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //         );
-    //     println!("test token_address {:?}", token_address);
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
+// #[fork("Mainnet")]
+// fn launchpad_buy_all_few_steps() {
+//     println!("launchpad_buy_all_few_steps");
+//     let (sender_address, erc20, launchpad) = request_fixture();
+//     start_cheat_caller_address_global(sender_address);
+//     start_cheat_caller_address(erc20.contract_address, sender_address);
+//     // Call a view function of the contract
+//     // Check default token used
+//     let default_token = launchpad.get_default_token();
+//     assert(default_token.token_address == erc20.contract_address, 'no default token');
+//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+//     start_cheat_caller_address(launchpad.contract_address, sender_address);
+//     println!("create and launch token");
+//     let token_address = launchpad
+//         .create_and_launch_token(
+//             // owner: OWNER(),
+//             symbol: SYMBOL(),
+//             name: NAME(),
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//         );
+//     println!("test token_address {:?}", token_address);
+//     let memecoin = IERC20Dispatcher { contract_address: token_address };
 
     //     //  All buy
-    //     let mut first_buy = 10_u256;
+//     let mut first_buy = 10_u256;
 
     //     run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
 
-    //     // run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
+    //     // run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address,
+//     sender_address,);
 
     //     run_buy_by_amount(
-    //         launchpad,
-    //         erc20,
-    //         memecoin,
-    //         THRESHOLD_LIQUIDITY - first_buy,
-    //         token_address,
-    //         sender_address,
-    //     );
-    // }
-
+//         launchpad,
+//         erc20,
+//         memecoin,
+//         THRESHOLD_LIQUIDITY - first_buy,
+//         token_address,
+//         sender_address,
+//     );
+// }
 
     // #[test]
-    // #[fork("Mainnet")]
-    // fn launchpad_buy_all() {
-    //     println!("launchpad_buy_all");
-    //     let (sender_address, erc20, launchpad) = request_fixture();
-    //     start_cheat_caller_address_global(sender_address);
-    //     start_cheat_caller_address(erc20.contract_address, sender_address);
-    //     // Call a view function of the contract
-    //     // Check default token used
-    //     let default_token = launchpad.get_default_token();
-    //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-    //     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
-    //     start_cheat_caller_address(launchpad.contract_address, sender_address);
-    //     println!("create and launch token");
-    //     let token_address = launchpad
-    //         .create_and_launch_token(
-    //             // owner: OWNER(),
-    //             symbol: SYMBOL(),
-    //             name: NAME(),
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //         );
-    //     println!("test token_address {:?}", token_address);
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
+// #[fork("Mainnet")]
+// fn launchpad_buy_all() {
+//     println!("launchpad_buy_all");
+//     let (sender_address, erc20, launchpad) = request_fixture();
+//     start_cheat_caller_address_global(sender_address);
+//     start_cheat_caller_address(erc20.contract_address, sender_address);
+//     // Call a view function of the contract
+//     // Check default token used
+//     let default_token = launchpad.get_default_token();
+//     assert(default_token.token_address == erc20.contract_address, 'no default token');
+//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+//     start_cheat_caller_address(launchpad.contract_address, sender_address);
+//     println!("create and launch token");
+//     let token_address = launchpad
+//         .create_and_launch_token(
+//             // owner: OWNER(),
+//             symbol: SYMBOL(),
+//             name: NAME(),
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//         );
+//     println!("test token_address {:?}", token_address);
+//     let memecoin = IERC20Dispatcher { contract_address: token_address };
 
     //     //  All buy
-    //     run_buy_by_amount(
-    //         launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
-    //     );
-    // }
+//     run_buy_by_amount(
+//         launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+//     );
+// }
 
     // #[test]
-    // #[fork("Mainnet")]
-    // fn launchpad_buy_and_sell() {
-    //     println!("launchpad_buy_and_sell");
-    //     let (sender_address, erc20, launchpad) = request_fixture();
-    //     // let amount_key_buy = 1_u256;
-    //     start_cheat_caller_address_global(sender_address);
-    //     start_cheat_caller_address(erc20.contract_address, sender_address);
-    //     // Call a view function of the contract
-    //     // Check default token used
-    //     let default_token = launchpad.get_default_token();
-    //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-    //     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+// #[fork("Mainnet")]
+// fn launchpad_buy_and_sell() {
+//     println!("launchpad_buy_and_sell");
+//     let (sender_address, erc20, launchpad) = request_fixture();
+//     // let amount_key_buy = 1_u256;
+//     start_cheat_caller_address_global(sender_address);
+//     start_cheat_caller_address(erc20.contract_address, sender_address);
+//     // Call a view function of the contract
+//     // Check default token used
+//     let default_token = launchpad.get_default_token();
+//     assert(default_token.token_address == erc20.contract_address, 'no default token');
+//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
 
     //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 
     //     println!("create and launch token");
-    //     let token_address = launchpad
-    //         .create_and_launch_token(
-    //             // owner: OWNER(),
-    //             symbol: SYMBOL(),
-    //             name: NAME(),
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //         );
-    //     println!("test token_address {:?}", token_address);
+//     let token_address = launchpad
+//         .create_and_launch_token(
+//             // owner: OWNER(),
+//             symbol: SYMBOL(),
+//             name: NAME(),
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//         );
+//     println!("test token_address {:?}", token_address);
 
     //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-    //     let amount_first_buy = 10_u256;
+//     let amount_first_buy = 10_u256;
 
     //     // //  First buy with 10 quote token
-    //     run_buy_by_amount(
-    //         launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
-    //     );
-    //     // let mut total_amount_buy = amount_first_buy;
+//     run_buy_by_amount(
+//         launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+//     );
+//     // let mut total_amount_buy = amount_first_buy;
 
     //     let new_amount = THRESHOLD_LIQUIDITY - amount_first_buy;
-    //     // //  First sell with 10 quote token
-    //     run_sell_by_amount(
-    //         launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
-    //     );
-    //     // //  Threshold buy - 1
-    // // run_buy_by_amount(
-    // //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
-    // // );
+//     // //  First sell with 10 quote token
+//     run_sell_by_amount(
+//         launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+//     );
+//     // //  Threshold buy - 1
+// // run_buy_by_amount(
+// //     launchpad, erc20, memecoin, new_amount, token_address, sender_address,
+// // );
 
     // }
 
