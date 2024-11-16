@@ -65,6 +65,10 @@ mod launchpad_tests {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }
 
+    fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
+        0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
+    }
+
     fn EKUBO_CORE() -> ContractAddress {
         0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
     }
@@ -161,7 +165,8 @@ mod launchpad_tests {
             FACTORY_ADDRESS(),
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
-            EKUBO_POSITIONS()
+            EKUBO_POSITIONS(),
+            EKUBO_EXCHANGE_ADDRESS()
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
         // IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
@@ -196,6 +201,7 @@ mod launchpad_tests {
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
+        ekubo_exchange_address: ContractAddress,
         // ekubo_registry: ITokenRegistryDispatcher,
     // core: ICoreDispatcher,
     // positions: IPositionsDispatcher,
@@ -212,6 +218,7 @@ mod launchpad_tests {
         calldata.append_serde(ekubo_registry);
         calldata.append_serde(core);
         calldata.append_serde(positions);
+        calldata.append_serde(ekubo_exchange_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
     }
@@ -994,15 +1001,27 @@ mod launchpad_tests {
             initial_supply: DEFAULT_INITIAL_SUPPLY(),
             contract_address_salt: SALT(),
         );
+        println!("token_address ekubo launch: {:?}", token_address);
+
         let launch = launchpad.get_coin_launch(token_address);
 
         let starting_price = i129 { sign: true, mag: 100_u128 };
+
+
+        let lp_meme_supply=launch.initial_available_supply - launch.available_supply;
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
+        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
+        memecoin.transfer(launchpad.contract_address, lp_meme_supply);
+        memecoin.approve(launchpad.contract_address, lp_meme_supply);
+        memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
 
         let params: EkuboLaunchParameters = EkuboLaunchParameters {
             owner: launch.owner,
             token_address: launch.token_address,
             quote_address: launch.token_quote.token_address,
-            lp_supply: launch.liquidity_raised,
+            lp_supply: lp_meme_supply,
+            // lp_supply: launch.liquidity_raised,
             pool_params: EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: 5982,
@@ -1010,15 +1029,17 @@ mod launchpad_tests {
                 bound: 88719042,
             }
         };
-        let memecoin = IERC20Dispatcher { contract_address: token_address };
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
+        start_cheat_caller_address(erc20.contract_address, OWNER());
+   
+        // memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY());
         let erc20 = IERC20Dispatcher { contract_address: launch.token_address };
         // erc20.transfer(launchpad.contract_address, launch.liquidity_raised);
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         println!("buy threshold liquidity");
 
         run_buy_by_amount(launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),);
+        let balance_quote_launch=erc20.balance_of(launchpad.contract_address);
+        println!("balance quote {:?}", balance_quote_launch);
 
         println!("add liquidity ekubo");
         let (id, position) = launchpad.add_liquidity_ekubo(token_address, params);
@@ -1050,7 +1071,7 @@ mod launchpad_tests {
         start_cheat_caller_address(memecoin.contract_address, OWNER());
 
         // memecoin.approve(FACTORY_ADDRESS(), 21_000_000 * pow_256(10, 18));
-        // memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY());
+        memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO);
 
         // stop_cheat_caller_address(token_address);
         let launch = launchpad.get_coin_launch(token_address);
@@ -1080,16 +1101,16 @@ mod launchpad_tests {
         run_buy_by_amount(launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),);
 
         println!("add liquidity unrug");
-        // let (id, position) = launchpad
-        //     .add_liquidity_unrug(
-        //         launch_params,
-        //         EkuboPoolParameters {
-        //             fee: 0xc49ba5e353f7d00000000000000000,
-        //             tick_spacing: 5982,
-        //             starting_price,
-        //             bound: 88719042
-        //         }
-        //     );
+        let (id, position) = launchpad
+            .add_liquidity_unrug(
+                launch_params,
+                EkuboPoolParameters {
+                    fee: 0xc49ba5e353f7d00000000000000000,
+                    tick_spacing: 5982,
+                    starting_price,
+                    bound: 88719042
+                }
+            );
         // println!("id: {:?}", id);
 
         // let pool_key = PoolKey {

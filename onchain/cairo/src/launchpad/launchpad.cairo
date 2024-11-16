@@ -253,6 +253,7 @@ pub mod LaunchpadMarketplace {
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
+        ekubo_exchange_address:ContractAddress
     }
 
     #[event]
@@ -290,6 +291,7 @@ pub mod LaunchpadMarketplace {
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
+        ekubo_exchange_address:ContractAddress
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
@@ -322,6 +324,7 @@ pub mod LaunchpadMarketplace {
         self.ekubo_registry.write(ekubo_registry);
         self.core.write(core);
         self.positions.write(positions);
+        self.ekubo_exchange_address.write(ekubo_exchange_address);
     }
 
     // Public functions inside an impl block
@@ -1173,6 +1176,26 @@ pub mod LaunchpadMarketplace {
                     );
                     return_data.span()
                 }
+                // CallbackData::WithdrawFeesCallback(params) => {
+                //     let WithdrawFeesCallback{id, liquidity_type, recipient } = params;
+                //     let positions = self.positions.read();
+                //     let EkuboLP{owner, quote_address: _, pool_key, bounds } = liquidity_type;
+                //     let pool_key = PoolKey {
+                //         token0: pool_key.token0,
+                //         token1: pool_key.token1,
+                //         fee: pool_key.fee,
+                //         tick_spacing: pool_key.tick_spacing,
+                //         extension: pool_key.extension,
+                //     };
+                //     let bounds = Bounds { lower: bounds.lower, upper: bounds.upper, };
+                //     positions.collect_fees(id, pool_key, bounds);
+
+                //     // Transfer to recipient is done after the callback
+                //     let mut return_data = Default::default();
+                //     Serde::serialize(@pool_key.token0, ref return_data);
+                //     Serde::serialize(@pool_key.token1, ref return_data);
+                //     return_data
+                // },
             }
         }
     }
@@ -1503,6 +1526,8 @@ pub mod LaunchpadMarketplace {
         ) -> (u64, EkuboLP) {
             // Register the token in Ekubo Registry
             let registry_address = self.ekubo_registry.read();
+            let ekubo_core_address = self.core.read();
+            let ekubo_exchange_address = self.ekubo_exchange_address.read();
             let registry = ITokenRegistryDispatcher { contract_address: registry_address };
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
 
@@ -1512,8 +1537,12 @@ pub mod LaunchpadMarketplace {
 
             let dex_address = self.core.read();
 
-            memecoin.transfer(dex_address, pool.liquidity_raised);
-            memecoin.approve(dex_address, pool.liquidity_raised);
+            let lp_supply= pool.initial_available_supply - pool.available_supply;
+
+            // memecoin.transfer(ekubo_exchange_address, lp_supply);
+            memecoin.approve(ekubo_exchange_address, lp_supply);
+            memecoin.approve(dex_address, lp_supply);
+            memecoin.approve(ekubo_core_address, lp_supply);
 
 
             // memecoin.transfer(registry.contract_address, pool.liquidity_raised);
@@ -1524,12 +1553,16 @@ pub mod LaunchpadMarketplace {
             //TODO token decimal, amount of 1 token?
             let pool = self.launched_coins.read(coin_address);
             
-            base_token.transfer(dex_address, pool.liquidity_raised);
-            base_token.approve(dex_address, pool.liquidity_raised);
+            // base_token.transfer(ekubo_exchange_address, pool.liquidity_raised);
+            base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
             
             // base_token.transfer(registry.contract_address, pool.liquidity_raised);
-            // base_token.approve(registry.contract_address, pool.liquidity_raised);
+            base_token.approve(dex_address, pool.liquidity_raised);
+            base_token.approve(registry.contract_address, pool.liquidity_raised);
+            base_token.approve(ekubo_core_address, pool.liquidity_raised);
             
+        // let (id, position) = ekubo_launchpad.launch_token(ekubo_launch_params);
+
             println!("register token");
             registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
 
