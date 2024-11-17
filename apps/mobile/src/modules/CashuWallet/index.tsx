@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, View} from 'react-native';
 import {Modal, Text} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
@@ -15,6 +15,7 @@ import {
   useActiveMintStorage,
   useActiveUnitStorage,
   useMintStorage,
+  useProofsStorage,
 } from '../../hooks/useStorageState';
 import {useCashuContext} from '../../providers/CashuProvider';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
@@ -50,12 +51,33 @@ export const CashuView = () => {
   const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
   const [addingMint, setAddingMint] = useState<boolean>(false);
 
-  const {value: mints, setValue: setMints} = useMintStorage();
-  const {setValue: setActiveMint} = useActiveMintStorage();
-  const {setValue: setActiveUnit} = useActiveUnitStorage();
+  const {value: mints, setValue: setMintsStorage} = useMintStorage();
+  const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
+  const {value: activeUnit, setValue: setActiveUnitStorage} = useActiveUnitStorage();
+  const {value: proofs} = useProofsStorage();
 
   //context
-  const {buildMintData} = useCashuContext()!;
+  const {buildMintData, setMints, setActiveMint, setActiveUnit, setProofs} = useCashuContext()!;
+
+  useEffect(() => {
+    setMints(mints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mints]);
+
+  useEffect(() => {
+    setActiveMint(activeMint);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMint]);
+
+  useEffect(() => {
+    setActiveUnit(activeUnit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUnit]);
+
+  useEffect(() => {
+    setProofs(proofs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proofs]);
 
   // functions
   const handleCloseContactManagement = () => {
@@ -86,10 +108,10 @@ export const CashuView = () => {
     setAddingMint(true);
     const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
     const defaultMintAlias = 'Default Mint (minibits)';
-    setActiveMint(defaultMintUrl);
+    setActiveMintStorage(defaultMintUrl);
     const data = await buildMintData(defaultMintUrl, defaultMintAlias);
-    setActiveUnit(data.units[0]);
-    setMints([data]);
+    setActiveUnitStorage(data.units[0]);
+    setMintsStorage([data]);
     setAddingMint(false);
   };
 

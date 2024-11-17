@@ -1,65 +1,84 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getEncodedToken, Proof, Token} from '@cashu/cashu-ts';
+import {getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
+import {ICashuInvoice} from 'afk_nostr_sdk';
 
 import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
-import {useProofsStorage} from './useStorageState';
+import {useProofsStorage, useTransactionsStorage} from './useStorageState';
 
 export const usePayment = () => {
   const {showToast} = useToast();
 
-  const {meltTokens, wallet} = useCashuContext()!;
-  const {value: proofsLocal} = useProofsStorage();
+  const {meltTokens, wallet, proofs, setProofs} = useCashuContext()!;
 
-  const handlePayInvoice = async (invoice?: string) => {
-    if (!invoice) return undefined;
-    console.log('[PAY] invoice', invoice);
+  const {setValue: setProofsStorage} = useProofsStorage();
+  const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
 
-    if (proofsLocal) {
-      console.log('[PAY] proofsLocal', proofsLocal);
-      const proofsSpent = await wallet?.checkProofsSpent(proofsLocal);
-      console.log('[PAY] proofsSpent', proofsSpent);
-      let proofs = Array.from(proofsLocal);
-      console.log('[PAY] proofs', proofs);
+  const handlePayInvoice = async (pInvoice: string) => {
+    if (!wallet) {
+      showToast({
+        type: 'error',
+        title: 'An error has ocurred.',
+      });
+      return undefined;
+    } else if (proofs) {
+      const proofsSpent = await wallet.checkProofsSpent(proofs);
+      let proofsCopy = Array.from(proofs);
 
       if (proofsSpent) {
-        proofs = proofs?.filter((p) => !proofsSpent?.includes(p));
+        proofsCopy = proofsCopy?.filter((p) => !proofsSpent?.includes(p));
       }
-      console.log('[PAY] proofsFilter', proofs);
-      const lenProof = proofs?.length;
 
-      if (lenProof && proofs) {
+      if (proofsCopy.length > 0) {
         try {
-          const tokens = await meltTokens(invoice, proofs?.slice(lenProof - 1, lenProof));
-          showToast({
-            title: 'Payment send',
-            type: 'success',
-          });
-          return tokens;
+          const response = await meltTokens(pInvoice, proofsCopy);
+          if (response) {
+            const {meltQuote, meltResponse, proofsToKeep} = response;
+            showToast({
+              title: 'Payment sent.',
+              type: 'success',
+            });
+            setProofs(proofsToKeep);
+            setProofsStorage(proofsToKeep);
+            const newInvoice: ICashuInvoice = {
+              amount: -(meltQuote.amount + meltQuote.fee_reserve),
+              bolt11: pInvoice,
+              quote: meltQuote.quote,
+              date: Date.now(),
+              state: MintQuoteState.PAID,
+              direction: 'out',
+            };
+            setTransactions([...transactions, newInvoice]);
+            return meltResponse;
+          } else {
+            showToast({
+              type: 'error',
+              title: 'An error has ocurred',
+            });
+            return undefined;
+          }
         } catch (error) {
           showToast({
             type: 'error',
             title: 'An error has ocurred',
           });
+          return undefined;
         }
-      }
-    } else {
-      try {
-        const tokens = await meltTokens(invoice);
-        showToast({
-          title: 'Payment send',
-          type: 'success',
-        });
-        return tokens;
-      } catch (error) {
+      } else {
         showToast({
           type: 'error',
-          title: 'An error has ocurred',
+          title: 'An error has ocurred.',
         });
+        return undefined;
       }
+    } else {
+      // no proofs = no balance
+      showToast({
+        type: 'error',
+        title: 'An error has ocurred.',
+      });
+      return undefined;
     }
-
-    return [];
   };
 
   const handleGenerateEcash = async (amount: number) => {
@@ -74,24 +93,23 @@ export const usePayment = () => {
         return undefined;
       }
 
-      if (proofsLocal) {
-        let proofs: Proof[] = proofsLocal;
-
+      if (proofs) {
         const proofsSpent = await wallet?.checkProofsSpent(proofs);
         console.log('proofsSpent', proofsSpent);
 
-        proofs = proofs?.filter((p) => {
+        const proofsFiltered = proofs?.filter((p) => {
           if (!proofsSpent?.includes(p)) {
             return p;
           }
         });
-        console.log('proofs', proofs);
+        console.log('proofs', proofsFiltered);
         const proofsToUsed: Proof[] = [];
-        const totalAmount = proofs.reduce((s, t) => (s += t.amount), 0);
+        const totalAmount = proofsFiltered.reduce((s, t) => (s += t.amount), 0);
         console.log('totalAmount', totalAmount);
 
         let amountCounter = 0;
-        for (const p of proofs?.reverse()) {
+        // eslint-disable-next-line no-unsafe-optional-chaining
+        for (const p of proofsFiltered?.reverse()) {
           amountCounter += p?.amount;
           proofsToUsed.push(p);
 

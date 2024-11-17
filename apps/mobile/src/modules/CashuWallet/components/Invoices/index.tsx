@@ -26,55 +26,79 @@ export const Invoices = () => {
   const styles = useStyles(stylesheet);
   const {showToast} = useToast();
 
-  const {checkMintQuote, mintTokens} = useCashuContext()!;
+  const {checkMintQuote, mintTokens, proofs, setProofs} = useCashuContext()!;
 
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
-  const {setValue: setTransactions} = useTransactionsStorage();
-  const {value: proofs, setValue: setProofs} = useProofsStorage();
+  const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
+  const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
 
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
   const handleVerify = async (quote?: string) => {
     try {
       if (!quote) return;
+      console.log('[VERIFY] quote', quote);
       const check = await checkMintQuote(quote);
       if (check?.state === MintQuoteState.UNPAID) {
         showToast({title: 'Unpaid', type: 'success'});
+        return;
       } else if (check?.state === MintQuoteState.PAID) {
-        showToast({title: 'Invoice is paid. Try to issued', type: 'success'});
+        showToast({title: 'Invoice is paid. Receiving payment...', type: 'success'});
         const invoice = invoices?.find((i) => i?.quote == quote);
 
-        const invoicesUpdated =
-          invoices?.map((i) => {
-            if (i?.quote === quote) {
-              i.state = MintQuoteState.PAID;
-              return i;
-            }
+        const invoicesUpdated = invoices.map((i) => {
+          if (i?.quote === quote) {
+            i.state = MintQuoteState.PAID;
             return i;
-          }) ?? [];
+          }
+          return i;
+        });
 
         setInvoices(invoicesUpdated);
-        setTransactions(invoicesUpdated);
+        if (transactions) {
+          setTransactions([
+            ...transactions,
+            {...invoice, direction: 'in', state: MintQuoteState.PAID} as ICashuInvoice,
+          ]);
+        } else {
+          setTransactions([
+            {
+              ...invoice,
+              direction: 'in',
+              state: MintQuoteState.PAID,
+            } as ICashuInvoice,
+          ]);
+        }
 
         if (invoice && invoice?.quote) {
           const received = await handleReceivePaymentPaid(invoice);
 
           if (received) {
             showToast({title: 'Payment received', type: 'success'});
+          } else {
+            showToast({title: 'Error receiving payment.', type: 'error'});
           }
+        } else {
+          showToast({title: 'Error receiving payment.', type: 'error'});
         }
       } else if (check?.state === MintQuoteState.ISSUED) {
-        showToast({title: 'Invoice is paid', type: 'success'});
-        const invoicesUpdated =
-          invoices?.map((i) => {
-            if (i?.quote === quote) {
-              i.state = MintQuoteState.PAID;
-              return i;
-            }
+        showToast({title: 'Invoice is paid.', type: 'success'});
+        const invoicesUpdated = invoices.map((i) => {
+          if (i?.quote === quote) {
+            i.state = MintQuoteState.ISSUED;
             return i;
-          }) ?? [];
+          }
+          return i;
+        });
         setInvoices(invoicesUpdated);
-        setTransactions(invoicesUpdated);
+        const txUpdated = transactions.map((i) => {
+          if (i?.quote === quote) {
+            i.state = MintQuoteState.ISSUED;
+            return i;
+          }
+          return i;
+        });
+        setTransactions(txUpdated);
       }
     } catch (e) {
       console.log('handleVerify', e);
@@ -88,16 +112,15 @@ export const Invoices = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
-        if (!proofs) {
+        if (!proofsStorage && !proofs) {
+          setProofsStorage([...(receive?.proofs as Proof[])]);
           setProofs([...(receive?.proofs as Proof[])]);
-          return '';
         } else {
-          setInvoices(invoices);
+          setProofsStorage([...proofs, ...(receive?.proofs as Proof[])]);
           setProofs([...proofs, ...(receive?.proofs as Proof[])]);
-          return '';
         }
+        return receive;
       }
-
       return undefined;
     } catch (e) {
       console.log('Error handleReceivePaymentPaid', e);

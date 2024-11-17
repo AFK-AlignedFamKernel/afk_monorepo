@@ -18,7 +18,7 @@ import {formatCurrency} from '../../../../utils/helpers';
 import stylesheet from './styles';
 
 export const Balance = () => {
-  const {getUnitBalance} = useCashuContext()!;
+  const {getUnitBalance, setActiveUnit} = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
@@ -27,7 +27,7 @@ export const Balance = () => {
 
   const {value: mints} = useMintStorage();
   const {value: activeMint} = useActiveMintStorage();
-  const {value: activeUnit, setValue: setActiveUnit} = useActiveUnitStorage();
+  const {value: activeUnit, setValue: setActiveUnitStorage} = useActiveUnitStorage();
   const {value: proofs} = useProofsStorage();
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export const Balance = () => {
     const mintUnits = mints.filter((mint) => mint.url === activeMint)[0].units;
     const currentIndex = mintUnits.indexOf(activeUnit);
     const nextIndex = (currentIndex + 1) % mintUnits.length;
+    setActiveUnitStorage(mintUnits[nextIndex]);
     setActiveUnit(mintUnits[nextIndex]);
   };
 
@@ -53,11 +54,11 @@ export const Balance = () => {
       setCurrentUnitBalance(balance);
       setIsLoading(false);
     };
-    if (activeUnit && activeMint && proofs.length > 0) {
+    if (activeUnit && activeMint) {
       fetchBalanceData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUnit, proofs, mints]);
+  }, [activeUnit, proofs, mints, activeMint]);
 
   return (
     <View style={styles.balanceContainer}>

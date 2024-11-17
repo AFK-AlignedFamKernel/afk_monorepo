@@ -64,7 +64,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const handlePay = async (): Promise<void> => {
     if (scannedData) {
       await handlePayInvoice(scannedData);
-      showToast({title: 'Invoice paid successfully', type: 'success'});
+      // showToast({title: 'Invoice paid successfully', type: 'success'});
       setModalVisible(false);
       cleanup();
       onClose();

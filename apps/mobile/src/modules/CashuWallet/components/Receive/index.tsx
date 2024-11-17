@@ -57,7 +57,6 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
     try {
       const quote = await requestMintQuote(Number(invoiceAmount));
       setQuote(quote?.request);
-      console.log('quote', quote);
 
       const cashuInvoice: ICashuInvoice = {
         bolt11: quote?.request?.request,

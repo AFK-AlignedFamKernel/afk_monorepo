@@ -11,7 +11,7 @@ import {CopyIconStack, InfoIcon, ViewIcon} from '../../../../assets/icons';
 import {Button, Divider} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
-import {useInvoicesStorage} from '../../../../hooks/useStorageState';
+import {useTransactionsStorage} from '../../../../hooks/useStorageState';
 import {getRelativeTime} from '../../../../utils/helpers';
 import stylesheet from './styles';
 
@@ -23,35 +23,24 @@ export const History = () => {
   const [txInvoices, setTxInvoices] = useState<ICashuInvoice[]>([]);
   const [selectedTx, setSelectedTx] = useState<string>('');
 
-  const {value: invoices} = useInvoicesStorage();
+  const {value: transactions} = useTransactionsStorage();
 
   useEffect(() => {
+    console.log(transactions);
     const handleGetInvoices = async () => {
-      if (invoices) {
-        const invoicesPaid = invoices.filter(
+      if (transactions) {
+        const invoicesPaid = transactions.filter(
           (i) => i?.state === MintQuoteState?.ISSUED || i?.state === MintQuoteState.PAID,
         );
         const invoicesSorted = invoicesPaid
-          .map((invoice) => ({...invoice, direction: 'in'} as ICashuInvoice))
+          .map((invoice) => ({...invoice} as ICashuInvoice))
           .reverse();
         setTxInvoices([...invoicesSorted]);
       }
-
-      // todo:
-      //   const proofsLocal = getProofsSpent();
-
-      //   if (proofsLocal) {
-      //     const proofsSpent: ProofInvoice[] = JSON.parse(proofsLocal);
-      //     const proofsSpentSorted = proofsSpent
-      //       .map((proof) => ({...proof, direction: 'out'} as ProofInvoice))
-      //       .reverse();
-      //     console.log('proofsSpentSorted', proofsSpentSorted);
-      //     setTxInvoices((invoices) => [...invoices, ...proofsSpentSorted]);
-      //   }
     };
     handleGetInvoices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoices]);
+  }, [transactions]);
 
   const handleCopy = async (bolt11?: string) => {
     if (!bolt11) return;

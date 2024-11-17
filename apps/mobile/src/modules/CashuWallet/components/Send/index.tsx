@@ -87,6 +87,18 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
+  const handleLightningPayment = () => {
+    if (!invoice) {
+      showToast({
+        title: 'Invoice not found.',
+        type: 'error',
+      });
+      return;
+    }
+    const tokens = handlePayInvoice(invoice);
+    console.log('[PAY] tokens', tokens);
+  };
+
   useEffect(() => {
     const mint = mints.filter((mint) => mint.url === activeMint)[0];
     setSelectedMint(mint);
@@ -200,10 +212,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                 </View>
 
                 <Button
-                  onPress={() => {
-                    const tokens = handlePayInvoice(invoice);
-                    console.log(tokens);
-                  }}
+                  onPress={handleLightningPayment}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
                 >
