@@ -61,7 +61,7 @@ export const HistoryTxCashu = () => {
       const invoicesLocal = await getInvoices();
 
       if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
+        const invoices = invoicesLocal;
         const invoicesPaid = invoices.filter(
           (i) => i?.state === MintQuoteState?.ISSUED || i?.state === MintQuoteState.PAID,
         );

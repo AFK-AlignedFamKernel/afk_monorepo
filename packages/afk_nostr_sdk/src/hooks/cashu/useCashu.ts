@@ -17,7 +17,6 @@ import {
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
-import {getProofs as getProofsLocal} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -26,6 +25,10 @@ import {useAuth, useCashuStore} from '../../store';
 export interface MintData {
   url: string;
   alias: string;
+  keys: MintActiveKeys;
+  keysets: MintAllKeysets;
+  info: GetInfoResponse;
+  units: string[];
 }
 
 export interface ICashu {
@@ -75,10 +78,10 @@ export interface ICashu {
   receiveP2PK: (encoded: string) => Promise<Proof[]>;
   meltTokens: (invoice: string, proofsProps?: Proof[]) => Promise<MeltTokensResponse>;
   getKeySets: () => Promise<MintAllKeysets>;
-  getUnits: (pMint: MintData) => Promise<string[]>;
+  getUnits: (url: string) => Promise<string[]>;
   getUnitKeysets: (unit: string, pMint: MintData) => Promise<MintKeyset[]>;
-  getUnitProofs: (unit: string, pMint: MintData) => Promise<Proof[]>;
-  getUnitBalance: (unit: string, pMint: MintData) => Promise<number>;
+  getUnitProofs: (unit: string, pMint: MintData, proofsLocal: Proof[]) => Promise<Proof[]>;
+  getUnitBalance: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
   getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
@@ -115,6 +118,7 @@ export interface ICashu {
   setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
   proofs: Proof[];
   setProofs: React.Dispatch<React.SetStateAction<Proof[]>>;
+  buildMintData: (url: string, alias: string) => Promise<MintData>;
 }
 
 export const useCashu = (): ICashu => {
@@ -124,12 +128,7 @@ export const useCashu = (): ICashu => {
 
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeCurrency, setActiveCurrency] = useState('sat');
-  const [mintUrls, setMintUrls] = useState<MintData[]>([
-    {
-      url: 'https://mint.minibits.cash/Bitcoin',
-      alias: 'Default Mint',
-    },
-  ]);
+  const [mintUrls, setMintUrls] = useState<MintData[]>();
   const [mintProps, setMint] = useState<CashuMint>(
     new CashuMint(mintUrls?.[activeMintIndex]?.url ?? 'https://mint.minibits.cash/Bitcoin'),
   );
@@ -140,6 +139,7 @@ export const useCashu = (): ICashu => {
       mintProps
     );
   }, [activeMintIndex]);
+
   const [_, setMintKeys] = useState<MintKeys[]>();
   const [mintAllKeysets, setMintAllKeys] = useState<MintAllKeysets>();
   const [mintKeysset] = useState<MintKeys | undefined>();
@@ -230,9 +230,9 @@ export const useCashu = (): ICashu => {
     const keyssets = await mint?.getKeySets();
     return keyssets;
   };
-  const getUnits = async (pMint: MintData) => {
+  const getUnits = async (url: string) => {
     let units = [];
-    const currentMint = new CashuMint(pMint.url);
+    const currentMint = new CashuMint(url);
     await currentMint?.getKeySets().then(({keysets}) => {
       units = keysets
         .map((k) => k.unit)
@@ -248,20 +248,26 @@ export const useCashu = (): ICashu => {
     });
     return unitKeysets;
   };
-  const getUnitProofs = async (unit: string, pMint: MintData): Promise<Proof[]> => {
+  const getUnitProofs = async (
+    unit: string,
+    pMint: MintData,
+    proofsLocal: Proof[],
+  ): Promise<Proof[]> => {
     let unitProofs: Proof[] = [];
-    const proofsLocal = getProofsLocal();
     if (proofsLocal) {
-      const proofs: Proof[] = JSON.parse(proofsLocal);
       await getUnitKeysets(unit, pMint).then((unitKeySets) => {
-        unitProofs = proofs.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+        unitProofs = proofsLocal.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
       });
     }
     return unitProofs;
   };
-  const getUnitBalance = async (unit: string, pMint: MintData): Promise<number> => {
+  const getUnitBalance = async (
+    unit: string,
+    pMint: MintData,
+    proofs: Proof[],
+  ): Promise<number> => {
     let unitBalance = 0;
-    await getUnitProofs(unit, pMint).then((unitProofs) => {
+    await getUnitProofs(unit, pMint, proofs).then((unitProofs) => {
       unitBalance = unitProofs.reduce((sum, p) => sum + p.amount, 0);
     });
     return unitBalance;
@@ -481,6 +487,23 @@ export const useCashu = (): ICashu => {
     return response;
   };
 
+  const buildMintData = async (url: string, alias: string) => {
+    const mint = new CashuMint(url);
+    const info = await mint.getInfo();
+    const keys = await mint.getKeys();
+    const keysets = await mint.getKeySets();
+    const units = await getUnits(url);
+    const mintData: MintData = {
+      url,
+      alias,
+      info,
+      keys,
+      keysets,
+      units,
+    };
+    return mintData;
+  };
+
   return {
     wallet,
     mint,
@@ -522,5 +545,6 @@ export const useCashu = (): ICashu => {
     setActiveCurrency,
     proofs,
     setProofs,
+    buildMintData,
   };
 };
