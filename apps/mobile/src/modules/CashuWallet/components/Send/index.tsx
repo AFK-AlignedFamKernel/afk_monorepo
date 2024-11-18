@@ -20,6 +20,7 @@ import {
 } from '../../../../hooks/useStorageState';
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {UnitInfo} from '../../../Cashu/MintListCashu';
+import GenerateQRCode from '../../../Cashu/qr/GenerateQRCode';
 import ScanCashuQRCode from '../../../Cashu/qr/ScanCode';
 import SendNostrContact from '../../../Cashu/SendContact';
 import stylesheet from './styles';
@@ -45,7 +46,6 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
 
   const [activeTab, setActiveTab] = useState<TabType>('none');
   const [invoice, setInvoice] = useState<string | undefined>();
-  const [, setGeneratedInvoice] = useState('');
   const [generatedEcash, setGenerateEcash] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
   const [isScannerVisible, setIsScannerVisible] = useState(false);
@@ -58,8 +58,6 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
   };
 
   const handleEcash = async () => {
-    console.log('handleEcash');
-
     if (!invoiceAmount) {
       return showToast({
         title: 'Please enter an amount',
@@ -74,7 +72,6 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
         type: 'error',
       });
     }
-    setGeneratedInvoice(ecash);
     setGenerateEcash(ecash);
     return ecash;
   };
@@ -310,6 +307,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   <View
                     style={{
                       marginVertical: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 15,
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
@@ -323,6 +323,8 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                         </TouchableOpacity>
                       }
                     />
+
+                    <GenerateQRCode data={generatedEcash} size={200} />
                   </View>
                 )}
               </>

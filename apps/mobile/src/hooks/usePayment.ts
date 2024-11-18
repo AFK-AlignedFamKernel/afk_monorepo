@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
+import {getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
 import {ICashuInvoice} from 'afk_nostr_sdk';
 
 import {useCashuContext} from '../providers/CashuProvider';
@@ -9,7 +9,7 @@ import {useProofsStorage, useTransactionsStorage} from './useStorageState';
 export const usePayment = () => {
   const {showToast} = useToast();
 
-  const {meltTokens, wallet, proofs, setProofs} = useCashuContext()!;
+  const {meltTokens, wallet, proofs, setProofs, activeUnit, activeMint} = useCashuContext()!;
 
   const {setValue: setProofsStorage} = useProofsStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
@@ -84,63 +84,60 @@ export const usePayment = () => {
   const handleGenerateEcash = async (amount: number) => {
     try {
       if (!amount) {
-        showToast({title: 'Please add a mint amount', type: 'info'});
+        showToast({title: 'Please add a mint amount.', type: 'info'});
         return undefined;
       }
 
       if (!wallet) {
-        showToast({title: 'Please connect your wallet', type: 'error'});
+        showToast({title: 'An error occurred.', type: 'error'});
         return undefined;
       }
 
       if (proofs) {
-        const proofsSpent = await wallet?.checkProofsSpent(proofs);
-        console.log('proofsSpent', proofsSpent);
+        const proofsSpent = await wallet.checkProofsSpent(proofs);
+        let proofsCopy = Array.from(proofs);
 
-        const proofsFiltered = proofs?.filter((p) => {
-          if (!proofsSpent?.includes(p)) {
-            return p;
-          }
-        });
-        console.log('proofs', proofsFiltered);
-        const proofsToUsed: Proof[] = [];
-        const totalAmount = proofsFiltered.reduce((s, t) => (s += t.amount), 0);
-        console.log('totalAmount', totalAmount);
-
-        let amountCounter = 0;
-        // eslint-disable-next-line no-unsafe-optional-chaining
-        for (const p of proofsFiltered?.reverse()) {
-          amountCounter += p?.amount;
-          proofsToUsed.push(p);
-
-          if (amountCounter >= amount) {
-            break;
-          }
+        if (proofsSpent) {
+          proofsCopy = proofsCopy?.filter((p) => !proofsSpent?.includes(p));
         }
 
-        const sendCashu = await wallet?.send(amount, proofsToUsed);
-        console.log('sendCashu', sendCashu);
+        const availableAmount = proofsCopy.reduce((s, t) => (s += t.amount), 0);
 
-        if (sendCashu) {
-          const keysets = await wallet?.mint?.getKeySets();
-          // unit of keysets
-          const unit = keysets?.keysets[0].unit;
+        if (availableAmount < amount) {
+          showToast({title: 'Balance is too low.', type: 'error'});
+          return undefined;
+        }
+
+        const {returnChange: proofsToKeep, send: proofsToSend} = await wallet.send(
+          amount,
+          proofsCopy,
+        );
+
+        if (proofsToKeep && proofsToSend) {
+          setProofs(proofsToKeep);
+          setProofsStorage(proofsToKeep);
 
           const token = {
-            token: [{proofs: proofsToUsed, mint: wallet?.mint?.mintUrl}],
-            unit,
+            token: [{proofs: proofsToSend, mint: activeMint}],
+            activeUnit,
           } as Token;
-          console.log('keysets', keysets);
-          console.log('proofsToUsed', proofsToUsed);
-          console.log('token', token);
 
           const cashuToken = getEncodedToken(token);
-          console.log('cashuToken', cashuToken);
-          // setCashuTokenCreated(cashuToken)
 
-          showToast({title: 'Cashu created', type: 'success'});
-
-          return cashuToken;
+          if (cashuToken) {
+            showToast({title: 'Cashu token generated.', type: 'success'});
+            const newInvoice: ICashuInvoice = {
+              amount: -amount,
+              date: Date.now(),
+              state: MintQuoteState.PAID,
+              direction: 'out',
+              bolt11: cashuToken,
+            };
+            setTransactions([...transactions, newInvoice]);
+            return cashuToken;
+          } else {
+            showToast({title: 'Error when generating cashu token', type: 'error'});
+          }
         }
         return undefined;
       }
@@ -148,7 +145,7 @@ export const usePayment = () => {
       return undefined;
     } catch (e) {
       console.log('Error generate cashu token', e);
-      showToast({title: 'Error when generate cashu token', type: 'error'});
+      showToast({title: 'Error when generating cashu token', type: 'error'});
       return undefined;
     }
   };

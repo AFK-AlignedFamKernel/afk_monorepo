@@ -26,7 +26,6 @@ export const History = () => {
   const {value: transactions} = useTransactionsStorage();
 
   useEffect(() => {
-    console.log(transactions);
     const handleGetInvoices = async () => {
       if (transactions) {
         const invoicesPaid = transactions.filter(
