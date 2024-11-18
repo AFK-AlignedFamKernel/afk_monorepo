@@ -60,6 +60,8 @@ import {ThemedStyleSheet} from '../styles';
 // Utilities
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
+import { ShortVideoNostrScreen } from '../screens/nostr/shorts';
+import { OauthScreen } from '../screens/OauthTwitter';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -310,9 +312,12 @@ const MainNavigator: React.FC = () => {
 
       <MainStack.Screen name="Wallet" component={Wallet} />
 
-      <MainStack.Screen name="ShortVideos" component={ShortVideosModule} />
+      {/* <MainStack.Screen name="ShortVideos" component={Short} /> */}
+      {/* <MainStack.Screen name="ShortVideos" component={ShortVideosModule} /> */}
+      <MainStack.Screen name="ShortVideos" component={ShortVideoNostrScreen} />
       <MainStack.Screen name="Onboarding" component={Onboarding} />
       <MainStack.Screen name="DappBrowser" component={DappBrowserScreen} />
+      <MainStack.Screen name="Oauth" component={OauthScreen} />
     </MainStack.Navigator>
   );
 };
@@ -405,6 +410,7 @@ const linking = {
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',
           DappBrowser: 'browser',
+          Oauth:"oauth"
         },
       },
       MainStack: {
@@ -475,6 +481,7 @@ const linking = {
           Portfolio: 'portfolio',
           ShortVideos: 'shorts',
           DappBrowser: 'browser',
+          Oauth:"oauth"
         },
       },
     },
