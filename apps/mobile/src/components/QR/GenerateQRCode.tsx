@@ -7,7 +7,7 @@ interface GenerateQRCodeProps {
   size?: number;
 }
 
-const GenerateQRCode: React.FC<GenerateQRCodeProps> = ({data, size = 200}) => {
+export const GenerateQRCode: React.FC<GenerateQRCodeProps> = ({data, size = 200}) => {
   return (
     <View style={styles.container}>
       <QRCode value={data} size={size} />
@@ -23,5 +23,3 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 });
-
-export default GenerateQRCode;

@@ -7,7 +7,7 @@ import {Modal, Text} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
-import {Button} from '../../components';
+import {Button, ScanQRCode} from '../../components';
 import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
@@ -197,7 +197,7 @@ export const CashuView = () => {
         </ScrollView>
       </SafeAreaView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-        {/* <ScanQRCode onClose={handleCloseScanner} /> */}
+        <ScanQRCode onClose={handleCloseScanner} />
       </Modal>
       <Modal
         animationType="fade"

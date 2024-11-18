@@ -9,7 +9,7 @@ import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
-import {Button, Input} from '../../../../components';
+import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {usePayment} from '../../../../hooks/usePayment';
@@ -20,8 +20,6 @@ import {
 } from '../../../../hooks/useStorageState';
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {UnitInfo} from '../../../Cashu/MintListCashu';
-import GenerateQRCode from '../../../Cashu/qr/GenerateQRCode';
-import ScanCashuQRCode from '../../../Cashu/qr/ScanCode';
 import SendNostrContact from '../../../Cashu/SendContact';
 import stylesheet from './styles';
 
@@ -218,8 +216,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
               </>
             </View>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-              {/* todo */}
-              <ScanCashuQRCode onClose={handleCloseScanner} />
+              <ScanQRCode onClose={handleCloseScanner} />
             </Modal>
           </>
         );
@@ -313,7 +310,6 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
-
                     <Input
                       value={generatedEcash}
                       editable={false}
@@ -323,7 +319,6 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                         </TouchableOpacity>
                       }
                     />
-
                     <GenerateQRCode data={generatedEcash} size={200} />
                   </View>
                 )}

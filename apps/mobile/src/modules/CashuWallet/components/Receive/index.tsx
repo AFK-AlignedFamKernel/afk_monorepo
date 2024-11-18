@@ -9,7 +9,7 @@ import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
-import {Button, Input} from '../../../../components';
+import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {usePayment} from '../../../../hooks/usePayment';
@@ -19,8 +19,6 @@ import {
   useInvoicesStorage,
 } from '../../../../hooks/useStorageState';
 import {useCashuContext} from '../../../../providers/CashuProvider';
-import GenerateQRCode from '../../../Cashu/qr/GenerateQRCode';
-import ScanCashuQRCode from '../../../Cashu/qr/ScanCode';
 import stylesheet from './styles';
 
 interface ReceiveProps {
@@ -183,7 +181,6 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                         </TouchableOpacity>
                       }
                     />
-                    {/* todo */}
                     <GenerateQRCode data={quote?.request} size={200} />
                   </View>
                 )}
@@ -228,8 +225,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                 </Button>
               </>
               <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-                {/* todo */}
-                <ScanCashuQRCode onClose={handleCloseScanner} />
+                <ScanQRCode onClose={handleCloseScanner} />
               </Modal>
             </View>
           </>

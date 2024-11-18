@@ -14,6 +14,8 @@ export {PickerContainer} from './PickerContainer';
 export {Chat} from './PrivateMessages/Chat';
 export {Conversation} from './PrivateMessages/Conversation';
 export {FormPrivateMessage} from './PrivateMessages/FormPrivateMessage';
+export {GenerateQRCode} from './QR/GenerateQRCode';
+export {ScanQRCode} from './QR/ScanCode';
 export {InputAccessoryView} from './Skeleton/InputAccessoryView';
 export {KeyboardFixedView} from './Skeleton/KeyboardFixedView';
 export {RootScreenContainer} from './Skeleton/RootScreenContainer';
