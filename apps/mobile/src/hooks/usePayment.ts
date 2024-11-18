@@ -18,7 +18,7 @@ export const usePayment = () => {
     if (!wallet) {
       showToast({
         type: 'error',
-        title: 'An error has ocurred.',
+        title: 'An error has occurred.',
       });
       return undefined;
     } else if (proofs) {
@@ -53,21 +53,21 @@ export const usePayment = () => {
           } else {
             showToast({
               type: 'error',
-              title: 'An error has ocurred',
+              title: 'An error has occurred',
             });
             return undefined;
           }
         } catch (error) {
           showToast({
             type: 'error',
-            title: 'An error has ocurred',
+            title: 'An error has occurred',
           });
           return undefined;
         }
       } else {
         showToast({
           type: 'error',
-          title: 'An error has ocurred.',
+          title: 'An error has occurred.',
         });
         return undefined;
       }
@@ -75,7 +75,7 @@ export const usePayment = () => {
       // no proofs = no balance
       showToast({
         type: 'error',
-        title: 'An error has ocurred.',
+        title: 'An error has occurred.',
       });
       return undefined;
     }
