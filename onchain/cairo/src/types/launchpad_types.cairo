@@ -53,6 +53,7 @@ pub enum TokenType {
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,
+    pub creator: ContractAddress,
     pub token_address: ContractAddress,
     pub symbol: felt252,
     pub name: felt252,

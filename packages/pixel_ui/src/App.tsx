@@ -446,11 +446,17 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     setPixelPlacedBy('');
   };
 
-  const setPixelSelection = (x, y) => {
+  const setPixelSelection = async (x, y) => {
     setSelectedPositionX(x);
     setSelectedPositionY(y);
     setPixelSelectedMode(true);
     // TODO: move http fetch for pixel data here?
+
+    let pixelInfo = await fetchWrapper(
+      `get-pixel-info&position=${x+y}`
+    );
+    console.log("pixelInfo data",pixelInfo)
+
   };
 
   const clearExtraPixels = useCallback(() => {
