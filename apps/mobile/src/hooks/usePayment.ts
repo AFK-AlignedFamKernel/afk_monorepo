@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
+import {getDecodedToken, getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
 import {ICashuInvoice} from 'afk_nostr_sdk';
 
 import {useCashuContext} from '../providers/CashuProvider';
@@ -11,7 +11,7 @@ export const usePayment = () => {
 
   const {meltTokens, wallet, proofs, setProofs, activeUnit, activeMint} = useCashuContext()!;
 
-  const {setValue: setProofsStorage} = useProofsStorage();
+  const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
 
   const handlePayInvoice = async (pInvoice: string) => {
@@ -150,8 +150,39 @@ export const usePayment = () => {
     }
   };
 
+  const handleReceiveEcash = async (ecashToken?: string) => {
+    try {
+      if (!ecashToken) {
+        showToast({title: 'Invalid cashu token.', type: 'error'});
+        return;
+      }
+      const decodedToken = getDecodedToken(ecashToken);
+
+      const receiveEcashProofs = await wallet?.receive(decodedToken);
+
+      if (receiveEcashProofs?.length > 0) {
+        showToast({title: 'Ecash received.', type: 'success'});
+        setProofs([...proofs, ...receiveEcashProofs]);
+        setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
+        const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
+        const newTx: ICashuInvoice = {
+          amount: proofsAmount,
+          date: Date.now(),
+          state: MintQuoteState.PAID,
+          direction: 'in',
+          bolt11: ecashToken,
+        };
+        setTransactions([...transactions, newTx]);
+      }
+    } catch (e) {
+      showToast({title: 'An error occurred.', type: 'error'});
+      return;
+    }
+  };
+
   return {
     handlePayInvoice,
     handleGenerateEcash,
+    handleReceiveEcash,
   };
 };

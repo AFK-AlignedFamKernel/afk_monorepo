@@ -12,6 +12,7 @@ import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
 import {Button, Input} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
+import {usePayment} from '../../../../hooks/usePayment';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
@@ -30,7 +31,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const {showToast} = useToast();
-
+  const {handleReceiveEcash} = usePayment();
   const {requestMintQuote} = useCashuContext()!;
 
   type TabType = 'lightning' | 'ecash' | 'none';
@@ -94,26 +95,6 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
     }
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
-
-  //   const handleReceiveEcash = async () => {
-  //     try {
-  //       if (!ecash) {
-  //         return;
-  //       }
-  //       const encoded = getDecodedToken(ecash);
-  //       console.log('encoded', encoded);
-
-  //       const response = await wallet?.receive(encoded);
-  //       console.log('response', response);
-
-  //       if (response) {
-  //         showToast({title: 'ecash payment received', type: 'success'});
-  //         await addProofs(response);
-  //       }
-  //     } catch (e) {
-  //       console.log('handleReceiveEcash error', e);
-  //     }
-  //   };
 
   const handlePaste = async () => {
     try {
@@ -238,35 +219,8 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                     <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
-                {ecash && (
-                  <View
-                    style={{
-                      marginVertical: 3,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 20,
-                      marginBottom: 20,
-                    }}
-                  >
-                    <Text style={styles.text}>TOKEN</Text>
-
-                    <Input
-                      value={ecash}
-                      editable={false}
-                      right={
-                        <TouchableOpacity
-                          onPress={() => handleCopy('ecash')}
-                          style={{marginRight: 10}}
-                        >
-                          <CopyIconStack color={theme.colors.primary} />
-                        </TouchableOpacity>
-                      }
-                    />
-                    <GenerateQRCode data={ecash} size={200} />
-                  </View>
-                )}
                 <Button
-                  //   onPress={handleReceiveEcash}
+                  onPress={() => handleReceiveEcash(ecash)}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
                 >

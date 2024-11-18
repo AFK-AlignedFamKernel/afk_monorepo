@@ -25,7 +25,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
-  const {handlePayInvoice, handleGenerateEcash} = usePayment();
+  const {handlePayInvoice, handleReceiveEcash} = usePayment();
   const {showToast} = useToast();
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -73,8 +73,8 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
 
   const handleReceive = async (): Promise<void> => {
     if (scannedData) {
-      await handleGenerateEcash(Number(scannedData.replace('cashu', '')));
-      showToast({title: 'eCash received successfully', type: 'success'});
+      await handleReceiveEcash(scannedData);
+      // showToast({title: 'eCash received successfully', type: 'success'});
       setModalVisible(false);
       cleanup();
       onClose();
