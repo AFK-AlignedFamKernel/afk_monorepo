@@ -7,7 +7,7 @@ import {
   formatUnits,
   DECIMALS,
 } from "./deps.ts";
-import { FACTORY_ADDRESS, STARTING_BLOCK_UNRUG, UNRUGGABLE_FACTORY_ADDRESS} from "./consstants.ts";
+import { FACTORY_ADDRESS, STARTING_BLOCK_UNRUG, UNRUGGABLE_FACTORY_ADDRESS} from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);

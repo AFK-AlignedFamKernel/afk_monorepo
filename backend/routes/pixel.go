@@ -15,6 +15,7 @@ import (
 func InitPixelRoutes() {
 	http.HandleFunc("/get-pixel", getPixel)
 	http.HandleFunc("/get-pixel-info", getPixelInfo)
+	http.HandleFunc("/get-pixel-metadata", getPixelMetadata)
 	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/place-pixel-devnet", placePixelDevnet)
 		http.HandleFunc("/place-extra-pixels-devnet", placeExtraPixelsDevnet)
@@ -78,6 +79,29 @@ func getPixelInfo(w http.ResponseWriter, r *http.Request) {
 		routeutils.WriteDataJson(w, "\""+queryRes.Name+"\"")
 	}
 }
+func getPixelMetadata(w http.ResponseWriter, r *http.Request) {
+	position, err := strconv.Atoi(r.URL.Query().Get("position"))
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid query position")
+		return
+	}
+
+	queryRes, err := core.PostgresQueryOne[PixelInfo](`
+    SELECT p.address, COALESCE(u.name, '') as name FROM Pixels p
+    LEFT JOIN Users u ON p.address = u.address WHERE p.position = $1
+    ORDER BY p.time DESC LIMIT 1`, position)
+	if err != nil {
+		routeutils.WriteDataJson(w, "\"0x0000000000000000000000000000000000000000000000000000000000000000\"")
+		return
+	}
+
+	if queryRes.Name == "" {
+		routeutils.WriteDataJson(w, "\"0x"+queryRes.Address+"\"")
+	} else {
+		routeutils.WriteDataJson(w, "\""+queryRes.Name+"\"")
+	}
+}
+
 
 func placePixelDevnet(w http.ResponseWriter, r *http.Request) {
 	// Disable this in production
