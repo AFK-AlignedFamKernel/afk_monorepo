@@ -2,11 +2,11 @@
 import '../../../applyGlobalPolyfills';
 
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView, View} from 'react-native';
+import {SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {Modal, Text} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
+import {ChevronLeftIcon, ScanQrIcon, SettingsIcon} from '../../assets/icons';
 import {Button, ScanQRCode} from '../../components';
 import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
@@ -26,6 +26,7 @@ import {Invoices} from './components/Invoices';
 import {NoMintBanner} from './components/NoMintBanner';
 import {Receive} from './components/Receive';
 import {Send} from './components/Send';
+import {Settings} from './components/Settings';
 import stylesheet from './styles';
 
 export const CashuWalletView: React.FC = () => {
@@ -49,6 +50,7 @@ export const CashuView = () => {
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState<boolean>(false);
   const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
   const [addingMint, setAddingMint] = useState<boolean>(false);
 
   const {value: mints, setValue: setMintsStorage} = useMintStorage();
@@ -120,34 +122,42 @@ export const CashuView = () => {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {mints.length > 0 ? (
-            <Balance />
+            <>
+              <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => setSettingsModalOpen(true)}
+              >
+                <SettingsIcon color={theme.colors.primary} width={20} height={20} />
+              </TouchableOpacity>
+              <Balance />
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonsContainer}>
+                  <Button
+                    onPress={onOpenSendModal}
+                    style={styles.actionButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Send
+                  </Button>
+                  <Button
+                    onPress={onOpenReceiveModal}
+                    style={styles.actionButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Receive
+                  </Button>
+                </View>
+                <Text style={styles.orText}>or</Text>
+                <View>
+                  <Button onPress={handleQRCodeClick} style={styles.qrButton}>
+                    <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+                  </Button>
+                </View>
+              </View>
+            </>
           ) : (
             <NoMintBanner onClick={handleAddDefaultMint} addingMint={addingMint} />
           )}
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonsContainer}>
-              <Button
-                onPress={onOpenSendModal}
-                style={styles.actionButton}
-                textStyle={styles.actionButtonText}
-              >
-                Send
-              </Button>
-              <Button
-                onPress={onOpenReceiveModal}
-                style={styles.actionButton}
-                textStyle={styles.actionButtonText}
-              >
-                Receive
-              </Button>
-            </View>
-            <Text style={styles.orText}>or</Text>
-            <View>
-              <Button onPress={handleQRCodeClick} style={styles.qrButton}>
-                <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
-              </Button>
-            </View>
-          </View>
 
           <View>
             <Button
@@ -215,6 +225,11 @@ export const CashuView = () => {
       <Modal animationType="fade" transparent={true} visible={receiveModalOpen}>
         <View style={styles.modalBackdrop}>
           <Receive onClose={() => setReceiveModalOpen(false)}></Receive>
+        </View>
+      </Modal>
+      <Modal animationType="fade" transparent={true} visible={settingsModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <Settings onClose={() => setSettingsModalOpen(false)} />
         </View>
       </Modal>
     </View>

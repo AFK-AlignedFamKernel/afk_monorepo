@@ -23,6 +23,10 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
+  settingsButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+  },
   scrollView: {
     flex: 1,
     height: '95%',

@@ -162,3 +162,8 @@ export const useTransactionsStorage = (options?: {pollInterval?: number}) => {
   const hook = useStorageState<ICashuInvoice[]>('TRANSACTIONS', [], options);
   return useMemo(() => hook, [hook]);
 };
+
+export const useSignerTypeStorage = (options?: {pollInterval?: number}) => {
+  const hook = useStorageState<string>('SIGNER_TYPE', '', options);
+  return useMemo(() => hook, [hook]);
+};

@@ -16,6 +16,7 @@ export const KEY_CASHU_STORE = {
   MINTS: 'MINTS',
   ACTIVE_MINT: 'ACTIVE_MINT',
   ACTIVE_UNIT: 'ACTIVE_UNIT',
+  SIGNER_TYPE: 'SIGNER_TYPE',
 } as const;
 
 // Add error handling helper
@@ -87,3 +88,7 @@ export const storeTransactions = (transactions: ICashuInvoice[]) =>
   storeData(KEY_CASHU_STORE.TRANSACTIONS, transactions);
 
 export const getTransactions = () => getData<ICashuInvoice[]>(KEY_CASHU_STORE.TRANSACTIONS);
+
+export const storeSignerType = (type: string) => storeData(KEY_CASHU_STORE.SIGNER_TYPE, type);
+
+export const getSignerType = () => getData<string>(KEY_CASHU_STORE.SIGNER_TYPE);
