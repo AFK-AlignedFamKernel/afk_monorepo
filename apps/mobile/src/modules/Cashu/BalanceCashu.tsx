@@ -30,6 +30,8 @@ export const BalanceCashu = () => {
     activeCurrency,
     getUnits,
     setActiveCurrency,
+    getUnitBalance,
+    proofs,
   } = useCashuContext()!;
 
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
@@ -65,7 +67,8 @@ export const BalanceCashu = () => {
     })();
 
     getProofsWalletAndBalance();
-  }, [getProofsWalletAndBalance, isSeedCashuStorage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load units and their balances for each mint
   useEffect(() => {
@@ -88,13 +91,24 @@ export const BalanceCashu = () => {
     setActiveCurrency(mintUnits[nextIndex]);
   };
 
+  const [currentUnitBalance, setCurrentUnitBalance] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchBalanceData = async () => {
+      const balance = await getUnitBalance(activeCurrency, mintUrls[activeMintIndex]);
+      setCurrentUnitBalance(balance);
+    };
+    fetchBalanceData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCurrency, proofs]);
+
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
       <TouchableOpacity style={styles.currencyButton} onPress={handleCurrencyChange}>
         <Text style={styles.currencyButtonText}>{activeCurrency.toUpperCase()}</Text>
       </TouchableOpacity>
-      <Text style={styles.balance}>{formatCurrency(balance, activeCurrency)}</Text>
+      <Text style={styles.balance}>{formatCurrency(currentUnitBalance, activeCurrency)}</Text>
       <Text style={styles.activeMintText}>
         Connected to: <b>{mintUrls?.[activeMintIndex]?.alias}</b>
       </Text>

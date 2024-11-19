@@ -4,11 +4,12 @@ import jsQR from 'jsqr';
 import React, {useEffect, useRef, useState} from 'react';
 import {Clipboard, Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
 
-import {CopyIconStack} from '../../../assets/icons';
-import {Button, Input} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {usePayment} from '../../../hooks/usePayment';
+import {CopyIconStack} from '../../assets/icons';
+import {useStyles, useTheme} from '../../hooks';
+import {useToast} from '../../hooks/modals';
+import {usePayment} from '../../hooks/usePayment';
+import {Button} from '../Button';
+import {Input} from '../Input';
 import stylesheet from './styles';
 
 interface ScanCashuQRCodeProps {
@@ -19,13 +20,13 @@ interface VideoElementRef extends HTMLVideoElement {
   srcObject: MediaStream | null;
 }
 
-const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
+export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
-  const {handlePayInvoice, handleGenerateEcash} = usePayment();
+  const {handlePayInvoice, handleReceiveEcash} = usePayment();
   const {showToast} = useToast();
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -64,7 +65,6 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
   const handlePay = async (): Promise<void> => {
     if (scannedData) {
       await handlePayInvoice(scannedData);
-      showToast({title: 'Invoice paid successfully', type: 'success'});
       setModalVisible(false);
       cleanup();
       onClose();
@@ -73,8 +73,7 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
 
   const handleReceive = async (): Promise<void> => {
     if (scannedData) {
-      await handleGenerateEcash(Number(scannedData.replace('cashu', '')));
-      showToast({title: 'eCash received successfully', type: 'success'});
+      await handleReceiveEcash(scannedData);
       setModalVisible(false);
       cleanup();
       onClose();
@@ -320,7 +319,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               />
             ) : null}
             <Text style={styles.modalText}>
-              {scannedData?.startsWith('lnbc') ? 'Pay this invoice?' : 'Receive this eCash?'}
+              {scannedData?.toLowerCase().startsWith('lnbc')
+                ? 'Pay this invoice?'
+                : 'Receive this eCash?'}
             </Text>
             <View style={styles.scannedModalButtonsContainer}>
               <Button
@@ -333,9 +334,9 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               <Button
                 style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
                 textStyle={styles.scannedModalOKButtonText}
-                onPress={scannedData?.startsWith('lnbc') ? handlePay : handleReceive}
+                onPress={scannedData?.toLowerCase().startsWith('lnbc') ? handlePay : handleReceive}
               >
-                {scannedData?.startsWith('lnbc') ? 'Pay' : 'Receive'}
+                {scannedData?.toLowerCase().startsWith('lnbc') ? 'Pay' : 'Receive'}
               </Button>
             </View>
           </View>
@@ -344,5 +345,3 @@ const ScanCashuQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
     </View>
   );
 };
-
-export default ScanCashuQRCode;

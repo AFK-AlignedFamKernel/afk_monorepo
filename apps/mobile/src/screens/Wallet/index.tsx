@@ -8,7 +8,7 @@ import TabSelector from '../../components/TabSelector';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {LayerswapView} from '../../modules/Bridge/layerswap';
-import {CashuWalletView} from '../../modules/Cashu';
+import {CashuWalletView} from '../../modules/CashuWallet';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
 import {OnrampMoney} from '../../modules/onramp/onramp_money';
 import {WalletScreen} from '../../types';
@@ -41,6 +41,9 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
             buttons={TABS_WALLET}
             addScreenNavigation={false}
             useDefaultStyles={false}
+            activeTabStyle={styles.activeTab}
+            activeTabTextStyle={styles.activeTabText}
+            containerStyle={styles.tabsContainer}
           ></TabSelector>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
             {selectedTab == SelectedTab.BRIDGE_LAYERSWAP && (
@@ -51,7 +54,6 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
 
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
-                <Text style={styles.text}>Cashu wallet coming soon</Text>
                 <CashuWalletView></CashuWalletView>
               </View>
             )}

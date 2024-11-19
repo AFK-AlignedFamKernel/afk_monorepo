@@ -67,4 +67,15 @@ export default ThemedStyleSheet((theme) => ({
     right: Spacing.pagePadding,
     bottom: '110%',
   },
+  tabsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  activeTab: {
+    backgroundColor: theme.colors.primary,
+  },
+  activeTabText: {
+    color: theme.colors.white,
+  },
 }));

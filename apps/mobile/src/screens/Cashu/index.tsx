@@ -1,7 +1,7 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 
-import {CashuView} from '../../modules/Cashu';
+import {CashuView} from '../../modules/CashuWallet';
 import {CashuWalletScreenProps} from '../../types';
 export const CashuScreen: React.FC<CashuWalletScreenProps> = () => {
   return (

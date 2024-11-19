@@ -9,7 +9,7 @@ export default ThemedStyleSheet((theme) => ({
     bottom: 45,
     left: 0,
     right: 0,
-    zIndex: 1000,
+    zIndex: 10000,
   },
   content: {
     paddingTop: Spacing.pagePadding,
