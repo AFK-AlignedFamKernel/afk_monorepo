@@ -453,7 +453,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     // TODO: move http fetch for pixel data here?
 
     let pixelInfo = await fetchWrapper(
-      `get-pixel-info&position=${x+y}`
+      `get-pixel-info&position=${x+y*canvasConfig.canvas.width}`
     );
     console.log("pixelInfo data",pixelInfo)
 

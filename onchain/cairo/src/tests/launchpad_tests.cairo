@@ -908,6 +908,7 @@ mod launchpad_tests {
         let starting_price = i129 { sign: true, mag: 100_u128 };
 
         let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
+        println!("lp_meme_supply {:?}", lp_meme_supply);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         start_cheat_caller_address(memecoin.contract_address, OWNER());
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
@@ -943,7 +944,10 @@ mod launchpad_tests {
         println!("balance quote {:?}", balance_quote_launch);
 
         println!("add liquidity ekubo");
-        let (id, position) = launchpad.add_liquidity_ekubo(token_address, params);
+        // let (id, position) = launchpad.add_liquidity_ekubo(token_address, params);
+        launchpad.add_liquidity_ekubo(token_address, params);
+        // println!("id pool {:?}", id);
+
     }
 
     #[test]
@@ -954,7 +958,7 @@ mod launchpad_tests {
         let quote_to_deposit = 215_000;
         let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
 
-        let total_supply=DEFAULT_INITIAL_SUPPLY();
+        let total_supply = DEFAULT_INITIAL_SUPPLY();
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
             .create_unrug_token(
@@ -970,9 +974,21 @@ mod launchpad_tests {
         start_cheat_caller_address(token_address, launchpad.contract_address);
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
+        let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
+        println!("balance meme {:?}", balance_meme_launch);
+
+        let mut balance_meme_launch_owner = memecoin.balance_of(OWNER());
+        println!("balance meme owner {:?}", balance_meme_launch_owner);
+
+        let mut balance_meme_launch_factory = memecoin.balance_of(FACTORY_ADDRESS());
+        println!("balance factory {:?}", balance_meme_launch_factory);
+
+        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
+        balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
+        println!("balance meme {:?}", balance_meme_launch);
         start_cheat_caller_address(memecoin.contract_address, OWNER());
         // memecoin.approve(launchpad.contract_address, total_supply);
-        memecoin.transfer(launchpad.contract_address, total_supply);
+        // memecoin.transfer(launchpad.contract_address, total_supply);
 
         // stop_cheat_caller_address(token_address);
         let launch = launchpad.get_coin_launch(token_address);
@@ -1002,7 +1018,8 @@ mod launchpad_tests {
         run_buy_by_amount(
             launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
         );
-
+        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+        println!("balance balance_quote_launch {:?}", balance_quote_launch);
         println!("add liquidity unrug");
         let (id, position) = launchpad
             .add_liquidity_unrug(

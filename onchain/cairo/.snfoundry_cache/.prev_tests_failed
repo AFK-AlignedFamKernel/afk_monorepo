@@ -1,5 +1,5 @@
 afk::tests::launchpad_tests::launchpad_tests::launchpad_end_to_end
 afk::tests::launchpad_tests::launchpad_tests::test_launch_token_with_uncreated_token
 afk::tests::launchpad_tests::launchpad_tests::test_create_and_add_liquidity_unrug
-afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
 afk::tests::launchpad_tests::launchpad_tests::test_add_liquidity_ekubo
+afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
