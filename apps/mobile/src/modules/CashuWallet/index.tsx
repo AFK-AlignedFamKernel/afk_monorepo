@@ -28,6 +28,7 @@ import {Receive} from './components/Receive';
 import {Send} from './components/Send';
 import {Settings} from './components/Settings';
 import stylesheet from './styles';
+import { Mints } from './components/Mints';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -203,7 +204,7 @@ export const CashuView = () => {
           ) : null}
           {selectedTab == SelectedTab?.CASHU_INVOICES ? <Invoices /> : null}
           {selectedTab == SelectedTab?.CASHU_HISTORY ? <History /> : null}
-          {/* {selectedTab == SelectedTab?.CASHU_MINT ? <Mints></Mints> : null} */}
+          {selectedTab == SelectedTab?.CASHU_MINT ? <Mints /> : null}
         </ScrollView>
       </SafeAreaView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
