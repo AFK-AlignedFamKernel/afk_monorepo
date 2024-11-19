@@ -11,7 +11,7 @@ import {useStyles} from '../../hooks';
 import {WalletOnboarding} from '../../modules/Onboard/wallet';
 import {MainStackNavigationProps} from '../../types';
 import {SelectedTab, TABS_ONBOARDING_WALLET} from '../../types/tab';
-import {CashuWalletView} from '../Cashu';
+import {CashuWalletView} from '../CashuWallet';
 import {LightningNetworkWalletView} from '../Lightning';
 import {DynamicWalletOnboarding} from './dynamic';
 import stylesheet from './styles';
@@ -80,7 +80,6 @@ export const OnboardingComponent: React.FC = () => {
 
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
-                <Text style={styles.text}>Cashu wallet coming soon</Text>
                 <CashuWalletView></CashuWalletView>
               </View>
             )}

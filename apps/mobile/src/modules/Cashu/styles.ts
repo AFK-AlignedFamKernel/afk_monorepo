@@ -50,6 +50,7 @@ export default ThemedStyleSheet((theme) => ({
   invoiceModalContent: {
     width: Dimensions.get('window').width * 0.85,
     maxHeight: Dimensions.get('window').height * 0.8,
+    maxWidth: 400,
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
@@ -151,6 +152,7 @@ export default ThemedStyleSheet((theme) => ({
   txModalContent: {
     width: Dimensions.get('window').width * 0.85,
     maxHeight: Dimensions.get('window').height * 0.8,
+    maxWidth: 400,
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
@@ -292,6 +294,19 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     marginTop: Spacing.small,
     marginBottom: Spacing.small,
+  },
+  pasteButton: {
+    backgroundColor: 'transparant',
+    borderRadius: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    paddingHorizontal: Spacing.medium,
+    paddingVertical: Spacing.xsmall,
+  },
+  pasteButtonText: {
+    color: theme.colors.primary,
+    fontWeight: 'bold',
   },
   buttonText: {
     color: theme.colors.onPrimary,
@@ -695,6 +710,7 @@ export default ThemedStyleSheet((theme) => ({
     maxHeight: '95%',
     overflow: 'scroll',
     paddingBottom: 20,
+    position: 'relative',
   },
   tabContainer: {
     flexDirection: 'column',

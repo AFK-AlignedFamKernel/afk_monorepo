@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import {ScrollView, StyleProp, StyleSheet, TextStyle, View, ViewStyle} from 'react-native';
 
 import {useTheme} from '../../hooks';
 import {Button} from '../Button';
@@ -11,7 +11,9 @@ interface ITabSelector {
   addScreenNavigation?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   tabStyle?: StyleProp<ViewStyle>;
+  tabTextStyle?: StyleProp<TextStyle>;
   activeTabStyle?: StyleProp<ViewStyle>;
+  activeTabTextStyle?: StyleProp<TextStyle>;
   useDefaultStyles?: boolean;
 }
 
@@ -22,7 +24,9 @@ const TabSelector: React.FC<ITabSelector> = ({
   addScreenNavigation = true,
   containerStyle,
   tabStyle,
+  tabTextStyle,
   activeTabStyle,
+  activeTabTextStyle,
   useDefaultStyles = true,
 }) => {
   const {theme} = useTheme();
@@ -85,8 +89,12 @@ const TabSelector: React.FC<ITabSelector> = ({
                 : null,
             ]}
             textStyle={[
-              useDefaultStyles ? dynamicStyles.tabText : null,
-              activeTab === b?.tab && useDefaultStyles ? dynamicStyles.activeTabText : null,
+              useDefaultStyles ? dynamicStyles.tabText : tabTextStyle,
+              activeTab === b?.tab
+                ? useDefaultStyles
+                  ? dynamicStyles.activeTabText
+                  : activeTabTextStyle
+                : null,
             ]}
             onPress={() => handlePress(b?.tab, b?.screen)}
           >

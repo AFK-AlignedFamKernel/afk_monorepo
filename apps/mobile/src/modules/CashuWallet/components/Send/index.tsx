@@ -1,129 +1,61 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import '../../../applyGlobalPolyfills';
+import '../../../../../applyGlobalPolyfills';
 
-import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
 import {Picker} from '@react-native-picker/picker';
-import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
-import {Button, Input} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {usePayment} from '../../hooks/usePayment';
-import {useCashuContext} from '../../providers/CashuProvider';
-import {UnitInfo} from './MintListCashu';
-import ScanCashuQRCode from './qr/ScanCode';
-import SendNostrContact from './SendContact';
+import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
+import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
+import {useStyles, useTheme} from '../../../../hooks';
+import {useToast} from '../../../../hooks/modals';
+import {usePayment} from '../../../../hooks/usePayment';
+import {
+  useActiveMintStorage,
+  useMintStorage,
+  useProofsStorage,
+} from '../../../../hooks/useStorageState';
+import {useCashuContext} from '../../../../providers/CashuProvider';
+import {UnitInfo} from '../../../Cashu/MintListCashu';
+import SendNostrContact from '../../../Cashu/SendContact';
 import stylesheet from './styles';
 
-interface SendEcashProps {
+interface SendProps {
   onClose: () => void;
 }
 
-export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
+export const Send: React.FC<SendProps> = ({onClose}) => {
   type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
   const tabs = ['lightning', 'ecash', 'contact'] as const;
+
+  const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
+  const {showToast} = useToast();
+  const {handleGenerateEcash, handlePayInvoice} = usePayment();
+
+  const {getUnitBalance} = useCashuContext()!;
+
+  const {value: activeMint} = useActiveMintStorage();
+  const {value: mints} = useMintStorage();
+  const {value: proofs} = useProofsStorage();
+
   const [activeTab, setActiveTab] = useState<TabType>('none');
+  const [invoice, setInvoice] = useState<string | undefined>();
+  const [generatedEcash, setGenerateEcash] = useState('');
+  const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
+  const [selectedMint, setSelectedMint] = useState<MintData>();
+  const [selectedCurrency, setSelectedCurrency] = useState('sat');
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
-  const {
-    wallet,
-    connectCashMint,
-    connectCashWallet,
-    requestMintQuote,
-    generateMnemonic,
-    derivedSeedFromMnenomicAndSaved,
-    getMintInfo,
-    mint,
-    mintTokens,
-    mintUrls,
-    activeMintIndex,
-    getUnits,
-    getUnitBalance,
-  } = useCashuContext()!;
-  const [ecash, setEcash] = useState<string | undefined>();
-  const [invoice, setInvoice] = useState<string | undefined>();
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-
-  const styles = useStyles(stylesheet);
-  // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
-
-  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
-  const [infoMint, setMintInfo] = useState<GetInfoResponse | undefined>();
-  const [mintsUrls, setMintUrls] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
-  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
-  const [isZapModalVisible, setIsZapModalVisible] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
-
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const [connectionData, setConnectionData] = useState<any>(null);
-
-  const [generatedInvoice, setGeneratedInvoice] = useState('');
-  const [generatedEcash, setGenerateEcash] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
-  const [invoiceMemo, setInvoiceMemo] = useState('');
-  const {theme} = useTheme();
-  const [newSeed, setNewSeed] = useState<string | undefined>();
-
-  const {showDialog, hideDialog} = useDialog();
-  const {handleGenerateEcash, handlePayInvoice} = usePayment();
-
-  const {showToast} = useToast();
-
-  const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setEcash(value);
-  };
-  useEffect(() => {
-    (async () => {
-      const mintUrl = mintUrls?.[activeMintIndex]?.url;
-      if (!mintUrl) return;
-      const info = await getMintInfo(mintUrl);
-      setMintInfo(info);
-    })();
-
-    // (async () => {
-
-    //   console.log("ndkCashuWallet", ndkCashuWallet)
-    //   console.log("ndkWallet", ndkWallet)
-
-    //   const availableTokens = await ndkCashuWallet?.availableTokens;
-    //   console.log("availableTokens", availableTokens)
-
-    //   const mintBalances = await ndkCashuWallet?.mintBalances;
-    //   console.log("mintBalances", mintBalances)
-
-    //   console.log("mintBalances", mintBalances)
-    //   const wallets = await ndkWallet?.wallets;
-    //   console.log("wallets", wallets)
-
-    //   const balance = await ndkCashuWallet?.balance;
-
-    //   console.log("balance", balance)
-
-    //   if (mint) {
-    //     const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-    //     console.log("mintBalance", mintBalance)
-    //   }
-
-    // })();
-  }, []);
-
   const handleEcash = async () => {
-    console.log('handleEcash');
-
     if (!invoiceAmount) {
       return showToast({
         title: 'Please enter an amount',
@@ -138,8 +70,6 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
         type: 'error',
       });
     }
-    console.log('ecash', ecash);
-    setGeneratedInvoice(ecash);
     setGenerateEcash(ecash);
     return ecash;
   };
@@ -149,30 +79,38 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     if (type == 'ecash') {
       await Clipboard.setStringAsync(generatedEcash);
     }
-    //  else if (type == "seed") {
-    //   if (newSeed) {
-    //     await Clipboard.setStringAsync(newSeed);
-    //   }
-
-    // }
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
-  const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
-  const [selectedMint, setSelectedMint] = useState<MintData>(mintUrls[activeMintIndex]);
-  const [selectedCurrency, setSelectedCurrency] = useState('sat');
+  const handleLightningPayment = () => {
+    if (!invoice) {
+      showToast({
+        title: 'Invoice not found.',
+        type: 'error',
+      });
+      return;
+    }
+    const tokens = handlePayInvoice(invoice);
+    console.log('[PAY] tokens', tokens);
+  };
+
+  useEffect(() => {
+    const mint = mints.filter((mint) => mint.url === activeMint)[0];
+    setSelectedMint(mint);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMint]);
+
   // Load units and their balances for each mint
   useEffect(() => {
     const loadMintUnits = async () => {
       const newMintUnitsMap = new Map<string, UnitInfo[]>();
 
-      for (const mint of mintUrls) {
+      for (const mint of mints) {
         try {
-          const units = await getUnits(mint);
           // Get balance for each unit
           const unitsWithBalance = await Promise.all(
-            units.map(async (unit) => {
-              const balance = await getUnitBalance(unit, mint);
+            mint.units.map(async (unit) => {
+              const balance = await getUnitBalance(unit, mint, proofs);
               return {
                 unit,
                 balance,
@@ -191,11 +129,11 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     };
 
     loadMintUnits();
-  }, [getUnitBalance, getUnits, mintUrls]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mints, proofs]);
 
   const handleOnChangeSelectedMint = (newSelection: string) => {
-    console.log(newSelection);
-    const newSelectedMint = mintUrls.find((mint) => mint.url === newSelection);
+    const newSelectedMint = mints.find((mint) => mint.url === newSelection);
     if (newSelectedMint) setSelectedMint(newSelectedMint);
   };
 
@@ -209,8 +147,6 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
       console.error('Failed to paste content:', error);
     }
   };
-
-  const [isScannerVisible, setIsScannerVisible] = useState(false);
 
   const handleQRCodeClick = () => {
     setIsScannerVisible(true);
@@ -271,7 +207,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                 </View>
 
                 <Button
-                  onPress={() => handlePayInvoice(invoice)}
+                  onPress={handleLightningPayment}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
                 >
@@ -280,7 +216,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
               </>
             </View>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-              <ScanCashuQRCode onClose={handleCloseScanner} />
+              <ScanQRCode onClose={handleCloseScanner} />
             </Modal>
           </>
         );
@@ -298,7 +234,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
               <>
                 <Text style={styles.modalTabLabel}>Select Mint</Text>
                 <Picker
-                  selectedValue={selectedMint.url}
+                  selectedValue={selectedMint?.url}
                   style={[
                     styles.picker,
                     {
@@ -311,11 +247,11 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   ]}
                   onValueChange={(newSelectedMint) => handleOnChangeSelectedMint(newSelectedMint)}
                 >
-                  {mintUrls.map((mintUrl) => (
+                  {mints.map((mint) => (
                     <Picker.Item
-                      key={mintUrl.url}
-                      label={mintUrl.url}
-                      value={mintUrl.url}
+                      key={mint.url}
+                      label={mint.url}
+                      value={mint.url}
                       color={theme.colors.inputText}
                     />
                   ))}
@@ -335,14 +271,18 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   ]}
                   onValueChange={setSelectedCurrency}
                 >
-                  {mintUnitsMap.get(selectedMint.url)?.map((unitInfo) => (
-                    <Picker.Item
-                      key={unitInfo.unit}
-                      label={unitInfo.unit.toUpperCase()}
-                      value={unitInfo.unit}
-                      color={theme.colors.inputText}
-                    />
-                  ))}
+                  {selectedMint
+                    ? mintUnitsMap
+                        .get(selectedMint?.url)
+                        ?.map((unitInfo) => (
+                          <Picker.Item
+                            key={unitInfo.unit}
+                            label={unitInfo.unit.toUpperCase()}
+                            value={unitInfo.unit}
+                            color={theme.colors.inputText}
+                          />
+                        ))
+                    : null}
                 </Picker>
                 <Text style={styles.modalTabLabel}>Amount</Text>
                 <TextInput
@@ -364,10 +304,12 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   <View
                     style={{
                       marginVertical: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 15,
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
-
                     <Input
                       value={generatedEcash}
                       editable={false}
@@ -377,6 +319,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                         </TouchableOpacity>
                       }
                     />
+                    <GenerateQRCode data={generatedEcash} size={200} />
                   </View>
                 )}
               </>
@@ -394,6 +337,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Send Contact</Text>
+              {/* todo */}
               <SendNostrContact />
             </View>
           </>

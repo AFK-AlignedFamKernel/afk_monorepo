@@ -7,7 +7,7 @@ import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
-import {CashuWalletView} from '../../modules/Cashu';
+import {CashuWalletView} from '../../modules/CashuWallet';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
 import {WalletScreenBTC} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';
@@ -72,7 +72,6 @@ export const WalletBTC: React.FC<WalletScreenBTC> = ({navigation}) => {
 
           {selectedTab == SelectedTab.CASHU_WALLET && (
             <View>
-              <Text style={styles.text}>Cashu wallet coming soon</Text>
               <CashuWalletView></CashuWalletView>
             </View>
           )}

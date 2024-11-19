@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
 import {getEncodedToken, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
@@ -17,7 +18,7 @@ import React, {useEffect, useState} from 'react';
 import {FlatList, Modal, Platform, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
-import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../assets/icons';
+import {CopyIconStack, InfoIcon, ViewIcon} from '../../assets/icons';
 import {Button, Divider} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
@@ -60,7 +61,7 @@ export const HistoryTxCashu = () => {
       const invoicesLocal = await getInvoices();
 
       if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
+        const invoices = invoicesLocal;
         const invoicesPaid = invoices.filter(
           (i) => i?.state === MintQuoteState?.ISSUED || i?.state === MintQuoteState.PAID,
         );
@@ -96,7 +97,8 @@ export const HistoryTxCashu = () => {
         if (isSeedCashuStorage) setHasSeedCashu(true);
       }
     })();
-  }, [isSeedCashuStorage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
@@ -153,11 +155,8 @@ export const HistoryTxCashu = () => {
 
   const handleVerify = async (quote?: string) => {
     try {
-      console.log('handleVerify');
       if (!quote) return;
-      console.log('quote', quote);
       const check = await checkMintQuote(quote);
-      console.log('check', check);
       if (check?.state === MintQuoteState.UNPAID) {
         showToast({title: 'Unpaid', type: 'success'});
       } else if (check?.state === MintQuoteState.PAID) {
@@ -189,7 +188,6 @@ export const HistoryTxCashu = () => {
         }
       } else if (check?.state === MintQuoteState.ISSUED) {
         showToast({title: 'Invoice is paid', type: 'success'});
-        const invoice = invoices?.find((i) => i?.quote == quote);
         const invoicesUpdated =
           invoices?.map((i) => {
             if (i?.quote === quote) {
@@ -200,12 +198,6 @@ export const HistoryTxCashu = () => {
           }) ?? [];
         storeInvoices(invoicesUpdated);
         storeTransactions(invoicesUpdated);
-        if (invoice && invoice?.quote) {
-          const received = await handleReceivePaymentPaid(invoice);
-          if (received) {
-            showToast({title: 'Received', type: 'success'});
-          }
-        }
       }
     } catch (e) {
       console.log('handleVerify', e);
@@ -242,6 +234,7 @@ export const HistoryTxCashu = () => {
       return undefined;
     } catch (e) {
       console.log('Error handleReceivePaymentPaid', e);
+      return undefined;
     }
   };
 
@@ -314,12 +307,6 @@ export const HistoryTxCashu = () => {
                         style={styles.txActionButton}
                       >
                         <ViewIcon width={20} height={20} color="transparent" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleVerify(item?.quote)}
-                        style={styles.txActionButton}
-                      >
-                        <RefreshIcon width={20} height={20} color="transparent" />
                       </TouchableOpacity>
                     </View>
                   </TouchableOpacity>
