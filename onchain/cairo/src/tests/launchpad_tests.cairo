@@ -1002,8 +1002,11 @@ mod launchpad_tests {
             transfer_restriction_delay: 100,
             max_percentage_buy_launch: 200, // 2%
             quote_address: quote_token.contract_address,
-            initial_holders: array![launchpad.contract_address].span(),
-            initial_holders_amounts: array![total_token_holded].span(),
+            
+            initial_holders: array![].span(),
+            initial_holders_amounts: array![].span(),
+            // initial_holders: array![launchpad.contract_address].span(),
+            // initial_holders_amounts: array![total_token_holded].span(),
         };
 
         let ekubo_pool_params = EkuboPoolParameters {
