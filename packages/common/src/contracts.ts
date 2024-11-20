@@ -139,6 +139,36 @@ export const USERNAME_STORE_ADDRESS = {
     "0x3af00ab1a4d280793d311c610173bdf84b6e2fd2221bacfc52d19531413e00c",
 };
 
+export const EKUBO_CORE = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x0444a09d96389aa7148f1aada508e30b71299ffe650d9c97fdaae38cb9a23384",
+  [constants.StarknetChainId.SN_MAIN]: "0x00000005dd3D2F4429AF886cD1a3b08289DBcEa99A294197E9eB43b0e0325b4b",
+};
+
+export const EKUBO_POSITION = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x06a2aee84bb0ed5dded4384ddd0e40e9c1372b818668375ab8e3ec08807417e5",
+  [constants.StarknetChainId.SN_MAIN]: "0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067",
+};
+
+
+export const EKUBO_DEX_ADDRESS = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x0045f933adf0607292468ad1c1dedaa74d5ad166392590e72676a34d01d7b763",
+  [constants.StarknetChainId.SN_MAIN]: "0x0199741822c2dc722f6f605204f35e56dbc23bceed54818168c4c49e4fb8737e",
+};
+
+
+export const EKUBO_REGISTRY = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
+  [constants.StarknetChainId.SN_MAIN]: "",
+};
+
+
+
+
+
 
 export const RPC_URLS_NUMBER: { [key: number]: string } = {
   11155111: "https://eth-sepolia.public.blastapi.io",

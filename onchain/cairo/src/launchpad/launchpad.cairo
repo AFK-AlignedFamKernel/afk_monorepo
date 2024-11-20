@@ -268,21 +268,24 @@ pub mod LaunchpadMarketplace {
         step_increase_linear: u256,
         is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
+
         // Stats
         total_keys: u64,
         total_token: u64,
         total_launch: u64,
         total_shares_keys: u64,
-        #[substorage(v0)]
-        accesscontrol: AccessControlComponent::Storage,
-        #[substorage(v0)]
-        src5: SRC5Component::Storage,
-        //Factory
+        
+        // External contract
         factory_address: ContractAddress,
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress
+        #[substorage(v0)]
+        accesscontrol: AccessControlComponent::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage,
+  
     }
 
     #[event]
@@ -317,7 +320,7 @@ pub mod LaunchpadMarketplace {
         threshold_liquidity: u256,
         threshold_market_cap: u256,
         factory_address: ContractAddress,
-        ekubo_registry: ContractAddress,
+        // ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress
@@ -350,7 +353,7 @@ pub mod LaunchpadMarketplace {
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
         self.factory_address.write(factory_address);
-        self.ekubo_registry.write(ekubo_registry);
+        // self.ekubo_registry.write(ekubo_registry);
         self.core.write(core);
         self.positions.write(positions);
         self.ekubo_exchange_address.write(ekubo_exchange_address);
@@ -1442,10 +1445,11 @@ pub mod LaunchpadMarketplace {
             };
 
             // Register the token in Ekubo Registry
-            let registry_address = self.ekubo_registry.read();
+            // let registry_address = self.ekubo_registry.read();
+            // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
+           
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let registry = ITokenRegistryDispatcher { contract_address: registry_address };
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
             //TODO token decimal, amount of 1 token?
 

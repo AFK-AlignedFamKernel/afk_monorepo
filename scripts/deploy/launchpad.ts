@@ -35,6 +35,13 @@ export const deployLaunchpad = async () => {
   let JEDISWAP_FACTORY_ADDRESS =
     JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_SEPOLIA];
 
+
+  let JEDISWAP_ADDRESS_NFT =
+    JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_SEPOLIA];
+  let JEDISWAP_FACTORY_ADDRESS =
+    JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_SEPOLIA];
+
+
   if (chainId == constants.StarknetChainId.SN_MAIN) {
     JEDISWAP_ADDRESS_NFT =
       JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_MAIN];
