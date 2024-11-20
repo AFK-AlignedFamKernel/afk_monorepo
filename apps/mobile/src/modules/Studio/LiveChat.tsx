@@ -1,7 +1,7 @@
 import {Feather} from '@expo/vector-icons';
 import {useQueryClient} from '@tanstack/react-query';
 import {useAuth, useLiveActivity} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Modal,
@@ -46,6 +46,8 @@ export function LiveChatView({
   eventId: string;
 }) {
   const {publicKey} = useAuth();
+  const flatListRef = useRef<FlatList>(null);
+
   const {showToast} = useToast();
   const queryClient = useQueryClient();
   const {useGetLiveChat, useSendLiveChatMessage} = useLiveActivity();
@@ -129,6 +131,14 @@ export function LiveChatView({
     setReplyToContent('');
   };
 
+  useEffect(() => {
+    if (chatMessages?.data) {
+      if (chatMessages?.data?.pages.flat().length > 0) {
+        flatListRef.current?.scrollToEnd({animated: true});
+      }
+    }
+  }, [chatMessages?.data]);
+
   return (
     <SafeAreaView style={styles.chatContainer}>
       <View style={styles.chatHeader}>
@@ -139,11 +149,12 @@ export function LiveChatView({
       </View>
 
       <FlatList
+        ref={flatListRef}
         contentContainerStyle={styles.chatMessages}
-        data={chatMessages.data?.pages.flat()}
+        data={chatMessages.data?.pages.flat().reverse()}
         keyExtractor={(item) => item.id}
         renderItem={({item}) => <MessageCard item={item} handleLongPress={handleLongPress} />}
-        inverted
+        // inverted
         refreshControl={
           <RefreshControl
             refreshing={chatMessages.isFetching}
@@ -151,6 +162,8 @@ export function LiveChatView({
           />
         }
         onEndReached={() => chatMessages.fetchNextPage()}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({animated: true})}
+        onLayout={() => flatListRef.current?.scrollToEnd({animated: true})}
       />
 
       {replyToId && <ReplyIndicator message={replyToContent} onCancel={cancelReply} />}

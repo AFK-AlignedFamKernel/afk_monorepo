@@ -3,7 +3,7 @@ export const LIVE_EVENT_KIND = 30311;
 export const LIVE_CHAT_KIND = 1311;
 
 // Types
-export type LiveEventStatus = 'planned' | 'live' | 'ended';
+export type LiveEventStatus = 'planned' | 'live' | 'ended' | 'DELETED';
 export type Role = 'Host' | 'Participant' | 'Speaker';
 export interface Participant {
   pubkey: string;
@@ -14,6 +14,9 @@ export interface Participant {
 
 export interface LiveEventData {
   identifier: string;
+  created_at?: any;
+  shouldMarkDelete?: boolean;
+  content?: string;
   title?: string;
   summary?: string;
   imageUrl?: string;
@@ -28,6 +31,7 @@ export interface LiveEventData {
   participants: Participant[];
   relays?: string[];
   eventId?: string;
+  tags?: any;
 }
 
 export interface LiveChatMessage {
