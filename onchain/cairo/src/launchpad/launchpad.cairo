@@ -104,7 +104,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     ) -> (u64, EkuboLP);
 
     fn add_liquidity_ekubo(
-        ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+        ref self: TContractState, coin_address: ContractAddress,
+        //  params: EkuboLaunchParameters
     ) -> (u64, EkuboLP);
     // ) -> Span<felt252>;
 
@@ -690,7 +691,7 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
             }
 
             // TODO check reetrancy guard
@@ -881,11 +882,39 @@ pub mod LaunchpadMarketplace {
 
         // TODO finish check
         //  Launch liquidity if threshold ok
+        // Add more exchanges. Start with EKUBO by default
         fn launch_liquidity(ref self: ContractState, coin_address: ContractAddress) {
             let pool = self.launched_coins.read(coin_address);
 
             assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
             assert(pool.is_liquidity_launch == false, 'liquidity already launch');
+
+            // TODO assert of threshold and MC reached
+            let launch = self.launched_coins.read(coin_address);
+
+            // TODO calculate price
+            let starting_price = i129 { sign: true, mag: 100_u128 };
+
+            let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
+                    
+            let params: EkuboLaunchParameters = EkuboLaunchParameters {
+                owner: launch.owner,
+                token_address: launch.token_address,
+                quote_address: launch.token_quote.token_address,
+                lp_supply: lp_meme_supply,
+                // lp_supply: launch.liquidity_raised,
+                pool_params: EkuboPoolParameters {
+                    fee: 0xc49ba5e353f7d00000000000000000,
+                    tick_spacing: 5982,
+                    starting_price,
+                    bound: 88719042,
+                }
+            };
+
+            // TODO auto distrib and claim?
+
+            self._add_liquidity_ekubo(coin_address, params)
+
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
         // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
@@ -1115,9 +1144,35 @@ pub mod LaunchpadMarketplace {
         }
 
         fn add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+            ref self: ContractState, 
+            coin_address: ContractAddress, 
+            // params: EkuboLaunchParameters
         // ) ->  Span<felt252>  {
         ) -> (u64, EkuboLP) {
+
+            // TODO assert of threshold and MC reached
+            let launch = self.launched_coins.read(coin_address);
+
+            // TODO calculate price
+            let starting_price = i129 { sign: true, mag: 100_u128 };
+
+            let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
+                    
+            let params: EkuboLaunchParameters = EkuboLaunchParameters {
+                owner: launch.owner,
+                token_address: launch.token_address,
+                quote_address: launch.token_quote.token_address,
+                lp_supply: lp_meme_supply,
+                // lp_supply: launch.liquidity_raised,
+                pool_params: EkuboPoolParameters {
+                    fee: 0xc49ba5e353f7d00000000000000000,
+                    tick_spacing: 5982,
+                    starting_price,
+                    bound: 88719042,
+                }
+            };
+
+            // TODO auto distrib and claim?
 
             self._add_liquidity_ekubo(coin_address, params)
         }
@@ -1127,7 +1182,6 @@ pub mod LaunchpadMarketplace {
     impl LockerImpl of ILocker<ContractState> {
         /// Callback function called by the core contract.
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-        // fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> @(u64, EkuboLP) {
 
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
@@ -1161,32 +1215,6 @@ pub mod LaunchpadMarketplace {
                     // Initialize the pool at the initial tick.
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     println!("init pool");
-
-                    // // 1. Provide liq that must be put in the pool by the creator, equal
-                    // // to the percentage of the total supply allocated to the team,
-                    // // only at the starting_price price.
-                    // let launched_token = IUnruggableMemecoinDispatcher {
-                    //     contract_address: launch_params.token_address
-                    // };
-                    // let this = get_contract_address();
-                    // let liquidity_for_team = launched_token.balanceOf(this)
-                    //     - launch_params.lp_supply;
-                    // let single_tick_bound = get_next_tick_bounds(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.tick_spacing,
-                    //     is_token1_quote
-                    // );
-                    // self
-                    //     ._supply_liquidity(
-                    //         pool_key,
-                    //         launch_params.token_address,
-                    //         liquidity_for_team,
-                    //         single_tick_bound
-                    //     );
-
-                    // let ekubo_router = self.router.read();
-                    // let market_depth = ekubo_router
-                    //     .get_market_depth(pool_key, 985392111309755760868507187842908160);
 
                     // 2. Provide the liquidity to actually initialize the public pool with
                     // The pool bounds must be set according to the tick spacing.
@@ -1229,8 +1257,6 @@ pub mod LaunchpadMarketplace {
                         ref return_data
                     );
                     return_data.span()
-                    //(id, position)
-
                 }
                 // CallbackData::WithdrawFeesCallback(params) => {
             //     let WithdrawFeesCallback{id, liquidity_type, recipient } = params;
@@ -1332,7 +1358,6 @@ pub mod LaunchpadMarketplace {
 
             // TODO
             // Maybe not needed because you can also create the coin everyhwhere (Unrug) and launch
-            // here assert(!token.owner.is_zero(), 'not launch');
             let mut token_to_use = self.default_token.read();
             let mut quote_token_address = token_to_use.token_address.clone();
             let bond_type = BondingType::Linear;
@@ -1346,23 +1371,14 @@ pub mod LaunchpadMarketplace {
             // Threshold liquidity
             // total supply
 
-            // let (slope, ini_price) = self._calculate_pricing(total_supply/LIQUIDITY_RATIO);
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
-
             let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            // let (slope, ini_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            // println!("slope key price {:?}",slope);
-            // println!("ini_price key price {:?}",ini_price);
-
-            // let initial_key_price = ini_price;
             let initial_key_price = threshold / total_supply;
-            // println!("initial key price {:?}",initial_key_price);
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
             let launch_token_pump = TokenLaunch {
                 owner: caller,
-                // owner: caller,
                 creator: caller,
                 token_address: coin_address, // CREATE 404
                 total_supply: total_supply,
@@ -1393,19 +1409,7 @@ pub mod LaunchpadMarketplace {
             let allowance = memecoin.allowance(caller, get_contract_address());
             // println!("test allowance contract {:?}", allowance);
             let balance_contract = memecoin.balance_of(get_contract_address());
-            // println!("amount balance_contract {:?}", balance_contract);
-
-            // println!("caller {:?}", caller);
-
-            // TODO
-            // Check if allowance or balance is ok
-
-            // TODO recheck if is memecoin
-            // Rate limit in test right now
-
-            // let factory_address = self.factory_address.read();
-            // let factory = IFactoryDispatcher { contract_address: factory_address };
-
+      
             let is_memecoin = is_unruggable;
             // let is_memecoin = factory.is_memecoin(memecoin.contract_address);
             // if balance_contract < total_supply && !is_memecoin {
@@ -1445,7 +1449,6 @@ pub mod LaunchpadMarketplace {
                     }
                 );
         }
-
    
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
         // TODO Increased liquidity if pool already exist
@@ -1467,9 +1470,9 @@ pub mod LaunchpadMarketplace {
             // };
             match exchange {
                 SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
-                // SupportedExchanges::Ekubo => {
-            //     self._add_liquidity_ekubo(coin_address, params)
-            // },
+                SupportedExchanges::Ekubo => {
+                    self._add_liquidity_ekubo(coin_address, params)
+                },
             }
             let mut launch_to_update = self.launched_coins.read(coin_address);
             launch_to_update.is_liquidity_launch = true;
@@ -1496,200 +1499,45 @@ pub mod LaunchpadMarketplace {
             id
         }
 
-
-        fn _supply_liquidity_ekubo_and_mint(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
-        ) -> (u64, EkuboLP) {
-            
-            let core_address = self.core.read();
-            let core = ICoreDispatcher { contract_address: core_address };
-
-            let launch_params: EkuboLaunchParameters = params;
-            let (token0, token1) = sort_tokens(
-                launch_params.token_address, launch_params.quote_address
-            );
-            let pool_key = PoolKey {
-                token0: token0,
-                token1: token1,
-                fee: launch_params.pool_params.fee,
-                tick_spacing: launch_params.pool_params.tick_spacing,
-                extension: 0.try_into().unwrap(),
-            };
-
-            // The initial_tick must correspond to the wanted initial price in quote/MEME
-            // The ekubo prices are always in TOKEN1/TOKEN0.
-            // The initial_tick is the lower bound if the quote is token1, the upper bound
-            // otherwise.
-            let is_token1_quote = launch_params.quote_address == token1;
-            println!("is_token1_quote {:?}", is_token1_quote);
-           
-            let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
-                launch_params.pool_params.starting_price,
-                launch_params.pool_params.bound,
-                is_token1_quote
-            );
-
-            // println!("initial tick {:?}", initial_tick);
-            // // Initialize the pool at the initial tick.
-            // core.maybe_initialize_pool(:pool_key, :initial_tick);
-            // println!("init pool");
-
-            // // 1. Provide liq that must be put in the pool by the creator, equal
-            // // to the percentage of the total supply allocated to the team,
-            // // only at the starting_price price.
-            // let launched_token = IUnruggableMemecoinDispatcher {
-            //     contract_address: launch_params.token_address
-            // };
-            // let this = get_contract_address();
-            // let liquidity_for_team = launched_token.balanceOf(this)
-            //     - launch_params.lp_supply;
-            // let single_tick_bound = get_next_tick_bounds(
-            //     launch_params.pool_params.starting_price,
-            //     launch_params.pool_params.tick_spacing,
-            //     is_token1_quote
-            // );
-            // self
-            //     ._supply_liquidity(
-            //         pool_key,
-            //         launch_params.token_address,
-            //         liquidity_for_team,
-            //         single_tick_bound
-            //     );
-
-            // let ekubo_router = self.router.read();
-            // let market_depth = ekubo_router
-            //     .get_market_depth(pool_key, 985392111309755760868507187842908160);
-
-            // 2. Provide the liquidity to actually initialize the public pool with
-            // The pool bounds must be set according to the tick spacing.
-            // The bounds were previously computed to provide yield covering the entire
-            // interval [lower_bound, starting_price]  or [starting_price, upper_bound]
-            // depending on the quote.
-            let id = self
-                ._supply_liquidity(
-                    pool_key,
-                    launch_params.token_address,
-                    launch_params.lp_supply,
-                    full_range_bounds
-                );
-
-            println!("id supply liquidity {:?}", id);
-
-            let position = EkuboLP {
-            // let position = @EkuboLP {
-                owner: launch_params.owner,
-                quote_address: launch_params.quote_address,
-                pool_key,
-                bounds: full_range_bounds
-            };
-            // println!("position owner {:?}", owner);
-            // println!("position quote_address {:?}", quote_address);
-
-            // At this point, the pool is composed by:
-            // n% of liquidity at precise starting tick, reserved for the team to buy
-            // the rest of the liquidity, in bounds [starting_price, +inf];
-
-            // let mut return_data: Array<felt252> = Default::default();
-            // Serde::serialize(@id, ref return_data);
-            // Serde::serialize(
-            //     @EkuboLP {
-            //         owner: launch_params.owner,
-            //         quote_address: launch_params.quote_address,
-            //         pool_key,
-            //         bounds: full_range_bounds
-            //     },
-            //     ref return_data
-            // );
-            // return_data.span()
-            (id, position)
-
-        }
         fn _add_liquidity_ekubo(
             ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
-        // ) -> Span<felt252> {
-
             // Register the token in Ekubo Registry
             let registry_address = self.ekubo_registry.read();
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
             let registry = ITokenRegistryDispatcher { contract_address: registry_address };
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
-
             //TODO token decimal, amount of 1 token?
 
             let pool = self.launched_coins.read(coin_address);
-
             let dex_address = self.core.read();
-
             let lp_supply = pool.initial_available_supply - pool.available_supply;
-
-            memecoin.approve(registry_address, lp_supply);
             memecoin.approve(ekubo_exchange_address, lp_supply);
-            memecoin.approve(dex_address, lp_supply);
-            memecoin.approve(ekubo_core_address, lp_supply);
-            println!("transfer before register");
-            // memecoin.transfer(registry.contract_address, 1000000000000000000);
-
-            memecoin.transfer(registry.contract_address, pool.available_supply);
-            // memecoin.approve(registry.contract_address, pool.liquidity_raised);
-
+            assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
-
             //TODO token decimal, amount of 1 token?
             let pool = self.launched_coins.read(coin_address);
-
-            // base_token.transfer(ekubo_exchange_address, pool.liquidity_raised);
             base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-
-            // base_token.transfer(registry.contract_address, pool.liquidity_raised);
-            base_token.approve(registry.contract_address, pool.liquidity_raised);
-            base_token.approve(ekubo_core_address, pool.liquidity_raised);
-
-            registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
-
             let core = ICoreDispatcher { contract_address: self.core.read() };
-
             // Call the core with a callback to deposit and mint the LP tokens.
+
             let (id, position) = call_core_with_callback::<
             // let span = call_core_with_callbac00k::<
                 CallbackData, (u64, EkuboLP)
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-            println!("_supply_liquidity_ekubo_and_mint");
-
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
-            // println!("id {:?}", id);
-          
-            // // Clear remaining balances. This is done _after_ the callback by core,
-            // // otherwise the caller in the context would be the core.
-            // let caller = get_caller_address();
-            // let ekubo_clear = IClearDispatcher { contract_address: self.positions.read() };
-            // ekubo_clear
-            //     .clear_minimum_to_recipient(
-            //         EKIERC20Dispatcher { contract_address: params.token_address }, 0, caller
-            //     );
-            // ekubo_clear
-            //     .clear_minimum_to_recipient(
-            //         EKIERC20Dispatcher { contract_address: params.quote_address }, 0, caller
-            //     );
-
             //TODO emit event
+            self.emit(LiquidityCreated {
+                        pool: pool,
+                        asset: token_a,
+                        quote_token_address: token_b,
+                        owner: launch.owner,
+                        exchange:SupportedExchanges::Ekubo
+                    });
+
 
             (id, position)
-
-            // let mut return_data: Array<felt252> = Default::default();
-            // Serde::serialize(@id, ref span);
-            // Serde::serialize(
-            //     @EkuboLP {
-            //         owner: launch_params.owner,
-            //         quote_address: launch_params.quote_address,
-            //         pool_key,
-            //         bounds: full_range_bounds
-            //     },
-            //     ref return_data
-            // );
-            // return_data.span()
-            // span
         }
 
         //TODO: refac & fix
@@ -1747,9 +1595,7 @@ pub mod LaunchpadMarketplace {
             // memecoin.transfer(factory.contract_address, pool.initial_pool_supply);
             // launch liquidity on ekubo
 
-            println!("launch on ekubo with factory");
             let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
-            println!("id {:?}", id);
 
             //TODO
             // let mut launch_to_update = self.launched_coins.read(coin_address);
@@ -1764,6 +1610,7 @@ pub mod LaunchpadMarketplace {
             //     asset: token_a,
             //     quote_token_address: token_b,
             //     owner: launch.owner,
+            // exchange:SupportedExchanges::Ekubo
             // });
 
             (id, position)
@@ -1790,7 +1637,6 @@ pub mod LaunchpadMarketplace {
             let memecoin = factory
                 .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
 
-            println!("memecoin {:?}", memecoin);
             memecoin
         }
 
@@ -1893,18 +1739,13 @@ pub mod LaunchpadMarketplace {
                             // token_id:token_id,
                             owner: launch.owner,
                             asset: asset_token_address,
+                            exchange:SupportedExchanges::Jediswap
+
                         }
                     );
             } else { // TODO 
             // Increase liquidity of this pool.
             }
-        }
-
-        // Function to calculate the price for the next token to be minted
-        fn _get_linear_price(
-            self: @ContractState, initial_price: u256, slope: u256, supply: u256
-        ) -> u256 {
-            return initial_price + (slope * supply);
         }
 
         // Get amount of token received by token quote IN
@@ -1932,8 +1773,8 @@ pub mod LaunchpadMarketplace {
                 let pool_qty = pool_coin.threshold_liquidity.clone();
                 let k = pool_qty * qb_init_supply;
                 let qb = pool_coin.total_token_holded.clone();
-                // let q_out = qa + pool_qty / LIQUIDITY_RATIO - k / (qb + quote_amount);
-                let q_out = qa + (pool_qty / LIQUIDITY_RATIO) - k / (qb + quote_amount);
+                let q_out = qa + pool_qty / LIQUIDITY_RATIO - k / (qb + quote_amount);
+                // let q_out = qa + (pool_qty / LIQUIDITY_RATIO) - k / (qb + quote_amount);
                 return q_out;
             }
 
