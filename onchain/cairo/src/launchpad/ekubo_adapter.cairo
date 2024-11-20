@@ -2,7 +2,7 @@ use afk::errors;
 use afk::exchanges::ekubo::launcher::{
     IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
 };
-use afk::interface::memecoin::{IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait,};
+use afk::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait,};
 use afk::utils::math::PercentageMath;
 use afk::utils::sort_tokens;
 use array::ArrayTrait;
@@ -70,7 +70,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         // Transfer all tokens to the launchpad contract.
         // The team will buyback the tokens from the pool after the LPing operation to earn their
         // initial allocation.
-        let memecoin = IUnruggableMemecoinDispatcher { contract_address: token_address, };
+        let memecoin = IMemecoinDispatcher { contract_address: token_address, };
         let this = get_contract_address();
         memecoin.transfer(ekubo_launchpad.contract_address, memecoin.balance_of(this));
 

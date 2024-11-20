@@ -1,55 +1,59 @@
+// use afk::tokens::erc20::{IERC20};
+use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 use afk::types::launchpad_types::{
     LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
     EkuboLiquidityParameters, EkuboPoolParameters
 };
 use starknet::ContractAddress;
 
-#[starknet::interface]
-pub trait IERC20<TContractState> {
-    fn name(self: @TContractState) -> felt252;
-    fn symbol(self: @TContractState) -> felt252;
-    fn decimals(self: @TContractState) -> u8;
-    fn total_supply(self: @TContractState) -> u256;
-    fn totalSupply(self: @TContractState) -> u256;
-    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
-    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
-    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
-    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
-    fn transfer_from(
-        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
-    ) -> bool;
-    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
-    fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
-    fn decrease_allowance(
-        ref self: TContractState, spender: ContractAddress, subtracted_value: u256
-    );
-}
+// #[starknet::interface]
+// pub trait IERC20<TContractState> {
+//     fn name(self: @TContractState) -> felt252;
+//     fn symbol(self: @TContractState) -> felt252;
+//     fn decimals(self: @TContractState) -> u8;
+//     fn total_supply(self: @TContractState) -> u256;
+//     fn totalSupply(self: @TContractState) -> u256;
+//     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+//     fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
+//     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) ->
+//     u256;
+//     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+//     fn transfer_from(
+//         ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount:
+//         u256
+//     ) -> bool;
+//     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
+//     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
+//     fn decrease_allowance(
+//         ref self: TContractState, spender: ContractAddress, subtracted_value: u256
+//     );
+// }
 
 #[starknet::interface]
-pub trait IMemecoin<TState> {
+pub trait IMemecoin<TContractState> {
     /// Returns whether the memecoin has been launched.
     ///
     /// # Returns
     ///
     /// * `bool` - True if the memecoin has been launched, false otherwise.
-    fn is_launched(self: @TState) -> bool;
+    fn is_launched(self: @TContractState) -> bool;
 
     /// Returns the number of the block during which the token has been launched,
     /// or 0 if not launched yet.
-    fn launched_at_block_number(self: @TState) -> u64;
+    fn launched_at_block_number(self: @TContractState) -> u64;
 
     /// Returns the liquidity parameters used to launch the memecoin.
-    fn launched_with_liquidity_parameters(self: @TState) -> Option<LiquidityParameters>;
+    fn launched_with_liquidity_parameters(self: @TContractState) -> Option<LiquidityParameters>;
 
     /// Returns the type of liquidity the memecoin was launched with,
     /// along with either the LP tokens addresses or the NFT ID.
-    fn liquidity_type(self: @TState) -> Option<LiquidityType>;
+    fn liquidity_type(self: @TContractState) -> Option<LiquidityType>;
 
     /// Returns the team allocation.
-    fn get_team_allocation(self: @TState) -> u256;
+    fn get_team_allocation(self: @TContractState) -> u256;
 
     /// Returns the memecoin factory address.
-    fn memecoin_factory_address(self: @TState) -> ContractAddress;
+    fn memecoin_factory_address(self: @TContractState) -> ContractAddress;
 
     /// Sets the memecoin as launched and transfers ownership to the zero address.
     ///
@@ -72,13 +76,22 @@ pub trait IMemecoin<TState> {
     /// * The memecoin has already been launched (error code: `errors::ALREADY_LAUNCHED`).
     ///
     fn set_launched(
-        ref self: TState,
+        ref self: TContractState,
         liquidity_type: LiquidityType,
         liquidity_params: LiquidityParameters,
         transfer_restriction_delay: u64,
         max_percentage_buy_launch: u16,
         team_allocation: u256,
     );
+    // // Ownable API
+//   // IOwnable
+// fn owner(self: @TContractState) -> ContractAddress;
+// fn transfer_ownership(new_owner: ContractAddress);
+// fn renounce_ownership();
+
+    // // IOwnableCamelOnly
+// fn transferOwnership(newOwner: ContractAddress);
+// fn renounceOwnership();
 }
 
 
@@ -88,6 +101,9 @@ pub mod Memecoin {
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::math::PercentageMath;
     use core::num::traits::Zero;
+    use openzeppelin_access::ownable::OwnableComponent;
+    use openzeppelin_account::interface;
+    use openzeppelin_introspection::src5::SRC5Component;
     // use core::OptionTrait;
     // use core::Option;
     use starknet::storage::{
@@ -102,6 +118,19 @@ pub mod Memecoin {
         EkuboLiquidityParameters, EkuboPoolParameters
     };
 
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
+
+    #[abi(embed_v0)]
+    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
+    impl SRC5InternalImpl = SRC5Component::InternalImpl<ContractState>;
+
+    // Ownable Mixin
+    #[abi(embed_v0)]
+    impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
     // Constants.
     /// The minimum maximum percentage of the supply that can be bought at once.
     const MIN_MAX_PERCENTAGE_BUY_LAUNCH: u16 = 50; // 0.5%
@@ -112,6 +141,7 @@ pub mod Memecoin {
         symbol: felt252,
         decimals: u8,
         total_supply: u256,
+        creator: ContractAddress,
         balances: Map::<ContractAddress, u256>,
         allowances: Map::<(ContractAddress, ContractAddress), u256>,
         //memecoin
@@ -124,6 +154,10 @@ pub mod Memecoin {
         factory_contract: ContractAddress,
         liquidity_type: Option<LiquidityType>,
         max_percentage_buy_launch: u16,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage,
     }
 
     #[event]
@@ -131,6 +165,10 @@ pub mod Memecoin {
     enum Event {
         Transfer: Transfer,
         Approval: Approval,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event,
+        #[flat]
+        SRC5Event: SRC5Component::Event,
     }
     #[derive(Drop, starknet::Event)]
     struct Transfer {
@@ -165,6 +203,13 @@ pub mod Memecoin {
 
         // Initialize the token / internal logic
         self.initializer(factory_address: get_caller_address(), :initial_supply,);
+
+        let caller = get_caller_address();
+        self.creator.write(caller);
+        self.ownable.initializer(caller);
+
+        // Register the contract's support for the ISRC6 interface
+        self.src5.register_interface(interface::ISRC6_ID);
 
         self
             .emit(
@@ -259,6 +304,9 @@ pub mod Memecoin {
 
     #[abi(embed_v0)]
     impl MemecoinEntrypoints of super::IMemecoin<ContractState> {
+        // fn owner(self: @ContractState) -> ContractAddress {
+        //     self.ownable.owner()
+        // }
         fn is_launched(self: @ContractState) -> bool {
             self.launch_time.read().is_non_zero()
         }
@@ -351,6 +399,12 @@ pub mod Memecoin {
     impl MemecoinInternalImpl of MemecoinInternalTrait {
         fn assert_only_factory(self: @ContractState) {
             assert(get_caller_address() == self.factory_contract.read(), errors::NOT_FACTORY);
+        }
+
+        #[external(v0)]
+        fn only_owner_allowed(ref self: ContractState) {
+            // This function can only be called by the owner
+            self.ownable.assert_only_owner();
         }
 
         /// Initializes the state of the memecoin contract.
