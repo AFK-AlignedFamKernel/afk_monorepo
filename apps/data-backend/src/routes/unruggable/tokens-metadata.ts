@@ -1,7 +1,7 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
 import { HTTPStatus } from "../../utils/http";
 
-async function tokenMetadataRoute(fastify: FastifyInstance, options: RouteOptions) {
+async function tokensMetadataRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get("/token-metadata", async (request, reply) => {
     try {
       const response = await fetch("https://unrug.top/api/data/1");
@@ -19,4 +19,4 @@ async function tokenMetadataRoute(fastify: FastifyInstance, options: RouteOption
   });
 }
 
-export default tokenMetadataRoute;
+export default tokensMetadataRoute;
