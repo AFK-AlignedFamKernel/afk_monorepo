@@ -1,21 +1,21 @@
-import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useAccount } from '@starknet-react/core';
-import { useProfile } from 'afk_nostr_sdk';
-import { forwardRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { CallData, uint256 } from 'starknet';
+import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {useAccount} from '@starknet-react/core';
+import {useProfile} from 'afk_nostr_sdk';
+import {forwardRef, useState} from 'react';
+import {Pressable, View} from 'react-native';
+import {CallData, uint256} from 'starknet';
 
-import { Avatar, Button, Input, Modalize, Picker, Text } from '../../../components';
-import { ESCROW_ADDRESSES } from '../../../constants/contracts';
-import { CHAIN_ID } from '../../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../../constants/tokens';
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useTransactionModal } from '../../../hooks/modals';
-import { useDialog } from '../../../hooks/modals/useDialog';
-import { useTransaction } from '../../../hooks/modals/useTransaction';
-import { useWalletModal } from '../../../hooks/modals/useWalletModal';
-import { TipSuccessModalProps } from '../../TipSuccessModal';
+import {Avatar, Button, Input, Modalize, Picker, Text} from '../../../components';
+import {ESCROW_ADDRESSES} from '../../../constants/contracts';
+import {CHAIN_ID} from '../../../constants/env';
+import {DEFAULT_TIMELOCK, Entrypoint} from '../../../constants/misc';
+import {TOKENS, TokenSymbol} from '../../../constants/tokens';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {useTransactionModal} from '../../../hooks/modals';
+import {useDialog} from '../../../hooks/modals/useDialog';
+import {useTransaction} from '../../../hooks/modals/useTransaction';
+import {useWalletModal} from '../../../hooks/modals/useWalletModal';
+import {TipSuccessModalProps} from '../../TipSuccessModal';
 import stylesheet from './styles';
 
 export type TipModalStarknet = Modalize;
@@ -30,21 +30,21 @@ export type TipModalStarknetProps = {
 };
 
 export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
-  ({ event, hide: hideTipModal, showSuccess, hideSuccess }, ref) => {
+  ({event, hide: hideTipModal, showSuccess, hideSuccess}, ref) => {
     const styles = useStyles(stylesheet);
 
     const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
     const [amount, setAmount] = useState<string>('');
 
-    const { data: profile } = useProfile({ publicKey: event?.pubkey });
+    const {data: profile} = useProfile({publicKey: event?.pubkey});
 
     const account = useAccount();
     const walletModal = useWalletModal();
-    const { sendTransaction } = useTransaction({});
-    const { hide: hideTransactionModal } = useTransactionModal();
+    const {sendTransaction} = useTransaction({});
+    const {hide: hideTransactionModal} = useTransactionModal();
     const waitConnection = useWaitConnection();
 
-    const { showDialog, hideDialog } = useDialog();
+    const {showDialog, hideDialog} = useDialog();
 
     const isActive = !!amount && !!token;
 
@@ -83,8 +83,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
           entrypoint: Entrypoint.DEPOSIT,
           calldata: depositCallData,
         },
-      ],
-      );
+      ]);
 
       // if (receipt?.isSuccess()) {
       //   hideTipModal();
@@ -115,7 +114,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
 
     return (
       <Modalize title="Tip" ref={ref} disableScrollIfPossible={false} modalStyle={styles.modal}>
-        <View style={{ flex: 1, flexDirection: 'row' }}>
+        <View style={{flex: 1, flexDirection: 'row'}}>
           <Text>Starknet tip</Text>
 
           <Pressable>Zap coming soon</Pressable>

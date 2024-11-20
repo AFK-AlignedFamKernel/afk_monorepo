@@ -1,6 +1,7 @@
 import React from 'react';
-import {ScrollView, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import {ScrollView, StyleProp, StyleSheet, TextStyle, View, ViewStyle} from 'react-native';
 
+import {useTheme} from '../../hooks';
 import {Button} from '../Button';
 
 interface ITabSelector {
@@ -10,7 +11,10 @@ interface ITabSelector {
   addScreenNavigation?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   tabStyle?: StyleProp<ViewStyle>;
+  tabTextStyle?: StyleProp<TextStyle>;
   activeTabStyle?: StyleProp<ViewStyle>;
+  activeTabTextStyle?: StyleProp<TextStyle>;
+  useDefaultStyles?: boolean;
 }
 
 const TabSelector: React.FC<ITabSelector> = ({
@@ -20,8 +24,44 @@ const TabSelector: React.FC<ITabSelector> = ({
   addScreenNavigation = true,
   containerStyle,
   tabStyle,
+  tabTextStyle,
   activeTabStyle,
+  activeTabTextStyle,
+  useDefaultStyles = true,
 }) => {
+  const {theme} = useTheme();
+
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.surface,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.divider,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+    },
+    tab: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      marginHorizontal: 4,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
+    },
+    active: {
+      backgroundColor: theme.colors.primary,
+    },
+    tabText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: theme.colors.textSecondary,
+    },
+    activeTabText: {
+      color: theme.colors.onPrimary,
+      fontWeight: '600',
+    },
+  });
+
   const handlePress = (tab: string | any, screen?: string) => {
     if (addScreenNavigation) {
       handleActiveTab(tab, screen);
@@ -31,54 +71,39 @@ const TabSelector: React.FC<ITabSelector> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={useDefaultStyles ? dynamicStyles.container : null}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={containerStyle ?? styles.container}
+        contentContainerStyle={useDefaultStyles ? dynamicStyles.scrollContent : containerStyle}
       >
-        {buttons?.map((b, i) => {
-          return (
-            <Button
-              key={i}
-              style={[
-                tabStyle ?? styles.tab,
-                activeTab === b?.tab ? activeTabStyle ?? styles.active : null,
-              ]}
-              onPress={() => handlePress(b?.tab, b?.screen)}
-            >
-              {b?.title}
-            </Button>
-          );
-        })}
+        {buttons?.map((b, i) => (
+          <Button
+            key={i}
+            style={[
+              useDefaultStyles ? dynamicStyles.tab : tabStyle,
+              activeTab === b?.tab
+                ? useDefaultStyles
+                  ? dynamicStyles.active
+                  : activeTabStyle
+                : null,
+            ]}
+            textStyle={[
+              useDefaultStyles ? dynamicStyles.tabText : tabTextStyle,
+              activeTab === b?.tab
+                ? useDefaultStyles
+                  ? dynamicStyles.activeTabText
+                  : activeTabTextStyle
+                : null,
+            ]}
+            onPress={() => handlePress(b?.tab, b?.screen)}
+          >
+            {b?.title}
+          </Button>
+        ))}
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  tabContainer: {
-    height: 50, // Set a fixed height for the tab container
-    backgroundColor: '#f0f0f0', // Optional: background color for the entire tab bar
-  },
-  container: {
-    alignItems: 'center', // Ensure the tabs are vertically centered
-    paddingVertical: 5,
-    flexDirection: 'row',
-  },
-
-  tab: {
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    // padding: 10,
-  },
-  active: {
-    borderBottomWidth: 2,
-    borderColor: 'blue',
-  },
-});
 
 export default TabSelector;

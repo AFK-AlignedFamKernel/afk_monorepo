@@ -6,13 +6,15 @@ pub trait IERC20<TContractState> {
     fn symbol(self: @TContractState) -> felt252;
     fn decimals(self: @TContractState) -> u8;
     fn total_supply(self: @TContractState) -> u256;
+    fn totalSupply(self: @TContractState) -> u256;
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
-    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256);
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
     fn transfer_from(
         ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
-    );
-    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256);
+    ) -> bool;
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
     fn decrease_allowance(
         ref self: TContractState, spender: ContractAddress, subtracted_value: u256
@@ -101,8 +103,16 @@ pub mod ERC20 {
             self.total_supply.read()
         }
 
+        fn totalSupply(self: @ContractState) -> u256 {
+            self.total_supply()
+        }
+        
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
             self.balances.read(account)
+        }
+
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            self.balance_of(account)
         }
 
         fn allowance(
@@ -111,9 +121,10 @@ pub mod ERC20 {
             self.allowances.read((owner, spender))
         }
 
-        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
             let sender = get_caller_address();
             self.transfer_helper(sender, recipient, amount);
+            true
         }
 
         fn transfer_from(
@@ -121,15 +132,17 @@ pub mod ERC20 {
             sender: ContractAddress,
             recipient: ContractAddress,
             amount: u256
-        ) {
+        ) -> bool {
             let caller = get_caller_address();
             self.spend_allowance(sender, caller, amount);
             self.transfer_helper(sender, recipient, amount);
+            true
         }
 
-        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) {
+        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
             let caller = get_caller_address();
             self.approve_helper(caller, spender, amount);
+            true
         }
 
         fn increase_allowance(

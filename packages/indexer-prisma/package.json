@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx prisma generate && npx prisma db pull && tsc",
     "generate":"npx prisma generate",
-    "pull":"npx prisma db pull"
+    "pull":"npx prisma db pull" ,
+    "prisma:setup": "npx prisma generate && npx prisma db push"
   },
   "keywords": [],
   "author": "",

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {getEncodedToken, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
 import {
   getProofs,
   ICashuInvoice,
@@ -11,15 +12,16 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
-import {FlatList, Platform, TouchableOpacity, View} from 'react-native';
+import {FlatList, Modal, Platform, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
-import {CopyIconStack, InfoIcon} from '../../assets/icons';
-import {Button, Divider, Input} from '../../components';
+import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../assets/icons';
+import {Button, Divider} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useCashuContext} from '../../providers/CashuProvider';
 import {SelectedTab} from '../../types/tab';
+import {getRelativeTime} from '../../utils/helpers';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
 import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
 import stylesheet from './styles';
@@ -27,33 +29,18 @@ import stylesheet from './styles';
 export const InvoicesListCashu = () => {
   const styles = useStyles(stylesheet);
 
-  const {
-    wallet,
-    connectCashMint,
-    connectCashWallet,
-    requestMintQuote,
-    generateMnemonic,
-    derivedSeedFromMnenomicAndSaved,
-    getKeySets,
-    getKeys,
-    checkMeltQuote,
-    checkMintQuote,
-    checkProofSpent,
-    receiveP2PK,
-    mintTokens,
-    mint,
-  } = useCashuContext()!;
+  const {checkMintQuote, receiveP2PK, mintTokens, mint, activeCurrency, setProofs} =
+    useCashuContext()!;
 
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
+  const {isSeedCashuStorage} = useCashuStore();
   const [invoices, setInvoices] = useState<ICashuInvoice[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
   useEffect(() => {
     (async () => {
       const invoicesLocal = await getInvoices();
       if (invoicesLocal) {
-        const invoices: ICashuInvoice[] = JSON.parse(invoicesLocal);
-        console.log('invoices', invoices);
-        setInvoices(invoices);
+        setInvoices(invoicesLocal);
       }
     })();
 
@@ -67,25 +54,7 @@ export const InvoicesListCashu = () => {
         if (isSeedCashuStorage) setHasSeedCashu(true);
       }
     })();
-
-    (async () => {
-      // const keysSet = await getKeySets()
-      // const keys = await getKeys()
-      // console.log("keysSet", keysSet)
-      // console.log("keys", keys)
-      // const mintBalances = await ndkCashuWallet?.mintBalances;
-      // console.log("mintBalances", mintBalances)
-      // const availableTokens = await ndkCashuWallet?.availableTokens;
-      // console.log("availableTokens", availableTokens)
-      // const wallets = await ndkWallet?.wallets;
-      // console.log("wallets", wallets)
-      // const balance = await ndkCashuWallet?.balance;
-      // console.log("balance", balance)
-      // if (mint) {
-      //   const mintBalance = await ndkCashuWallet?.mintBalance(mint?.mintUrl);
-      //   console.log("mintBalance", mintBalance)
-      // }
-    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
@@ -143,11 +112,8 @@ export const InvoicesListCashu = () => {
 
   const handleVerify = async (quote?: string) => {
     try {
-      console.log('handleVerify');
       if (!quote) return;
-      console.log('quote', quote);
       const check = await checkMintQuote(quote);
-      console.log('check', check);
       if (check?.state === MintQuoteState.UNPAID) {
         showToast({title: 'Unpaid', type: 'success'});
       } else if (check?.state === MintQuoteState.PAID) {
@@ -158,7 +124,6 @@ export const InvoicesListCashu = () => {
           invoices?.map((i) => {
             if (i?.quote === quote) {
               i.state = MintQuoteState.PAID;
-
               return i;
             }
             return i;
@@ -168,10 +133,7 @@ export const InvoicesListCashu = () => {
         storeTransactions(invoicesUpdated);
 
         if (invoice && invoice?.quote) {
-          console.log('invoice', invoice);
-
           const received = await handleReceivePaymentPaid(invoice);
-          console.log('received', received);
 
           if (received) {
             showToast({title: 'Payment received', type: 'success'});
@@ -179,7 +141,6 @@ export const InvoicesListCashu = () => {
         }
       } else if (check?.state === MintQuoteState.ISSUED) {
         showToast({title: 'Invoice is paid', type: 'success'});
-        const invoice = invoices?.find((i) => i?.quote == quote);
         const invoicesUpdated =
           invoices?.map((i) => {
             if (i?.quote === quote) {
@@ -190,12 +151,6 @@ export const InvoicesListCashu = () => {
           }) ?? [];
         storeInvoices(invoicesUpdated);
         storeTransactions(invoicesUpdated);
-        if (invoice && invoice?.quote) {
-          const received = await handleReceivePaymentPaid(invoice);
-          if (received) {
-            showToast({title: 'Received', type: 'success'});
-          }
-        }
       }
     } catch (e) {
       console.log('handleVerify', e);
@@ -209,26 +164,33 @@ export const InvoicesListCashu = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
-        console.log('receive', receive);
+        // let encoded: string;
+        // const token = {
+        //   token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
+        //   unit: activeCurrency,
+        // } as Token;
+        // try {
+        //   encoded = getEncodedTokenV4(token);
+        // } catch (error) {
+        //   encoded = getEncodedToken(token);
+        // }
 
-        const encoded = getEncodedToken({
-          token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
-        });
         // const response = await wallet?.receive(encoded);
-        const response = await receiveP2PK(encoded);
-        console.log('response', response);
+        // const response = await receiveP2PK(encoded);
+        // console.log('response', response);
         const proofsLocal = await getProofs();
         if (!proofsLocal) {
-          setInvoices(invoices);
-          await storeProofs([...(receive?.proofs as Proof[]), ...(response as Proof[])]);
-          return response;
+          storeProofs([...(receive?.proofs as Proof[])]);
+          setProofs([...(receive?.proofs as Proof[])]);
+          return '';
         } else {
           const proofs: Proof[] = JSON.parse(proofsLocal);
           console.log('invoices', invoices);
           setInvoices(invoices);
           console.log('receive', receive);
-          await storeProofs([...proofs, ...(receive?.proofs as Proof[]), ...(response as Proof[])]);
-          return response;
+          storeProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          setProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          return '';
         }
       }
 
@@ -253,61 +215,92 @@ export const InvoicesListCashu = () => {
     <View style={styles.tabContentContainer}>
       <Text style={styles.tabTitle}>Cashu Invoices</Text>
       {invoices?.length > 0 ? (
-        <FlatList
-          ItemSeparatorComponent={() => <Divider></Divider>}
-          data={invoices?.flat().reverse()}
-          contentContainerStyle={styles.flatListContent}
-          keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-          renderItem={({item}) => {
-            const date = item?.date && new Date(item?.date)?.toISOString();
-            return (
-              <View style={styles.card}>
-                <View>
-                  <Input
-                    value={item?.bolt11}
-                    editable={false}
-                    style={{marginBottom: 10}}
-                    right={
+        <>
+          <View style={styles.tableHeadersContainer}>
+            <View style={styles.amountColumn}>
+              <Text style={styles.tableHeading}>AMOUNT</Text>
+            </View>
+            <View style={styles.actionsColumn}>
+              <Text style={styles.tableHeading}>ACTIONS</Text>
+            </View>
+          </View>
+          <FlatList
+            ItemSeparatorComponent={() => <Divider></Divider>}
+            data={invoices
+              .filter((invoice) => invoice.bolt11)
+              ?.flat()
+              .reverse()}
+            contentContainerStyle={styles.invoicesListContainer}
+            keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
+            renderItem={({item}) => {
+              return (
+                <>
+                  <TouchableOpacity style={styles.invoiceContainer}>
+                    <View style={styles.amountColumn}>
+                      <Text style={styles.amountText}>{item?.amount} sat</Text>
+                    </View>
+                    <View style={styles.actionsColumn}>
                       <TouchableOpacity
-                        onPress={() => handleCopy(item?.bolt11)}
-                        style={{
-                          marginRight: 10,
-                        }}
+                        onPress={() => handleCopy(item.bolt11)}
+                        style={styles.invoicesActionButton}
                       >
-                        <CopyIconStack color={theme.colors.primary} />
+                        <CopyIconStack width={20} height={20} />
                       </TouchableOpacity>
-                    }
-                  />
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Amount:</span> {item?.amount}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Mint:</span> {item?.mint}
-                  </Text>
-                  <Text style={styles.text}>
-                    <span style={{fontWeight: 'bold'}}>Status:</span> {item?.state}
-                  </Text>
-                  {date && (
-                    <Text style={styles.text}>
-                      <span style={{fontWeight: 'bold'}}>Date:</span> {date}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <Button
-                    onPress={() => handleVerify(item?.quote)}
-                    style={{
-                      marginTop: 15,
-                    }}
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedInvoice(item.bolt11 || '');
+                        }}
+                        style={styles.invoicesActionButton}
+                      >
+                        <ViewIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleVerify(item?.quote)}
+                        style={styles.invoicesActionButton}
+                      >
+                        <RefreshIcon width={20} height={20} color="transparent" />
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                  <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={selectedInvoice === item.bolt11}
                   >
-                    Verify
-                  </Button>
-                </View>
-              </View>
-            );
-          }}
-        />
+                    <View style={styles.invoiceModalContainer}>
+                      <View style={styles.invoiceModalContent}>
+                        <Text style={styles.invoiceModalTitle}>Lightning invoice</Text>
+                        <Text style={styles.invoiceModalTextAmount}>
+                          <b>Amount:</b> {item.amount} sat
+                        </Text>
+                        <Text style={styles.invoiceModalTextTime}>
+                          {getRelativeTime(item.date || '')}
+                        </Text>
+                        <Text style={styles.invoiceModalTextState}>{item.state}</Text>
+                        <View style={styles.invoiceModalActionsContainer}>
+                          <Button
+                            onPress={() => handleCopy(item.bolt11)}
+                            style={styles.invoiceModalActionButton}
+                            textStyle={styles.invoiceModalActionButtonText}
+                          >
+                            Copy
+                          </Button>
+                          <Button
+                            onPress={() => setSelectedInvoice('')}
+                            style={styles.invoiceModalActionButton}
+                            textStyle={styles.invoiceModalActionButtonText}
+                          >
+                            Close
+                          </Button>
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
+                </>
+              );
+            }}
+          />
+        </>
       ) : (
         <View style={styles.noDataContainer}>
           <InfoIcon width={30} height={30} color={theme.colors.primary} />

@@ -10,12 +10,14 @@ import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
 import {Button, IconButton, Modalize} from '../../components';
+import {ContactsRow} from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {useModal} from '../../hooks/modals/useModal';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
 import {retrieveAndDecryptCashuMnemonic, retrievePassword} from '../../utils/storage';
+import {ContactList} from '../Contacts/ContactList';
 import {BalanceCashu} from './BalanceCashu';
 import {HistoryTxCashu} from './HistoryTxCashu';
 import {InvoicesListCashu} from './InvoicesListCashu';
@@ -26,8 +28,6 @@ import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import {ReceiveEcash} from './ReceiveEcash';
 import {SendEcash} from './SendEcash';
 import stylesheet from './styles';
-import {ContactsRow} from '../../components/ContactsRow';
-import {ContactList} from '../Contacts/ContactList';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -135,26 +135,31 @@ export const CashuView = () => {
 
   const sendModalizeRef = useRef<Modalize>(null);
 
-  const onOpenSendModal = () => {
-    sendModalizeRef.current?.close();
+  const [sendModalOpen, setSendModalOpen] = useState<boolean>(false);
+  const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <SendEcash></SendEcash>
-      </>,
-    );
+  const onOpenSendModal = () => {
+    setSendModalOpen(true);
+    // sendModalizeRef.current?.close();
+
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <SendEcash></SendEcash>
+    //   </>,
+    // );
   };
 
   const onOpenReceiveModal = () => {
-    sendModalizeRef.current?.close();
+    setReceiveModalOpen(true);
+    // sendModalizeRef.current?.close();
 
-    sendModalizeRef.current?.open();
-    show(
-      <>
-        <ReceiveEcash></ReceiveEcash>
-      </>,
-    );
+    // sendModalizeRef.current?.open();
+    // show(
+    //   <>
+    //     <ReceiveEcash></ReceiveEcash>
+    //   </>,
+    // );
   };
   const handleZap = async () => {
     if (!zapAmount || !zapRecipient) return;
@@ -194,6 +199,16 @@ export const CashuView = () => {
 
   return (
     <View style={styles.container}>
+      <Modal animationType="fade" transparent={true} visible={sendModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <SendEcash onClose={() => setSendModalOpen(false)}></SendEcash>
+        </View>
+      </Modal>
+      <Modal animationType="fade" transparent={true} visible={receiveModalOpen}>
+        <View style={styles.modalBackdrop}>
+          <ReceiveEcash onClose={() => setReceiveModalOpen(false)}></ReceiveEcash>
+        </View>
+      </Modal>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
@@ -282,7 +297,7 @@ export const CashuView = () => {
             </Button>
           </View>
 
-          {showMore && (
+          {showMore ? (
             <TabSelector
               activeTab={selectedTab}
               handleActiveTab={handleTabSelected}
@@ -291,8 +306,9 @@ export const CashuView = () => {
               containerStyle={styles.tabsContainer}
               tabStyle={styles.tabs}
               activeTabStyle={styles.active}
+              useDefaultStyles={false}
             />
-          )}
+          ) : null}
 
           {selectedTab == SelectedTab?.CONTACTS && (
             <ContactsRow onAddContact={handleCloseContactManagement}></ContactsRow>

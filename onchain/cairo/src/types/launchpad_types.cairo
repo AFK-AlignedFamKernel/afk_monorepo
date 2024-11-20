@@ -15,7 +15,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 pub enum SupportedExchanges {
     Jediswap,
     Ekubo,
-    // Starkdefi,
+// Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,
@@ -53,6 +53,7 @@ pub enum TokenType {
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,
+    pub creator: ContractAddress,
     pub token_address: ContractAddress,
     pub symbol: felt252,
     pub name: felt252,
@@ -60,40 +61,29 @@ pub struct Token {
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
+    pub is_unruggable: bool,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct TokenLaunch {
-    pub owner: ContractAddress,
+    pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
+    pub creator: ContractAddress,
     pub token_address: ContractAddress,
-    pub initial_key_price: u256,
-    pub price: u256,
-    pub available_supply: u256,
-    pub initial_pool_supply: u256,
-    pub total_supply: u256,
+    pub price: u256, // Last price of the token. In TODO
+    pub available_supply: u256, // Available to buy
+    pub initial_pool_supply: u256, // Liquidity token to add in the DEX
+    pub initial_available_supply: u256, // Init available to buy
+    pub total_supply: u256, // Total supply to buy
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyCoin,
-    pub liquidity_raised: u256,
-    pub token_holded: u256,
-    pub is_liquidity_launch: bool,
+    pub token_quote: TokenQuoteBuyCoin, // Token launched
+    pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
+    pub total_token_holded: u256, // Number of token holded and buy
+    pub is_liquidity_launch: bool, // Liquidity launch through Ekubo or Unrug
     pub slope: u256,
-    pub threshold_liquidity: u256,
+    pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
-}
-
-#[derive(Drop, Serde, Copy, starknet::Store)]
-pub struct TokenLaunchFair {
-    // pub struct Keys<C> {
-    pub owner: ContractAddress,
-    pub token_address: ContractAddress,
-    pub price: u256,
     pub initial_key_price: u256,
-    pub total_supply: u256,
-    pub bonding_curve_type: Option<BondingType>,
-    pub created_at: u64,
-    pub token_quote: TokenQuoteBuyCoin,
-    pub final_time: u64,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]
@@ -111,7 +101,22 @@ pub struct SharesTokenUser {
 pub struct MetadataLaunch {
     pub token_address: ContractAddress,
     pub url: ByteArray,
+    // pub ipfs_hash: ByteArray,
     pub nostr_event_id: u256,
+}
+
+#[derive(Drop, Serde, Copy, starknet::Store)]
+pub struct TokenLaunchFair {
+    // pub struct Keys<C> {
+    pub owner: ContractAddress,
+    pub token_address: ContractAddress,
+    pub price: u256,
+    pub initial_key_price: u256,
+    pub total_supply: u256,
+    pub bonding_curve_type: Option<BondingType>,
+    pub created_at: u64,
+    pub token_quote: TokenQuoteBuyCoin,
+    pub final_time: u64,
 }
 
 
@@ -219,7 +224,9 @@ pub struct LiquidityCreated {
     #[key]
     pub quote_token_address: ContractAddress,
     // pub token_id:u256,
-    pub owner: ContractAddress
+    pub owner: ContractAddress,
+
+    pub exchange:SupportedExchanges
 }
 
 #[derive(Drop, starknet::Event)]
@@ -253,11 +260,11 @@ pub struct LaunchParameters {
 
 #[derive(Copy, Drop, Serde)]
 pub struct EkuboLaunchParameters {
-    owner: ContractAddress,
-    token_address: ContractAddress,
-    quote_address: ContractAddress,
-    lp_supply: u256,
-    pool_params: EkuboPoolParameters
+    pub owner: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub lp_supply: u256,
+    pub pool_params: EkuboPoolParameters
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -288,14 +295,14 @@ pub enum LiquidityType {
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct EkuboLiquidityParameters {
-    ekubo_pool_parameters: EkuboPoolParameters,
-    quote_address: ContractAddress,
+    pub ekubo_pool_parameters: EkuboPoolParameters,
+    pub quote_address: ContractAddress,
 }
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct JediswapLiquidityParameters {
-    quote_address: ContractAddress,
-    quote_amount: u256,
+    pub quote_address: ContractAddress,
+    pub quote_amount: u256,
 }
 
 // #[derive(Copy, Drop, starknet::Store, Serde)]
@@ -307,6 +314,24 @@ pub struct JediswapLiquidityParameters {
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub enum LiquidityParameters {
     Ekubo: EkuboLiquidityParameters,
-    Jediswap: (JediswapLiquidityParameters, ContractAddress),
-    // StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
+    // pub Jediswap: (JediswapLiquidityParameters, ContractAddress),
+// StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
+}
+
+#[derive(Serde, Drop, Copy)]
+pub struct LaunchCallback {
+    pub params: EkuboLaunchParameters,
+}
+
+// #[derive(Serde, Drop, Copy)]
+// struct WithdrawFeesCallback {
+//     id: u64,
+//     liquidity_type: EkuboLP,
+//     recipient: ContractAddress,
+// }
+
+#[derive(Serde, Drop, Copy)]
+pub enum CallbackData {
+    // WithdrawFeesCallback: WithdrawFeesCallback,
+    LaunchCallback: LaunchCallback,
 }

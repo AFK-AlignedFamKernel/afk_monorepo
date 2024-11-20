@@ -58,7 +58,7 @@ export const AnimatedToast: React.FC<{toast: ToastConfig; hide: () => void}> = (
   return (
     <GestureDetector gesture={pan}>
       <Animated.View ref={containerRef} style={animatedStyle}>
-        <Toast {...toast} onDismiss={onDismiss} />
+        <Toast {...toast} key={toast.key} onDismiss={onDismiss} />
       </Animated.View>
     </GestureDetector>
   );

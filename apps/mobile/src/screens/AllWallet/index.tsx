@@ -8,7 +8,7 @@ import TabSelector from '../../components/TabSelector';
 import {TokenSwap} from '../../components/TokenSwap';
 import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
-import {CashuWalletView} from '../../modules/Cashu';
+import {CashuWalletView} from '../../modules/CashuWallet';
 import {LightningNetworkWalletView} from '../../modules/Lightning';
 import {DefiScreenProps} from '../../types';
 import {SelectedTab, TABS_DEFI} from '../../types/tab';

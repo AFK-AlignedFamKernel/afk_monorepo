@@ -1,22 +1,39 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
 import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {Picker} from '@react-native-picker/picker';
+import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import React, {ChangeEvent, useEffect, useState} from 'react';
-import {SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
+import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
 import {Button, Input} from '../../components';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
-import {SelectedTab} from '../../types/tab';
+import {useCashuContext} from '../../providers/CashuProvider';
+import {UnitInfo} from './MintListCashu';
+import ScanCashuQRCode from './qr/ScanCode';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 
-export const SendEcash = () => {
+interface SendEcashProps {
+  onClose: () => void;
+}
+
+export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
+  type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
+  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const [activeTab, setActiveTab] = useState<TabType>('none');
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
+
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
   const {
     wallet,
@@ -30,15 +47,13 @@ export const SendEcash = () => {
     mintTokens,
     mintUrls,
     activeMintIndex,
-  } = useCashu();
+    getUnits,
+    getUnitBalance,
+  } = useCashuContext()!;
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
   const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
-  const tabs = ['lightning', 'ecash', 'contact'];
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
+
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
 
@@ -66,10 +81,6 @@ export const SendEcash = () => {
   const {handleGenerateEcash, handlePayInvoice} = usePayment();
 
   const {showToast} = useToast();
-
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
-    SelectedTab.LIGHTNING_NETWORK_WALLET,
-  );
 
   const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -133,13 +144,6 @@ export const SendEcash = () => {
     return ecash;
   };
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    if (screen) {
-      // navigation.navigate(screen as any);
-    }
-  };
-
   const handleCopy = async (type: 'ecash') => {
     if (!generatedEcash) return;
     if (type == 'ecash') {
@@ -153,129 +157,251 @@ export const SendEcash = () => {
     // }
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
-  return (
-    <SafeAreaView
-    // style={styles.safeArea}
-    >
-      <View
-      // style={styles.container}
-      >
-        {/* 
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={[
-            {
-              title: "Lightning",
-              tab: undefined
-            }
-          ]}
-          addScreenNavigation={false}
-        ></TabSelector> */}
 
-        <View style={styles.tabContainer}>
-          {tabs.map((tab) => (
+  const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
+  const [selectedMint, setSelectedMint] = useState<MintData>(mintUrls[activeMintIndex]);
+  const [selectedCurrency, setSelectedCurrency] = useState('sat');
+  // Load units and their balances for each mint
+  useEffect(() => {
+    const loadMintUnits = async () => {
+      const newMintUnitsMap = new Map<string, UnitInfo[]>();
+
+      for (const mint of mintUrls) {
+        try {
+          const units = await getUnits(mint);
+          // Get balance for each unit
+          const unitsWithBalance = await Promise.all(
+            units.map(async (unit) => {
+              const balance = await getUnitBalance(unit, mint);
+              return {
+                unit,
+                balance,
+              };
+            }),
+          );
+
+          newMintUnitsMap.set(mint.url, unitsWithBalance);
+        } catch (error) {
+          console.error(`Error loading units for mint ${mint.url}:`, error);
+          newMintUnitsMap.set(mint.url, []);
+        }
+      }
+
+      setMintUnitsMap(newMintUnitsMap);
+    };
+
+    loadMintUnits();
+  }, [getUnitBalance, getUnits, mintUrls]);
+
+  const handleOnChangeSelectedMint = (newSelection: string) => {
+    console.log(newSelection);
+    const newSelectedMint = mintUrls.find((mint) => mint.url === newSelection);
+    if (newSelectedMint) setSelectedMint(newSelectedMint);
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await Clipboard.getStringAsync();
+      if (text) {
+        setInvoice(text);
+      }
+    } catch (error) {
+      console.error('Failed to paste content:', error);
+    }
+  };
+
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+
+  const handleQRCodeClick = () => {
+    setIsScannerVisible(true);
+  };
+
+  const handleCloseScanner = () => {
+    setIsScannerVisible(false);
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'none':
+        return (
+          <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.activeTab]}
-              onPress={() => handleTabChange(tab)}
+              onPress={onClose}
+              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
             >
-              <Text style={styles.tabText}>{tab}</Text>
+              <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
-          ))}
-        </View>
-
-        <View
-        //  style={styles.container}
-        >
-          {/* <View style={styles.content}>
-            <TextInput
-              placeholder="Mint URL"
-              value={mintUrl}
-              onChangeText={setMintUrl}
-              style={styles.input}
-            />
-          </View> */}
-
-          <View
-          // style={styles.text}
-          >
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>Name:</span> {infoMint?.name}
-            </Text>
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>Description:</span> {infoMint?.description}
-            </Text>
-            <Text style={styles.text}>
-              <span style={{fontWeight: 'bold'}}>MOTD:</span> {infoMint?.motd}
-            </Text>
-          </View>
-
-          {activeTab == 'lightning' && (
-            <>
-              <TextInput
-                placeholder="Invoice to paid"
-                value={invoice}
-                onChangeText={setInvoice}
-                style={styles.input}
-              ></TextInput>
-
-              <Button onPress={() => handlePayInvoice(invoice)}>Pay invoice</Button>
-            </>
-          )}
-
-          {activeTab == 'ecash' && (
-            <>
-              <TextInput
-                placeholder="Amount"
-                keyboardType="numeric"
-                value={invoiceAmount}
-                onChangeText={setInvoiceAmount}
-                style={styles.input}
-              />
-              <Button
-                onPress={handleEcash}
-                // onPress={() =>  handleEcash}
+            <View style={styles.tabContainer}>
+              <Text style={styles.modalTabsTitle}>Send</Text>
+              {tabs.map((tab) => (
+                <TouchableOpacity key={tab} style={styles.tab} onPress={() => handleTabChange(tab)}>
+                  <Text style={styles.tabText}>{tab}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </SafeAreaView>
+        );
+      case 'lightning':
+        return (
+          <>
+            <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
               >
-                Generate eCash
-              </Button>
-
-              {generatedEcash && (
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.modalTabContentTitle}>Pay Lightning</Text>
+              <>
+                <TextInput
+                  placeholder="Invoice to paid"
+                  value={invoice}
+                  onChangeText={setInvoice}
+                  style={styles.input}
+                />
                 <View
-                  style={{
-                    marginVertical: 3,
-                  }}
+                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
                 >
-                  <Text style={styles.text}>eCash token</Text>
-
-                  <Input
-                    value={generatedEcash}
-                    editable={false}
-                    right={
-                      <TouchableOpacity
-                        onPress={() => handleCopy('ecash')}
-                        style={
-                          {
-                            // marginRight: 10,
-                          }
-                        }
-                      >
-                        <CopyIconStack color={theme.colors.primary} />
-                      </TouchableOpacity>
-                    }
-                  />
+                  <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
+                    <Text style={styles.pasteButtonText}>PASTE</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleQRCodeClick} style={styles.qrButton}>
+                    <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
+                  </TouchableOpacity>
                 </View>
-              )}
-            </>
-          )}
 
-          {activeTab == 'contact' && (
-            <>
+                <Button
+                  onPress={() => handlePayInvoice(invoice)}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
+                  Pay invoice
+                </Button>
+              </>
+            </View>
+            <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
+              <ScanCashuQRCode onClose={handleCloseScanner} />
+            </Modal>
+          </>
+        );
+      case 'ecash':
+        return (
+          <>
+            <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
+              <>
+                <Text style={styles.modalTabLabel}>Select Mint</Text>
+                <Picker
+                  selectedValue={selectedMint.url}
+                  style={[
+                    styles.picker,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      color: theme.colors.inputText,
+                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      width: '80%',
+                    },
+                  ]}
+                  onValueChange={(newSelectedMint) => handleOnChangeSelectedMint(newSelectedMint)}
+                >
+                  {mintUrls.map((mintUrl) => (
+                    <Picker.Item
+                      key={mintUrl.url}
+                      label={mintUrl.url}
+                      value={mintUrl.url}
+                      color={theme.colors.inputText}
+                    />
+                  ))}
+                </Picker>
+                <Text style={styles.modalTabLabel}>Select Currency</Text>
+                <Picker
+                  selectedValue={selectedCurrency}
+                  style={[
+                    styles.picker,
+                    {
+                      backgroundColor: theme.colors.surface,
+                      color: theme.colors.inputText,
+                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      width: '80%',
+                    },
+                  ]}
+                  onValueChange={setSelectedCurrency}
+                >
+                  {mintUnitsMap.get(selectedMint.url)?.map((unitInfo) => (
+                    <Picker.Item
+                      key={unitInfo.unit}
+                      label={unitInfo.unit.toUpperCase()}
+                      value={unitInfo.unit}
+                      color={theme.colors.inputText}
+                    />
+                  ))}
+                </Picker>
+                <Text style={styles.modalTabLabel}>Amount</Text>
+                <TextInput
+                  placeholder="Amount"
+                  keyboardType="numeric"
+                  value={invoiceAmount}
+                  onChangeText={setInvoiceAmount}
+                  style={styles.input}
+                />
+                <Button
+                  onPress={handleEcash}
+                  style={styles.modalActionButton}
+                  textStyle={styles.modalActionButtonText}
+                >
+                  Generate eCash
+                </Button>
+
+                {generatedEcash && (
+                  <View
+                    style={{
+                      marginVertical: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>eCash token</Text>
+
+                    <Input
+                      value={generatedEcash}
+                      editable={false}
+                      right={
+                        <TouchableOpacity onPress={() => handleCopy('ecash')}>
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
+                    />
+                  </View>
+                )}
+              </>
+            </View>
+          </>
+        );
+      case 'contact':
+        return (
+          <>
+            <View style={styles.modalTabContentContainer}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              >
+                <CloseIcon width={30} height={30} color={theme.colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.modalTabContentTitle}>Send Contact</Text>
               <SendNostrContact />
-            </>
-          )}
-        </View>
-      </View>
-    </SafeAreaView>
-  );
+            </View>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return renderTabContent();
 };
