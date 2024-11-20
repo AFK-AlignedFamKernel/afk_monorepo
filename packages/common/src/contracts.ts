@@ -44,12 +44,11 @@ export const NAMESPACE_ADDRESS = {
 
 export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: "",
-  // [constants.StarknetChainId.SN_SEPOLIA]:"0x5cf19613d54ae5e7c229c87cc26322f2ff6c473d2183723010676b8337c0af3",
-  // [constants.StarknetChainId.SN_SEPOLIA]:"0x19084523bd7307c2169ee32a336be3f9d9eb6bf24197156cb6fc7a42feb7a5"
-  // [constants.StarknetChainId.SN_SEPOLIA]:"0x29a532e6933a6d6f9939e59469d96b52b7c38561745331302e1a29f035e4dd0",
-  // [constants.StarknetChainId.SN_SEPOLIA]:"0x3798921000573bfc442d8153fc088db97bd3794f5ed19ea8c0846db5378f4af",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x595d9c14d5b52bae1bd5a88f3aefb521eca956fde4de95e400197f1080fa862",
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x595d9c14d5b52bae1bd5a88f3aefb521eca956fde4de95e400197f1080fa862",
+    "0x4759ce66610e5883b5406308145a73bacd212cca29883c545d62e011343cd14",
+  
 };
 
 export const ESCROW_ADDRESS = {
@@ -138,6 +137,36 @@ export const USERNAME_STORE_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     "0x3af00ab1a4d280793d311c610173bdf84b6e2fd2221bacfc52d19531413e00c",
 };
+
+export const EKUBO_CORE = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x0444a09d96389aa7148f1aada508e30b71299ffe650d9c97fdaae38cb9a23384",
+  [constants.StarknetChainId.SN_MAIN]: "0x00000005dd3D2F4429AF886cD1a3b08289DBcEa99A294197E9eB43b0e0325b4b",
+};
+
+export const EKUBO_POSITION = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x06a2aee84bb0ed5dded4384ddd0e40e9c1372b818668375ab8e3ec08807417e5",
+  [constants.StarknetChainId.SN_MAIN]: "0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067",
+};
+
+
+export const EKUBO_DEX_ADDRESS = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x0045f933adf0607292468ad1c1dedaa74d5ad166392590e72676a34d01d7b763",
+  [constants.StarknetChainId.SN_MAIN]: "0x0199741822c2dc722f6f605204f35e56dbc23bceed54818168c4c49e4fb8737e",
+};
+
+
+export const EKUBO_REGISTRY = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
+  [constants.StarknetChainId.SN_MAIN]: "",
+};
+
+
+
+
 
 
 export const RPC_URLS_NUMBER: { [key: number]: string } = {

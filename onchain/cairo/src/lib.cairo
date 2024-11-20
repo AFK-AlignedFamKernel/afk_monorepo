@@ -9,7 +9,10 @@ pub mod sha256;
 pub mod social;
 pub mod utils;
 pub mod launchpad {
+    pub mod errors;
+    pub mod helpers;
     pub mod launchpad;
+    pub mod math;
     pub mod utils;
 }
 pub mod quests {

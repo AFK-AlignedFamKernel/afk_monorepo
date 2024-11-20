@@ -30,7 +30,11 @@ export const createLaunchpad = async (
   step_increase_linear: Uint256,
   coin_class_hash: string,
   threshold_liquidity: Uint256,
-  threshold_marketcap: Uint256
+  threshold_marketcap: Uint256,
+  factory_address:string,
+  core:string,
+  positions:string,
+  ekubo_exchange_address:string,
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -79,7 +83,7 @@ export const createLaunchpad = async (
     // console.log("declare account");
 
     if (process.env.REDECLARE_CONTRACT == "true") {
-      console.log("try declare account");
+      console.log("try declare launchpad");
       const declareResponse = await account0.declare({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
@@ -104,6 +108,10 @@ export const createLaunchpad = async (
           coin_class_hash,
           threshold_liquidity,
           threshold_marketcap,
+          factory_address,
+          core,
+          positions,
+          ekubo_exchange_address
         ],
       });
 

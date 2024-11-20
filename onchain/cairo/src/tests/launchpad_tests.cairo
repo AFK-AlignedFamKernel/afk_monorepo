@@ -5,7 +5,8 @@ mod launchpad_tests {
     use afk::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use afk::tokens::memecoin::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediwapNFTRouterV2,
         SetJediwapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
@@ -66,7 +67,7 @@ mod launchpad_tests {
     }
 
     fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
-        0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
+        0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
     }
 
     fn EKUBO_CORE() -> ContractAddress {
@@ -163,7 +164,7 @@ mod launchpad_tests {
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
             FACTORY_ADDRESS(),
-            EKUBO_REGISTRY(),
+            // EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
             EKUBO_EXCHANGE_ADDRESS()
@@ -198,7 +199,7 @@ mod launchpad_tests {
         threshold_liquidity: u256,
         threshold_marketcap: u256,
         factory_address: ContractAddress,
-        ekubo_registry: ContractAddress,
+        // ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress,
@@ -215,7 +216,7 @@ mod launchpad_tests {
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
         calldata.append_serde(factory_address);
-        calldata.append_serde(ekubo_registry);
+        // calldata.append_serde(ekubo_registry);
         calldata.append_serde(core);
         calldata.append_serde(positions);
         calldata.append_serde(ekubo_exchange_address);
@@ -337,6 +338,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
         println!("test token_address {:?}", token_address);
 
@@ -413,6 +415,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false,
             );
         // println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -461,6 +464,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false,
             );
 
         let expected_event = LaunchpadEvent::CreateToken(
@@ -471,6 +475,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 total_supply: DEFAULT_INITIAL_SUPPLY(),
+                is_unruggable: false
             }
         );
         spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
@@ -551,6 +556,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false,
             );
 
         launchpad.launch_token(coin_address: token_address);
@@ -573,6 +579,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false,
             );
 
         launchpad.launch_token(coin_address: token_address);
@@ -606,6 +613,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -631,6 +639,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         launchpad.launch_liquidity(token_address);
@@ -673,6 +682,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let launched_token = launchpad.get_coin_launch(token_address);
@@ -703,6 +713,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
@@ -729,6 +740,7 @@ mod launchpad_tests {
                 name: first_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let second_token_addr = launchpad
@@ -737,6 +749,7 @@ mod launchpad_tests {
                 name: second_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let third_token_addr = launchpad
@@ -745,6 +758,7 @@ mod launchpad_tests {
                 name: third_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let all_launched_coins = launchpad.get_all_coins();
@@ -776,6 +790,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -798,6 +813,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -836,6 +852,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -865,6 +882,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 total_supply: DEFAULT_INITIAL_SUPPLY(),
+                is_unruggable: false,
             }
         );
 
@@ -901,9 +919,14 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
         println!("token_address ekubo launch: {:?}", token_address);
-        println!("Balance of launchpad: {:?}", IERC20Dispatcher { contract_address: token_address}.balance_of(launchpad.contract_address));
+        println!(
+            "Balance of launchpad: {:?}",
+            IERC20Dispatcher { contract_address: token_address }
+                .balance_of(launchpad.contract_address)
+        );
         let launch = launchpad.get_coin_launch(token_address);
         let starting_price = i129 { sign: true, mag: 100_u128 };
         println!("Initial available: {:?}", launch.initial_available_supply);
@@ -916,7 +939,7 @@ mod launchpad_tests {
         memecoin.approve(launchpad.contract_address, lp_meme_supply);
         memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
         stop_cheat_caller_address(memecoin.contract_address);
-        
+
         let params: EkuboLaunchParameters = EkuboLaunchParameters {
             owner: launch.owner,
             token_address: launch.token_address,
@@ -948,7 +971,6 @@ mod launchpad_tests {
         // launchpad.add_liquidity_ekubo(token_address, params);
         launchpad.add_liquidity_ekubo(token_address);
         stop_cheat_caller_address(launchpad.contract_address);
-
     }
 
     #[test]
@@ -1003,11 +1025,10 @@ mod launchpad_tests {
             transfer_restriction_delay: 100,
             max_percentage_buy_launch: 200, // 2%
             quote_address: quote_token.contract_address,
-            
             initial_holders: array![].span(),
             initial_holders_amounts: array![].span(),
             // initial_holders: array![launchpad.contract_address].span(),
-            // initial_holders_amounts: array![total_token_holded].span(),
+        // initial_holders_amounts: array![total_token_holded].span(),
         };
 
         let ekubo_pool_params = EkuboPoolParameters {
@@ -1027,6 +1048,7 @@ mod launchpad_tests {
         println!("add liquidity unrug");
         let (id, position) = launchpad
             .add_liquidity_unrug(
+                token_address,
                 launch_params,
                 EkuboPoolParameters {
                     fee: 0xc49ba5e353f7d00000000000000000,
@@ -1399,6 +1421,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable: false
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };

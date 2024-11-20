@@ -106,7 +106,7 @@ pub mod ERC20 {
         fn totalSupply(self: @ContractState) -> u256 {
             self.total_supply()
         }
-        
+
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
             self.balances.read(account)
         }

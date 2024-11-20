@@ -15,7 +15,7 @@ pub const OPERATOR: felt252 = selector!("OPERATOR");
 pub enum SupportedExchanges {
     Jediswap,
     Ekubo,
-// Starkdefi,
+    // Starkdefi,
 }
 
 #[derive(Serde, Copy, // Clone,
@@ -167,6 +167,7 @@ pub struct CreateToken {
     pub name: felt252,
     pub initial_supply: u256,
     pub total_supply: u256,
+    pub is_unruggable: bool
 }
 
 #[derive(Drop, starknet::Event)]
@@ -225,8 +226,8 @@ pub struct LiquidityCreated {
     pub quote_token_address: ContractAddress,
     // pub token_id:u256,
     pub owner: ContractAddress,
-
-    pub exchange:SupportedExchanges
+    pub exchange: SupportedExchanges,
+    pub is_unruggable: bool
 }
 
 #[derive(Drop, starknet::Event)]

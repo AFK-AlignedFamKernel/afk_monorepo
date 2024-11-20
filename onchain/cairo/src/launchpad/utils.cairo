@@ -1,8 +1,9 @@
+use core::num::traits::{Zero, One};
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 
 use starknet::ContractAddress;
-
+// use integer::u256_from_felt252;
 pub fn sort_tokens(
     tokenA: ContractAddress, tokenB: ContractAddress
 ) -> (ContractAddress, ContractAddress) {
@@ -76,5 +77,46 @@ pub fn get_next_tick_bounds(
     Bounds {
         lower: i129 { sign: bound_sign, mag: lower_mag },
         upper: i129 { sign: bound_sign, mag: upper_mag }
+    }
+}
+
+
+pub fn unique_count<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>) -> u32 {
+    let mut counter = 0;
+    let mut result: Array<T> = array![];
+    loop {
+        match self.pop_front() {
+            Option::Some(value) => {
+                if contains(result.span(), *value) {
+                    continue;
+                }
+                result.append(*value);
+                counter += 1;
+            },
+            Option::None => { break; }
+        }
+    };
+    counter
+}
+
+pub fn sum<T, +Copy<T>, +Drop<T>, +PartialEq<T>, +Zero<T>, +AddEq<T>>(mut self: Span<T>) -> T {
+    let mut result = Zero::zero();
+    loop {
+        match self.pop_front() {
+            Option::Some(value) => { result += *value; },
+            Option::None => { break; }
+        }
+    };
+    result
+}
+
+pub fn contains<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>, value: T) -> bool {
+    loop {
+        match self.pop_front() {
+            Option::Some(current) => { if *current == value {
+                break true;
+            } },
+            Option::None => { break false; }
+        }
     }
 }
