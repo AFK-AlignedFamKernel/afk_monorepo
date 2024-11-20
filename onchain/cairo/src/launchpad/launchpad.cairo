@@ -29,6 +29,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         name: felt252,
         initial_supply: u256,
         contract_address_salt: felt252,
+        is_unruggable: bool
     ) -> ContractAddress;
     fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
@@ -505,7 +506,8 @@ pub mod LaunchpadMarketplace {
             symbol: felt252,
             name: felt252,
             initial_supply: u256,
-            contract_address_salt: felt252
+            contract_address_salt: felt252,
+            is_unruggable:bool
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -517,7 +519,7 @@ pub mod LaunchpadMarketplace {
                     name,
                     initial_supply,
                     contract_address_salt,
-                    false
+                    is_unruggable
                 );
             let contract_address = get_contract_address();
             self._launch_token(token_address, caller, contract_address, false);
@@ -1040,57 +1042,38 @@ pub mod LaunchpadMarketplace {
             symbol: felt252,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_launch_bonding_now: bool
+            is_launch_bonding_now: bool,
+            is_unruggable:bool
         ) -> ContractAddress {
             let caller = get_caller_address();
             let creator = get_caller_address();
             let contract_address = get_contract_address();
             let owner = get_caller_address();
             if is_launch_bonding_now == true {
-                // let token_address = self
-                //     ._create_unrug_token(
-                //         contract_address, name, symbol, initial_supply, contract_address_salt
-                //     );
-                // let contract_address = get_contract_address();
-
-                // let mut token = Token {
-                //     token_address: token_address,
-                //     owner: owner,
-                //     creator: creator,
-                //     name,
-                //     symbol,
-                //     total_supply: initial_supply,
-                //     initial_supply: initial_supply,
-                //     created_at: get_block_timestamp(),
-                //     token_type: Option::None,
-                //     is_unruggable: true
-                // };
+          
                 let token_address = self
                     ._create_token(
-                        recipient,
+                        contract_address,
                         caller,
                         symbol,
                         name,
                         initial_supply,
                         contract_address_salt,
-                        is_unruggable
+                        true
                     );
                 self._launch_token(token_address, caller, contract_address, true);
                 token_address
             } else {
-                // let token_address = self
-                //     ._create_unrug_token(
-                //         owner, name, symbol, initial_supply, contract_address_salt
-                //     );
+         
                 let token_address = self
                     ._create_token(
-                        recipient,
+                        contract_address,
                         caller,
                         symbol,
                         name,
                         initial_supply,
                         contract_address_salt,
-                        is_unruggable
+                        true
                     );
                 let contract_address = get_contract_address();
 
@@ -1355,7 +1338,9 @@ pub mod LaunchpadMarketplace {
             let is_memecoin = is_unruggable;
             // let is_memecoin = factory.is_memecoin(memecoin.contract_address);
             // if balance_contract < total_supply && !is_memecoin {
-            if balance_contract < total_supply && !is_memecoin {
+            if balance_contract < total_supply 
+            // && !is_memecoin 
+            {
                 assert(allowance >= amount_needed, 'no supply provided');
                 if allowance >= amount_needed {
                     println!("allowance > amount_needed{:?}", allowance > amount_needed);

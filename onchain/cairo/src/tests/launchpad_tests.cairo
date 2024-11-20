@@ -338,6 +338,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
         println!("test token_address {:?}", token_address);
 
@@ -474,6 +476,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 total_supply: DEFAULT_INITIAL_SUPPLY(),
+                is_unruggable:false
             }
         );
         spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
@@ -611,6 +614,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -636,6 +641,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         launchpad.launch_liquidity(token_address);
@@ -678,6 +685,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let launched_token = launchpad.get_coin_launch(token_address);
@@ -708,6 +717,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
@@ -734,6 +745,7 @@ mod launchpad_tests {
                 name: first_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
             );
 
         let second_token_addr = launchpad
@@ -742,6 +754,8 @@ mod launchpad_tests {
                 name: second_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let third_token_addr = launchpad
@@ -750,6 +764,8 @@ mod launchpad_tests {
                 name: third_token,
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let all_launched_coins = launchpad.get_all_coins();
@@ -781,6 +797,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -803,6 +821,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -841,6 +861,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -907,6 +929,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(
@@ -1408,6 +1432,8 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
+                is_unruggable:false
+
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
