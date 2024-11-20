@@ -268,24 +268,21 @@ pub mod LaunchpadMarketplace {
         step_increase_linear: u256,
         is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
-
         // Stats
         total_keys: u64,
         total_token: u64,
         total_launch: u64,
         total_shares_keys: u64,
-        
         // External contract
         factory_address: ContractAddress,
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress
+        ekubo_exchange_address: ContractAddress,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-  
     }
 
     #[event]
@@ -510,7 +507,7 @@ pub mod LaunchpadMarketplace {
             name: felt252,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable:bool
+            is_unruggable: bool
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -1052,7 +1049,6 @@ pub mod LaunchpadMarketplace {
             let contract_address = get_contract_address();
             let owner = get_caller_address();
             if is_launch_bonding_now == true {
-          
                 let token_address = self
                     ._create_token(
                         contract_address,
@@ -1066,7 +1062,6 @@ pub mod LaunchpadMarketplace {
                 self._launch_token(token_address, caller, contract_address, true);
                 token_address
             } else {
-         
                 let token_address = self
                     ._create_token(
                         contract_address,
@@ -1340,12 +1335,11 @@ pub mod LaunchpadMarketplace {
             let is_memecoin = is_unruggable;
             // let is_memecoin = factory.is_memecoin(memecoin.contract_address);
             // if balance_contract < total_supply && !is_memecoin {
-            if balance_contract < total_supply 
-            // && !is_memecoin 
-            {
+            if balance_contract < total_supply {
+                // && !is_memecoin
                 assert(allowance >= amount_needed, 'no supply provided');
                 if allowance >= amount_needed {
-                    println!("allowance > amount_needed{:?}", allowance > amount_needed);
+                    // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
                         .transfer_from(
                             caller, get_contract_address(), total_supply - balance_contract
@@ -1447,7 +1441,7 @@ pub mod LaunchpadMarketplace {
             // Register the token in Ekubo Registry
             // let registry_address = self.ekubo_registry.read();
             // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-           
+
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
@@ -1457,11 +1451,13 @@ pub mod LaunchpadMarketplace {
             let dex_address = self.core.read();
             let lp_supply = pool.initial_available_supply - pool.available_supply;
             memecoin.approve(ekubo_exchange_address, lp_supply);
+            memecoin.approve(ekubo_core_address, lp_supply);
             assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
             //TODO token decimal, amount of 1 token?
             // let pool = self.launched_coins.read(coin_address);
             base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
+            base_token.approve(ekubo_core_address, pool.liquidity_raised);
             let core = ICoreDispatcher { contract_address: self.core.read() };
             // Call the core with a callback to deposit and mint the LP tokens.
 
@@ -1627,94 +1623,97 @@ pub mod LaunchpadMarketplace {
             (id, position)
         }
         //TODO: refac & fix
-        fn _add_liquidity_unrug(
-            ref self: ContractState,
-            launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
-        ) -> (u64, EkuboLP) {
-            let fee = 3000; // Example fee, adjust as needed
-            let factory_address = self.factory_address.read();
+        // fn _add_liquidity_unrug(
+        //     ref self: ContractState,
+        //     launch_params: LaunchParameters,
+        //     ekubo_pool_params: EkuboPoolParameters
+        // ) -> (u64, EkuboLP) {
+        //     let fee = 3000; // Example fee, adjust as needed
+        //     let factory_address = self.factory_address.read();
 
-            if factory_address.is_zero() {
-                panic!("Factory address not set");
-            }
+        //     if factory_address.is_zero() {
+        //         panic!("Factory address not set");
+        //     }
 
-            let factory = IFactoryDispatcher {
-                contract_address: factory_address.try_into().unwrap()
-            };
+        //     let factory = IFactoryDispatcher {
+        //         contract_address: factory_address.try_into().unwrap()
+        //     };
 
-            //TODO: Check if the pool exists
+        //     //TODO: Check if the pool exists
 
-            // TODO assert owner
+        //     // TODO assert owner
 
-            // Todo assert threshold liquidity
+        //     // Todo assert threshold liquidity
 
-            // //TODO revisit initial_holders_amounts, transfer_restriction_delay,
+        //     // //TODO revisit initial_holders_amounts, transfer_restriction_delay,
 
-            // Transfer memecoin
+        //     // Transfer memecoin
 
-            let pool = self.launched_coins.read(launch_params.memecoin_address);
-            // TODO readd
-            // assert(!pool.token_address.is_zero(), 'no pool');
+        //     let pool = self.launched_coins.read(launch_params.memecoin_address);
+        //     // TODO readd
+        //     // assert(!pool.token_address.is_zero(), 'no pool');
 
-            let token_address = pool.token_address;
-            assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
-            assert(pool.is_liquidity_launch == false, 'liquidity already launch');
-            let memecoin = IERC20Dispatcher { contract_address: token_address };
-            // memecoin.transfer(factory.contract_address, pool.total_supply -
-            // pool.total_token_holded);
+        //     let token_address = pool.token_address;
+        //     assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
+        //     assert(pool.is_liquidity_launch == false, 'liquidity already launch');
+        //     let memecoin = IERC20Dispatcher { contract_address: token_address };
+        //     // memecoin.transfer(factory.contract_address, pool.total_supply -
+        //     // pool.total_token_holded);
 
-            let erc20 = IERC20Dispatcher { contract_address: launch_params.quote_address };
-            erc20.transfer(factory.contract_address, pool.liquidity_raised);
+        //     let erc20 = IERC20Dispatcher { contract_address: launch_params.quote_address };
+        //     erc20.transfer(factory.contract_address, pool.liquidity_raised);
 
-            // memecoin.transfer(factory.contract_address, pool.initial_pool_supply);
-            // launch liquidity on ekubo
+        //     // memecoin.transfer(factory.contract_address, pool.initial_pool_supply);
+        //     // launch liquidity on ekubo
 
-            // INTERACT NOT WORKING
-            let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
+        //     // INTERACT NOT WORKING
+        //     let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
 
-            //TODO
-            // let mut launch_to_update = self.launched_coins.read(coin_address);
-            // launch_to_update.is_liquidity_launch = true;
-            // launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
-            // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+        //     //TODO
+        //     // let mut launch_to_update = self.launched_coins.read(coin_address);
+        //     // launch_to_update.is_liquidity_launch = true;
+        //     // launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
+        //     // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
 
-            //TODO
-            // Emit LiquidityCreated event
-            // self.emit(LiquidityCreated {
-            //     pool: pool,
-            //     asset: token_a,
-            //     quote_token_address: token_b,
-            //     owner: launch.owner,
-            // exchange:SupportedExchanges::Ekubo
-            // });
+        //     //TODO
+        //     // Emit LiquidityCreated event
+        //     // self.emit(LiquidityCreated {
+        //     //     pool: pool,
+        //     //     asset: token_a,
+        //     //     quote_token_address: token_b,
+        //     //     owner: launch.owner,
+        //     // exchange:SupportedExchanges::Ekubo
+        //     // });
 
-            (id, position)
-        }
+        //     (id, position)
+        // }
 
-        fn _create_unrug_token(
-            ref self: ContractState,
-            owner: ContractAddress,
-            name: felt252,
-            symbol: felt252,
-            initial_supply: u256,
-            contract_address_salt: felt252
-        ) -> ContractAddress {
-            let factory_address = self.factory_address.read();
+        // fn _create_unrug_token(
+        //     ref self: ContractState,
+        //     owner: ContractAddress,
+        //     name: felt252,
+        //     symbol: felt252,
+        //     initial_supply: u256,
+        //     contract_address_salt: felt252
+        // ) -> ContractAddress {
+        //     let factory_address = self.factory_address.read();
 
-            if factory_address.is_zero() {
-                panic!("Factory address not set");
-            }
+        //     if factory_address.is_zero() {
+        //         panic!("Factory address not set");
+        //     }
 
-            let factory = IFactoryDispatcher {
-                contract_address: factory_address.try_into().unwrap()
-            };
+        //     let factory = IFactoryDispatcher {
+        //         contract_address: factory_address.try_into().unwrap()
+        //     };
 
-            let memecoin = factory
-                .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
+        //     // let memecoin = factory
+        //     //     .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
 
-            memecoin
-        }
+        //     let memecoin = factory
+        //     .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
+
+        //     memecoin
+        // }
 
 
         // TODO add liquidity or increase
