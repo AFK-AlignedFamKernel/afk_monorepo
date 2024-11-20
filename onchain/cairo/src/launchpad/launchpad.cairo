@@ -1636,8 +1636,8 @@ pub mod LaunchpadMarketplace {
             // assert!(memecoin.balanceOf(registry.contract_address) == pool.available_supply, "Issue when transfering");
 
             assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
-            registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
-            panic!("BOOM");
+            // registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
+            // panic!("BOOM");
 
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
 
