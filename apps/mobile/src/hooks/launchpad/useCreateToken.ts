@@ -1,8 +1,8 @@
-import {LAUNCHPAD_ADDRESS} from 'common';
-import {AccountInterface, CallData, constants} from 'starknet';
+import { LAUNCHPAD_ADDRESS } from 'common';
+import { AccountInterface, CallData, constants } from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
-import {formatFloatToUint256} from '../../utils/format';
+import { formatFloatToUint256 } from '../../utils/format';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -10,85 +10,107 @@ export type DeployTokenFormValues = {
   symbol: string | undefined;
   initialSupply: number | undefined;
   contract_address_salt: string | undefined;
+  is_unruggable?: boolean
 };
 
 export const useCreateToken = () => {
   const deployToken = async (account: AccountInterface, data: DeployTokenFormValues) => {
-    const CONTRACT_ADDRESS_SALT_DEFAULT =
-      data?.contract_address_salt ??
-      (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
-        ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
-        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
+    try {
 
-    console.log('deployCall');
+      const CONTRACT_ADDRESS_SALT_DEFAULT =
+        data?.contract_address_salt ??
+          (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
+          ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
+          : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
-    const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
+      console.log('deployCall');
 
-    console.log('initial supply', initial_supply);
-    const deployCall = {
-      contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-      entrypoint: 'create_token',
-      calldata: CallData.compile({
-        owner: data?.recipient ?? account?.address,
-        symbol: data.symbol ?? 'LFG',
-        name: data.name ?? 'LFG',
-        initialSupply: initial_supply,
-        // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
-        contract_address_salt: new Date().getTime(),
-        // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
-        // contract_address_salt:cairo.felt(Math.random())
-      }),
-    };
-    console.log('deployCall', deployCall);
+      const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
-    const tx = await account.execute(deployCall);
-    console.log('tx', tx);
+      console.log('initial supply', initial_supply);
+      const deployCall = {
+        contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'create_token',
+        calldata: CallData.compile({
+          owner: data?.recipient ?? account?.address,
+          symbol: data.symbol ?? 'LFG',
+          name: data.name ?? 'LFG',
+          initialSupply: initial_supply,
+          // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
+          contract_address_salt: new Date().getTime(),
+          is_unruggable: data?.is_unruggable
+          // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
+          // contract_address_salt:cairo.felt(Math.random())
+        }),
+      };
+      console.log('deployCall', deployCall);
 
-    console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
+      const tx = await account.execute(deployCall);
+      console.log('tx', tx);
+
+      console.log('tx hash', tx.transaction_hash);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      return wait_tx;
+
+
+    } catch (error) {
+      console.log("Error deploy token", error)
+    }
+
   };
 
   const deployTokenAndLaunch = async (account: AccountInterface, data: DeployTokenFormValues) => {
-    const CONTRACT_ADDRESS_SALT_DEFAULT =
-      data?.contract_address_salt ??
-      (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
-        ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
-        : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
+    try {
+      // const CONTRACT_ADDRESS_SALT_DEFAULT =
+      //   data?.contract_address_salt ??
+      //     (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
+      //     ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
+      //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
-    const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
+      const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
-    console.log('initial supply', initial_supply);
-    const deployCall = {
-      contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-      entrypoint: 'create_and_launch_token',
-      calldata: CallData.compile({
-        name: data.name ?? 'LFG',
-        symbol: data.symbol ?? 'LFG',
-        initialSupply: initial_supply,
-        contract_address_salt: new Date().getTime(),
-      }),
-    };
+      console.log('initial supply', initial_supply);
+      const deployCall = {
+        contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'create_and_launch_token',
+        calldata: CallData.compile({
+          name: data.name ?? 'LFG',
+          symbol: data.symbol ?? 'LFG',
+          initialSupply: initial_supply,
+          contract_address_salt: new Date().getTime(),
+          is_unruggable: data?.is_unruggable
+        }),
+      };
 
-    const tx = await account.execute(deployCall);
-    console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
+      const tx = await account.execute(deployCall);
+      console.log('tx hash', tx.transaction_hash);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      return wait_tx;
+    } catch (error) {
+      console.log("Error deploy token and launch", error)
+
+    }
+
   };
 
   const launchToken = async (account: AccountInterface, coin_address: string) => {
-    const deployCall = {
-      contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-      entrypoint: 'launch_token',
-      calldata: CallData.compile({
-        coin_address,
-      }),
-    };
+    try {
+      const deployCall = {
+        contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'launch_token',
+        calldata: CallData.compile({
+          coin_address,
+        }),
+      };
+  
+      const tx = await account.execute(deployCall);
+      console.log('tx hash', tx.transaction_hash);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      return wait_tx;
+    } catch (error) {
+      console.log("Error launch token",error)
+    }
 
-    const tx = await account.execute(deployCall);
-    console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
   };
 
   return {

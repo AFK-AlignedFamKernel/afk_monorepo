@@ -6,6 +6,7 @@ export type DeployTokenFormValues = {
   symbol: string | undefined;
   initialSupply: number | undefined;
   contract_address_salt: string | undefined;
+  is_unruggable?:boolean
 };
 
 export const useDeployTokenUnruggable = () => {
@@ -22,6 +23,7 @@ export const useDeployTokenUnruggable = () => {
         symbol: data.symbol ?? 'LFG',
         initialSupply: cairo.uint256(data?.initialSupply ?? 100),
         contract_address_salt: new Date().getTime(),
+        // is_unruggable:data?.is_unruggable
       }),
     };
 

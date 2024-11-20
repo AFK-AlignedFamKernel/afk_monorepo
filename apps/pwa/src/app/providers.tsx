@@ -2,6 +2,7 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 
+import {ArgentTMA} from '@argent/tma-wallet';
 import {ChakraProvider, ColorModeProvider} from '@chakra-ui/react';
 // import {EthereumWalletConnectors} from '@dynamic-labs/ethereum';
 // import {DynamicContextProvider, DynamicWidget} from '@dynamic-labs/sdk-react-core';
@@ -19,26 +20,21 @@ import StarknetProvider from '@/context/StarknetProvider';
 
 import theme from '../theme'; // Import your custom theme
 
-
-import { ArgentTMA, SessionAccountInterface } from "@argent/tma-wallet";
-
 export const argentTMA = ArgentTMA.init({
-  environment: "sepolia", // "sepolia" | "mainnet" (not supperted yet)
-  appName: "My TG Mini Test Dapp", // Your Telegram app name
-  appTelegramUrl: process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/afk_aligned_dev_bot", // Your Telegram app URL
+  environment: 'sepolia', // "sepolia" | "mainnet" (not supperted yet)
+  appName: 'My TG Mini Test Dapp', // Your Telegram app name
+  appTelegramUrl: process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? 'https://t.me/afk_aligned_dev_bot', // Your Telegram app URL
   sessionParams: {
     allowedMethods: [
       // List of contracts/methods allowed to be called by the session key
       {
-        contract:
-          "0x036133c88c1954413150db74c26243e2af77170a4032934b275708d84ec5452f",
-        selector: "increment",
-      }
+        contract: '0x036133c88c1954413150db74c26243e2af77170a4032934b275708d84ec5452f',
+        selector: 'increment',
+      },
     ],
-    validityDays: 90 // session validity (in days) - default: 90
+    validityDays: 90, // session validity (in days) - default: 90
   },
 });
-
 
 // import {TanstackProvider} from 'afk_nostr_sdk';
 // import {NostrProvider} from 'afk_nostr_sdk';

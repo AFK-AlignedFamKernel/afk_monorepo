@@ -84,7 +84,7 @@ export const createLaunchpad = async (
 
     if (process.env.REDECLARE_CONTRACT == "true") {
       console.log("try declare launchpad");
-      const declareResponse = await account0.declare({
+      const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
