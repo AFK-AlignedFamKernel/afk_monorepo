@@ -1608,14 +1608,12 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
         // ) -> Span<felt252> {
-
             // Register the token in Ekubo Registry
             let registry_address = self.ekubo_registry.read();
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
             let registry = ITokenRegistryDispatcher { contract_address: registry_address };
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
-
             //TODO token decimal, amount of 1 token?
 
             let pool = self.launched_coins.read(coin_address);
@@ -1623,16 +1621,23 @@ pub mod LaunchpadMarketplace {
             let dex_address = self.core.read();
 
             let lp_supply = pool.initial_available_supply - pool.available_supply;
-
             memecoin.approve(registry_address, lp_supply);
+
             memecoin.approve(ekubo_exchange_address, lp_supply);
             memecoin.approve(dex_address, lp_supply);
             memecoin.approve(ekubo_core_address, lp_supply);
             println!("transfer before register");
             // memecoin.transfer(registry.contract_address, 1000000000000000000);
-
-            memecoin.transfer(registry.contract_address, pool.available_supply);
+            println!("Balance of memecoin: {:?}", memecoin.balanceOf(get_contract_address()));
+            println!("Available supply: {:?}", lp_supply);
+            memecoin.transfer(registry.contract_address, lp_supply);
+            println!("Balance of memecoin registry: {:?}", memecoin.balanceOf(registry.contract_address));
             // memecoin.approve(registry.contract_address, pool.liquidity_raised);
+            // assert!(memecoin.balanceOf(registry.contract_address) == pool.available_supply, "Issue when transfering");
+
+            assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
+            registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
+            panic!("BOOM");
 
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
 
@@ -1646,16 +1651,15 @@ pub mod LaunchpadMarketplace {
             base_token.approve(registry.contract_address, pool.liquidity_raised);
             base_token.approve(ekubo_core_address, pool.liquidity_raised);
 
-            registry.register_token(EKIERC20Dispatcher { contract_address: params.token_address });
-
             let core = ICoreDispatcher { contract_address: self.core.read() };
-
             // Call the core with a callback to deposit and mint the LP tokens.
+
             let (id, position) = call_core_with_callback::<
             // let span = call_core_with_callbac00k::<
                 CallbackData, (u64, EkuboLP)
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
             println!("_supply_liquidity_ekubo_and_mint");
+            // panic!("BOOM");
 
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
             // println!("id {:?}", id);

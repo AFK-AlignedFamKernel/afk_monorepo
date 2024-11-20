@@ -274,6 +274,7 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("buy coin",);
         launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
+        stop_cheat_caller_address(launchpad.contract_address);
     }
 
 
@@ -902,11 +903,10 @@ mod launchpad_tests {
                 contract_address_salt: SALT(),
             );
         println!("token_address ekubo launch: {:?}", token_address);
-
+        println!("Balance of launchpad: {:?}", IERC20Dispatcher { contract_address: token_address}.balance_of(launchpad.contract_address));
         let launch = launchpad.get_coin_launch(token_address);
-
         let starting_price = i129 { sign: true, mag: 100_u128 };
-
+        println!("Initial available: {:?}", launch.initial_available_supply);
         let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
         println!("lp_meme_supply {:?}", lp_meme_supply);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -915,7 +915,8 @@ mod launchpad_tests {
         memecoin.transfer(launchpad.contract_address, lp_meme_supply);
         memecoin.approve(launchpad.contract_address, lp_meme_supply);
         memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
-
+        stop_cheat_caller_address(memecoin.contract_address);
+        
         let params: EkuboLaunchParameters = EkuboLaunchParameters {
             owner: launch.owner,
             token_address: launch.token_address,
@@ -929,7 +930,7 @@ mod launchpad_tests {
                 bound: 88719042,
             }
         };
-        start_cheat_caller_address(erc20.contract_address, OWNER());
+        // start_cheat_caller_address(erc20.contract_address, OWNER());
 
         // memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY());
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
@@ -947,6 +948,7 @@ mod launchpad_tests {
         // let (id, position) = launchpad.add_liquidity_ekubo(token_address, params);
         launchpad.add_liquidity_ekubo(token_address, params);
         // println!("id pool {:?}", id);
+        stop_cheat_caller_address(launchpad.contract_address);
 
     }
 
