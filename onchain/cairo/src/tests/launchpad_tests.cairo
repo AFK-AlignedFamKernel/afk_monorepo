@@ -945,9 +945,8 @@ mod launchpad_tests {
         println!("balance quote {:?}", balance_quote_launch);
 
         println!("add liquidity ekubo");
-        // let (id, position) = launchpad.add_liquidity_ekubo(token_address, params);
-        launchpad.add_liquidity_ekubo(token_address, params);
-        // println!("id pool {:?}", id);
+        // launchpad.add_liquidity_ekubo(token_address, params);
+        launchpad.add_liquidity_ekubo(token_address);
         stop_cheat_caller_address(launchpad.contract_address);
 
     }

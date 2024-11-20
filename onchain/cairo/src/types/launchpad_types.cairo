@@ -224,7 +224,7 @@ pub struct LiquidityCreated {
     #[key]
     pub quote_token_address: ContractAddress,
     // pub token_id:u256,
-    pub owner: ContractAddress
+    pub owner: ContractAddress,
 
     pub exchange:SupportedExchanges
 }
