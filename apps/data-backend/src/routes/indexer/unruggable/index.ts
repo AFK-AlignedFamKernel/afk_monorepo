@@ -17,12 +17,7 @@ async function unrugRoutes(
       const launches = await prisma.unrugmeme_deploy.findMany({
         select: {
           memecoin_address: true,
-          quote_token: true,
-          price: true,
-          total_supply: true,
-          liquidity_raised: true,
-          network: true,
-          created_at: true,
+      
         },
       });
 
@@ -56,12 +51,6 @@ async function unrugRoutes(
         },
         select: {
           memecoin_address: true,
-          quote_token: true,
-          price: true,
-          total_supply: true,
-          liquidity_raised: true,
-          network: true,
-          created_at: true,
         },
       });
 
@@ -95,12 +84,7 @@ async function unrugRoutes(
         },
         select: {
           memecoin_address: true,
-          quote_token: true,
-          price: true,
-          total_supply: true,
-          liquidity_raised: true,
-          network: true,
-          created_at: true,
+       
         },
       });
 
@@ -138,12 +122,6 @@ async function unrugRoutes(
         },
         select: {
           memecoin_address: true,
-          quote_token: true,
-          price: true,
-          total_supply: true,
-          liquidity_raised: true,
-          network: true,
-          created_at: true,
         },
       });
 

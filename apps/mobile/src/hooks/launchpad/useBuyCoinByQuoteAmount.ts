@@ -2,7 +2,7 @@ import {useNetwork} from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
 import {LAUNCHPAD_ADDRESS} from 'common';
 import {AccountInterface, CallData, constants, RpcProvider} from 'starknet';
-
+// import { CairoOption, CairoOptionVariant } from 'starknet';
 import {STRK} from '../../constants/tokens';
 import {formatFloatToUint256} from '../../utils/format';
 
@@ -65,6 +65,7 @@ export const useBuyCoinByQuoteAmount = () => {
         calldata: CallData.compile({
           coin_address: buyCoinParams.coin_address,
           quote_amount: amountUint256,
+          // ekubo_pool:CairoOptionVariant.None
         }),
       };
 

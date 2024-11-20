@@ -38,7 +38,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState,
         coin_address: ContractAddress,
         quote_amount: u256,
-        ekubo_pool_params: Option<EkuboPoolParameters>,
+        // ekubo_pool_params: Option<EkuboPoolParameters>,
     );
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
 
@@ -543,7 +543,7 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState,
             coin_address: ContractAddress,
             quote_amount: u256,
-            ekubo_pool_params: Option<EkuboPoolParameters>
+            // ekubo_pool_params: Option<EkuboPoolParameters>
         ) {
             // assert!(quote_amount > 0, "amount == 0");
             let caller = get_caller_address();

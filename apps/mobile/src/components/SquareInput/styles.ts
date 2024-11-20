@@ -7,6 +7,7 @@ export default ThemedStyleSheet((theme, left: boolean, right: boolean, multiline
   content: {
     borderRadius: 8,
     height: 48,
+    // color:theme.colors.text,
 
     ...(multiline && {
       height: 110,

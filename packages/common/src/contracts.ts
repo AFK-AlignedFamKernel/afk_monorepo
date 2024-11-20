@@ -47,7 +47,7 @@ export const LAUNCHPAD_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x595d9c14d5b52bae1bd5a88f3aefb521eca956fde4de95e400197f1080fa862",
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x4759ce66610e5883b5406308145a73bacd212cca29883c545d62e011343cd14",
+    "0x5ea5ae49d6449896e096c567350ac639604426c61b16671c37fd9b196ec7fa9",
   
 };
 
@@ -110,7 +110,14 @@ export const TOKENS_ADDRESS = {
 export const CLASS_HASH = {
   TOKEN: {
     [constants.StarknetChainId.SN_SEPOLIA]:
-      "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
+      // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
+      "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
+      [constants.StarknetChainId.SN_MAIN]:""
+  },
+  MEMECOIN: {
+    [constants.StarknetChainId.SN_SEPOLIA]:
+      // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
+      "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851"
   },
 };
 
