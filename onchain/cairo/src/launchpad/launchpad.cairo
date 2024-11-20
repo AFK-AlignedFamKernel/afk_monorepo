@@ -1043,7 +1043,6 @@ pub mod LaunchpadMarketplace {
             initial_supply: u256,
             contract_address_salt: felt252,
             is_launch_bonding_now: bool,
-            is_unruggable:bool
         ) -> ContractAddress {
             let caller = get_caller_address();
             let creator = get_caller_address();
