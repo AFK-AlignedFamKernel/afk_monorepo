@@ -100,7 +100,6 @@
     "jsqr": "^1.4.0",
     "memoize-one": "^6.0.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "mobile": "link:",
     "npx": "^10.2.2",
     "path": "^0.12.7",
     "pbkdf2": "^3.1.2",
