@@ -253,7 +253,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                 </Button>
               </>
               <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-                <ScanQRCode onClose={handleCloseScanner} />
+                <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
               </Modal>
             </View>
           </>

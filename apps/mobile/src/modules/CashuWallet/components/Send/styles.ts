@@ -119,4 +119,12 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     fontWeight: 'bold',
   },
+  toastContainer: {
+    paddingTop: Spacing.pagePadding,
+    paddingHorizontal: Spacing.pagePadding,
+    gap: Spacing.xsmall,
+    position: 'absolute',
+    bottom: 10,
+    zIndex: 10000,
+  },
 }));

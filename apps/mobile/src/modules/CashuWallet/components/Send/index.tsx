@@ -4,12 +4,15 @@ import '../../../../../applyGlobalPolyfills';
 import {Picker} from '@react-native-picker/picker';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
+import {randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
 import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
+import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
+import {ToastConfig} from '../../../../context/Toast/ToastContext';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {usePayment} from '../../../../hooks/usePayment';
@@ -50,6 +53,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
   const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
   const [selectedMint, setSelectedMint] = useState<MintData>();
   const [selectedCurrency, setSelectedCurrency] = useState('sat');
+  const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
+  const [showModalToast, setShowModalToast] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -82,16 +88,31 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
-  const handleLightningPayment = () => {
+  const handleLightningPayment = async () => {
+    setIsPaymentProcessing(true);
+    const key = randomUUID();
     if (!invoice) {
-      showToast({
+      setModalToast({
         title: 'Invoice not found.',
         type: 'error',
+        key,
       });
+      setShowModalToast(true);
+      setIsPaymentProcessing(false);
       return;
     }
-    const tokens = handlePayInvoice(invoice);
-    console.log('[PAY] tokens', tokens);
+    const tokens = await handlePayInvoice(invoice);
+    setIsPaymentProcessing(false);
+    if (!tokens) {
+      setModalToast({
+        title: 'Error processing payment.',
+        type: 'error',
+        key,
+      });
+      setShowModalToast(true);
+    } else {
+      onClose();
+    }
   };
 
   useEffect(() => {
@@ -144,7 +165,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
         setInvoice(text);
       }
     } catch (error) {
-      console.error('Failed to paste content:', error);
+      setShowModalToast(true);
+      const key = randomUUID();
+      setModalToast({type: 'error', title: 'Failed to paste content.', key});
     }
   };
 
@@ -210,13 +233,14 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   onPress={handleLightningPayment}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
+                  disabled={isPaymentProcessing}
                 >
-                  Pay invoice
+                  {isPaymentProcessing ? 'Processing...' : 'Pay invoice'}
                 </Button>
               </>
             </View>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-              <ScanQRCode onClose={handleCloseScanner} />
+              <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
             </Modal>
           </>
         );
@@ -347,5 +371,18 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     }
   };
 
-  return renderTabContent();
+  return (
+    <>
+      {renderTabContent()}
+      {showModalToast && modalToast ? (
+        <View style={styles.toastContainer}>
+          <AnimatedToast
+            key={modalToast.key}
+            toast={modalToast}
+            hide={() => setShowModalToast(false)}
+          />
+        </View>
+      ) : null}
+    </>
+  );
 };

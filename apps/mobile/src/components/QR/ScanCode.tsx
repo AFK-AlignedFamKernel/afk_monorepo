@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
+import {randomUUID} from 'expo-crypto';
 import jsQR from 'jsqr';
 import React, {useEffect, useRef, useState} from 'react';
 import {Clipboard, Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
 
 import {CopyIconStack} from '../../assets/icons';
+import {AnimatedToast} from '../../context/Toast/AnimatedToast';
+import {ToastConfig} from '../../context/Toast/ToastContext';
 import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {usePayment} from '../../hooks/usePayment';
@@ -14,18 +17,22 @@ import stylesheet from './styles';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
+  onSuccess: () => void;
 }
 
 interface VideoElementRef extends HTMLVideoElement {
   srcObject: MediaStream | null;
 }
 
-export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
+export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
+  const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
+  const [showModalToast, setShowModalToast] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const {handlePayInvoice, handleReceiveEcash} = usePayment();
   const {showToast} = useToast();
   const {theme} = useTheme();
@@ -57,6 +64,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
       showToast({title: 'Invalid QR code', type: 'error'});
       return;
     }
+    cleanup();
     setScanned(true);
     setScannedData(data);
     setModalVisible(true);
@@ -64,10 +72,23 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
 
   const handlePay = async (): Promise<void> => {
     if (scannedData) {
-      await handlePayInvoice(scannedData);
-      setModalVisible(false);
-      cleanup();
-      onClose();
+      setIsProcessing(true);
+      const tokens = await handlePayInvoice(scannedData);
+      if (tokens) {
+        setModalVisible(false);
+        cleanup();
+        onClose();
+        onSuccess();
+      } else {
+        const key = randomUUID();
+        setModalToast({
+          title: 'Error processing payment.',
+          type: 'error',
+          key,
+        });
+        setShowModalToast(true);
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -199,6 +220,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               style={styles.modalActionButton}
               textStyle={styles.modalActionButtonText}
               onPress={onClose}
+              disabled={isProcessing}
             >
               Cancel
             </Button>
@@ -292,6 +314,15 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
         animationType="fade"
         onRequestClose={handleModalClose}
       >
+        {showModalToast && modalToast ? (
+          <View style={styles.toastContainer}>
+            <AnimatedToast
+              key={modalToast.key}
+              toast={modalToast}
+              hide={() => setShowModalToast(false)}
+            />
+          </View>
+        ) : null}
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.resultText}>Scanned Data</Text>
@@ -334,9 +365,14 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose}) => {
               <Button
                 style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
                 textStyle={styles.scannedModalOKButtonText}
+                disabled={isProcessing}
                 onPress={scannedData?.toLowerCase().startsWith('lnbc') ? handlePay : handleReceive}
               >
-                {scannedData?.toLowerCase().startsWith('lnbc') ? 'Pay' : 'Receive'}
+                {isProcessing
+                  ? 'Processing...'
+                  : scannedData?.toLowerCase().startsWith('lnbc')
+                  ? 'Pay'
+                  : 'Receive'}
               </Button>
             </View>
           </View>

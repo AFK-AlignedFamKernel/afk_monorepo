@@ -16,10 +16,6 @@ export const usePayment = () => {
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
-      showToast({
-        type: 'error',
-        title: 'An error has occurred.',
-      });
       return undefined;
     } else if (proofs) {
       const proofsSpent = await wallet.checkProofsSpent(proofs);
@@ -51,32 +47,16 @@ export const usePayment = () => {
             setTransactions([...transactions, newInvoice]);
             return meltResponse;
           } else {
-            showToast({
-              type: 'error',
-              title: 'An error has occurred',
-            });
             return undefined;
           }
         } catch (error) {
-          showToast({
-            type: 'error',
-            title: 'An error has occurred',
-          });
           return undefined;
         }
       } else {
-        showToast({
-          type: 'error',
-          title: 'An error has occurred.',
-        });
         return undefined;
       }
     } else {
       // no proofs = no balance
-      showToast({
-        type: 'error',
-        title: 'An error has occurred.',
-      });
       return undefined;
     }
   };
