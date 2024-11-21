@@ -108,6 +108,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   };
 
   useEffect(() => {
+    console.log("launchData",launchData)
     if (launchData && launchData.data) {
       setTokens(launchData?.data);
       setToken(launchData?.data);
@@ -184,7 +185,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
     console.log('token', token);
 
-    if (!token?.memecoin_address) return;
+    if (!token?.memecoin_address)  {
+      return showToast({title:"Token can't be find", type:"info"})
+    }
     // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
     const buyResult = await handleBuyCoins(

@@ -733,7 +733,7 @@ pub mod LaunchpadMarketplace {
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
             assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
-
+            assert(old_pool.is_liquidity_launch == false, 'token tradeable');
 
             // TODO fix this function
             // let mut amount = self
@@ -761,10 +761,10 @@ pub mod LaunchpadMarketplace {
                     && protocol_fee_percent >= MIN_FEE_PROTOCOL,
                 'protocol fee out'
             );
-            assert(
-                creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
-                'creator_fee out'
-            );
+            // assert(
+            //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
+            //     'creator_fee out'
+            // );
 
             // assert!(old_share.amount_owned >= amount, "share to sell > supply");
             // println!("amount{:?}", amount);
@@ -777,19 +777,20 @@ pub mod LaunchpadMarketplace {
             let mut pool_update = old_pool.clone();
 
             let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let amount_creator_fee = total_price * creator_fee_percent / BPS;
+            // let amount_creator_fee = total_price * creator_fee_percent / BPS;
             // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
             let remain_liquidity = total_price - amount_protocol_fee;
-            let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
+            // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
+            let amount_to_user: u256 = quote_amount - amount_protocol_fee;
 
             // let remain_liquidity = total_price ;
             assert(old_pool.liquidity_raised >= remain_liquidity, 'liquidity <= amount');
 
             // Ensure fee calculations are correct
-            assert(
-                amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
-                'fee calculation mismatch'
-            );
+            // assert(
+            //     amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
+            //     'fee calculation mismatch'
+            // );
 
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = erc20.balance_of(get_contract_address());
@@ -1285,6 +1286,9 @@ pub mod LaunchpadMarketplace {
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
             let threshold = self.threshold_liquidity.read();
+            let protocol_fee_percent = self.protocol_fee_percent.read();
+            let creator_fee_percent = self.creator_fee_percent.read();
+
             // let threshold = pool.threshold_liquidity;
 
             // TODO calculate initial key price based on
@@ -1324,6 +1328,8 @@ pub mod LaunchpadMarketplace {
                 slope: slope,
                 threshold_liquidity: threshold,
                 liquidity_type: Option::None,
+                protocol_fee_percent:protocol_fee_percent
+                creator_fee_percent:creator_fee_percent
             };
             // Send supply need to launch your coin
             let amount_needed = total_supply.clone();
