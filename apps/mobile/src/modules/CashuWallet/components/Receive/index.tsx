@@ -4,14 +4,16 @@ import '../../../../../applyGlobalPolyfills';
 import {MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
 import {ICashuInvoice} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
+import {randomUUID} from 'expo-crypto';
 import React, {useState} from 'react';
 import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
 import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
+import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
+import {ToastConfig} from '../../../../context/Toast/ToastContext';
 import {useStyles, useTheme} from '../../../../hooks';
-import {useToast} from '../../../../hooks/modals';
 import {usePayment} from '../../../../hooks/usePayment';
 import {
   useActiveMintStorage,
@@ -28,7 +30,6 @@ interface ReceiveProps {
 export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
   const {handleReceiveEcash} = usePayment();
   const {requestMintQuote} = useCashuContext()!;
 
@@ -39,8 +40,11 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
   const [ecash, setEcash] = useState<string | undefined>();
   const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<boolean>(false);
+  const [isInvoiceGenerated, setIsInvoiceGenerated] = useState(false);
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
+  const [showModalToast, setShowModalToast] = useState(false);
 
   const {value: activeMint} = useActiveMintStorage();
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
@@ -52,7 +56,9 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
 
   const generateInvoice = async () => {
     setIsGeneratingInvoice(true);
-    if (!activeMint || !invoiceAmount) return;
+    if (!activeMint || !invoiceAmount) {
+      throw new Error('Active mint or invoice amount is not available.');
+    }
     try {
       const quote = await requestMintQuote(Number(invoiceAmount));
       setQuote(quote?.request);
@@ -73,11 +79,20 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
       } else {
         setInvoices([cashuInvoice]);
       }
+      setIsInvoiceGenerated(true);
     } catch (error) {
-      console.error('Error generating invoice:', error);
+      setShowModalToast(true);
+      const key = randomUUID();
+      setModalToast({type: 'error', title: 'Error generating invoice.', key});
     } finally {
       setIsGeneratingInvoice(false);
     }
+  };
+
+  const handleReset = () => {
+    setInvoiceAmount('');
+    setIsInvoiceGenerated(false);
+    setIsGeneratingInvoice(false);
   };
 
   const handleCopy = async (type: 'lnbc' | 'ecash') => {
@@ -91,7 +106,9 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
         await Clipboard.setStringAsync(ecash);
       }
     }
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    setShowModalToast(true);
+    const key = randomUUID();
+    setModalToast({type: 'info', title: 'Copied to clipboard', key});
   };
 
   const handlePaste = async () => {
@@ -146,24 +163,28 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
               </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Create Invoice</Text>
               <>
-                <TextInput
-                  placeholder="Amount"
-                  keyboardType="numeric"
-                  value={invoiceAmount}
-                  onChangeText={setInvoiceAmount}
-                  style={styles.input}
-                />
+                {!isInvoiceGenerated ? (
+                  <>
+                    <TextInput
+                      placeholder="Amount"
+                      keyboardType="numeric"
+                      value={invoiceAmount}
+                      onChangeText={setInvoiceAmount}
+                      style={styles.input}
+                    />
 
-                <Button
-                  onPress={generateInvoice}
-                  style={styles.modalActionButton}
-                  disabled={isGeneratingInvoice}
-                  textStyle={styles.modalActionButtonText}
-                >
-                  {isGeneratingInvoice ? 'Generating...' : 'Generate invoice'}
-                </Button>
+                    <Button
+                      onPress={generateInvoice}
+                      style={styles.modalActionButton}
+                      disabled={isGeneratingInvoice}
+                      textStyle={styles.modalActionButtonText}
+                    >
+                      {isGeneratingInvoice ? 'Generating...' : 'Generate invoice'}
+                    </Button>
+                  </>
+                ) : null}
 
-                {quote?.request && (
+                {quote?.request && isInvoiceGenerated ? (
                   <View
                     style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}
                   >
@@ -182,8 +203,15 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                       }
                     />
                     <GenerateQRCode data={quote?.request} size={200} />
+                    <Button
+                      onPress={handleReset}
+                      style={styles.modalActionButton}
+                      textStyle={styles.modalActionButtonText}
+                    >
+                      Create another invoice
+                    </Button>
                   </View>
-                )}
+                ) : null}
               </>
             </View>
           </>
@@ -235,5 +263,18 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
     }
   };
 
-  return renderTabContent();
+  return (
+    <>
+      {renderTabContent()}
+      {showModalToast && modalToast ? (
+        <View style={styles.toastContainer}>
+          <AnimatedToast
+            key={modalToast.key}
+            toast={modalToast}
+            hide={() => setShowModalToast(false)}
+          />
+        </View>
+      ) : null}
+    </>
+  );
 };

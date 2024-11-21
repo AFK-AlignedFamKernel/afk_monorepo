@@ -23,12 +23,12 @@ import {ContactList} from '../Contacts/ContactList';
 import {Balance} from './components/Balance';
 import {History} from './components/History';
 import {Invoices} from './components/Invoices';
+import {Mints} from './components/Mints';
 import {NoMintBanner} from './components/NoMintBanner';
 import {Receive} from './components/Receive';
 import {Send} from './components/Send';
 import {Settings} from './components/Settings';
 import stylesheet from './styles';
-import { Mints } from './components/Mints';
 
 export const CashuWalletView: React.FC = () => {
   return (
