@@ -127,8 +127,7 @@ export const usePayment = () => {
   const handleReceiveEcash = async (ecashToken?: string) => {
     try {
       if (!ecashToken) {
-        showToast({title: 'Invalid cashu token.', type: 'error'});
-        return;
+        return undefined;
       }
       const decodedToken = getDecodedToken(ecashToken);
 
@@ -147,10 +146,11 @@ export const usePayment = () => {
           bolt11: ecashToken,
         };
         setTransactions([...transactions, newTx]);
+        return newTx;
       }
+      return undefined;
     } catch (e) {
-      showToast({title: 'An error occurred.', type: 'error'});
-      return;
+      return undefined;
     }
   };
 

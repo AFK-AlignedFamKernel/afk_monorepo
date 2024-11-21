@@ -45,6 +45,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
   const [showModalToast, setShowModalToast] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const {value: activeMint} = useActiveMintStorage();
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
@@ -128,6 +129,19 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
 
   const handleCloseScanner = () => {
     setIsScannerVisible(false);
+  };
+
+  const handleEcashPayment = async (ecash?: string) => {
+    setIsProcessing(true);
+    const response = await handleReceiveEcash(ecash);
+    setIsProcessing(false);
+    if (!response) {
+      const key = randomUUID();
+      setModalToast({type: 'error', title: 'Error processing payment.', key});
+      setShowModalToast(true);
+      return;
+    }
+    onClose();
   };
 
   const renderTabContent = () => {
@@ -245,11 +259,12 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                   </TouchableOpacity>
                 </View>
                 <Button
-                  onPress={() => handleReceiveEcash(ecash)}
+                  onPress={() => handleEcashPayment(ecash)}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
+                  disabled={isProcessing}
                 >
-                  Receive ecash
+                  {isProcessing ? 'Processing...' : 'Receive ecash'}
                 </Button>
               </>
               <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
