@@ -6,7 +6,7 @@ import { prepareAndConnectContract } from "../utils/contract";
 import { createUsernameStore } from "../utils/username_store";
 dotenv.config();
 
-export const deplotUsernameStore = async () => {
+export const deployCanvasNft = async () => {
   let username_store_address: string | undefined = USERNAME_STORE_ADDRESS[
     constants.StarknetChainId.SN_SEPOLIA
   ] as any; // change default address
@@ -37,4 +37,4 @@ export const deplotUsernameStore = async () => {
   };
 };
 
-deplotUsernameStore();
+deployCanvasNft();
