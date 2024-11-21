@@ -269,7 +269,9 @@ pub mod MemecoinV2 {
 
         assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
         self.balances.entry(recipient).write(initial_supply);
-        self.erc20.mint(owner, initial_supply);
+        self.erc20.initializer(name, symbol);
+
+        self.erc20.mint(caller, initial_supply);
 
 
         self.liquidity_type.write(Option::None);
@@ -277,7 +279,6 @@ pub mod MemecoinV2 {
         // Initialize the token / internal logic
         self.initializer(factory_address: get_caller_address(), :initial_supply,);
 
-        self.erc20.initializer(name, symbol);
         // Init Timelock Gov
         // proposers
         // Add params
