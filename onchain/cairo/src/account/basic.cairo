@@ -1,5 +1,5 @@
 #[starknet::contract(account)]
-mod MyAccount {
+mod BasicAccount {
     use openzeppelin_account::AccountComponent;
     use openzeppelin_introspection::src5::SRC5Component;
 

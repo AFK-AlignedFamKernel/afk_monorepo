@@ -1,5 +1,5 @@
 #[starknet::contract(account)]
-mod MyEthAccount {
+mod EthAccount {
     use openzeppelin_account::EthAccountComponent;
     use openzeppelin_account::interface::EthPublicKey;
     use openzeppelin_introspection::src5::SRC5Component;
