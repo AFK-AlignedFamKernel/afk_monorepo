@@ -302,12 +302,12 @@ pub mod Memecoin {
         // Init Timelock Gov 
         // proposers 
         // Add params
-        let mut proposers = ArrayTrait::new();
-        let mut executors = ArrayTrait::new();
-        proposers.append(caller);
-        executors.append(caller);
-        let min_delay=100_000;
-        self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
+        // let mut proposers = ArrayTrait::new();
+        // let mut executors = ArrayTrait::new();
+        // proposers.append(caller);
+        // executors.append(caller);
+        // let min_delay=100_000;
+        // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
 
         let caller = get_caller_address();
         self.creator.write(caller);
