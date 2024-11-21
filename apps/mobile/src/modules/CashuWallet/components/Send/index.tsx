@@ -4,17 +4,20 @@ import '../../../../../applyGlobalPolyfills';
 import {Picker} from '@react-native-picker/picker';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
+import {randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
 import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
+import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
+import {ToastConfig} from '../../../../context/Toast/ToastContext';
 import {useStyles, useTheme} from '../../../../hooks';
-import {useToast} from '../../../../hooks/modals';
 import {usePayment} from '../../../../hooks/usePayment';
 import {
   useActiveMintStorage,
+  useActiveUnitStorage,
   useMintStorage,
   useProofsStorage,
 } from '../../../../hooks/useStorageState';
@@ -33,14 +36,14 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
 
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
   const {handleGenerateEcash, handlePayInvoice} = usePayment();
 
-  const {getUnitBalance} = useCashuContext()!;
+  const {getUnitBalance, setActiveMint, setActiveUnit} = useCashuContext()!;
 
-  const {value: activeMint} = useActiveMintStorage();
+  const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
   const {value: mints} = useMintStorage();
   const {value: proofs} = useProofsStorage();
+  const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
 
   const [activeTab, setActiveTab] = useState<TabType>('none');
   const [invoice, setInvoice] = useState<string | undefined>();
@@ -50,27 +53,43 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
   const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
   const [selectedMint, setSelectedMint] = useState<MintData>();
   const [selectedCurrency, setSelectedCurrency] = useState('sat');
+  const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
+  const [showModalToast, setShowModalToast] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [isGeneratingEcash, setIsGeneratingEcash] = useState(false);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
   const handleEcash = async () => {
+    setIsGeneratingEcash(true);
+    const key = randomUUID();
     if (!invoiceAmount) {
-      return showToast({
-        title: 'Please enter an amount',
+      setModalToast({
+        title: 'Enter amount.',
         type: 'error',
+        key,
       });
+      setShowModalToast(true);
+      setIsGeneratingEcash(false);
+      return;
     }
+
     const ecash = await handleGenerateEcash(Number(invoiceAmount));
 
     if (!ecash) {
-      return showToast({
-        title: "Ecash token can't be generated",
+      setModalToast({
+        title: 'Error generating ecash token.',
         type: 'error',
+        key,
       });
+      setShowModalToast(true);
+      setIsGeneratingEcash(false);
+      return;
     }
     setGenerateEcash(ecash);
+    setIsGeneratingEcash(false);
     return ecash;
   };
 
@@ -79,19 +98,40 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     if (type == 'ecash') {
       await Clipboard.setStringAsync(generatedEcash);
     }
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    const key = randomUUID();
+    setModalToast({
+      title: 'Copied to clipboard.',
+      type: 'info',
+      key,
+    });
+    setShowModalToast(true);
   };
 
-  const handleLightningPayment = () => {
+  const handleLightningPayment = async () => {
+    setIsPaymentProcessing(true);
+    const key = randomUUID();
     if (!invoice) {
-      showToast({
+      setModalToast({
         title: 'Invoice not found.',
         type: 'error',
+        key,
       });
+      setShowModalToast(true);
+      setIsPaymentProcessing(false);
       return;
     }
-    const tokens = handlePayInvoice(invoice);
-    console.log('[PAY] tokens', tokens);
+    const tokens = await handlePayInvoice(invoice);
+    setIsPaymentProcessing(false);
+    if (!tokens) {
+      setModalToast({
+        title: 'Error processing payment.',
+        type: 'error',
+        key,
+      });
+      setShowModalToast(true);
+    } else {
+      onClose();
+    }
   };
 
   useEffect(() => {
@@ -134,7 +174,17 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
 
   const handleOnChangeSelectedMint = (newSelection: string) => {
     const newSelectedMint = mints.find((mint) => mint.url === newSelection);
-    if (newSelectedMint) setSelectedMint(newSelectedMint);
+    if (newSelectedMint) {
+      setSelectedMint(newSelectedMint);
+      setActiveMint(newSelectedMint.url);
+      setActiveMintStorage(newSelectedMint.url);
+    }
+  };
+
+  const handleOnChangeSelectedUnit = (newUnit: string) => {
+    setSelectedCurrency(newUnit);
+    setActiveUnitStorage(newUnit);
+    setActiveUnit(newUnit);
   };
 
   const handlePaste = async () => {
@@ -144,7 +194,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
         setInvoice(text);
       }
     } catch (error) {
-      console.error('Failed to paste content:', error);
+      setShowModalToast(true);
+      const key = randomUUID();
+      setModalToast({type: 'error', title: 'Failed to paste content.', key});
     }
   };
 
@@ -154,6 +206,12 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
 
   const handleCloseScanner = () => {
     setIsScannerVisible(false);
+  };
+
+  const handleReset = () => {
+    setGenerateEcash('');
+    setIsGeneratingEcash(false);
+    setInvoiceAmount('0');
   };
 
   const renderTabContent = () => {
@@ -210,13 +268,14 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   onPress={handleLightningPayment}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
+                  disabled={isPaymentProcessing}
                 >
-                  Pay invoice
+                  {isPaymentProcessing ? 'Processing...' : 'Pay invoice'}
                 </Button>
               </>
             </View>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-              <ScanQRCode onClose={handleCloseScanner} />
+              <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
             </Modal>
           </>
         );
@@ -232,75 +291,82 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
               </TouchableOpacity>
               <Text style={styles.modalTabContentTitle}>Send Ecash</Text>
               <>
-                <Text style={styles.modalTabLabel}>Select Mint</Text>
-                <Picker
-                  selectedValue={selectedMint?.url}
-                  style={[
-                    styles.picker,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      color: theme.colors.inputText,
-                      paddingVertical: 5,
-                      paddingHorizontal: 8,
-                      width: '80%',
-                    },
-                  ]}
-                  onValueChange={(newSelectedMint) => handleOnChangeSelectedMint(newSelectedMint)}
-                >
-                  {mints.map((mint) => (
-                    <Picker.Item
-                      key={mint.url}
-                      label={mint.url}
-                      value={mint.url}
-                      color={theme.colors.inputText}
+                {!generatedEcash ? (
+                  <>
+                    <Text style={styles.modalTabLabel}>Select Mint</Text>
+                    <Picker
+                      selectedValue={selectedMint?.url}
+                      style={[
+                        styles.picker,
+                        {
+                          backgroundColor: theme.colors.surface,
+                          color: theme.colors.inputText,
+                          paddingVertical: 5,
+                          paddingHorizontal: 8,
+                          width: '80%',
+                        },
+                      ]}
+                      onValueChange={(newSelectedMint) =>
+                        handleOnChangeSelectedMint(newSelectedMint)
+                      }
+                    >
+                      {mints.map((mint) => (
+                        <Picker.Item
+                          key={mint.url}
+                          label={mint.url}
+                          value={mint.url}
+                          color={theme.colors.inputText}
+                        />
+                      ))}
+                    </Picker>
+                    <Text style={styles.modalTabLabel}>Select Currency</Text>
+                    <Picker
+                      selectedValue={selectedCurrency}
+                      style={[
+                        styles.picker,
+                        {
+                          backgroundColor: theme.colors.surface,
+                          color: theme.colors.inputText,
+                          paddingVertical: 5,
+                          paddingHorizontal: 8,
+                          width: '80%',
+                        },
+                      ]}
+                      onValueChange={(newSelectedUnit) =>
+                        handleOnChangeSelectedUnit(newSelectedUnit)
+                      }
+                    >
+                      {selectedMint
+                        ? mintUnitsMap
+                            .get(selectedMint?.url)
+                            ?.map((unitInfo) => (
+                              <Picker.Item
+                                key={unitInfo.unit}
+                                label={unitInfo.unit.toUpperCase()}
+                                value={unitInfo.unit}
+                                color={theme.colors.inputText}
+                              />
+                            ))
+                        : null}
+                    </Picker>
+                    <Text style={styles.modalTabLabel}>Amount</Text>
+                    <TextInput
+                      placeholder="Amount"
+                      keyboardType="numeric"
+                      value={invoiceAmount}
+                      onChangeText={setInvoiceAmount}
+                      style={styles.input}
                     />
-                  ))}
-                </Picker>
-                <Text style={styles.modalTabLabel}>Select Currency</Text>
-                <Picker
-                  selectedValue={selectedCurrency}
-                  style={[
-                    styles.picker,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      color: theme.colors.inputText,
-                      paddingVertical: 5,
-                      paddingHorizontal: 8,
-                      width: '80%',
-                    },
-                  ]}
-                  onValueChange={setSelectedCurrency}
-                >
-                  {selectedMint
-                    ? mintUnitsMap
-                        .get(selectedMint?.url)
-                        ?.map((unitInfo) => (
-                          <Picker.Item
-                            key={unitInfo.unit}
-                            label={unitInfo.unit.toUpperCase()}
-                            value={unitInfo.unit}
-                            color={theme.colors.inputText}
-                          />
-                        ))
-                    : null}
-                </Picker>
-                <Text style={styles.modalTabLabel}>Amount</Text>
-                <TextInput
-                  placeholder="Amount"
-                  keyboardType="numeric"
-                  value={invoiceAmount}
-                  onChangeText={setInvoiceAmount}
-                  style={styles.input}
-                />
-                <Button
-                  onPress={handleEcash}
-                  style={styles.modalActionButton}
-                  textStyle={styles.modalActionButtonText}
-                >
-                  Generate eCash
-                </Button>
-
-                {generatedEcash && (
+                    <Button
+                      onPress={handleEcash}
+                      style={styles.modalActionButton}
+                      textStyle={styles.modalActionButtonText}
+                      disabled={isGeneratingEcash}
+                    >
+                      {isGeneratingEcash ? 'Generating...' : 'Generate eCash'}
+                    </Button>
+                  </>
+                ) : (
                   <View
                     style={{
                       marginVertical: 3,
@@ -320,6 +386,13 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                       }
                     />
                     <GenerateQRCode data={generatedEcash} size={200} />
+                    <Button
+                      onPress={handleReset}
+                      style={styles.modalActionButton}
+                      textStyle={styles.modalActionButtonText}
+                    >
+                      New Amount
+                    </Button>
                   </View>
                 )}
               </>
@@ -347,5 +420,18 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     }
   };
 
-  return renderTabContent();
+  return (
+    <>
+      {renderTabContent()}
+      {showModalToast && modalToast ? (
+        <View style={styles.toastContainer}>
+          <AnimatedToast
+            key={modalToast.key}
+            toast={modalToast}
+            hide={() => setShowModalToast(false)}
+          />
+        </View>
+      ) : null}
+    </>
+  );
 };

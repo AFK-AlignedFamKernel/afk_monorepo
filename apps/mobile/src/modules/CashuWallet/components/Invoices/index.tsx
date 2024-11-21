@@ -162,7 +162,7 @@ export const Invoices = () => {
             renderItem={({item}) => {
               return (
                 <>
-                  <TouchableOpacity style={styles.invoiceContainer}>
+                  <View style={styles.invoiceContainer}>
                     <View style={styles.amountColumn}>
                       <Text style={styles.amountText}>{item?.amount} sat</Text>
                     </View>
@@ -188,7 +188,7 @@ export const Invoices = () => {
                         <RefreshIcon width={20} height={20} color="transparent" />
                       </TouchableOpacity>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                   <Modal
                     animationType="fade"
                     transparent={true}

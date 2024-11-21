@@ -1,6 +1,6 @@
 import {Dimensions} from 'react-native';
 
-import {ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
 const {width} = Dimensions.get('window');
 
@@ -176,5 +176,13 @@ export default ThemedStyleSheet((theme) => ({
   },
   scannedModalOKButtonText: {
     color: theme.colors.primary,
+  },
+  toastContainer: {
+    paddingTop: Spacing.pagePadding,
+    paddingHorizontal: Spacing.pagePadding,
+    gap: Spacing.xsmall,
+    position: 'absolute',
+    bottom: 10,
+    zIndex: 10000,
   },
 }));
