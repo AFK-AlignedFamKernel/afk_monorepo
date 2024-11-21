@@ -64,12 +64,10 @@ export const usePayment = () => {
   const handleGenerateEcash = async (amount: number) => {
     try {
       if (!amount) {
-        showToast({title: 'Please add a mint amount.', type: 'info'});
         return undefined;
       }
 
       if (!wallet) {
-        showToast({title: 'An error occurred.', type: 'error'});
         return undefined;
       }
 
@@ -84,7 +82,6 @@ export const usePayment = () => {
         const availableAmount = proofsCopy.reduce((s, t) => (s += t.amount), 0);
 
         if (availableAmount < amount) {
-          showToast({title: 'Balance is too low.', type: 'error'});
           return undefined;
         }
 
@@ -105,7 +102,6 @@ export const usePayment = () => {
           const cashuToken = getEncodedToken(token);
 
           if (cashuToken) {
-            showToast({title: 'Cashu token generated.', type: 'success'});
             const newInvoice: ICashuInvoice = {
               amount: -amount,
               date: Date.now(),
@@ -116,7 +112,7 @@ export const usePayment = () => {
             setTransactions([...transactions, newInvoice]);
             return cashuToken;
           } else {
-            showToast({title: 'Error when generating cashu token', type: 'error'});
+            return undefined;
           }
         }
         return undefined;
@@ -124,8 +120,6 @@ export const usePayment = () => {
 
       return undefined;
     } catch (e) {
-      console.log('Error generate cashu token', e);
-      showToast({title: 'Error when generating cashu token', type: 'error'});
       return undefined;
     }
   };
