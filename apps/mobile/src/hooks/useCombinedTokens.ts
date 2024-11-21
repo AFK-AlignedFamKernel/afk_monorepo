@@ -19,10 +19,18 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
   } = useGetTokenLaunch(launch);
 
   const [tokens, setTokens] = useState<LaunchDataMerged[]>([]);
+  const [launchs, setLaunchs] = useState<LaunchDataMerged[]>([]);
 
   const combinedData = useMemo(() => {
     return [
       ...(deployData?.data || []),
+      //  ...(launchData?.data || [])
+    ];
+  }, [deployData, launchData]);
+
+  const launchDataCombined = useMemo(() => {
+    return [
+      ...(launchData?.data || []),
       //  ...(launchData?.data || [])
     ];
   }, [deployData, launchData]);
@@ -33,6 +41,7 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
 
   return {
     tokens,
+    launchs,
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
     isFetching: launchIsFetching || tokenIsFetching,
