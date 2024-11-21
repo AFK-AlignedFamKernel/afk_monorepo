@@ -1,9 +1,9 @@
-import {Video} from 'expo-av';
-import React, {useEffect, useRef} from 'react';
+// import {Video} from 'expo-av';
+import {ResizeMode, Video} from 'expo-av';
+import React from 'react';
 import {Platform, View} from 'react-native';
 
 import {useStyles} from '../../hooks';
-import {PictureInPicture} from './PictureInPicture';
 import stylesheet from './styles';
 
 // Import RTCView for mobile
@@ -13,66 +13,38 @@ if (Platform.OS !== 'web') {
   RTCView = require('react-native-webrtc').RTCView;
 }
 
-// Streamer component - handles camera and screen sharing for streamer.
-export const StreamerVideoView = React.memo(
-  ({
-    cameraStream,
-    isScreenSharing,
-    screenStream,
-  }: {
-    isScreenSharing: boolean;
-    cameraStream: MediaStream | any;
-    screenStream: MediaStream | any;
-  }) => {
-    const styles = useStyles(stylesheet);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-
-    useEffect(() => {
-      if (Platform.OS === 'web' && videoRef.current) {
-        const streamToUse = isScreenSharing ? screenStream : cameraStream;
-        if (videoRef.current.srcObject !== streamToUse) {
-          videoRef.current.srcObject = streamToUse;
-        }
-      }
-    }, [isScreenSharing, cameraStream, screenStream]);
-
-    if (Platform.OS === 'web') {
-      return (
-        <View style={styles.streamContainer}>
-          <video ref={videoRef} autoPlay playsInline muted style={styles.mainVideoStream} />
-          {isScreenSharing && <PictureInPicture stream={cameraStream as any} />}
-        </View>
-      );
-    }
-
-    // For mobile platforms
-    const streamToUse = isScreenSharing ? screenStream : cameraStream;
-    return (
-      <View style={styles.streamContainer}>
-        {streamToUse && <RTCView streamURL={streamToUse.toURL()} style={styles.mainVideoStream} />}
-        {isScreenSharing && cameraStream && (
-          <View style={styles.pipContainer}>
-            <RTCView streamURL={cameraStream.toURL()} style={styles.pipVideo} />
-          </View>
-        )}
-      </View>
-    );
-  },
-);
-
-StreamerVideoView.displayName = 'StreamerVideoView';
-
 // Viewer component - just handles playback URL for viewers
-export const ViewerVideoView = React.memo(({playbackUrl}: {playbackUrl: string | null}) => {
+export const ViewerVideoView = React.memo(({playbackUrl}: {playbackUrl: string}) => {
+  const videoRef = React.useRef(null);
   const styles = useStyles(stylesheet);
 
-  if (!playbackUrl) return null;
+  const playbackConfig = {
+    source: {
+      uri: playbackUrl,
+      // uri: 'https://stream-akamai.castr.com/5b9352dbda7b8c769937e459/live_2361c920455111ea85db6911fe397b9e/index.fmp4.m3u8',
+      headers: {
+        // Optional: Add any headers if required
+      },
+    },
+    useNativeControls: true,
+    resizeMode: ResizeMode.COVER,
+  };
 
-  if (Platform.OS === 'web') {
-    return <video src={playbackUrl} autoPlay playsInline style={styles.videoStream} />;
-  }
-
-  return <Video source={{uri: playbackUrl}} shouldPlay isLooping style={styles.videoStream} />;
+  return (
+    <View style={styles.streamContainer}>
+      <Video
+        ref={videoRef}
+        {...playbackConfig}
+        style={{flex: 1, width: '100%', height: '30%'}}
+        videoStyle={{
+          flex: 1,
+          width: '100%',
+          height: '100%',
+        }}
+        onError={(error) => console.log('Video Error:', error)}
+      />
+    </View>
+  );
 });
 
 ViewerVideoView.displayName = 'ViewerVideoView';

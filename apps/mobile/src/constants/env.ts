@@ -11,6 +11,8 @@ export const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL!;
 export const WALLET_CONNECT_ID = process.env.EXPO_PUBLIC_WC_ID!;
 export const INDEXER_BACKEND_URL = process.env.EXPO_PUBLIC_INDEXER_BACKEND_URL!;
 
+export const CLOUDFARE_BUCKET_URL = process.env.EXPO_PUBLIC_CLOUDFARE_BUCKET_URL!;
+
 if (!Object.keys(constants.NetworkName).includes(NETWORK_NAME)) {
   throw new Error(`Invalid network name: ${NETWORK_NAME}`);
 }

@@ -1,82 +1,44 @@
-import {ThemedStyleSheet} from '../../styles';
+import {ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  container: {
+  canvas_container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  stream_container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  videoContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-    position: 'relative',
-  },
-  header: {
+  buttonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.divider,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  headerTextContainer: {
-    flex: 1,
-    alignItems: 'center',
+  canvasContainer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
   },
-  backButton: {
-    padding: 8,
-  },
-  streamContainer: {
-    position: 'relative',
+  canvas: {
     width: '100%',
     height: '100%',
-    flex: 1,
-    backgroundColor: theme.colors.surface,
   },
-  mainVideoStream: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  controlButton: {
-    color: '#fff',
-    fontSize: 16,
-    padding: 4,
+  cursorMove: {
     cursor: 'pointer',
   },
-  pipContainer: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 180,
-    height: 120,
-    borderRadius: 12,
-    overflow: 'hidden',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    border: '2px solid rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000',
-    transition: 'all 0.3s ease',
-    zIndex: 10,
-    ':hover': {
-      transform: 'scale(1.05)',
-      boxShadow: '0 8px 12px rgba(0, 0, 0, 0.2)',
-    },
-  },
-  pipVideo: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    borderRadius: 1,
-  },
-  videoStream: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
+  streamingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
   },
   overlay: {
     position: 'absolute',
-    top: 16,
+    top: -20,
     left: 16,
     right: 16,
+    zIndex: 999,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -177,47 +139,5 @@ export default ThemedStyleSheet((theme) => ({
     color: 'white',
     fontSize: 13,
     fontWeight: 'bold',
-  },
-
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  plannedText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#007AFF',
-  },
-  scheduledTime: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 10,
-  },
-  endedText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FF3B30',
-  },
-  endTime: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 10,
-  },
-  errorText: {
-    fontSize: 18,
-    color: '#FF3B30',
-  },
-  chatToggle: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 30,
-    padding: 10,
   },
 }));

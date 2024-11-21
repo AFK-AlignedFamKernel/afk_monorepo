@@ -28,6 +28,14 @@ const rawConfig = {
     api_key: process.env.RPC_NODE_API_KEY || "",
     network: process.env.SN_NETWORK || "",
   },
+  cloudfare: {
+    accountId: process.env.CLOUDFARE_ACCOUNT_ID || "",
+    token: process.env.CLOUDFARE_AUTH_TOKEN || "",
+    r2BucketName: process.env.CLOUDFARE_R2_BUCKET || "",
+    r2Access: process.env.CLOUDFARE_R2_ACCESS || "",
+    r2Secret: process.env.CLOUDFARE_R2_SECRET || "",
+    r2Domain: process.env.CLOUDFARE_R2_DOMAIN || "",
+  },
 } as const;
 
 // Parse and validate the configuration

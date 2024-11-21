@@ -23,9 +23,10 @@ import {useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {StreamStudio} from '../../types';
 import styleSheet from './event.styles';
-import {useStream} from './useStream';
+import {useWebStream} from './stream/useWebStream';
 
 type Event = {
+  identifier: string;
   eventId: string;
   title: string;
   summary: string;
@@ -41,8 +42,8 @@ type Event = {
 
 export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) => {
   const {publicKey} = useAuth();
-  const {data, isFetching, fetchNextPage, refetch, isPending} = useGetLiveEvents({
-    limit: 10,
+  const {data, isFetching, refetch, isPending} = useGetLiveEvents({
+    limit: 100,
   });
 
   const {theme} = useTheme();
@@ -92,16 +93,16 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
           data={data?.pages.flat()}
           renderItem={({item}) => (
             <RenderEventCard
-              handleNavigateToStreamView={() => handleNavigateToStreamView(item.eventId)}
-              streamKey={item.eventId}
-              handleNavigation={() => handleNavigate(item.eventId)}
+              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier)}
+              streamKey={item.identifier}
+              handleNavigation={() => handleNavigate(item.identifier)}
               pubKey={publicKey}
               event={item}
             />
           )}
-          keyExtractor={(item: any) => item.id}
+          keyExtractor={(item: any) => item.eventId}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => refetch()} />}
-          onEndReached={() => fetchNextPage()}
+          // onEndReached={() => fetchNextPage()}
         />
       </SafeAreaView>
 
@@ -135,20 +136,23 @@ const RenderEventCard = ({
   streamKey: string;
 }) => {
   const isStreamer = false;
-  const {socketRef} = useSocketContext();
+  const {socketRef, isConnected} = useSocketContext();
   const toast = useToast();
   const {theme} = useTheme();
   const styles = useStyles(styleSheet);
   const isOwner =
-    event?.participants.findIndex((item) => item.pubkey === pubKey) !== -1 ? true : false;
+    event?.participants.findIndex((item) => item.pubkey === pubKey && item.role === 'Host') !== -1
+      ? true
+      : false;
 
   const {addParticipant} = useLiveActivity();
 
-  const {joinStream} = useStream({
+  const {joinStream} = useWebStream({
     socketRef,
     streamerUserId: pubKey,
     streamKey,
     isStreamer,
+    isConnected,
   });
 
   const handleJoinEvent = () => {
@@ -161,6 +165,7 @@ const RenderEventCard = ({
       {
         pubkey: pubKey,
         role: 'Participant',
+        identifier: event.identifier,
       },
       {
         onSuccess() {
@@ -168,7 +173,7 @@ const RenderEventCard = ({
           //Emit join stream socket
           joinStream();
         },
-        onError() {
+        onError(error) {
           toast.showToast({title: 'Error joining Stream', type: 'error'});
         },
       },
@@ -273,8 +278,7 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
   const {showToast} = useToast();
   const {publicKey} = useAuth();
 
-  const {createEvent, updateEvent, addParticipant, removeParticipant, deleteEvent, event} =
-    useLiveActivity();
+  const {createEvent} = useLiveActivity();
 
   const styles = useStyles(styleSheet);
   const {theme} = useTheme();
@@ -300,6 +304,7 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
             {
               pubkey: publicKey,
               role: 'Host',
+              relay: '',
             },
           ],
           currentParticipants: 1,

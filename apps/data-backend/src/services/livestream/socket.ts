@@ -2,10 +2,12 @@ import { Server, Socket } from "socket.io";
 import { streamEvents, STREAM_EVENTS } from "./streamEvent";
 import {
   handleStartStream,
-  handleJoinStream,
+  // handleJoinStream,
   handleStreamData,
   handleEndStream,
   handleDisconnect,
+  handleJoinStream,
+  // handleDisconnect,
 } from "./streamHandler";
 
 export const setupWebSocket = (io: Server) => {
@@ -15,6 +17,9 @@ export const setupWebSocket = (io: Server) => {
     // Stream event listeners
     streamEvents.on(STREAM_EVENTS.PLAYBACK_URL, (data) => {
       socket.emit("playback-url", data);
+    });
+    streamEvents.on(STREAM_EVENTS.STREAMING_URL, (data) => {
+      socket.emit("streaming-url", data);
     });
 
     streamEvents.on(STREAM_EVENTS.STREAM_END, ({ streamKey }) => {
@@ -60,8 +65,6 @@ export const setupWebSocket = (io: Server) => {
       });
     });
 
-    socket.on("disconnect", (userId: string) =>
-      handleDisconnect(socket, userId)
-    );
+    // socket.on("disconnect", (userId) => handleDisconnect(socket));
   });
 };
