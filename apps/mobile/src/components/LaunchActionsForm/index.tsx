@@ -16,11 +16,12 @@ export type LaunchActionsFormProps = {
   onSellPress: () => void;
   onHandleAction: (amountProps?: number) => void;
   onChangeText: (e: any) => void;
-  onSetAmount: (e: number) => void;
+  // onSetAmount: (e: number) => void;
+  onSetAmount: (e?: string) => void;
   typeAction?: 'BUY' | 'SELL';
   setTypeAction?: (type: 'BUY' | 'SELL') => void;
   launch?: LaunchDataMerged;
-  amount?: number;
+  amount?: string;
   userShare?: UserShareInterface;
 };
 
@@ -91,10 +92,13 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         {/* Amount Input */}
         <View style={styles.inputContainer}>
           <Input
-            keyboardType="decimal-pad"
+            // keyboardType="decimal-pad"
+            keyboardType="numeric"
+            // keyboardType=""
             style={styles.input}
             onChangeText={onChangeText}
             placeholder="Amount"
+            // value={Number(amount?.toString())}
             value={amount?.toString()}
           />
           <View style={styles.balanceInfo}>
@@ -102,7 +106,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             <Button
               style={styles.maxButton}
               onPress={() => {
-                onSetAmount(Number(toBalance?.formatted))
+                onSetAmount(toBalance?.formatted)
                 /* Set max balance */
               }}
             >
