@@ -384,6 +384,81 @@ mod launchpad_tests {
 
     #[test]
     #[fork("Mainnet")]
+    fn launchpad_end_to_end() {
+        println!("launchpad_end_to_end");
+        let (sender_address, erc20, launchpad) = request_fixture();
+        start_cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let mut spy = spy_events();
+
+        // Call a view function of the contract
+        // Check default token used
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+        println!("create and launch token");
+        let token_address = launchpad
+            .create_and_launch_token(
+                // owner: OWNER(),
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+                is_unruggable: false
+            );
+        println!("test token_address {:?}", token_address);
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        run_buy_by_amount(
+            launchpad, erc20, memecoin, 1, token_address, sender_address,
+        );
+
+        run_sell_by_amount(
+            launchpad, erc20, memecoin, 1, token_address, sender_address,
+        );
+        //  All buy
+
+        run_buy_by_amount(
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+        );
+        // let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
+        //     CreateLaunch {
+        //         caller: OWNER(),
+        //         token_address: token_address,
+        //         amount: 0,
+        //         price: initial_key_price,
+        //         total_supply: DEFAULT_INITIAL_SUPPLY(),
+        //         slope: slope,
+        //         threshold_liquidity: THRESHOLD_LIQUIDITY,
+        //         quote_token_address: erc20.contract_address,
+        //     }
+        // );
+        // spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
+        let launched_token = launchpad.get_coin_launch(token_address);
+        let default_supply = DEFAULT_INITIAL_SUPPLY();
+        // assert(launched_token.owner == OWNER(), 'wrong owner');
+        assert(launched_token.token_address == token_address, 'wrong token address');
+        assert(launched_token.total_supply == DEFAULT_INITIAL_SUPPLY(), 'wrong initial supply');
+        assert(
+            launched_token.bonding_curve_type.unwrap() == BondingType::Linear, 'wrong type curve'
+        );
+        assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
+        assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
+        assert(
+            launched_token.total_token_holded == default_supply
+                - launched_token.initial_pool_supply,
+            'wrong token holded'
+        );
+        assert(
+            launched_token.token_quote.token_address == erc20.contract_address,
+            'wrong token
+            quote'
+        );
+    }
+
+    #[test]
+    #[fork("Mainnet")]
     fn launchpad_integration() {
         println!("launchpad_integration");
 

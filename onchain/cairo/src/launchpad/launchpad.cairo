@@ -577,14 +577,16 @@ pub mod LaunchpadMarketplace {
             let old_price = pool_coin.price.clone();
             let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let mut remain_liquidity = total_price - amount_protocol_fee;
-            let mut amount = 0;
+            // let mut amount = 0;
             // Pay with quote token
             // Transfer quote & coin
             // TOdo fix issue price
-            let amount = self
-                ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false, true);
+            let mut amount = self
+                ._get_amount_by_type_of_coin_or_quote(coin_address, remain_liquidity, false, true);
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
+
+            println!("amount receive {:?}", amount);
 
             assert(amount <= pool_coin.available_supply, 'no available supply');
 
@@ -744,20 +746,27 @@ pub mod LaunchpadMarketplace {
             // let mut amount = self
             //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
 
+            // Todo check user amount fee creator if needed
+            let creator_fee_percent = self.creator_fee_percent.read();
+            let protocol_fee_percent = self.protocol_fee_percent.read();
+
+            let amount_protocol_fee: u256 = quote_amount * protocol_fee_percent / BPS;
+            let amount_creator_fee = quote_amount * creator_fee_percent / BPS;
+            let remain_liquidity = quote_amount - amount_protocol_fee;
+            // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
+
             let mut amount = self
-                ._get_amount_by_type_of_coin_or_quote(coin_address, quote_amount, false, true);
+                ._get_amount_by_type_of_coin_or_quote(coin_address, remain_liquidity, false, true);
 
             // Verify Amount owned
             assert(old_pool.total_supply >= quote_amount, 'above supply');
             assert(share_user.amount_owned >= amount, 'above supply');
 
-            let mut total_price = amount;
+            // let mut total_price = amount;
             // println!("amount {:?}", amount);
             // println!("quote_amount {:?}", quote_amount);
             // println!("total_price {:?}", total_price);
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
-            let protocol_fee_percent = self.protocol_fee_percent.read();
-            let creator_fee_percent = self.creator_fee_percent.read();
 
             // Ensure fee percentages are within valid bounds
             assert(
@@ -776,18 +785,10 @@ pub mod LaunchpadMarketplace {
             // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
 
             let old_price = old_pool.price.clone();
-
+            let total_price=old_pool.price.clone();
             // Update keys with new values
             let mut pool_update = old_pool.clone();
 
-            // Todo check user amount fee creator if needed
-
-            let amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let amount_creator_fee = total_price * creator_fee_percent / BPS;
-            // let remain_liquidity = total_price - amount_creator_fee - amount_protocol_fee;
-            let remain_liquidity = total_price - amount_protocol_fee;
-            // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
-            let amount_to_user: u256 = quote_amount - amount_protocol_fee;
 
             // let remain_liquidity = total_price ;
             assert(old_pool.liquidity_raised >= remain_liquidity, 'liquidity <= amount');
@@ -811,13 +812,13 @@ pub mod LaunchpadMarketplace {
             }
 
             // Transfer the remaining quote amount to the user
-            if amount_to_user > 0 {
-                erc20.transfer(caller, amount_to_user);
+            if remain_liquidity > 0 {
+                erc20.transfer(caller, remain_liquidity);
             }
 
             // Assertion: Ensure the user receives the correct amount
             let user_received = erc20.balance_of(caller) - (old_share.amount_owned);
-            assert(user_received == amount_to_user, 'user not receive amount');
+            assert(user_received == remain_liquidity, 'user not receive amount');
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
@@ -837,16 +838,16 @@ pub mod LaunchpadMarketplace {
             );
 
             // TODO finish update state
-            pool_update.price = total_price;
+            // pool_update.price = total_price;
             pool_update.liquidity_raised -= remain_liquidity;
             pool_update.total_token_holded -= amount;
             pool_update.available_supply += amount;
 
             // Assertion: Ensure the pool's liquidity and token holded are updated correctly
-            assert!(
-                pool_update.liquidity_raised + quote_amount == old_pool.liquidity_raised,
-                "liquidity_raised mismatch after update"
-            );
+            // assert!(
+            //     pool_update.liquidity_raised + quote_amount == old_pool.liquidity_raised,
+            //     "liquidity_raised mismatch after update"
+            // );
             // assert!(
             //     pool_update.total_token_holded
             //         + self

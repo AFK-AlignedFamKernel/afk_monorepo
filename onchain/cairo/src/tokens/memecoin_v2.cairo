@@ -112,6 +112,10 @@ pub mod Memecoin {
     use openzeppelin_token::erc20::ERC20Component;
     use openzeppelin_utils::cryptography::nonces::NoncesComponent;
     use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
+
+    
+    use openzeppelin_upgrades::UpgradeableComponent;
+    use openzeppelin_upgrades::interface::IUpgradeable;
     // use core::OptionTrait;
     // use core::Option;
     use starknet::storage::{
@@ -127,15 +131,17 @@ pub mod Memecoin {
     };
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
-    component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
 
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
-    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
-  
-    // component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
-    // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
+   
+    component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
 
+    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
+    component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
+
+    component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
+  
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
     impl SRC5InternalImpl = SRC5Component::InternalImpl<ContractState>;
@@ -150,21 +156,16 @@ pub mod Memecoin {
     impl TimelockMixinImpl =
         TimelockControllerComponent::TimelockMixinImpl<ContractState>;
     impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
+
     
     // Nonces
     #[abi(embed_v0)]
     impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
     
-    
-    // // ERC20
-    // #[abi(embed_v0)]
-    // impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
-    // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
-
-    // // // // Votes
-    // #[abi(embed_v0)]
-    // impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
-    // impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
+    // Votes
+    #[abi(embed_v0)]
+    impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
+    impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
 
 
     // Constants.
@@ -190,27 +191,22 @@ pub mod Memecoin {
         factory_contract: ContractAddress,
         liquidity_type: Option<LiquidityType>,
         max_percentage_buy_launch: u16,
-        
+
         capped_total_supply:u256,
         is_mint_paused:bool,
-
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         #[substorage(v0)]
         timelock: TimelockControllerComponent::Storage,
-     
         #[substorage(v0)]
-        nonces: NoncesComponent::Storage,
+        pub erc20_votes: VotesComponent::Storage,
+        #[substorage(v0)]
+        pub nonces: NoncesComponent::Storage,
 
         #[substorage(v0)]
-        access_control: AccessControlComponent::Storage,
-        // #[substorage(v0)]
-        // erc20_votes: VotesComponent::Storage,
-        
-        // #[substorage(v0)]
-        // pub erc20: ERC20Component::Storage,
+        access_control: AccessControlComponent::Storage
 
     }
 
@@ -228,13 +224,9 @@ pub mod Memecoin {
         #[flat]
         TimelockEvent: TimelockControllerComponent::Event,
         #[flat]
+        ERC20VotesEvent: VotesComponent::Event,
+        #[flat]
         NoncesEvent: NoncesComponent::Event,
-        
-        // #[flat]
-        // ERC20VotesEvent: VotesComponent::Event,
-        
-        // #[flat]
-        // ERC20Event: ERC20Component::Event,
     }
     #[derive(Drop, starknet::Event)]
     struct Transfer {
@@ -262,18 +254,17 @@ pub mod Memecoin {
       // We need to call the `transfer_voting_units` function after
     // every mint, burn and transfer.
     // For this, we use the `after_update` hook of the `ERC20Component::ERC20HooksTrait`.
-    // impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
-    //     fn after_update(
-    //         ref self: ERC20Component::ComponentState<ContractState>,
-    //         from: ContractAddress,
-    //         recipient: ContractAddress,
-    //         amount: u256
-    //     ) {
-    //         // let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
-    //         // contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
-    //         self.erc20_votes.transfer_voting_units(from, recipient, amount)
-    //     }
-    // }
+    impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
+        fn after_update(
+            ref self: ERC20Component::ComponentState<ContractState>,
+            from: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) {
+            let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
+            contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
+        }
+    }
 
     #[constructor]
     fn constructor(

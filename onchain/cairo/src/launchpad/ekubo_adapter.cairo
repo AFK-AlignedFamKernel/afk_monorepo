@@ -45,6 +45,69 @@ struct EkuboPoolParameters {
 impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
     EkuboPoolParameters, (u64, EkuboLP)
 > {
+    fn create_and_add_liquidity_ekubo(
+        exchange_address: ContractAddress,
+        token_address: ContractAddress,
+        quote_address: ContractAddress,
+        lp_supply: u256,
+        additional_parameters: EkuboPoolParameters,
+    ) -> (u64, EkuboLP) {
+        let ekubo_launch_params = EkuboLaunchParameters {
+            owner: starknet::get_caller_address(),
+            token_address: token_address,
+            quote_address: quote_address,
+            lp_supply: lp_supply,
+            pool_params: EkuboPoolParameters {
+                fee: additional_parameters.fee,
+                tick_spacing: additional_parameters.tick_spacing,
+                starting_price: additional_parameters.starting_price,
+                bound: additional_parameters.bound,
+            }
+        };
+        let ekubo_launchpad = IEkuboLauncherDispatcher { contract_address: exchange_address };
+        assert(ekubo_launchpad.contract_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
+
+        // Transfer all tokens to the launchpad contract.
+        // The team will buyback the tokens from the pool after the LPing operation to earn their
+        // initial allocation.
+        let memecoin = IMemecoinDispatcher { contract_address: token_address, };
+        let this = get_contract_address();
+        memecoin.transfer(ekubo_launchpad.contract_address, memecoin.balance_of(this));
+
+        // Launch the token, which creates two positions: one concentrated at initial_tick
+        // for the team allocation and one on the range [initial_tick, inf] for the initial LP.
+        let (id, position) = ekubo_launchpad.launch_token(ekubo_launch_params);
+
+        // Ensure that the LPing operation has not returned more than 0.5% of the provided liquidity
+        // to the caller.
+        // Otherwise, there was an error in the LP parameters.
+        let total_supply = memecoin.total_supply();
+        let max_returned_tokens = PercentageMath::percent_mul(total_supply, 50);
+        assert(memecoin.balanceOf(this) < max_returned_tokens, 'ekubo has returned tokens');
+
+        // Finally, buy the reserved team tokens from the pool.
+        // This requires having transferred the quote tokens to the factory before.
+        // As the pool was created with a fixed price for these n% allocated to the team,
+        // the required amount should be (%alloc * total_supply) * price.
+        let (token0, token1) = sort_tokens(token_address, ekubo_launch_params.quote_address);
+        let pool_key = PoolKey {
+            token0: token0,
+            token1: token1,
+            fee: ekubo_launch_params.pool_params.fee,
+            tick_spacing: ekubo_launch_params.pool_params.tick_spacing,
+            extension: 0.try_into().unwrap(),
+        };
+        let team_allocation = total_supply - lp_supply;
+        buy_tokens_from_pool(
+            ekubo_launchpad, pool_key, team_allocation, token_address, quote_address
+        );
+
+        assert(memecoin.balanceOf(this) >= team_allocation, 'failed buying team tokens');
+        // Distribution to the holders is done in the next step.
+
+        (id, position)
+    }
+
     fn create_and_add_liquidity(
         exchange_address: ContractAddress,
         token_address: ContractAddress,
