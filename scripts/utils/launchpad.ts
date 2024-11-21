@@ -23,6 +23,16 @@ const PATH_LAUNCHPAD_COMPILED = path.resolve(
   "../../onchain/cairo/target/dev/afk_LaunchpadMarketplace.compiled_contract_class.json"
 );
 
+const PATH_TOKEN = path.resolve(
+  __dirname,
+  "../../onchain/cairo/target/dev/afk_Memecoin.contract_class.json"
+);
+const PATH_TOKEN_COMPILED = path.resolve(
+  __dirname,
+  "../../onchain/cairo/target/dev/afk_Memecoin.compiled_contract_class.json"
+);
+
+
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createLaunchpad = async (
   tokenAddress: string,
@@ -31,10 +41,10 @@ export const createLaunchpad = async (
   coin_class_hash: string,
   threshold_liquidity: Uint256,
   threshold_marketcap: Uint256,
-  factory_address:string,
-  core:string,
-  positions:string,
-  ekubo_exchange_address:string,
+  factory_address: string,
+  core: string,
+  positions: string,
+  ekubo_exchange_address: string,
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -81,8 +91,26 @@ export const createLaunchpad = async (
     // const AAaccount = new Account(provider, AAcontractAddress, AAprivateKey);
     /** @description uncomment this to declare your account */
     // console.log("declare account");
-
+    let coin_class_hash_memecoin_last = coin_class_hash
     if (process.env.REDECLARE_CONTRACT == "true") {
+      // declare the contract
+      const compiledContract = json.parse(
+        fs.readFileSync(PATH_TOKEN).toString("ascii")
+      );
+      const compiledCasm = json.parse(
+        fs.readFileSync(PATH_TOKEN_COMPILED).toString("ascii")
+      );
+
+
+      console.log('check memecoin class hash')
+
+      const declareIfNotToken = await account0.declareIfNot({
+        contract: compiledContract,
+        casm: compiledCasm,
+      });
+      console.log("declareIfNotToken", declareIfNotToken);
+      coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
+
       console.log("try declare launchpad");
       const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
@@ -105,7 +133,7 @@ export const createLaunchpad = async (
           initial_key_price,
           tokenAddress,
           step_increase_linear,
-          coin_class_hash,
+          coin_class_hash_memecoin_last,
           threshold_liquidity,
           threshold_marketcap,
           factory_address,

@@ -4,7 +4,7 @@ import { ESCROW_ADDRESS, TOKENS_ADDRESS } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
-import { createToken } from "../utils/token";
+import { createMemecoin } from "../utils/memecoin";
 dotenv.config();
 
 export const deployToken = async () => {
@@ -20,7 +20,7 @@ export const deployToken = async () => {
   const account = new Account(provider, accountAddress0, privateKey0, "1");
   const total_supply = 100_000_000;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
-    let launchpadContract = await createToken(total_supply, "UHOH", "UHOHLFG");
+    let launchpadContract = await createMemecoin(total_supply, "UHOH", "UHOHLFG");
     console.log("escrow address", launchpadContract?.contract_address);
     if (launchpadContract?.contract_address) {
       token_address = launchpadContract?.contract_address;

@@ -30,7 +30,7 @@ const PATH_TOKEN_COMPILED = path.resolve(
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createToken = async (
+export const createMemecoin = async (
   total_supply?: number,
   name?: string,
   symbol?: string
