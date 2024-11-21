@@ -49,7 +49,7 @@ interface LaunchDetailStyles {
   mobileTabBar: ViewStyle;
 }
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
+export const TokenDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
   const {theme} = useTheme();
   const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
@@ -88,9 +88,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
 
-  const {data: launchData, isLoading: launchLoading} = useGetTokenLaunch(coinAddress);
-
-  const {data: tokenData, isLoading: tokenLoading} = useGetToken(coinAddress);
+  const {data: launchData, isLoading: tokenLoading} = useGetToken(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,

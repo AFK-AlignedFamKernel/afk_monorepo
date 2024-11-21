@@ -40,6 +40,7 @@ export interface UserShareInterface {
 
 export interface TokenDeployInterface {
   memecoin_address: string;
+  symbol?:string;
   price: Uint256;
   name: string;
   network: string;

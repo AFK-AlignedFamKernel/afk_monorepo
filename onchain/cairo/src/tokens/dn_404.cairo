@@ -30,7 +30,7 @@ use starknet::ContractAddress;
 // }
 
 #[starknet::interface]
-pub trait IMemecoinV2<TContractState> {
+pub trait IDn404<TContractState> {
     /// Returns whether the memecoin has been launched.
     ///
     /// # Returns
@@ -129,9 +129,8 @@ pub mod MemecoinV2 {
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
 
-    // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-
+    component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
     component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
 
     component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
@@ -147,10 +146,10 @@ pub mod MemecoinV2 {
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     // Timelock Mixin
-    // #[abi(embed_v0)]
-    // impl TimelockMixinImpl =
-    //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
-    // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl TimelockMixinImpl =
+        TimelockControllerComponent::TimelockMixinImpl<ContractState>;
+    impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
 
     // Nonces
     #[abi(embed_v0)]
@@ -173,9 +172,10 @@ pub mod MemecoinV2 {
 
     #[storage]
     struct Storage {
-        total_supply_max: u256,
-        description: ByteArray,
-        total_supply_minted: u256,
+        name: felt252,
+        symbol: felt252,
+        decimals: u8,
+        total_supply: u256,
         creator: ContractAddress,
         balances: Map::<ContractAddress, u256>,
         allowances: Map::<(ContractAddress, ContractAddress), u256>,
@@ -195,8 +195,8 @@ pub mod MemecoinV2 {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        // #[substorage(v0)]
-        // timelock: TimelockControllerComponent::Storage,
+        #[substorage(v0)]
+        timelock: TimelockControllerComponent::Storage,
         #[substorage(v0)]
         nonces: NoncesComponent::Storage,
         #[substorage(v0)]
@@ -204,26 +204,40 @@ pub mod MemecoinV2 {
         #[substorage(v0)]
         erc20_votes: VotesComponent::Storage,
         #[substorage(v0)]
-        erc20: ERC20Component::Storage,
+        pub erc20: ERC20Component::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
+        Transfer: Transfer,
+        Approval: Approval,
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-        // #[flat]
-        // TimelockEvent: TimelockControllerComponent::Event,
+        #[flat]
+        TimelockEvent: TimelockControllerComponent::Event,
         #[flat]
         NoncesEvent: NoncesComponent::Event,
         #[flat]
         ERC20VotesEvent: VotesComponent::Event,
         #[flat]
         ERC20Event: ERC20Component::Event,
+    }
+    #[derive(Drop, starknet::Event)]
+    struct Transfer {
+        from: ContractAddress,
+        to: ContractAddress,
+        value: u256,
+    }
+    #[derive(Drop, starknet::Event)]
+    struct Approval {
+        owner: ContractAddress,
+        spender: ContractAddress,
+        value: u256,
     }
 
     // Required for hash computation.
@@ -255,24 +269,19 @@ pub mod MemecoinV2 {
     #[constructor]
     fn constructor(
         ref self: ContractState,
-        name: ByteArray,
-        symbol: ByteArray,
+        name: felt252,
+        symbol: felt252,
         initial_supply: u256,
         recipient: ContractAddress,
         decimals: u8,
     ) {
         let caller = get_caller_address();
-        // self.name.write(name);
-        // self.symbol.write(symbol);
-        // self.decimals.write(decimals);
-        // self.total_supply.write(initial_supply);
-
+        self.name.write(name);
+        self.symbol.write(symbol);
+        self.decimals.write(decimals);
         assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
+        self.total_supply.write(initial_supply);
         self.balances.entry(recipient).write(initial_supply);
-        self.erc20.initializer(name, symbol);
-
-        self.erc20.mint(caller, initial_supply);
-
 
         self.liquidity_type.write(Option::None);
 
@@ -287,7 +296,7 @@ pub mod MemecoinV2 {
         proposers.append(caller);
         executors.append(caller);
         let min_delay = 100_000;
-        // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
+        self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
 
         let caller = get_caller_address();
         self.creator.write(caller);
@@ -296,10 +305,99 @@ pub mod MemecoinV2 {
         // Register the contract's support for the ISRC6 interface
         self.src5.register_interface(interface::ISRC6_ID);
 
+        self
+            .emit(
+                Event::Transfer(
+                    Transfer {
+                        from: contract_address_const::<0>(), to: recipient, value: initial_supply
+                    }
+                )
+            );
     }
 
+    // #[abi(embed_v0)]
+    // impl IERC20Impl of super::IERC20<ContractState> {
+    //     fn name(self: @ContractState) -> felt252 {
+    //         self.name.read()
+    //     }
+
+    //     fn symbol(self: @ContractState) -> felt252 {
+    //         self.symbol.read()
+    //     }
+
+    //     fn decimals(self: @ContractState) -> u8 {
+    //         self.decimals.read()
+    //     }
+
+    //     fn total_supply(self: @ContractState) -> u256 {
+    //         self.total_supply.read()
+    //     }
+
+    //     fn totalSupply(self: @ContractState) -> u256 {
+    //         self.total_supply()
+    //     }
+
+    //     fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
+    //         self.balances.read(account)
+    //     }
+
+    //     fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+    //         self.balance_of(account)
+    //     }
+
+    //     fn allowance(
+    //         self: @ContractState, owner: ContractAddress, spender: ContractAddress
+    //     ) -> u256 {
+    //         self.allowances.read((owner, spender))
+    //     }
+
+    //     fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
+    //         let sender = get_caller_address();
+    //         self.transfer_helper(sender, recipient, amount);
+    //         true
+    //     }
+
+    //     fn transfer_from(
+    //         ref self: ContractState,
+    //         sender: ContractAddress,
+    //         recipient: ContractAddress,
+    //         amount: u256
+    //     ) -> bool {
+    //         let caller = get_caller_address();
+    //         self.spend_allowance(sender, caller, amount);
+    //         self.transfer_helper(sender, recipient, amount);
+    //         true
+    //     }
+
+    //     fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
+    //         let caller = get_caller_address();
+    //         self.approve_helper(caller, spender, amount);
+    //         true
+    //     }
+
+    //     fn increase_allowance(
+    //         ref self: ContractState, spender: ContractAddress, added_value: u256
+    //     ) {
+    //         let caller = get_caller_address();
+    //         self
+    //             .approve_helper(
+    //                 caller, spender, self.allowances.read((caller, spender)) + added_value
+    //             );
+    //     }
+
+    //     fn decrease_allowance(
+    //         ref self: ContractState, spender: ContractAddress, subtracted_value: u256
+    //     ) {
+    //         let caller = get_caller_address();
+    //         self
+    //             .approve_helper(
+    //                 caller, spender, self.allowances.read((caller, spender)) - subtracted_value
+    //             );
+    //     }
+    // }
+
     #[abi(embed_v0)]
-    impl MemecoinEntrypoints of super::IMemecoinV2<ContractState> {
+    impl MemecoinEntrypoints of super::IDn404<ContractState> {
         // fn owner(self: @ContractState) -> ContractAddress {
         //     self.ownable.owner()
         // }
@@ -372,6 +470,7 @@ pub mod MemecoinV2 {
             assert(!recipient.is_zero(), 'ERC20: transfer to 0');
             self.balances.entry(sender).write(self.balances.read(sender) - amount);
             self.balances.entry(recipient).write(self.balances.read(recipient) + amount);
+            self.emit(Transfer { from: sender, to: recipient, value: amount });
         }
         fn spend_allowance(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
@@ -386,6 +485,7 @@ pub mod MemecoinV2 {
         ) {
             assert(!spender.is_zero(), 'ERC20: approve from 0');
             self.allowances.entry((owner, spender)).write(amount);
+            self.emit(Approval { owner, spender, value: amount });
         }
     }
 

@@ -10,6 +10,7 @@ pub mod UserNameClaimErrors {
 }
 
 const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
 
 #[starknet::contract]
@@ -22,14 +23,19 @@ pub mod Nameservice {
     use openzeppelin::upgrades::interface::IUpgradeable;
     use openzeppelin_access::accesscontrol::AccessControlComponent;
     use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+    use openzeppelin_token::erc20::{ERC20Component};
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
     use starknet::{
         ContractAddress, contract_address_const, get_caller_address, get_block_timestamp,
         get_contract_address, ClassHash
     };
     use super::ADMIN_ROLE;
+    use super::MINTER_ROLE;
     use super::UserNameClaimErrors;
+    
+    use openzeppelin_governance::votes::VotesComponent;
+    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
+    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
 
     const YEAR_IN_SECONDS: u64 = 31536000_u64; // 365 days in seconds
 
@@ -38,8 +44,10 @@ pub mod Nameservice {
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
+    component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
+    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
+    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
     /// Ownable
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
@@ -58,9 +66,20 @@ pub mod Nameservice {
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
-    // // ERC20
-    // #[abi(embed_v0)]
-    // impl ERC20Impl = ERC20Component::ERC20Impl<ContractState>;
+    // // Nonces
+    #[abi(embed_v0)]
+    impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
+    
+    // Votes
+    #[abi(embed_v0)]
+    impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
+    impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
+
+    // ERC20
+    #[abi(embed_v0)]
+    impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
+    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+
     // #[abi(embed_v0)]
     // impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
     // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
@@ -80,9 +99,14 @@ pub mod Nameservice {
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
-        src5: SRC5Component::Storage
-        // #[substorage(v0)]
-    // erc20: ERC20Component::Storage
+        src5: SRC5Component::Storage,
+        
+        #[substorage(v0)]
+        nonces: NoncesComponent::Storage,
+        #[substorage(v0)]
+        erc20_votes: VotesComponent::Storage,
+        #[substorage(v0)]
+        erc20: ERC20Component::Storage,
 
     }
 
@@ -97,12 +121,16 @@ pub mod Nameservice {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-        // #[flat]
-        // ERC20Event: ERC20Component::Event,
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
+        #[flat]
+        ERC20VotesEvent: VotesComponent::Event,
+        #[flat]
+        ERC20Event: ERC20Component::Event,
+        #[flat]
+        NoncesEvent: NoncesComponent::Event
     }
 
     #[derive(Drop, starknet::Event)]
@@ -133,19 +161,34 @@ pub mod Nameservice {
         old_price: u256,
         new_price: u256
     }
-
-    #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress) {
-        self.ownable.initializer(owner);
-
-        self.accesscontrol.initializer();
-        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+    
+    
+    // Required for hash computation.
+    pub impl SNIP12MetadataImpl of SNIP12Metadata {
+        fn name() -> felt252 {
+            'DAPP_NAME'
+        }
+        fn version() -> felt252 {
+            'DAPP_VERSION'
+        }
     }
 
-    // External interfaces implementation
-    // #[external(v0)]
-    // impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    // We need to call the `transfer_voting_units` function after
+    // every mint, burn and transfer.
+    // For this, we use the `after_update` hook of the `ERC20Component::ERC20HooksTrait`.
+    impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
+        fn after_update(
+            ref self: ERC20Component::ComponentState<ContractState>,
+            from: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) {
+            let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
+            contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
+        }
+    }
 
+    
     #[external(v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
@@ -155,6 +198,22 @@ pub mod Nameservice {
         // self.upgradeable._upgrade(new_class_hash);
         }
     }
+
+
+    #[constructor]
+    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress) {
+        self.ownable.initializer(owner);
+
+        self.accesscontrol.initializer();
+        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        
+        self.accesscontrol._grant_role(MINTER_ROLE, admin);
+        self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
+        self.erc20.initializer(".afk", ".afk");
+
+        // self.erc20.mint(owner, 1n);
+    }
+
 
     #[abi(embed_v0)]
     impl Nameservice of IUsernameStore<ContractState> {
@@ -187,6 +246,8 @@ pub mod Nameservice {
             self.user_to_username.entry(caller_address).write(key);
             self.subscription_expiry.entry(caller_address).write(expiry);
 
+
+            self.erc20.mint(caller_address, 1_u256);
             self.emit(UserNameClaimed { username: key, address: caller_address, expiry });
         }
 
@@ -250,6 +311,24 @@ pub mod Nameservice {
             token.transfer(self.ownable.owner(), amount);
         }
     }
+    
+    // #[abi(embed_v0)]
+    // impl IERC20MintableImpl of super::IERC20<ContractState> {
+    //     fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+    //         self.accesscontrol.assert_only_role(MINTER_ROLE);
+    //         self.erc20.mint(recipient, amount);
+    //     }
+
+    //     fn burn(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+    //         self.accesscontrol.assert_only_role(MINTER_ROLE);
+    //         self.erc20.burn(recipient, amount);
+    //     }
+    //     fn set_role(
+    //         ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+    //     ) {
+    //         self._set_role(recipient, role, is_enable);
+    //     }
+    // }
 
     // Admin functions
     #[external(v0)]
@@ -279,15 +358,14 @@ pub mod Nameservice {
     fn get_is_payment_enabled(self: @ContractState) -> bool {
         self.is_payment_enabled.read()
     }
-
-
-    //Internal function to check the maximum of two
-    #[generate_trait]
-    fn max(a: u64, b: u64) -> u64 {
-        if a > b {
-            a
-        } else {
-            b
+        //Internal function to check the maximum of two
+        #[generate_trait]
+        fn max(a: u64, b: u64) -> u64 {
+            if a > b {
+                a
+            } else {
+                b
+            }
         }
-    }
+
 }

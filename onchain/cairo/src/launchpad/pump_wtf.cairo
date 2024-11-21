@@ -1,5 +1,5 @@
 use afk::types::jediswap_types::{MintParams};
-use afk::types::launchpad_types::{
+use afk::types::pump_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
     SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
@@ -11,13 +11,13 @@ use starknet::ClassHash;
 use starknet::ContractAddress;
 
 #[starknet::interface]
-pub trait ILaunchpadMarketplace<TContractState> {
+pub trait IPumpWtf<TContractState> {
     // User call
     fn create_token(
         ref self: TContractState,
         recipient: ContractAddress,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool
@@ -25,8 +25,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn create_and_launch_token(
         ref self: TContractState,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool
@@ -132,7 +132,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 }
 
 #[starknet::contract]
-pub mod LaunchpadMarketplace {
+pub mod PumpWtf {
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
@@ -147,10 +147,10 @@ pub mod LaunchpadMarketplace {
     };
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk::tokens::memecoin::{IERC20, ERC20, IERC20Dispatcher, IERC20DispatcherTrait,
-    // IMemecoinDispatcher, IMemecoinDispatcherTrait};
+    // IMemecoinV2Dispatcher, IMemecoinV2DispatcherTrait};
     // use afk::tokens::memecoin::{IERC20, ERC20, IERC20Dispatcher, IERC20DispatcherTrait,
-    // IMemecoinDispatcher, IMemecoinDispatcherTrait};
-    use afk::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
+    // IMemecoinV2Dispatcher, IMemecoinV2DispatcherTrait};
+    use afk::tokens::memecoin_v2::{IMemecoinV2Dispatcher, IMemecoinV2DispatcherTrait};
 
 
     // use afk::tokens::memecoin::{};
@@ -365,7 +365,7 @@ pub mod LaunchpadMarketplace {
 
     // Public functions inside an impl block
     #[abi(embed_v0)]
-    impl LaunchpadMarketplace of super::ILaunchpadMarketplace<ContractState> {
+    impl LaunchpadMarketplace of super::IPumpWtf<ContractState> {
         // ADMIN
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
@@ -485,8 +485,8 @@ pub mod LaunchpadMarketplace {
         fn create_token(
             ref self: ContractState,
             recipient: ContractAddress,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool
@@ -510,8 +510,8 @@ pub mod LaunchpadMarketplace {
         // recipient, caller, symbol, name, initial_supply, contract_address_salt
         fn create_and_launch_token(
             ref self: ContractState,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool
@@ -1237,8 +1237,8 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState,
             recipient: ContractAddress,
             owner: ContractAddress,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool
@@ -1562,7 +1562,7 @@ pub mod LaunchpadMarketplace {
             initial_holders,
             initial_holders_amounts } =
                 launch_parameters;
-            let memecoin = IMemecoinDispatcher { contract_address: memecoin_address };
+            let memecoin = IMemecoinV2Dispatcher { contract_address: memecoin_address };
             let erc20 = IERC20Dispatcher { contract_address: memecoin_address };
 
             // TODO fix assert
@@ -1671,7 +1671,7 @@ pub mod LaunchpadMarketplace {
 
             distribute_team_alloc(erc20, initial_holders, initial_holders_amounts);
 
-            let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            let memecoin = IMemecoinV2Dispatcher { contract_address: coin_address };
 
             memecoin
                 .set_launched(
@@ -1750,7 +1750,7 @@ pub mod LaunchpadMarketplace {
 
             distribute_team_alloc(erc20, initial_holders, initial_holders_amounts);
 
-            let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            let memecoin = IMemecoinV2Dispatcher { contract_address: coin_address };
 
             memecoin
                 .set_launched(
