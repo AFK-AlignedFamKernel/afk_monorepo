@@ -109,7 +109,7 @@ pub mod Memecoin {
     use openzeppelin_governance::timelock::TimelockControllerComponent;
     
     use openzeppelin_governance::votes::VotesComponent;
-    use openzeppelin_token::erc20::ERC20Component;
+    // use openzeppelin_token::erc20::ERC20Component;
     use openzeppelin_utils::cryptography::nonces::NoncesComponent;
     use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
     // use core::OptionTrait;
@@ -130,8 +130,8 @@ pub mod Memecoin {
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
 
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
-    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
+    // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
+    // component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
   
     // component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
     // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
@@ -145,15 +145,15 @@ pub mod Memecoin {
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
-    // Timelock Mixin
-    #[abi(embed_v0)]
-    impl TimelockMixinImpl =
-        TimelockControllerComponent::TimelockMixinImpl<ContractState>;
-    impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
+    // // Timelock Mixin
+    // #[abi(embed_v0)]
+    // impl TimelockMixinImpl =
+    //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
+    // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
     
-    // Nonces
-    #[abi(embed_v0)]
-    impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
+    // // Nonces
+    // #[abi(embed_v0)]
+    // impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
     
     
     // // ERC20
@@ -198,11 +198,11 @@ pub mod Memecoin {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        #[substorage(v0)]
-        timelock: TimelockControllerComponent::Storage,
+        // #[substorage(v0)]
+        // timelock: TimelockControllerComponent::Storage,
      
-        #[substorage(v0)]
-        nonces: NoncesComponent::Storage,
+        // #[substorage(v0)]
+        // nonces: NoncesComponent::Storage,
 
         #[substorage(v0)]
         access_control: AccessControlComponent::Storage,
@@ -225,10 +225,10 @@ pub mod Memecoin {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-        #[flat]
-        TimelockEvent: TimelockControllerComponent::Event,
-        #[flat]
-        NoncesEvent: NoncesComponent::Event,
+        // #[flat]
+        // TimelockEvent: TimelockControllerComponent::Event,
+        // #[flat]
+        // NoncesEvent: NoncesComponent::Event,
         
         // #[flat]
         // ERC20VotesEvent: VotesComponent::Event,
