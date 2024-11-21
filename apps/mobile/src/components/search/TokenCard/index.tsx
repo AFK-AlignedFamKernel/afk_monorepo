@@ -21,7 +21,7 @@ export type LaunchCoinProps = {
   event?: NDKEvent;
   profileProps?: NDKUserProfile;
   token?: TokenDeployInterface;
-  dataMeged?:LaunchCoinProps;
+  dataMeged?: LaunchCoinProps;
   launch?: TokenLaunchInterface;
   isViewDetailDisabled?: boolean;
   isTokenOnly?: boolean
@@ -32,7 +32,7 @@ enum AmountType {
   COIN_AMOUNT_TO_BUY,
 }
 
-export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
+export const TokenCard: React.FC<LaunchCoinProps> = ({
   token,
   launch,
   imageProps,
@@ -59,6 +59,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
+        <Text style={styles.tokenName}>{token?.symbol || 'Unnamed Token'}</Text>
         <View style={styles.addressContainer}>
           <Text numberOfLines={1} ellipsizeMode="middle" style={{ color: '#808080', flex: 1 }}>
             {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
@@ -68,7 +69,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           </TouchableOpacity>
         </View>
         <View style={styles.priceTag}>
-          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
+          {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
         </View>
       </View>
 
@@ -77,18 +78,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           <Text style={styles.statLabel}>Supply</Text>
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Raised</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.liquidity_raised || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Threshold</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.threshold_liquidity || 0).toLocaleString()}
-          </Text>
-        </View>
+
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Network</Text>
           <Text style={styles.statValue}>{token?.network || '-'}</Text>
@@ -97,36 +87,19 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
 
       {!isViewDetailDisabled && (
         <>
-          {!isTokenOnly &&
-            <Button
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              View details
-            </Button>
+          <Button
+            onPress={() => {
+              if (token && token?.memecoin_address) {
+                navigation.navigate('LaunchDetail', {
+                  coinAddress: token?.memecoin_address,
+                });
+              }
+            }}
+            style={styles.actionButton}
+          >
+            View token page
+          </Button>
 
-          }
-          {isTokenOnly &&
-            <Button
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              View token page
-            </Button>
-
-          }
         </>
 
       )}

@@ -248,7 +248,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
       {isMobile ? (
         // Mobile Layout
-        <View style={styles.mobileContent}>
+        <ScrollView style={styles.mobileContent}>
           <LaunchActionsForm
             amount={amount}
             // amount={Number(amount)}
@@ -324,7 +324,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               addScreenNavigation={false}
             />
           </View>
-        </View>
+        </ScrollView>
       ) : (
         // Web Layout (keep existing layout)
         <View style={styles.mainContent}>

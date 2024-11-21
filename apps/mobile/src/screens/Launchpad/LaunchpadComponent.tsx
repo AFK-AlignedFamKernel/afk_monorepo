@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-n
 import { Button } from '../../components';
 import Loading from '../../components/Loading';
 import { TokenLaunchCard } from '../../components/search/TokenLaunchCard';
+import { TokenCard } from '../../components/search/TokenCard';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
@@ -59,12 +60,12 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 
       <View style={styles.actionToggle}>
         <Button
-          style={[styles.toggleButton, styles.activeToggle]}
+          style={[styles.toggleButton, tokenOrLaunch == "LAUNCH" && styles.activeToggle]}
           onPress={() => setTokenOrLauch("LAUNCH")}          >
           Launchs
         </Button>
         <Button
-          style={[styles.toggleButton, styles.activeToggle]}
+          style={[styles.toggleButton, tokenOrLaunch == "TOKEN" && styles.activeToggle]}
           onPress={() => setTokenOrLauch("TOKEN")}
 
         >
@@ -76,18 +77,45 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       {isLoading ? (
         <Loading />
       ) : (
-        <FlatList
-          contentContainerStyle={styles.flatListContent}
-          data={tokens}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          keyExtractor={(item, i) => i.toString()}
-          key={`flatlist-${isDesktop ? 3 : 1}`}
-          numColumns={isDesktop ? 3 : 1}
-          renderItem={({ item, index }) => {
-            return <TokenLaunchCard key={index} token={item} />;
-          }}
-          refreshControl={<RefreshControl refreshing={isFetching} />}
-        />
+        <>
+
+          {tokenOrLaunch == "LAUNCH" &&
+
+            <FlatList
+              contentContainerStyle={styles.flatListContent}
+              data={tokens}
+              // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              keyExtractor={(item, i) => i.toString()}
+              key={`flatlist-${isDesktop ? 3 : 1}`}
+              numColumns={isDesktop ? 3 : 1}
+              renderItem={({ item, index }) => {
+                  return <TokenLaunchCard key={index} token={item} isTokenOnly={true} />;
+              }}
+              refreshControl={<RefreshControl refreshing={isFetching} />}
+            />
+          }
+
+          {tokenOrLaunch == "TOKEN" &&
+
+            <FlatList
+              contentContainerStyle={styles.flatListContent}
+              data={tokens}
+              // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              keyExtractor={(item, i) => i.toString()}
+              key={`flatlist-${isDesktop ? 3 : 1}`}
+              numColumns={isDesktop ? 3 : 1}
+              renderItem={({ item, index }) => {
+                return <TokenCard key={index} token={item} isTokenOnly={true} />;
+              }}
+              refreshControl={<RefreshControl refreshing={isFetching} />}
+            />
+          }
+        </>
+
+
+
       )}
     </View>
   );
