@@ -705,7 +705,9 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+                // TODO fix add liquidity ekubo
+                self._add_liquidity_ekubo(coin_address);
             }
 
             self
@@ -785,10 +787,9 @@ pub mod LaunchpadMarketplace {
             // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
 
             let old_price = old_pool.price.clone();
-            let total_price=old_pool.price.clone();
+            let total_price = old_pool.price.clone();
             // Update keys with new values
             let mut pool_update = old_pool.clone();
-
 
             // let remain_liquidity = total_price ;
             assert(old_pool.liquidity_raised >= remain_liquidity, 'liquidity <= amount');
@@ -1771,99 +1772,7 @@ pub mod LaunchpadMarketplace {
             //     );
             (id, position)
         }
-        //TODO: refac & fix
-        // fn _add_liquidity_unrug(
-        //     ref self: ContractState,
-        //     launch_params: LaunchParameters,
-        //     ekubo_pool_params: EkuboPoolParameters
-        // ) -> (u64, EkuboLP) {
-        //     let fee = 3000; // Example fee, adjust as needed
-        //     let factory_address = self.factory_address.read();
-
-        //     if factory_address.is_zero() {
-        //         panic!("Factory address not set");
-        //     }
-
-        //     let factory = IFactoryDispatcher {
-        //         contract_address: factory_address.try_into().unwrap()
-        //     };
-
-        //     //TODO: Check if the pool exists
-
-        //     // TODO assert owner
-
-        //     // Todo assert threshold liquidity
-
-        //     // //TODO revisit initial_holders_amounts, transfer_restriction_delay,
-
-        //     // Transfer memecoin
-
-        //     let pool = self.launched_coins.read(launch_params.memecoin_address);
-        //     // TODO readd
-        //     // assert(!pool.token_address.is_zero(), 'no pool');
-
-        //     let token_address = pool.token_address;
-        //     assert(pool.liquidity_raised >= pool.threshold_liquidity, 'no threshold raised');
-        //     assert(pool.is_liquidity_launch == false, 'liquidity already launch');
-        //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-        //     // memecoin.transfer(factory.contract_address, pool.total_supply -
-        //     // pool.total_token_holded);
-
-        //     let erc20 = IERC20Dispatcher { contract_address: launch_params.quote_address };
-        //     erc20.transfer(factory.contract_address, pool.liquidity_raised);
-
-        //     // memecoin.transfer(factory.contract_address, pool.initial_pool_supply);
-        //     // launch liquidity on ekubo
-
-        //     // INTERACT NOT WORKING
-        //     let (id, position) = factory.launch_on_ekubo(launch_params, ekubo_pool_params);
-
-        //     //TODO
-        //     // let mut launch_to_update = self.launched_coins.read(coin_address);
-        //     // launch_to_update.is_liquidity_launch = true;
-        //     // launch_to_update.liquidity_type = Option::Some(LiquidityType::EkuboNFT(id));
-        //     // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-        //     //TODO
-        //     // Emit LiquidityCreated event
-        //     // self.emit(LiquidityCreated {
-        //     //     pool: pool,
-        //     //     asset: token_a,
-        //     //     quote_token_address: token_b,
-        //     //     owner: launch.owner,
-        //     // exchange:SupportedExchanges::Ekubo
-        //     // });
-
-        //     (id, position)
-        // }
-
-        // fn _create_unrug_token(
-        //     ref self: ContractState,
-        //     owner: ContractAddress,
-        //     name: felt252,
-        //     symbol: felt252,
-        //     initial_supply: u256,
-        //     contract_address_salt: felt252
-        // ) -> ContractAddress {
-        //     let factory_address = self.factory_address.read();
-
-        //     if factory_address.is_zero() {
-        //         panic!("Factory address not set");
-        //     }
-
-        //     let factory = IFactoryDispatcher {
-        //         contract_address: factory_address.try_into().unwrap()
-        //     };
-
-        //     // let memecoin = factory
-        //     //     .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
-
-        //     let memecoin = factory
-        //     .create_memecoin(owner, name, symbol, initial_supply, contract_address_salt);
-
-        //     memecoin
-        // }
-
+   
         // TODO add liquidity or increase
         // Better params of Mint
         fn _add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
@@ -1969,7 +1878,6 @@ pub mod LaunchpadMarketplace {
             // Increase liquidity of this pool.
             }
         }
-
         // Get amount of token received by token quote IN
         // Params
         // Quote amount

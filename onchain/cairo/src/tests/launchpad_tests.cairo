@@ -410,13 +410,9 @@ mod launchpad_tests {
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
-        run_buy_by_amount(
-            launchpad, erc20, memecoin, 1, token_address, sender_address,
-        );
+        run_buy_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
 
-        run_sell_by_amount(
-            launchpad, erc20, memecoin, 1, token_address, sender_address,
-        );
+        run_sell_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
         //  All buy
 
         run_buy_by_amount(

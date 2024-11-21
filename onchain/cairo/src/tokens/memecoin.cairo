@@ -101,14 +101,14 @@ pub mod Memecoin {
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::math::PercentageMath;
     use core::num::traits::Zero;
-    use openzeppelin_access::ownable::OwnableComponent;
-    
+
     use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_account::interface;
-    use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_governance::timelock::TimelockControllerComponent;
-    
+
     use openzeppelin_governance::votes::VotesComponent;
+    use openzeppelin_introspection::src5::SRC5Component;
     // use openzeppelin_token::erc20::ERC20Component;
     use openzeppelin_utils::cryptography::nonces::NoncesComponent;
     use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
@@ -132,7 +132,7 @@ pub mod Memecoin {
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
     // component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
-  
+
     // component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
     // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -150,12 +150,11 @@ pub mod Memecoin {
     // impl TimelockMixinImpl =
     //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
     // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
-    
+
     // // Nonces
     // #[abi(embed_v0)]
     // impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
-    
-    
+
     // // ERC20
     // #[abi(embed_v0)]
     // impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
@@ -165,7 +164,6 @@ pub mod Memecoin {
     // #[abi(embed_v0)]
     // impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
     // impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
-
 
     // Constants.
     /// The minimum maximum percentage of the supply that can be bought at once.
@@ -190,27 +188,25 @@ pub mod Memecoin {
         factory_contract: ContractAddress,
         liquidity_type: Option<LiquidityType>,
         max_percentage_buy_launch: u16,
-        
-        capped_total_supply:u256,
-        is_mint_paused:bool,
-
+        capped_total_supply: u256,
+        is_mint_paused: bool,
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         // #[substorage(v0)]
         // timelock: TimelockControllerComponent::Storage,
-     
+
         // #[substorage(v0)]
         // nonces: NoncesComponent::Storage,
 
         #[substorage(v0)]
         access_control: AccessControlComponent::Storage,
         // #[substorage(v0)]
-        // erc20_votes: VotesComponent::Storage,
-        
+    // erc20_votes: VotesComponent::Storage,
+
         // #[substorage(v0)]
-        // pub erc20: ERC20Component::Storage,
+    // pub erc20: ERC20Component::Storage,
 
     }
 
@@ -226,15 +222,15 @@ pub mod Memecoin {
         #[flat]
         SRC5Event: SRC5Component::Event,
         // #[flat]
-        // TimelockEvent: TimelockControllerComponent::Event,
+    // TimelockEvent: TimelockControllerComponent::Event,
+    // #[flat]
+    // NoncesEvent: NoncesComponent::Event,
+
         // #[flat]
-        // NoncesEvent: NoncesComponent::Event,
-        
+    // ERC20VotesEvent: VotesComponent::Event,
+
         // #[flat]
-        // ERC20VotesEvent: VotesComponent::Event,
-        
-        // #[flat]
-        // ERC20Event: ERC20Component::Event,
+    // ERC20Event: ERC20Component::Event,
     }
     #[derive(Drop, starknet::Event)]
     struct Transfer {
@@ -249,8 +245,8 @@ pub mod Memecoin {
         value: u256,
     }
 
-       // Required for hash computation.
-       pub impl SNIP12MetadataImpl of SNIP12Metadata {
+    // Required for hash computation.
+    pub impl SNIP12MetadataImpl of SNIP12Metadata {
         fn name() -> felt252 {
             'DAPP_NAME'
         }
@@ -259,7 +255,7 @@ pub mod Memecoin {
         }
     }
 
-      // We need to call the `transfer_voting_units` function after
+    // We need to call the `transfer_voting_units` function after
     // every mint, burn and transfer.
     // For this, we use the `after_update` hook of the `ERC20Component::ERC20HooksTrait`.
     // impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
@@ -284,8 +280,7 @@ pub mod Memecoin {
         recipient: ContractAddress,
         decimals: u8,
     ) {
-
-        let caller= get_caller_address();
+        let caller = get_caller_address();
         self.name.write(name);
         self.symbol.write(symbol);
         self.decimals.write(decimals);
@@ -297,10 +292,9 @@ pub mod Memecoin {
 
         // Initialize the token / internal logic
         self.initializer(factory_address: get_caller_address(), :initial_supply,);
-        
 
-        // Init Timelock Gov 
-        // proposers 
+        // Init Timelock Gov
+        // proposers
         // Add params
         // let mut proposers = ArrayTrait::new();
         // let mut executors = ArrayTrait::new();
