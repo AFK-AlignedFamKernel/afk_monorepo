@@ -1,5 +1,5 @@
 import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, CallData, constants } from 'starknet';
+import { AccountInterface, cairo, CallData, constants } from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 import { formatFloatToUint256 } from '../../utils/format';
@@ -38,7 +38,7 @@ export const useCreateToken = () => {
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
           contract_address_salt: new Date().getTime(),
-          is_unruggable: data?.is_unruggable
+          is_unruggable: cairo.felt( String(data?.is_unruggable))
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
           // contract_address_salt:cairo.felt(Math.random())
         }),
@@ -78,7 +78,9 @@ export const useCreateToken = () => {
           symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,
           contract_address_salt: new Date().getTime(),
-          is_unruggable: data?.is_unruggable
+          // is_unruggable: data?.is_unruggable
+          is_unruggable: cairo.felt( String(data?.is_unruggable))
+
         }),
       };
 

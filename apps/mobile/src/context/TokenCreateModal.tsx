@@ -1,10 +1,11 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {createContext, useCallback, useMemo, useRef, useState} from 'react';
+import {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Modalize} from 'react-native-modalize';
 
 import {KeyModalAction} from '../modules/KeyModal';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
 import {TokenCreateModal} from '../modules/TokenCreatedModal';
+import { useAccount } from '@starknet-react/core';
 
 export type TokenCreateModal = Modalize;
 
@@ -19,6 +20,7 @@ export type TokenCreatedContextType = {
 export const TokenModalContext = createContext<TokenCreatedContextType | null>(null);
 
 export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
+  const account = useAccount()
   const tokenModalRef = useRef<TokenCreateModal>(null);
 
   const [event, setEvent] = useState<NDKEvent | undefined>();
@@ -26,6 +28,17 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
   const [action, setAction] = useState<KeyModalAction | undefined>();
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
+
+  useEffect(() => {
+
+    if(account?.address && !starknetAddress) {
+      setStarknetAddress(account?.address)
+    }
+    if(!account?.address) {
+      setStarknetAddress(undefined)
+    }
+
+  },[account])
   const show = useCallback(
     (event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => {
       setEvent(event);
