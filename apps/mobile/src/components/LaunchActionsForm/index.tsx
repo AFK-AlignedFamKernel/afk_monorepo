@@ -16,11 +16,12 @@ export type LaunchActionsFormProps = {
   onSellPress: () => void;
   onHandleAction: (amountProps?: number) => void;
   onChangeText: (e: any) => void;
-  onSetAmount: (e: number) => void;
+  // onSetAmount: (e: number) => void;
+  onSetAmount: (e?: string) => void;
   typeAction?: 'BUY' | 'SELL';
   setTypeAction?: (type: 'BUY' | 'SELL') => void;
   launch?: LaunchDataMerged;
-  amount?: number;
+  amount?: string;
   userShare?: UserShareInterface;
 };
 
@@ -76,13 +77,13 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         <View style={styles.actionToggle}>
           <Button
             onPress={() => setTypeAction?.('BUY')}
-            style={[styles.toggleButton, typeAction === 'BUY' && styles.activeToggle]}
+            style={[styles.toggleButton, styles.buttonBuy, typeAction === 'BUY' && styles.activeToggle]}
           >
             Buy
           </Button>
           <Button
             onPress={() => setTypeAction?.('SELL')}
-            style={[styles.toggleButton, typeAction === 'SELL' && styles.activeToggle]}
+            style={[styles.toggleButton, styles.buttonSell, typeAction === 'SELL' && styles.activeToggle]}
           >
             Sell
           </Button>
@@ -91,17 +92,21 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         {/* Amount Input */}
         <View style={styles.inputContainer}>
           <Input
-            keyboardType="decimal-pad"
+            // keyboardType="decimal-pad"
+            keyboardType="numeric"
+            // keyboardType=""
             style={styles.input}
             onChangeText={onChangeText}
             placeholder="Amount"
+            // value={Number(amount?.toString())}
             value={amount?.toString()}
           />
           <View style={styles.balanceInfo}>
-            <Text style={styles.balanceLabel}>Balance:</Text>
+            <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
             <Button
               style={styles.maxButton}
               onPress={() => {
+                onSetAmount(toBalance?.formatted)
                 /* Set max balance */
               }}
             >

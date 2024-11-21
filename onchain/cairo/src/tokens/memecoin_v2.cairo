@@ -30,7 +30,7 @@ use starknet::ContractAddress;
 // }
 
 #[starknet::interface]
-pub trait IMemecoin<TContractState> {
+pub trait IMemecoinV2<TContractState> {
     /// Returns whether the memecoin has been launched.
     ///
     /// # Returns
@@ -96,7 +96,7 @@ pub trait IMemecoin<TContractState> {
 
 
 #[starknet::contract]
-pub mod Memecoin {
+pub mod MemecoinV2 {
     use afk::errors;
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::math::PercentageMath;
@@ -130,8 +130,8 @@ pub mod Memecoin {
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
 
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
-    // component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
+    component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
+    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
 
     // component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
     // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
@@ -145,15 +145,16 @@ pub mod Memecoin {
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
-    // // Timelock Mixin
-    // #[abi(embed_v0)]
-    // impl TimelockMixinImpl =
-    //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
-    // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
+    // Timelock Mixin
+    #[abi(embed_v0)]
+    impl TimelockMixinImpl =
+        TimelockControllerComponent::TimelockMixinImpl<ContractState>;
+    impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
 
-    // // Nonces
-    // #[abi(embed_v0)]
-    // impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
+    // Nonces
+    #[abi(embed_v0)]
+    impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
+
 
     // // ERC20
     // #[abi(embed_v0)]
@@ -194,12 +195,10 @@ pub mod Memecoin {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        // #[substorage(v0)]
-        // timelock: TimelockControllerComponent::Storage,
-
-        // #[substorage(v0)]
-        // nonces: NoncesComponent::Storage,
-
+        #[substorage(v0)]
+        timelock: TimelockControllerComponent::Storage,
+        #[substorage(v0)]
+        nonces: NoncesComponent::Storage,
         #[substorage(v0)]
         access_control: AccessControlComponent::Storage,
         // #[substorage(v0)]
@@ -221,11 +220,10 @@ pub mod Memecoin {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-        // #[flat]
-    // TimelockEvent: TimelockControllerComponent::Event,
-    // #[flat]
-    // NoncesEvent: NoncesComponent::Event,
-
+        #[flat]
+        TimelockEvent: TimelockControllerComponent::Event,
+        #[flat]
+        NoncesEvent: NoncesComponent::Event,
         // #[flat]
     // ERC20VotesEvent: VotesComponent::Event,
 
@@ -296,12 +294,12 @@ pub mod Memecoin {
         // Init Timelock Gov
         // proposers
         // Add params
-        // let mut proposers = ArrayTrait::new();
-        // let mut executors = ArrayTrait::new();
-        // proposers.append(caller);
-        // executors.append(caller);
-        // let min_delay=100_000;
-        // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
+        let mut proposers = ArrayTrait::new();
+        let mut executors = ArrayTrait::new();
+        proposers.append(caller);
+        executors.append(caller);
+        let min_delay = 100_000;
+        self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
 
         let caller = get_caller_address();
         self.creator.write(caller);
@@ -402,7 +400,7 @@ pub mod Memecoin {
     }
 
     #[abi(embed_v0)]
-    impl MemecoinEntrypoints of super::IMemecoin<ContractState> {
+    impl MemecoinEntrypoints of super::IMemecoinV2<ContractState> {
         // fn owner(self: @ContractState) -> ContractAddress {
         //     self.ownable.owner()
         // }

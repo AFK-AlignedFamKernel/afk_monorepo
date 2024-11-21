@@ -33,8 +33,16 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     borderRadius: 8,
   },
+  buttonSell: {
+    backgroundColor:theme.colors.red
+  },
+  buttonBuy: {
+    backgroundColor:theme.colors.green
+  },
   activeToggle: {
     backgroundColor: theme.colors.primary,
+    color:theme.colors.badge,
+    border:theme.colors.badgeBorder
   },
   inputContainer: {
     gap: Spacing.xsmall,

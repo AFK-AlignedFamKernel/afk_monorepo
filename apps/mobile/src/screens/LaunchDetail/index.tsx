@@ -98,7 +98,15 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const {showToast} = useToast();
   const walletModal = useWalletModal();
 
-  const [amount, setAmount] = useState<number | undefined>(0);
+  const [amount, setAmount] = useState<string | undefined>("0");
+
+  const handleSetAmount = (_amount?:string) => {
+    let nb_amount= Number(_amount)
+    if(_amount && isNaN(Number(_amount)) ) {
+      setAmount(nb_amount?.toFixed(2).toString())
+    }
+
+  }
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -108,6 +116,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   };
 
   useEffect(() => {
+    console.log("launchData",launchData)
     if (launchData && launchData.data) {
       setTokens(launchData?.data);
       setToken(launchData?.data);
@@ -184,7 +193,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
     console.log('token', token);
 
-    if (!token?.memecoin_address) return;
+    if (!token?.memecoin_address)  {
+      return showToast({title:"Token can't be find", type:"info"})
+    }
     // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
     const buyResult = await handleBuyCoins(
@@ -240,7 +251,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
         <View style={styles.mobileContent}>
           <LaunchActionsForm
             amount={amount}
-            onChangeText={(e) => setAmount(Number(e))}
+            // amount={Number(amount)}
+            // onChangeText={(e) => setAmount(Number(e))}
+            onChangeText={(e) => setAmount(e)}
             onBuyPress={buyCoin}
             onSellPress={sellCoin}
             launch={launch}
@@ -248,7 +261,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
             typeAction={typeAction}
             onHandleAction={onHandleAction}
             userShare={share}
-            onSetAmount={setAmount}
+            onSetAmount={handleSetAmount}
           />
           <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
@@ -318,7 +331,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
           <View style={styles.leftColumn}>
             <LaunchActionsForm
               amount={amount}
-              onChangeText={(e) => setAmount(Number(e))}
+              onChangeText={(e) => setAmount(e)}
+              // onChangeText={(e) => setAmount(Number(e))}
               onBuyPress={buyCoin}
               onSellPress={sellCoin}
               launch={launch}
@@ -326,7 +340,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               typeAction={typeAction}
               onHandleAction={onHandleAction}
               userShare={share}
-              onSetAmount={setAmount}
+              onSetAmount={handleSetAmount}
             />
           </View>
           <View style={styles.rightColumn}>

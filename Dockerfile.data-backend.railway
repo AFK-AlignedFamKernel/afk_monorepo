@@ -1,5 +1,5 @@
 # Use a Node.js base image
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -113,6 +113,9 @@ COPY . .
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
+RUN pnpm run build:prisma-db
+RUN pnpm run build:indexer-prisma
+RUN pnpm run build:backend:all
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
@@ -124,7 +127,7 @@ RUN pnpm --filter data-backend build:all
 # RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Set the working directory in the production container
 WORKDIR /app
