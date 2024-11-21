@@ -396,7 +396,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    // #[fork("Mainnet")]
+    #[fork("Mainnet")]
     fn launchpad_integration() {
         println!("launchpad_integration");
 
@@ -1362,6 +1362,7 @@ mod launchpad_tests {
  
 
     #[test]
+    #[fork("Mainnet")]
     fn launchpad_buy_all() {
         println!("launchpad_buy_all");
         let (sender_address, erc20, launchpad) = request_fixture();
