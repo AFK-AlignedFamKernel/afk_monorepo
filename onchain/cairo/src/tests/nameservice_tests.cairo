@@ -1,17 +1,15 @@
 #[cfg(test)]
 mod nameservice_tests {
-    use afk::afk_id::nameservice::Nameservice::Event;
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher,
     IERC20MintableDispatcherTrait};
     use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events, DeclareResultTrait, EventSpyAssertionsTrait,
+        stop_cheat_caller_address, DeclareResultTrait
     };
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ContractAddress, get_block_timestamp
     };
 
     fn ADMIN() -> ContractAddress {
@@ -104,7 +102,6 @@ mod nameservice_tests {
         let stored_address = nameservice_dispatcher.get_username_address(username);
         assert(stored_address == CALLER(), 'Address not set');
 
-        // nameservice_dispatcher.get_subscription_expiry not implemeted yet
         let expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
         let current_time = get_block_timestamp();
         assert(expiry > current_time, 'Sub exp not set');
@@ -223,5 +220,19 @@ mod nameservice_tests {
 
         let contract_balance = payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
         assert(contract_balance == 0_u256, 'Contract balance not zeroy');
+    }
+
+    #[test]
+    fn test_subscription_price() {
+        let (nameservice_dispatcher, _, _) = setup();
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        let subscription_price = nameservice_dispatcher.get_subscription_price();
+        nameservice_dispatcher.update_subscription_price(30_u256);
+        let new_subscription_price = nameservice_dispatcher.get_subscription_price();
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        assert(subscription_price == 10_u256, 'Price is not correct');
+        assert(new_subscription_price == 30_u256, 'Price is not correct');
     }
 }

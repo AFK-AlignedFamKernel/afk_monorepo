@@ -280,6 +280,11 @@ pub mod Nameservice {
     }
 
     #[external(v0)]
+    fn get_subscription_price(self: @ContractState) -> u256 {
+        self.subscription_price.read()
+    }
+
+    #[external(v0)]
     fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
         self.subscription_expiry.read(address)
     }
