@@ -26,27 +26,16 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod DaoAA {
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
-    use openzeppelin_governance::timelock::TimelockControllerComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
-    use starknet::ContractAddress;
-
-    component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
-    component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
-    component!(path: SRC5Component, storage: src5, event: SRC5Event);
-
-    // Timelock Mixin
-    #[abi(embed_v0)]
-    impl TimelockMixinImpl =
-        TimelockControllerComponent::TimelockMixinImpl<ContractState>;
-    impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
-
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
     };
     use core::num::traits::Zero;
+    use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin_governance::timelock::TimelockControllerComponent;
+    use openzeppelin_introspection::src5::SRC5Component;
+    use starknet::ContractAddress;
     use starknet::account::Call;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
@@ -59,6 +48,16 @@ pub mod DaoAA {
     };
     use super::super::transfer::Transfer;
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
+
+    component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
+    component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
+
+    // Timelock Mixin
+    #[abi(embed_v0)]
+    impl TimelockMixinImpl =
+        TimelockControllerComponent::TimelockMixinImpl<ContractState>;
+    impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
     #[storage]
     struct Storage {
         #[key]
