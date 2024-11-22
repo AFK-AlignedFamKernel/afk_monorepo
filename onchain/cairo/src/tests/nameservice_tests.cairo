@@ -15,9 +15,15 @@ mod nameservice_tests {
     fn ADMIN() -> ContractAddress {
         starknet::contract_address_const::<1>()
     }
+
     fn CALLER() -> ContractAddress {
         starknet::contract_address_const::<2>()
     }
+
+    fn NEW_CALLER() -> ContractAddress {
+        starknet::contract_address_const::<3>()
+    }
+
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const YEAR_IN_SECONDS: u64 = 31536000_u64;
     const PAYMENT_AMOUNT: felt252 = 10;
@@ -38,15 +44,12 @@ mod nameservice_tests {
         let mut calldata = array![];
         ADMIN().serialize(ref calldata);
         ADMIN().serialize(ref calldata);
+        payment_token_dispatcher.contract_address.serialize(ref calldata);
+        10_u256.serialize(ref calldata);
 
         let (nameservice_address, _) = nameservice_class.deploy(@calldata).unwrap();
 
         let nameservice_dispatcher = INameserviceDispatcher { contract_address: nameservice_address };
-
-        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
-        nameservice_dispatcher.set_token_quote(payment_token_dispatcher.contract_address);
-        nameservice_dispatcher.update_subscription_price(10_u256);  // Reduced price
-        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)
     }
@@ -114,7 +117,6 @@ mod nameservice_tests {
 
         assert(contract_balance == 10_u256, 'token balance incorrect');
     }
-
     #[test]
     fn test_change_username() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
@@ -234,5 +236,66 @@ mod nameservice_tests {
 
         assert(subscription_price == 10_u256, 'Price is not correct');
         assert(new_subscription_price == 30_u256, 'Price is not correct');
+    }
+
+    #[test]
+    #[should_panic(expected: 'Username already claimed')]
+    fn test_username_already_claimed() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);  // Reduced amount
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, NEW_CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    }
+
+    #[test]
+    #[should_panic(expected: 'User already has a username')]
+    fn test_user_already_claimed() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);  // Reduced amount
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
     }
 }

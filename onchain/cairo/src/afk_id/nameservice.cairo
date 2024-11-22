@@ -201,7 +201,8 @@ pub mod Nameservice {
 
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress) {
+    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress, token_quote: ContractAddress, price: u256) {
+
         self.ownable.initializer(owner);
 
         self.accesscontrol.initializer();
@@ -211,9 +212,11 @@ pub mod Nameservice {
         self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
         self.erc20.initializer(".afk", ".afk");
 
+        self.token_quote.write(token_quote);
+        self.subscription_price.write(price);
+
         // self.erc20.mint(owner, 1n);
     }
-
 
     #[abi(embed_v0)]
     impl Nameservice of IUsernameStore<ContractState> {
