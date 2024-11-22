@@ -32,7 +32,7 @@ import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
 import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
 import { TokenTx } from '../../components/LaunchPad/TokenTx';
-// import { TokenStats } from '../../components/LaunchPad/TokenStats';
+import { TokenStats } from '../../components/LaunchPad/TokenStats';
 import { UserShare } from '../../components/LaunchPad/UserShare';
 import { useGetToken } from '../../hooks/api/indexer/useToken';
 
@@ -49,7 +49,7 @@ interface LaunchDetailStyles {
   mobileTabBar: ViewStyle;
 }
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
+export const TokenDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
   const {theme} = useTheme();
   const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
@@ -75,7 +75,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const [shares, setShares] = useState<UserShareInterface[]>();
   const [share, setShare] = useState<UserShareInterface>();
 
-  // const [stats, setStats] = useState<TokenStatsInterface | undefined>();
+  const [stats, setStats] = useState<TokenStatsInterface | undefined>();
 
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
@@ -84,13 +84,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const {data: transactionData, isLoading: txLoading} = useGetTransactions(coinAddress);
 
-  // const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
+  const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
   const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
 
-  const {data: launchData, isLoading: launchLoading} = useGetTokenLaunch(coinAddress);
-
-  const {data: tokenData, isLoading: tokenLoading} = useGetToken(coinAddress);
+  const {data: launchData, isLoading: tokenLoading} = useGetToken(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
@@ -136,9 +134,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     setTransaction(data?.data);
   }, [transactionData]);
 
-  // useEffect(() => {
-  //   setStats(statsData);
-  // }, [statsData]);
+  useEffect(() => {
+    setStats(statsData);
+  }, [statsData]);
 
   useEffect(() => {
     const data = sharesData || [];
@@ -291,9 +289,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               <TokenTx tx={transactions} loading={txLoading} />
             )}
 
-            {/* {selectedTab == SelectedTab.TOKEN_STATS && (
+            {selectedTab == SelectedTab.TOKEN_STATS && (
               <TokenStats loading={statsLoading} stats={stats} />
-            )} */}
+            )}
 
             {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
               <UserShare
@@ -378,9 +376,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 <TokenTx tx={transactions} loading={txLoading} />
               )}
 
-              {/* {selectedTab == SelectedTab.TOKEN_STATS && (
+              {selectedTab == SelectedTab.TOKEN_STATS && (
                 <TokenStats loading={statsLoading} stats={stats} />
-              )} */}
+              )}
 
               {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
                 <UserShare

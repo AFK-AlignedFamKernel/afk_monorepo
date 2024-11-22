@@ -35,6 +35,8 @@ async function transactionsRoute(
           amount: true,
           quote_amount: true,
           price: true,
+          time_stamp:true,
+          liquidity_raised:true
         },
       });
 

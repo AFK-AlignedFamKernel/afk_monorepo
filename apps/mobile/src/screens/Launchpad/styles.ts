@@ -12,7 +12,20 @@ export default ThemedStyleSheet((theme) => ({
     // paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
   },
-
+  actionToggle: {
+    flexDirection: 'row',
+    gap: Spacing.xsmall,
+    marginBottom: Spacing.small,
+  },
+  activeToggle: {
+    backgroundColor: theme.colors.primary,
+    color:theme.colors.badge,
+    border:theme.colors.badgeBorder
+  },
+  toggleButton: {
+    flex: 1,
+    borderRadius: 8,
+  },
   separator: {
     height: Spacing.xsmall,
   },

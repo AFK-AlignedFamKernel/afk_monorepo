@@ -14,6 +14,7 @@ import { feltToAddress } from '../../../utils/format';
 import { Button } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
+import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -21,7 +22,7 @@ export type LaunchCoinProps = {
   event?: NDKEvent;
   profileProps?: NDKUserProfile;
   token?: TokenDeployInterface;
-  dataMeged?:LaunchCoinProps;
+  dataMeged?: LaunchCoinProps;
   launch?: TokenLaunchInterface;
   isViewDetailDisabled?: boolean;
   isTokenOnly?: boolean
@@ -32,7 +33,7 @@ enum AmountType {
   COIN_AMOUNT_TO_BUY,
 }
 
-export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
+export const TokenCard: React.FC<LaunchCoinProps> = ({
   token,
   launch,
   imageProps,
@@ -43,11 +44,13 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   isTokenOnly
 }) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
-  const account = useAccount();
+  const {account} = useAccount();
   const { showToast } = useToast();
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
+
+  const { handleLaunchCoin } = useLaunchToken()
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
@@ -59,6 +62,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
+        <Text style={styles.tokenName}>{token?.symbol || 'Unnamed Token'}</Text>
         <View style={styles.addressContainer}>
           <Text numberOfLines={1} ellipsizeMode="middle" style={{ color: '#808080', flex: 1 }}>
             {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
@@ -68,7 +72,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           </TouchableOpacity>
         </View>
         <View style={styles.priceTag}>
-          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
+          {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
         </View>
       </View>
 
@@ -77,56 +81,43 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           <Text style={styles.statLabel}>Supply</Text>
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Raised</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.liquidity_raised || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Threshold</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.threshold_liquidity || 0).toLocaleString()}
-          </Text>
-        </View>
+
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Network</Text>
           <Text style={styles.statValue}>{token?.network || '-'}</Text>
         </View>
       </View>
 
+      {account && account?.address == token?.owner &&
+        <View>
+
+          <Button onPress={() => {
+            handleLaunchCoin(account, token?.memecoin_address)
+          }}>Launch your coin</Button>
+          <Button
+            onPress={() => {
+
+            }}
+          >Add Liquidity unruggable</Button>
+        </View>
+
+      }
+
       {!isViewDetailDisabled && (
         <>
-          {!isTokenOnly &&
-            <Button
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              View details
-            </Button>
+          <Button
+            onPress={() => {
+              if (token && token?.memecoin_address) {
+                navigation.navigate('LaunchDetail', {
+                  coinAddress: token?.memecoin_address,
+                });
+              }
+            }}
+            style={styles.actionButton}
+          >
+            View token page
+          </Button>
 
-          }
-          {isTokenOnly &&
-            <Button
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              View token page
-            </Button>
-
-          }
         </>
 
       )}

@@ -80,6 +80,8 @@ export type MainStackParams = {
   DappBrowser:undefined;
   Oauth:undefined;
   ShortVideos:undefined;
+  TokenDetail: {coinAddress: string};
+
 };
 
 export type HomeBottomStackParams = {
@@ -111,7 +113,7 @@ export type HomeBottomStackParams = {
   DappBrowser:undefined;
   Oauth:undefined;
   ShortVideos:undefined;
-
+  TokenDetail: {coinAddress: string};
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -282,6 +284,11 @@ export type LaunchpadScreenProps = CompositeScreenProps<
 
 export type LaunchDetailScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'LaunchDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type TokenDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'TokenDetail'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

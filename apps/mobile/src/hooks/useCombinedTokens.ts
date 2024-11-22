@@ -19,6 +19,7 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
   } = useGetTokenLaunch(launch);
 
   const [tokens, setTokens] = useState<LaunchDataMerged[]>([]);
+  const [launchs, setLaunchs] = useState<LaunchDataMerged[]>([]);
 
   const combinedData = useMemo(() => {
     return [
@@ -27,12 +28,21 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
     ];
   }, [deployData, launchData]);
 
+  const launchDataCombined = useMemo(() => {
+    return [
+      ...(launchData?.data || []),
+      //  ...(launchData?.data || [])
+    ];
+  }, [deployData, launchData]);
+
   useEffect(() => {
     setTokens(combinedData);
+    setLaunchs(launchDataCombined)
   }, [combinedData]);
 
   return {
     tokens,
+    launchs:launchDataCombined,
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
     isFetching: launchIsFetching || tokenIsFetching,
