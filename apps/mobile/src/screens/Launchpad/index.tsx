@@ -35,22 +35,7 @@ export const LaunchpadScreen: React.FC<LaunchpadScreenProps> = () => {
 
   return (
     <View style={styles.container}>
-      {/* <Header showLogo /> */}
-      <Text style={styles.text}>Launchpad to Pump it</Text>
-      <Text style={{...styles.text, marginBottom: 1}}>
-        {' '}
-        Buy or sell a memecoin of content creator/community
-      </Text>
       <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
-      {/* {selectedTab == SelectedTab.TIPS ? (
-        <TipsComponent></TipsComponent>
-      ) : selectedTab == SelectedTab.CHANNELS ? (
-        <>
-          <ChannelComponent></ChannelComponent>
-        </>
-      ) : (
-        <></>
-      )} */}
     </View>
   );
 };

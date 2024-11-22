@@ -14,6 +14,7 @@ import { feltToAddress } from '../../../utils/format';
 import { Button } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
+import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -43,11 +44,13 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   isTokenOnly
 }) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
-  const account = useAccount();
+  const {account} = useAccount();
   const { showToast } = useToast();
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
+
+  const { handleLaunchCoin } = useLaunchToken()
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
@@ -84,6 +87,21 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           <Text style={styles.statValue}>{token?.network || '-'}</Text>
         </View>
       </View>
+
+      {account && account?.address == token?.owner &&
+        <View>
+
+          <Button onPress={() => {
+            handleLaunchCoin(account, token?.memecoin_address)
+          }}>Launch your coin</Button>
+          <Button
+            onPress={() => {
+
+            }}
+          >Add Liquidity unruggable</Button>
+        </View>
+
+      }
 
       {!isViewDetailDisabled && (
         <>

@@ -31,7 +31,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     NDKKind.Metadata,
     NDKKind.VerticalVideo,
     NDKKind.HorizontalVideo,
-    30311
+    30311 as NDKKind
   ]);
 
   const contacts = useContacts({ authors: [publicKey] });
@@ -144,15 +144,16 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
-          } else if (item.kind === 30311) {
-            return <RenderEventCard
-              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier)}
-              streamKey={item.identifier}
-              handleNavigation={() => handleNavigate(item.identifier)}
-              pubKey={publicKey}
-              event={item}
-            />
-          }
+          } 
+          // else if (item.kind === 30311) {
+          //   return <RenderEventCard
+          //     handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
+          //     streamKey={item?.identifier}
+          //     handleNavigation={() => handleNavigate(item?.identifier)}
+          //     pubKey={publicKey}
+          //     event={item}
+          //   />
+          // }
           return <></>;
         }}
         refreshControl={
