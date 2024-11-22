@@ -126,10 +126,10 @@ pub fn calculate_aligned_bound_mag(
 ) -> u128 {
     assert!(starting_price.sign, "Starting price negative");
 
-    // Step 1: Calculate initial bound_mag proportional to starting_price
+    // Calculate initial bound_mag proportional to starting_price
     let mut init_bound = starting_price.mag * multiplier;
 
-    // Step 2: Adjust bound_mag to align with tick_spacing
+    // Adjust bound_mag to align with tick_spacing
     let rem = init_bound % tick_spacing;
     if rem == 0 {
         init_bound
