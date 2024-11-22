@@ -327,7 +327,7 @@ mod launchpad_tests {
         // Check default token used
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("create and launch token");
         let token_address = launchpad
@@ -352,7 +352,7 @@ mod launchpad_tests {
         //         caller: OWNER(),
         //         token_address: token_address,
         //         amount: 0,
-        //         price: initial_key_price,
+        //         price: INITIAL_KEY_PRICE,
         //         total_supply: DEFAULT_INITIAL_SUPPLY(),
         //         slope: slope,
         //         threshold_liquidity: THRESHOLD_LIQUIDITY,
@@ -395,7 +395,7 @@ mod launchpad_tests {
         // Check default token used
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("create and launch token");
         let token_address = launchpad
@@ -463,7 +463,7 @@ mod launchpad_tests {
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         let token_address = launchpad
@@ -626,7 +626,7 @@ mod launchpad_tests {
     fn test_launch_token() {
         let (_, erc20, launchpad) = request_fixture();
         let mut spy = spy_events();
-        let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let starting_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
@@ -648,7 +648,7 @@ mod launchpad_tests {
                 caller: OWNER(),
                 token_address: token_address,
                 amount: 0,
-                price: initial_key_price,
+                price: starting_price,
                 total_supply: DEFAULT_INITIAL_SUPPLY(),
                 slope: slope,
                 threshold_liquidity: THRESHOLD_LIQUIDITY,
@@ -695,7 +695,7 @@ mod launchpad_tests {
 
         let expected_token = TokenQuoteBuyCoin {
             token_address: erc20.contract_address,
-            initial_key_price: INITIAL_KEY_PRICE,
+            starting_price: INITIAL_KEY_PRICE,
             price: INITIAL_KEY_PRICE,
             is_enable: true,
             step_increase_linear: STEP_LINEAR_INCREASE,
@@ -862,7 +862,7 @@ mod launchpad_tests {
     #[fork("Mainnet")]
     fn test_launchpad_end_to_end() {
         let (sender_address, erc20, launchpad) = request_fixture();
-        let initial_key_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let starting_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
         let mut spy = spy_events();
         // let mut spy = spy_events(SpyOn::One(launchpad.contract_address));
@@ -873,7 +873,7 @@ mod launchpad_tests {
         let default_token = launchpad.get_default_token();
 
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         assert(
             default_token.step_increase_linear == STEP_LINEAR_INCREASE, 'no step_increase_linear'
         );
@@ -926,7 +926,7 @@ mod launchpad_tests {
                 caller: OWNER(),
                 token_address: token_address,
                 amount: 0,
-                price: initial_key_price,
+                price: starting_price,
                 total_supply: DEFAULT_INITIAL_SUPPLY(),
                 slope: slope,
                 threshold_liquidity: THRESHOLD_LIQUIDITY,
@@ -942,6 +942,7 @@ mod launchpad_tests {
                 ]
             );
     }
+
 
     #[test]
     #[fork("Mainnet")]
@@ -1121,7 +1122,7 @@ mod launchpad_tests {
 
         let expected_token = TokenQuoteBuyCoin {
             token_address: erc20.contract_address,
-            initial_key_price: INITIAL_KEY_PRICE,
+            starting_price: INITIAL_KEY_PRICE,
             price: INITIAL_KEY_PRICE,
             is_enable: true,
             step_increase_linear: STEP_LINEAR_INCREASE,
@@ -1376,7 +1377,7 @@ mod launchpad_tests {
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let default_token = launchpad.get_default_token();
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-        assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         let token_address = default_token.token_address;
@@ -1413,15 +1414,16 @@ mod launchpad_tests {
 
         let mut quote_amount: u256 = 1; // Example amount of quote token for buying
 
-        let expected_meme_amount_max: u256 = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO; // Replace with the expected value from the formula
+        let expected_meme_amount_max: u256 = DEFAULT_INITIAL_SUPPLY()
+            / LIQUIDITY_RATIO; // Replace with the expected value from the formula
 
-        let expected_meme_amount: u256 = expected_meme_amount_max / 10_u256; // Replace with the expected value from the formula
+        let expected_meme_amount: u256 = expected_meme_amount_max
+            / 10_u256; // Replace with the expected value from the formula
 
         let result = launchpad.get_coin_amount_by_quote_amount(token_address, quote_amount, false,);
 
         println!("result {:?}", result);
         println!("expected_meme_amount {:?}", expected_meme_amount);
-
 
         run_buy_by_amount(launchpad, erc20, memecoin, quote_amount, token_address, sender_address,);
         let quote_amount_2: u256 = 1; // Example amount of quote token for buying
@@ -1438,8 +1440,6 @@ mod launchpad_tests {
 
         let result = launchpad
             .get_coin_amount_by_quote_amount(token_address, quote_amount_2, false,);
-    
-    
     }
     // #[test]
 // // #[fork("Mainnet")]
@@ -1477,7 +1477,7 @@ mod launchpad_tests {
 //     // Check default token used
 //     let default_token = launchpad.get_default_token();
 //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+//     assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
 //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 //     println!("create and launch token");
 //     let token_address = launchpad
@@ -1520,7 +1520,7 @@ mod launchpad_tests {
 //     // Check default token used
 //     let default_token = launchpad.get_default_token();
 //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+//     assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
 
     //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 
@@ -1566,7 +1566,7 @@ mod launchpad_tests {
 //     start_cheat_caller_address(erc20.contract_address, sender_address);
 //     let default_token = launchpad.get_default_token();
 //     assert(default_token.token_address == erc20.contract_address, 'no default token');
-//     assert(default_token.initial_key_price == INITIAL_KEY_PRICE, 'no init price');
+//     assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
 //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 
     //     let token_address = launchpad

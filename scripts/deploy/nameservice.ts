@@ -4,8 +4,7 @@ import { Account, constants } from "starknet";
 import { NAMESPACE_ADDRESS, TOKENS_ADDRESS } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
-import { createNamespace } from "../utils/namespace";
-import { createNameservice } from "utils/nameservice";
+import { createNameservice } from "../utils/nameservice";
 import { formatFloatToUint256, } from "common";
 
 dotenv.config();
@@ -18,7 +17,8 @@ export const deployNameservice = async () => {
   const account = new Account(provider, accountAddress0, privateKey0, "1");
   let namespace;
   let nameserviceContract;
-  const sub_price_nb = 10;
+  // const sub_price_nb = 10;
+  const sub_price_nb = 1;
   const sub_price = formatFloatToUint256(sub_price_nb);
 
   const quote_token= TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK

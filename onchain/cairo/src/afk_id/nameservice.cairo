@@ -111,8 +111,8 @@ pub mod Nameservice {
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
-        UsernameClaimed: UsernameClaimed,
-        UsernameChanged: UsernameChanged,
+        UsernameClaimed: UserNameClaimed,
+        UsernameChanged: UserNameChanged,
         SubscriptionRenewed: SubscriptionRenewed,
         PriceUpdated: PriceUpdated,
         #[flat]
@@ -136,9 +136,7 @@ pub mod Nameservice {
         #[key]
         address: ContractAddress,
         username: felt252,
-        expiry: u64,
-        paid: u256,
-        quote_token: ContractAddress,
+        expiry: u64
     }
 
     #[derive(Drop, starknet::Event)]
@@ -212,9 +210,9 @@ pub mod Nameservice {
 
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
-
         self.subscription_price.write(subscription_price);
         self.token_quote.write(token_quote);
+
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
         self.erc20.initializer(".afk", ".afk");
@@ -233,6 +231,8 @@ pub mod Nameservice {
                 self.user_to_username.read(caller_address) == 0,
                 UserNameClaimErrors::USER_HAS_USERNAME
             );
+            let price = self.subscription_price.read();
+            let quote_token = self.token_quote.read();
 
             // Check for availability
             let username_address = self.usernames.read(key);
@@ -240,8 +240,7 @@ pub mod Nameservice {
                 username_address == contract_address_const::<0>(),
                 UserNameClaimErrors::USERNAME_CLAIMED
             );
-            let price = self.subscription_price.read();
-            let quote_token = self.token_quote.read();
+
             // Payment
             if self.is_payment_enabled.read() {
                 let payment_token = IERC20Dispatcher { contract_address: quote_token };
