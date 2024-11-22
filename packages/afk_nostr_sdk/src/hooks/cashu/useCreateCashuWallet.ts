@@ -4,6 +4,11 @@ import {useMutation} from '@tanstack/react-query';
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
 
+/**
+ * NIP-60: https://nips.nostr.com/60
+ * Wallet Event: https://nips.nostr.com/60#wallet-event
+ */
+
 export const useCreateCashuWallet = () => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
