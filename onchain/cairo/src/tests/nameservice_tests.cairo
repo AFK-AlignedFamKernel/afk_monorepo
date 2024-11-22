@@ -105,9 +105,9 @@ mod nameservice_tests {
         assert(stored_address == CALLER(), 'Address not set');
 
         // nameservice_dispatcher.get_subscription_expiry not implemeted yet
-        // let expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
-        // let current_time = get_block_timestamp();
-        // assert(expiry > current_time, 'Sub exp not set');
+        let expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+        let current_time = get_block_timestamp();
+        assert(expiry > current_time, 'Sub exp not set');
 
         let caller_balance = payment_token_dispatcher.balance_of(CALLER());
         assert(caller_balance == 10_u256, 'balance incorrect');
@@ -152,40 +152,44 @@ mod nameservice_tests {
         assert(new_username_address == CALLER(), 'User not mapped correctly');
     }
 
-    // #[test]
-    // fn test_renew_subscription() {
-    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
-    //     let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+    #[test]
+    fn test_renew_subscription() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
-    //     start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-    //     payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
-    //     payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
-    //     stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
-    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
-    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
-    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
-    //     let username = selector!("test");
-    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-    //     nameservice_dispatcher.claim_username(username);
-    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     let current_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     let half_year = 15768000_u64;
-    //     let new_timestamp = get_block_timestamp() + half_year;
+        let current_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
 
-    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-    //     nameservice_dispatcher.renew_subscription();
-    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+        let half_year = 15768000_u64;
+        let new_timestamp = get_block_timestamp() + half_year;
 
-    //     let new_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
-    //     assert(new_expiry == current_expiry + YEAR_IN_SECONDS, 'Subscription not renewed');
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.renew_subscription();
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     let caller_balance = payment_token_dispatcher.balance_of(CALLER());
-    //     assert(caller_balance == 0_u256, 'Token balance incorrect');
-    // }
+        let new_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
+        assert(new_expiry == current_expiry + YEAR_IN_SECONDS, 'Subscription not renewed');
+
+        let caller_balance = payment_token_dispatcher.balance_of(CALLER());
+        assert(caller_balance == 0_u256, 'Token balance incorrect');
+    }
 
     #[test]
     fn test_withdraw_fees() {
