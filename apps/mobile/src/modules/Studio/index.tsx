@@ -122,7 +122,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
   );
 };
 
-const RenderEventCard = ({
+export const RenderEventCard = ({
   event,
   pubKey,
   handleNavigation,

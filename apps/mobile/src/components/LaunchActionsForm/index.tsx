@@ -121,7 +121,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             Connect Wallet
           </Button>
         ) : (
-          <Button style={styles.actionButton} onPress={() => onHandleAction()}>
+          <Button style={[styles.actionButton, typeAction == "SELL" && styles.buttonSell]} onPress={() => onHandleAction()}>
             {typeAction || 'BUY'}
           </Button>
         )}

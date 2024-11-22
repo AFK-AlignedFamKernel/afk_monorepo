@@ -62,6 +62,7 @@ import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
 import { ShortVideoNostrScreen } from '../screens/nostr/shorts';
 import { OauthScreen } from '../screens/OauthTwitter';
+import { LaunchpadScreen } from '../screens/Launchpad';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -318,6 +319,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Onboarding" component={Onboarding} />
       <MainStack.Screen name="DappBrowser" component={DappBrowserScreen} />
       <MainStack.Screen name="Oauth" component={OauthScreen} />
+      <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
     </MainStack.Navigator>
   );
 };
@@ -476,6 +478,7 @@ const linking = {
           KeysMarketplace: 'keys-marketplace',
           Launchpad: 'launchpad',
           LaunchToken: 'launch-token',
+          TokenDetail: 'token-detail',
           StudioModuleView: 'studio',
           Wallet: 'wallet',
           Portfolio: 'portfolio',

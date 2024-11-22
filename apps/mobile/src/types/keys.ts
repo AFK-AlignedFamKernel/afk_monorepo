@@ -82,9 +82,10 @@ export interface TokenTxInterface {
   memecoin_address: string;
   owner_address: string;
   amount: number;
+  quote_amount?:number;
   price: number;
   coin_received: boolean;
-  liquidityRaised: boolean;
+  liquidity_raised: boolean;
   total_supply: boolean;
   network: boolean;
   transaction_type: boolean;
