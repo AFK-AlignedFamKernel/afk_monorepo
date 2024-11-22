@@ -1393,6 +1393,54 @@ mod launchpad_tests {
         println!("amount_coin_sell {:?}", amount_coin_sell);
         assert!(amount_coin_get == amount_coin_sell, "amount incorrect");
     }
+
+    #[test]
+    fn test_get_coin_amount_by_quote_amount_for_buy_steps() {
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+                is_unruggable: false,
+            );
+
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        let mut quote_amount: u256 = 1; // Example amount of quote token for buying
+
+        let expected_meme_amount_max: u256 = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO; // Replace with the expected value from the formula
+
+        let expected_meme_amount: u256 = expected_meme_amount_max / 10_u256; // Replace with the expected value from the formula
+
+        let result = launchpad.get_coin_amount_by_quote_amount(token_address, quote_amount, false,);
+
+        println!("result {:?}", result);
+        println!("expected_meme_amount {:?}", expected_meme_amount);
+
+
+        run_buy_by_amount(launchpad, erc20, memecoin, quote_amount, token_address, sender_address,);
+        let quote_amount_2: u256 = 1; // Example amount of quote token for buying
+        assert(result == expected_meme_amount, 'Error: Buy calculation mismatch');
+
+        println!("result {:?}", result);
+        println!("expected_meme_amount {:?}", expected_meme_amount);
+
+        let share_key = launchpad.get_share_key_of_user(sender_address, memecoin.contract_address);
+
+        assert(share_key.owner == sender_address, 'wrong owner');
+        assert(share_key.amount_owned == result, 'wrong result');
+        assert(share_key.amount_owned == expected_meme_amount, 'wrong expected');
+
+        let result = launchpad
+            .get_coin_amount_by_quote_amount(token_address, quote_amount_2, false,);
+    
+    
+    }
     // #[test]
 // // #[fork("Mainnet")]
 // fn test_launch_liquidity_ok() {
