@@ -273,7 +273,6 @@ pub mod MemecoinV2 {
 
         self.erc20.mint(caller, initial_supply);
 
-
         self.liquidity_type.write(Option::None);
 
         // Initialize the token / internal logic
@@ -295,7 +294,6 @@ pub mod MemecoinV2 {
 
         // Register the contract's support for the ISRC6 interface
         self.src5.register_interface(interface::ISRC6_ID);
-
     }
 
     #[abi(embed_v0)]

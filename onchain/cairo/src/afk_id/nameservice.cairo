@@ -22,8 +22,12 @@ pub mod Nameservice {
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
     use openzeppelin_access::accesscontrol::AccessControlComponent;
+
+    use openzeppelin_governance::votes::VotesComponent;
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_token::erc20::{ERC20Component};
+    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
+    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
     use starknet::{
         ContractAddress, contract_address_const, get_caller_address, get_block_timestamp,
@@ -32,10 +36,6 @@ pub mod Nameservice {
     use super::ADMIN_ROLE;
     use super::MINTER_ROLE;
     use super::UserNameClaimErrors;
-    
-    use openzeppelin_governance::votes::VotesComponent;
-    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
-    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
 
     const YEAR_IN_SECONDS: u64 = 31536000_u64; // 365 days in seconds
 
@@ -69,7 +69,7 @@ pub mod Nameservice {
     // // Nonces
     #[abi(embed_v0)]
     impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
-    
+
     // Votes
     #[abi(embed_v0)]
     impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
@@ -100,21 +100,19 @@ pub mod Nameservice {
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        
         #[substorage(v0)]
         nonces: NoncesComponent::Storage,
         #[substorage(v0)]
         erc20_votes: VotesComponent::Storage,
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
-
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
-        UserNameClaimed: UserNameClaimed,
-        UserNameChanged: UserNameChanged,
+        UsernameClaimed: UsernameClaimed,
+        UsernameChanged: UsernameChanged,
         SubscriptionRenewed: SubscriptionRenewed,
         PriceUpdated: PriceUpdated,
         #[flat]
@@ -134,15 +132,17 @@ pub mod Nameservice {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct UserNameClaimed {
+    struct UsernameClaimed {
         #[key]
         address: ContractAddress,
         username: felt252,
-        expiry: u64
+        expiry: u64,
+        paid:u256,
+        quote_token:ContractAddress
     }
 
     #[derive(Drop, starknet::Event)]
-    struct UserNameChanged {
+    struct UsernameChanged {
         #[key]
         address: ContractAddress,
         old_username: felt252,
@@ -161,8 +161,8 @@ pub mod Nameservice {
         old_price: u256,
         new_price: u256
     }
-    
-    
+
+
     // Required for hash computation.
     pub impl SNIP12MetadataImpl of SNIP12Metadata {
         fn name() -> felt252 {
@@ -188,7 +188,7 @@ pub mod Nameservice {
         }
     }
 
-    
+
     #[external(v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
@@ -201,16 +201,23 @@ pub mod Nameservice {
 
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress, admin: ContractAddress) {
+    fn constructor(
+        ref self: ContractState,
+        owner: ContractAddress,
+        admin: ContractAddress,
+        subscription_price: u256,
+        token_quote: ContractAddress
+    ) {
         self.ownable.initializer(owner);
 
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
-        
+        self.subscription_price.write(subscription_price);
+        self.token_quote.write(token_quote);
+
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
         self.erc20.initializer(".afk", ".afk");
-
         // self.erc20.mint(owner, 1n);
     }
 
@@ -226,6 +233,8 @@ pub mod Nameservice {
                 self.user_to_username.read(caller_address) == 0,
                 UserNameClaimErrors::USER_HAS_USERNAME
             );
+            let price = self.subscription_price.read();
+            let quote_token = self.token_quote.read();
 
             // Check for availability
             let username_address = self.usernames.read(key);
@@ -236,8 +245,7 @@ pub mod Nameservice {
 
             // Payment
             if self.is_payment_enabled.read() {
-                let price = self.subscription_price.read();
-                let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+                let payment_token = IERC20Dispatcher { contract_address: quote_token };
                 payment_token.transfer_from(caller_address, get_contract_address(), price);
             }
 
@@ -246,9 +254,17 @@ pub mod Nameservice {
             self.user_to_username.entry(caller_address).write(key);
             self.subscription_expiry.entry(caller_address).write(expiry);
 
-
             self.erc20.mint(caller_address, 1_u256);
-            self.emit(UserNameClaimed { username: key, address: caller_address, expiry });
+            self
+                .emit(
+                    UsernameClaimed {
+                        username: key,
+                        address: caller_address,
+                        expiry,
+                        paid: price,
+                        quote_token: quote_token
+                    }
+                );
         }
 
         fn change_username(ref self: ContractState, new_username: felt252) {
@@ -272,7 +288,7 @@ pub mod Nameservice {
 
             self
                 .emit(
-                    UserNameChanged {
+                    UsernameChanged {
                         old_username: old_username,
                         new_username: new_username,
                         address: caller_address
@@ -310,7 +326,7 @@ pub mod Nameservice {
             token.transfer(self.ownable.owner(), amount);
         }
     }
-    
+
     // #[abi(embed_v0)]
     // impl IERC20MintableImpl of super::IERC20<ContractState> {
     //     fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {

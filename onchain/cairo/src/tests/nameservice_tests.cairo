@@ -1,16 +1,13 @@
 #[cfg(test)]
 mod nameservice_tests {
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher,
-    IERC20MintableDispatcherTrait};
+    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
         stop_cheat_caller_address, DeclareResultTrait
     };
-    use starknet::{
-        ContractAddress, get_block_timestamp
-    };
+    use starknet::{ContractAddress, get_block_timestamp};
 
     fn ADMIN() -> ContractAddress {
         starknet::contract_address_const::<1>()
@@ -26,26 +23,29 @@ mod nameservice_tests {
         let erc20_mintable_class = declare("ERC20Mintable").unwrap().contract_class();
 
         let (payment_token_dispatcher, payment_token_mintable_dispatcher) = deploy_erc20_mint(
-            *erc20_mintable_class,
-            "PaymentToken",
-            "PAY",
-            ADMIN(),
-            50_u256,
+            *erc20_mintable_class, "PaymentToken", "PAY", ADMIN(), 50_u256,
         );
 
         let nameservice_class = declare("Nameservice").unwrap().contract_class();
 
+        // let mut calldata = array![ADMIN().into(), ADMIN().into()];
         let mut calldata = array![];
         ADMIN().serialize(ref calldata);
         ADMIN().serialize(ref calldata);
+        10_u256.serialize(ref calldata);
+        payment_token_dispatcher.contract_address.serialize(ref calldata);
+        // calldata.append_serde(PAYMENT_AMOUNT);
+        // calldata.append_serde(payment_token_dispatcher.contract_address);
 
         let (nameservice_address, _) = nameservice_class.deploy(@calldata).unwrap();
 
-        let nameservice_dispatcher = INameserviceDispatcher { contract_address: nameservice_address };
+        let nameservice_dispatcher = INameserviceDispatcher {
+            contract_address: nameservice_address
+        };
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
         nameservice_dispatcher.set_token_quote(payment_token_dispatcher.contract_address);
-        nameservice_dispatcher.update_subscription_price(10_u256);  // Reduced price
+        nameservice_dispatcher.update_subscription_price(10_u256); // Reduced price
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)
@@ -74,13 +74,15 @@ mod nameservice_tests {
 
     #[test]
     fn test_claim_username() {
-        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
         start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
-        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);  // Reduced amount
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256); // Reduced amount
         stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
@@ -109,7 +111,8 @@ mod nameservice_tests {
         let caller_balance = payment_token_dispatcher.balance_of(CALLER());
         assert(caller_balance == 10_u256, 'balance incorrect');
 
-        let contract_balance =payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
+        let contract_balance = payment_token_dispatcher
+            .balance_of(nameservice_dispatcher.contract_address);
         println!("The contract_balance is : {}", contract_balance);
 
         assert(contract_balance == 10_u256, 'token balance incorrect');
@@ -117,11 +120,13 @@ mod nameservice_tests {
 
     #[test]
     fn test_change_username() {
-        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
         start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
         payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
         stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
@@ -143,7 +148,10 @@ mod nameservice_tests {
         assert(stored_username == new_username, 'Username incorrectly changed');
 
         let old_username_address = nameservice_dispatcher.get_username_address(username);
-        assert(old_username_address == starknet::contract_address_const::<0>(), 'Old usrnamestill mapped');
+        assert(
+            old_username_address == starknet::contract_address_const::<0>(),
+            'Old usrnamestill mapped'
+        );
 
         let new_username_address = nameservice_dispatcher.get_username_address(new_username);
         assert(new_username_address == CALLER(), 'User not mapped correctly');
@@ -151,11 +159,13 @@ mod nameservice_tests {
 
     #[test]
     fn test_renew_subscription() {
-        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
         start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
         payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
         stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
@@ -190,11 +200,13 @@ mod nameservice_tests {
 
     #[test]
     fn test_withdraw_fees() {
-        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
         start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
         payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
         stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
@@ -216,9 +228,12 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
-        assert(admin_balance == 60_u256, 'Admin did not receive fees');  // 50 initial + 10 withdrawn
+        assert(
+            admin_balance == 60_u256, 'Admin did not receive fees'
+        ); // 50 initial + 10 withdrawn
 
-        let contract_balance = payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
+        let contract_balance = payment_token_dispatcher
+            .balance_of(nameservice_dispatcher.contract_address);
         assert(contract_balance == 0_u256, 'Contract balance not zeroy');
     }
 
