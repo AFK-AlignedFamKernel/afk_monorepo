@@ -178,6 +178,7 @@ pub mod Nameservice {
             // Payment
             if self.is_payment_enabled.read() {
                 let price = self.subscription_price.read();
+                println!("The price in claim username : {}", price);
                 let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
                 payment_token.transfer_from(caller_address, get_contract_address(), price);
             }
@@ -242,6 +243,10 @@ pub mod Nameservice {
 
             self.emit(SubscriptionRenewed { address: caller, expiry: new_expiry });
         }
+
+        // fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
+        //     self.subscription_expiry.read(address)
+        // }
 
 
         fn withdraw_fees(ref self: ContractState, amount: u256) {
