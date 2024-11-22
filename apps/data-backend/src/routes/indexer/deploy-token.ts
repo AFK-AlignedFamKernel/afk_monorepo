@@ -72,6 +72,43 @@ async function deployTokenRoute(
         .send({ message: "Internal server error." });
     }
   });
+
+  fastify.get<{
+    Params: DeployTokenParams;
+  }>("/deploy/from/:user/", async (request, reply) => {
+    try {
+      const { user } = request.params;
+      if (!isValidStarknetAddress(user)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: "Invalid token address",
+        });
+        return;
+      }
+
+      const deploys = await prisma.token_deploy.findMany({
+        where: { memecoin_address: token, owner:user },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          name: true,
+          symbol: true,
+          total_supply: true,
+          network: true,
+          created_at: true,
+        },
+      });
+
+      reply.status(HTTPStatus.OK).send({
+        data: deploys,
+      });
+    } catch (error) {
+      console.error("Error deploying launch by user:", error);
+      reply
+        .status(HTTPStatus.InternalServerError)
+        .send({ message: "Internal server error." });
+    }
+  });
 }
 
 export default deployTokenRoute;

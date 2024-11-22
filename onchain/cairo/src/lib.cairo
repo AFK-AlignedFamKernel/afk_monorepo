@@ -64,6 +64,7 @@ pub mod types {
     pub mod jediswap_types;
     pub mod keys_types;
     pub mod launchpad_types;
+    pub mod pump_types;
     pub mod quest;
     pub mod tap_types;
 }
@@ -77,6 +78,7 @@ pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod memecoin;
+    pub mod memecoin_v2;
     pub mod quest_nft;
     pub mod token;
 }

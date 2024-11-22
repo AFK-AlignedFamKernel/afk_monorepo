@@ -266,11 +266,11 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'Share',
     tab: SelectedTab.USER_SHARE,
   },
-  {
-    title: 'STATS',
-    screen: 'Stats',
-    tab: SelectedTab.TOKEN_STATS,
-  },
+  // {
+  //   title: 'STATS',
+  //   screen: 'Stats',
+  //   tab: SelectedTab.TOKEN_STATS,
+  // },
   {
     title: 'GRAPH',
     screen: 'GRAPH',
