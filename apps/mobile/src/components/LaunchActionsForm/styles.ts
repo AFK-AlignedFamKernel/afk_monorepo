@@ -40,7 +40,8 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor:theme.colors.green
   },
   activeToggle: {
-    backgroundColor: theme.colors.primary,
+    // backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.blue,
     color:theme.colors.badge,
     border:theme.colors.badgeBorder
   },
