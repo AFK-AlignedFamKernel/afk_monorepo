@@ -9,7 +9,7 @@ import {useAuth} from '../../store';
  * Wallet Event: https://nips.nostr.com/60#wallet-event
  */
 
-export const useCreateCashuWallet = () => {
+export const useCreateWalletEvent = () => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 

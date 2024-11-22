@@ -4,9 +4,9 @@ export {
   useCashu,
   useCashuBalance,
   useCashuMintList,
-  useCashuSpendingToken,
-  useCreateCashuWallet,
+  useCreateSpendingEvent,
   useCreateTokenEvent,
+  useCreateWalletEvent,
   useGetCashuWalletsInfo,
 } from './cashu';
 export {useChannels} from './channel/useChannels';
