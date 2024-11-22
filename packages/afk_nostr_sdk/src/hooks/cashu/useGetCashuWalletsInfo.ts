@@ -52,7 +52,7 @@ export const useGetCashuWalletsInfo = (options?: UseRootProfilesOptions) => {
     queryFn: async ({pageParam}) => {
       const cashuWallets = await ndk.fetchEvents({
         kinds: [NDKKind.CashuWallet],
-        authors: options?.authors,
+        authors: options?.authors || [publicKey],
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
