@@ -304,7 +304,6 @@ pub mod Nameservice {
             self.emit(SubscriptionRenewed { address: caller, expiry: new_expiry });
         }
 
-
         fn withdraw_fees(ref self: ContractState, amount: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
@@ -358,14 +357,25 @@ pub mod Nameservice {
     fn get_is_payment_enabled(self: @ContractState) -> bool {
         self.is_payment_enabled.read()
     }
-        //Internal function to check the maximum of two
-        #[generate_trait]
-        fn max(a: u64, b: u64) -> u64 {
-            if a > b {
-                a
-            } else {
-                b
-            }
-        }
 
+    #[external(v0)]
+    fn get_subscription_price(self: @ContractState) -> u256 {
+        self.subscription_price.read()
+    }
+
+    #[external(v0)]
+    fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
+        self.subscription_expiry.read(address)
+    }
+
+
+    //Internal function to check the maximum of two
+    #[generate_trait]
+    fn max(a: u64, b: u64) -> u64 {
+        if a > b {
+            a
+        } else {
+            b
+        }
+    }
 }

@@ -14,4 +14,6 @@ pub trait INameservice<TContractState> {
     // Add these functions
     fn set_token_quote(ref self: TContractState, token_quote: ContractAddress);
     fn update_subscription_price(ref self: TContractState, new_price: u256);
+    fn set_is_payment_enabled(ref self: TContractState, new_status: bool);
+    fn get_is_payment_enabled(ref self: TContractState) -> bool;
 }
