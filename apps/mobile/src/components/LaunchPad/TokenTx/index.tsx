@@ -18,6 +18,7 @@ export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
     return <Loading />;
   }
 
+  console.log("tx", tx)
   return (
     <FlatList
       data={tx}
@@ -47,9 +48,21 @@ export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
             </View>
 
             <View style={styles.rowItem}>
+              <Text style={styles.label}>Quote paid</Text>
+              <Text style={styles.value}>{item?.quote_amount}</Text>
+            </View>
+
+            <View style={styles.rowItem}>
               <Text style={styles.label}>Amount</Text>
               <Text style={styles.value}>{item.amount}</Text>
             </View>
+
+            <View style={styles.rowItem}>
+              <Text style={styles.label}>Liquidity raised at this moment</Text>
+              <Text style={styles.value}>{item?.liquidity_raised}</Text>
+            </View>
+
+          
           </View>
         </View>
       )}

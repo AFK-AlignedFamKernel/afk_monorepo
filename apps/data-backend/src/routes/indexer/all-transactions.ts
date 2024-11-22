@@ -39,6 +39,8 @@ async function allTransactionsRoute(
           network: true,
           transaction_type: true,
           created_at: true,
+          quote_amount: true,
+          time_stamp:true,
         },
       });
 
