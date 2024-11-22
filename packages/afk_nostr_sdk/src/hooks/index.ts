@@ -4,10 +4,15 @@ export {
   useCashu,
   useCashuBalance,
   useCashuMintList,
+  useCreateNutZap,
   useCreateSpendingEvent,
   useCreateTokenEvent,
   useCreateWalletEvent,
   useGetCashuWalletsInfo,
+  useGetReceivedNutZaps,
+  useGetRecipientNutZapInfo,
+  useRecordNutZapRedemption,
+  useSetNutZapPreferences,
 } from './cashu';
 export {useChannels} from './channel/useChannels';
 export {useCreateChannel} from './channel/useCreateChannel';

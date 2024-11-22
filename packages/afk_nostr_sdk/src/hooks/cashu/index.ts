@@ -6,3 +6,10 @@ export {useCreateSpendingEvent} from './useCreateSpendingEvent';
 export {useCreateTokenEvent} from './useCreateTokenEvent';
 export {useCreateWalletEvent} from './useCreateWalletEvent';
 export {useGetCashuWalletsInfo} from './useGetCashuWalletsInfo';
+export {
+  useCreateNutZap,
+  useGetReceivedNutZaps,
+  useGetRecipientNutZapInfo,
+  useRecordNutZapRedemption,
+  useSetNutZapPreferences,
+} from './useNutzaps';
