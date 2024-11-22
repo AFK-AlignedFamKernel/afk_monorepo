@@ -95,7 +95,6 @@ mod nameservice_tests {
 
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-        let is_enabled = nameservice_dispatcher.get_is_payment_enabled();
         nameservice_dispatcher.claim_username(username);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
@@ -154,24 +153,24 @@ mod nameservice_tests {
     }
 
     // #[test]
-
-    //     Expand All
-
-    // @@ -168,17 +168,16 @@ mod nameservice_tests {
-
     // fn test_renew_subscription() {
-    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)
-    //     = setup();
+    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)= setup();
+    //     let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
     //     start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+    //     payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
     //     payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
     //     stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
     //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
     //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
     //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
     //     let username = selector!("test");
     //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
     //     nameservice_dispatcher.claim_username(username);
     //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
     //     let current_expiry = nameservice_dispatcher.get_subscription_expiry(CALLER());
 
     //     let half_year = 15768000_u64;
@@ -188,37 +187,37 @@ mod nameservice_tests {
     //     assert(caller_balance == 0_u256, 'Token balance incorrect');
     // }
 
-    // #[test]
+    #[test]
+    fn test_withdraw_fees() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) = setup();
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
-    //       Expand Down
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher.set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
 
-    //       Expand Up
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
 
-    // @@ -207,6 +206,6 @@ mod nameservice_tests {
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    // fn test_withdraw_fees() {
-    //     let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher)
-    //     = setup();
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
-    //     payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
-    //     stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
-    //     start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
-    //     payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
-    //     stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-    //     let username = selector!("test");
-    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-    //     nameservice_dispatcher.claim_username(username);
-    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
-    //     start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
-    //     nameservice_dispatcher.withdraw_fees(10_u256);
-    //     stop_cheat_caller_address(nameservice_dispatcher.contract_address);
-    //     let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
-    //     assert(admin_balance == 60_u256, 'Admin did not receive fees');  // 50 initial + 10
-    //     withdrawn
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.withdraw_fees(10_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-    //     let contract_balance =
-    //     payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
-    //     assert(contract_balance == 0_u256, 'Contract balance not zeroy');
-    // }
+        let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
+        assert(admin_balance == 60_u256, 'Admin did not receive fees');  // 50 initial + 10 withdrawn
+
+        let contract_balance = payment_token_dispatcher.balance_of(nameservice_dispatcher.contract_address);
+        assert(contract_balance == 0_u256, 'Contract balance not zeroy');
+    }
 }
