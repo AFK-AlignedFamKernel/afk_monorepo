@@ -824,7 +824,7 @@ pub mod LaunchpadMarketplace {
             }
 
             // Assertion: Ensure the user receives the correct amount
-            let user_received = erc20.balance_of(caller) - (old_share.amount_owned);
+            let user_received = erc20.balance_of(caller);
             assert(user_received == remain_liquidity, 'user not receive amount');
 
             // TODO sell coin if it's already sendable and transferable
@@ -1352,7 +1352,7 @@ pub mod LaunchpadMarketplace {
             let starting_price = self._calculate_pricing(threshold_liquidity, supply_distribution);
             let slope = self
                 ._calculate_slope(threshold_liquidity, starting_price, supply_distribution,);
-            let starting_price = threshold_liquidity / total_supply;
+            // let starting_price = threshold_liquidity / total_supply;
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
             let launch_token_pump = TokenLaunch {
@@ -1372,7 +1372,7 @@ pub mod LaunchpadMarketplace {
                 token_quote: token_to_use.clone(),
                 starting_price: starting_price.clone(),
                 // starting_price: token_to_use.starting_price,
-                price: 0_u256,
+                price: starting_price.clone(),
                 // price:init_price,
                 liquidity_raised: 0_u256,
                 total_token_holded: 0_u256,
@@ -1962,6 +1962,14 @@ pub mod LaunchpadMarketplace {
             let price = slope * tokens_sold + starting_price;
             println!("price {:?}", price);
 
+            let price = slope * tokens_sold + starting_price;
+            // let safe_price = max(price, MIN_PRICE); 
+
+
+            let price_scale_factor=price * SCALE_FACTOR;
+            let quote_amount_factor=quote_amount * SCALE_FACTOR;
+            println!("price_scale_factor {:?}", price_scale_factor);
+
             // Ensure price is positive
             assert(price >= 0_u256, 'Price must remain positive');
 
@@ -1969,10 +1977,14 @@ pub mod LaunchpadMarketplace {
             let mut q_out: u256 = 0;
             if is_decreased {
                 // Sell path: calculate how many tokens are returned for a given quote amount
-                q_out = quote_amount / (price * SCALE_FACTOR);
+                // q_out = (quote_amount) / (price_scale_factor);
+                q_out = (quote_amount_factor) / (price_scale_factor);
+                // q_out = quote_amount / (price * SCALE_FACTOR);
             } else {
                 // Buy path: calculate how many tokens are purchased for a given quote amount
-                q_out = quote_amount / (price * SCALE_FACTOR);
+                // q_out = quote_amount / (price * SCALE_FACTOR);
+                // q_out = (quote_amount) / (price_scale_factor);
+                q_out = (quote_amount_factor) / (price_scale_factor);
                 //   // Update liquidity raised and current supply
             //   pool_coin.liquidity_raised += quote_amount;
             //   pool_coin.total_token_holded -= q_out;
@@ -2063,12 +2075,17 @@ pub mod LaunchpadMarketplace {
         ) -> u256 {
             println!("calculate slope");
             // Calculate slope
+            let slope_numerator = (threshold_liquidity * SCALE_FACTOR) - (starting_price * sellable_supply);
+            let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
+
             // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
             // let slope_denominator = (sellable_supply * sellable_supply) / 2;
             // let slope = slope_numerator / slope_denominator;
-            let slope = (threshold_liquidity - (starting_price * sellable_supply))
-                / ((sellable_supply * sellable_supply) / 2_u256);
+            println!("slope_denominator {:?}", slope_denominator);
 
+            // let slope = (threshold_liquidity - (starting_price * sellable_supply))
+            //     / ((sellable_supply * sellable_supply) / 2_u256);
+            let slope = slope_numerator / slope_denominator;
             println!("slope");
             slope
             // // Calculate slope dynamically
@@ -2082,6 +2099,7 @@ pub mod LaunchpadMarketplace {
         fn _calculate_pricing(
             ref self: ContractState, threshold_liquidity: u256, sellable_supply: u256
         ) -> u256 {
+            // let scaling_factor = 10;
             let scaling_factor = 10;
             // Starting price is proportional to the threshold liquidity divided by sellable supply
             let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;

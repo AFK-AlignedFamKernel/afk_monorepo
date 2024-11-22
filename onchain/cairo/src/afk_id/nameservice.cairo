@@ -111,8 +111,8 @@ pub mod Nameservice {
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
-        UsernameClaimed: UserNameClaimed,
-        UsernameChanged: UserNameChanged,
+        UsernameClaimed: UsernameClaimed,
+        UsernameChanged: UsernameChanged,
         SubscriptionRenewed: SubscriptionRenewed,
         PriceUpdated: PriceUpdated,
         #[flat]
@@ -136,7 +136,9 @@ pub mod Nameservice {
         #[key]
         address: ContractAddress,
         username: felt252,
-        expiry: u64
+        expiry: u64,
+        paid:u256,
+        quote_token:ContractAddress
     }
 
     #[derive(Drop, starknet::Event)]
