@@ -9,28 +9,23 @@ datasource db {
 }
 
 model registration {
-  contract_address String    @id
+  contract_address String?
   nickname         String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   is_confirmed     Boolean?  @default(false)
-  phoneNumber      String?
   email            String?
-  starknetAddress  String?
-  evmAddress       String?
+  evm_address      String?
+  id               Int       @id @default(autoincrement())
+  phone_number     String?
+  starknet_address String?
 }
 
-
-model gift {
-  contract_address String    @id
-  nickname         String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  claimed_at       DateTime? @db.Timestamp(6)
-  is_confirmed     Boolean?  @default(false)
-  is_social_handle     Boolean?  @default(false)
-  social_network    String?
-  is_claimed     Boolean?  @default(false)
-  amount Int?
-  network_id String?
-  evmAddress String?
-  starknetAddress String?
+model users {
+  id          String   @id
+  userAddress String   @unique
+  email       String?  @unique
+  loginType   String
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
 }

@@ -52,29 +52,11 @@ Packages:
 - Prisma indexer pull: packages/indexer-prisma
 - Nostr sdk: packages/afk_nostr_sdk
 
-## Roadmap
-
-### MVP
-
-- [x] Cairo implementation of Nostr signature verification
-- [x] Starknet account contract implementation, controlled by Nostr keypair
-- [x] AFK landing page
-- [x] SocialPay feature to send and receive tips through Nostr signed messages
-- [x] Implement a Nostr client application with Starknet integration
-- [x] Run Nostr relay server
-
-### Now
-
-- [ ] Complete Nostr client
-- [ ] ZAP
-- [ ] Launchpad & Pump it
-- [ ] Questings
-- [ ] Social games
-- [ ] BTCFi and Bridge
-- [ ] Onramp offramp
-- [ ] Crossover with [Vault](https://github.com/keep-starknet-strange/vault) to bring Social features to the Vault application
-
 ## Architecture
+
+Turburepo located in apps and packages.
+Read the README.md of the repo you are working on.
+Maybe you need to run others services to contribute as expected.
 
 ### Tips
 
@@ -214,6 +196,30 @@ We build into the Joyboy repo here from the Exploration team:
 AFK Aligned Fam Kernel is born from this open source project.
 
 Now we keep building and move forward!
+
+
+## Roadmap
+
+### MVP
+
+- [x] Cairo implementation of Nostr signature verification
+- [x] Starknet account contract implementation, controlled by Nostr keypair
+- [x] AFK landing page
+- [x] SocialPay feature to send and receive tips through Nostr signed messages
+- [x] Implement a Nostr client application with Starknet integration
+- [x] Run Nostr relay server
+
+### Now
+
+- [ ] Complete Nostr client
+- [ ] ZAP
+- [ ] Launchpad & Pump it
+- [ ] Questings
+- [ ] Social games
+- [ ] BTCFi and Bridge
+- [ ] Onramp offramp
+- [ ] Crossover with [Vault](https://github.com/keep-starknet-strange/vault) to bring Social features to the Vault application
+
 
 ## Contributors ✨
 

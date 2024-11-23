@@ -110,3 +110,53 @@ model token_transactions {
   transaction_type String
   time_stamp       String?
 }
+
+model renew_subscription {
+  owner_address    String?
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String    @id
+  name             String?
+  old_name         String?
+  paid             String?
+  quote_address    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       String?
+}
+
+model username_changed {
+  owner_address    String?
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String    @id
+  name             String?
+  old_name         String?
+  paid             String?
+  quote_address    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       String?
+}
+
+model username_claimed {
+  owner_address    String?
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String    @id
+  expiry           String?
+  username         String?
+  name             String?
+  symbol           String?
+  paid             String?
+  quote_address    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       String?
+}
