@@ -1,5 +1,5 @@
-import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "./deps.ts";
-import { STARTING_BLOCK, NAMESERVICE_ADDRESS } from "./constants.ts";
+import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "../deps.ts";
+import { STARTING_BLOCK, NAMESERVICE_ADDRESS } from "../constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
