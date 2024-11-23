@@ -9,11 +9,22 @@ import {useAuth} from '../../store';
  * Token Event: https://nips.nostr.com/60#token-event
  */
 
+interface CreateTokenEventParams {
+  walletId: string;
+  mint: string;
+  proofs: Array<{
+    id: string;
+    amount: number;
+    secret: string;
+    C: string;
+  }>;
+}
+
 export const useCreateTokenEvent = () => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
-  return useMutation({
+  return useMutation<NDKEvent, Error, CreateTokenEventParams>({
     mutationFn: async ({
       walletId,
       mint,
@@ -44,7 +55,10 @@ export const useCreateTokenEvent = () => {
       event.content = content;
       event.tags = [['a', `37375:${publicKey}:${walletId}`]];
 
-      return await event.publish();
+      await event.sign(signer);
+
+      await event.publish();
+      return event;
     },
   });
 };
