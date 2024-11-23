@@ -113,7 +113,7 @@ export default function DecodeUsernameClaimed({ header, events }: Block) {
 
 
 
-export default function DecodeSubscriptionRenewed({ header, events }: Block) {
+export function DecodeSubscriptionRenewed({ header, events }: Block) {
   const { blockNumber, blockHash, timestamp } = header!;
 
   return (events ?? []).map(({ event, transaction }) => {
