@@ -19,7 +19,7 @@ services:
       - AUTH_TOKEN=${AUTH_TOKEN}
       - POSTGRES_CONNECTION_STRING=postgresql://admin:postgres@postgres:5432/indexer
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.ts --allow-env-from-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
+    command: 'run ./indexer/unruggableMemecoin-deploy.indexer.ts --allow-env-from-env --allow-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/indexer
     depends_on:
