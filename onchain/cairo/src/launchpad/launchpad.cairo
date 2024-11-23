@@ -711,9 +711,9 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
-            // TODO fix add liquidity ekubo
-            self._add_liquidity_ekubo(coin_address);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+                // TODO fix add liquidity ekubo
+                self._add_liquidity_ekubo(coin_address);
             }
 
             self
@@ -1934,9 +1934,7 @@ pub mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
             let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to sell
-            let liquidity_raised = pool_coin
-                .liquidity_raised
-                .clone(); // Quote tokens raised so far
+            let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
             let threshold_liquidity = self
                 .threshold_liquidity
                 .read()
@@ -2078,8 +2076,7 @@ pub mod LaunchpadMarketplace {
             // Calculate slope
             // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
             //     - (starting_price * sellable_supply);
-            let slope_numerator = (threshold_liquidity)
-                - (starting_price * sellable_supply);
+            let slope_numerator = (threshold_liquidity) - (starting_price * sellable_supply);
             let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
 
             // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
@@ -2089,7 +2086,7 @@ pub mod LaunchpadMarketplace {
 
             // let slope = (threshold_liquidity - (starting_price * sellable_supply))
             //     / ((sellable_supply * sellable_supply) / 2_u256);
-            let slope = slope_numerator / (slope_denominator*SCALE_FACTOR);
+            let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
             // println!("slope");
             slope / SCALE_FACTOR
             // // Calculate slope dynamically
@@ -2161,15 +2158,10 @@ pub mod LaunchpadMarketplace {
                         BondingType::Trapezoidal => {
                             self._trapezoidal_rule(coin_address, amount, is_decreased)
                         },
-                        _ => {
-                            self._trapezoidal_rule(coin_address, amount, is_decreased)
-                        },
+                        _ => { self._trapezoidal_rule(coin_address, amount, is_decreased) },
                     }
                 },
-                Option::None => {
-                    self._trapezoidal_rule(coin_address, amount, is_decreased)
-
-                }
+                Option::None => { self._trapezoidal_rule(coin_address, amount, is_decreased) }
             }
         }
     }
