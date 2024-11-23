@@ -1,4 +1,4 @@
-import {NDKEvent, NDKKind, NDKNip07Signer, NDKUser} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
@@ -163,7 +163,7 @@ export const useGetReceivedNutZaps = (options?: {mints?: string[]; since?: numbe
 // Hook to record NutZap redemption
 export const useRecordNutZapRedemption = () => {
   const {ndk} = useNostrContext();
-  const {publicKey} = useAuth();
+  const {publicKey, privateKey} = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -181,7 +181,7 @@ export const useRecordNutZapRedemption = () => {
       newTokenEventId: {id: string; relay?: string};
       senderPubkey: string;
     }) => {
-      const signer = new NDKNip07Signer();
+      const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({pubkey: publicKey});
       const content = await signer.nip44Encrypt(
         user,

@@ -1,4 +1,4 @@
-import {NDKEvent, NDKKind, NDKNip07Signer, NDKUser} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
 import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
@@ -31,7 +31,7 @@ export const useCreateWalletEvent = () => {
       privkey?: string;
       unit?: string;
     }) => {
-      const signer = new NDKNip07Signer();
+      const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({pubkey: publicKey});
       const content = await signer.nip44Encrypt(
         user,
