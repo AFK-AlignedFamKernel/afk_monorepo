@@ -81,6 +81,10 @@ pub mod tokens {
     pub mod memecoin_v2;
     pub mod quest_nft;
     pub mod token;
+    pub mod dn404 {
+        pub mod dn404;
+        pub mod dn404_mirror;
+    }
 }
 
 // TODO upgrade to correct OZ version
