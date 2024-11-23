@@ -17,6 +17,8 @@ export const KEY_CASHU_STORE = {
   ACTIVE_MINT: 'ACTIVE_MINT',
   ACTIVE_UNIT: 'ACTIVE_UNIT',
   SIGNER_TYPE: 'SIGNER_TYPE',
+  PRIVATEKEY_SIGNER: 'PRIVATEKEY_SIGNER',
+  WALLET_ID: 'WALLET_ID',
 } as const;
 
 // Add error handling helper
@@ -92,3 +94,12 @@ export const getTransactions = () => getData<ICashuInvoice[]>(KEY_CASHU_STORE.TR
 export const storeSignerType = (type: string) => storeData(KEY_CASHU_STORE.SIGNER_TYPE, type);
 
 export const getSignerType = () => getData<string>(KEY_CASHU_STORE.SIGNER_TYPE);
+
+export const storeSignerPrivKey = (key: string) =>
+  storeData(KEY_CASHU_STORE.PRIVATEKEY_SIGNER, key);
+
+export const getSignerPrivKey = () => getData<string>(KEY_CASHU_STORE.PRIVATEKEY_SIGNER);
+
+export const storeWalletId = (id: string) => storeData(KEY_CASHU_STORE.WALLET_ID, id);
+
+export const getWalletId = () => getData<string>(KEY_CASHU_STORE.WALLET_ID);
