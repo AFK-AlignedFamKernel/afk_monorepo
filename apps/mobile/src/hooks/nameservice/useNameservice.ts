@@ -31,12 +31,12 @@ export const useNameservice = () => {
     console.log('addressContract', addressContract);
     console.log('read asset');
 
-    const key_contract = await prepareAndConnectContract(provider, addressContract);
-    let quote_address:string = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??  TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
+    const nameservice = await prepareAndConnectContract(provider, addressContract);
+    let quote_address:string = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??  TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ?? "";
     console.log('read nameservice asset');
 
     try {
-      quote_address = await key_contract.get_quote_token_subscription();
+      quote_address = await nameservice.get_token_quote();
     } catch (error) {
       console.log('Error get amount to paid', error);
     }
@@ -52,7 +52,7 @@ export const useNameservice = () => {
     let amountToPaid;
     try {
       /** @TODO fix CORS issue */
-      amountToPaid = await key_contract.get_subscription_price(username);
+      amountToPaid = await nameservice.get_subscription_price(username);
     } catch (error) {
       console.log('Error get amount to paid', error);
     }
