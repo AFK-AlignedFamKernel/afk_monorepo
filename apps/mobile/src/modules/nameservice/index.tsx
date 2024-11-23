@@ -32,11 +32,11 @@ export const NameserviceComponent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
+      {/* <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
         <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
           Cancel
         </TextButton>
-      </SafeAreaView>
+      </SafeAreaView> */}
       <ScrollView>
         <KeyboardAvoidingView behavior="padding" style={styles.content}>
           <TabSelector
