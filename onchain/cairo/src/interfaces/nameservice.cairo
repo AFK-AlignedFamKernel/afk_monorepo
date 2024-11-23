@@ -4,6 +4,16 @@ use starknet::ContractAddress;
 pub trait INameservice<TContractState> {
     fn claim_username(ref self: TContractState, key: felt252);
     fn change_username(ref self: TContractState, new_username: felt252);
+    fn change_main_username(ref self: TContractState, new_username: felt252);
+    fn create_auction_for_username(
+        ref self: TContractState,
+        username: felt252,
+        minimal_price: u256,
+        is_accepted_price_reached: bool
+    );
+    fn place_order(ref self: TContractState, username: felt252, amount: u256);
+    fn cancel_order(ref self: TContractState, username: felt252, id: u64);
+    fn accept_order(ref self: TContractState, username: felt252, id: u64);
     fn get_username(self: @TContractState, address: ContractAddress) -> felt252;
     fn get_username_address(self: @TContractState, key: felt252) -> ContractAddress;
     fn renew_subscription(ref self: TContractState);
@@ -14,6 +24,6 @@ pub trait INameservice<TContractState> {
     // Add these functions
     fn set_token_quote(ref self: TContractState, token_quote: ContractAddress);
     fn update_subscription_price(ref self: TContractState, new_price: u256);
-    fn set_is_payment_enabled(ref self: TContractState, new_status: bool);
-    fn get_is_payment_enabled(ref self: TContractState) -> bool;
+    fn set_is_payment_enabled( ref self: TContractState, new_status: bool) -> bool;
+    fn get_is_payment_enabled(self: @TContractState) -> bool;
 }
