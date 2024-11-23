@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {getDecodedToken, getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
-import {ICashuInvoice} from 'afk_nostr_sdk';
+import {ICashuInvoice, useCreateTokenEvent} from 'afk_nostr_sdk';
 
 import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
-import {useProofsStorage, useTransactionsStorage} from './useStorageState';
+import {useProofsStorage, useTransactionsStorage, useWalletIdStorage} from './useStorageState';
 
 export const usePayment = () => {
   const {showToast} = useToast();
@@ -13,6 +13,9 @@ export const usePayment = () => {
 
   const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
+  const {value: walletId} = useWalletIdStorage();
+
+  const {mutate: createTokenEvent} = useCreateTokenEvent();
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
@@ -137,6 +140,11 @@ export const usePayment = () => {
         showToast({title: 'Ecash received.', type: 'success'});
         setProofs([...proofs, ...receiveEcashProofs]);
         setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
+        createTokenEvent({
+          walletId,
+          mint: activeMint,
+          proofs: receiveEcashProofs,
+        });
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
         const newTx: ICashuInvoice = {
           amount: proofsAmount,

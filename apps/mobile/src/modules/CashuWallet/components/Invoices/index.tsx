@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
-import {ICashuInvoice} from 'afk_nostr_sdk';
+import {ICashuInvoice, useCreateTokenEvent} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
@@ -13,9 +13,11 @@ import {Button, Divider} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {
+  useActiveMintStorage,
   useInvoicesStorage,
   useProofsStorage,
   useTransactionsStorage,
+  useWalletIdStorage,
 } from '../../../../hooks/useStorageState';
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {getRelativeTime} from '../../../../utils/helpers';
@@ -31,8 +33,12 @@ export const Invoices = () => {
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
   const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
+  const {value: activeMint} = useActiveMintStorage();
+  const {value: walletId} = useWalletIdStorage();
 
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
+
+  const {mutate: createTokenEvent} = useCreateTokenEvent();
 
   const handleVerify = async (quote?: string) => {
     try {
@@ -112,6 +118,11 @@ export const Invoices = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
+        createTokenEvent({
+          walletId,
+          mint: activeMint,
+          proofs: receive?.proofs,
+        });
         if (!proofsStorage && !proofs) {
           setProofsStorage([...(receive?.proofs as Proof[])]);
           setProofs([...(receive?.proofs as Proof[])]);
