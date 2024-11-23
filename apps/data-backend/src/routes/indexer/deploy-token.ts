@@ -5,6 +5,7 @@ import { isValidStarknetAddress } from "../../utils/starknet";
 
 interface DeployTokenParams {
   token: string;
+  owner_address?: string;
 }
 
 async function deployTokenRoute(
@@ -77,8 +78,8 @@ async function deployTokenRoute(
     Params: DeployTokenParams;
   }>("/deploy/from/:user/", async (request, reply) => {
     try {
-      const { user } = request.params;
-      if (!isValidStarknetAddress(user)) {
+      const { owner_address } = request.params;
+      if (owner_address && !isValidStarknetAddress(owner_address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
           message: "Invalid token address",
@@ -87,7 +88,7 @@ async function deployTokenRoute(
       }
 
       const deploys = await prisma.token_deploy.findMany({
-        where: { memecoin_address: token, owner:user },
+        where: {  owner_address:owner_address },
         select: {
           memecoin_address: true,
           owner_address: true,
@@ -109,6 +110,7 @@ async function deployTokenRoute(
         .send({ message: "Internal server error." });
     }
   });
+
 }
 
 export default deployTokenRoute;
