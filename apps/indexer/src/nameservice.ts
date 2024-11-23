@@ -21,7 +21,7 @@ try {
   connection.release();
 }
 
-const filterClaimed = {
+const filter = {
   header: {
     weak: true,
   },
@@ -44,7 +44,7 @@ export const config = {
   startingBlock: STARTING_BLOCK,
   network: "starknet",
   finality: "DATA_STATUS_ACCEPTED",
-  filterClaimed,
+  filter,
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
