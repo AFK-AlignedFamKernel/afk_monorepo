@@ -9,11 +9,21 @@ import {useAuth} from '../../store';
  * Wallet Event: https://nips.nostr.com/60#wallet-event
  */
 
+interface CreateWalletEventParams {
+  name: string;
+  description?: string;
+  mints: string[];
+  relays?: string[];
+  balance?: string;
+  privkey?: string;
+  unit?: string;
+}
+
 export const useCreateWalletEvent = () => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
-  return useMutation({
+  return useMutation<NDKEvent, Error, CreateWalletEventParams>({
     mutationFn: async ({
       name,
       description,
@@ -58,7 +68,10 @@ export const useCreateWalletEvent = () => {
         relays.forEach((relay) => event.tags.push(['relay', relay]));
       }
 
-      return await event.publish();
+      await event.sign(signer);
+
+      await event.publish();
+      return event;
     },
   });
 };

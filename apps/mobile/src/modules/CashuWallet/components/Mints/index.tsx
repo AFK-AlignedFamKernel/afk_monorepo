@@ -48,7 +48,7 @@ export const Mints = () => {
   const [newUrl, setNewUrl] = useState<string>('');
   const [newMintError, setNewMintError] = useState<string>('');
 
-  const {mutate: createWalletEvent} = useCreateWalletEvent();
+  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
 
   // Load units and their balances for each mint
   useEffect(() => {
@@ -127,7 +127,7 @@ export const Mints = () => {
     setMintsStorage([...mints, data]);
 
     // nostr event
-    createWalletEvent({
+    await createWalletEvent({
       name: walletId,
       mints: mints.map((mint) => mint.url),
       privkey: privKey,

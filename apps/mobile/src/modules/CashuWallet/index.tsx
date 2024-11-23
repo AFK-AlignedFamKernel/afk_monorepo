@@ -68,7 +68,7 @@ export const CashuView = () => {
   //context
   const {buildMintData, setMints, setActiveMint, setActiveUnit, setProofs} = useCashuContext()!;
 
-  const {mutate: createWalletEvent} = useCreateWalletEvent();
+  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
 
   useEffect(() => {
     setMints(mints);
@@ -133,7 +133,7 @@ export const CashuView = () => {
     setWalletId(id);
 
     // nostr event
-    createWalletEvent({
+    await createWalletEvent({
       name: id,
       mints: mints.map((mint) => mint.url),
       privkey: privateKeyHex,
