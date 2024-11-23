@@ -1,4 +1,4 @@
-import { NAMESERVICE_ADDRESS, STARTING_BLOCK } from "../constants.js";
+import { NAMESERVICE_ADDRESS, STARTING_BLOCK } from "./constants.js";
 import {
   Block,
   DECIMALS,
@@ -7,7 +7,7 @@ import {
   uint256,
   shortString,
   Pool,
-} from "../deps.js";
+} from "./deps.js";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
