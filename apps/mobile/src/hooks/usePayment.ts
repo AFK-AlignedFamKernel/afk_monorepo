@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {getDecodedToken, getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
-import {ICashuInvoice, useCreateTokenEvent} from 'afk_nostr_sdk';
+import {ICashuInvoice, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
 
 import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
@@ -15,7 +15,8 @@ export const usePayment = () => {
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
   const {value: walletId} = useWalletIdStorage();
 
-  const {mutate: createTokenEvent} = useCreateTokenEvent();
+  const {mutateAsync: createTokenEvent} = useCreateTokenEvent();
+  const {mutateAsync: createSpendingEvent} = useCreateSpendingEvent();
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
@@ -137,15 +138,26 @@ export const usePayment = () => {
       const receiveEcashProofs = await wallet?.receive(decodedToken);
 
       if (receiveEcashProofs?.length > 0) {
-        showToast({title: 'Ecash received.', type: 'success'});
-        setProofs([...proofs, ...receiveEcashProofs]);
-        setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
-        createTokenEvent({
+        const tokenEvent = await createTokenEvent({
           walletId,
           mint: activeMint,
           proofs: receiveEcashProofs,
         });
+
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
+
+        await createSpendingEvent({
+          walletId,
+          direction: 'in',
+          amount: proofsAmount.toString(),
+          unit: activeUnit,
+          events: [{id: tokenEvent.id, marker: 'created'}],
+        });
+
+        showToast({title: 'Ecash received.', type: 'success'});
+        setProofs([...proofs, ...receiveEcashProofs]);
+        setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
+
         const newTx: ICashuInvoice = {
           amount: proofsAmount,
           date: Date.now(),
