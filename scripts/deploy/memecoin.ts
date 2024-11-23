@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
 import { createMemecoin } from "../utils/memecoin";
+// import { createMemecoin } from "../utils/memecoin";
 dotenv.config();
 
 export const deployToken = async () => {
