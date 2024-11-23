@@ -52,6 +52,27 @@ Packages:
 - Prisma indexer pull: packages/indexer-prisma
 - Nostr sdk: packages/afk_nostr_sdk
 
+
+## Mobile
+
+The AFK Mobile app is built with React-native & Expo.
+[Current version](https://app.afk-community)
+
+Pick an issue with the labels "mobile" to start work on React-native and contribute!
+
+### Test
+
+To test the mobile app, run:
+
+```bash
+pnpm install
+cd apps/mobile
+pnpm start
+```
+
+Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
+
+
 ## Architecture
 
 Turburepo located in apps and packages.
@@ -139,6 +160,8 @@ sequenceDiagram
 
 The onchain components of the project are implemented as a suite of Starknet smart contracts.
 
+Located in /onchain.
+
 ### Build
 
 To build the project, run:
@@ -156,25 +179,6 @@ snforge test
 ```
 
 </details>
-
-## Mobile
-
-The AFK Mobile app is built with React-native & Expo.
-[Current version](https://app.afk-community)
-
-Pick an issue with the labels "mobile" to start work on React-native and contribute!
-
-### Test
-
-To test the mobile app, run:
-
-```bash
-cd apps/mobile
-pnpm install
-pnpm start
-```
-
-Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
 
 ## Resources
 
