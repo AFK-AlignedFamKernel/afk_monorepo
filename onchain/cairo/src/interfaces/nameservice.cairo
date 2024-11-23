@@ -16,6 +16,7 @@ pub trait INameservice<TContractState> {
     fn accept_order(ref self: TContractState, username: felt252, id: u64);
     fn get_username(self: @TContractState, address: ContractAddress) -> felt252;
     fn get_username_address(self: @TContractState, key: felt252) -> ContractAddress;
+    fn get_token_quote(self: @TContractState,) -> ContractAddress;
     fn renew_subscription(ref self: TContractState);
     fn get_subscription_expiry(self: @TContractState, address: ContractAddress) -> u64;
     fn get_subscription_price(self: @TContractState) -> u256;
@@ -24,6 +25,6 @@ pub trait INameservice<TContractState> {
     // Add these functions
     fn set_token_quote(ref self: TContractState, token_quote: ContractAddress);
     fn update_subscription_price(ref self: TContractState, new_price: u256);
-    fn set_is_payment_enabled( ref self: TContractState, new_status: bool) -> bool;
+    fn set_is_payment_enabled(ref self: TContractState, new_status: bool) -> bool;
     fn get_is_payment_enabled(self: @TContractState) -> bool;
 }

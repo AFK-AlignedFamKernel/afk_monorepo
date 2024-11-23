@@ -32,7 +32,7 @@ export const useNameservice = () => {
     console.log('read asset');
 
     const key_contract = await prepareAndConnectContract(provider, addressContract);
-    let quote_address=TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
+    let quote_address:string = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??  TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH;
     console.log('read nameservice asset');
 
     try {
@@ -43,7 +43,7 @@ export const useNameservice = () => {
 
     const asset = await prepareAndConnectContract(
       provider,
-      quote_address,
+      quote_address ?? TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH,
       account,
     );
     console.log('convert float');
@@ -73,7 +73,9 @@ export const useNameservice = () => {
       contractAddress: addressContract,
       entrypoint: 'claim_username',
       calldata: CallData.compile({
-        username: username,
+        username: username 
+        // username: cairo.felt(username) ,
+        //  cairo.felt(username) ,
       }),
       // calldata: [buyKeysParams.user_address, buyKeysParams.amount]
     };
