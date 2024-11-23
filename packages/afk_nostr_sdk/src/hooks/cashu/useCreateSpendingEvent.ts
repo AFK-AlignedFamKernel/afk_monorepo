@@ -9,11 +9,23 @@ import {useAuth} from '../../store';
  * Spending History Event: https://nips.nostr.com/60#spending-history-event
  */
 
+interface CreateSpendingEventParams {
+  walletId: string;
+  direction: 'in' | 'out';
+  amount: string;
+  unit: string;
+  events: Array<{
+    id: string;
+    relay?: string;
+    marker: 'created' | 'destroyed' | 'redeemed';
+  }>;
+}
+
 export const useCreateSpendingEvent = () => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
-  return useMutation({
+  return useMutation<NDKEvent, Error, CreateSpendingEventParams>({
     mutationFn: async ({
       walletId,
       direction,
@@ -48,7 +60,10 @@ export const useCreateSpendingEvent = () => {
       event.content = content;
       event.tags = [['a', `37375:${publicKey}:${walletId}`]];
 
-      return await event.publish();
+      await event.sign(signer);
+
+      await event.publish();
+      return event;
     },
   });
 };
