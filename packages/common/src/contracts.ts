@@ -179,9 +179,13 @@ export const EKUBO_REGISTRY = {
 };
 
 export const NAMESERVICE_ADDRESS = {
-  [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x4fe0ee38c814e0599a5140c5673a233d227ce0be9e22c3acdbee15ac9aefc10",
-  [constants.StarknetChainId.SN_MAIN]: "",
+   [constants.StarknetChainId.SN_MAIN]: "",
+  //  [constants.StarknetChainId.SN_SEPOLIA]:
+  //  "0x4fe0ee38c814e0599a5140c5673a233d227ce0be9e22c3acdbee15ac9aefc10",
+
+   [constants.StarknetChainId.SN_SEPOLIA]:
+   "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
+  
 };
 
 
