@@ -1934,7 +1934,9 @@ pub mod LaunchpadMarketplace {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
             let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to sell
-            let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
+            let liquidity_raised = pool_coin
+                .liquidity_raised
+                .clone(); // Quote tokens raised so far
             let threshold_liquidity = self
                 .threshold_liquidity
                 .read()
@@ -1963,11 +1965,10 @@ pub mod LaunchpadMarketplace {
             println!("price {:?}", price);
 
             let price = slope * tokens_sold + starting_price;
-            // let safe_price = max(price, MIN_PRICE); 
+            // let safe_price = max(price, MIN_PRICE);
 
-
-            let price_scale_factor=price * SCALE_FACTOR;
-            let quote_amount_factor=quote_amount * SCALE_FACTOR;
+            let price_scale_factor = price * SCALE_FACTOR;
+            let quote_amount_factor = quote_amount * SCALE_FACTOR;
             println!("price_scale_factor {:?}", price_scale_factor);
 
             // Ensure price is positive
@@ -2075,7 +2076,8 @@ pub mod LaunchpadMarketplace {
         ) -> u256 {
             println!("calculate slope");
             // Calculate slope
-            let slope_numerator = (threshold_liquidity * SCALE_FACTOR) - (starting_price * sellable_supply);
+            let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+                - (starting_price * sellable_supply);
             let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
 
             // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);

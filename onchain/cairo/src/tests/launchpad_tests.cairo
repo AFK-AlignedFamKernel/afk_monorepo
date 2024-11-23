@@ -73,7 +73,7 @@ mod launchpad_tests {
     fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
         0x02bd1cdd5f7f17726ae221845afd9580278eebc732bc136fe59d5d94365effd5.try_into().unwrap()
     }
-    
+
 
     fn EKUBO_CORE() -> ContractAddress {
         0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
@@ -381,8 +381,7 @@ mod launchpad_tests {
         //     'wrong token holded'
         // );
         assert(
-            launched_token.token_quote.token_address == erc20.contract_address,
-            'wrong token quote'
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
 
@@ -1119,7 +1118,6 @@ mod launchpad_tests {
     }
 
 
-    
     #[test]
     #[fork("Mainnet")]
     fn test_create_and_add_liquidity_unrug_liq_without_launchpad_threshold() {
@@ -1188,9 +1186,12 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         println!("buy liquidity threshold unrug");
 
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
+        let erc20 = IERC20Dispatcher { contract_address: quote_token.contract_address };
+
+        erc20.transfer(launchpad.contract_address, quote_to_deposit);
+        // run_buy_by_amount(
+        //     launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
+        // );
         let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
         println!("balance balance_quote_launch {:?}", balance_quote_launch);
         println!("add liquidity unrug");
@@ -1228,7 +1229,7 @@ mod launchpad_tests {
 
     }
 
-     
+
     #[test]
     #[fork("Mainnet")]
     fn test_create_and_add_liquidity_unrug_liq_without_launchpad_but_launch() {
@@ -1246,7 +1247,7 @@ mod launchpad_tests {
                 symbol: SYMBOL(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT() + 1,
-                is_launch_bonding_now: false
+                is_launch_bonding_now: true
             );
         println!("token_address unrug: {:?}", token_address);
 
@@ -1276,7 +1277,7 @@ mod launchpad_tests {
 
         // let total_token_holded: u256 = 1_000 * pow_256(10, 18);
         // let total_token_holded: u256 = launch.total_supply - launch.total_token_holded;
-        let total_token_holded: u256 = lp_meme_supply/10;
+        let total_token_holded: u256 = lp_meme_supply / 10;
         // let total_token_holded: u256 = 1_000;
 
         let launch_params = LaunchParameters {

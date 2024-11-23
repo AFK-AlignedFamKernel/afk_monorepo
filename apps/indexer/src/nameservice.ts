@@ -31,15 +31,15 @@ const filterClaimed = {
       keys: [hash.getSelectorFromName("UsernameClaimed")],
       includeReceipt: false,
     },
-    {
-      fromAddress: NAMESERVICE_ADDRESS.SEPOLIA,
-      keys: [hash.getSelectorFromName("SubscriptionRenewed")],
-      includeReceipt: false,
-    },
+    // {
+    //   fromAddress: NAMESERVICE_ADDRESS.SEPOLIA,
+    //   keys: [hash.getSelectorFromName("SubscriptionRenewed")],
+    //   includeReceipt: false,
+    // },
   ],
 };
 
-export const configClaimed = {
+export const config = {
   streamUrl: "https://sepolia.starknet.a5a.ch",
   startingBlock: STARTING_BLOCK,
   network: "starknet",

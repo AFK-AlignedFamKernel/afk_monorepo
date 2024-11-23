@@ -83,12 +83,23 @@ pub mod Nameservice {
     // #[abi(embed_v0)]
     // impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
     // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+    // Storage
+
+    #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+    pub struct NameserviceStorage {
+        pub owner: ContractAddress,
+        pub username: felt252,
+        pub expiry: u64,
+        pub is_claimed: bool
+    }
 
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
         user_to_username: Map::<ContractAddress, felt252>,
+        usernames_by_user: Map::<ContractAddress, felt252>,
         subscription_expiry: Map::<ContractAddress, u64>,
+        username_storage: Map::<felt252, NameserviceStorage>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -137,8 +148,8 @@ pub mod Nameservice {
         address: ContractAddress,
         username: felt252,
         expiry: u64,
-        paid:u256,
-        quote_token:ContractAddress
+        paid: u256,
+        quote_token: ContractAddress
     }
 
     #[derive(Drop, starknet::Event)]
@@ -252,6 +263,12 @@ pub mod Nameservice {
             let expiry = current_time + YEAR_IN_SECONDS;
             self.usernames.entry(key).write(caller_address);
             self.user_to_username.entry(caller_address).write(key);
+
+            let name_claimed = NameserviceStorage {
+                owner: caller_address, username: key, expiry: expiry, is_claimed: true
+            };
+            self.username_storage.entry(key).write(name_claimed);
+
             self.subscription_expiry.entry(caller_address).write(expiry);
 
             self.erc20.mint(caller_address, 1_u256);
