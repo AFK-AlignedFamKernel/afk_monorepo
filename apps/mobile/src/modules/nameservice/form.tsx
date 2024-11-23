@@ -14,6 +14,9 @@ import { SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET } from '../../typ
 import { CashuWalletView } from '../CashuWallet';
 import { LightningNetworkWalletView } from '../Lightning';
 import stylesheet from './styles';
+import { useNameservice } from '../../hooks/nameservice/useNameservice';
+import { useToast, useWalletModal } from '../../hooks/modals';
+import { useAccount } from '@starknet-react/core';
 
 export const FormComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -21,8 +24,34 @@ export const FormComponent: React.FC = () => {
     SelectedTab.DYNAMIC_GENERAL,
   );
 
+  const { account } = useAccount()
+
+  const { handleBuyUsername } = useNameservice()
   const [username, setUsername] = useState<string | undefined>()
 
+  const walletModal = useWalletModal()
+  const { showToast } = useToast()
+  const handleBuy = async () => {
+
+
+    if (!account?.address) {
+      walletModal.show();
+
+      // const result = await waitConnection();
+      // if (!result) return;
+    }
+
+
+    if (!account) {
+
+      return showToast({ title: "Please connect you", type: "info" })
+    }
+
+    if (!username) {
+      return showToast({ title: "Please choose an username", type: "info" })
+    }
+    handleBuyUsername(account, username)
+  }
   const navigation = useNavigation<MainStackNavigationProps>();
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -39,7 +68,9 @@ export const FormComponent: React.FC = () => {
 
             <View>
 
-              <Text>Buy nameservice</Text>
+              <Text
+                style={styles.text}
+              >Buy nameservice</Text>
 
               <SquareInput
                 placeholder="Your name"
@@ -60,6 +91,7 @@ export const FormComponent: React.FC = () => {
               </Button>
 
               <Button onPress={() => {
+                handleBuy()
                 // onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)
               }
               } >
