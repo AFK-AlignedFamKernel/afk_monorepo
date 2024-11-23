@@ -592,7 +592,7 @@ pub mod LaunchpadMarketplace {
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
-            println!("amount receive {:?}", amount);
+            // println!("amount receive {:?}", amount);
 
             assert(amount <= pool_coin.available_supply, 'no available supply');
 
@@ -713,7 +713,7 @@ pub mod LaunchpadMarketplace {
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
             // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
             // TODO fix add liquidity ekubo
-            // self._add_liquidity_ekubo(coin_address);
+            self._add_liquidity_ekubo(coin_address);
             }
 
             self
@@ -1142,7 +1142,7 @@ pub mod LaunchpadMarketplace {
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
 
-            println!("IN HERE: {}", 1);
+            // println!("IN HERE: {}", 1);
 
             match consume_callback_data::<CallbackData>(core, data) {
                 CallbackData::LaunchCallback(params) => {
@@ -1151,7 +1151,7 @@ pub mod LaunchpadMarketplace {
                         launch_params.token_address, launch_params.quote_address
                     );
 
-                    println!("IN HERE: {}", 2);
+                    // println!("IN HERE: {}", 2);
 
                     let pool_key = PoolKey {
                         token0: token0,
@@ -1161,7 +1161,7 @@ pub mod LaunchpadMarketplace {
                         extension: 0.try_into().unwrap(),
                     };
 
-                    println!("IN HERE: {}", 3);
+                    // println!("IN HERE: {}", 3);
 
                     // The initial_tick must correspond to the wanted initial price in quote/MEME
                     // The ekubo prices are always in TOKEN1/TOKEN0.
@@ -1174,14 +1174,14 @@ pub mod LaunchpadMarketplace {
                         is_token1_quote
                     );
 
-                    println!("IN HERE: {}", 4);
+                    // println!("IN HERE: {}", 4);
 
                     // println!("initial tick {:?}", initial_tick);
                     // Initialize the pool at the initial tick.
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     // println!("init pool");
 
-                    println!("IN HERE: {}", 5);
+                    // println!("IN HERE: {}", 5);
 
                     // 2. Provide the liquidity to actually initialize the public pool with
                     // The pool bounds must be set according to the tick spacing.
@@ -1196,7 +1196,7 @@ pub mod LaunchpadMarketplace {
                             full_range_bounds
                         );
 
-                    println!("IN HERE: {}", 6);
+                    // println!("IN HERE: {}", 6);
 
                     let position = EkuboLP {
                         // let position = @EkuboLP {
@@ -1453,21 +1453,21 @@ pub mod LaunchpadMarketplace {
             amount: u256,
             bounds: Bounds
         ) -> u64 {
-            println!("NOW HERE: {}", 1);
+            // println!("mint deposit NOW HERE: {}", 1);
 
             let positions_address = self.positions.read();
             let positions = IPositionsDispatcher { contract_address: positions_address };
-            println!("NOW HERE: {}", 2);
+            // println!("mint deposit NOW HERE: {}", 2);
 
             // The token must be transferred to the positions contract before calling mint.
             IERC20Dispatcher { contract_address: token }
                 .transfer(recipient: positions.contract_address, :amount);
-            println!("NOW HERE: {}", 3);
+            // println!("mint deposit NOW HERE: {}", 3);
 
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             // let (id, liquidity, _, _) = positions
             // .mint_and_deposit_and_clear_both(pool_key, bounds, min_liquidity: 0);
-            println!("NOW HERE: {}", 4);
+            // println!("mint deposit NOW HERE: {}", 4);
             id
         }
 
@@ -1516,7 +1516,7 @@ pub mod LaunchpadMarketplace {
                 }
             };
 
-            println!("Bound computed: {}", params.pool_params.bound);
+            // println!("Bound computed: {}", params.pool_params.bound);
 
             // Register the token in Ekubo Registry
             // let registry_address = self.ekubo_registry.read();
@@ -1527,7 +1527,7 @@ pub mod LaunchpadMarketplace {
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
             //TODO token decimal, amount of 1 token?
 
-            println!("RIGHT HERE: {}", 1);
+            // println!("RIGHT HERE: {}", 1);
 
             let pool = self.launched_coins.read(coin_address);
             let dex_address = self.core.read();
@@ -1542,7 +1542,7 @@ pub mod LaunchpadMarketplace {
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
             // Call the core with a callback to deposit and mint the LP tokens.
 
-            println!("RIGHT HERE: {}", 2);
+            // println!("HERE launch callback: {}", 2);
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
@@ -1552,13 +1552,13 @@ pub mod LaunchpadMarketplace {
             //TODO emit event
             let id_cast: u256 = id.try_into().unwrap();
 
-            println!("RIGHT HERE: {}", 3);
+            // println!("RIGHT HERE: {}", 3);
 
             let mut launch_to_update = self.launched_coins.read(coin_address);
             launch_to_update.is_liquidity_launch = true;
             self.launched_coins.entry(coin_address).write(launch_to_update.clone());
 
-            println!("RIGHT HERE: {}", 4);
+            // println!("RIGHT HERE: {}", 4);
 
             self
                 .emit(
@@ -1582,10 +1582,10 @@ pub mod LaunchpadMarketplace {
             // TODO calculate price
 
             let launch_price = initial_pool_supply / threshold_liquidity;
-            println!("launch_price {:?}", launch_price);
+            // println!("launch_price {:?}", launch_price);
 
             let price_u128: u128 = launch_price.try_into().unwrap();
-            println!("price_u128 {:?}", price_u128);
+            // println!("price_u128 {:?}", price_u128);
             let starting_price = i129 { sign: true, mag: price_u128 };
 
             starting_price
@@ -1958,18 +1958,18 @@ pub mod LaunchpadMarketplace {
             // Calculate price (P) of the next token
             let tokens_sold = sellable_supply - current_supply;
             // let price = m * tokens_sold + starting_price;
-            println!("tokens_sold {:?}", tokens_sold);
+            // println!("tokens_sold {:?}", tokens_sold);
 
             // Calculate price
             let price = slope * tokens_sold + starting_price;
-            println!("price {:?}", price);
+            // println!("price {:?}", price);
 
             let price = slope * tokens_sold + starting_price;
             // let safe_price = max(price, MIN_PRICE);
 
             let price_scale_factor = price * SCALE_FACTOR;
             let quote_amount_factor = quote_amount * SCALE_FACTOR;
-            println!("price_scale_factor {:?}", price_scale_factor);
+            // println!("price_scale_factor {:?}", price_scale_factor);
 
             // Ensure price is positive
             assert(price >= 0_u256, 'Price must remain positive');
@@ -1991,7 +1991,7 @@ pub mod LaunchpadMarketplace {
             //   pool_coin.total_token_holded -= q_out;
             }
 
-            println!("q_out {:?}", q_out);
+            // println!("q_out {:?}", q_out);
 
             return q_out / SCALE_FACTOR;
             // OLD not working
@@ -2074,7 +2074,7 @@ pub mod LaunchpadMarketplace {
             starting_price: u256,
             sellable_supply: u256
         ) -> u256 {
-            println!("calculate slope");
+            // println!("calculate slope");
             // Calculate slope
             let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
                 - (starting_price * sellable_supply);
@@ -2083,12 +2083,12 @@ pub mod LaunchpadMarketplace {
             // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
             // let slope_denominator = (sellable_supply * sellable_supply) / 2;
             // let slope = slope_numerator / slope_denominator;
-            println!("slope_denominator {:?}", slope_denominator);
+            // println!("slope_denominator {:?}", slope_denominator);
 
             // let slope = (threshold_liquidity - (starting_price * sellable_supply))
             //     / ((sellable_supply * sellable_supply) / 2_u256);
             let slope = slope_numerator / slope_denominator;
-            println!("slope");
+            // println!("slope");
             slope
             // // Calculate slope dynamically
         // let m = (threshold_liquidity - (starting_price * sellable_supply))
