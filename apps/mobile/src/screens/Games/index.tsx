@@ -1,19 +1,20 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
+import { TextButton } from '../../components';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
-import {PixelPeace} from '../../modules/PixelPeace';
-import {GameSreenProps} from '../../types';
-import {SelectedTab, TABS_MENU} from '../../types/tab';
-import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
-import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
-import {SlinksMap} from '../Slink/SlinksMap';
+import { useStyles, useTheme } from '../../hooks';
+import { PixelPeace } from '../../modules/PixelPeace';
+import { GameSreenProps } from '../../types';
+import { SelectedTab, TABS_MENU } from '../../types/tab';
+import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
+import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
+import { SlinksMap } from '../Slink/SlinksMap';
 import stylesheet from './styles';
+import { NameserviceComponent } from '../../modules/nameservice';
 
-export const Games: React.FC<GameSreenProps> = ({navigation}) => {
+export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
@@ -56,6 +57,12 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
             {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
               <View>
                 <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
+              </View>
+            )}
+
+            {selectedTab == SelectedTab.NAMESERVICE && (
+              <View>
+                <NameserviceComponent ></NameserviceComponent>
               </View>
             )}
 

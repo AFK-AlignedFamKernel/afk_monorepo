@@ -81,6 +81,8 @@ export type MainStackParams = {
   Oauth:undefined;
   ShortVideos:undefined;
   TokenDetail: {coinAddress: string};
+  Nameservice:undefined;
+
 
 };
 
@@ -114,6 +116,8 @@ export type HomeBottomStackParams = {
   Oauth:undefined;
   ShortVideos:undefined;
   TokenDetail: {coinAddress: string};
+  Nameservice:undefined;
+
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
   // CreateChannel:undefined;
@@ -368,6 +372,10 @@ export type WatchStream = CompositeScreenProps<
 >;
 export type ViewStreamGuest = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'ViewStreamGuest'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type NameserviceScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Nameservice'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
