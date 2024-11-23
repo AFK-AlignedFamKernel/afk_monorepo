@@ -37,7 +37,7 @@ async function nameserviceRoutes(fastify: FastifyInstance, options: RouteOptions
   });
   fastify.get<{
     Params: NameserviceParams;
-  }>("/username-claimed/:username", async (request, reply) => {
+  }>("/username-claimed/username/:username", async (request, reply) => {
     try {
       const usernamesClaimed = await prisma.username_claimed.findMany({
         // where: { transaction_type: "buy" },
@@ -63,7 +63,7 @@ async function nameserviceRoutes(fastify: FastifyInstance, options: RouteOptions
   });
   fastify.get<{
     Params: NameserviceParams;
-  }>("/username-claimed/:user", async (request, reply) => {
+  }>("/username-claimed/user/:user", async (request, reply) => {
     try {
       const { username } = request.params;
 
