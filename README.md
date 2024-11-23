@@ -52,29 +52,32 @@ Packages:
 - Prisma indexer pull: packages/indexer-prisma
 - Nostr sdk: packages/afk_nostr_sdk
 
-## Roadmap
 
-### MVP
+## Mobile
 
-- [x] Cairo implementation of Nostr signature verification
-- [x] Starknet account contract implementation, controlled by Nostr keypair
-- [x] AFK landing page
-- [x] SocialPay feature to send and receive tips through Nostr signed messages
-- [x] Implement a Nostr client application with Starknet integration
-- [x] Run Nostr relay server
+The AFK Mobile app is built with React-native & Expo.
+[Current version](https://app.afk-community)
 
-### Now
+Pick an issue with the labels "mobile" to start work on React-native and contribute!
 
-- [ ] Complete Nostr client
-- [ ] ZAP
-- [ ] Launchpad & Pump it
-- [ ] Questings
-- [ ] Social games
-- [ ] BTCFi and Bridge
-- [ ] Onramp offramp
-- [ ] Crossover with [Vault](https://github.com/keep-starknet-strange/vault) to bring Social features to the Vault application
+### Test
+
+To test the mobile app, run:
+
+```bash
+pnpm install
+cd apps/mobile
+pnpm start
+```
+
+Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
+
 
 ## Architecture
+
+Turburepo located in apps and packages.
+Read the README.md of the repo you are working on.
+Maybe you need to run others services to contribute as expected.
 
 ### Tips
 
@@ -157,6 +160,8 @@ sequenceDiagram
 
 The onchain components of the project are implemented as a suite of Starknet smart contracts.
 
+Located in /onchain.
+
 ### Build
 
 To build the project, run:
@@ -174,25 +179,6 @@ snforge test
 ```
 
 </details>
-
-## Mobile
-
-The AFK Mobile app is built with React-native & Expo.
-[Current version](https://app.afk-community)
-
-Pick an issue with the labels "mobile" to start work on React-native and contribute!
-
-### Test
-
-To test the mobile app, run:
-
-```bash
-cd apps/mobile
-pnpm install
-pnpm start
-```
-
-Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
 
 ## Resources
 
@@ -214,6 +200,30 @@ We build into the Joyboy repo here from the Exploration team:
 AFK Aligned Fam Kernel is born from this open source project.
 
 Now we keep building and move forward!
+
+
+## Roadmap
+
+### MVP
+
+- [x] Cairo implementation of Nostr signature verification
+- [x] Starknet account contract implementation, controlled by Nostr keypair
+- [x] AFK landing page
+- [x] SocialPay feature to send and receive tips through Nostr signed messages
+- [x] Implement a Nostr client application with Starknet integration
+- [x] Run Nostr relay server
+
+### Now
+
+- [ ] Complete Nostr client
+- [ ] ZAP
+- [ ] Launchpad & Pump it
+- [ ] Questings
+- [ ] Social games
+- [ ] BTCFi and Bridge
+- [ ] Onramp offramp
+- [ ] Crossover with [Vault](https://github.com/keep-starknet-strange/vault) to bring Social features to the Vault application
+
 
 ## Contributors ✨
 

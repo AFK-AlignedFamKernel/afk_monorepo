@@ -43,12 +43,15 @@ export enum SelectedTab {
   ONRAMP_OFFRAMP,
   PAY_WALLET,
   WALLET_INTERNAL,
+  AFK_ID,
+  NAMESERVICE,
   CONTACTS = 'contacts',
   HOLDERS = "HOLDERS",
   TX = "TX",
   SHARES = "SHARES",
   STATS = "STATS",
   GRAPH = "GRAPH",
+
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -165,6 +168,16 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
     screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
   },
+  {
+    title: 'AFK Nameservice',
+    screen: 'AFK Nameservice',
+    tab: SelectedTab.NAMESERVICE,
+  },
+  // {
+  //   title: 'AFK ID',
+  //   screen: 'AFK ID',
+  //   tab: SelectedTab.AFK_ID,
+  // },
   {
     title: 'Keys',
     screen: 'KeysMarketplace',
@@ -364,4 +377,22 @@ export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: Selec
     screen: 'Portfolio',
     tab: SelectedTab.PORTFOLIO,
   },
+];
+
+export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab}[] = [
+  // {
+  //   title: 'Dynamic',
+  //   screen: 'Dynamic',
+  //   tab: SelectedTab.DYNAMIC_GENERAL,
+  // },
+  // {
+  //   title: 'Generate',
+  //   screen: 'Generate',
+  //   tab: SelectedTab.GENERATE_INTERNAL_WALLET,
+  // },
+  // {
+  //   title: 'Portfolio',
+  //   screen: 'Portfolio',
+  //   tab: SelectedTab.PORTFOLIO,
+  // },
 ];

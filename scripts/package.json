@@ -14,6 +14,7 @@
     "deploy:memecoin": "ts-node ./deploy/memecoin.ts",
     "deploy:art_peace": "ts-node ./deploy/art_peace.ts",
     "deploy:username_store": "ts-node ./deploy/username_store.ts",
+    "deploy:nameservice": "ts-node ./deploy/nameservice.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"

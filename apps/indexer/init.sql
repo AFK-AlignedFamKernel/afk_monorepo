@@ -106,3 +106,56 @@ create table unrugmeme_launch(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     _cursor BIGINT
 );
+
+
+create table username_claimed(
+    owner_address TEXT,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT PRIMARY KEY,
+    expiry TEXT,
+    username TEXT,
+    name TEXT,
+    symbol TEXT,
+    paid TEXT,
+    quote_address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT,
+    time_stamp TEXT
+);
+
+create table username_changed(
+    owner_address TEXT,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT PRIMARY KEY,
+
+    name TEXT,
+    old_name TEXT,
+    paid TEXT,
+    quote_address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT,
+    time_stamp TEXT
+);
+
+create table renew_subscription(
+    owner_address TEXT,
+    network TEXT,
+    block_hash TEXT,
+    block_number BIGINT,
+    block_timestamp TIMESTAMP,
+    transaction_hash TEXT PRIMARY KEY,
+
+    name TEXT,
+    old_name TEXT,
+    paid TEXT,
+    quote_address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT,
+    time_stamp TEXT
+);

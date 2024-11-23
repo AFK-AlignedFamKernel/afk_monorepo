@@ -35,7 +35,7 @@ pub enum BondingType {
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub price: u256,
     pub step_increase_linear: u256,
     pub is_enable: bool
@@ -83,7 +83,7 @@ pub struct TokenLaunch {
     pub slope: u256,
     pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub protocol_fee_percent: u256,
     pub creator_fee_percent: u256,
 }
@@ -113,7 +113,7 @@ pub struct TokenLaunchFair {
     pub owner: ContractAddress,
     pub token_address: ContractAddress,
     pub price: u256,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
