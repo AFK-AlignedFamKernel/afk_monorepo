@@ -54,9 +54,8 @@ use afk::types::launchpad_types::{
 //     q_in
 // }
 
-
 // fn _trapezoidal_rule(
-//     self: @ContractState, coin_address: ContractAddress, 
+//     self: @ContractState, coin_address: ContractAddress,
 //     total_supply:u256,
 //     step_increase_linear:u256,
 //     initial_key_price:u256,
@@ -82,7 +81,7 @@ use afk::types::launchpad_types::{
 //     }
 // }
 
-// fn _calculate_pricing(ref self: ContractState, 
+// fn _calculate_pricing(ref self: ContractState,
 //     threshold_liquidity:u256,
 //     liquidity_available: u256) -> (u256, u256) {
 //     let slope = (2 * threshold_liquidity) / (liquidity_available * (liquidity_available - 1));
@@ -146,3 +145,4 @@ use afk::types::launchpad_types::{
 //         }
 //     }
 // }
+
