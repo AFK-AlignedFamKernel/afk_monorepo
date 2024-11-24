@@ -6,11 +6,11 @@ trait IStaking<TContractState> {
     fn notify_reward_amount(ref self: TContractState, amount: u256);
     fn stake(ref self: TContractState, amount: u256);
     fn withdraw(ref self: TContractState, amount: u256);
+    fn get_reward(ref self: TContractState);
 
     fn last_time_reward_applicable(self: @TContractState) -> u256;
     fn reward_per_token(self: @TContractState) -> u256;
-    fn earned(self: @TContractState, account: ContractAddress) -> u256;
-    fn get_reward(ref self: TContractState);
+    fn rewards_earned(self: @TContractState, account: ContractAddress) -> u256;
 
     fn staking_token(self: @TContractState) -> ContractAddress;
     fn rewards_token(self: @TContractState) -> ContractAddress;
@@ -28,12 +28,31 @@ trait IStaking<TContractState> {
     fn return_block_timestamp(self: @TContractState) -> u256;
 }
 
+#[starknet::interface]
+pub trait IERC20<TContractState> {
+    fn name(self: @TContractState) -> ByteArray;
+    fn symbol(self: @TContractState) -> ByteArray;
+    fn decimals(self: @TContractState) -> u8;
+
+    fn total_supply(self: @TContractState) -> u256;
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
+    
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool;
+
+    fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+}
+
 #[starknet::component]
 pub mod StakingComponent {
     use core::num::traits::Zero;
-    use core::starknet::{ContractAddress, get_block_timestamp, contract_address_const};
+    use core::starknet::{ContractAddress, get_block_timestamp, contract_address_const, get_caller_address, get_contract_address};
     use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait};
 
+    const ONE_E18: u256 = 1000000000000000000_u256;
 
     #[storage]
     struct Storage {
@@ -81,41 +100,112 @@ pub mod StakingComponent {
     impl Staking<TContractState, +HasComponent<TContractState>> of super::IStaking<ComponentState<TContractState>> {
 
         fn set_rewards_duration(ref self: ComponentState<TContractState>, duration: u256) {
+            let caller = get_caller_address();
+            assert!(caller == self.owner.read(), "not authorized");
 
+            let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
+            assert!(self.finish_at.read() < block_timestamp, "reward duration not finished");
+
+            self.duration.write(duration);
         }
 
         fn notify_reward_amount(ref self: ComponentState<TContractState>, amount: u256) {
+            let caller = get_caller_address();
+            let this_contract = get_contract_address();
 
+            assert!(caller == self.owner.read(), "not authorized");
+
+            let zero_address = self.zero_address();
+
+            self.update_reward(zero_address);
+
+            let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
+
+            if block_timestamp >= self.finish_at.read() {
+                self.reward_rate.write(amount / self.duration.read())
+            } else {
+                let remaining_rewards = (self.finish_at.read() - block_timestamp) * self.reward_rate.read();
+
+                self.reward_rate.write((amount + remaining_rewards) / self.duration.read());
+            }
+
+            let rewards_token = IERC20Dispatcher { contract_address: self.rewards_token.read() };
+
+            assert!(self.reward_rate.read() > 0, "reward rate = 0");
+            assert!(self.reward_rate.read() * self.duration.read() <= rewards_token.balance_of(this_contract), "reward amount > balance");
+
+            self.finish_at.write(get_block_timestamp().try_into().unwrap() + self.duration.read());
+            self.updated_at.write(get_block_timestamp().try_into().unwrap());
         }
 
         fn stake(ref self: ComponentState<TContractState>, amount: u256) {
+            let caller = get_caller_address();
+            let this_contract = get_contract_address();
 
+            self.update_reward(caller);
+
+            assert!(amount > 0, "amount = 0");
+            let staking_token = IERC20Dispatcher { contract_address: self.staking_token.read() };
+            let transfer = staking_token.transfer_from(caller, this_contract, amount);
+
+            assert!(transfer, "transfer failed");
+
+            let prev_stake = self.balance_of.entry(caller).read();
+            self.balance_of.entry(caller).write(prev_stake + amount);
+
+            let prev_supply = self.total_supply.read();
+            self.total_supply.write(prev_supply + amount);
         }
 
         fn withdraw(ref self: ComponentState<TContractState>, amount: u256) {
+            let caller = get_caller_address();
 
+            self.update_reward(caller);
+
+            assert!(amount > 0, "amount = 0");
+
+            let prev_stake = self.balance_of.entry(caller).read();
+            assert!(prev_stake >= amount, "insufficient stake balance");
+            self.balance_of.entry(caller).write(prev_stake - amount);
+
+            let prev_supply = self.total_supply.read();
+            self.total_supply.write(prev_supply - amount);
+
+            let staking_token = IERC20Dispatcher { contract_address: self.staking_token.read() };
+            let transfer = staking_token.transfer(caller, amount);
+
+            assert!(transfer, "transfer failed");
         }
 
         fn get_reward(ref self: ComponentState<TContractState>) {
-            
+            let caller = get_caller_address();
+            let reward = self.rewards.entry(caller).read();
+
+            if reward > 0 {
+                self.rewards.entry(caller).write(0);
+                IERC20Dispatcher { contract_address: self.rewards_token.read() }.transfer(caller, reward);
+            }
         }
 
-        fn last_time_reward_applicable(self: @ComponentState<TContractState>) -> u256 {
 
-            9
+        //////////////////// Read Functions ////////////////////
+        fn last_time_reward_applicable(self: @ComponentState<TContractState>) -> u256 {
+            let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
+            self.min(self.finish_at.read(), block_timestamp)
         }
 
         fn reward_per_token(self: @ComponentState<TContractState>) -> u256 {
-
-            8
+            if self.total_supply.read() == 0 {
+                self.reward_per_token_stored.read()
+            } else {
+                self.reward_per_token_stored.read() + (self.reward_rate.read() * (self.last_time_reward_applicable() - self.updated_at.read()) * ONE_E18 ) / self.total_supply.read()
+            }
         }
 
-        fn earned(self: @ComponentState<TContractState>, account: ContractAddress) -> u256 {
-
-            9
+        fn rewards_earned(self: @ComponentState<TContractState>, account: ContractAddress) -> u256 {
+            ((self.balance_of.entry(account).read() * (self.reward_per_token() - self.user_reward_per_token_paid.entry(account).read())) / ONE_E18) + self.rewards.entry(account).read()
         }
 
-        ////////////////// Read Functions //////////////////
         fn staking_token(self: @ComponentState<TContractState>) -> ContractAddress {
             self.staking_token.read()
         }
@@ -184,7 +274,7 @@ pub mod StakingComponent {
             self.updated_at.write(self.last_time_reward_applicable());
 
             if account.is_non_zero() {
-                self.rewards.entry(account).write(self.earned(account));
+                self.rewards.entry(account).write(self.rewards_earned(account));
                 self.user_reward_per_token_paid.entry(account).write(self.reward_per_token_stored.read());
             } 
         }
