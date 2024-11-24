@@ -178,6 +178,11 @@ pub mod StakingComponent {
 
             let prev_supply = self.total_supply.read();
             self.total_supply.write(prev_supply + amount);
+
+            self.emit(StakedSuccessful {
+                user: caller,
+                amount
+            });
         }
 
         fn withdraw(ref self: ComponentState<TContractState>, amount: u256) {
@@ -198,6 +203,11 @@ pub mod StakingComponent {
             let transfer = staking_token.transfer(caller, amount);
 
             assert(transfer, Errors::TRANSFER_FAILED);
+
+            self.emit(WithdrawalSuccessful {
+                user: caller,
+                amount
+            });
         }
 
         fn get_reward(ref self: ComponentState<TContractState>) {
@@ -209,6 +219,11 @@ pub mod StakingComponent {
                 IERC20Dispatcher { contract_address: self.rewards_token.read() }
                     .transfer(caller, reward);
             }
+
+            self.emit(RewardsWithdrawn {
+                user: caller,
+                amount: reward
+            });
         }
 
 
