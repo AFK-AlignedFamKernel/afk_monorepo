@@ -30,7 +30,8 @@ trait IStaking<TContractState> {
 
 #[starknet::component]
 pub mod StakingComponent {
-    use core::starknet::{ContractAddress, get_block_timestamp};
+    use core::num::traits::Zero;
+    use core::starknet::{ContractAddress, get_block_timestamp, contract_address_const};
     use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
 
 
@@ -114,8 +115,7 @@ pub mod StakingComponent {
             9
         }
 
-        //////// Read Functions //////////////////
-
+        ////////////////// Read Functions //////////////////
         fn staking_token(self: @ComponentState<TContractState>) -> ContractAddress {
             self.staking_token.read()
         }
@@ -177,6 +177,28 @@ pub mod StakingComponent {
             self.owner.write(owner);
             self.staking_token.write(staking_token);
             self.rewards_token.write(reward_token);
+        }
+
+        fn update_reward(ref self: ComponentState<TContractState>, account: ContractAddress) {
+            self.reward_per_token_stored.write(self.reward_per_token());
+            self.updated_at.write(self.last_time_reward_applicable());
+
+            if account.is_non_zero() {
+                self.rewards.entry(account).write(self.earned(account));
+                self.user_reward_per_token_paid.entry(account).write(self.reward_per_token_stored.read());
+            } 
+        }
+
+        fn min(self: @ComponentState<TContractState>, x: u256, y: u256) -> u256 {
+            if x <= y {
+                x
+            } else {
+                y
+            }
+        }
+
+        fn zero_address(self: @ComponentState<TContractState>) -> ContractAddress {
+            contract_address_const::<0>()
         }
     }
 }
