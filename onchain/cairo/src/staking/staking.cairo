@@ -53,7 +53,27 @@ pub mod StakingComponent {
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
+        StakedSuccessful: StakedSuccessful,
+        WithdrawalSuccessful: WithdrawalSuccessful,
+        RewardsWithdrawn: RewardsWithdrawn
+    }
 
+    #[derive(Drop, starknet::Event)]
+    struct StakedSuccessful {
+        user: ContractAddress,
+        amount: u256
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct WithdrawalSuccessful {
+        user: ContractAddress,
+        amount: u256
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct RewardsWithdrawn {
+        user: ContractAddress,
+        amount: u256
     }
 
     #[embeddable_as(StakingImpl)]
