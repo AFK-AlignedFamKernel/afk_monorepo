@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {useCreateWalletEvent} from 'afk_nostr_sdk';
+import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
 import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
@@ -67,6 +67,7 @@ export const CashuView = () => {
 
   //context
   const {buildMintData, setMints, setActiveMint, setActiveUnit, setProofs} = useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
 
   const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
 
@@ -125,19 +126,21 @@ export const CashuView = () => {
     setMintsStorage([data]);
     setAddingMint(false);
 
-    const privateKey = getRandomBytes(32);
-    const privateKeyHex = Buffer.from(privateKey).toString('hex');
+    const privKey = getRandomBytes(32);
+    const privateKeyHex = Buffer.from(privKey).toString('hex');
     setPrivKey(privateKeyHex);
 
     const id = randomUUID();
     setWalletId(id);
 
-    // nostr event
-    await createWalletEvent({
-      name: id,
-      mints: mints.map((mint) => mint.url),
-      privkey: privateKeyHex,
-    });
+    if (publicKey && privateKey) {
+      // nostr event
+      await createWalletEvent({
+        name: id,
+        mints: mints.map((mint) => mint.url),
+        privkey: privateKeyHex,
+      });
+    }
   };
 
   return (

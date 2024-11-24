@@ -2,6 +2,7 @@
 import {getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
 import {
   ICashuInvoice,
+  useAuth,
   useCreateSpendingEvent,
   useCreateTokenEvent,
   useDeleteTokenEvents,
@@ -18,6 +19,7 @@ export const usePayment = () => {
   const {showToast} = useToast();
 
   const {meltTokens, wallet, proofs, setProofs, activeUnit, activeMint} = useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
 
   const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
@@ -49,27 +51,29 @@ export const usePayment = () => {
             const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} =
               response;
             setProofsFilter(selectedProofs);
-            await refetchTokens();
-            await deleteMultiple(
-              filteredTokenEvents.map((event) => event.id),
-              'proofs spent in transaction',
-            );
-            const tokenEvent = await createTokenEvent({
-              walletId,
-              mint: activeMint,
-              proofs: proofsToKeep,
-            });
-            const destroyedEvents = filteredTokenEvents.map((event) => ({
-              id: event.id,
-              marker: 'destroyed' as EventMarker,
-            }));
-            await createSpendingEvent({
-              walletId,
-              direction: 'out',
-              amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
-              unit: activeUnit,
-              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
-            });
+            if (privateKey && publicKey) {
+              await refetchTokens();
+              await deleteMultiple(
+                filteredTokenEvents.map((event) => event.id),
+                'proofs spent in transaction',
+              );
+              const tokenEvent = await createTokenEvent({
+                walletId,
+                mint: activeMint,
+                proofs: proofsToKeep,
+              });
+              const destroyedEvents = filteredTokenEvents.map((event) => ({
+                id: event.id,
+                marker: 'destroyed' as EventMarker,
+              }));
+              await createSpendingEvent({
+                walletId,
+                direction: 'out',
+                amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
+                unit: activeUnit,
+                events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+              });
+            }
             showToast({
               title: 'Payment sent.',
               type: 'success',
@@ -144,27 +148,29 @@ export const usePayment = () => {
         );
 
         if (proofsToKeep && proofsToSend) {
-          await refetchTokens();
-          await deleteMultiple(
-            filteredTokenEvents.map((event) => event.id),
-            'proofs spent in transaction',
-          );
-          const tokenEvent = await createTokenEvent({
-            walletId,
-            mint: activeMint,
-            proofs: proofsToKeep,
-          });
-          const destroyedEvents = filteredTokenEvents.map((event) => ({
-            id: event.id,
-            marker: 'destroyed' as EventMarker,
-          }));
-          await createSpendingEvent({
-            walletId,
-            direction: 'out',
-            amount: amount.toString(),
-            unit: activeUnit,
-            events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
-          });
+          if (privateKey && publicKey) {
+            await refetchTokens();
+            await deleteMultiple(
+              filteredTokenEvents.map((event) => event.id),
+              'proofs spent in transaction',
+            );
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: proofsToKeep,
+            });
+            const destroyedEvents = filteredTokenEvents.map((event) => ({
+              id: event.id,
+              marker: 'destroyed' as EventMarker,
+            }));
+            await createSpendingEvent({
+              walletId,
+              direction: 'out',
+              amount: amount.toString(),
+              unit: activeUnit,
+              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+            });
+          }
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
 
@@ -208,21 +214,22 @@ export const usePayment = () => {
       const receiveEcashProofs = await wallet?.receive(decodedToken);
 
       if (receiveEcashProofs?.length > 0) {
-        const tokenEvent = await createTokenEvent({
-          walletId,
-          mint: activeMint,
-          proofs: receiveEcashProofs,
-        });
-
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
+        if (privateKey && publicKey) {
+          const tokenEvent = await createTokenEvent({
+            walletId,
+            mint: activeMint,
+            proofs: receiveEcashProofs,
+          });
 
-        await createSpendingEvent({
-          walletId,
-          direction: 'in',
-          amount: proofsAmount.toString(),
-          unit: activeUnit,
-          events: [{id: tokenEvent.id, marker: 'created'}],
-        });
+          await createSpendingEvent({
+            walletId,
+            direction: 'in',
+            amount: proofsAmount.toString(),
+            unit: activeUnit,
+            events: [{id: tokenEvent.id, marker: 'created'}],
+          });
+        }
 
         showToast({title: 'Ecash received.', type: 'success'});
         setProofs([...proofs, ...receiveEcashProofs]);

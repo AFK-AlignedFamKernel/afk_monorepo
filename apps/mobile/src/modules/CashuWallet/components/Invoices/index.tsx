@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
-import {ICashuInvoice, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
+import {ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
@@ -30,6 +30,7 @@ export const Invoices = () => {
   const {showToast} = useToast();
 
   const {checkMintQuote, mintTokens, proofs, setProofs} = useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
 
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
@@ -121,18 +122,20 @@ export const Invoices = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
-        const tokenEvent = await createTokenEvent({
-          walletId,
-          mint: activeMint,
-          proofs: receive?.proofs,
-        });
-        await createSpendingEvent({
-          walletId,
-          direction: 'in',
-          amount: invoice.amount.toString(),
-          unit: activeUnit,
-          events: [{id: tokenEvent.id, marker: 'created'}],
-        });
+        if (privateKey && publicKey) {
+          const tokenEvent = await createTokenEvent({
+            walletId,
+            mint: activeMint,
+            proofs: receive?.proofs,
+          });
+          await createSpendingEvent({
+            walletId,
+            direction: 'in',
+            amount: invoice.amount.toString(),
+            unit: activeUnit,
+            events: [{id: tokenEvent.id, marker: 'created'}],
+          });
+        }
         if (!proofsStorage && !proofs) {
           setProofsStorage([...(receive?.proofs as Proof[])]);
           setProofs([...(receive?.proofs as Proof[])]);

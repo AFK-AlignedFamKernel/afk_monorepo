@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {GetInfoResponse} from '@cashu/cashu-ts';
-import {useCreateWalletEvent} from 'afk_nostr_sdk';
+import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
@@ -35,6 +35,7 @@ export const Mints = () => {
 
   const {getUnitBalance, setActiveMint, setActiveUnit, setMints, buildMintData} =
     useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
   const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
   const {value: mints, setValue: setMintsStorage} = useMintStorage();
   const {value: proofs} = useProofsStorage();
@@ -115,8 +116,8 @@ export const Mints = () => {
     setActiveUnitStorage(data.units[0]);
 
     if (mints.length === 0) {
-      const privateKey = getRandomBytes(32);
-      const privateKeyHex = Buffer.from(privateKey).toString('hex');
+      const privKey = getRandomBytes(32);
+      const privateKeyHex = Buffer.from(privKey).toString('hex');
       setPrivKey(privateKeyHex);
 
       const id = randomUUID();
@@ -126,12 +127,14 @@ export const Mints = () => {
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
 
-    // nostr event
-    await createWalletEvent({
-      name: walletId,
-      mints: mints.map((mint) => mint.url),
-      privkey: privKey,
-    });
+    if (privateKey && publicKey) {
+      // nostr event
+      await createWalletEvent({
+        name: walletId,
+        mints: mints.map((mint) => mint.url),
+        privkey: privKey,
+      });
+    }
 
     setNewAlias('');
     setNewUrl('');
