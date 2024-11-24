@@ -37,10 +37,12 @@ pub trait IERC20<TContractState> {
     fn total_supply(self: @TContractState) -> u256;
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
-    
+
     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
-    fn transfer_from(ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
+    ) -> bool;
 
     fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
 }
@@ -48,8 +50,13 @@ pub trait IERC20<TContractState> {
 #[starknet::component]
 pub mod StakingComponent {
     use core::num::traits::Zero;
-    use core::starknet::{ContractAddress, get_block_timestamp, contract_address_const, get_caller_address, get_contract_address};
-    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
+    use core::starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
+    };
+    use core::starknet::{
+        ContractAddress, get_block_timestamp, contract_address_const, get_caller_address,
+        get_contract_address
+    };
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
 
     const ONE_E18: u256 = 1000000000000000000_u256;
@@ -57,7 +64,7 @@ pub mod StakingComponent {
     #[storage]
     struct Storage {
         owner: ContractAddress,
-        staking_token: ContractAddress, 
+        staking_token: ContractAddress,
         rewards_token: ContractAddress,
         duration: u256,
         finish_at: u256,
@@ -107,8 +114,9 @@ pub mod StakingComponent {
     }
 
     #[embeddable_as(StakingImpl)]
-    impl Staking<TContractState, +HasComponent<TContractState>> of super::IStaking<ComponentState<TContractState>> {
-
+    impl Staking<
+        TContractState, +HasComponent<TContractState>
+    > of super::IStaking<ComponentState<TContractState>> {
         fn set_rewards_duration(ref self: ComponentState<TContractState>, duration: u256) {
             let caller = get_caller_address();
             assert(caller == self.owner.read(), Errors::NOT_AUTHORIZED);
@@ -134,7 +142,8 @@ pub mod StakingComponent {
             if block_timestamp >= self.finish_at.read() {
                 self.reward_rate.write(amount / self.duration.read())
             } else {
-                let remaining_rewards = (self.finish_at.read() - block_timestamp) * self.reward_rate.read();
+                let remaining_rewards = (self.finish_at.read() - block_timestamp)
+                    * self.reward_rate.read();
 
                 self.reward_rate.write((amount + remaining_rewards) / self.duration.read());
             }
@@ -142,7 +151,11 @@ pub mod StakingComponent {
             let rewards_token = IERC20Dispatcher { contract_address: self.rewards_token.read() };
 
             assert(self.reward_rate.read() > 0, Errors::REWARD_RATE_IS_ZERO);
-            assert(self.reward_rate.read() * self.duration.read() <= rewards_token.balance_of(this_contract), Errors::REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE);
+            assert(
+                self.reward_rate.read()
+                    * self.duration.read() <= rewards_token.balance_of(this_contract),
+                Errors::REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE
+            );
 
             self.finish_at.write(get_block_timestamp().try_into().unwrap() + self.duration.read());
             self.updated_at.write(get_block_timestamp().try_into().unwrap());
@@ -193,7 +206,8 @@ pub mod StakingComponent {
 
             if reward > 0 {
                 self.rewards.entry(caller).write(0);
-                IERC20Dispatcher { contract_address: self.rewards_token.read() }.transfer(caller, reward);
+                IERC20Dispatcher { contract_address: self.rewards_token.read() }
+                    .transfer(caller, reward);
             }
         }
 
@@ -208,12 +222,19 @@ pub mod StakingComponent {
             if self.total_supply.read() == 0 {
                 self.reward_per_token_stored.read()
             } else {
-                self.reward_per_token_stored.read() + (self.reward_rate.read() * (self.last_time_reward_applicable() - self.updated_at.read()) * ONE_E18 ) / self.total_supply.read()
+                self.reward_per_token_stored.read()
+                    + (self.reward_rate.read()
+                        * (self.last_time_reward_applicable() - self.updated_at.read())
+                        * ONE_E18)
+                        / self.total_supply.read()
             }
         }
 
         fn rewards_earned(self: @ComponentState<TContractState>, account: ContractAddress) -> u256 {
-            ((self.balance_of.entry(account).read() * (self.reward_per_token() - self.user_reward_per_token_paid.entry(account).read())) / ONE_E18) + self.rewards.entry(account).read()
+            ((self.balance_of.entry(account).read()
+                * (self.reward_per_token() - self.user_reward_per_token_paid.entry(account).read()))
+                / ONE_E18)
+                + self.rewards.entry(account).read()
         }
 
         fn staking_token(self: @ComponentState<TContractState>) -> ContractAddress {
@@ -244,7 +265,9 @@ pub mod StakingComponent {
             self.reward_per_token_stored.read()
         }
 
-        fn user_reward_per_token_paid(self: @ComponentState<TContractState>, user: ContractAddress) -> u256 {
+        fn user_reward_per_token_paid(
+            self: @ComponentState<TContractState>, user: ContractAddress
+        ) -> u256 {
             self.user_reward_per_token_paid.entry(user).read()
         }
 
@@ -270,10 +293,18 @@ pub mod StakingComponent {
     }
 
     #[generate_trait]
-    pub impl InternalImpl<TContractState, +HasComponent<TContractState>> of InternalTrait<TContractState> {
+    pub impl InternalImpl<
+        TContractState, +HasComponent<TContractState>
+    > of InternalTrait<TContractState> {
         /// Initializes the contract by setting the owner, staking_token and reward_token.
-        /// To prevent reinitialization, this should only be used inside of a contract's constructor.
-        fn initializer(ref self: ComponentState<TContractState>, owner: ContractAddress, staking_token: ContractAddress, reward_token: ContractAddress) {
+        /// To prevent reinitialization, this should only be used inside of a contract's
+        /// constructor.
+        fn initializer(
+            ref self: ComponentState<TContractState>,
+            owner: ContractAddress,
+            staking_token: ContractAddress,
+            reward_token: ContractAddress
+        ) {
             self.owner.write(owner);
             self.staking_token.write(staking_token);
             self.rewards_token.write(reward_token);
@@ -285,8 +316,11 @@ pub mod StakingComponent {
 
             if account.is_non_zero() {
                 self.rewards.entry(account).write(self.rewards_earned(account));
-                self.user_reward_per_token_paid.entry(account).write(self.reward_per_token_stored.read());
-            } 
+                self
+                    .user_reward_per_token_paid
+                    .entry(account)
+                    .write(self.reward_per_token_stored.read());
+            }
         }
 
         fn min(self: @ComponentState<TContractState>, x: u256, y: u256) -> u256 {

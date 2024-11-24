@@ -7,6 +7,8 @@ pub mod keys;
 pub mod math;
 pub mod sha256;
 pub mod social;
+
+pub mod staking;
 pub mod utils;
 pub mod launchpad {
     pub mod errors;
@@ -112,5 +114,3 @@ pub mod tests {
     pub mod utils;
     pub mod vault_tests;
 }
-
-pub mod staking;
