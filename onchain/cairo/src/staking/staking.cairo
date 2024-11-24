@@ -36,9 +36,9 @@ pub mod StakingComponent {
 
     #[storage]
     struct Storage {
+        owner: ContractAddress,
         staking_token: ContractAddress, 
         rewards_token: ContractAddress,
-        owner: ContractAddress,
         duration: u256,
         finish_at: u256,
         updated_at: u256,
@@ -117,6 +117,12 @@ pub mod StakingComponent {
 
     #[generate_trait]
     pub impl InternalImpl<TContractState, +HasComponent<TContractState>> of InternalTrait<TContractState> {
-        
+        /// Initializes the contract by setting the owner, staking_token and reward_token.
+        /// To prevent reinitialization, this should only be used inside of a contract's constructor.
+        fn initializer(ref self: ComponentState<TContractState>, owner: ContractAddress, staking_token: ContractAddress, reward_token: ContractAddress) {
+            self.owner.write(owner);
+            self.staking_token.write(staking_token);
+            self.rewards_token.write(reward_token);
+        }
     }
 }
