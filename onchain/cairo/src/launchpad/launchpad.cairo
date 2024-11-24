@@ -2076,7 +2076,7 @@ pub mod LaunchpadMarketplace {
             // Calculate slope
             // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
             //     - (starting_price * sellable_supply);
-            let slope_numerator = (threshold_liquidity) - (starting_price * sellable_supply);
+            let slope_numerator = (threshold_liquidity*SCALE_FACTOR) - (starting_price * sellable_supply);
             let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
 
             // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
@@ -2086,9 +2086,12 @@ pub mod LaunchpadMarketplace {
 
             // let slope = (threshold_liquidity - (starting_price * sellable_supply))
             //     / ((sellable_supply * sellable_supply) / 2_u256);
-            let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+            // let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+            let slope = slope_numerator / (slope_denominator);
+
             // println!("slope");
-            slope / SCALE_FACTOR
+            // slope / SCALE_FACTOR
+            slope
             // // Calculate slope dynamically
         // let m = (threshold_liquidity - (starting_price * sellable_supply))
         //     / ((sellable_supply * sellable_supply) / 2_u256);
