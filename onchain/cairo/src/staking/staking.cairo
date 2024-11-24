@@ -96,15 +96,25 @@ pub mod StakingComponent {
         amount: u256
     }
 
+    pub mod Errors {
+        pub const NOT_AUTHORIZED: felt252 = 'Not authorized owner';
+        pub const REWARD_DURATION_NOT_FINISHED: felt252 = 'Reward duration not finished';
+        pub const REWARD_RATE_IS_ZERO: felt252 = 'Reward rate = 0';
+        pub const REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE: felt252 = 'Reward amount > balance';
+        pub const AMOUNT_IS_ZERO: felt252 = 'Amount = 0';
+        pub const INSUFFICIENT_STAKE_BALANCE: felt252 = 'Insufficient stake balance';
+        pub const TRANSFER_FAILED: felt252 = 'Transfer failed';
+    }
+
     #[embeddable_as(StakingImpl)]
     impl Staking<TContractState, +HasComponent<TContractState>> of super::IStaking<ComponentState<TContractState>> {
 
         fn set_rewards_duration(ref self: ComponentState<TContractState>, duration: u256) {
             let caller = get_caller_address();
-            assert!(caller == self.owner.read(), "not authorized");
+            assert(caller == self.owner.read(), Errors::NOT_AUTHORIZED);
 
             let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
-            assert!(self.finish_at.read() < block_timestamp, "reward duration not finished");
+            assert(self.finish_at.read() < block_timestamp, Errors::REWARD_DURATION_NOT_FINISHED);
 
             self.duration.write(duration);
         }
@@ -113,7 +123,7 @@ pub mod StakingComponent {
             let caller = get_caller_address();
             let this_contract = get_contract_address();
 
-            assert!(caller == self.owner.read(), "not authorized");
+            assert(caller == self.owner.read(), Errors::NOT_AUTHORIZED);
 
             let zero_address = self.zero_address();
 
@@ -131,8 +141,8 @@ pub mod StakingComponent {
 
             let rewards_token = IERC20Dispatcher { contract_address: self.rewards_token.read() };
 
-            assert!(self.reward_rate.read() > 0, "reward rate = 0");
-            assert!(self.reward_rate.read() * self.duration.read() <= rewards_token.balance_of(this_contract), "reward amount > balance");
+            assert(self.reward_rate.read() > 0, Errors::REWARD_RATE_IS_ZERO);
+            assert(self.reward_rate.read() * self.duration.read() <= rewards_token.balance_of(this_contract), Errors::REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE);
 
             self.finish_at.write(get_block_timestamp().try_into().unwrap() + self.duration.read());
             self.updated_at.write(get_block_timestamp().try_into().unwrap());
@@ -144,11 +154,11 @@ pub mod StakingComponent {
 
             self.update_reward(caller);
 
-            assert!(amount > 0, "amount = 0");
+            assert(amount > 0, Errors::AMOUNT_IS_ZERO);
             let staking_token = IERC20Dispatcher { contract_address: self.staking_token.read() };
             let transfer = staking_token.transfer_from(caller, this_contract, amount);
 
-            assert!(transfer, "transfer failed");
+            assert(transfer, Errors::TRANSFER_FAILED);
 
             let prev_stake = self.balance_of.entry(caller).read();
             self.balance_of.entry(caller).write(prev_stake + amount);
@@ -162,10 +172,10 @@ pub mod StakingComponent {
 
             self.update_reward(caller);
 
-            assert!(amount > 0, "amount = 0");
+            assert(amount > 0, Errors::AMOUNT_IS_ZERO);
 
             let prev_stake = self.balance_of.entry(caller).read();
-            assert!(prev_stake >= amount, "insufficient stake balance");
+            assert(prev_stake >= amount, Errors::INSUFFICIENT_STAKE_BALANCE);
             self.balance_of.entry(caller).write(prev_stake - amount);
 
             let prev_supply = self.total_supply.read();
@@ -174,7 +184,7 @@ pub mod StakingComponent {
             let staking_token = IERC20Dispatcher { contract_address: self.staking_token.read() };
             let transfer = staking_token.transfer(caller, amount);
 
-            assert!(transfer, "transfer failed");
+            assert(transfer, Errors::TRANSFER_FAILED);
         }
 
         fn get_reward(ref self: ComponentState<TContractState>) {
