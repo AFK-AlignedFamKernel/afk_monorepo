@@ -2,7 +2,7 @@
 import {Box, useColorModeValue} from '@chakra-ui/react';
 import {AppRender} from 'pixel_ui';
 
-import {Navbar} from './components/Navbar';
+import {Navbar} from '../components/Navbar';
 
 export default function App() {
   const bgColor = useColorModeValue('gray.300', 'gray.700');

@@ -1,5 +1,5 @@
 import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "./deps.ts";
-import { STARTING_BLOCK, LAUNCHPAD_ADDRESS } from "./constants.ts";
+import { STARTING_BLOCK, LAUNCHPAD_ADDRESS, STREAM_URL } from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -19,7 +19,7 @@ const filter = {
   },
   events: [
     {
-      fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
+      fromAddress: Deno.env.get("LAUNCHPAD_ADDRESS") ?? LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("BuyToken")],
       includeReceipt: false,
     },
@@ -27,7 +27,7 @@ const filter = {
 };
 
 export const config = {
-  streamUrl: "https://sepolia.starknet.a5a.ch",
+  streamUrl: STREAM_URL ?? "https://sepolia.starknet.a5a.ch",
   startingBlock: STARTING_BLOCK,
   network: "starknet",
   finality: "DATA_STATUS_ACCEPTED",

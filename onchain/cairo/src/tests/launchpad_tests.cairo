@@ -66,13 +66,13 @@ mod launchpad_tests {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }
 
-    // fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
-    //     0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
-    // }
-
     fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
-        0x02bd1cdd5f7f17726ae221845afd9580278eebc732bc136fe59d5d94365effd5.try_into().unwrap()
+        0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b.try_into().unwrap()
     }
+
+    // fn EKUBO_EXCHANGE_ADDRESS() -> ContractAddress {
+    //     0x02bd1cdd5f7f17726ae221845afd9580278eebc732bc136fe59d5d94365effd5.try_into().unwrap()
+    // }
 
 
     fn EKUBO_CORE() -> ContractAddress {
@@ -169,7 +169,7 @@ mod launchpad_tests {
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
             FACTORY_ADDRESS(),
-            // EKUBO_REGISTRY(),
+            EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
             EKUBO_EXCHANGE_ADDRESS()
@@ -204,7 +204,7 @@ mod launchpad_tests {
         threshold_liquidity: u256,
         threshold_marketcap: u256,
         factory_address: ContractAddress,
-        // ekubo_registry: ContractAddress,
+        ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress,
@@ -221,7 +221,7 @@ mod launchpad_tests {
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
         calldata.append_serde(factory_address);
-        // calldata.append_serde(ekubo_registry);
+        calldata.append_serde(ekubo_registry);
         calldata.append_serde(core);
         calldata.append_serde(positions);
         calldata.append_serde(ekubo_exchange_address);
