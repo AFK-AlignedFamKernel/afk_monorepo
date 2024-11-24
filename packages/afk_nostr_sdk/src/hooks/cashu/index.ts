@@ -12,7 +12,9 @@ export {useCashuTokenSend} from './useCashuTokenSend';
 export {useCreateSpendingEvent} from './useCreateSpendingEvent';
 export {useCreateTokenEvent} from './useCreateTokenEvent';
 export {useCreateWalletEvent} from './useCreateWalletEvent';
+export {useDeleteTokenEvent, useDeleteTokenEvents} from './useDeleteTokenEvent';
 export {useGetCashuWalletsInfo} from './useGetCashuWalletsInfo';
+export {useGetCashuTokenEvents} from './useGetTokenEvents';
 export {
   useCreateNutZap,
   useGetReceivedNutZaps,

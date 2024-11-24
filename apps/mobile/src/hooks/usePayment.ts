@@ -1,9 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getDecodedToken, getEncodedToken, MintQuoteState, Token} from '@cashu/cashu-ts';
-import {ICashuInvoice, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
+import {getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
+import {
+  ICashuInvoice,
+  useCreateSpendingEvent,
+  useCreateTokenEvent,
+  useDeleteTokenEvents,
+} from 'afk_nostr_sdk';
+import {EventMarker} from 'afk_nostr_sdk/src/hooks/cashu/useCreateSpendingEvent';
+import {useState} from 'react';
 
 import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
+import {useGetTokensByProofs} from './useGetTokensByProof';
 import {useProofsStorage, useTransactionsStorage, useWalletIdStorage} from './useStorageState';
 
 export const usePayment = () => {
@@ -17,6 +25,11 @@ export const usePayment = () => {
 
   const {mutateAsync: createTokenEvent} = useCreateTokenEvent();
   const {mutateAsync: createSpendingEvent} = useCreateSpendingEvent();
+  const {deleteMultiple} = useDeleteTokenEvents();
+
+  const [proofsFilter, setProofsFilter] = useState<Proof[]>([]);
+
+  const {refetch: refetchTokens, events: filteredTokenEvents} = useGetTokensByProofs(proofsFilter);
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
@@ -33,13 +46,36 @@ export const usePayment = () => {
         try {
           const response = await meltTokens(pInvoice, proofsCopy);
           if (response) {
-            const {meltQuote, meltResponse, proofsToKeep} = response;
+            const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} =
+              response;
+            setProofsFilter(selectedProofs);
+            await refetchTokens();
+            await deleteMultiple(
+              filteredTokenEvents.map((event) => event.id),
+              'proofs spent in transaction',
+            );
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: proofsToKeep,
+            });
+            const destroyedEvents = filteredTokenEvents.map((event) => ({
+              id: event.id,
+              marker: 'destroyed' as EventMarker,
+            }));
+            await createSpendingEvent({
+              walletId,
+              direction: 'out',
+              amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
+              unit: activeUnit,
+              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+            });
             showToast({
               title: 'Payment sent.',
               type: 'success',
             });
-            setProofs(proofsToKeep);
-            setProofsStorage(proofsToKeep);
+            setProofs([...remainingProofs, ...proofsToKeep]);
+            setProofsStorage([...remainingProofs, ...proofsToKeep]);
             const newInvoice: ICashuInvoice = {
               amount: -(meltQuote.amount + meltQuote.fee_reserve),
               bolt11: pInvoice,

@@ -9,6 +9,8 @@ import {useAuth} from '../../store';
  * Spending History Event: https://nips.nostr.com/60#spending-history-event
  */
 
+export type EventMarker = 'destroyed' | 'created' | 'redeemed';
+
 interface CreateSpendingEventParams {
   walletId: string;
   direction: 'in' | 'out';
@@ -17,7 +19,7 @@ interface CreateSpendingEventParams {
   events: Array<{
     id: string;
     relay?: string;
-    marker: 'created' | 'destroyed' | 'redeemed';
+    marker: EventMarker;
   }>;
 }
 
@@ -40,7 +42,7 @@ export const useCreateSpendingEvent = () => {
       events: Array<{
         id: string;
         relay?: string;
-        marker: 'created' | 'destroyed' | 'redeemed';
+        marker: EventMarker;
       }>;
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
