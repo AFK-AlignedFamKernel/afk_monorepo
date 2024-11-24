@@ -329,7 +329,7 @@ pub mod LaunchpadMarketplace {
         threshold_liquidity: u256,
         threshold_market_cap: u256,
         factory_address: ContractAddress,
-        // ekubo_registry: ContractAddress,
+        ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress
@@ -1141,16 +1141,21 @@ pub mod LaunchpadMarketplace {
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
-
+            // Register the token in Ekubo Registry
+            let registry_address = self.ekubo_registry.read();
             // println!("IN HERE: {}", 1);
-
+            let dex_address = self.core.read();
+            let ekubo_core_address = self.core.read();
+            let ekubo_exchange_address = self.ekubo_exchange_address.read();
             match consume_callback_data::<CallbackData>(core, data) {
                 CallbackData::LaunchCallback(params) => {
                     let launch_params: EkuboLaunchParameters = params.params;
                     let (token0, token1) = sort_tokens(
                         launch_params.token_address, launch_params.quote_address
                     );
-
+                    let memecoin = EKIERC20Dispatcher { contract_address: launch_params.token_address };
+                    let base_token = EKIERC20Dispatcher { contract_address: launch_params.quote_address };
+                    let registry = ITokenRegistryDispatcher { contract_address: registry_address };
                     // println!("IN HERE: {}", 2);
 
                     let pool_key = PoolKey {
@@ -1161,6 +1166,8 @@ pub mod LaunchpadMarketplace {
                         extension: 0.try_into().unwrap(),
                     };
 
+
+                    let lp_supply=launch_params.lp_supply.clone();
                     // println!("IN HERE: {}", 3);
 
                     // The initial_tick must correspond to the wanted initial price in quote/MEME
@@ -1174,14 +1181,29 @@ pub mod LaunchpadMarketplace {
                         is_token1_quote
                     );
 
+                    let pool= self.launched_coins.read(launch_params.token_address );
+
                     // println!("IN HERE: {}", 4);
+
+                    base_token.approve(registry.contract_address, pool.liquidity_raised);
+                    base_token.approve(ekubo_core_address, pool.liquidity_raised);
+                    memecoin.approve(dex_address, lp_supply);
+                    memecoin.approve(ekubo_core_address, lp_supply);
+                    // memecoin.transfer(registry.contract_address, 1000000000000000000);
+                    // memecoin.transfer(registry.contract_address, pool.available_supply);
+                    // memecoin.transfer(registry.contract_address, pool.available_supply);
+                    println!("transfer before register");
+                    registry.register_token(EKIERC20Dispatcher { contract_address: launch_params.token_address });
 
                     // println!("initial tick {:?}", initial_tick);
                     // Initialize the pool at the initial tick.
+                    println!("init pool");
+
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     // println!("init pool");
 
                     // println!("IN HERE: {}", 5);
+                    println!("supply liq");
 
                     // 2. Provide the liquidity to actually initialize the public pool with
                     // The pool bounds must be set according to the tick spacing.
@@ -1462,7 +1484,7 @@ pub mod LaunchpadMarketplace {
             // The token must be transferred to the positions contract before calling mint.
             IERC20Dispatcher { contract_address: token }
                 .transfer(recipient: positions.contract_address, :amount);
-            // println!("mint deposit NOW HERE: {}", 3);
+            println!("mint deposit NOW HERE: {}", 3);
 
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             // let (id, liquidity, _, _) = positions
@@ -1542,7 +1564,7 @@ pub mod LaunchpadMarketplace {
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
             // Call the core with a callback to deposit and mint the LP tokens.
 
-            // println!("HERE launch callback: {}", 2);
+            println!("HERE launch callback: {}", 2);
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
