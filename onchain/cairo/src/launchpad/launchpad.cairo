@@ -2037,9 +2037,8 @@ pub mod LaunchpadMarketplace {
             let liquidity_raised = pool_coin
                 .liquidity_raised
                 .clone(); // Quote tokens raised so far
-            let threshold_liquidity = self
+            let threshold_liquidity = pool_coin
                 .threshold_liquidity
-                .read()
                 .clone(); // Threshold in quote tokens
 
             // Dynamically calculate sellable supply
