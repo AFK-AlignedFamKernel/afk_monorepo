@@ -19,6 +19,7 @@ export const deployNameservice = async () => {
   let nameserviceContract;
   // const sub_price_nb = 10;
   const sub_price_nb = 1;
+  const is_payment_enable=true
   const sub_price = formatFloatToUint256(sub_price_nb);
 
   const quote_token= TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK
@@ -28,7 +29,8 @@ export const deployNameservice = async () => {
     let nameserviceContract = await createNameservice(account?.address, 
       account?.address,
       sub_price,
-      quote_token
+      quote_token,
+      is_payment_enable
     );
     console.log(
       "nameservice contract address",

@@ -1,13 +1,5 @@
-import { NAMESERVICE_ADDRESS, STARTING_BLOCK } from "../constants.js";
-import {
-  Block,
-  DECIMALS,
-  formatUnits,
-  hash,
-  uint256,
-  shortString,
-  Pool,
-} from "../deps.js";
+import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "../deps.ts";
+import { STARTING_BLOCK, NAMESERVICE_ADDRESS } from "../constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -21,7 +13,7 @@ try {
   connection.release();
 }
 
-const filterClaimed = {
+const filter = {
   header: {
     weak: true,
   },
@@ -34,16 +26,16 @@ const filterClaimed = {
   ],
 };
 
-export const configClaimed = {
+export const config = {
   streamUrl: "https://sepolia.starknet.a5a.ch",
   startingBlock: STARTING_BLOCK,
   network: "starknet",
   finality: "DATA_STATUS_ACCEPTED",
-  filterClaimed,
+  filter,
   sinkType: "postgres",
   sinkOptions: {
     connectionString: Deno.env.get("POSTGRES_CONNECTION_STRING"),
-    tableName: "token_deploy",
+    tableName: "username_claimed",
   },
 };
 
@@ -101,6 +93,7 @@ export default function DecodeUsernameClaimed({ header, events }: Block) {
       username: username,
       expiry: expiry,
       paid:amount_paid_formated,
+      quote_token:quote_token,
       created_at: new Date().toISOString(),
     };
   });

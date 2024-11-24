@@ -36,6 +36,7 @@ mod nameservice_tests {
         ADMIN().serialize(ref calldata);
         ADMIN().serialize(ref calldata);
         10_u256.serialize(ref calldata);
+        false.serialize(ref calldata);
         payment_token_dispatcher.contract_address.serialize(ref calldata);
         // calldata.append_serde(PAYMENT_AMOUNT);
         // calldata.append_serde(payment_token_dispatcher.contract_address);
@@ -231,9 +232,7 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
-        assert(
-            admin_balance == 60_u256, 'Admin did not receive fees'
-        ); // 50 initial + 10 withdrawn
+        assert(admin_balance == 60_u256, 'Admin did not receive fees'); // 50 initial + 10 withdrawn
 
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);
