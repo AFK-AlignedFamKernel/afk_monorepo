@@ -36,7 +36,7 @@ export const useNameservice = () => {
     console.log('read nameservice asset');
 
     try {
-      quote_address = await key_contract.get_quote_token_subscription();
+      quote_address = await key_contract.get_token_quote();
     } catch (error) {
       console.log('Error get amount to paid', error);
     }
@@ -52,7 +52,7 @@ export const useNameservice = () => {
     let amountToPaid;
     try {
       /** @TODO fix CORS issue */
-      amountToPaid = await key_contract.get_subscription_price(username);
+      amountToPaid = await key_contract.get_subscription_price();
     } catch (error) {
       console.log('Error get amount to paid', error);
     }
