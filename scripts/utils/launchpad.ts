@@ -116,8 +116,10 @@ export const createLaunchpad = async (
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
-      console.log("Declare deploy", declareResponse?.transaction_hash);
+      console.log("Declare deploy", declareResponse);
       await provider.waitForTransaction(declareResponse?.transaction_hash);
+      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;
 
