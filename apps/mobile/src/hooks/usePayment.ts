@@ -125,14 +125,48 @@ export const usePayment = () => {
           return undefined;
         }
 
+        //selectProofs
+        const selectedProofs: Proof[] = [];
+        const remainingProofs: Proof[] = [];
+        let proofsAmount = 0;
+        for (let i = 0; i < proofsCopy.length; i++) {
+          if (proofsAmount >= amount) {
+            remainingProofs.push(proofsCopy[i]);
+          } else {
+            selectedProofs.push(proofsCopy[i]);
+            proofsAmount += proofsCopy[i].amount;
+          }
+        }
+
         const {returnChange: proofsToKeep, send: proofsToSend} = await wallet.send(
           amount,
-          proofsCopy,
+          selectedProofs,
         );
 
         if (proofsToKeep && proofsToSend) {
-          setProofs(proofsToKeep);
-          setProofsStorage(proofsToKeep);
+          await refetchTokens();
+          await deleteMultiple(
+            filteredTokenEvents.map((event) => event.id),
+            'proofs spent in transaction',
+          );
+          const tokenEvent = await createTokenEvent({
+            walletId,
+            mint: activeMint,
+            proofs: proofsToKeep,
+          });
+          const destroyedEvents = filteredTokenEvents.map((event) => ({
+            id: event.id,
+            marker: 'destroyed' as EventMarker,
+          }));
+          await createSpendingEvent({
+            walletId,
+            direction: 'out',
+            amount: amount.toString(),
+            unit: activeUnit,
+            events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+          });
+          setProofs([...remainingProofs, ...proofsToKeep]);
+          setProofsStorage([...remainingProofs, ...proofsToKeep]);
 
           const token = {
             token: [{proofs: proofsToSend, mint: activeMint}],
