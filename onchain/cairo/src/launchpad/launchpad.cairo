@@ -595,7 +595,9 @@ pub mod LaunchpadMarketplace {
             // Pay with quote token
             // Transfer quote & coin
             // TOdo fix issue price
-            let mut amount = get_amount_by_type_of_coin_or_quote(pool_coin, coin_address, remain_liquidity, false, true);
+            let mut amount = get_amount_by_type_of_coin_or_quote(
+                pool_coin, coin_address, remain_liquidity, false, true
+            );
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
@@ -770,7 +772,9 @@ pub mod LaunchpadMarketplace {
             let remain_liquidity = quote_amount - amount_protocol_fee;
             // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
 
-            let mut amount = get_amount_by_type_of_coin_or_quote(old_pool, coin_address, remain_liquidity, false, true);
+            let mut amount = get_amount_by_type_of_coin_or_quote(
+                old_pool, coin_address, remain_liquidity, false, true
+            );
 
             // Verify Amount owned
             assert(old_pool.total_supply >= quote_amount, 'above supply');
@@ -1026,16 +1030,14 @@ pub mod LaunchpadMarketplace {
             is_decreased: bool,
             is_quote_amount: bool
         ) -> u256 {
-
-            let pool = self.launched_coins.read(coin_address);
+            let pool = self.launched_coins.read(coin_address).clone();
             get_amount_by_type_of_coin_or_quote(
-                pool,
-                coin_address, amount, is_decreased, is_quote_amount
+                @pool, coin_address, amount, is_decreased, is_quote_amount
             )
             // self
-            //     .get_amount_by_type_of_coin_or_quote(
-            //         coin_address, amount, is_decreased, is_quote_amount
-            //     )
+        //     .get_amount_by_type_of_coin_or_quote(
+        //         coin_address, amount, is_decreased, is_quote_amount
+        //     )
         }
 
         fn get_coin_amount_by_quote_amount(
@@ -1549,8 +1551,8 @@ pub mod LaunchpadMarketplace {
             // let starting_price = i129 { sign: true, mag: 100_u128 };
             // let starting_price = i129 { sign: true, mag: price_u128 };
             let starting_price: i129 = calculate_starting_price_launch(
-                    launch.initial_pool_supply, launch.threshold_liquidity
-                );
+                launch.initial_pool_supply, launch.threshold_liquidity
+            );
             let lp_meme_supply = launch.initial_pool_supply;
 
             // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
@@ -1702,8 +1704,8 @@ pub mod LaunchpadMarketplace {
             // let starting_price = i129 { sign: true, mag: 100_u128 };
 
             let starting_price: i129 = calculate_starting_price_launch(
-                    launch.initial_pool_supply, launch.threshold_liquidity
-                );
+                launch.initial_pool_supply, launch.threshold_liquidity
+            );
 
             let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
 

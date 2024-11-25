@@ -7,8 +7,7 @@ use afk::types::launchpad_types::{
 };
 use ekubo::types::{i129::i129};
 const BPS: u256 = 10_000; // 100% = 10_000 bps
-const SCALE_FACTOR: u256 =
-    100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
+const SCALE_FACTOR: u256 = 100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
 // Total supply / LIQUIDITY_RATIO
 // Get the 20% of Bonding curve going to Liquidity
 // Liquidity can be lock to Unrug
@@ -81,21 +80,22 @@ pub fn calculate_slope(
 // Quote amount
 // Is decreased for sell, !is_decrease for buy
 pub fn get_coin_amount_by_quote_amount(
-    coin_address: ContractAddress,
-    total_supply: u256,
-    current_supply: u256, // available supply
-    liquidity_raised: u256,
-    threshold_liquidity: u256,
-    quote_amount: u256,
+    pool_coin: TokenLaunch, 
+    
+    quote_amount: u256, 
     is_decreased: bool
+
+    // total_supply: u256,
+     // current_supply: u256, // available supply
+    // liquidity_raised: u256,
+    // threshold_liquidity: u256,
 ) -> u256 {
     // Load state variables
-    // let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
-    // let current_supply = pool_coin.available_supply.clone(); // Remaining tokens to sell
+    let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
+    let current_supply = pool_coin.available_supply.clone(); // Remaining tokens to sell
     // let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to
-    // sell
-    // let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
-    // let threshold_liquidity = pool_coin.threshold_liquidity.clone(); // Threshold in quote tokens
+    let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
+    let threshold_liquidity = pool_coin.threshold_liquidity.clone(); // Threshold in quote tokens
 
     // Dynamically calculate sellable supply
     let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);
@@ -104,7 +104,7 @@ pub fn get_coin_amount_by_quote_amount(
     let starting_price = pool_coin.starting_price; // e.g., 0.01
 
     // Calculate slope dynamically
-    let slope = self.calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
+    let slope = calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
 
     // let m = (threshold_liquidity - (starting_price * sellable_supply))
     //     / ((sellable_supply * sellable_supply) / 2_u256);
@@ -127,7 +127,7 @@ pub fn get_coin_amount_by_quote_amount(
     // println!("price_scale_factor {:?}", price_scale_factor);
 
     // Ensure price is positive
-    assert(price_scale_factor >= 0_u256, 'Price must remain positive');
+    // assert(price_scale_factor >= 0_u256, 'Price must remain positive');
     // assert(price >= 0_u256, 'Price must remain positive');
 
     // Determine tokens received based on quote amount
@@ -176,18 +176,18 @@ pub fn get_amount_by_type_of_coin_or_quote(
             match x {
                 BondingType::Linear => {
                     if is_quote_amount == true {
-                        get_coin_amount_by_quote_amount(coin_address, amount, is_decreased)
+                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
                     } else {
-                        get_coin_amount_by_quote_amount(coin_address, amount, is_decreased)
+                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
                     }
                 },
                 BondingType::Trapezoidal => {
-                    trapezoidal_rule(coin_address, amount, is_decreased)
+                    get_coin_amount_by_quote_amount(pool, amount, is_decreased)
                 },
-                _ => { trapezoidal_rule(coin_address, amount, is_decreased) },
+                _ => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
             }
         },
-        Option::None => { get_coin_amount_by_quote_amount(coin_address, amount, is_decreased) }
+        Option::None => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) }
     }
 }
 // TODO refacto it to launchpad
