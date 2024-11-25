@@ -1577,8 +1577,10 @@ pub mod LaunchpadMarketplace {
 
             let pool = self.launched_coins.read(coin_address);
             let dex_address = self.core.read();
+            let positions_ekubo = self.positions.read();
             memecoin.approve(ekubo_exchange_address, lp_meme_supply);
             memecoin.approve(ekubo_core_address, lp_meme_supply);
+            memecoin.approve(positions_ekubo, lp_meme_supply);
             assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
             //TODO token decimal, amount of 1 token?
@@ -2034,9 +2036,7 @@ pub mod LaunchpadMarketplace {
             let current_supply = pool_coin.available_supply.clone(); // Remaining tokens to sell
             // let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to
             // sell
-            let liquidity_raised = pool_coin
-                .liquidity_raised
-                .clone(); // Quote tokens raised so far
+            let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
             let threshold_liquidity = pool_coin
                 .threshold_liquidity
                 .clone(); // Threshold in quote tokens
