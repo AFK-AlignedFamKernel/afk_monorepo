@@ -1694,7 +1694,16 @@ mod launchpad_tests {
         assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        let token_address = default_token.token_address;
+        let token_address = launchpad
+            .create_and_launch_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+                is_unruggable: false,
+            );
+
+        // let token_address = default_token.token_address;
         let amount_to_buy = THRESHOLD_LIQUIDITY;
         let amount_coin_get = run_calculation(
             launchpad, amount_to_buy, token_address, sender_address, false, true
