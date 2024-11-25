@@ -61,9 +61,10 @@ pub trait ILaunchpadMarketplace<TContractState> {
         self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
     ) -> u256;
 
-    fn get_quote_paid_by_amount_coin(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
-    ) -> u256;
+    // fn get_quote_paid_by_amount_coin(
+    //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased:
+    //     bool
+    // ) -> u256;
 
     fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
     fn get_share_key_of_user(
@@ -138,6 +139,10 @@ pub mod LaunchpadMarketplace {
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+    };
+    use afk::launchpad::calcul::{
+        calculate_starting_price_launch, calculate_slope, calculate_pricing,
+        get_amount_by_type_of_coin_or_quote
     };
     use afk::launchpad::errors;
     // use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters };
@@ -590,8 +595,7 @@ pub mod LaunchpadMarketplace {
             // Pay with quote token
             // Transfer quote & coin
             // TOdo fix issue price
-            let mut amount = self
-                ._get_amount_by_type_of_coin_or_quote(coin_address, remain_liquidity, false, true);
+            let mut amount = get_amount_by_type_of_coin_or_quote(pool_coin, coin_address, remain_liquidity, false, true);
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
@@ -766,8 +770,7 @@ pub mod LaunchpadMarketplace {
             let remain_liquidity = quote_amount - amount_protocol_fee;
             // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
 
-            let mut amount = self
-                ._get_amount_by_type_of_coin_or_quote(coin_address, remain_liquidity, false, true);
+            let mut amount = get_amount_by_type_of_coin_or_quote(old_pool, coin_address, remain_liquidity, false, true);
 
             // Verify Amount owned
             assert(old_pool.total_supply >= quote_amount, 'above supply');
@@ -1023,10 +1026,16 @@ pub mod LaunchpadMarketplace {
             is_decreased: bool,
             is_quote_amount: bool
         ) -> u256 {
-            self
-                ._get_amount_by_type_of_coin_or_quote(
-                    coin_address, amount, is_decreased, is_quote_amount
-                )
+
+            let pool = self.launched_coins.read(coin_address);
+            get_amount_by_type_of_coin_or_quote(
+                pool,
+                coin_address, amount, is_decreased, is_quote_amount
+            )
+            // self
+            //     .get_amount_by_type_of_coin_or_quote(
+            //         coin_address, amount, is_decreased, is_quote_amount
+            //     )
         }
 
         fn get_coin_amount_by_quote_amount(
@@ -1038,14 +1047,14 @@ pub mod LaunchpadMarketplace {
             self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
         }
 
-        fn get_quote_paid_by_amount_coin(
-            self: @ContractState,
-            coin_address: ContractAddress,
-            quote_amount: u256,
-            is_decreased: bool
-        ) -> u256 {
-            self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
-        }
+        // fn get_quote_paid_by_amount_coin(
+        //     self: @ContractState,
+        //     coin_address: ContractAddress,
+        //     quote_amount: u256,
+        //     is_decreased: bool
+        // ) -> u256 {
+        //     self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
+        // }
 
         //TODO refac
         fn add_liquidity_unrug(
@@ -1394,9 +1403,8 @@ pub mod LaunchpadMarketplace {
             let liquidity_available = total_supply - liquidity_supply;
 
             // let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            let starting_price = self._calculate_pricing(threshold_liquidity, supply_distribution);
-            let slope = self
-                ._calculate_slope(threshold_liquidity, starting_price, supply_distribution,);
+            let starting_price = calculate_pricing(threshold_liquidity, supply_distribution);
+            let slope = calculate_slope(threshold_liquidity, starting_price, supply_distribution,);
             // let starting_price = threshold_liquidity / total_supply;
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
@@ -1540,8 +1548,7 @@ pub mod LaunchpadMarketplace {
             // let starting_price = i129 { sign: true, mag: 100_u128 };
             // let starting_price = i129 { sign: true, mag: 100_u128 };
             // let starting_price = i129 { sign: true, mag: price_u128 };
-            let starting_price: i129 = self
-                ._calculate_starting_price_launch(
+            let starting_price: i129 = calculate_starting_price_launch(
                     launch.initial_pool_supply, launch.threshold_liquidity
                 );
             let lp_meme_supply = launch.initial_pool_supply;
@@ -1624,20 +1631,20 @@ pub mod LaunchpadMarketplace {
             (id, position)
         }
 
-        fn _calculate_starting_price_launch(
-            ref self: ContractState, initial_pool_supply: u256, threshold_liquidity: u256,
-        ) -> i129 {
-            // TODO calculate price
+        // fn _calculate_starting_price_launch(
+        //     ref self: ContractState, initial_pool_supply: u256, threshold_liquidity: u256,
+        // ) -> i129 {
+        //     // TODO calculate price
 
-            let launch_price = initial_pool_supply / threshold_liquidity;
-            // println!("launch_price {:?}", launch_price);
+        //     let launch_price = initial_pool_supply / threshold_liquidity;
+        //     // println!("launch_price {:?}", launch_price);
 
-            let price_u128: u128 = launch_price.try_into().unwrap();
-            // println!("price_u128 {:?}", price_u128);
-            let starting_price = i129 { sign: true, mag: price_u128 };
+        //     let price_u128: u128 = launch_price.try_into().unwrap();
+        //     // println!("price_u128 {:?}", price_u128);
+        //     let starting_price = i129 { sign: true, mag: price_u128 };
 
-            starting_price
-        }
+        //     starting_price
+        // }
 
         /// TODO fix change
         fn _check_common_launch_parameters(
@@ -1694,8 +1701,7 @@ pub mod LaunchpadMarketplace {
             let launch = self.launched_coins.read(coin_address);
             // let starting_price = i129 { sign: true, mag: 100_u128 };
 
-            let starting_price: i129 = self
-                ._calculate_starting_price_launch(
+            let starting_price: i129 = calculate_starting_price_launch(
                     launch.initial_pool_supply, launch.threshold_liquidity
                 );
 
@@ -1968,57 +1974,56 @@ pub mod LaunchpadMarketplace {
         }
 
 
-        fn _calculate_slope(
-            self: @ContractState,
-            threshold_liquidity: u256,
-            starting_price: u256,
-            sellable_supply: u256
-        ) -> u256 {
-            // println!("calculate slope");
-            // Calculate slope
-            // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
-            //     - (starting_price * sellable_supply);
-            let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
-                - (starting_price * sellable_supply);
-            let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
+        // fn _calculate_slope(
+        //     self: @ContractState,
+        //     threshold_liquidity: u256,
+        //     starting_price: u256,
+        //     sellable_supply: u256
+        // ) -> u256 {
+        //     // println!("calculate slope");
+        //     // Calculate slope
+        //     // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+        //     //     - (starting_price * sellable_supply);
+        //     let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+        //         - (starting_price * sellable_supply);
+        //     let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
 
-            // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
-            // let slope_denominator = (sellable_supply * sellable_supply) / 2;
-            // let slope = slope_numerator / slope_denominator;
-            // println!("slope_denominator {:?}", slope_denominator);
+        //     // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
+        //     // let slope_denominator = (sellable_supply * sellable_supply) / 2;
+        //     // let slope = slope_numerator / slope_denominator;
+        //     // println!("slope_denominator {:?}", slope_denominator);
 
-            // let slope = (threshold_liquidity - (starting_price * sellable_supply))
-            //     / ((sellable_supply * sellable_supply) / 2_u256);
-            // let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
-            // let slope = slope_numerator / (slope_denominator);
-            let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+        //     // let slope = (threshold_liquidity - (starting_price * sellable_supply))
+        //     //     / ((sellable_supply * sellable_supply) / 2_u256);
+        //     // let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+        //     // let slope = slope_numerator / (slope_denominator);
+        //     let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
 
-            // println!("slope");
-            slope / SCALE_FACTOR
-            // slope
-        // // Calculate slope dynamically
-        // let m = (threshold_liquidity - (starting_price * sellable_supply))
-        //     / ((sellable_supply * sellable_supply) / 2_u256);
+        //     // println!("slope");
+        //     slope / SCALE_FACTOR
+        //     // slope
+        // // // Calculate slope dynamically
+        // // let m = (threshold_liquidity - (starting_price * sellable_supply))
+        // //     / ((sellable_supply * sellable_supply) / 2_u256);
 
-            // m
-        }
+        //     // m
+        // }
 
-
-        fn _calculate_pricing(
-            ref self: ContractState, threshold_liquidity: u256, sellable_supply: u256
-        ) -> u256 {
-            // let scaling_factor = 10;
-            let scaling_factor = 10;
-            // Starting price is proportional to the threshold liquidity divided by sellable supply
-            let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;
-            return starting_price;
-            // let threshold_liquidity = self.threshold_liquidity.read();
-        // let slope = (2 * threshold_liquidity)
-        //     / (liquidity_available * (liquidity_available - 1));
-        // let initial_price = (2 * threshold_liquidity / liquidity_available)
-        //     - slope * (liquidity_available - 1) / 2;
-        // (slope, initial_price)
-        }
+        // fn _calculate_pricing(
+        //     ref self: ContractState, threshold_liquidity: u256, sellable_supply: u256
+        // ) -> u256 {
+        //     // let scaling_factor = 10;
+        //     let scaling_factor = 10;
+        //     // Starting price is proportional to the threshold liquidity divided by sellable
+        //     supply let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;
+        //     return starting_price;
+        //     // let threshold_liquidity = self.threshold_liquidity.read();
+        // // let slope = (2 * threshold_liquidity)
+        // //     / (liquidity_available * (liquidity_available - 1));
+        // // let initial_price = (2 * threshold_liquidity / liquidity_available)
+        // //     - slope * (liquidity_available - 1) / 2;
+        // // (slope, initial_price)
+        // }
 
         // Get amount of token received by token quote IN
         // Params
@@ -2048,8 +2053,7 @@ pub mod LaunchpadMarketplace {
             let starting_price = pool_coin.starting_price; // e.g., 0.01
 
             // Calculate slope dynamically
-            let slope = self
-                ._calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
+            let slope = calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
 
             // let m = (threshold_liquidity - (starting_price * sellable_supply))
             //     / ((sellable_supply * sellable_supply) / 2_u256);
@@ -2123,23 +2127,6 @@ pub mod LaunchpadMarketplace {
         // q_out
         }
 
-        // Get amount of quote to IN to buy an amount of coin
-        fn _get_quote_paid_by_amount_coin(
-            self: @ContractState,
-            coin_address: ContractAddress,
-            amount_to_buy: u256,
-            is_decreased: bool
-        ) -> u256 {
-            let pool_coin = self.launched_coins.read(coin_address);
-            let current_supply = pool_coin.total_token_holded.clone();
-            let total_supply = pool_coin.total_supply.clone();
-            let threshold_liquidity = self.threshold_liquidity.read().clone();
-            let k = current_supply * pool_coin.liquidity_raised;
-            let k_max = total_supply * threshold_liquidity;
-            let q_in = (k / (total_supply - amount_to_buy)) - (k_max / total_supply);
-            q_in
-        }
-
 
         fn _trapezoidal_rule(
             self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool
@@ -2166,6 +2153,24 @@ pub mod LaunchpadMarketplace {
                 let total_price = (actual_supply - final_supply) * (start_price + end_price) / 2;
                 total_price
             }
+        }
+
+
+        // Get amount of quote to IN to buy an amount of coin
+        fn _get_quote_paid_by_amount_coin(
+            self: @ContractState,
+            coin_address: ContractAddress,
+            amount_to_buy: u256,
+            is_decreased: bool
+        ) -> u256 {
+            let pool_coin = self.launched_coins.read(coin_address);
+            let current_supply = pool_coin.total_token_holded.clone();
+            let total_supply = pool_coin.total_supply.clone();
+            let threshold_liquidity = self.threshold_liquidity.read().clone();
+            let k = current_supply * pool_coin.liquidity_raised;
+            let k_max = total_supply * threshold_liquidity;
+            let q_in = (k / (total_supply - amount_to_buy)) - (k_max / total_supply);
+            q_in
         }
 
 

@@ -371,11 +371,11 @@ mod liquidity_tests {
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         let amount_first_buy = 1_u256;
 
-        println!("buy {:?}",amount_first_buy);
+        println!("buy {:?}", amount_first_buy);
         run_buy_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
-        println!("sell {:?}",amount_first_buy);
+        println!("sell {:?}", amount_first_buy);
 
         run_sell_by_amount(
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
@@ -386,7 +386,6 @@ mod liquidity_tests {
         );
 
         launchpad.add_liquidity_ekubo(token_address);
-
 
         // run_sell_by_amount(
         //     launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
@@ -874,6 +873,4 @@ mod liquidity_tests {
     // println!("Liquidity: {}", liquidity);
 
     }
-
-
 }
