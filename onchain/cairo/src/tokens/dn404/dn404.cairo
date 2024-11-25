@@ -1,4 +1,13 @@
 // TODO: create component of it, implement a factory in the future
+
+// Changes comparing to Solidity DN404 contract:
+// - Owned NFTs storage became Vec<u32>
+// - Flags unwinded from Bitmap to several boolean maps
+// - Using 2 separate mappings for Owner aliases and Owned NFTs indexes
+// Unimplemented features:
+// - Burned pool
+// - Packed logs
+// - Hooks (exists bitmap, afterNFTTransfers, etc)
 use starknet::ContractAddress;
 
 // TODO: add hooks like in OZ:
@@ -89,7 +98,8 @@ pub trait IDN404<TContractState> {
 pub mod DN404 {
     use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess};
+    use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePathEntry};
+    use starknet::storage::{Vec, VecTrait, MutableVecTrait};
     use core::num::traits::Zero;
     use super::DN404Options;
     use crate::tokens::dn404::dn404_mirror::{IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait};
@@ -122,9 +132,12 @@ pub mod DN404 {
         may_have_nft_approval: Map<u256, bool>,
         exists: Map<u256, bool>,
         allowance: Map<(ContractAddress, ContractAddress), u256>,
-        owned: Map<ContractAddress, Span<u32>>,
+        owned: Map<ContractAddress, Vec<u32>>,
         burned_pool: Span<u32>,
-        oo: Map<u256, u32>,
+        // Use two separate mappings for owner aliases and owned indexes:
+        owner_aliases: Map<u256, u32>,
+        owned_indexes: Map<u256, u32>,
+
         address_data: Map<ContractAddress, AddressData>,
     }
 
@@ -269,12 +282,6 @@ pub mod DN404 {
             return true;
         }
 
-    }
-
-    #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {
-        // Skip NFT Functions
-
         // Returns true if minting and transferring ERC20s to `owner` will skip minting NFTs.
         fn get_skip_nft(self: @ContractState, owner: ContractAddress) -> bool {
             // let flags = self.address_data.read(owner).flags;
@@ -283,7 +290,7 @@ pub mod DN404 {
             // if (flags & _ADDRESS_DATA_SKIP_NFT_INITIALIZED_FLAG) == 0 {
             if !self.skip_nft_initialized.read(owner) {
                 // Check if the owner is a "contract"
-                return !Self::is_account(owner);
+                return !InternalFunctions::is_account(owner);
             }
             return result;
         }
@@ -293,6 +300,11 @@ pub mod DN404 {
             self._set_skip_nft(get_caller_address(), skip_nft);
             return true;
         }
+    }
+
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+        // Skip NFT Functions
 
         // Internal function to set account `owner` skipNFT flag to `state`
         fn _set_skip_nft(ref self: ContractState, owner: ContractAddress, state: bool) {
@@ -345,146 +357,156 @@ pub mod DN404 {
             let mut to_data = self.address_data.read(to);
 
             // Check balance and update balances
-            let from_balance: u256 = from_data.balance.into();
+            let mut from_balance: u256 = from_data.balance.into();
             assert!(amount <= from_balance, "InsufficientBalance");
 
             // Update balances
-            from_data.balance = (from_balance - amount).try_into().expect('BalanceOverflow');
-            to_data.balance = (to_data.balance.into() + amount).try_into().expect('BalanceOverflow');
+            from_balance -= amount;
+            from_data.balance = from_balance.try_into().expect('BalanceOverflow');
+
+            let mut to_balance: u256 = to_data.balance.into() + amount;
+            to_data.balance = to_balance.try_into().expect('BalanceOverflow');
+
+            /// DONE
 
             // Calculate NFT changes needed
-            let from_nft_balance = from_data.owned_length;
-            let to_nft_balance = to_data.owned_length;
+            let from_owned_length: u256 = from_data.owned_length.into();
+            let mut to_owned_length: u256 = to_data.owned_length.into();
             let unit = self.options.read().unit;
 
             // Calculate NFTs to burn
-            let new_from_nft_balance = (from_balance - amount) / unit;
-            let nfts_to_burn = if from_nft_balance > new_from_nft_balance.try_into().unwrap() {
-                from_nft_balance - new_from_nft_balance.try_into().unwrap()
-            } else {
-                0
-            };
+            let num_nft_burns: u256 = Self::zero_floor_sub(from_owned_length, ((from_balance - amount) / unit).try_into().unwrap());
+            let mut num_nft_mints: u256 = 0;
 
-            // Calculate NFTs to mint
-            let new_to_nft_balance = (to_data.balance.into()) / unit;
-            let nfts_to_mint = if !self.get_skip_nft(@self, to) 
-                && new_to_nft_balance.try_into().unwrap() > to_nft_balance {
-                new_to_nft_balance.try_into().unwrap() - to_nft_balance
-            } else {
-                0
-            };
-
-            // Handle NFT transfers
-            if nfts_to_burn > 0 {
-                self._burn_nfts(from, nfts_to_burn);
+            if (!self.get_skip_nft(to)) {
+                if from == to {
+                    to_owned_length = from_owned_length - num_nft_burns;
+                }
+                num_nft_mints = Self::zero_floor_sub(to_balance / unit, to_owned_length);
             }
 
-            if nfts_to_mint > 0 {
-                self._mint_nfts(to, nfts_to_mint);
+            // TODO: implement direct transfers
+            let total_nft_supply: u256 = self.total_nft_supply.read().into() + num_nft_mints - num_nft_burns;
+            self.total_nft_supply.write(total_nft_supply.try_into().expect('TotalSupplyOverflow')); // TODO: it's not written here in Solidity, just in the variable
+
+            // let burned_pool_tail = self.burned_pool_tail.read();
+            if num_nft_burns != 0 {
+                // TODO: support [packed] logs
+                // TODO: support burned pool
+                let mut from_index: u64 = from_owned_length.try_into().expect('OwnedLengthOverflow');
+                let from_end: u64 = from_index - num_nft_burns.try_into().expect('OwnedLengthOverflow');
+                from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
+
+                // Burn loop
+                // We don't rely on wrapping here because we use Vecs instead of circle bufferred array-like mapping
+                while from_index > from_end {
+                    from_index -= 1;
+                    // get last token from the sender's owned list
+                    let token_id = self.owned.entry(from).at(from_index).read();
+                    // _setOwnerAliasAndOwnedIndex(oo, id, 0, 0);
+                    self.owner_aliases.write(token_id.into(), 0);
+                    self.owned_indexes.write(token_id.into(), 0);
+                    // TODO: process packed logs
+                    // TODO: process exists map
+                    // TODO: process burned pool
+                    if self.may_have_nft_approval.read(token_id.into()) {
+                        self.may_have_nft_approval.write(token_id.into(), false);
+                        self.nft_approvals.write(token_id.into(), Zero::zero());
+                    }
+                }
             }
 
-            // Update storage
-            self.address_data.write(from, from_data);
-            self.address_data.write(to, to_data);
+            if num_nft_mints != 0 {
+                // Register and resolve alias
+                let to_alias = self._register_and_resolve_alias(ref to_data, to);
+                let id_limit = self.total_supply.read().into() / unit;
+                let mut next_token_id = self._wrap_nft_id(self.next_token_id.read().into(), id_limit);
+                let to_index = to_owned_length;
+                let to_end = to_index + num_nft_mints;
+                to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
 
-            // Emit transfer event
-            self.emit(TransferEvent { from, to, amount });
+                // Mint loop
+                while to_index < to_end {
+                    let mut token_id: u256 = 0;
+                    if self.burned_pool_head.read() != self.burned_pool_tail.read() {
+                        // TODO: support burned pool
+                    } else {
+                        token_id = next_token_id;
+                        while self.owner_aliases.read(token_id.into()) != 0 {
+                            // TODO: support exists lookup
+                            token_id = self._wrap_nft_id(token_id + 1, id_limit);
+                        };
+                        next_token_id = self._wrap_nft_id(token_id + 1, id_limit);
+                    }
+                };
+
+                self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
+            }
+
+            // TODO: send direct logs
+            // TODO: send packed logs
+
+            self.emit(TransferEvent {
+                from: from,
+                to: to,
+                amount: amount,
+            });
+
+            // TODO: afterNFTTransfers
         }
 
         // TODO: determine if this is needed
         fn is_account(address: ContractAddress) -> bool {
-            return true;
+            true
         }
 
-        fn _burn_nfts(ref self: ContractState, from: ContractAddress, count: u32) {
-            // TODO: this code is generated and need to be rewritten
-
-            let mut from_data = self.address_data.read(from);
-            let options = self.options.read();
-            
-            let mut i: u32 = 0;
-            while i < count {
-                let last_index = from_data.owned_length - 1;
-                // TODO: Implement owned array access
-                let token_id = self.owned.read(from)[last_index];
-                
-                // Clear approvals
-                if self.may_have_nft_approval.read(token_id.into()) {
-                    self.may_have_nft_approval.write(token_id.into(), false);
-                    self.nft_approvals.write(token_id.into(), Zero::zero());
-                }
-                
-                // Clear ownership
-                self._set_owner_alias_and_owned_index(token_id.into(), 0, 0);
-                
-                // Update exists bitmap if used
-                if options.use_exists_lookup {
-                    self.exists.write(token_id.into(), false);
-                }
-                
-                from_data.owned_length -= 1;
-                self.total_nft_supply.write(self.total_nft_supply.read() - 1);
-                
-                // Add to burned pool if needed
-                if options.add_to_burned_pool {
-                    let tail = self.burned_pool_tail.read();
-                    // TODO: Implement burned pool array access
-                    self.burned_pool.write(tail.into(), token_id);
-                    self.burned_pool_tail.write(tail + 1);
-                }
-                
-                i += 1;
+        fn zero_floor_sub(a: u256, b: u256) -> u256 {
+            if a > b {
+                a - b
+            } else {
+                0
             }
-            
-            self.address_data.write(from, from_data);
         }
 
-        fn _mint_nfts(ref self: ContractState, to: ContractAddress, count: u32) {
-            // TODO: this code is generated and need to be rewritten
+        /// Wraps the NFT ID to ensure it stays within valid range
+        /// @param id - The NFT ID to wrap
+        /// @param id_limit - The maximum ID value (exclusive)
+        /// @return result - The wrapped ID value
+        fn _wrap_nft_id(ref self: ContractState, id: u256, id_limit: u256) -> u256 {
+            let start_index: u256 = if self.options.read().use_one_indexed {
+                1
+            } else {
+                0
+            };
 
-            let mut to_data = self.address_data.read(to);
-            let options = self.options.read();
-            
-            // TODO: Implement alias registration
-            let to_alias = self._register_and_resolve_alias(to_data, to);
-            
-            let mut i: u32 = 0;
-            while i < count {
-                let token_id: u32;
-                
-                // Try to use burned pool first
-                if self.burned_pool_head.read() != self.burned_pool_tail.read() {
-                    let head = self.burned_pool_head.read();
-                    // TODO: Implement burned pool array access
-                    token_id = self.burned_pool.read(head.into());
-                    self.burned_pool_head.write(head + 1);
-                } else {
-                    // Mint new token
-                    token_id = self.next_token_id.read();
-                    let total_supply: u256 = self.total_supply.read().into();
-                    let id_limit = total_supply / options.unit;
-                    
-                    // TODO: Implement token ID wrapping and ownership checking
-                    self.next_token_id.write(token_id + 1);
-                }
-                
-                if options.use_exists_lookup {
-                    self.exists.write(token_id.into(), true);
-                }
-                
-                // Set ownership
-                let new_index = to_data.owned_length;
-                // TODO: Implement owned array access
-                self.owned.write(to, new_index.into(), token_id);
-                self._set_owner_alias_and_owned_index(token_id.into(), to_alias, new_index);
-                
-                to_data.owned_length += 1;
-                self.total_nft_supply.write(self.total_nft_supply.read() + 1);
-                
-                i += 1;
+            if id > id_limit {
+                // If ID exceeds limit, wrap back to start_index
+                start_index
+            } else {
+                // If ID is within range, return it unchanged
+                id
             }
-            
-            self.address_data.write(to, to_data);
+        }
+
+        // We don't use single map for both owner aliases and owned indexes,
+        // so index calculation is different
+        fn _ownership_index(ref self: ContractState, i: u256) -> u256 {
+            let use_one_indexed: u256 = if self.options.read().use_one_indexed {
+                1
+            } else {
+                0
+            };
+            i - use_one_indexed
+        }
+
+        fn _register_and_resolve_alias(ref self: ContractState, ref to_data: AddressData, to: ContractAddress) -> u32 {
+            if to_data.address_alias == 0 {
+                // No need to check for overflows because it's done by the runtime
+                to_data.address_alias = self.num_aliases.read() + 1;
+            }
+            // TODO: check that owner_aliases is written somewhere else
+            self.alias_to_address.write(to_data.address_alias, to);
+            return to_data.address_alias;
         }
     }
 }
