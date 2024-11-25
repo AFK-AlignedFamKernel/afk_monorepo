@@ -325,8 +325,11 @@ mod launchpad_tests {
         is_quote_amount: bool
     ) -> u256 {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin",);
-        launchpad.get_coin_amount_by_quote_amount(token_address, amount_quote, is_decreased)
+        println!("calcul amount");
+        let amount = launchpad
+            .get_coin_amount_by_quote_amount(token_address, amount_quote, is_decreased);
+        println!("amount to receive {:?}", amount);
+        amount
     }
 
     fn calculate_slope(total_supply: u256) -> u256 {
@@ -1039,6 +1042,8 @@ mod launchpad_tests {
 
         println!("add liquidity ekubo");
         // launchpad.add_liquidity_ekubo(token_address, params);
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
         launchpad.add_liquidity_ekubo(token_address);
         stop_cheat_caller_address(launchpad.contract_address);
     }

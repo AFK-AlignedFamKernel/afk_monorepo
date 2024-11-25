@@ -1,3 +1,4 @@
+use afk::launchpad::errors;
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
@@ -6,8 +7,10 @@ use afk::types::launchpad_types::{
     LaunchParameters, EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback
 };
 use ekubo::types::{i129::i129};
+use starknet::ContractAddress;
 const BPS: u256 = 10_000; // 100% = 10_000 bps
-const SCALE_FACTOR: u256 = 100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
+const SCALE_FACTOR: u256 =
+    100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
 // Total supply / LIQUIDITY_RATIO
 // Get the 20% of Bonding curve going to Liquidity
 // Liquidity can be lock to Unrug
@@ -17,7 +20,7 @@ pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u2
     // let scaling_factor = 10;
     let scaling_factor = 10;
     // Starting price is proportional to the threshold liquidity divided by sellable supply
-    let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;
+    let starting_price = (threshold_liquidity.clone() * scaling_factor) / sellable_supply.clone();
     return starting_price;
     // let threshold_liquidity = self.threshold_liquidity.read();
 // let slope = (2 * threshold_liquidity)
@@ -33,7 +36,7 @@ pub fn calculate_starting_price_launch(
 ) -> i129 {
     // TODO calculate price
 
-    let launch_price = initial_pool_supply / threshold_liquidity;
+    let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
     // println!("launch_price {:?}", launch_price);
 
     let price_u128: u128 = launch_price.try_into().unwrap();
@@ -80,15 +83,11 @@ pub fn calculate_slope(
 // Quote amount
 // Is decreased for sell, !is_decrease for buy
 pub fn get_coin_amount_by_quote_amount(
-    pool_coin: TokenLaunch, 
-    
-    quote_amount: u256, 
-    is_decreased: bool
-
+    pool_coin: TokenLaunch, quote_amount: u256, is_decreased: bool
     // total_supply: u256,
-     // current_supply: u256, // available supply
-    // liquidity_raised: u256,
-    // threshold_liquidity: u256,
+// current_supply: u256, // available supply
+// liquidity_raised: u256,
+// threshold_liquidity: u256,
 ) -> u256 {
     // Load state variables
     let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
@@ -104,7 +103,9 @@ pub fn get_coin_amount_by_quote_amount(
     let starting_price = pool_coin.starting_price; // e.g., 0.01
 
     // Calculate slope dynamically
-    let slope = calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
+    let slope = calculate_slope(
+        threshold_liquidity.clone(), starting_price.clone(), sellable_supply.clone()
+    );
 
     // let m = (threshold_liquidity - (starting_price * sellable_supply))
     //     / ((sellable_supply * sellable_supply) / 2_u256);
@@ -134,20 +135,23 @@ pub fn get_coin_amount_by_quote_amount(
     let mut q_out: u256 = 0;
     if is_decreased {
         // Sell path: calculate how many tokens are returned for a given quote amount
-        q_out = (quote_amount) / (price_scale_factor);
-        // q_out = (quote_amount_factor) / (price_scale_factor);
-    // q_out = quote_amount / (price * SCALE_FACTOR);
-    } else {
-        // Buy path: calculate how many tokens are purchased for a given quote amount
-        q_out = quote_amount / (price * SCALE_FACTOR);
+        q_out = (quote_amount) / (price);
         // q_out = (quote_amount) / (price_scale_factor);
     // q_out = (quote_amount_factor) / (price_scale_factor);
+    // q_out = (quote_amount_factor) / (price);
+    } else {
+        // Buy path: calculate how many tokens are purchased for a given quote amount
+        q_out = quote_amount / (price);
+        // q_out = quote_amount / (price * SCALE_FACTOR);
+    // q_out = (quote_amount_factor) / (price_scale_factor);
+    // q_out = (quote_amount_factor) / (price_scale_factor);
+    // q_out = (quote_amount_factor) / (price);
     }
 
     // println!("q_out {:?}", q_out);
-
     return q_out / SCALE_FACTOR;
-    // OLD not working
+    // return q_out;
+// OLD not working
 
     // let pool_coin = self.launched_coins.read(coin_address);
 

@@ -16,3 +16,5 @@ pub const TICK_SPACING_TOO_LOW: felt252 = 'Tick spacing low';
 pub const TICK_SPACING_TOO_HIGH: felt252 = 'Tick spacing high';
 pub const FEE_TOO_HIGH: felt252 = 'Fee too high';
 pub const BOUND_TOO_LOW: felt252 = 'Upper bound too low';
+pub const OWNER_DIFFERENT: felt252 = 'Owner different';
+
