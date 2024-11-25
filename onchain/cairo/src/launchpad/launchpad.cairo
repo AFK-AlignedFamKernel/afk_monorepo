@@ -596,7 +596,7 @@ pub mod LaunchpadMarketplace {
             // Transfer quote & coin
             // TOdo fix issue price
             let mut amount = get_amount_by_type_of_coin_or_quote(
-                pool_coin, coin_address, remain_liquidity, false, true
+                pool_coin.clone(), coin_address, remain_liquidity, false, true
             );
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
@@ -773,7 +773,7 @@ pub mod LaunchpadMarketplace {
             // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
 
             let mut amount = get_amount_by_type_of_coin_or_quote(
-                old_pool, coin_address, remain_liquidity, false, true
+                old_pool.clone(), coin_address, remain_liquidity, false, true
             );
 
             // Verify Amount owned
@@ -1032,7 +1032,7 @@ pub mod LaunchpadMarketplace {
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
             get_amount_by_type_of_coin_or_quote(
-                @pool, coin_address, amount, is_decreased, is_quote_amount
+                pool.clone(), coin_address, amount, is_decreased, is_quote_amount
             )
             // self
         //     .get_amount_by_type_of_coin_or_quote(
@@ -1405,8 +1405,8 @@ pub mod LaunchpadMarketplace {
             let liquidity_available = total_supply - liquidity_supply;
 
             // let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            let starting_price = calculate_pricing(threshold_liquidity, supply_distribution);
-            let slope = calculate_slope(threshold_liquidity, starting_price, supply_distribution,);
+            let starting_price = calculate_pricing(threshold_liquidity.clone(), supply_distribution.clone());
+            let slope = calculate_slope(threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone());
             // let starting_price = threshold_liquidity / total_supply;
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
@@ -1551,7 +1551,7 @@ pub mod LaunchpadMarketplace {
             // let starting_price = i129 { sign: true, mag: 100_u128 };
             // let starting_price = i129 { sign: true, mag: price_u128 };
             let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply, launch.threshold_liquidity
+                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
             );
             let lp_meme_supply = launch.initial_pool_supply;
 
@@ -1704,7 +1704,7 @@ pub mod LaunchpadMarketplace {
             // let starting_price = i129 { sign: true, mag: 100_u128 };
 
             let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply, launch.threshold_liquidity
+                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
             );
 
             let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
@@ -2055,7 +2055,7 @@ pub mod LaunchpadMarketplace {
             let starting_price = pool_coin.starting_price; // e.g., 0.01
 
             // Calculate slope dynamically
-            let slope = calculate_slope(threshold_liquidity, starting_price, sellable_supply,);
+            let slope = calculate_slope(threshold_liquidity.clone(), starting_price.clone(), sellable_supply.clone());
 
             // let m = (threshold_liquidity - (starting_price * sellable_supply))
             //     / ((sellable_supply * sellable_supply) / 2_u256);
