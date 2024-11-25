@@ -6,7 +6,7 @@ trait IStaking<TContractState> {
     fn notify_reward_amount(ref self: TContractState, amount: u256);
     fn stake(ref self: TContractState, amount: u256);
     fn withdraw(ref self: TContractState, amount: u256);
-    fn get_reward(ref self: TContractState);
+    fn claim_reward(ref self: TContractState);
 
     fn last_time_reward_applicable(self: @TContractState) -> u256;
     fn reward_per_token(self: @TContractState) -> u256;
@@ -213,7 +213,7 @@ pub mod StakingComponent {
             });
         }
 
-        fn get_reward(ref self: ComponentState<TContractState>) {
+        fn claim_reward(ref self: ComponentState<TContractState>) {
             let caller = get_caller_address();
 
             self.update_reward(caller);
