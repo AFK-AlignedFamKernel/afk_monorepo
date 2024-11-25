@@ -42,6 +42,7 @@ export const createLaunchpad = async (
   threshold_liquidity: Uint256,
   threshold_marketcap: Uint256,
   factory_address: string,
+  ekubo_registry: string,
   core: string,
   positions: string,
   ekubo_exchange_address: string,
@@ -139,6 +140,7 @@ export const createLaunchpad = async (
           threshold_liquidity,
           threshold_marketcap,
           factory_address,
+          ekubo_registry,
           core,
           positions,
           ekubo_exchange_address

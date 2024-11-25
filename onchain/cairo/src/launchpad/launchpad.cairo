@@ -2,7 +2,7 @@ use afk::types::jediswap_types::{MintParams};
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
+    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
     EkuboLiquidityParameters, LiquidityParameters
@@ -98,6 +98,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     );
 
     //TODO
+    fn add_liquidity_jediswap(ref self: TContractState, coin_address: ContractAddress,);
     fn add_liquidity_unrug(
         ref self: TContractState,
         coin_address: ContractAddress,
@@ -186,7 +187,7 @@ pub mod LaunchpadMarketplace {
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
+        SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
         EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
         EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters
@@ -306,8 +307,8 @@ pub mod LaunchpadMarketplace {
         CreateToken: CreateToken,
         LaunchUpdated: LaunchUpdated,
         CreateLaunch: CreateLaunch,
-        SetJediwapV2Factory: SetJediwapV2Factory,
-        SetJediwapNFTRouterV2: SetJediwapNFTRouterV2,
+        SetJediswapV2Factory: SetJediswapV2Factory,
+        SetJediswapNFTRouterV2: SetJediswapNFTRouterV2,
         LiquidityCreated: LiquidityCreated,
         LiquidityCanBeAdded: LiquidityCanBeAdded,
         TokenClaimed: TokenClaimed,
@@ -430,7 +431,9 @@ pub mod LaunchpadMarketplace {
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
             self
                 .emit(
-                    SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
+                    SetJediswapV2Factory {
+                        address_jediswap_factory_v2: address_jediswap_factory_v2
+                    }
                 );
         }
 
@@ -441,7 +444,7 @@ pub mod LaunchpadMarketplace {
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
             self
                 .emit(
-                    SetJediwapNFTRouterV2 {
+                    SetJediswapNFTRouterV2 {
                         address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
                     }
                 );
@@ -711,9 +714,9 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
-                // TODO fix add liquidity ekubo
-                self._add_liquidity_ekubo(coin_address);
+            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+            // TODO fix add liquidity ekubo
+            // self._add_liquidity_ekubo(coin_address);
             }
 
             self
@@ -825,7 +828,7 @@ pub mod LaunchpadMarketplace {
 
             // Assertion: Ensure the user receives the correct amount
             let user_received = erc20.balance_of(caller);
-            assert(user_received == remain_liquidity, 'user not receive amount');
+            assert(user_received >= remain_liquidity, 'user not receive amount');
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
@@ -896,6 +899,14 @@ pub mod LaunchpadMarketplace {
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
         // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
+        fn add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
+            // TODO auto distrib and claim?
+
+            self._add_liquidity_jediswap(coin_address);
+            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
+        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+        }
+
 
         // TODO Finish this function
         // Claim coin if liquidity is sent
@@ -1147,14 +1158,20 @@ pub mod LaunchpadMarketplace {
             let dex_address = self.core.read();
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
+            let positions_address = self.positions.read();
+
             match consume_callback_data::<CallbackData>(core, data) {
                 CallbackData::LaunchCallback(params) => {
                     let launch_params: EkuboLaunchParameters = params.params;
                     let (token0, token1) = sort_tokens(
                         launch_params.token_address, launch_params.quote_address
                     );
-                    let memecoin = EKIERC20Dispatcher { contract_address: launch_params.token_address };
-                    let base_token = EKIERC20Dispatcher { contract_address: launch_params.quote_address };
+                    let memecoin = EKIERC20Dispatcher {
+                        contract_address: launch_params.token_address
+                    };
+                    let base_token = EKIERC20Dispatcher {
+                        contract_address: launch_params.quote_address
+                    };
                     let registry = ITokenRegistryDispatcher { contract_address: registry_address };
                     // println!("IN HERE: {}", 2);
 
@@ -1166,8 +1183,7 @@ pub mod LaunchpadMarketplace {
                         extension: 0.try_into().unwrap(),
                     };
 
-
-                    let lp_supply=launch_params.lp_supply.clone();
+                    let lp_supply = launch_params.lp_supply.clone();
                     // println!("IN HERE: {}", 3);
 
                     // The initial_tick must correspond to the wanted initial price in quote/MEME
@@ -1181,29 +1197,36 @@ pub mod LaunchpadMarketplace {
                         is_token1_quote
                     );
 
-                    let pool= self.launched_coins.read(launch_params.token_address );
+                    let pool = self.launched_coins.read(launch_params.token_address);
 
                     // println!("IN HERE: {}", 4);
 
                     base_token.approve(registry.contract_address, pool.liquidity_raised);
                     base_token.approve(ekubo_core_address, pool.liquidity_raised);
+                    base_token.approve(positions_address, lp_supply);
+
+                    memecoin.approve(registry.contract_address, lp_supply);
+                    memecoin.approve(positions_address, lp_supply);
                     memecoin.approve(dex_address, lp_supply);
                     memecoin.approve(ekubo_core_address, lp_supply);
                     // memecoin.transfer(registry.contract_address, 1000000000000000000);
                     // memecoin.transfer(registry.contract_address, pool.available_supply);
                     // memecoin.transfer(registry.contract_address, pool.available_supply);
-                    println!("transfer before register");
-                    registry.register_token(EKIERC20Dispatcher { contract_address: launch_params.token_address });
+                    // println!("transfer before register");
+                    registry
+                        .register_token(
+                            EKIERC20Dispatcher { contract_address: launch_params.token_address }
+                        );
 
                     // println!("initial tick {:?}", initial_tick);
                     // Initialize the pool at the initial tick.
-                    println!("init pool");
+                    // println!("init pool");
 
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     // println!("init pool");
 
                     // println!("IN HERE: {}", 5);
-                    println!("supply liq");
+                    // println!("supply liq");
 
                     // 2. Provide the liquidity to actually initialize the public pool with
                     // The pool bounds must be set according to the tick spacing.
@@ -1449,6 +1472,7 @@ pub mod LaunchpadMarketplace {
                         slope: slope,
                         threshold_liquidity: threshold_liquidity,
                         quote_token_address: quote_token_address,
+                        is_unruggable: is_unruggable
                     }
                 );
         }
@@ -1484,7 +1508,7 @@ pub mod LaunchpadMarketplace {
             // The token must be transferred to the positions contract before calling mint.
             IERC20Dispatcher { contract_address: token }
                 .transfer(recipient: positions.contract_address, :amount);
-            println!("mint deposit NOW HERE: {}", 3);
+            // println!("mint deposit NOW HERE: {}", 3);
 
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             // let (id, liquidity, _, _) = positions
@@ -1553,8 +1577,10 @@ pub mod LaunchpadMarketplace {
 
             let pool = self.launched_coins.read(coin_address);
             let dex_address = self.core.read();
+            let positions_ekubo = self.positions.read();
             memecoin.approve(ekubo_exchange_address, lp_meme_supply);
             memecoin.approve(ekubo_core_address, lp_meme_supply);
+            memecoin.approve(positions_ekubo, lp_meme_supply);
             assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
             let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
             //TODO token decimal, amount of 1 token?
@@ -1564,7 +1590,7 @@ pub mod LaunchpadMarketplace {
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
             // Call the core with a callback to deposit and mint the LP tokens.
 
-            println!("HERE launch callback: {}", 2);
+            // println!("HERE launch callback: {}", 2);
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
@@ -1942,6 +1968,58 @@ pub mod LaunchpadMarketplace {
         }
 
 
+        fn _calculate_slope(
+            self: @ContractState,
+            threshold_liquidity: u256,
+            starting_price: u256,
+            sellable_supply: u256
+        ) -> u256 {
+            // println!("calculate slope");
+            // Calculate slope
+            // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+            //     - (starting_price * sellable_supply);
+            let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+                - (starting_price * sellable_supply);
+            let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
+
+            // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
+            // let slope_denominator = (sellable_supply * sellable_supply) / 2;
+            // let slope = slope_numerator / slope_denominator;
+            // println!("slope_denominator {:?}", slope_denominator);
+
+            // let slope = (threshold_liquidity - (starting_price * sellable_supply))
+            //     / ((sellable_supply * sellable_supply) / 2_u256);
+            // let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+            // let slope = slope_numerator / (slope_denominator);
+            let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
+
+            // println!("slope");
+            slope / SCALE_FACTOR
+            // slope
+        // // Calculate slope dynamically
+        // let m = (threshold_liquidity - (starting_price * sellable_supply))
+        //     / ((sellable_supply * sellable_supply) / 2_u256);
+
+            // m
+        }
+
+
+        fn _calculate_pricing(
+            ref self: ContractState, threshold_liquidity: u256, sellable_supply: u256
+        ) -> u256 {
+            // let scaling_factor = 10;
+            let scaling_factor = 10;
+            // Starting price is proportional to the threshold liquidity divided by sellable supply
+            let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;
+            return starting_price;
+            // let threshold_liquidity = self.threshold_liquidity.read();
+        // let slope = (2 * threshold_liquidity)
+        //     / (liquidity_available * (liquidity_available - 1));
+        // let initial_price = (2 * threshold_liquidity / liquidity_available)
+        //     - slope * (liquidity_available - 1) / 2;
+        // (slope, initial_price)
+        }
+
         // Get amount of token received by token quote IN
         // Params
         // Quote amount
@@ -1955,11 +2033,12 @@ pub mod LaunchpadMarketplace {
             // Load state variables
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone(); // Total memecoins minted by user
-            let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to sell
+            let current_supply = pool_coin.available_supply.clone(); // Remaining tokens to sell
+            // let current_supply = pool_coin.total_token_holded.clone(); // Remaining tokens to
+            // sell
             let liquidity_raised = pool_coin.liquidity_raised.clone(); // Quote tokens raised so far
-            let threshold_liquidity = self
+            let threshold_liquidity = pool_coin
                 .threshold_liquidity
-                .read()
                 .clone(); // Threshold in quote tokens
 
             // Dynamically calculate sellable supply
@@ -1981,10 +2060,11 @@ pub mod LaunchpadMarketplace {
             // println!("tokens_sold {:?}", tokens_sold);
 
             // Calculate price
+            // let price = slope * tokens_sold + starting_price;
+
             let price = slope * tokens_sold + starting_price;
             // println!("price {:?}", price);
 
-            let price = slope * tokens_sold + starting_price;
             // let safe_price = max(price, MIN_PRICE);
 
             let price_scale_factor = price * SCALE_FACTOR;
@@ -1992,21 +2072,22 @@ pub mod LaunchpadMarketplace {
             // println!("price_scale_factor {:?}", price_scale_factor);
 
             // Ensure price is positive
-            assert(price >= 0_u256, 'Price must remain positive');
+            assert(price_scale_factor >= 0_u256, 'Price must remain positive');
+            // assert(price >= 0_u256, 'Price must remain positive');
 
             // Determine tokens received based on quote amount
             let mut q_out: u256 = 0;
             if is_decreased {
                 // Sell path: calculate how many tokens are returned for a given quote amount
-                // q_out = (quote_amount) / (price_scale_factor);
-                q_out = (quote_amount_factor) / (price_scale_factor);
-                // q_out = quote_amount / (price * SCALE_FACTOR);
+                q_out = (quote_amount) / (price_scale_factor);
+                // q_out = (quote_amount_factor) / (price_scale_factor);
+            // q_out = quote_amount / (price * SCALE_FACTOR);
             } else {
                 // Buy path: calculate how many tokens are purchased for a given quote amount
-                // q_out = quote_amount / (price * SCALE_FACTOR);
+                q_out = quote_amount / (price * SCALE_FACTOR);
                 // q_out = (quote_amount) / (price_scale_factor);
-                q_out = (quote_amount_factor) / (price_scale_factor);
-                //   // Update liquidity raised and current supply
+            // q_out = (quote_amount_factor) / (price_scale_factor);
+            //   // Update liquidity raised and current supply
             //   pool_coin.liquidity_raised += quote_amount;
             //   pool_coin.total_token_holded -= q_out;
             }
@@ -2087,56 +2168,6 @@ pub mod LaunchpadMarketplace {
             }
         }
 
-
-        fn _calculate_slope(
-            self: @ContractState,
-            threshold_liquidity: u256,
-            starting_price: u256,
-            sellable_supply: u256
-        ) -> u256 {
-            // println!("calculate slope");
-            // Calculate slope
-            // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
-            //     - (starting_price * sellable_supply);
-            let slope_numerator = (threshold_liquidity*SCALE_FACTOR) - (starting_price * sellable_supply);
-            let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
-
-            // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
-            // let slope_denominator = (sellable_supply * sellable_supply) / 2;
-            // let slope = slope_numerator / slope_denominator;
-            // println!("slope_denominator {:?}", slope_denominator);
-
-            // let slope = (threshold_liquidity - (starting_price * sellable_supply))
-            //     / ((sellable_supply * sellable_supply) / 2_u256);
-            // let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
-            let slope = slope_numerator / (slope_denominator);
-
-            // println!("slope");
-            // slope / SCALE_FACTOR
-            slope
-            // // Calculate slope dynamically
-        // let m = (threshold_liquidity - (starting_price * sellable_supply))
-        //     / ((sellable_supply * sellable_supply) / 2_u256);
-
-            // m
-        }
-
-
-        fn _calculate_pricing(
-            ref self: ContractState, threshold_liquidity: u256, sellable_supply: u256
-        ) -> u256 {
-            // let scaling_factor = 10;
-            let scaling_factor = 10;
-            // Starting price is proportional to the threshold liquidity divided by sellable supply
-            let starting_price = (threshold_liquidity * scaling_factor) / sellable_supply;
-            return starting_price;
-            // let threshold_liquidity = self.threshold_liquidity.read();
-        // let slope = (2 * threshold_liquidity)
-        //     / (liquidity_available * (liquidity_available - 1));
-        // let initial_price = (2 * threshold_liquidity / liquidity_available)
-        //     - slope * (liquidity_available - 1) / 2;
-        // (slope, initial_price)
-        }
 
         // Check type, amount and return coin_amount or quote_amount
         // Params

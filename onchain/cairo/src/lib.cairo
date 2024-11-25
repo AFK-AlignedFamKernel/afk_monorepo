@@ -111,5 +111,6 @@ pub mod tests {
     pub mod tap_tests;
     pub mod utils;
     pub mod vault_tests;
+    pub mod liquidity_tests;
 }
 
