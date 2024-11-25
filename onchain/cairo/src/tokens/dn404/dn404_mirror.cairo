@@ -1,5 +1,7 @@
 use starknet::ContractAddress;
 
+pub use DN404Mirror::TransferEvent as NftTransferEvent;
+
 #[starknet::interface]
 pub trait IDN404Mirror<TContractState> {
     fn name(self: @TContractState) -> felt252;
@@ -49,7 +51,7 @@ pub trait IDN404Mirror<TContractState> {
 
     // Methods assumed by DN404 Fallback
 
-    fn log_transfer(ref self: TContractState, packed_logs: Span<felt252>);
+    fn log_transfer(ref self: TContractState, logs: Array<DN404Mirror::TransferEvent>);
 
     fn log_direct_transfer(
         ref self: TContractState, 
@@ -79,11 +81,11 @@ pub mod DN404Mirror {
         owner: ContractAddress,
     }
 
-    #[derive(Drop, starknet::Event)]
-    struct TransferEvent {
-        from: ContractAddress,
-        to: ContractAddress,
-        id: u256,
+    #[derive(Drop, starknet::Event, Serde)]
+    pub struct TransferEvent {
+        pub from: ContractAddress,
+        pub to: ContractAddress,
+        pub id: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -232,8 +234,11 @@ pub mod DN404Mirror {
             self.base_erc20.read()
         }
 
-        fn log_transfer(ref self: ContractState, packed_logs: Span<felt252>) {
-            // Default implementation
+        fn log_transfer(ref self: ContractState, logs: Array<TransferEvent>) {
+            // TODO: support packed logs
+            for log in logs {
+                self.emit(log);
+            }
         }
 
         fn log_direct_transfer(

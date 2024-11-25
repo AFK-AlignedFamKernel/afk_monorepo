@@ -102,7 +102,7 @@ pub mod DN404 {
     use starknet::storage::{Vec, VecTrait, MutableVecTrait};
     use core::num::traits::Zero;
     use super::DN404Options;
-    use crate::tokens::dn404::dn404_mirror::{IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait};
+    use crate::tokens::dn404::dn404_mirror::{NftTransferEvent, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait};
     // TODO
     type u96 = u128;
     type u88 = u128;
@@ -389,6 +389,8 @@ pub mod DN404 {
             let total_nft_supply: u256 = self.total_nft_supply.read().into() + num_nft_mints - num_nft_burns;
             self.total_nft_supply.write(total_nft_supply.try_into().expect('TotalSupplyOverflow')); // TODO: it's not written here in Solidity, just in the variable
 
+            let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
+
             // let burned_pool_tail = self.burned_pool_tail.read();
             if num_nft_burns != 0 {
                 // TODO: support [packed] logs
@@ -406,7 +408,12 @@ pub mod DN404 {
                     // _setOwnerAliasAndOwnedIndex(oo, id, 0, 0);
                     self.owner_aliases.write(token_id.into(), 0);
                     self.owned_indexes.write(token_id.into(), 0);
-                    // TODO: process packed logs
+                    // append to the logs
+                    nft_transfer_logs.append(NftTransferEvent {
+                        from: from,
+                        to: Zero::zero(),
+                        id: token_id.into(),
+                    });
                     // TODO: process exists map
                     // TODO: process burned pool
                     if self.may_have_nft_approval.read(token_id.into()) {
@@ -421,7 +428,7 @@ pub mod DN404 {
                 let to_alias = self._register_and_resolve_alias(ref to_data, to);
                 let id_limit = self.total_supply.read().into() / unit;
                 let mut next_token_id = self._wrap_nft_id(self.next_token_id.read().into(), id_limit);
-                let to_index = to_owned_length;
+                let mut to_index = to_owned_length;
                 let to_end = to_index + num_nft_mints;
                 to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
 
@@ -438,13 +445,28 @@ pub mod DN404 {
                         };
                         next_token_id = self._wrap_nft_id(token_id + 1, id_limit);
                     }
+                    // append token to the owner's owned list
+                    self.owned.entry(to).append().write(token_id.try_into().expect('TokenIdOverflow'));
+                    self.owner_aliases.write(token_id.into(), to_alias);
+                    self.owned_indexes.write(token_id.into(), to_index.try_into().expect('OwnedLengthOverflow'));
+                    to_index += 1;
+                    nft_transfer_logs.append(NftTransferEvent {
+                        from: Zero::zero(),
+                        to: to,
+                        id: token_id.into(),
+                    });
                 };
 
                 self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
             }
 
             // TODO: send direct logs
-            // TODO: send packed logs
+            if nft_transfer_logs.len() > 0 {
+                let dispatcher = IDN404MirrorDispatcher {
+                    contract_address: self.mirror_erc721.read(),
+                };
+                dispatcher.log_transfer(nft_transfer_logs);
+            }
 
             self.emit(TransferEvent {
                 from: from,
