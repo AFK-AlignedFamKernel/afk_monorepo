@@ -139,8 +139,12 @@ pub mod DN404Mirror {
         }
 
         fn token_uri(self: @ContractState, id: u256) -> felt252 {
-            // Default implementation
-            'TODO'
+            // ownerOf reverts if the token does not exist
+            self.owner_of(id);
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.token_uri_nft(id)
         }
 
         fn total_supply(self: @ContractState) -> u256 {
@@ -151,31 +155,55 @@ pub mod DN404Mirror {
         }
 
         fn balance_of(self: @ContractState, nft_owner: ContractAddress) -> u256 {
-            // Default implementation
-            0
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.balance_of_nft(nft_owner)
         }
 
         fn owner_of(self: @ContractState, id: u256) -> ContractAddress {
-            // Default implementation
-            Zero::zero()
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.owner_of_nft(id)
         }
 
         fn owner_at(self: @ContractState, id: u256) -> ContractAddress {
-            // Default implementation
-            Zero::zero()
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.owner_at_nft(id)
         }
 
         fn approve(ref self: ContractState, spender: ContractAddress, id: u256) {
-            // Default implementation
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.approve_nft(spender, id, get_caller_address());
+            self.emit(ApprovalEvent {
+                owner: get_caller_address(),
+                account: spender,
+                id,
+            });
         }
 
         fn get_approved(self: @ContractState, id: u256) -> ContractAddress {
-            // Default implementation
-            Zero::zero()
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.get_approved_nft(id)
         }
 
         fn set_approval_for_all(ref self: ContractState, operator: ContractAddress, approved: bool) {
-            // Default implementation
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.set_approval_for_all_nft(operator, approved, get_caller_address());
+            self.emit(ApprovalForAllEvent {
+                owner: get_caller_address(),
+                operator,
+                is_approved: approved,
+            });
         }
 
         fn is_approved_for_all(
@@ -183,8 +211,10 @@ pub mod DN404Mirror {
             nft_owner: ContractAddress, 
             operator: ContractAddress
         ) -> bool {
-            // Default implementation
-            false
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.is_approved_for_all_nft(nft_owner, operator)
         }
 
         fn transfer_from(
@@ -193,7 +223,10 @@ pub mod DN404Mirror {
             to: ContractAddress, 
             id: u256
         ) {
-            // Default implementation
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+            dispatcher.transfer_from_nft(from, to, id, get_caller_address());
         }
 
         fn safe_transfer_from(
@@ -202,7 +235,8 @@ pub mod DN404Mirror {
             to: ContractAddress, 
             id: u256
         ) {
-            // Default implementation
+            // TODO: support receiver checks
+            self.transfer_from(from, to, id);
         }
 
         fn safe_transfer_from_with_data(
@@ -212,13 +246,13 @@ pub mod DN404Mirror {
             id: u256, 
             data: felt252
         ) {
-            // Default implementation
+            // TODO: support receiver check
+            self.transfer_from(from, to, id);
         }
 
         fn supports_interface(self: @ContractState, interface_id: felt252) -> bool {
-            // Default implementation
             // TODO: OZ SRC5
-            false
+            true
         }
 
         fn owner(self: @ContractState) -> ContractAddress {
@@ -226,8 +260,29 @@ pub mod DN404Mirror {
         }
 
         fn pull_owner(ref self: ContractState) -> bool {
-            // Default implementation
-            false
+            let dispatcher = IDN404Dispatcher {
+                contract_address: self.base_erc20.read(),
+            };
+
+            // Get the new owner from the base contract
+            let new_owner = dispatcher.owner();
+            
+            // Get the current owner
+            let old_owner = self.owner.read();
+
+            // Only update and emit if the owner has changed
+            if old_owner != new_owner {
+                self.owner.write(new_owner);
+                
+                // Emit ownership transfer event
+                self.emit(OwnershipTransferredEvent {
+                    old_owner,
+                    new_owner,
+                });
+            }
+
+            // Return success
+            true
         }
 
         fn base_erc20(self: @ContractState) -> ContractAddress {
