@@ -215,12 +215,17 @@ pub mod StakingComponent {
 
         fn get_reward(ref self: ComponentState<TContractState>) {
             let caller = get_caller_address();
+
+            self.update_reward(caller);
+
             let reward = self.rewards.entry(caller).read();
 
             if reward > 0 {
                 self.rewards.entry(caller).write(0);
-                IERC20Dispatcher { contract_address: self.rewards_token.read() }
+                let transfer = IERC20Dispatcher { contract_address: self.rewards_token.read() }
                     .transfer(caller, reward);
+
+                assert(transfer, Errors::TRANSFER_FAILED);
             }
 
             self.emit(RewardsWithdrawn {
