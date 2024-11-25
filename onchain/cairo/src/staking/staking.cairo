@@ -139,6 +139,11 @@ pub mod StakingComponent {
 
             let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
 
+            let rewards_token = IERC20Dispatcher { contract_address: self.rewards_token.read() };
+
+            let transfer_from = rewards_token.transfer_from(caller, this_contract, amount);
+            assert(transfer_from, Errors::TRANSFER_FAILED);
+
             if block_timestamp >= self.finish_at.read() {
                 self.reward_rate.write(amount / self.duration.read())
             } else {
@@ -147,8 +152,6 @@ pub mod StakingComponent {
 
                 self.reward_rate.write((amount + remaining_rewards) / self.duration.read());
             }
-
-            let rewards_token = IERC20Dispatcher { contract_address: self.rewards_token.read() };
 
             assert(self.reward_rate.read() > 0, Errors::REWARD_RATE_IS_ZERO);
             assert(
