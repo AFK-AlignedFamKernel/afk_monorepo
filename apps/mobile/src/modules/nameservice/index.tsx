@@ -15,6 +15,8 @@ import { CashuWalletView } from '../CashuWallet';
 import { LightningNetworkWalletView } from '../Lightning';
 import stylesheet from './styles';
 import { FormComponent } from './form';
+import { NameCard } from '../../components/NameCard/nameCard';
+import { useAccount } from '@starknet-react/core';
 
 export const NameserviceComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -30,13 +32,32 @@ export const NameserviceComponent: React.FC = () => {
     // }
   };
 
+  const { account } = useAccount();
+  
+  const renderContent = () => {
+    switch(selectedTab) {
+      case SelectedTab.DYNAMIC_GENERAL:
+        return <FormComponent />;
+      case SelectedTab.DYNAMIC_OWNED:
+        // This will be populated when indexer data comes
+        return (
+          <View style={styles.content}>
+            <Text style={styles.text}>Your Names</Text>
+            {/* Placeholder for indexer data */}
+            <NameCard 
+              name="example.stark"
+              owner={account?.address || ''}
+              expiryTime={new Date()}
+            />
+          </View>
+        );
+      default:
+        return <FormComponent />;
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
-        <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
-          Cancel
-        </TextButton>
-      </SafeAreaView> */}
       <ScrollView>
         <KeyboardAvoidingView behavior="padding" style={styles.content}>
           <TabSelector
@@ -44,15 +65,9 @@ export const NameserviceComponent: React.FC = () => {
             handleActiveTab={handleTabSelected}
             buttons={TABS_NAMESERVICE}
             addScreenNavigation={false}
-          ></TabSelector>
+          />
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
-
-
-            <View>
-
-              <FormComponent></FormComponent>
-
-            </View>
+            {renderContent()}
           </SafeAreaView>
         </KeyboardAvoidingView>
       </ScrollView>
