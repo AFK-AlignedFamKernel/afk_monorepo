@@ -77,13 +77,12 @@ export type MainStackParams = {
   Portfolio: undefined;
   Ramp: undefined;
   Onboarding: undefined;
-  DappBrowser:undefined;
-  Oauth:undefined;
-  ShortVideos:undefined;
+  DappBrowser: undefined;
+  Oauth: undefined;
+  ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  Nameservice:undefined;
-
-
+  Nameservice: undefined;
+  ReceiveEcash: {token: string};
 };
 
 export type HomeBottomStackParams = {
@@ -112,11 +111,11 @@ export type HomeBottomStackParams = {
   Lightning: undefined;
   Cashu: undefined;
   LoginNostr: undefined;
-  DappBrowser:undefined;
-  Oauth:undefined;
-  ShortVideos:undefined;
+  DappBrowser: undefined;
+  Oauth: undefined;
+  ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  Nameservice:undefined;
+  Nameservice: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -351,7 +350,12 @@ export type OauthLoginProps = CompositeScreenProps<
 >;
 
 export type ShortVideosScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, "ShortVideos">,
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'ShortVideos'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type ReceiveEcashScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'ReceiveEcash'>,
   NativeStackScreenProps<RootStackParams>
 >;
 // Drawer desktop stack
