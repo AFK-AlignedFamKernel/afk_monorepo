@@ -94,6 +94,20 @@ pub mod Nameservice {
         pub is_claimed: bool
     }
 
+    #[derive(Drop, Debug, Serde, Copy, starknet::Store, PartialEq)]
+    pub struct Auction {
+        pub minimal_price: u256,
+        pub is_accepted_price_reached: bool,
+        pub highest_bid: u256,
+        pub highest_bidder: ContractAddress
+    }
+
+    #[derive(Drop, Debug, Serde, Copy, starknet::Store, PartialEq)]
+    struct Order {
+        bidder: ContractAddress,
+        amount: u256,
+    }
+
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
@@ -101,6 +115,9 @@ pub mod Nameservice {
         usernames_claimed_by_user: Map<ContractAddress, Map<felt252, NameserviceStorage>>,
         subscription_expiry: Map::<ContractAddress, u64>,
         username_storage: Map::<felt252, NameserviceStorage>,
+        auctions: Map::<felt252, Auction>,
+        orders: Map<(felt252, u64), Order>,
+        order_count: Map<felt252, u64>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -119,6 +136,8 @@ pub mod Nameservice {
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
     }
+
+    
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -324,11 +343,58 @@ pub mod Nameservice {
             username: felt252,
             minimal_price: u256,
             is_accepted_price_reached: bool
-        ) {}
+        ) {
+            let caller_address = get_caller_address();
+            let username_address = self.usernames.read(username);
+            assert(username_address == caller_address, 'Username not callers');
+
+            let existing_auction = self.auctions.read(username);
+            assert(existing_auction.minimal_price == 0, 'Auction does not exist');
+
+            // Create a new auction
+            let new_auction = Auction {
+                minimal_price: minimal_price,
+                is_accepted_price_reached: is_accepted_price_reached,
+                highest_bid: 0,
+                highest_bidder: contract_address_const::<0>(),
+            };
+
+            // Store the auction
+            self.auctions.write(username, new_auction);
+        }
 
         // TODO
-        fn place_order(ref self: ContractState, username: felt252, amount: u256) {}
+        fn place_order(ref self: ContractState, username: felt252, amount: u256) {
 
+            let auction = self.auctions.read(username);
+            assert(auction.minimal_price > 0, 'Auction does not exist');
+
+            assert(amount >= auction.minimal_price, 'Bid too low');
+
+            // Create a new order
+            let bidder = get_caller_address();
+
+            let order_id = self.order_count.read(username) + 1;
+            let new_order = Order { bidder: bidder, amount: amount };
+
+            // Store the order
+            self.orders.write((username, order_id), new_order);
+            self.order_count.write(username, order_id);
+
+             // Update auction if this is the highest bid
+             if amount > auction.highest_bid {
+                let mut updated_auction = auction;
+                updated_auction.highest_bid = amount;
+                updated_auction.highest_bidder = bidder;
+                self.auctions.write(username, updated_auction);
+            }
+        }
+        
+        fn get_auction(self: @ContractState, username: felt252) -> Auction {
+            // Read the auction from storage
+            let auction = self.auctions.read(username);
+            auction
+        }
         // TODO
         fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
 
@@ -413,6 +479,9 @@ pub mod Nameservice {
         fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
             self.subscription_expiry.read(address)
         }
+
+        
+
         fn withdraw_fees(ref self: ContractState, amount: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };

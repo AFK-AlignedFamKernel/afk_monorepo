@@ -1,4 +1,5 @@
 use starknet::ContractAddress;
+use afk::afk_id::nameservice::Nameservice::{Auction};
 
 #[starknet::interface]
 pub trait INameservice<TContractState> {
@@ -27,4 +28,5 @@ pub trait INameservice<TContractState> {
     fn update_subscription_price(ref self: TContractState, new_price: u256);
     fn set_is_payment_enabled(ref self: TContractState, new_status: bool) -> bool;
     fn get_is_payment_enabled(self: @TContractState) -> bool;
+    fn get_auction(self: @TContractState, username: felt252) -> Auction;
 }

@@ -15,6 +15,12 @@ mod nameservice_tests {
     fn CALLER() -> ContractAddress {
         starknet::contract_address_const::<2>()
     }
+    fn NEW_CALLER() -> ContractAddress {
+        starknet::contract_address_const::<3>()
+    }
+    fn THIRD_CALLER() -> ContractAddress {
+        starknet::contract_address_const::<4>()
+    }
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const YEAR_IN_SECONDS: u64 = 31536000_u64;
     const PAYMENT_AMOUNT: felt252 = 10;
@@ -250,5 +256,104 @@ mod nameservice_tests {
 
         assert(subscription_price == 10_u256, 'Price is not correct');
         assert(new_subscription_price == 30_u256, 'Price is not correct');
+    }
+
+    #[test]
+    fn test_create_auction_for_username() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        nameservice_dispatcher.create_auction_for_username(username, 100_u256, false);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let existing_auction = nameservice_dispatcher.get_auction(username);
+        assert(existing_auction.minimal_price == 100, 'Minimal price not correct');
+        assert(existing_auction.is_accepted_price_reached == false, 'price not correct');
+        assert(existing_auction.highest_bid == 0, 'highest_bid not correct');
+        assert(existing_auction.highest_bidder ==  starknet::contract_address_const::<0>(), 'highest_bidder not correct');
+    }
+
+    #[test]
+    #[should_panic(expected: 'Username not callers')]
+    fn test_create_auction_for_username_fail() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.create_auction_for_username(username, 100_u256, false);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    }
+
+    #[test]
+    fn test_place_order() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+            setup();
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256);
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        nameservice_dispatcher.create_auction_for_username(username, 100_u256, false);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, NEW_CALLER());
+        nameservice_dispatcher.place_order(username, 200_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, THIRD_CALLER());
+        nameservice_dispatcher.place_order(username, 150_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let existing_auction = nameservice_dispatcher.get_auction(username);
+        assert(existing_auction.highest_bid == 200, 'highest_bid not correct');
+        assert(existing_auction.highest_bidder == NEW_CALLER(), 'highest_bidder not correct');
     }
 }
