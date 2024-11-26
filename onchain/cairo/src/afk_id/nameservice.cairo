@@ -16,7 +16,8 @@ const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 #[starknet::contract]
 pub mod Nameservice {
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::interfaces::username_store::IUsernameStore;
+    use afk::interfaces::nameservice::INameservice;
+    // use afk::interfaces::username_store::INameservice;
     use openzeppelin::access::ownable::OwnableComponent;
 
     use openzeppelin::upgrades::UpgradeableComponent;
@@ -83,12 +84,23 @@ pub mod Nameservice {
     // #[abi(embed_v0)]
     // impl ERC20MetadataImpl = ERC20Component::ERC20MetadataImpl<ContractState>;
     // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
+    // Storage
+
+    #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+    pub struct NameserviceStorage {
+        pub owner: ContractAddress,
+        pub username: felt252,
+        pub expiry: u64,
+        pub is_claimed: bool
+    }
 
     #[storage]
     struct Storage {
         usernames: Map::<felt252, ContractAddress>,
         user_to_username: Map::<ContractAddress, felt252>,
+        usernames_claimed_by_user: Map<ContractAddress, Map<felt252, NameserviceStorage>>,
         subscription_expiry: Map::<ContractAddress, u64>,
+        username_storage: Map::<felt252, NameserviceStorage>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -137,8 +149,8 @@ pub mod Nameservice {
         address: ContractAddress,
         username: felt252,
         expiry: u64,
-        paid:u256,
-        quote_token:ContractAddress
+        paid: u256,
+        quote_token: ContractAddress
     }
 
     #[derive(Drop, starknet::Event)]
@@ -194,8 +206,10 @@ pub mod Nameservice {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             // This function can only be called by the owner
             self.ownable.assert_only_owner();
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
             //TODO: Replace class hash
-        // self.upgradeable._upgrade(new_class_hash);
+            self.upgradeable.upgrade(new_class_hash);
         }
     }
 
@@ -206,7 +220,8 @@ pub mod Nameservice {
         owner: ContractAddress,
         admin: ContractAddress,
         subscription_price: u256,
-        token_quote: ContractAddress
+        token_quote: ContractAddress,
+        is_payment_enabled: bool
     ) {
         self.ownable.initializer(owner);
 
@@ -215,6 +230,7 @@ pub mod Nameservice {
         self.subscription_price.write(subscription_price);
         self.token_quote.write(token_quote);
 
+        self.is_payment_enabled.write(is_payment_enabled);
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
         self.erc20.initializer(".afk", ".afk");
@@ -223,18 +239,45 @@ pub mod Nameservice {
 
 
     #[abi(embed_v0)]
-    impl Nameservice of IUsernameStore<ContractState> {
+    impl Nameservice of INameservice<ContractState> {
+        // Getters
+        fn get_username(self: @ContractState, address: ContractAddress) -> felt252 {
+            self.user_to_username.read(address)
+        }
+
+        fn get_username_address(self: @ContractState, key: felt252) -> ContractAddress {
+            self.usernames.read(key)
+        }
+
+        fn get_token_quote(self: @ContractState) -> ContractAddress {
+            self.token_quote.read()
+        }
+
+        fn get_is_payment_enabled(self: @ContractState) -> bool {
+            self.is_payment_enabled.read()
+        }
+
+        fn get_subscription_price(self: @ContractState) -> u256 {
+            self.subscription_price.read()
+        }
+
+        // Users call
+
         fn claim_username(ref self: ContractState, key: felt252) {
             let caller_address = get_caller_address();
             let current_time = get_block_timestamp();
 
-            // Check for user having username
-            assert(
-                self.user_to_username.read(caller_address) == 0,
-                UserNameClaimErrors::USER_HAS_USERNAME
-            );
             let price = self.subscription_price.read();
             let quote_token = self.token_quote.read();
+
+            let username_storage = self.username_storage.entry(key);
+
+            //   TODO uncomment. User can claimed few users name.
+            // Check for user having username
+            // assert(
+            //     self.user_to_username.read(caller_address) == 0,
+            //     UserNameClaimErrors::USER_HAS_USERNAME
+            // );
 
             // Check for availability
             let username_address = self.usernames.read(key);
@@ -252,6 +295,12 @@ pub mod Nameservice {
             let expiry = current_time + YEAR_IN_SECONDS;
             self.usernames.entry(key).write(caller_address);
             self.user_to_username.entry(caller_address).write(key);
+
+            let name_claimed = NameserviceStorage {
+                owner: caller_address, username: key, expiry: expiry, is_claimed: true
+            };
+            self.username_storage.entry(key).write(name_claimed);
+
             self.subscription_expiry.entry(caller_address).write(expiry);
 
             self.erc20.mint(caller_address, 1_u256);
@@ -267,6 +316,43 @@ pub mod Nameservice {
                 );
         }
 
+        // TODO change main username
+        fn change_main_username(ref self: ContractState, new_username: felt252) {}
+        // TODO
+        fn create_auction_for_username(
+            ref self: ContractState,
+            username: felt252,
+            minimal_price: u256,
+            is_accepted_price_reached: bool
+        ) {}
+
+        // TODO
+        fn place_order(ref self: ContractState, username: felt252, amount: u256) {}
+
+        // TODO
+        fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
+
+        // TODO
+        fn cancel_order(ref self: ContractState, username: felt252, id: u64) {}
+
+        // TODO
+        fn renew_subscription(ref self: ContractState) {
+            let caller = get_caller_address();
+            let current_time = get_block_timestamp();
+            let current_expiry = self.subscription_expiry.read(caller);
+
+            // Payment
+            let price = self.subscription_price.read();
+            let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+            payment_token.transfer_from(caller, get_contract_address(), price);
+
+            let new_expiry = max(current_time, current_expiry) + YEAR_IN_SECONDS;
+            self.subscription_expiry.write(caller, new_expiry);
+
+            self.emit(SubscriptionRenewed { address: caller, expiry: new_expiry });
+        }
+
+
         fn change_username(ref self: ContractState, new_username: felt252) {
             let caller_address = get_caller_address();
             let current_time = get_block_timestamp();
@@ -276,6 +362,9 @@ pub mod Nameservice {
             assert(current_time < expiry, UserNameClaimErrors::SUBSCRIPTION_EXPIRED);
 
             let new_username_address = self.usernames.read(new_username);
+            // TODO check if claimd and expiry is not finish too
+            let username_storage = self.username_storage.entry(new_username);
+
             assert(
                 new_username_address == contract_address_const::<0>(),
                 UserNameClaimErrors::USERNAME_CLAIMED
@@ -296,30 +385,34 @@ pub mod Nameservice {
                 );
         }
 
-        fn get_username(self: @ContractState, address: ContractAddress) -> felt252 {
-            self.user_to_username.read(address)
+
+        // ADMIN
+        // Admin functions
+        fn update_subscription_price(ref self: ContractState, new_price: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            assert(new_price > 0, UserNameClaimErrors::INVALID_PRICE);
+
+            let old_price = self.subscription_price.read();
+            self.subscription_price.write(new_price);
+
+            self.emit(PriceUpdated { old_price, new_price });
         }
 
-        fn get_username_address(self: @ContractState, key: felt252) -> ContractAddress {
-            self.usernames.read(key)
+        fn set_token_quote(ref self: ContractState, token_quote: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.token_quote.write(token_quote);
         }
 
-        fn renew_subscription(ref self: ContractState) {
-            let caller = get_caller_address();
-            let current_time = get_block_timestamp();
-            let current_expiry = self.subscription_expiry.read(caller);
-
-            // Payment
-            let price = self.subscription_price.read();
-            let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
-            payment_token.transfer_from(caller, get_contract_address(), price);
-
-            let new_expiry = max(current_time, current_expiry) + YEAR_IN_SECONDS;
-            self.subscription_expiry.write(caller, new_expiry);
-
-            self.emit(SubscriptionRenewed { address: caller, expiry: new_expiry });
+        fn set_is_payment_enabled(ref self: ContractState, new_status: bool) -> bool {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_payment_enabled.write(new_status);
+            new_status
         }
 
+
+        fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
+            self.subscription_expiry.read(address)
+        }
         fn withdraw_fees(ref self: ContractState, amount: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
@@ -344,46 +437,6 @@ pub mod Nameservice {
     //         self._set_role(recipient, role, is_enable);
     //     }
     // }
-
-    // Admin functions
-    #[external(v0)]
-    fn update_subscription_price(ref self: ContractState, new_price: u256) {
-        self.accesscontrol.assert_only_role(ADMIN_ROLE);
-        assert(new_price > 0, UserNameClaimErrors::INVALID_PRICE);
-
-        let old_price = self.subscription_price.read();
-        self.subscription_price.write(new_price);
-
-        self.emit(PriceUpdated { old_price, new_price });
-    }
-
-    #[external(v0)]
-    fn set_token_quote(ref self: ContractState, token_quote: ContractAddress) {
-        self.accesscontrol.assert_only_role(ADMIN_ROLE);
-        self.token_quote.write(token_quote);
-    }
-
-    #[external(v0)]
-    fn set_is_payment_enabled(ref self: ContractState, new_status: bool) {
-        self.accesscontrol.assert_only_role(ADMIN_ROLE);
-        self.is_payment_enabled.write(new_status);
-    }
-
-    #[external(v0)]
-    fn get_is_payment_enabled(self: @ContractState) -> bool {
-        self.is_payment_enabled.read()
-    }
-
-    #[external(v0)]
-    fn get_subscription_price(self: @ContractState) -> u256 {
-        self.subscription_price.read()
-    }
-
-    #[external(v0)]
-    fn get_subscription_expiry(self: @ContractState, address: ContractAddress) -> u64 {
-        self.subscription_expiry.read(address)
-    }
-
 
     //Internal function to check the maximum of two
     #[generate_trait]

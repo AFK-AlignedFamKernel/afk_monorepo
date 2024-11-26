@@ -33,6 +33,7 @@ mod nameservice_tests {
         ADMIN().serialize(ref calldata);
         ADMIN().serialize(ref calldata);
         10_u256.serialize(ref calldata);
+        false.serialize(ref calldata);
         payment_token_dispatcher.contract_address.serialize(ref calldata);
         // calldata.append_serde(PAYMENT_AMOUNT);
         // calldata.append_serde(payment_token_dispatcher.contract_address);

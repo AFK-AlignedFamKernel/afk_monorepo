@@ -19,7 +19,7 @@ import Badge from '../../components/Badge';
 import {LoadingSpinner} from '../../components/Loading';
 import {useSocketContext} from '../../context/SocketContext';
 // import {DatePicker} from '../../components/DateComponent';
-import {useStyles, useTheme} from '../../hooks';
+import {useNostrAuth, useStyles, useTheme} from '../../hooks';
 import {useToast} from '../../hooks/modals';
 import {StreamStudio} from '../../types';
 import styleSheet from './event.styles';
@@ -146,6 +146,7 @@ export const RenderEventCard = ({
       : false;
 
   const {addParticipant} = useLiveActivity();
+  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
 
   const {joinStream} = useWebStream({
     socketRef,
@@ -155,7 +156,10 @@ export const RenderEventCard = ({
     isConnected,
   });
 
-  const handleJoinEvent = () => {
+  const handleJoinEvent = async () => {
+
+    await handleCheckNostrAndSendConnectDialog();
+    
     if (!pubKey) {
       toast.showToast({title: 'Must be signed in', type: 'error'});
       return;

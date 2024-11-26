@@ -40,7 +40,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
 
     const account = useAccount();
     const walletModal = useWalletModal();
-    const {sendTransaction} = useTransaction({});
+    const {sendTransaction} = useTransaction({callsProps:[]});
     const {hide: hideTransactionModal} = useTransactionModal();
     const waitConnection = useWaitConnection();
 

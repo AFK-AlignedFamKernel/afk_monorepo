@@ -21,7 +21,8 @@ const PATH_NAMESERVICE_COMPILED = path.resolve(
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createNameservice = async (owner:string, admin:string,
   subscription_price:Uint256,
-  token_quote:string
+  token_quote:string,
+  is_payment_enable:boolean
 ) => {
   try {
     console.log("Deploy Nameservice");
@@ -99,7 +100,8 @@ export const createNameservice = async (owner:string, admin:string,
         constructorCalldata: [owner,
           admin,
           subscription_price,
-          token_quote
+          token_quote,
+          is_payment_enable
 
 
         ],
