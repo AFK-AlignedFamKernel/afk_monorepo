@@ -9,6 +9,7 @@ pub mod sha256;
 pub mod social;
 
 pub mod staking;
+
 pub mod utils;
 pub mod launchpad {
     pub mod errors;
