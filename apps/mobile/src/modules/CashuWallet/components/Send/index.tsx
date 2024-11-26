@@ -98,7 +98,8 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     if (type == 'ecash') {
       await Clipboard.setStringAsync(generatedEcash);
     } else if (type === 'link') {
-      await Clipboard.setStringAsync(`/receive/ecash/${generatedEcash}`);
+      const baseUrl = window.location.origin;
+      await Clipboard.setStringAsync(`${baseUrl}/receive/ecash/${generatedEcash}`);
     }
     const key = randomUUID();
     setModalToast({
@@ -227,16 +228,18 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
           });
         } else {
           // Fallback for browsers that don't support Web Share API
-          await navigator.clipboard.writeText(`/receive/ecash/${generatedEcash}`);
+          const baseUrl = window.location.origin;
+          await navigator.clipboard.writeText(`${baseUrl}/receive/ecash/${generatedEcash}`);
           const key = randomUUID();
           setShowModalToast(true);
           setModalToast({type: 'success', title: 'Link copied to clipboard.,', key});
         }
       } else {
         // Mobile sharing for link
+        const baseUrl = window.location.origin;
         await Share.share({
           title: 'Share AFK Gift Link',
-          message: `/receive/ecash/${generatedEcash}`,
+          message: `${baseUrl}/receive/ecash/${generatedEcash}`,
           url: `/receive/ecash/${generatedEcash}`, // iOS only
         });
       }
