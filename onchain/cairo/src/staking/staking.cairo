@@ -1,7 +1,7 @@
 use core::starknet::ContractAddress;
 
 #[starknet::interface]
-trait IStaking<TContractState> {
+pub trait IStaking<TContractState> {
     fn set_rewards_duration(ref self: TContractState, duration: u256);
     fn notify_reward_amount(ref self: TContractState, amount: u256);
     fn stake(ref self: TContractState, amount: u256);
