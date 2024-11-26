@@ -60,9 +60,10 @@ import {ThemedStyleSheet} from '../styles';
 // Utilities
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
-import { ShortVideoNostrScreen } from '../screens/nostr/shorts';
-import { OauthScreen } from '../screens/OauthTwitter';
-import { LaunchpadScreen } from '../screens/Launchpad';
+import {ShortVideoNostrScreen} from '../screens/nostr/shorts';
+import {OauthScreen} from '../screens/OauthTwitter';
+import {LaunchpadScreen} from '../screens/Launchpad';
+import {SocialPaymentView} from '../modules/SocialPayment';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -306,6 +307,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="WatchStream" component={SingleStreamModuleView} />
       <MainStack.Screen name="ViewStreamGuest" component={ViewStreamModuleView} />
 
+      <MainStack.Screen name="SocialPayment" component={SocialPaymentView} />
       <MainStack.Screen name="Login" component={LoginNostr} />
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />
       <MainStack.Screen name="SaveKeys" component={SaveKeys} />
@@ -412,7 +414,7 @@ const linking = {
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',
           DappBrowser: 'browser',
-          Oauth:"oauth"
+          Oauth: 'oauth',
         },
       },
       MainStack: {
@@ -484,7 +486,8 @@ const linking = {
           Portfolio: 'portfolio',
           ShortVideos: 'shorts',
           DappBrowser: 'browser',
-          Oauth:"oauth"
+          Oauth: 'oauth',
+          SocialPayment: 'SocialPayment',
         },
       },
     },

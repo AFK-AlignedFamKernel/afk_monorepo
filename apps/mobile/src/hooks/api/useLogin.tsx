@@ -1,4 +1,4 @@
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../services/api';
 
@@ -24,5 +24,15 @@ export const useLogin = () => {
         },
       });
     },
+  });
+};
+
+export const useGetAuthUser = (shouldFetch = true) => {
+  return useQuery({
+    queryKey: ['auth_user'],
+    queryFn: async () => {
+      return ApiIndexerInstance.get('/me');
+    },
+    enabled: !!shouldFetch,
   });
 };

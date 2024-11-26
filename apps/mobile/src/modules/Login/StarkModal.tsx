@@ -1,6 +1,5 @@
 import {Connector, useConnect} from '@starknet-react/core';
 import * as Linking from 'expo-linking';
-import React, {useState} from 'react';
 import {Platform, Pressable, View} from 'react-native';
 import {SvgXml} from 'react-native-svg';
 
@@ -8,17 +7,17 @@ import {Button, Modal, Text} from '../../components';
 import {ARGENT_X_INSTALL_URL, BRAAVOS_INSTALL_URL} from '../../constants/urls';
 import {useStyles, useTheme} from '../../hooks';
 import {useDialog} from '../../hooks/modals/useDialog';
-import {SignMessageModal} from './StarknetSigner'; // Import the new component
 import stylesheet from './styles';
 
 export type WalletModalProps = {
   hide: () => void;
+  handleNavigation: () => void;
+  handleToggleSign: () => void;
 };
 
-export const StarkConnectModal: React.FC<WalletModalProps> = ({hide}) => {
+export const StarkConnectModal: React.FC<WalletModalProps> = ({hide, handleToggleSign}) => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
-  const [showSignModal, setShowSignModal] = useState(false);
 
   const {connectAsync, connectors} = useConnect();
   const {showDialog, hideDialog} = useDialog();
@@ -26,19 +25,11 @@ export const StarkConnectModal: React.FC<WalletModalProps> = ({hide}) => {
   const handleConnectWallet = async (connector: Connector) => {
     try {
       await connectAsync({connector});
-      setShowSignModal(true); // Show sign modal after successful connection
+      handleToggleSign();
     } catch (error) {
       console.log(error, 'error connecting wallet');
     }
   };
-  const handleCloseModals = () => {
-    setShowSignModal(false);
-    hide();
-  };
-
-  if (showSignModal) {
-    return <SignMessageModal hide={handleCloseModals} />;
-  }
 
   return (
     <Modal>

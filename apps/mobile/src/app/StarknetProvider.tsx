@@ -39,6 +39,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
       <StarknetConfig
         chains={[chain]}
         provider={providers}
+        autoConnect
         connectors={[
           ...(Platform.OS === 'web' ? injected : []),
           // argentMobileConnector({
