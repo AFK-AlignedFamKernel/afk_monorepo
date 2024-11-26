@@ -26,6 +26,7 @@ import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
 import ShortVideosModule from '../modules/ShortVideos';
+import {SocialPaymentView} from '../modules/SocialPayment';
 import {StudioModuleView} from '../modules/Studio';
 import {SingleStreamModuleView} from '../modules/Studio/SingleStream';
 import {ViewStreamModuleView} from '../modules/Studio/ViewStream';
@@ -46,7 +47,11 @@ import {EditProfile} from '../screens/EditProfile';
 import {Feed} from '../screens/Feed';
 import {Games} from '../screens/Games';
 import {LaunchDetail} from '../screens/LaunchDetail';
+import {LaunchpadScreen} from '../screens/Launchpad';
 import {LightningNetworkScreen} from '../screens/Lightning';
+import {NameserviceScreen} from '../screens/Nameservice';
+import {ShortVideoNostrScreen} from '../screens/nostr/shorts';
+import {OauthScreen} from '../screens/OauthTwitter';
 import {Onboarding} from '../screens/Onboarding';
 import {PostDetail} from '../screens/PostDetail';
 import {Profile} from '../screens/Profile';
@@ -60,14 +65,6 @@ import {ThemedStyleSheet} from '../styles';
 // Utilities
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
-import {ShortVideoNostrScreen} from '../screens/nostr/shorts';
-import {OauthScreen} from '../screens/OauthTwitter';
-import {LaunchpadScreen} from '../screens/Launchpad';
-import {SocialPaymentView} from '../modules/SocialPayment';
-import {ShortVideoNostrScreen} from '../screens/nostr/shorts';
-import {OauthScreen} from '../screens/OauthTwitter';
-import {LaunchpadScreen} from '../screens/Launchpad';
-import {NameserviceScreen} from '../screens/Nameservice';
 
 type TabBarIconProps = {
   focused: boolean;
