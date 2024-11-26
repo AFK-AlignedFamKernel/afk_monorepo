@@ -20,7 +20,7 @@ use starknet::ContractAddress;
 
 // Overridable functions from Solidity contract migrated to configuration struct
 #[derive(Drop, Serde, starknet::Store)]
-struct DN404Options {
+pub struct DN404Options {
     // Amount of token balance that is equal to one NFT.
     pub unit: u256,
     // Indicates whether the token IDs are one-indexed.
@@ -149,28 +149,28 @@ pub mod DN404 {
 
 
     #[derive(Drop, starknet::Event)]
-    struct TransferEvent {
+    pub struct TransferEvent {
         from: ContractAddress,
         to: ContractAddress,
         amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct ApprovalEvent {
+    pub struct ApprovalEvent {
         owner: ContractAddress,
         spender: ContractAddress,
         amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct SkipNFTSetEvent {
+    pub struct SkipNFTSetEvent {
         owner: ContractAddress,
         status: bool,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         Transfer: TransferEvent,
         Approval: ApprovalEvent,
         SkipNFTSet: SkipNFTSetEvent,

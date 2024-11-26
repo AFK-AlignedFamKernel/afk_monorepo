@@ -110,7 +110,7 @@ pub mod DN404Mirror {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         Transfer: TransferEvent,
         Approval: ApprovalEvent,
         ApprovalForAll: ApprovalForAllEvent,
