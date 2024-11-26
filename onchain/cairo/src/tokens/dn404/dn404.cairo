@@ -1,7 +1,6 @@
 // TODO: create component of it, implement a factory in the future
 
 // Changes comparing to Solidity DN404 contract:
-// - Owned NFTs storage became Vec<u32>
 // - Flags unwinded from Bitmap to several boolean maps
 // - Using 2 separate mappings for Owner aliases and Owned NFTs indexes
 // Unimplemented features:
@@ -97,7 +96,6 @@ pub mod DN404 {
     use starknet::{ContractAddress, get_caller_address};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePathEntry};
-    use starknet::storage::{Vec, VecTrait, MutableVecTrait};
     use core::num::traits::Zero;
     use super::DN404Options;
     use crate::tokens::dn404::dn404_mirror::{
@@ -132,7 +130,7 @@ pub mod DN404 {
         may_have_nft_approval: Map<u256, bool>,
         exists: Map<u256, bool>,
         allowance: Map<(ContractAddress, ContractAddress), u256>,
-        owned: Map<ContractAddress, Vec<u32>>,
+        owned: Map<ContractAddress, Map<u32, u32>>,
         burned_pool: Span<u32>,
         // Use two separate mappings for owner aliases and owned indexes:
         owner_aliases: Map<u256, u32>,
@@ -487,14 +485,13 @@ pub mod DN404 {
                 let from_end: u64 = from_index
                     - num_nft_burns.try_into().expect('OwnedLengthOverflow');
                 from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
-
                 // Burn loop
                 // We don't rely on wrapping here because we use Vecs instead of circle bufferred
                 // array-like mapping
                 while from_index > from_end {
                     from_index -= 1;
                     // get last token from the sender's owned list
-                    let token_id = self.owned.entry(from).at(from_index).read();
+                    let token_id = self.owned.entry(from).read(from_index.try_into().unwrap());
                     // _setOwnerAliasAndOwnedIndex(oo, id, 0, 0);
                     self.owner_aliases.write(token_id.into(), 0);
                     self.owned_indexes.write(token_id.into(), 0);
@@ -535,11 +532,11 @@ pub mod DN404 {
                         next_token_id = self._wrap_nft_id(token_id + 1, id_limit);
                     }
                     // append token to the owner's owned list
-                    self
-                        .owned
-                        .entry(to)
-                        .append()
-                        .write(token_id.try_into().expect('TokenIdOverflow'));
+                    self.owned.entry(to).write(
+                        to_index.try_into().expect('IndexOverflow'), 
+                        token_id.try_into().expect('TokenIdOverflow')
+                    );
+                    
                     self.owner_aliases.write(token_id.into(), to_alias);
                     self
                         .owned_indexes
@@ -561,6 +558,10 @@ pub mod DN404 {
                 };
                 dispatcher.log_transfer(nft_transfer_logs);
             }
+
+            // Update address data
+            self.address_data.write(from, from_data);
+            self.address_data.write(to, to_data);
 
             self.emit(TransferEvent { from: from, to: to, amount: amount, });
             // TODO: afterNFTTransfers
@@ -687,11 +688,10 @@ pub mod DN404 {
                     }
 
                     // Append token to owner's owned list
-                    self
-                        .owned
-                        .entry(to)
-                        .append()
-                        .write(token_id.try_into().expect('TokenIdOverflow'));
+                    self.owned.entry(to).write(
+                        to_index.try_into().expect('IndexOverflow'),
+                        token_id.try_into().expect('TokenIdOverflow')
+                    );
                     self.owner_aliases.write(token_id.into(), to_alias);
                     self
                         .owned_indexes
@@ -714,6 +714,9 @@ pub mod DN404 {
                     dispatcher.log_transfer(nft_transfer_logs);
                 }
             };
+
+            // Update address data
+            self.address_data.write(to, to_data);
 
             // Emit Transfer event
             self.emit(TransferEvent { from: Zero::zero(), to: to, amount: amount, });
@@ -794,7 +797,10 @@ pub mod DN404 {
                     };
 
                     // Append token to owner's owned list
-                    self.owned.entry(to).append().write(id.try_into().expect('TokenIdOverflow'));
+                    self.owned.entry(to).write(
+                        to_index.try_into().expect('IndexOverflow'),
+                        id.try_into().expect('TokenIdOverflow')
+                    );
                     self.owner_aliases.write(id.into(), to_alias);
                     self
                         .owned_indexes
@@ -816,6 +822,9 @@ pub mod DN404 {
                 }
                 break;
             };
+
+            // Update address data
+            self.address_data.write(to, to_data);
 
             // Emit Transfer event
             self.emit(TransferEvent { from: Zero::zero(), to: to, amount: amount, });
@@ -871,7 +880,7 @@ pub mod DN404 {
                 while from_index > from_end {
                     from_index -= 1;
                     // Get last token from the sender's owned list
-                    let token_id = self.owned.entry(from).at(from_index).read();
+                    let token_id = self.owned.entry(from).read(from_index.try_into().unwrap());
 
                     // Clear ownership data
                     self.owner_aliases.write(token_id.into(), 0);
@@ -984,20 +993,18 @@ pub mod DN404 {
             // Update from's owned tokens
             let mut from_owned_length = from_data.owned_length - 1;
             from_data.owned_length = from_owned_length;
-            // TODO: check how we write to owned since it's a Vec
-            let updated_id = self.owned.entry(from).at(from_owned_length.into()).read();
+            let updated_id = self.owned.entry(from).read(from_owned_length);
             let i = self.owned_indexes.read(id);
-            self.owned.entry(from).at(i.into()).write(updated_id);
+            self.owned.entry(from).write(i.into(), updated_id);
             self.owned_indexes.write(updated_id.into(), i);
 
             // Update to's owned tokens
             let to_owned_length = to_data.owned_length;
             to_data.owned_length += 1;
-            self
-                .owned
-                .entry(to)
-                .at(to_owned_length.into())
-                .write(id.try_into().expect('TokenIdOverflow'));
+            self.owned.entry(to).write(
+                to_owned_length.try_into().expect('IndexOverflow'),
+                id.try_into().expect('TokenIdOverflow')
+            );
             let to_alias = self._register_and_resolve_alias(ref to_data, to);
             self.owner_aliases.write(id, to_alias);
             self.owned_indexes.write(id, to_owned_length);
