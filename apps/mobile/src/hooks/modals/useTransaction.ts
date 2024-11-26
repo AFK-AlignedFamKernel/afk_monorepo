@@ -8,7 +8,7 @@ import {useTransactionModal} from './useTransactionModal';
 interface UseTransactionInterface {
   callsProps?: Call[];
 }
-export const useTransaction = ({callsProps}: UseTransactionInterface) => {
+export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
   const {show: showTransactionModal, hide: hideTransactionModal, shown} = useTransactionModal();
   // const {writeAsync} = useContractWrite({});
 
