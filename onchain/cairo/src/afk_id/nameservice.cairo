@@ -116,8 +116,9 @@ pub mod Nameservice {
         subscription_expiry: Map::<ContractAddress, u64>,
         username_storage: Map::<felt252, NameserviceStorage>,
         auctions: Map::<felt252, Auction>,
-        orders: Map<(felt252, u64), Order>,
+        orders: Map<felt252, Order>,
         order_count: Map<felt252, u64>,
+        order_return: Map::<ContractAddress, u256>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -345,7 +346,8 @@ pub mod Nameservice {
             is_accepted_price_reached: bool
         ) {
             let caller_address = get_caller_address();
-            let username_address = self.usernames.read(username);
+            let username_address = self.get_username_address(username);
+
             assert(username_address == caller_address, 'Username not callers');
 
             let existing_auction = self.auctions.read(username);
@@ -368,38 +370,55 @@ pub mod Nameservice {
 
             let auction = self.auctions.read(username);
             assert(auction.minimal_price > 0, 'Auction does not exist');
-
-            assert(amount >= auction.minimal_price, 'Bid too low');
+            assert(amount > auction.highest_bid, 'Bid too low');
 
             // Create a new order
             let bidder = get_caller_address();
+            let quote_token = self.token_quote.read();
+
+             // check if new bidder alredy has an outbidded amount (still in the contract)
+            let bidder_amount = self.order_return.read(bidder);
+            self.order_return.entry(bidder).write(0);
+            let new_amount = amount - bidder_amount;
+
+            if self.is_payment_enabled.read() {
+                let payment_token = IERC20Dispatcher { contract_address: quote_token };
+                payment_token.transfer_from(bidder, get_contract_address(), new_amount);
+            }
 
             let order_id = self.order_count.read(username) + 1;
-            let new_order = Order { bidder: bidder, amount: amount };
+            let new_order = Order { bidder: bidder, amount: new_amount };
+
+            let old_order = self.orders.read(username);
 
             // Store the order
-            self.orders.write((username, order_id), new_order);
+            self.orders.write(username, new_order);
             self.order_count.write(username, order_id);
 
-             // Update auction if this is the highest bid
-             if amount > auction.highest_bid {
-                let mut updated_auction = auction;
-                updated_auction.highest_bid = amount;
-                updated_auction.highest_bidder = bidder;
-                self.auctions.write(username, updated_auction);
-            }
+            let order_return_amount = self.order_return.read(old_order.bidder);
+            println!(" order_return_amount: {:?}", order_return_amount);
+            self.order_return.entry(old_order.bidder).write((order_return_amount + old_order.amount));
+
+            // Update auction if this is the highest bid
+            let mut updated_auction = auction;
+            updated_auction.highest_bid = amount;
+            updated_auction.highest_bidder = bidder;
+            self.auctions.write(username, updated_auction);
         }
         
+        
+        // TODO
+        fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
+
+        // TODO
+        fn cancel_order(ref self: ContractState, username: felt252, id: u64) {
+        }
+
         fn get_auction(self: @ContractState, username: felt252) -> Auction {
             // Read the auction from storage
             let auction = self.auctions.read(username);
             auction
         }
-        // TODO
-        fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
-
-        // TODO
-        fn cancel_order(ref self: ContractState, username: felt252, id: u64) {}
 
         // TODO
         fn renew_subscription(ref self: ContractState) {
