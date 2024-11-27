@@ -5,6 +5,7 @@ export const authSchema = {
     userAddress: z.string().min(1, "User address is required"),
     loginType: z.enum(["starknet", "ethereum", "other"]),
     signature: z.array(z.string()).min(2),
+    signedData: z.string().min(1, "Signed data is required"),
   }),
 
   refreshToken: z.object({

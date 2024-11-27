@@ -70,8 +70,10 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide, handleN
       mutate(
         {
           userAddress: address as string,
+          // signature: signedMessage,
           signature: signedMessage,
           loginType: 'starknet',
+          signedData: JSON.stringify(typedDataValidate),
         },
         {
           onSuccess(data) {

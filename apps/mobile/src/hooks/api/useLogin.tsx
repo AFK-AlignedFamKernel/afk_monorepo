@@ -10,6 +10,7 @@ type PayloadType = {
   userAddress: string;
   signature: Signature;
   loginType: 'starknet' | 'eth' | 'others';
+  signedData: string;
 };
 
 export const useLogin = () => {
