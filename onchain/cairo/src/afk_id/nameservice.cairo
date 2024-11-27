@@ -118,7 +118,7 @@ pub mod Nameservice {
         auctions: Map::<felt252, Auction>,
         orders: Map<felt252, Order>,
         order_count: Map<felt252, u64>,
-        order_return: Map::<ContractAddress, u256>,
+        order_return: Map::<ContractAddress, Map<felt252, u256>>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -376,9 +376,9 @@ pub mod Nameservice {
             let bidder = get_caller_address();
             let quote_token = self.token_quote.read();
 
-             // check if new bidder alredy has an outbidded amount (still in the contract)
-            let bidder_amount = self.order_return.read(bidder);
-            self.order_return.entry(bidder).write(0);
+             // check if new bidder already has an outbidded amount for the username(still in the contract)
+            let bidder_amount = self.order_return.entry(bidder).entry(username).read();
+            self.order_return.entry(bidder).entry(username).write(0);
             let new_amount = amount - bidder_amount;
 
             if self.is_payment_enabled.read() {
@@ -387,7 +387,7 @@ pub mod Nameservice {
             }
 
             let order_id = self.order_count.read(username) + 1;
-            let new_order = Order { bidder: bidder, amount: new_amount };
+            let new_order = Order { bidder: bidder, amount: amount };
 
             let old_order = self.orders.read(username);
 
@@ -395,14 +395,14 @@ pub mod Nameservice {
             self.orders.write(username, new_order);
             self.order_count.write(username, order_id);
 
-            let order_return_amount = self.order_return.read(old_order.bidder);
-            println!(" order_return_amount: {:?}", order_return_amount);
-            self.order_return.entry(old_order.bidder).write((order_return_amount + old_order.amount));
+            let order_return_amount = self.order_return.entry(old_order.bidder).entry(username).read();
+            self.order_return.entry(old_order.bidder).entry(username).write((order_return_amount + old_order.amount));
 
             // Update auction if this is the highest bid
             let mut updated_auction = auction;
             updated_auction.highest_bid = amount;
             updated_auction.highest_bidder = bidder;
+            updated_auction.is_accepted_price_reached = true;
             self.auctions.write(username, updated_auction);
         }
         
@@ -411,7 +411,30 @@ pub mod Nameservice {
         fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
 
         // TODO
-        fn cancel_order(ref self: ContractState, username: felt252, id: u64) {
+        fn cancel_order(ref self: ContractState, username: felt252) {
+            let bidder = get_caller_address();
+            let auction = self.auctions.read(username);
+            let order = self.orders.read(username);
+
+            let order_return_amount = self.order_return.entry(bidder).entry(username).read();
+
+            assert((order.bidder == bidder) || (order_return_amount >= 0), 'Inactive cancel order');
+            // Update auction if this is the highest bid
+            let mut amount = 0;
+            if order.bidder == bidder {
+                amount = order.amount;
+                let mut updated_auction = auction;
+                updated_auction.highest_bid = 0;
+                updated_auction.highest_bidder = contract_address_const::<0>();
+                updated_auction.is_accepted_price_reached = false;
+                self.auctions.write(username, updated_auction);
+
+            } else {
+                amount = order_return_amount;
+            }
+
+            let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+            token.transfer(bidder, amount);
         }
 
         fn get_auction(self: @ContractState, username: felt252) -> Auction {

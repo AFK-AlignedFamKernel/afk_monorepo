@@ -394,16 +394,6 @@ mod nameservice_tests {
         nameservice_dispatcher.set_is_payment_enabled(true);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
-        let caller_balance = payment_token_dispatcher.balance_of(CALLER());
-        let new_caller_balance = payment_token_dispatcher.balance_of(NEW_CALLER());
-        let third_caller_balance = payment_token_dispatcher.balance_of(THIRD_CALLER());
-        let contract_balance = payment_token_dispatcher
-            .balance_of(nameservice_dispatcher.contract_address);
-        println!("The contract_balance is : {}", contract_balance);
-        println!("The caller_balance is : {}", caller_balance);
-        println!("The new_caller_balance is : {}", new_caller_balance);
-        println!("The third_caller_balance is : {}", third_caller_balance);
-
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
@@ -448,7 +438,6 @@ mod nameservice_tests {
         assert(caller_balance == 10_u256, 'caller balance incorrect');
         assert(new_caller_balance == 2_u256, 'new_caller balance incorrect');
         assert(third_caller_balance == 5_u256, 'third_caller balance incorrect');
-
     }
 
     #[test]
@@ -497,5 +486,90 @@ mod nameservice_tests {
         start_cheat_caller_address(nameservice_dispatcher.contract_address, THIRD_CALLER());
         nameservice_dispatcher.place_order(username, 10_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+    }
+
+    #[test]
+    fn test_cancel_order() {
+        let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
+        setup();
+
+        let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+
+        start_cheat_caller_address(payment_token_mintable_dispatcher.contract_address, ADMIN());
+        payment_token_mintable_dispatcher
+            .set_role(recipient: ADMIN(), role: MINTER_ROLE, is_enable: true);
+        payment_token_mintable_dispatcher.mint(CALLER(), 20_u256); // Reduced amount
+        payment_token_mintable_dispatcher.mint(NEW_CALLER(), 20_u256); // Reduced amount
+        payment_token_mintable_dispatcher.mint(THIRD_CALLER(), 20_u256); // Reduced amount
+        stop_cheat_caller_address(payment_token_mintable_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
+        nameservice_dispatcher.set_is_payment_enabled(true);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+       
+        let username = selector!("test");
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
+        nameservice_dispatcher.claim_username(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, NEW_CALLER());
+        nameservice_dispatcher.place_order(username, 10_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(payment_token_dispatcher.contract_address, THIRD_CALLER()); //5
+        payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
+        stop_cheat_caller_address(payment_token_dispatcher.contract_address);
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, THIRD_CALLER());
+        nameservice_dispatcher.place_order(username, 15_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, NEW_CALLER());
+        nameservice_dispatcher.place_order(username, 18_u256);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let caller_balance = payment_token_dispatcher.balance_of(CALLER());
+        let new_caller_balance = payment_token_dispatcher.balance_of(NEW_CALLER());
+        let third_caller_balance = payment_token_dispatcher.balance_of(THIRD_CALLER());
+        let contract_balance = payment_token_dispatcher
+            .balance_of(nameservice_dispatcher.contract_address);
+        assert(contract_balance == 43_u256, 'token balance incorrect');
+        assert(caller_balance == 10_u256, 'caller balance incorrect');
+        assert(new_caller_balance == 2_u256, 'new_caller balance incorrect');
+        assert(third_caller_balance == 5_u256, 'third_caller balance incorrect');
+        
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, THIRD_CALLER());
+        nameservice_dispatcher.cancel_order(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        start_cheat_caller_address(nameservice_dispatcher.contract_address, NEW_CALLER());
+        nameservice_dispatcher.cancel_order(username);
+        stop_cheat_caller_address(nameservice_dispatcher.contract_address);
+
+        let caller_balance = payment_token_dispatcher.balance_of(CALLER());
+        let new_caller_balance = payment_token_dispatcher.balance_of(NEW_CALLER());
+        let third_caller_balance = payment_token_dispatcher.balance_of(THIRD_CALLER());
+        let contract_balance = payment_token_dispatcher
+            .balance_of(nameservice_dispatcher.contract_address);
+        println!("The contract_balance is : {}", contract_balance);
+        println!("The caller_balance is : {}", caller_balance);
+        println!("The new_caller_balance is : {}", new_caller_balance);
+        println!("The third_caller_balance is : {}", third_caller_balance);
+        assert(contract_balance == 10_u256, 'token balance incorrect');
+        assert(caller_balance == 10_u256, 'caller balance incorrect');
+        assert(new_caller_balance == 20_u256, 'new_caller balance incorrect');
+        assert(third_caller_balance == 20_u256, 'third_caller balance incorrect');
+
     }
 }
