@@ -5,7 +5,7 @@ import {CashuView} from '../../modules/CashuWallet';
 import {CashuWalletScreenProps} from '../../types';
 export const CashuScreen: React.FC<CashuWalletScreenProps> = () => {
   return (
-    <ScrollView showsVerticalScrollIndicator={true} persistentScrollbar={true}>
+    <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
       <CashuView></CashuView>
     </ScrollView>
   );
