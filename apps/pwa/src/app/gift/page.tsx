@@ -1,9 +1,9 @@
 'use client';
 import {Box, useColorModeValue} from '@chakra-ui/react';
 
-import {Footer} from '../components/Footer';
-import SendGiftForm from '../components/gift/SendGiftForm';
-import {Navbar} from '../components/Navbar';
+import {Footer} from '../../components/Footer';
+import SendGiftForm from '../../components/gift/SendGiftForm';
+import {Navbar} from '../../components/Navbar';
 
 export default function Gift() {
   const bgColor = useColorModeValue('gray.300', 'gray.700');
