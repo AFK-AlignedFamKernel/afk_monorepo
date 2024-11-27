@@ -13,11 +13,25 @@ interface NameCardProps {
     
     return (
       <View style={styles.card}>
-        <Text style={styles.nameText}>{name}</Text>
-        <Text style={styles.ownerText}>Owner: {owner}</Text>    
-        <Text style={styles.expiryText}>
-          Expires: {new Date(expiryTime).toLocaleDateString()}
-        </Text>
+        <View style={styles.innerContainer}>
+          <Text style={styles.nameText}>{name}</Text>
+          
+          <View style={styles.detailsContainer}>
+            <View style={styles.ownerContainer}>
+              <Text style={styles.label}>Owner:</Text>
+              <Text style={styles.value}>
+                {owner.slice(0, 6)}...{owner.slice(-4)}
+              </Text>
+            </View>
+            
+            <View style={styles.expiryContainer}>
+              <Text style={styles.label}>Expires:</Text>
+              <Text style={styles.value}>
+                {new Date(expiryTime).toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
     );
   };

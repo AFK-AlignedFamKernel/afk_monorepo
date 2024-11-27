@@ -77,40 +77,43 @@ export const FormComponent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Buy nameservice</Text>
+      <Text style={styles.title}>Buy Nameservice</Text>
       
-      <Text style={styles.text}>
-        Need funds? Get test tokens from Starknet Sepolia faucet
-      </Text>
-      
-      <Button 
-        onPress={() => Linking.openURL('https://faucet.goerli.starknet.io')}
-      >
-        Go to Faucet
-      </Button>
+      <View style={styles.faucetContainer}>
+        <Text style={styles.faucetText}>
+          Need funds? Get test tokens from Starknet Sepolia faucet
+        </Text>
+      </View>
 
-      <SquareInput
-        placeholder="Enter name to register"
-        onChangeText={(text) => {
-          setUsername(text);
-          setIsVerified(false);
-        }}
-        value={username}
-      />
+      <View style={styles.inputContainer}>
+        <SquareInput
+          style={styles.input}
+          placeholder="Enter name to register"
+          onChangeText={(text) => {
+            setUsername(text);
+            setIsVerified(false);
+          }}
+          value={username}
+        />
+      </View>
 
-      <Button 
-        onPress={handleVerify}
-        disabled={isVerifying || !username}
-      >
-        {isVerifying ? 'Verifying...' : 'Verify name'}
-      </Button>
+      <View style={styles.buttonContainer}>
+        <Button 
+          style={styles.button}
+          onPress={handleVerify}
+          disabled={isVerifying || !username}
+        >
+          {isVerifying ? 'Verifying...' : 'Verify name'}
+        </Button>
 
-      <Button 
-        onPress={handleBuy}
-        disabled={!isVerified || isLoading}
-      >
-        {isLoading ? 'Buying...' : 'Buy nameservice'}
-      </Button>
+        <Button 
+          style={styles.button}
+          onPress={handleBuy}
+          disabled={!isVerified || isLoading}
+        >
+          {isLoading ? 'Buying...' : 'Buy nameservice'}
+        </Button>
+      </View>
     </View>
   );
 };
