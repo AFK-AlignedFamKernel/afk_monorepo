@@ -7,8 +7,7 @@ use snforge_std::{
 
 const ONE_E18: u256 = 1000000000000000000_u256;
 
-use afk::staking::mocks::mock_erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-use afk::staking::staking::{IStakingDispatcher, IStakingDispatcherTrait};
+use afk::staking::interfaces::{IERC20Dispatcher, IERC20DispatcherTrait, IStakingDispatcher, IStakingDispatcherTrait};
 
 fn deploy_token(name: ByteArray) -> ContractAddress {
     let contract = declare("MockToken").unwrap().contract_class();
