@@ -1,7 +1,7 @@
 import {MaterialIcons} from '@expo/vector-icons';
 import {useAuth, useGetSingleEvent} from 'afk_nostr_sdk';
 import React from 'react';
-import {Platform, Pressable, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 
 import {useSocketContext} from '../../context/SocketContext';
 import {useStyles} from '../../hooks';
@@ -10,13 +10,6 @@ import {LiveChatView} from './LiveChat';
 import {useWebStream} from './stream/useWebStream';
 import {ViewerVideoView} from './StreamVideoPlayer';
 import stylesheet from './styles';
-
-// Platform-specific import for RTCView
-let RTCView: any;
-if (Platform.OS !== 'web') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  RTCView = require('react-native-webrtc').RTCView;
-}
 
 export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
   const {publicKey} = useAuth();
@@ -83,11 +76,28 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
         );
       case 'ended':
         return (
-          <View style={styles.centerContent}>
-            <Text style={styles.endedText}>This stream has ended.</Text>
-            {/* <Text style={styles.endTime}>Ended at: {new Date(event.endTime).toLocaleString()}</Text> */}
-          </View>
+          <>
+            <View style={styles.videoContainer}>
+              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              <View style={styles.overlay}>
+                <View style={styles.liveIndicator}>
+                  <Text style={styles.liveText}>STREAM ENDED</Text>
+                </View>
+                <View style={styles.viewerContainer}>
+                  <Text style={styles.viewerCount}>{viewerCount} viewers</Text>
+                </View>
+              </View>
+            </View>
+            <Pressable
+              style={styles.chatToggle}
+              onPress={() => setIsChatOpen(!isChatOpen)}
+              accessibilityLabel={isChatOpen ? 'Close chat' : 'Open chat'}
+            >
+              <MaterialIcons name={isChatOpen ? 'chat' : 'chat-bubble'} size={24} color="white" />
+            </Pressable>
+          </>
         );
+
       default:
         return (
           <View style={styles.centerContent}>

@@ -96,6 +96,7 @@
     "fast-text-encoding": "^1.0.6",
     "formik": "^2.4.6",
     "get-starknet-core": "^3.3.0",
+    "hls.js": "^1.5.17",
     "install": "^0.13.0",
     "jsqr": "^1.4.0",
     "memoize-one": "^6.0.0",

@@ -81,8 +81,10 @@ export type MainStackParams = {
   Oauth: undefined;
   ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  Nameservice: undefined;
   ReceiveEcash: {token: string};
+  SocialPayment: undefined;
+  TwitterCallback: {code: string};
+  Nameservice: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -380,6 +382,18 @@ export type ViewStreamGuest = CompositeScreenProps<
 >;
 export type NameserviceScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Nameservice'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+// Social Payments
+export type SocialPayment = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'SocialPayment'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+// Social Login
+export type TwitterCallback = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'TwitterCallback'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

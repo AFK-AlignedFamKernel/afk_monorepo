@@ -25,6 +25,7 @@ import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
+import {SocialPaymentView} from '../modules/SocialPayment';
 import {StudioModuleView} from '../modules/Studio';
 import {SingleStreamModuleView} from '../modules/Studio/SingleStream';
 import {ViewStreamModuleView} from '../modules/Studio/ViewStream';
@@ -307,6 +308,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="WatchStream" component={SingleStreamModuleView} />
       <MainStack.Screen name="ViewStreamGuest" component={ViewStreamModuleView} />
 
+      <MainStack.Screen name="SocialPayment" component={SocialPaymentView} />
       <MainStack.Screen name="Login" component={LoginNostr} />
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />
       <MainStack.Screen name="SaveKeys" component={SaveKeys} />
@@ -494,6 +496,7 @@ const linking = {
               token: (token: any) => `${token}`,
             },
           },
+          SocialPayment: 'SocialPayment',
         },
       },
     },
