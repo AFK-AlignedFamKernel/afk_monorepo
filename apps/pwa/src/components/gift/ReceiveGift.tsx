@@ -3,6 +3,7 @@ import {Box, Button, Text, useToast} from '@chakra-ui/react';
 import {useAccount as useAccountStarknet} from '@starknet-react/core';
 import {RPC_URLS_NUMBER, TOKENS_ADDRESS} from 'common';
 import {ethers, JsonRpcProvider} from 'ethers';
+import dynamic from 'next/dynamic';
 // import { useRouter } from 'next/router';
 import {useRouter} from 'next/navigation';
 import {useSearchParams} from 'next/navigation';
@@ -380,4 +381,4 @@ const ReceiveGift: React.FC<SendUSDCFormProps> = ({recipientAddress, chain, toke
   );
 };
 
-export default ReceiveGift;
+export default dynamic(() => Promise.resolve(ReceiveGift), {ssr: false});
