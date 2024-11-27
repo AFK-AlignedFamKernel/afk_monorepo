@@ -48,6 +48,9 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   const handleStudioScreen = () => {
     navigation.navigate('StreamStudio');
   };
+  const handleSocialScreen = () => {
+    navigation.navigate('SocialPayment');
+  };
   useEffect(() => {
     const unsubscribe = navigation.addListener('drawerClose', () => {
       // Code to handle drawer closing
@@ -122,6 +125,11 @@ const Sidebar = ({navigation}: SidebarInterface) => {
       <Pressable onPress={handleStudioScreen} style={styles.item}>
         <Icon name="VideoIcon" size={24} />
         <Text style={styles.textItem}>Studio</Text>
+      </Pressable>
+
+      <Pressable onPress={handleSocialScreen} style={styles.item}>
+        <Icon name="SunIcon" size={24} />
+        <Text style={styles.textItem}>Socials</Text>
       </Pressable>
 
       {publicKey && (

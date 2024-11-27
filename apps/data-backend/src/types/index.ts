@@ -15,3 +15,25 @@ export interface SignatureVerificationRequest {
   typedData?: any;
   message?: string;
 }
+
+/**
+ * Twitter Types
+ */
+export enum SocialPlatform {
+  TWITTER = "TWITTER",
+  // Add other platforms as needed
+  // GITHUB = "GITHUB",
+  // GOOGLE = "GOOGLE",
+}
+export interface TwitterUserDetails {
+  id: string;
+  username: string;
+  name: string;
+  picture?: string;
+}
+
+export interface ConnectTwitterParams {
+  userId: string;
+  code: string;
+  codeVerifier: string;
+}

@@ -77,13 +77,13 @@ export type MainStackParams = {
   Portfolio: undefined;
   Ramp: undefined;
   Onboarding: undefined;
-  DappBrowser:undefined;
-  Oauth:undefined;
-  ShortVideos:undefined;
+  DappBrowser: undefined;
+  Oauth: undefined;
+  ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  Nameservice:undefined;
-
-
+  SocialPayment: undefined;
+  TwitterCallback: {code: string};
+  Nameservice: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -112,11 +112,12 @@ export type HomeBottomStackParams = {
   Lightning: undefined;
   Cashu: undefined;
   LoginNostr: undefined;
-  DappBrowser:undefined;
-  Oauth:undefined;
-  ShortVideos:undefined;
+  DappBrowser: undefined;
+  Oauth: undefined;
+  ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  Nameservice:undefined;
+  SocialPayment: undefined;
+  Nameservice: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -351,7 +352,7 @@ export type OauthLoginProps = CompositeScreenProps<
 >;
 
 export type ShortVideosScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, "ShortVideos">,
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'ShortVideos'>,
   NativeStackScreenProps<RootStackParams>
 >;
 // Drawer desktop stack
@@ -376,6 +377,18 @@ export type ViewStreamGuest = CompositeScreenProps<
 >;
 export type NameserviceScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Nameservice'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+// Social Payments
+export type SocialPayment = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'SocialPayment'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+// Social Login
+export type TwitterCallback = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'TwitterCallback'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
