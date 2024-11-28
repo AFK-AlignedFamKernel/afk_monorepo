@@ -1056,6 +1056,49 @@ mod launchpad_tests {
         stop_cheat_caller_address(launchpad.contract_address);
     }
 
+     #[test]
+    fn test_buy_coin_with_different_supply() {
+        let (sender, erc20, launchpad) = request_fixture();
+        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
+
+        let mut token_addresses: Array<ContractAddress> = array![];
+        let init_supplies: Array<u256> = array![100, 100_000_000_000, 100_000_000_000_000_000, 100_000_000_000_000_000_000_000_000_000_000];
+        let mut i = 0;
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        while i < init_supplies.len() {
+            let token_address = launchpad
+                .create_and_launch_token(
+                    symbol: SYMBOL(),
+                    name: NAME(),
+                    initial_supply: *init_supplies.at(i),
+                    contract_address_salt: SALT(),
+                    is_unruggable: false
+                );
+
+            token_addresses.append(token_address);
+
+            let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+            println!("buy threshold liquidity");
+            run_buy_by_amount(
+                launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
+            );
+            let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+            println!("balance quote in loop {:?}", balance_quote_launch);
+
+
+
+            i += 1;
+        };
+
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+
+
+    }
+
 
     #[test]
     #[fork("Mainnet")]
