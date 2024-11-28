@@ -57,7 +57,7 @@
     "@reown/appkit-siwe-react-native": "1.0.1",
     "@reown/appkit-wagmi-react-native": "1.0.1",
     "@starknet-react/chains": "^3.1.0",
-    "@starknet-react/core": "^3.5.0",
+    "@starknet-react/core": "^3.6.0",
     "@starknet-react/kakarot": "^3.0.9",
     "@starknet-wc/core": "0.0.4",
     "@starknet-wc/react": "0.0.4",
