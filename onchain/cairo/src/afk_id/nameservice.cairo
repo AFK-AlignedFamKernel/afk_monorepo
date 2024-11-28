@@ -249,16 +249,15 @@ pub mod Nameservice {
             self.usernames.read(key)
         }
 
-        fn get_token_quote(self: @ContractState) -> ContractAddress {
-            self.token_quote.read()
-        }
-
         fn get_is_payment_enabled(self: @ContractState) -> bool {
             self.is_payment_enabled.read()
         }
 
         fn get_subscription_price(self: @ContractState) -> u256 {
             self.subscription_price.read()
+
+        fn get_token_quote(self: @ContractState) -> ContractAddress {
+            self.token_quote.read()
         }
 
         // Users call
@@ -316,8 +315,31 @@ pub mod Nameservice {
                 );
         }
 
-        // TODO change main username
-        fn change_main_username(ref self: ContractState, new_username: felt252) {}
+        fn change_main_username(ref self: ContractState, new_username: felt252) {
+            let caller_address = get_caller_address();
+
+            // Check for username belongs to user
+            let username_storage = self.username_storage.entry(new_username);
+            let owner = username_storage.owner.read();
+            assert(
+                owner == caller_address,
+                UserNameClaimErrors::USER_DOESNT_HAVE_USERNAME
+            );
+
+            let old_username = self.user_to_username.read(caller_address);
+            self.usernames.entry(new_username).write(caller_address);
+            self.user_to_username.entry(caller_address).write(new_username);
+
+            self
+                .emit(
+                    UsernameChanged {
+                        old_username: old_username,
+                        new_username: new_username,
+                        address: caller_address
+                    }
+                );
+        }
+
         // TODO
         fn create_auction_for_username(
             ref self: ContractState,
