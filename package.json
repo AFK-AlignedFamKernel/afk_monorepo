@@ -9,21 +9,21 @@
   "prisma": {},
   "scripts": {
     "build": "turbo run build",
-    "build:website":"cd apps/website && pnpm run build",
-    "dev:website":"cd apps/website && pnpm run dev",
-    "build:mobile":"cd apps/mobile && pnpm run build",
-    "dev:mobile":"cd apps/mobile && pnpm run start",
-    "build:nostr_sdk":"cd packages/afk_nostr_sdk && pnpm run build",
-    "build:indexer-prisma":"cd packages/indexer-prisma && pnpm run build",
-    "build:prisma-db":"cd packages/prisma-db && pnpm pull && pnpm generate",
-    "build:backend":"cd apps/data-backend && pnpm run build",
-    "build:backend:all":"pnpm run build:indexer-prisma && pnpm run build:prisma-db && cd apps/data-backend && pnpm install && pnpm run build:all",
-    "run:backend":"cd apps/data-backend && pnpm run start",
-    "run:backend:prod":"cd apps/data-backend && pnpm run start:prod",
+    "build:website": "cd apps/website && pnpm run build",
+    "dev:website": "cd apps/website && pnpm run dev",
+    "build:mobile": "cd apps/mobile && pnpm run build",
+    "dev:mobile": "cd apps/mobile && pnpm run start",
+    "build:nostr_sdk": "cd packages/afk_nostr_sdk && pnpm run build",
+    "build:indexer-prisma": "cd packages/indexer-prisma && pnpm run build",
+    "build:prisma-db": "cd packages/prisma-db && pnpm pull && pnpm generate",
+    "build:backend": "cd apps/data-backend && pnpm run build",
+    "build:backend:all": "pnpm run build:indexer-prisma && pnpm run build:prisma-db && cd apps/data-backend && pnpm install && pnpm run build:all",
+    "run:backend": "cd apps/data-backend && pnpm run start",
+    "run:backend:prod": "cd apps/data-backend && pnpm run start:prod",
     "dev": "turbo run dev",
-    "web":"turbo run dev --filter=website",
-    "mobile":"turbo run start --filter=mobile",
-    "extension":"turbo run dev --filter=extensions",
+    "web": "turbo run dev --filter=website",
+    "mobile": "turbo run start --filter=mobile",
+    "extension": "turbo run dev --filter=extensions",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rimraf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -40,11 +40,12 @@
   "dependencies": {
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@prisma/client":"^5.18.0",
-    "prettier":"^2.8.8",
-    "prisma":"5.18.0",
-    "tsup":"^8.0.2",
-    "turbo":"^1.13.2"
+    "@prisma/client": "^5.18.0",
+    "prettier": "^2.8.8",
+    "prisma": "5.18.0",
+    "tsup": "^8.0.2",
+    "turbo": "^1.13.2",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "prisma": "^5.18.0",
@@ -55,6 +56,5 @@
     "node": ">=14.0.0"
   },
   "packageManager": "pnpm@8.15.9",
-  "pnpm": {
-  }
+  "pnpm": {}
 }

@@ -1,5 +1,5 @@
 import {AccountInterface, CallData, constants} from 'starknet';
-import {LAUNCHPAD_ADDRESS} from 'common';
+import {LAUNCHPAD_ADDRESS, EKUBO_DEX_ADDRESS} from 'common';
 
 export const useAddLiquidity = () => {
   const addLiquidityUnrug = async (
@@ -22,15 +22,66 @@ export const useAddLiquidity = () => {
       };
 
       const tx = await account.execute(deployCall);
-      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-      return wait_tx;
+      return await account?.waitForTransaction(tx?.transaction_hash);
     } catch (error) {
-      console.error('Error adding liquidity:', error);
+      console.error('Error adding unrug liquidity:', error);
+      throw error;
+    }
+  };
+
+  const addLiquidityEkubo = async (
+    account: AccountInterface,
+    coinAddress: string,
+    amount: string,
+    price: string
+  ) => {
+    try {
+      const deployCall = {
+        contractAddress: EKUBO_DEX_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'add_liquidity',
+        calldata: CallData.compile({
+          token_address: coinAddress,
+          amount,
+          price
+        }),
+      };
+
+      const tx = await account.execute(deployCall);
+      return await account?.waitForTransaction(tx?.transaction_hash);
+    } catch (error) {
+      console.error('Error adding Ekubo liquidity:', error);
+      throw error;
+    }
+  };
+
+  const addLiquidityJediswap = async (
+    account: AccountInterface,
+    coinAddress: string,
+    amount: string,
+    minLiquidity: string
+  ) => {
+    try {
+      const deployCall = {
+        contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'add_liquidity',
+        calldata: CallData.compile({
+          token: coinAddress,
+          amount,
+          min_liquidity: minLiquidity
+        }),
+      };
+
+      const tx = await account.execute(deployCall);
+      return await account?.waitForTransaction(tx?.transaction_hash);
+    } catch (error) {
+      console.error('Error adding Jediswap liquidity:', error);
       throw error;
     }
   };
 
   return {
-    addLiquidityUnrug
+    addLiquidityUnrug,
+    addLiquidityEkubo,
+    addLiquidityJediswap
   };
 };
