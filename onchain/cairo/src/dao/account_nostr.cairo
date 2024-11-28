@@ -172,8 +172,8 @@ pub mod NostrDAOAccount {
 //     use super::super::request::{SocialRequest, Signature, Encode};
 //     use super::super::transfer::Transfer;
 //     use super::{
-//         INostrDAOAccountDispatcher, INostrDAOAccountDispatcherTrait, INostrDAOAccountSafeDispatcher,
-//         INostrDAOAccountSafeDispatcherTrait
+//         INostrDAOAccountDispatcher, INostrDAOAccountDispatcherTrait,
+//         INostrDAOAccountSafeDispatcher, INostrDAOAccountSafeDispatcherTrait
 //     };
 
 //     use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};

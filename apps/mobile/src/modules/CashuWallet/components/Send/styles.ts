@@ -127,4 +127,35 @@ export default ThemedStyleSheet((theme) => ({
     bottom: 10,
     zIndex: 10000,
   },
+  shareContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  giftLinkText: {
+    color: theme.colors.text,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginTop: 15,
+  },
+  shareLinkBtns: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 20,
+    justifyContent: 'center',
+  },
+  modalShareButton: {
+    backgroundColor: 'transparent',
+    padding: 0,
+  },
+  modalShareButtonText: {
+    color: theme.colors.primary,
+    display: 'flex',
+    padding: 0,
+  },
+  shareIcon: {
+    marginLeft: 8,
+  },
 }));

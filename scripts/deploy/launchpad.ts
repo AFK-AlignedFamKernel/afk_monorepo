@@ -4,7 +4,7 @@ import { Account, cairo, constants, uint256 } from "starknet";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
-import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS } from "common";
+import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS, EKUBO_REGISTRY } from "common";
 import {
   CLASS_HASH,
   ESCROW_ADDRESS,
@@ -46,6 +46,8 @@ export const deployLaunchpad = async () => {
 
   let EKUBO_DEX_ADDRESS =
   EKUBO_POSITION[constants.StarknetChainId.SN_SEPOLIA];
+  let EKUBO_REGISTRY_ADDRESS =
+  EKUBO_REGISTRY[constants.StarknetChainId.SN_SEPOLIA];
 
   if (chainId == constants.StarknetChainId.SN_MAIN) {
     JEDISWAP_ADDRESS_NFT =
@@ -59,6 +61,7 @@ export const deployLaunchpad = async () => {
       EKUBO_CORE[constants.StarknetChainId.SN_MAIN];
 
       UNRUG_FACTORY_ADDRESS= UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_MAIN]
+      EKUBO_REGISTRY_ADDRESS= EKUBO_REGISTRY[constants.StarknetChainId.SN_MAIN]
   }
   const initial_key_price = cairo.uint256(1);
   const step_increase_linear = cairo.uint256(1);
@@ -82,6 +85,7 @@ export const deployLaunchpad = async () => {
       threshold_liquidity,
       threshold_marketcap,
       UNRUG_FACTORY_ADDRESS,
+      EKUBO_REGISTRY_ADDRESS,
       EKUBO_CORE_ADDRESS,
       EKUBO_POSITION_ADDRESS,
       EKUBO_DEX_ADDRESS

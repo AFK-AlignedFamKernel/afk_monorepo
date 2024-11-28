@@ -1,8 +1,12 @@
 'use client';
 import {Box, useColorModeValue} from '@chakra-ui/react';
-import {AppRender} from 'pixel_ui';
+const AppRender = dynamic(() => import('pixel_ui').then((mod) => mod.AppRender), {
+  ssr: false,
+});
 
-import {Navbar} from './components/Navbar';
+import dynamic from 'next/dynamic';
+
+import {Navbar} from '../components/Navbar';
 
 export default function App() {
   const bgColor = useColorModeValue('gray.300', 'gray.700');
@@ -15,7 +19,6 @@ export default function App() {
         nftCanvasAddress={process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS}
         usernameAddress={process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS}
       ></AppRender>
-      {/* <Footer /> */}
     </Box>
   );
 }

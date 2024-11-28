@@ -1,26 +1,29 @@
 use afk::launchpad::errors;
 
 use afk::launchpad::math::PercentageMath;
-// use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 use afk::launchpad::utils::{
     unique_count, sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds
 };
-use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 use afk::tokens::memecoin::{Memecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
 
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
+    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback
 };
 
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
+use starknet::{
+    ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
+    get_block_timestamp, get_contract_address, ClassHash
+};
 
-use starknet::ContractAddress;
-
+const MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION: u16 = 1_000; // 10%
+const MAX_HOLDERS_LAUNCH: u8 = 10;
 
 /// Checks the launch parameters and calculates the team allocation.
 ///
@@ -54,48 +57,49 @@ use starknet::ContractAddress;
 /// * If the number of initial holders exceeds the maximum allowed.
 /// * If the total team allocation exceeds the maximum allowed.
 ///
-// fn check_common_launch_parameters(
-//     self: @ContractState, launch_parameters: LaunchParameters
-// ) -> (u256, u8) {
-//     let LaunchParameters { memecoin_address,
-//     transfer_restriction_delay,
-//     max_percentage_buy_launch,
-//     quote_address,
-//     initial_holders,
-//     initial_holders_amounts } =
-//         launch_parameters;
-//     let memecoin = IMemecoinDispatcher { contract_address: memecoin_address };
+pub fn check_common_launch_parameters(launch_parameters: LaunchParameters) -> (u256, u8) {
+    let LaunchParameters { memecoin_address,
+    transfer_restriction_delay,
+    max_percentage_buy_launch,
+    quote_address,
+    initial_holders,
+    initial_holders_amounts } =
+        launch_parameters;
+    let memecoin = IMemecoinDispatcher { contract_address: memecoin_address };
+    let erc20 = IERC20Dispatcher { contract_address: memecoin_address };
 
-//     assert(self.is_memecoin(memecoin_address), errors::NOT_UNRUGGABLE);
-//     assert(!self.is_memecoin(quote_address), errors::QUOTE_TOKEN_IS_MEMECOIN);
-//     assert(!memecoin.is_launched(), errors::ALREADY_LAUNCHED);
-//     assert(get_caller_address() == memecoin.owner(), errors::CALLER_NOT_OWNER);
-//     assert(initial_holders.len() == initial_holders_amounts.len(), errors::ARRAYS_LEN_DIF);
-//     assert(initial_holders.len() <= MAX_HOLDERS_LAUNCH.into(), errors::MAX_HOLDERS_REACHED);
+    // TODO fix owner call memecoin interface
+    // assert(get_caller_address() == memecoin.owner(), errors::CALLER_NOT_OWNER);
 
-//     let initial_supply = memecoin.total_supply();
+    // assert(self.is_memecoin(memecoin_address), errors::NOT_UNRUGGABLE);
+    // assert(!self.is_memecoin(quote_address), errors::QUOTE_TOKEN_IS_MEMECOIN);
+    assert(!memecoin.is_launched(), errors::ALREADY_LAUNCHED);
+    assert(initial_holders.len() == initial_holders_amounts.len(), errors::ARRAYS_LEN_DIF);
+    assert(initial_holders.len() <= MAX_HOLDERS_LAUNCH.into(), errors::MAX_HOLDERS_REACHED);
 
-//     // Check that the sum of the amounts of initial holders does not exceed the max allocatable
-//     // supply for a team.
-//     let max_team_allocation = initial_supply
-//         .percent_mul(MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION.into());
-//     let mut team_allocation: u256 = 0;
-//     let mut i: usize = 0;
-//     loop {
-//         if i == initial_holders.len() {
-//             break;
-//         }
+    let initial_supply = erc20.total_supply();
 
-//         let address = *initial_holders.at(i);
-//         let amount = *initial_holders_amounts.at(i);
+    // Check that the sum of the amounts of initial holders does not exceed the max allocatable
+    // supply for a team.
+    let max_team_allocation = initial_supply
+        .percent_mul(MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION.into());
+    let mut team_allocation: u256 = 0;
+    let mut i: usize = 0;
+    loop {
+        if i == initial_holders.len() {
+            break;
+        }
 
-//         team_allocation += amount;
-//         assert(team_allocation <= max_team_allocation, errors::MAX_TEAM_ALLOCATION_REACHED);
-//         i += 1;
-//     };
+        let address = *initial_holders.at(i);
+        let amount = *initial_holders_amounts.at(i);
 
-//     (team_allocation, unique_count(initial_holders).try_into().unwrap())
-// }
+        team_allocation += amount;
+        assert(team_allocation <= max_team_allocation, errors::MAX_TEAM_ALLOCATION_REACHED);
+        i += 1;
+    };
+
+    (team_allocation, unique_count(initial_holders).try_into().unwrap())
+}
 
 pub fn distribute_team_alloc(
     // memecoin: IMemecoinDispatcher,

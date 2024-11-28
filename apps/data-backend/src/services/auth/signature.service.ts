@@ -1,10 +1,11 @@
-import { Account, RpcProvider, WeierstrassSignatureType } from "starknet";
-
 import {
-  NODE_URL,
-  SN_CHAIN_ID,
-  typedDataValidate,
-} from "../../constants/contracts";
+  Account,
+  RpcProvider,
+  TypedData,
+  WeierstrassSignatureType,
+} from "starknet";
+
+import { NODE_URL, SN_CHAIN_ID } from "../../constants/contracts";
 
 export class SignatureService {
   private provider: RpcProvider;
@@ -23,15 +24,20 @@ export class SignatureService {
   public async verifySignature({
     accountAddress,
     signature,
+    signedData,
   }: {
     signature: WeierstrassSignatureType;
     accountAddress: string;
+    signedData: TypedData;
   }) {
     try {
       const formattedSignature = {
         r: BigInt(signature.r),
         s: BigInt(signature.s),
       } as WeierstrassSignatureType;
+
+
+      
 
       // Using dummy private key since we only need it for interface compatibility
       // This won't affect verification as we're only using public methods
@@ -42,7 +48,7 @@ export class SignatureService {
         dummyPrivateKey
       );
 
-      return await account.verifyMessage(typedDataValidate, formattedSignature);
+      return await account.verifyMessage(signedData, formattedSignature);
     } catch (error) {
       console.log("verification failed:", error);
       throw Error("Error:" + error);

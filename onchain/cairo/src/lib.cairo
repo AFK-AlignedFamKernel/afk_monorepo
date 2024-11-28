@@ -9,6 +9,7 @@ pub mod sha256;
 pub mod social;
 pub mod utils;
 pub mod launchpad {
+    pub mod calcul;
     pub mod errors;
     pub mod helpers;
     pub mod launchpad;
@@ -106,10 +107,11 @@ pub mod tests {
     // pub mod identity_tests;
     pub mod keys_tests;
     pub mod launchpad_tests;
+    pub mod liquidity_tests;
+    pub mod nameservice_tests;
     pub mod quest_factory_test;
     pub mod tap_tests;
     pub mod utils;
     pub mod vault_tests;
-    pub mod nameservice_tests;
 }
 

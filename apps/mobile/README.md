@@ -5,12 +5,14 @@ Pick a good first issue with the mobile labels, and let's contribute and keep bu
 
 ### Test
 
+Copy the .env.example and add the variable needed.
+
 To test the project, run:
 
 ```bash
 cd apps/mobile
-yarn install
-yarn start
+pnpm install .
+pnpm run start
 ```
 
 Select Expo web, Android or IOS. You can scan it with Expo GO on your phone.
