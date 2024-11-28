@@ -130,3 +130,27 @@ export const formatCurrency = (value: number, currency: string): string => {
 export const formatSat = (value: number, currencyString: string) => {
   return new Intl.NumberFormat('en').format(value) + ` ${currencyString}`;
 };
+
+export const generateNonce = {
+  randomString: (length = 17) => {
+    return Math.random()
+      .toString(36)
+      .substring(2, length + 2);
+  },
+};
+
+export function truncateAddress(address: string, startChars = 4, endChars = 4) {
+  if (!address) return '';
+
+  const prefix = address.startsWith('0x') ? '0x' : '';
+  const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
+
+  if (cleanAddr.length <= startChars + endChars) {
+    return address;
+  }
+
+  const start = prefix + cleanAddr.slice(0, startChars);
+  const end = cleanAddr.slice(-endChars);
+
+  return `${start}...${end}`;
+}

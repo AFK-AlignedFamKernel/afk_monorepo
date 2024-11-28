@@ -42,6 +42,7 @@ export const createLaunchpad = async (
   threshold_liquidity: Uint256,
   threshold_marketcap: Uint256,
   factory_address: string,
+  ekubo_registry: string,
   core: string,
   positions: string,
   ekubo_exchange_address: string,
@@ -116,10 +117,13 @@ export const createLaunchpad = async (
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
-      console.log("Declare deploy", declareResponse?.transaction_hash);
+      console.log("Declare deploy", declareResponse);
       await provider.waitForTransaction(declareResponse?.transaction_hash);
+      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;
+      console.log("LaunchpadClassHash", LaunchpadClassHash);
 
       const nonce = await account0?.getNonce();
       console.log("nonce", nonce);
@@ -137,6 +141,7 @@ export const createLaunchpad = async (
           threshold_liquidity,
           threshold_marketcap,
           factory_address,
+          ekubo_registry,
           core,
           positions,
           ekubo_exchange_address

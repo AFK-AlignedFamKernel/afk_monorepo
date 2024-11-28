@@ -185,6 +185,7 @@ pub struct CreateLaunch {
     pub total_supply: u256,
     pub slope: u256,
     pub threshold_liquidity: u256,
+    pub is_unruggable: bool,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -196,12 +197,12 @@ pub struct LaunchUpdated {
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct SetJediwapV2Factory {
+pub struct SetJediswapV2Factory {
     pub address_jediswap_factory_v2: ContractAddress,
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct SetJediwapNFTRouterV2 {
+pub struct SetJediswapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
 }
 
