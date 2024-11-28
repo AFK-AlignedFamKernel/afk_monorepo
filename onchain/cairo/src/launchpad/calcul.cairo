@@ -86,7 +86,9 @@ pub fn get_coin_amount_by_quote_amount(
     // TODO fix this
     // Max_u256 can't broke the price.
     // When we multiply it's never appear above 0 even if big scale factor
-    let price_scale_factor = max_u256(price.clone() * SCALE_FACTOR, 1_u256);
+    
+    let price_scale_factor = price.clone() * SCALE_FACTOR;
+    // let price_scale_factor = max_u256(price.clone() * SCALE_FACTOR, 1_u256);
     println!("price_scale_factor {:?}", price_scale_factor.clone());
 
     let mut q_out: u256 = 0;
