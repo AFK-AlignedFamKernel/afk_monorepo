@@ -208,7 +208,7 @@ export const CashuView = () => {
         </ScrollView>
       </SafeAreaView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-        <ScanQRCode onClose={handleCloseScanner} />
+        <ScanQRCode onClose={handleCloseScanner} onSuccess={handleCloseScanner} />
       </Modal>
       <Modal
         animationType="fade"

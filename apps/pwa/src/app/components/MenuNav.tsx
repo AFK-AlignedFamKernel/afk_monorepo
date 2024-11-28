@@ -25,15 +25,11 @@ const MenuNav: React.FC<IMenuParent> = () => {
             {isOpen ? 'Close' : 'Profile'}
           </MenuButton>
           <MenuList>
-            <MenuItem>
-              <CustomConnectButtonWallet></CustomConnectButtonWallet>
-            </MenuItem>
+            <CustomConnectButtonWallet></CustomConnectButtonWallet>
             {/* <MenuItem>
               <DynamicManagement></DynamicManagement>
             </MenuItem> */}
-            <MenuItem>
-              <AccountStarknet></AccountStarknet>
-            </MenuItem>
+            <AccountStarknet></AccountStarknet>
             {/* Dedicated Close Button */}
 
             {/* 
@@ -43,9 +39,7 @@ const MenuNav: React.FC<IMenuParent> = () => {
               </>
             } */}
 
-            <MenuItem>
-              <TelegramAccount></TelegramAccount>
-            </MenuItem>
+            <TelegramAccount></TelegramAccount>
 
             <MenuItem onClick={onClose} color="red.500" fontWeight="bold">
               Close Menu
