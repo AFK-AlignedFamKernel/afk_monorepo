@@ -16,24 +16,23 @@ const BPS: u256 = 10_000; // 100% = 10_000 bps
 // price division and others stuff
 // const SCALE_FACTOR: u256 =
 //     100_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
-const SCALE_FACTOR: u256 =100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
-// const SCALE_FACTOR: u256 =100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
-// Total supply / LIQUIDITY_RATIO
+const SCALE_FACTOR: u256 =
+    100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
+// const SCALE_FACTOR: u256 =100_000_000_000_000_000; // Scale factor decimals place for price
+// division and others stuff Total supply / LIQUIDITY_RATIO
 // Get the 20% of Bonding curve going to Liquidity
 // Liquidity can be lock to Unrug
 const LIQUIDITY_RATIO: u256 = 5; // Divid by 5 the total supply.
 
-// 
-
-
+// TODO fix starting price launch
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
     // TODO calculate price
 
-    let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+    // let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+    let launch_price = threshold_liquidity.clone() / threshold_liquidity.clone();
     // println!("launch_price {:?}", launch_price);
-
     let price_u128: u128 = launch_price.try_into().unwrap();
     // println!("price_u128 {:?}", price_u128);
     let starting_price = i129 { sign: true, mag: price_u128 };
@@ -41,10 +40,27 @@ pub fn calculate_starting_price_launch(
     starting_price
 }
 
+// TODO verify price bonding curve 
+// current sellable supply beofre launch
 pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
     assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
-    let scaling_factor = 10;
-    let starting_price = (threshold_liquidity.clone() * scaling_factor) / sellable_supply.clone();
+    // let scaling_factor = 10;
+    // let starting_price = (threshold_liquidity.clone() * scaling_factor) /
+    // sellable_supply.clone();
+    // TODO check new formula
+    let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / sellable_supply.clone();
+    // let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
+    starting_price
+}
+
+// TODO check new formula
+pub fn calculate_init_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
+    assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
+    // let scaling_factor = 10;
+    // let starting_price = (threshold_liquidity.clone() * scaling_factor) /
+    // sellable_supply.clone();
+    // TODO check new formula init pricing with linear curve?
+    let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
     starting_price
 }
 
@@ -52,9 +68,10 @@ pub fn calculate_slope(
     threshold_liquidity: u256, starting_price: u256, sellable_supply: u256
 ) -> u256 {
     assert(sellable_supply.clone() > 0, 'Sellable supply must != 0');
-    let slope_numerator = (threshold_liquidity * SCALE_FACTOR) - (starting_price * sellable_supply.clone());
+    let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
+        - (starting_price * sellable_supply.clone());
     let slope_denominator = (sellable_supply.clone() * sellable_supply.clone()) / 2_u256;
-    println!("slope_denominator {:?}", slope_denominator.clone());
+    // println!("slope_denominator {:?}", slope_denominator.clone());
     assert(slope_denominator.clone() > 0, 'Slope denominator must != 0');
     let slope = slope_numerator / (slope_denominator * SCALE_FACTOR);
     slope / SCALE_FACTOR
@@ -70,26 +87,24 @@ pub fn get_coin_amount_by_quote_amount(
 
     let starting_price = pool_coin.starting_price.clone();
     let slope = calculate_slope(
-        pool_coin.threshold_liquidity.clone(),
-        starting_price.clone(),
-        sellable_supply.clone(),
+        pool_coin.threshold_liquidity.clone(), starting_price.clone(), sellable_supply.clone(),
     );
 
     let tokens_sold = sellable_supply.clone() - current_supply.clone();
     let price = slope * tokens_sold.clone() + starting_price.clone();
-    println!("price {:?}", price.clone());
-    println!("SCALE_FACTOR {:?}", SCALE_FACTOR.clone());
-    
+    // println!("price {:?}", price.clone());
+    // println!("SCALE_FACTOR {:?}", SCALE_FACTOR.clone());
+
     let price_scale_factor_test = price.clone() * SCALE_FACTOR;
-    println!("price_scale_factor_test {:?}", price_scale_factor_test.clone());
+    // println!("price_scale_factor_test {:?}", price_scale_factor_test.clone());
 
     // TODO fix this
     // Max_u256 can't broke the price.
     // When we multiply it's never appear above 0 even if big scale factor
-    
+
     let price_scale_factor = price.clone() * SCALE_FACTOR;
     // let price_scale_factor = max_u256(price.clone() * SCALE_FACTOR, 1_u256);
-    println!("price_scale_factor {:?}", price_scale_factor.clone());
+    // println!("price_scale_factor {:?}", price_scale_factor.clone());
 
     let mut q_out: u256 = 0;
     if is_decreased {
@@ -139,20 +154,20 @@ pub fn get_amount_by_type_of_coin_or_quote(
         Option::None => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) }
     }
 }
-
 // pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
-    //     let scaling_factor = 10;
-    //     // let scaling_factor = 10;
-    //     // Starting price is proportional to the threshold liquidity divided by sellable supply
-    //     let starting_price = (threshold_liquidity.clone() * scaling_factor) / sellable_supply.clone();
-    //     return starting_price;
-    //     // let threshold_liquidity = self.threshold_liquidity.read();
-    // // let slope = (2 * threshold_liquidity)
-    // //     / (liquidity_available * (liquidity_available - 1));
-    // // let initial_price = (2 * threshold_liquidity / liquidity_available)
-    // //     - slope * (liquidity_available - 1) / 2;
-    // // (slope, initial_price)
-    // }
+//     let scaling_factor = 10;
+//     // let scaling_factor = 10;
+//     // Starting price is proportional to the threshold liquidity divided by sellable supply
+//     let starting_price = (threshold_liquidity.clone() * scaling_factor) /
+//     sellable_supply.clone();
+//     return starting_price;
+//     // let threshold_liquidity = self.threshold_liquidity.read();
+// // let slope = (2 * threshold_liquidity)
+// //     / (liquidity_available * (liquidity_available - 1));
+// // let initial_price = (2 * threshold_liquidity / liquidity_available)
+// //     - slope * (liquidity_available - 1) / 2;
+// // (slope, initial_price)
+// }
 // pub fn calculate_slope(
 //     threshold_liquidity: u256, starting_price: u256, sellable_supply: u256
 // ) -> u256 {
@@ -160,7 +175,8 @@ pub fn get_amount_by_type_of_coin_or_quote(
 //     // Calculate slope
 //     // let slope_numerator = (threshold_liquidity * SCALE_FACTOR)
 //     //     - (starting_price * sellable_supply);
-//     let slope_numerator = (threshold_liquidity * SCALE_FACTOR) - (starting_price * sellable_supply);
+//     let slope_numerator = (threshold_liquidity * SCALE_FACTOR) - (starting_price *
+//     sellable_supply);
 //     let slope_denominator = (sellable_supply * sellable_supply) / 2_u256;
 
 //     // let slope_numerator = threshold_liquidity - (starting_price * sellable_supply);
@@ -183,7 +199,6 @@ pub fn get_amount_by_type_of_coin_or_quote(
 
 //     // m
 // }
-
 
 // // Get amount of token received by token quote IN
 // // Params
@@ -264,7 +279,6 @@ pub fn get_amount_by_type_of_coin_or_quote(
 //     // let pool_coin = self.launched_coins.read(coin_address);
 
 // }
-
 
 // fn _trapezoidal_rule(
 //     self: @ContractState, coin_address: ContractAddress,

@@ -87,7 +87,7 @@ pub fn add_liquidity_jediswap(
         };
 
         let (token_id, _, _, _) = nft_router.mint(mint_params);
-       
+
         token_id
         // TODO Locked LP token
     // self
