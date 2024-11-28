@@ -33,8 +33,17 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   } = useTransactionReceipt({hash: transactionHash});
 
   useEffect(() => {
-    if (transactionHash) setStatus('processing');
-  }, [transactionHash]);
+    if (transactionHash) {
+      setStatus('processing');
+      const timeout = setTimeout(() => {
+        if (status === 'processing') {
+          setStatus('failure');
+        }
+      }, 60000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [transactionHash, status]);
 
   useEffect(() => {
     if (transactionError) {

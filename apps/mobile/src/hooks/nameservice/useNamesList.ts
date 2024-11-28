@@ -26,16 +26,34 @@ export const useNamesList = () => {
   useEffect(() => {
     const fetchNames = async () => {
       try {
+        console.log('Fetching names from API...');
         const response = await fetch('https://afk-monorepo.onrender.com/username-claimed');
-        const data = await response.json();
+        console.log('Response status:', response.status);
         
-        const formattedNames = (data.data as RawName[]).map(name => ({
-          name: decodeUsername(name.username),
-          owner: name.owner_address,
-          expiryTime: formatExpiry(name.expiry),
-          paid: name.paid
-        }));
+        const rawData = await response.json();
+        console.log('Raw API Response:', {
+          data: rawData.data,
+          hasData: !!rawData.data,
+          dataLength: rawData.data?.length,
+          fullResponse: rawData
+        });
 
+        if (!rawData.data || !Array.isArray(rawData.data)) {
+          console.error('Invalid data format received:', rawData);
+          return;
+        }
+
+        const formattedNames = (rawData.data as RawName[]).map(name => {
+          console.log('Processing name entry:', name);
+          return {
+            name: decodeUsername(name.username),
+            owner: name.owner_address,
+            expiryTime: formatExpiry(name.expiry),
+            paid: name.paid
+          };
+        });
+
+        console.log('Final formatted names:', formattedNames);
         setNames(formattedNames);
       } catch (error) {
         console.error('Error fetching names:', error);
