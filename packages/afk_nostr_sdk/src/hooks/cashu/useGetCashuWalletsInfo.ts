@@ -4,30 +4,9 @@ import {useInfiniteQuery} from '@tanstack/react-query';
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
 
-/**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
-/** 
- * https://github.com/nostr-protocol/nips/pull/1369/files */
-
 /**
- * 
- * @returns {
-    "kind": 37375,
-    "content": nip44_encrypt([
-        [ "balance", "100", "sat" ],
-        [ "privkey", "hexkey" ] // explained in NIP-61
-    ]),
-    "tags": [
-        [ "d", "my-wallet" ],
-        [ "mint", "https://mint1" ],
-        [ "mint", "https://mint2" ],
-        [ "mint", "https://mint3" ],
-        [ "name", "my shitposting wallet" ],
-        [ "unit", "sat" ],
-        [ "description", "a wallet for my day-to-day shitposting" ],
-        [ "relay", "wss://relay1" ],
-        [ "relay", "wss://relay2" ],
-    ]
-}
+ * NIP-60: https://nips.nostr.com/60
+ * Wallet Event: https://nips.nostr.com/60#wallet-event
  */
 
 export type UseRootProfilesOptions = {
@@ -52,7 +31,7 @@ export const useGetCashuWalletsInfo = (options?: UseRootProfilesOptions) => {
     queryFn: async ({pageParam}) => {
       const cashuWallets = await ndk.fetchEvents({
         kinds: [NDKKind.CashuWallet],
-        authors: options?.authors,
+        authors: options?.authors || [publicKey],
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,

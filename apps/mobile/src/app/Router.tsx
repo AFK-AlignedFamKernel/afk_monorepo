@@ -25,7 +25,6 @@ import GroupChatGroupRequest from '../modules/Group/memberAction/ViewRequest';
 import GroupChat from '../modules/Group/message/GroupMessage';
 import AuthSidebar from '../modules/Layout/auth-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
-import ShortVideosModule from '../modules/ShortVideos';
 import {SocialPaymentView} from '../modules/SocialPayment';
 import {StudioModuleView} from '../modules/Studio';
 import {SingleStreamModuleView} from '../modules/Studio/SingleStream';
@@ -55,6 +54,7 @@ import {OauthScreen} from '../screens/OauthTwitter';
 import {Onboarding} from '../screens/Onboarding';
 import {PostDetail} from '../screens/PostDetail';
 import {Profile} from '../screens/Profile';
+import {ReceiveEcash} from '../screens/ReceiveEcash';
 import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {TagsView} from '../screens/Tags';
@@ -324,6 +324,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Oauth" component={OauthScreen} />
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
+      <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
     </MainStack.Navigator>
   );
 };
@@ -489,6 +490,12 @@ const linking = {
           ShortVideos: 'shorts',
           DappBrowser: 'browser',
           Oauth: 'oauth',
+          ReceiveEcash: {
+            path: 'receive/ecash/:token',
+            parse: {
+              token: (token: any) => `${token}`,
+            },
+          },
           SocialPayment: 'SocialPayment',
         },
       },

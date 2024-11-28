@@ -81,6 +81,7 @@ export type MainStackParams = {
   Oauth: undefined;
   ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
+  ReceiveEcash: {token: string};
   SocialPayment: undefined;
   TwitterCallback: {code: string};
   Nameservice: undefined;
@@ -116,7 +117,6 @@ export type HomeBottomStackParams = {
   Oauth: undefined;
   ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
-  SocialPayment: undefined;
   Nameservice: undefined;
 
   // CreateForm: undefined;
@@ -353,6 +353,11 @@ export type OauthLoginProps = CompositeScreenProps<
 
 export type ShortVideosScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'ShortVideos'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type ReceiveEcashScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'ReceiveEcash'>,
   NativeStackScreenProps<RootStackParams>
 >;
 // Drawer desktop stack

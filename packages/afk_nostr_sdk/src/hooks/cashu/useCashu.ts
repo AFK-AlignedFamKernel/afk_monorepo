@@ -82,6 +82,8 @@ export interface ICashu {
     meltQuote: MeltQuoteResponse;
     meltResponse: MeltTokensResponse;
     proofsToKeep: Proof[];
+    remainingProofs: Proof[];
+    selectedProofs: Proof[];
   }>;
   getKeySets: () => Promise<MintAllKeysets>;
   getUnits: (url: string) => Promise<string[]>;
@@ -295,15 +297,28 @@ export const useCashu = (): ICashu => {
         return undefined;
       }
 
+      //selectProofs
+      const selectedProofs: Proof[] = [];
+      const remainingProofs: Proof[] = [];
+      let proofsAmount = 0;
+      for (let i = 0; i < pProofs.length; i++) {
+        if (proofsAmount >= amountToSend) {
+          remainingProofs.push(pProofs[i]);
+        } else {
+          selectedProofs.push(pProofs[i]);
+          proofsAmount += pProofs[i].amount;
+        }
+      }
+
       // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
       // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
       const {returnChange: proofsToKeep, send: proofsToSend} = await wallet.send(
         amountToSend,
-        pProofs,
+        selectedProofs,
       );
       const meltResponse = await wallet.meltTokens(meltQuote, proofsToSend);
 
-      return {meltQuote, meltResponse, proofsToKeep};
+      return {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs};
     } catch (e) {
       console.log('Error meltTokens', e);
       return undefined;
