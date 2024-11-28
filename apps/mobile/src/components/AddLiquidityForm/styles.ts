@@ -33,7 +33,7 @@ export default {
     borderWidth: 1,
   },
   dexButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#70A597',
   },
   dexButtonText: {
     textAlign: 'center',
