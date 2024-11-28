@@ -15,19 +15,20 @@ import { CashuWalletView } from '../CashuWallet';
 import { LightningNetworkWalletView } from '../Lightning';
 import stylesheet from './styles';
 import { useNameservice } from '../../hooks/nameservice/useNameservice';
-import { useToast, useWalletModal } from '../../hooks/modals';
+import { useToast, useWalletModal, useTransaction } from '../../hooks/modals';
 import { useAccount } from '@starknet-react/core';
 
 export const FormComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
   const { account } = useAccount()
-  const { handleBuyUsername } = useNameservice()
+  const { prepareBuyUsername } = useNameservice()
   const [username, setUsername] = useState<string | undefined>()
   const walletModal = useWalletModal()
   const { showToast } = useToast()
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const { sendTransaction } = useTransaction({ callsProps: [] });
 
   const handleVerify = async () => {
     if (!username) {
@@ -36,10 +37,14 @@ export const FormComponent: React.FC = () => {
     }
     setIsVerifying(true);
     try {
-      // TODO: Add verification when backend is ready
-      setIsVerified(true);
-      showToast({ title: "Name is available!", type: "success" });
+      // For now, we'll just check if the username is not empty
+      // TODO: Add actual verification against the contract
+      if (username.length > 0) {
+        setIsVerified(true);
+        showToast({ title: "Name is available!", type: "success" });
+      }
     } catch (error) {
+      console.error('Verification error:', error);
       showToast({ title: "Name verification failed", type: "error" });
     } finally {
       setIsVerifying(false);
@@ -66,10 +71,23 @@ export const FormComponent: React.FC = () => {
         return;
       }
 
-      await handleBuyUsername(account, username);
-      showToast({ title: "Name purchased successfully!", type: "success" });
+      const calls = await prepareBuyUsername(account, username);
+      const success = await sendTransaction(calls);
+      
+      if (success) {
+        showToast({ 
+          title: "Transaction submitted!", 
+          type: "success"
+        });
+      } else {
+        throw new Error('Transaction failed');
+      }
     } catch (error) {
-      showToast({ title: "Failed to purchase name", type: "error" });
+      console.error('Buy error:', error);
+      showToast({ 
+        title: "Failed to purchase name", 
+        type: "error"
+      });
     } finally {
       setIsLoading(false);
     }

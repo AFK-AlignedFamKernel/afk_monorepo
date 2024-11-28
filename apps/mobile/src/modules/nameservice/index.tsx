@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TextButton } from '../../components';
@@ -17,6 +17,9 @@ import stylesheet from './styles';
 import { FormComponent } from './form';
 import { NameCard } from '../../components/NameCard/nameCard';
 import { useAccount } from '@starknet-react/core';
+import { useNamesList } from '../../hooks/nameservice/useNamesList';
+import { NamesList } from '../../components/NamesList';
+
 
 export const NameserviceComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -35,20 +38,27 @@ export const NameserviceComponent: React.FC = () => {
   const { account } = useAccount();
   
   const renderContent = () => {
+    const { names, isLoading } = useNamesList();
+    
     switch(selectedTab) {
       case SelectedTab.DYNAMIC_GENERAL:
         return <FormComponent />;
       case SelectedTab.DYNAMIC_OWNED:
-        // This will be populated when indexer data comes
         return (
           <View style={styles.content}>
             <Text style={styles.text}>Your Names</Text>
-            {/* Placeholder for indexer data */}
-            <NameCard 
-              name="example.stark"
-              owner={account?.address || ''}
-              expiryTime={new Date()}
-            />
+            {isLoading ? (
+              <ActivityIndicator size="large" />
+            ) : names.length === 0 ? (
+              <Text style={styles.text}>No names found</Text>
+            ) : (
+              <NamesList 
+                names={names.filter(name => 
+                  name.owner.toLowerCase() === account?.address?.toLowerCase()
+                )}
+                isLoading={isLoading}
+              />
+            )}
           </View>
         );
       default:
