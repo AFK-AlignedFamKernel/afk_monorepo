@@ -8,9 +8,11 @@ import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
 import { prepareAndConnectContract } from '../keys/useDataKeys';
 
 export const useNameservice = () => {
-  const account = useAccount();
-  const chain = useNetwork();
-  const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
+  const { provider: rpcProvider } = useProvider();
+  
+  const provider = rpcProvider ?? new RpcProvider({ 
+    nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL 
+  });
 
   const prepareBuyUsername = async (
     account: AccountInterface,
@@ -18,27 +20,25 @@ export const useNameservice = () => {
     contractAddress?: string,
   ) => {
     if (!account) throw new Error('No account connected');
+    if (!provider) throw new Error('Provider not initialized');
 
     try {
       const addressContract = contractAddress ?? NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
       const nameservice = await prepareAndConnectContract(provider, addressContract);
-      let quote_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
       
-      try {
-        quote_address = await nameservice.get_token_quote();
-      } catch (error) {
-        console.error('Error getting quote token:', error);
-      }
-
+      // Default to STRK token
+      const quote_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
+      
       const asset = await prepareAndConnectContract(
         provider,
-        quote_address ?? TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH,
+        quote_address,
         account,
       );
 
       let amountToPaid;
       try {
-        amountToPaid = await nameservice.get_subscription_price(username);
+        // Call without arguments since the contract expects 0 args
+        amountToPaid = await nameservice.get_subscription_price();
       } catch (error) {
         throw new Error(`Failed to get subscription price: ${error.message}`);
       }
@@ -64,9 +64,7 @@ export const useNameservice = () => {
       console.error('Transaction preparation error:', error);
       throw error;
     }
-  };
+  }
 
-  return {
-    prepareBuyUsername,
-  };
+  return { prepareBuyUsername };
 };

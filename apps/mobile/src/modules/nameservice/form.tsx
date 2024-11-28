@@ -20,15 +20,15 @@ import { useAccount } from '@starknet-react/core';
 
 export const FormComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
-  const { account } = useAccount()
-  const { prepareBuyUsername } = useNameservice()
-  const [username, setUsername] = useState<string | undefined>()
-  const walletModal = useWalletModal()
-  const { showToast } = useToast()
+  const { account } = useAccount();
+  const { prepareBuyUsername } = useNameservice();
+  const [username, setUsername] = useState<string | undefined>();
+  const walletModal = useWalletModal();
+  const { showToast } = useToast();
+  const { sendTransaction } = useTransaction({ callsProps: [] });
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const { sendTransaction } = useTransaction({ callsProps: [] });
 
   const handleVerify = async () => {
     if (!username) {
@@ -51,6 +51,14 @@ export const FormComponent: React.FC = () => {
     }
   };
 
+  const onConnect = async () => {
+    if (!account?.address) {
+      walletModal.show();
+      return false;
+    }
+    return true;
+  };
+
   const handleBuy = async () => {
     if (!isVerified) {
       showToast({ title: "Please verify name first", type: "info" });
@@ -66,8 +74,9 @@ export const FormComponent: React.FC = () => {
     
     setIsLoading(true);
     try {
-      if (!account?.address) {
-        walletModal.show();
+      const isConnected = await onConnect();
+      if (!isConnected || !account) {
+        setIsLoading(false);
         return;
       }
 
