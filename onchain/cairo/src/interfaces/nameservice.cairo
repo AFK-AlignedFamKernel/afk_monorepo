@@ -14,7 +14,7 @@ pub trait INameservice<TContractState> {
     );
     fn place_order(ref self: TContractState, username: felt252, amount: u256);
     fn cancel_order(ref self: TContractState, username: felt252);
-    fn accept_order(ref self: TContractState, username: felt252, id: u64);
+    fn accept_order(ref self: TContractState, username: felt252);
     fn get_username(self: @TContractState, address: ContractAddress) -> felt252;
     fn get_username_address(self: @TContractState, key: felt252) -> ContractAddress;
     fn get_token_quote(self: @TContractState,) -> ContractAddress;

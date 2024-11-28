@@ -96,6 +96,7 @@ pub mod Nameservice {
 
     #[derive(Drop, Debug, Serde, Copy, starknet::Store, PartialEq)]
     pub struct Auction {
+        pub owner: ContractAddress,
         pub minimal_price: u256,
         pub is_accepted_price_reached: bool,
         pub highest_bid: u256,
@@ -355,6 +356,7 @@ pub mod Nameservice {
 
             // Create a new auction
             let new_auction = Auction {
+                owner: caller_address,
                 minimal_price: minimal_price,
                 is_accepted_price_reached: is_accepted_price_reached,
                 highest_bid: 0,
@@ -408,7 +410,29 @@ pub mod Nameservice {
         
         
         // TODO
-        fn accept_order(ref self: ContractState, username: felt252, id: u64) {}
+        fn accept_order(ref self: ContractState, username: felt252) {
+            let caller = get_caller_address();
+
+            let auction = self.auctions.read(username);
+            assert(auction.owner == caller, 'Not the auction owner');
+
+            let order = self.orders.read(username);
+            let bidder = order.bidder;
+
+            let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+            token.transfer(caller, order.amount);
+
+            self.usernames.entry(username).write(bidder);
+            self.user_to_username.entry(bidder).write(username);
+
+            let username_storage_value = self.username_storage.entry(username).read();
+            let mut updated_username_storage_value = username_storage_value;
+            updated_username_storage_value.owner = bidder;
+            updated_username_storage_value.username = username;
+
+            self.erc20.burn(caller, 1_u256);
+            self.erc20.mint(bidder, 1_u256);
+        }
 
         // TODO
         fn cancel_order(ref self: ContractState, username: felt252) {
