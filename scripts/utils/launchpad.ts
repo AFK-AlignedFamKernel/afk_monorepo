@@ -123,6 +123,7 @@ export const createLaunchpad = async (
 
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;
+      console.log("LaunchpadClassHash", LaunchpadClassHash);
 
       const nonce = await account0?.getNonce();
       console.log("nonce", nonce);
