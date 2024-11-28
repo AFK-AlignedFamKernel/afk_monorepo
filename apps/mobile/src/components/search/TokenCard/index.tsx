@@ -15,6 +15,7 @@ import { Button } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
 import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
+import { AddLiquidityForm } from '../../AddLiquidityForm';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -88,20 +89,15 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         </View>
       </View>
 
-      {account && account?.address == token?.owner &&
+      {account && account?.address == token?.owner && (
         <View>
-
           <Button onPress={() => {
             handleLaunchCoin(account, token?.memecoin_address)
           }}>Launch your coin</Button>
-          <Button
-            onPress={() => {
-
-            }}
-          >Add Liquidity unruggable</Button>
+          
+          <AddLiquidityForm tokenAddress={token?.memecoin_address} />
         </View>
-
-      }
+      )}
 
       {!isViewDetailDisabled && (
         <>
