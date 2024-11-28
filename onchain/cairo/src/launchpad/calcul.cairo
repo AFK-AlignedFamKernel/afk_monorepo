@@ -24,16 +24,15 @@ const SCALE_FACTOR: u256 =
 // Liquidity can be lock to Unrug
 const LIQUIDITY_RATIO: u256 = 5; // Divid by 5 the total supply.
 
-//
-
+// TODO fix starting price launch
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
     // TODO calculate price
 
-    let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+    // let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+    let launch_price = threshold_liquidity.clone() / threshold_liquidity.clone();
     // println!("launch_price {:?}", launch_price);
-
     let price_u128: u128 = launch_price.try_into().unwrap();
     // println!("price_u128 {:?}", price_u128);
     let starting_price = i129 { sign: true, mag: price_u128 };
@@ -41,12 +40,27 @@ pub fn calculate_starting_price_launch(
     starting_price
 }
 
+// TODO verify price bonding curve 
+// current sellable supply beofre launch
 pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
     assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
     // let scaling_factor = 10;
     // let starting_price = (threshold_liquidity.clone() * scaling_factor) /
     // sellable_supply.clone();
+    // TODO check new formula
     let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / sellable_supply.clone();
+    // let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
+    starting_price
+}
+
+// TODO check new formula
+pub fn calculate_init_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
+    assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
+    // let scaling_factor = 10;
+    // let starting_price = (threshold_liquidity.clone() * scaling_factor) /
+    // sellable_supply.clone();
+    // TODO check new formula init pricing with linear curve?
+    let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
     starting_price
 }
 

@@ -901,7 +901,7 @@ pub mod LaunchpadMarketplace {
             let pool = self.launched_coins.read(coin_address);
 
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-            assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
+            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
 
             self._add_liquidity_ekubo(coin_address);
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
@@ -913,7 +913,7 @@ pub mod LaunchpadMarketplace {
 
             let pool = self.launched_coins.read(coin_address);
 
-            assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
+            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
 
             self._add_liquidity_jediswap(coin_address);
             // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
@@ -1167,7 +1167,7 @@ pub mod LaunchpadMarketplace {
             let pool = self.launched_coins.read(coin_address);
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             
-            assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
+            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
             self._add_liquidity_ekubo(coin_address)
         }
     }
@@ -1570,17 +1570,17 @@ pub mod LaunchpadMarketplace {
 
             let positions_address = self.positions.read();
             let positions = IPositionsDispatcher { contract_address: positions_address };
-            // println!("mint deposit NOW HERE: {}", 2);
+            println!("mint deposit NOW HERE: {}", 2);
 
-            // The token must be transferred to the positions contract before calling mint.
-            IERC20Dispatcher { contract_address: token }
-                .transfer(recipient: positions.contract_address, :amount);
+            // // The token must be transferred to the positions contract before calling mint.
+            // IERC20Dispatcher { contract_address: token }
+            //     .transfer(recipient: positions.contract_address, :amount);
             // println!("mint deposit NOW HERE: {}", 3);
 
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             // let (id, liquidity, _, _) = positions
             // .mint_and_deposit_and_clear_both(pool_key, bounds, min_liquidity: 0);
-            // println!("mint deposit NOW HERE: {}", 4);
+            println!("mint deposit NOW HERE: {}", 4);
             id
         }
 
