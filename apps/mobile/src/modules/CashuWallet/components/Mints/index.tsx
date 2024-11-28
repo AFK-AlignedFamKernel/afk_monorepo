@@ -2,7 +2,9 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {GetInfoResponse} from '@cashu/cashu-ts';
+import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
 import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
@@ -10,15 +12,17 @@ import {Text, TextInput} from 'react-native';
 import {CloseIcon, InfoIcon, TrashIcon} from '../../../../assets/icons';
 import {Button} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
-import {useCashuContext} from '../../../../providers/CashuProvider';
-import {formatCurrency} from '../../../../utils/helpers';
-import stylesheet from './styles';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
   useMintStorage,
+  usePrivKeySignerStorage,
   useProofsStorage,
+  useWalletIdStorage,
 } from '../../../../hooks/useStorageState';
+import {useCashuContext} from '../../../../providers/CashuProvider';
+import {formatCurrency} from '../../../../utils/helpers';
+import stylesheet from './styles';
 
 export interface UnitInfo {
   unit: string;
@@ -31,16 +35,21 @@ export const Mints = () => {
 
   const {getUnitBalance, setActiveMint, setActiveUnit, setMints, buildMintData} =
     useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
   const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
   const {value: mints, setValue: setMintsStorage} = useMintStorage();
   const {value: proofs} = useProofsStorage();
   const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
+  const {value: privKey, setValue: setPrivKey} = usePrivKeySignerStorage();
+  const {value: walletId, setValue: setWalletId} = useWalletIdStorage();
 
   const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
   const [mintInfo, setMintInfo] = useState<GetInfoResponse | null>(null);
   const [newAlias, setNewAlias] = useState<string>('');
   const [newUrl, setNewUrl] = useState<string>('');
   const [newMintError, setNewMintError] = useState<string>('');
+
+  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
 
   // Load units and their balances for each mint
   useEffect(() => {
@@ -105,8 +114,27 @@ export const Mints = () => {
     const data = await buildMintData(newUrl, newAlias);
     setActiveUnit(data.units[0]);
     setActiveUnitStorage(data.units[0]);
+
+    if (mints.length === 0) {
+      const privKey = getRandomBytes(32);
+      const privateKeyHex = Buffer.from(privKey).toString('hex');
+      setPrivKey(privateKeyHex);
+
+      const id = randomUUID();
+      setWalletId(id);
+    }
+
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
+
+    if (privateKey && publicKey) {
+      // nostr event
+      await createWalletEvent({
+        name: walletId,
+        mints: mints.map((mint) => mint.url),
+        privkey: privKey,
+      });
+    }
 
     setNewAlias('');
     setNewUrl('');

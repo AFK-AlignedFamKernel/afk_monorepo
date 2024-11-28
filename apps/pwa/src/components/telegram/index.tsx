@@ -2,16 +2,17 @@ import {SessionAccountInterface} from '@argent/tma-wallet';
 import {Button} from '@chakra-ui/react';
 import {useEffect, useState} from 'react';
 
-import {argentTMA} from '@/app/providers';
+import {useArgentTMA} from '@/hooks/useArgent';
 
 export const TelegramAccount = () => {
+  const argentTMA = useArgentTMA();
   const [accountTg, setAccount] = useState<SessionAccountInterface | undefined>();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     // Call connect() as soon as the app is loaded
     argentTMA
-      .connect()
+      ?.connect()
       .then((res) => {
         if (!res) {
           // Not connected
