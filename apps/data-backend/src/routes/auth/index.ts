@@ -10,50 +10,46 @@ export async function authRoutes(fastify: FastifyInstance) {
   const authService = new AuthService(fastify.prisma, fastify);
   const signatureService = new SignatureService();
 
+  fastify.post<{ Body: LoginInput }>(
+    "/auth",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["userAddress", "loginType", "signature", "signedData"],
+          properties: {
+            userAddress: { type: "string" },
+            loginType: { type: "string" },
+            signature: { type: "object" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { userAddress, loginType, signature, signedData } = request.body;
 
-  fastify.post<{ Body: LoginInput }>("/auth", async (request, reply) => {
-    try {
-      const { userAddress, loginType, signature } = request.body;
+        const sig = await signatureService.verifySignature({
+          accountAddress: userAddress,
+          signature: signature as any,
+          signedData: JSON.parse(signedData),
+        });
 
-      // Check if `signature` exists and is not empty.
-      if (!signature) {
-        return reply.code(400).send({ message: "Signature Required" });
+        if (!sig) {
+          return reply.code(400).send({ message: "Invalid Signature" });
+        }
+
+        const result = await authService.loginOrCreateUser(
+          userAddress,
+          loginType
+        );
+        return { success: true, data: result };
+      } catch (error) {
+        request.log.error(error);
+        return reply.code(500).send({ error: "Internal server error" });
       }
-
-      // Check if `userAddress` exists and is not empty
-      if (!userAddress) {
-        return reply.code(400).send({ message: "userAddress is required" });
-      }
-
-      // Check if `loginType` exists and is not empty
-      if (!loginType) {
-        return reply.code(400).send({ message: "loginType is required" });
-      }
-
-      //Todo: This doesnt work well for now always returning false.
-      //handling Signature verification client side for now.
-
-      const sig = await signatureService.verifySignature({
-        accountAddress: userAddress,
-        signature: signature as any,
-      });
-
-      console.log("sig is valid",sig)
-
-      if (!sig) {
-        return reply.code(400).send({ message: "Invalid Signature" });
-      }
-
-      const result = await authService.loginOrCreateUser(
-        userAddress,
-        loginType
-      );
-      return { success: true, data: result };
-    } catch (error) {
-      request.log.error(error);
-      return reply.code(500).send({ error: "Internal server error" });
     }
-  });
+  );
 
   fastify.post<{ Body: RefreshTokenInput }>(
     "/refresh-token",
