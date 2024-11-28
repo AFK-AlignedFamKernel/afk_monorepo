@@ -147,7 +147,7 @@ pub mod LaunchpadMarketplace {
     use afk::launchpad::errors;
     // use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters };
     use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
-    use afk::launchpad::math::PercentageMath;
+    use afk::launchpad::math::{PercentageMath, pow_256};
     use afk::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag
@@ -212,7 +212,7 @@ pub mod LaunchpadMarketplace {
 
     const BPS: u256 = 10_000; // 100% = 10_000 bps
     const SCALE_FACTOR: u256 =
-        100_000_000_000_000_000; // Scale factor decimals place for price division and others stuff
+        100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 
     // Unrug params
 
