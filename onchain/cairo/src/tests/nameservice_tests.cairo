@@ -121,8 +121,6 @@ mod nameservice_tests {
 
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);
-        println!("The contract_balance is : {}", contract_balance);
-
         assert(contract_balance == 10_u256, 'token balance incorrect');
     }
 
@@ -366,13 +364,10 @@ mod nameservice_tests {
         assert(caller_balance == 10_u256, 'balance incorrect');
 
         let new_caller_balance = payment_token_dispatcher.balance_of(NEW_CALLER());
-        println!("The new_caller_balance is : {}", new_caller_balance);
         assert(new_caller_balance == 5_u256, 'balance incorrect');
 
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);
-        println!("The contract_balance is : {}", contract_balance);
-
         assert(contract_balance == 25_u256, 'token balance incorrect');
     }
 
@@ -431,10 +426,6 @@ mod nameservice_tests {
         let third_caller_balance = payment_token_dispatcher.balance_of(THIRD_CALLER());
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);
-        println!("The contract_balance is : {}", contract_balance);
-        println!("The caller_balance is : {}", caller_balance);
-        println!("The new_caller_balance is : {}", new_caller_balance);
-        println!("The third_caller_balance is : {}", third_caller_balance);
         assert(contract_balance == 43_u256, 'token balance incorrect');
         assert(caller_balance == 10_u256, 'caller balance incorrect');
         assert(new_caller_balance == 2_u256, 'new_caller balance incorrect');
@@ -563,10 +554,6 @@ mod nameservice_tests {
         let third_caller_balance = payment_token_dispatcher.balance_of(THIRD_CALLER());
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);
-        println!("The contract_balance is : {}", contract_balance);
-        println!("The caller_balance is : {}", caller_balance);
-        println!("The new_caller_balance is : {}", new_caller_balance);
-        println!("The third_caller_balance is : {}", third_caller_balance);
         assert(contract_balance == 10_u256, 'token balance incorrect');
         assert(caller_balance == 10_u256, 'caller balance incorrect');
         assert(new_caller_balance == 20_u256, 'new_caller balance incorrect');

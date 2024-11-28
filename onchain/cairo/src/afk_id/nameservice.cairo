@@ -355,6 +355,7 @@ pub mod Nameservice {
 
         // TODO change main username
         fn change_main_username(ref self: ContractState, new_username: felt252) {}
+
         // TODO
         fn create_auction_for_username(
             ref self: ContractState,
@@ -400,7 +401,6 @@ pub mod Nameservice {
 
         // TODO
         fn place_order(ref self: ContractState, username: felt252, amount: u256) {
-
             let auction = self.auctions.read(username);
             assert(
                 auction.minimal_price > 0, 
@@ -465,8 +465,8 @@ pub mod Nameservice {
             updated_username_storage_value.owner = bidder;
             updated_username_storage_value.username = username;
 
-            // self.erc20.burn(caller, 1_u256);
-            // self.erc20.mint(bidder, 1_u256);
+            self.erc20.burn(caller, 1_u256);
+            self.erc20.mint(bidder, 1_u256);
         }
 
         // TODO
