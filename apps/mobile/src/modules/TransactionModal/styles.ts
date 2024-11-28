@@ -1,9 +1,20 @@
 import {StyleSheet} from 'react-native';
 
-import {Spacing} from '../../styles';
-
 export default StyleSheet.create({
+  container: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+  },
   indicator: {
-    paddingVertical: Spacing.normal,
+    paddingVertical: 20,
   },
 });
