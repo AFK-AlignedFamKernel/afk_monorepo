@@ -16,6 +16,12 @@ type FormValues = {
   liquidityLockTime?: string;
   ekuboPrice?: string;
   minLiquidity?: string;
+  teamAllocation?: string;
+  hodlLimit?: string;
+  liquidityType?: 'EKUBO_NFT' | 'JEDISWAP_LP';
+  unlockTime?: string;
+  teamVestingPeriod?: string;
+  teamVestingCliff?: string;
 };
 
 export const AddLiquidityForm: React.FC<{
@@ -34,7 +40,13 @@ export const AddLiquidityForm: React.FC<{
     startingPrice: '',
     liquidityLockTime: '',
     ekuboPrice: '',
-    minLiquidity: ''
+    minLiquidity: '',
+    teamAllocation: '0',
+    hodlLimit: '0',
+    liquidityType: 'EKUBO_NFT',
+    unlockTime: '',
+    teamVestingPeriod: '0',
+    teamVestingCliff: '0'
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -111,6 +123,48 @@ export const AddLiquidityForm: React.FC<{
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.label}>Team Allocation (%)</Text>
+              <SquareInput
+                placeholder="Enter team allocation percentage"
+                onChangeText={handleChange('teamAllocation')}
+                onBlur={handleBlur('teamAllocation')}
+                value={values.teamAllocation}
+                keyboardType="decimal-pad"
+              />
+              {touched.teamAllocation && errors.teamAllocation && (
+                <Text style={styles.error}>{errors.teamAllocation}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Team Vesting Period (days)</Text>
+              <SquareInput
+                placeholder="Enter vesting period"
+                onChangeText={handleChange('teamVestingPeriod')}
+                onBlur={handleBlur('teamVestingPeriod')}
+                value={values.teamVestingPeriod}
+                keyboardType="number-pad"
+              />
+              {touched.teamVestingPeriod && errors.teamVestingPeriod && (
+                <Text style={styles.error}>{errors.teamVestingPeriod}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Hodl Limit</Text>
+              <SquareInput
+                placeholder="Enter hodl limit"
+                onChangeText={handleChange('hodlLimit')}
+                onBlur={handleBlur('hodlLimit')}
+                value={values.hodlLimit}
+                keyboardType="decimal-pad"
+              />
+              {touched.hodlLimit && errors.hodlLimit && (
+                <Text style={styles.error}>{errors.hodlLimit}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
               <Text style={styles.label}>Lock Time (days)</Text>
               <SquareInput
                 placeholder="Enter lock time in days"
@@ -128,36 +182,66 @@ export const AddLiquidityForm: React.FC<{
 
       case 'EKUBO':
         return (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Price</Text>
-            <SquareInput
-              placeholder="Enter price"
-              onChangeText={handleChange('ekuboPrice')}
-              onBlur={handleBlur('ekuboPrice')}
-              value={values.ekuboPrice}
-              keyboardType="decimal-pad"
-            />
-            {touched.ekuboPrice && errors.ekuboPrice && (
-              <Text style={styles.error}>{errors.ekuboPrice}</Text>
-            )}
-          </View>
+          <>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Price</Text>
+              <SquareInput
+                placeholder="Enter price"
+                onChangeText={handleChange('ekuboPrice')}
+                onBlur={handleBlur('ekuboPrice')}
+                value={values.ekuboPrice}
+                keyboardType="decimal-pad"
+              />
+              {touched.ekuboPrice && errors.ekuboPrice && (
+                <Text style={styles.error}>{errors.ekuboPrice}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Liquidity Type</Text>
+              <SquareInput
+                placeholder="EKUBO_NFT"
+                onChangeText={handleChange('liquidityType')}
+                onBlur={handleBlur('liquidityType')}
+                value={values.liquidityType}
+              />
+              {touched.liquidityType && errors.liquidityType && (
+                <Text style={styles.error}>{errors.liquidityType}</Text>
+              )}
+            </View>
+          </>
         );
 
       case 'JEDISWAP':
         return (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Minimum Liquidity</Text>
-            <SquareInput
-              placeholder="Enter minimum liquidity"
-              onChangeText={handleChange('minLiquidity')}
-              onBlur={handleBlur('minLiquidity')}
-              value={values.minLiquidity}
-              keyboardType="decimal-pad"
-            />
-            {touched.minLiquidity && errors.minLiquidity && (
-              <Text style={styles.error}>{errors.minLiquidity}</Text>
-            )}
-          </View>
+          <>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Minimum Liquidity</Text>
+              <SquareInput
+                placeholder="Enter minimum liquidity"
+                onChangeText={handleChange('minLiquidity')}
+                onBlur={handleBlur('minLiquidity')}
+                value={values.minLiquidity}
+                keyboardType="decimal-pad"
+              />
+              {touched.minLiquidity && errors.minLiquidity && (
+                <Text style={styles.error}>{errors.minLiquidity}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Liquidity Type</Text>
+              <SquareInput
+                placeholder="JEDISWAP_LP"
+                onChangeText={handleChange('liquidityType')}
+                onBlur={handleBlur('liquidityType')}
+                value={values.liquidityType}
+              />
+              {touched.liquidityType && errors.liquidityType && (
+                <Text style={styles.error}>{errors.liquidityType}</Text>
+              )}
+            </View>
+          </>
         );
     }
   };
