@@ -492,9 +492,7 @@ pub mod DN404 {
                     from_index -= 1;
                     // get last token from the sender's owned list
                     let token_id = self.owned.entry(from).read(from_index.try_into().unwrap());
-                    // _setOwnerAliasAndOwnedIndex(oo, id, 0, 0);
-                    self.owner_aliases.write(token_id.into(), 0);
-                    self.owned_indexes.write(token_id.into(), 0);
+                    self._set_owner_alias_and_owned_index(token_id.into(), 0, 0);
                     // append to the logs
                     nft_transfer_logs
                         .append(
@@ -537,10 +535,7 @@ pub mod DN404 {
                         token_id.try_into().expect('TokenIdOverflow')
                     );
                     
-                    self.owner_aliases.write(token_id.into(), to_alias);
-                    self
-                        .owned_indexes
-                        .write(token_id.into(), to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
                     to_index += 1;
                     nft_transfer_logs
                         .append(
@@ -692,10 +687,7 @@ pub mod DN404 {
                         to_index.try_into().expect('IndexOverflow'),
                         token_id.try_into().expect('TokenIdOverflow')
                     );
-                    self.owner_aliases.write(token_id.into(), to_alias);
-                    self
-                        .owned_indexes
-                        .write(token_id.into(), to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
                     to_index += 1;
 
                     nft_transfer_logs
@@ -801,10 +793,7 @@ pub mod DN404 {
                         to_index.try_into().expect('IndexOverflow'),
                         id.try_into().expect('TokenIdOverflow')
                     );
-                    self.owner_aliases.write(id.into(), to_alias);
-                    self
-                        .owned_indexes
-                        .write(id.into(), to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
 
                     nft_transfer_logs
                         .append(NftTransferEvent { from: Zero::zero(), to: to, id: id.into(), });
@@ -883,8 +872,7 @@ pub mod DN404 {
                     let token_id = self.owned.entry(from).read(from_index.try_into().unwrap());
 
                     // Clear ownership data
-                    self.owner_aliases.write(token_id.into(), 0);
-                    self.owned_indexes.write(token_id.into(), 0);
+                    self._set_owner_alias_and_owned_index(token_id.into(), 0, 0);
 
                     // Clear approvals if they exist
                     if self.may_have_nft_approval.read(token_id.into()) {
@@ -996,7 +984,7 @@ pub mod DN404 {
             let updated_id = self.owned.entry(from).read(from_owned_length);
             let i = self.owned_indexes.read(id);
             self.owned.entry(from).write(i.into(), updated_id);
-            self.owned_indexes.write(updated_id.into(), i);
+            self.owned_indexes.write(updated_id.into(), i); // TODO: check if correctly transferred
 
             // Update to's owned tokens
             let to_owned_length = to_data.owned_length;
@@ -1006,8 +994,7 @@ pub mod DN404 {
                 id.try_into().expect('TokenIdOverflow')
             );
             let to_alias = self._register_and_resolve_alias(ref to_data, to);
-            self.owner_aliases.write(id, to_alias);
-            self.owned_indexes.write(id, to_owned_length);
+            self._set_owner_alias_and_owned_index(id, to_alias, to_owned_length);
 
             // Update storage
             self.address_data.write(from, from_data);
@@ -1065,8 +1052,11 @@ pub mod DN404 {
 
         fn _owner_at(self: @ContractState, id: u256) -> ContractAddress {
             // Get the owner alias from the owner_aliases mapping using the ownership index
+            println!("owner_at {}", id);
             let ownership_index = self._ownership_index(id);
+            println!("ownership_index {}", ownership_index);
             let owner_alias = self.owner_aliases.read(ownership_index);
+            println!("owner_alias {}", owner_alias);
             // Return the address associated with this alias
             self.alias_to_address.read(owner_alias)
         }
@@ -1083,6 +1073,16 @@ pub mod DN404 {
         fn _token_uri(self: @ContractState, id: u256) -> felt252 {
             // TODO: override by hook
             ''
+        }
+
+        fn _set_owner_alias_and_owned_index(
+            ref self: ContractState,
+            id: u256,
+            alias: u32,
+            index: u32
+        ) {
+            self.owner_aliases.write(id.into(), alias);
+            self.owned_indexes.write(id.into(), index);
         }
 
         /// Asserts that the caller is the `mirrorERC721` contract.

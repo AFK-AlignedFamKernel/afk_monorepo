@@ -162,6 +162,7 @@ pub mod DN404Mirror {
         }
 
         fn owner_of(self: @ContractState, id: u256) -> ContractAddress {
+            println!("owner_of {}", id);
             let dispatcher = IDN404Dispatcher {
                 contract_address: self.base_erc20.read(),
             };
@@ -292,6 +293,7 @@ pub mod DN404Mirror {
         fn log_transfer(ref self: ContractState, logs: Array<TransferEvent>) {
             // TODO: support packed logs
             for log in logs {
+                println!("Transferring nft #{}", log.id);
                 self.emit(log);
             }
         }
@@ -307,7 +309,7 @@ pub mod DN404Mirror {
 
         fn link_mirror_contract(ref self: ContractState, deployer: ContractAddress) {
             // Check if the deployer is set and matches the caller
-            if self.deployer.read().is_zero() {
+            if self.deployer.read().is_non_zero() {
                 assert!(deployer == self.deployer.read(), "SenderNotDeployer");
             }
 

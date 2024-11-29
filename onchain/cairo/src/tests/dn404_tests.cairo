@@ -19,11 +19,11 @@ mod dn404_tests {
     }
 
     fn declare_dn404() -> @ContractClass {
-        declare("DN404").unwrap().contract_class()
+        declare("DN404").expect('Failed to declare DN404').contract_class()
     }
 
     fn declare_mirror() -> @ContractClass {
-        declare("DN404Mirror").unwrap().contract_class()
+        declare("DN404Mirror").expect('Failed to declare DN404Mirror').contract_class()
     }
 
     fn deploy_dn404(
@@ -44,13 +44,15 @@ mod dn404_tests {
         calldata.append(initial_supply_owner.into());
         calldata.append(mirror.into());
         calldata.append_serde(options);
-        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        let (contract_address, _) = class.deploy(@calldata).expect('Failed to deploy DN404');
         contract_address
     }
 
     fn deploy_mirror(class: ContractClass) -> ContractAddress {
         let mut calldata = array![];
-        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        let deployer = get_caller_address();
+        calldata.append(deployer.into());
+        let (contract_address, _) = class.deploy(@calldata).expect('Failed to deploy DN404Mirror');
         contract_address
     }
 
@@ -59,8 +61,8 @@ mod dn404_tests {
         let mirror_class = declare_mirror();
         
         let options = DN404Options {
-            unit: 1000000,
-            use_one_indexed: false,
+            unit: 1000,
+            use_one_indexed: true,
             use_direct_transfers_if_possible: false, // TODO: not supported yet
             add_to_burned_pool: false,
             use_exists_lookup: false,
@@ -90,13 +92,18 @@ mod dn404_tests {
 
         // Check NFT balance (assuming 1 NFT per 1000 tokens)
         let nft_balance = mirror.balance_of(RECIPIENT());
+        println!("nft balance: {}", nft_balance);
         assert(nft_balance == 2, 'Should have 2 NFTs');
 
         // Verify NFT ownership
-        let nft1_owner = mirror.owner_of(1);
+        println!("checking nft ownership 2");
         let nft2_owner = mirror.owner_of(2);
-        assert(nft1_owner == RECIPIENT(), 'Wrong NFT 1 owner');
+        println!("nft2_owner: {:?}", nft2_owner);
+        println!("checking nft ownership 1");
+        let nft1_owner = mirror.owner_of(1);
+        println!("nft1_owner: {:?}", nft1_owner);
         assert(nft2_owner == RECIPIENT(), 'Wrong NFT 2 owner');
+        assert(nft1_owner == RECIPIENT(), 'Wrong NFT 1 owner');
     }
 
     #[test]
@@ -148,7 +155,7 @@ mod dn404_tests {
     }
 
     #[test]
-    #[should_panic(expected: ('ERC721: invalid token ID',))]
+    #[should_panic(expected: ('TokenDoesNotExist',))]
     fn test_invalid_nft_query() {
         let (_, mirror) = setup();
         

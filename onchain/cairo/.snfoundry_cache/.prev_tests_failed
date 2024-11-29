@@ -1,7 +1,1 @@
-afk::social::deposit::tests::deposit_claim
-afk::social::deposit::tests::deposit_claim_gas_fee
-afk::tests::dn404_tests::dn404_tests::test_invalid_nft_query
 afk::tests::dn404_tests::dn404_tests::test_basic_transfer
-afk::tests::dn404_tests::dn404_tests::test_skip_nft_transfer
-afk::tests::dn404_tests::dn404_tests::test_nft_transfer_events
-afk::social::deposit::tests::claim_incorrect_gas_amount
