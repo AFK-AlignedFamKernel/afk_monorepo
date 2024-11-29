@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model token_launch {
+  memecoin_address String?
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String    @id
+  quote_token      String?
+  exchange_name    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  total_supply     String?
+  current_supply   String?
+  liquidity_raised String?
+  price            String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       String?
+}
+
+model token_transactions {
+  transfer_id      String    @id
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  transaction_hash String?
+  memecoin_address String?
+  owner_address    String?
+  last_price       String?
+  quote_amount     String?
+  coin_received    String?
+  initial_supply   String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  total_supply     String?
+  current_supply   String?
+  liquidity_raised String?
+  price            String?
+  protocol_fee     String?
+  amount           Decimal?  @db.Decimal
+  cursor           BigInt?   @map("_cursor")
+  transaction_type String
+  time_stamp       DateTime? @db.Timestamp(6)
+}
