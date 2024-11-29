@@ -5,7 +5,8 @@ use afk::types::launchpad_types::{
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters
+    EkuboLiquidityParameters, LiquidityParameters,
+    // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
@@ -188,7 +189,8 @@ pub mod LaunchpadMarketplace {
         SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
         EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters
+        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
+        // MemecoinCreated, MemecoinLaunched
     };
 
 
@@ -254,6 +256,7 @@ pub mod LaunchpadMarketplace {
         // User states
         token_created: Map::<ContractAddress, Token>,
         launched_coins: Map::<ContractAddress, TokenLaunch>,
+        // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
         shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
         bonding_type: Map::<ContractAddress, BondingType>,
@@ -311,6 +314,8 @@ pub mod LaunchpadMarketplace {
         LiquidityCanBeAdded: LiquidityCanBeAdded,
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
+        // MemecoinCreated: MemecoinCreated,
+        // MemecoinLaunched: MemecoinLaunched,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -499,15 +504,17 @@ pub mod LaunchpadMarketplace {
             is_unruggable: bool
         ) -> ContractAddress {
             let caller = get_caller_address();
+            let contract_address = get_contract_address();
             let token_address = self
                 ._create_token(
-                    recipient,
-                    caller,
                     symbol,
                     name,
                     initial_supply,
                     contract_address_salt,
-                    is_unruggable
+                    is_unruggable,
+                    recipient,
+                    caller,
+                    contract_address,
                 );
 
             token_address
@@ -527,15 +534,15 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token_address = self
                 ._create_token(
-                    contract_address,
-                    caller,
                     symbol,
                     name,
                     initial_supply,
                     contract_address_salt,
-                    is_unruggable
+                    is_unruggable,
+                    contract_address,
+                    caller,
+                    contract_address,
                 );
-            let contract_address = get_contract_address();
             self._launch_token(token_address, caller, contract_address, false);
             token_address
         }
@@ -1118,28 +1125,29 @@ pub mod LaunchpadMarketplace {
             if is_launch_bonding_now == true {
                 let token_address = self
                     ._create_token(
-                        contract_address,
-                        caller,
                         symbol,
                         name,
                         initial_supply,
                         contract_address_salt,
-                        true
+                        true,
+                        contract_address,
+                        caller,
+                        contract_address,
                     );
                 self._launch_token(token_address, caller, contract_address, true);
                 token_address
             } else {
                 let token_address = self
                     ._create_token(
-                        contract_address,
-                        caller,
                         symbol,
                         name,
                         initial_supply,
                         contract_address_salt,
-                        true
+                        true,
+                        caller,
+                        caller,
+                        contract_address,
                     );
-                let contract_address = get_contract_address();
 
                 let mut token = Token {
                     token_address: token_address,
@@ -1166,7 +1174,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let pool = self.launched_coins.read(coin_address);
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-            
+
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
             self._add_liquidity_ekubo(coin_address)
         }
@@ -1363,18 +1371,21 @@ pub mod LaunchpadMarketplace {
     impl InternalFunctions of InternalFunctionsTrait {
         fn _create_token(
             ref self: ContractState,
-            recipient: ContractAddress,
-            owner: ContractAddress,
             symbol: felt252,
             name: felt252,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
+            recipient: ContractAddress,
+            owner: ContractAddress,
+            factory: ContractAddress,
         ) -> ContractAddress {
             let mut calldata = array![name.into(), symbol.into()];
             Serde::serialize(@initial_supply, ref calldata);
-            Serde::serialize(@recipient, ref calldata);
             Serde::serialize(@18, ref calldata);
+            Serde::serialize(@recipient, ref calldata);
+            Serde::serialize(@owner, ref calldata);
+            Serde::serialize(@factory, ref calldata);
 
             let (token_address, _) = deploy_syscall(
                 self.coin_class_hash.read(), contract_address_salt, calldata.span(), false

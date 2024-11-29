@@ -1293,10 +1293,10 @@ mod launchpad_tests {
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
-        let amount_meme_supply_liq= DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO;
-       
-        let lp_meme_supply=amount_meme_supply_liq.clone();
-        memecoin.transfer(launchpad.contract_address, amount_meme_supply_liq);
+        let amount_meme_supply_liq = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO;
+
+        let lp_meme_supply = amount_meme_supply_liq.clone();
+        memecoin.transfer(launchpad.contract_address, amount_meme_supply_liq.clone());
         let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
         println!("balance meme {:?}", balance_meme_launch);
 
@@ -1354,7 +1354,7 @@ mod launchpad_tests {
             .add_liquidity_unrug_lp(
                 token_address,
                 quote_token.contract_address,
-                lp_meme_supply,
+                lp_meme_supply.clone(),
                 launch_params,
                 EkuboPoolParameters {
                     fee: 0xc49ba5e353f7d00000000000000000,

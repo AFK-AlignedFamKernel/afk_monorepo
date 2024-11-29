@@ -208,6 +208,23 @@ pub struct CreateLaunch {
 }
 
 #[derive(Drop, starknet::Event)]
+pub struct MemecoinCreated {
+    pub owner: ContractAddress,
+    pub name: felt252,
+    pub symbol: felt252,
+    pub initial_supply: u256,
+    pub memecoin_address: ContractAddress
+}
+
+
+#[derive(Drop, starknet::Event)]
+pub struct MemecoinLaunched {
+    pub memecoin_address: ContractAddress,
+    pub quote_token: ContractAddress,
+    pub exchange_name: felt252,
+}
+
+#[derive(Drop, starknet::Event)]
 pub struct LaunchUpdated {
     #[key]
     user: ContractAddress,
