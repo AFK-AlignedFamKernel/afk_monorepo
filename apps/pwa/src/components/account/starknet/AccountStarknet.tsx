@@ -9,7 +9,7 @@ import {connect, ConnectorData, StarknetWindowObject} from 'starknetkit-next';
 import {disconnect} from 'starknetkit-next';
 const AccountStarknet = (props) => {
   const {address, account} = useAccount();
-  const [queryAddress, setQueryAddress] = useState('0');
+  const [queryAddress, setQueryAddress] = useState<string | undefined>(undefined);
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
   const [accountRank, setAccountRank] = useState('');
@@ -27,6 +27,7 @@ const AccountStarknet = (props) => {
 
   const [isValidUsername, setIsValidUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
+
   useEffect(() => {
     setUsernameTaken(false);
     if (username === '') {
@@ -83,6 +84,7 @@ const AccountStarknet = (props) => {
         return name;
     }
   };
+
   const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
   const [_accountSessionSignature, setAccountSessionSignature] = useState<
     string[] | Signature | null
@@ -285,7 +287,7 @@ const AccountStarknet = (props) => {
 
     const checkIfAvailable = async () => {
       const availableConnectors: any[] = [];
-      for (let i = 0; i < props.connectors.length; i++) {
+      for (let i = 0; i < props.connectors?.length; i++) {
         const available = await props.connectors[i].available();
         if (available) {
           availableConnectors.push(props?.connectors[i]);
@@ -538,7 +540,7 @@ const AccountStarknet = (props) => {
     // queryAddress={queryAddress}
     // setActiveTab={props.setActiveTab}
     >
-      {queryAddress === '0' && (
+      {queryAddress === '0' ? (
         <div
           style={{
             display: 'flex',
@@ -643,8 +645,7 @@ const AccountStarknet = (props) => {
             </div>
           </div>
         </div>
-      )}
-      {queryAddress !== '0' && (
+      ) : (
         <div>
           <h2 className="Text__medium Heading__sub Account__subheader">Info</h2>
           {usernameSaved && !isEditing ? (

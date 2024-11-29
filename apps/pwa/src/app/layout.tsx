@@ -1,7 +1,6 @@
 import './index.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {Box} from '@chakra-ui/react';
 import type {Metadata} from 'next';
 // import {useRouter} from 'next/router';
 import Script from 'next/script';
@@ -32,7 +31,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   // }, [router.events]);
   return (
     <html lang="en">
-      <Providers>
+      <head>
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -51,11 +50,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           `,
           }}
         />
-
-        <body>
-          <Box>{children}</Box>
-        </body>
-      </Providers>
+      </head>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
