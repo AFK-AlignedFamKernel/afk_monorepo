@@ -51,7 +51,7 @@ export enum SelectedTab {
   SHARES = "SHARES",
   STATS = "STATS",
   GRAPH = "GRAPH",
-
+  DYNAMIC_OWNED = "DYNAMIC_OWNED",
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -380,19 +380,14 @@ export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: Selec
 ];
 
 export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab}[] = [
-  // {
-  //   title: 'Dynamic',
-  //   screen: 'Dynamic',
-  //   tab: SelectedTab.DYNAMIC_GENERAL,
-  // },
-  // {
-  //   title: 'Generate',
-  //   screen: 'Generate',
-  //   tab: SelectedTab.GENERATE_INTERNAL_WALLET,
-  // },
-  // {
-  //   title: 'Portfolio',
-  //   screen: 'Portfolio',
-  //   tab: SelectedTab.PORTFOLIO,
-  // },
+  {
+    title: 'Buy Name',
+    screen: 'Buy',
+    tab: SelectedTab.DYNAMIC_GENERAL,
+  },
+  {
+    title: 'Your Names',
+    screen: 'Owned',
+    tab: SelectedTab.DYNAMIC_OWNED,
+  },
 ];

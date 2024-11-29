@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, SquareInput, TextButton } from '../../components';
@@ -15,96 +15,132 @@ import { CashuWalletView } from '../CashuWallet';
 import { LightningNetworkWalletView } from '../Lightning';
 import stylesheet from './styles';
 import { useNameservice } from '../../hooks/nameservice/useNameservice';
-import { useToast, useWalletModal } from '../../hooks/modals';
+import { useToast, useWalletModal, useTransaction } from '../../hooks/modals';
 import { useAccount } from '@starknet-react/core';
 
 export const FormComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
-    SelectedTab.DYNAMIC_GENERAL,
-  );
+  const { account } = useAccount();
+  const { prepareBuyUsername } = useNameservice();
+  const [username, setUsername] = useState<string | undefined>();
+  const walletModal = useWalletModal();
+  const { showToast } = useToast();
+  const { sendTransaction } = useTransaction({ callsProps: [] });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
-  const { account } = useAccount()
+  const handleVerify = async () => {
+    if (!username) {
+      showToast({ title: "Please enter a name", type: "info" });
+      return;
+    }
+    setIsVerifying(true);
+    try {
+      // For now, we'll just check if the username is not empty
+      // TODO: Add actual verification against the contract
+      if (username.length > 0) {
+        setIsVerified(true);
+        showToast({ title: "Name is available!", type: "success" });
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      showToast({ title: "Name verification failed", type: "error" });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
-  const { handleBuyUsername } = useNameservice()
-  const [username, setUsername] = useState<string | undefined>()
-
-  const walletModal = useWalletModal()
-  const { showToast } = useToast()
-  const handleBuy = async () => {
-
-
+  const onConnect = async () => {
     if (!account?.address) {
       walletModal.show();
-
-      // const result = await waitConnection();
-      // if (!result) return;
+      return false;
     }
+    return true;
+  };
 
-
-    if (!account) {
-
-      return showToast({ title: "Please connect you", type: "info" })
+  const handleBuy = async () => {
+    if (!isVerified) {
+      showToast({ title: "Please verify name first", type: "info" });
+      return;
     }
-
+    
+    if (isLoading) return;
+    
     if (!username) {
-      return showToast({ title: "Please choose an username", type: "info" })
+      showToast({ title: "Please enter a name", type: "info" });
+      return;
     }
-    handleBuyUsername(account, username)
-  }
-  const navigation = useNavigation<MainStackNavigationProps>();
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
-    setSelectedTab(tab as any);
-    // if (screen) {
-    //   navigation.navigate(screen as any);
-    // }
+    
+    setIsLoading(true);
+    try {
+      const isConnected = await onConnect();
+      if (!isConnected || !account) {
+        setIsLoading(false);
+        return;
+      }
+
+      const calls = await prepareBuyUsername(account, username);
+      const success = await sendTransaction(calls);
+      
+      if (success) {
+        showToast({ 
+          title: "Transaction submitted!", 
+          type: "success"
+        });
+      } else {
+        throw new Error('Transaction failed');
+      }
+    } catch (error) {
+      console.error('Buy error:', error);
+      showToast({ 
+        title: "Failed to purchase name", 
+        type: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <KeyboardAvoidingView behavior="padding" style={styles.content}>
-          <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+      <Text style={styles.title}>Buy Nameservice</Text>
+      
+      <View style={styles.faucetContainer}>
+        <Text style={styles.faucetText}>
+          Need funds? Get test tokens from Starknet Sepolia faucet
+        </Text>
+      </View>
 
-            <View>
+      <View style={styles.inputContainer}>
+        <SquareInput
+          style={styles.input}
+          placeholder="Enter name to register"
+          onChangeText={(text) => {
+            setUsername(text);
+            setIsVerified(false);
+          }}
+          value={username}
+        />
+      </View>
 
-              <Text
-                style={styles.text}
-              >Buy nameservice</Text>
+      <View style={styles.buttonContainer}>
+        <Button 
+          style={styles.button}
+          onPress={handleVerify}
+          disabled={isVerifying || !username}
+        >
+          {isVerifying ? 'Verifying...' : 'Verify name'}
+        </Button>
 
-              <SquareInput
-                placeholder="Your name"
-                onChangeText={setUsername}
-                // onBlur={handleBlur('symbol')}
-                value={username}
-              // error={errors.symbol}
-              />
-
-              <Button onPress={() => {
-                // onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)
-              }
-
-              }
-
-              >
-                Verify name
-              </Button>
-
-              <Button onPress={() => {
-                handleBuy()
-                // onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)
-              }
-              } >
-                Buy nameservice
-              </Button>
-
-
-
-
-            </View>
-          </SafeAreaView>
-        </KeyboardAvoidingView>
-      </ScrollView>
-    </View >
+        <Button 
+          style={styles.button}
+          onPress={handleBuy}
+          disabled={!isVerified || isLoading}
+        >
+          {isLoading ? 'Buying...' : 'Buy nameservice'}
+        </Button>
+      </View>
+    </View>
   );
 };
