@@ -7,9 +7,10 @@ import { prepareAndConnectContract } from '../keys/useDataKeys';
 import { useQuery } from '@tanstack/react-query';
 import { ApiIndexerInstance } from '../../services/api';
 
-const NAMESERVICE_ENDPOINTS = {
+export const NAMESERVICE_ENDPOINTS = {
   claimed: '/username-claimed',
   byUsername: (username: string) => `/username-claimed/username/${username}`,
+  byUser: (address: string) => `/username-claimed/user/${address}`,
 } as const;
 
 export interface NameserviceData {
@@ -169,8 +170,8 @@ export const useNameserviceData = () => {
 };
 
 export const useNameserviceByUsername = (username: string) => {
-  return useQuery({
-    queryKey: ['nameservice_username', username],
+  const query = useQuery({
+    queryKey: ['nameservice_data', username],
     queryFn: async () => {
       const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.byUsername(username));
       
@@ -178,8 +179,10 @@ export const useNameserviceByUsername = (username: string) => {
         throw new Error('Failed to fetch nameservice data');
       }
 
-      return response.data.data as NameserviceData;
+      return response.data.data as NameserviceData[];
     },
     enabled: !!username,
   });
+
+  return query;
 };
