@@ -15,7 +15,6 @@
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@argent/tma-wallet": "^1.17.0",
     "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@chakra-ui/icons": "^2.2.4",

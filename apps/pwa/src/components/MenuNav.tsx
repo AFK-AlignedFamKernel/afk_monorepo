@@ -2,7 +2,6 @@ import {Button, Menu, MenuButton, MenuItem, MenuList} from '@chakra-ui/react';
 
 import AccountStarknet from './account/starknet/AccountStarknet';
 import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
-import {TelegramAccount} from './telegram';
 // import DynamicManagement from './dynamic';
 
 interface IMenuParent {
@@ -38,8 +37,6 @@ const MenuNav: React.FC<IMenuParent> = () => {
               <>
               </>
             } */}
-
-            <TelegramAccount></TelegramAccount>
 
             <MenuItem onClick={onClose} color="red.500" fontWeight="bold">
               Close Menu
