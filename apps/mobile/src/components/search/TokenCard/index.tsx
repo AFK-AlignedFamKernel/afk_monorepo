@@ -15,6 +15,8 @@ import { Button } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
 import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
+import { AddLiquidityForm } from '../../AddLiquidityForm';
+import { useModal } from '../../../hooks/modals/useModal';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -51,6 +53,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const { handleLaunchCoin } = useLaunchToken()
+  const { show: showModal } = useModal();
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
@@ -88,20 +91,15 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         </View>
       </View>
 
-      {account && account?.address == token?.owner &&
+      {account && account?.address == token?.owner && (
         <View>
-
           <Button onPress={() => {
             handleLaunchCoin(account, token?.memecoin_address)
           }}>Launch your coin</Button>
-          <Button
-            onPress={() => {
-
-            }}
-          >Add Liquidity unruggable</Button>
+          
+          <AddLiquidityForm tokenAddress={token?.memecoin_address} />
         </View>
-
-      }
+      )}
 
       {!isViewDetailDisabled && (
         <>
@@ -116,6 +114,14 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             style={styles.actionButton}
           >
             View token page
+          </Button>
+
+          <Button onPress={() => {
+            if (token?.memecoin_address) {
+              showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
+            }
+          }}>
+            Add Liquidity
           </Button>
 
         </>
