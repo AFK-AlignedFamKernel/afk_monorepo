@@ -14,14 +14,14 @@ import { SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET } from '../../typ
 import { CashuWalletView } from '../CashuWallet';
 import { LightningNetworkWalletView } from '../Lightning';
 import stylesheet from './styles';
-import { useNameservice } from '../../hooks/nameservice/useNameservice';
+import { useNameserviceData } from '../../hooks/nameservice/useNameservice';
 import { useToast, useWalletModal, useTransaction } from '../../hooks/modals';
 import { useAccount } from '@starknet-react/core';
 
 export const FormComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
   const { account } = useAccount();
-  const { prepareBuyUsername } = useNameservice();
+  const { prepareBuyUsername } = useNameserviceData();
   const [username, setUsername] = useState<string | undefined>();
   const walletModal = useWalletModal();
   const { showToast } = useToast();

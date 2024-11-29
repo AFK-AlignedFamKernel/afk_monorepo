@@ -1,70 +1,63 @@
-import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
-// import {KEYS_ADDRESS} from '../../constants/contracts';
-import { KEYS_ADDRESS, NAMESERVICE_ADDRESS, TOKENS_ADDRESS } from 'common';
-import { AccountInterface, cairo, CallData, constants, RpcProvider, uint256 } from 'starknet';
+import {useQuery, useMutation} from '@tanstack/react-query';
+import { ApiIndexerInstance } from '../../services/api';
+import { AccountInterface, Call } from 'starknet';
 
-import { TokenQuoteBuyKeys } from '../../types/keys';
-import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
-import { prepareAndConnectContract } from '../keys/useDataKeys';
+export interface NameserviceData {
+  owner_address: string;
+  username: string;
+  time_stamp: string;
+  paid: string;
+  quote_address: string;
+  expiry: string;
+}
 
-export const useNameservice = () => {
-  const { provider: rpcProvider } = useProvider();
-  
-  const provider = rpcProvider ?? new RpcProvider({ 
-    nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL 
-  });
-
-  const prepareBuyUsername = async (
-    account: AccountInterface,
-    username: string,
-    contractAddress?: string,
-  ) => {
-    if (!account) throw new Error('No account connected');
-    if (!provider) throw new Error('Provider not initialized');
-
-    try {
-      const addressContract = contractAddress ?? NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
-      const nameservice = await prepareAndConnectContract(provider, addressContract);
+export const useNameserviceData = () => {
+  const query = useQuery({
+    queryKey: ['nameservice_data'],
+    queryFn: async () => {
+      const response = await ApiIndexerInstance.get('/username-claimed');
       
-      // Default to STRK token
-      const quote_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
-      
-      const asset = await prepareAndConnectContract(
-        provider,
-        quote_address,
-        account,
-      );
-
-      let amountToPaid;
-      try {
-        // Call without arguments since the contract expects 0 args
-        amountToPaid = await nameservice.get_subscription_price();
-      } catch (error) {
-        throw new Error(`Failed to get subscription price: ${error.message}`);
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch nameservice data');
       }
 
-      return [
-        {
-          contractAddress: asset?.address,
-          entrypoint: 'approve',
-          calldata: CallData.compile({
-            address: addressContract,
-            amount: amountToPaid ? cairo.uint256(amountToPaid) : cairo.uint256(1),
-          }),
-        },
-        {
-          contractAddress: addressContract,
-          entrypoint: 'claim_username',
-          calldata: CallData.compile({
-            username: username
-          }),
-        }
-      ];
+      return response.data.data as NameserviceData[];
+    },
+  });
+
+  const prepareBuyUsername = async (account: AccountInterface, username: string): Promise<Call[]> => {
+    try {
+      const calls: Call[] = [{
+        contractAddress: process.env.NAMESERVICE_CONTRACT_ADDRESS as string,
+        entrypoint: 'buy_username',
+        calldata: [username]
+      }];
+      
+      return calls;
     } catch (error) {
-      console.error('Transaction preparation error:', error);
+      console.error('Error preparing username purchase:', error);
       throw error;
     }
-  }
+  };
 
-  return { prepareBuyUsername };
+  return {
+    ...query,
+    prepareBuyUsername
+  };
+};
+
+export const useNameserviceByUsername = (username: string) => {
+  return useQuery({
+    queryKey: ['nameservice_username', username],
+    queryFn: async () => {
+      const response = await ApiIndexerInstance.get(`/username-claimed/username/${username}`);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to fetch nameservice data');
+      }
+
+      return response.data.data as NameserviceData;
+    },
+    enabled: !!username,
+  });
 };
