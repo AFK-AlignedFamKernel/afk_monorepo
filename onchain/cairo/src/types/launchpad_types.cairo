@@ -88,6 +88,25 @@ pub struct TokenLaunch {
     pub creator_fee_percent: u256,
 }
 
+#[derive(Drop, Serde, Copy, starknet::Store)]
+pub struct LaunchLiquidity {
+    pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
+    pub creator: ContractAddress,
+    pub token_address: ContractAddress,
+    pub price: u256, // Last price of the token. In TODO
+    pub available_supply: u256, // Available to buy
+    pub initial_pool_supply: u256, // Liquidity token to add in the DEX
+    pub initial_available_supply: u256, // Init available to buy
+    pub total_supply: u256, // Total supply to buy
+    pub created_at: u64,
+    pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
+    pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
+    pub liquidity_type: Option<LiquidityType>,
+    pub starting_price: u256,
+    pub protocol_fee_percent: u256,
+}
+
+
 #[derive(Drop, Serde, Clone, starknet::Store)]
 pub struct SharesTokenUser {
     pub owner: ContractAddress,

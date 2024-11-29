@@ -15,9 +15,7 @@ import {v2} from '../../utils/nip44';
  * 
  * ## Token Event
 Token events are used to record the unspent proofs that come from the mint.
-
 There can be multiple `kind:7375` events for the same mint, and multiple proofs inside each `kind:7375` event.
-
 ```jsonc
 {
     "kind": 7375,
