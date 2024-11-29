@@ -1855,9 +1855,10 @@ pub mod LaunchpadMarketplace {
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
             println!("distribute_team_alloc");
-            distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
+            // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
             let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            println!("try set_launched");
 
             memecoin
                 .set_launched(
@@ -1948,7 +1949,9 @@ pub mod LaunchpadMarketplace {
                 CallbackData, (u64, EkuboLP)
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
-            distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
+
+            // TODO comment and test claim
+            // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
             let memecoin_dispatcher = IMemecoinDispatcher { contract_address: coin_address };
 
