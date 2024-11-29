@@ -1,0 +1,10 @@
+{
+    "env": {
+      "NPM_RC": "shamefully-hoist=true",
+      "PNPM_VERSION": "8.15.9",
+      "installCommand": "pnpm install"
+
+    }
+  
+  }
+  
