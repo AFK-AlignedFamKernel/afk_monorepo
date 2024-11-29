@@ -35,7 +35,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
   const {publicKey, privateKey} = useAuth();
 
   const {handleReceiveEcash} = usePayment();
-  const {mints, setMints, setActiveMint, buildMintData, setActiveUnit, wallet} = useCashuContext()!;
+  const {mints, setMints, setActiveMint, buildMintData, setActiveUnit} = useCashuContext()!;
   const {value: mintsStorage, setValue: setMintsStorage} = useMintStorage();
   const {setValue: setActiveMintStorage} = useActiveMintStorage();
   const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
@@ -53,7 +53,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
       const decodedToken = getDecodedToken(token);
       setTokenInfo(decodedToken);
       if (decodedToken && mintsStorage.length === 0) {
-        const mintUrl = decodedToken.token[0].mint;
+        const mintUrl = decodedToken.mint;
         handleAddMint(mintUrl);
       }
     }
@@ -90,7 +90,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
 
   const handleReceive = async () => {
     setIsProcessing(true);
-    const mintUrl = tokenInfo?.token?.[0].mint;
+    const mintUrl = tokenInfo?.mint;
     if (mintUrl) {
       const mintAlreadyConfigured = mintsStorage?.some((mint) => mint.url === mintUrl) || false;
       if (!mintAlreadyConfigured) {
@@ -141,8 +141,8 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
             <View style={styles.warningContainer}>
               <InfoIcon width={30} height={30} color={theme.colors.primary} />
               <Text style={styles.warning}>
-                This will connect the mint <b>{tokenInfo?.token?.[0].mint}</b> to your session if
-                it&apos;s not already configured.
+                This will connect the mint <b>{tokenInfo?.mint}</b> to your session if it&apos;s not
+                already configured.
               </Text>
             </View>
             <Button

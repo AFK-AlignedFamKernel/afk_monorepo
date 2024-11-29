@@ -8,7 +8,7 @@ export default ThemedStyleSheet((theme) => ({
     padding: Spacing.medium,
     borderRadius: 10,
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: theme.colors.background,
     color: theme.colors.text,
   },
   modalBackdrop: {

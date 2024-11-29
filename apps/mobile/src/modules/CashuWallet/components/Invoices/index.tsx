@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
 import {ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useState} from 'react';
@@ -126,7 +126,7 @@ export const Invoices = () => {
           const tokenEvent = await createTokenEvent({
             walletId,
             mint: activeMint,
-            proofs: receive?.proofs,
+            proofs: receive,
           });
           await createSpendingEvent({
             walletId,
@@ -137,11 +137,11 @@ export const Invoices = () => {
           });
         }
         if (!proofsStorage && !proofs) {
-          setProofsStorage([...(receive?.proofs as Proof[])]);
-          setProofs([...(receive?.proofs as Proof[])]);
+          setProofsStorage([...receive]);
+          setProofs([...receive]);
         } else {
-          setProofsStorage([...proofs, ...(receive?.proofs as Proof[])]);
-          setProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          setProofsStorage([...proofs, ...receive]);
+          setProofs([...proofs, ...receive]);
         }
         return receive;
       }
