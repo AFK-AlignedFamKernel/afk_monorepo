@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAccount } from '@starknet-react/core';
 import { decodeUsername, formatExpiry } from '../../utils/format';
 import { ApiIndexerInstance } from '../../services/api';
@@ -21,37 +21,31 @@ interface FormattedName {
 }
 
 export const useNamesList = () => {
-  const [names, setNames] = useState<FormattedName[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { account } = useAccount();
 
-  useEffect(() => {
-    const fetchNames = async () => {
-      try {
-        const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.claimed);
-        
-        if (!response.data?.data || !Array.isArray(response.data.data)) {
-          console.error('Invalid data format received:', response.data);
-          return;
-        }
+  const fetchNames = async () => {
+    const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.claimed);
+    
+    if (!response.data?.data || !Array.isArray(response.data.data)) {
+      throw new Error('Invalid data format received');
+    }
 
-        const formattedNames = (response.data.data as RawName[]).map(name => ({
-          name: decodeUsername(name.username),
-          owner: name.owner_address,
-          expiryTime: formatExpiry(name.expiry),
-          paid: name.paid
-        }));
+    return (response.data.data as RawName[]).map(name => ({
+      name: decodeUsername(name.username),
+      owner: name.owner_address,
+      expiryTime: formatExpiry(name.expiry),
+      paid: name.paid
+    }));
+  };
 
-        setNames(formattedNames);
-      } catch (error) {
-        console.error('Error fetching names:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const query = useQuery({
+    queryKey: ['names', account?.address],
+    queryFn: fetchNames
+  });
 
-    fetchNames();
-  }, [account?.address]);
-
-  return { names, isLoading };
+  return {
+    names: query.data ?? [],
+    isLoading: query.isLoading,
+    fetchNames: query.refetch
+  };
 }; 
