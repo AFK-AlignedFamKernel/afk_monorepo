@@ -33,7 +33,7 @@ const PixelSelector = (props) => {
       // TODO: Use lowest timer out of base, chain, faction, ...
       setPlacementTimer(props.basePixelTimer);
     }
-  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress]);
+  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, address]);
 
   const toSelectorMode = (event) => {
     event.preventDefault();
