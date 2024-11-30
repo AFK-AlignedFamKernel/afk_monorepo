@@ -280,12 +280,11 @@ mod nameservice_tests {
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);
-        nameservice_dispatcher.create_auction_for_username(username, 100_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 100_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         let existing_auction = nameservice_dispatcher.get_auction(username);
         assert(existing_auction.minimal_price == 100, 'Minimal price not correct');
-        assert(existing_auction.is_accepted_price_reached == false, 'price not correct');
         assert(existing_auction.highest_bid == 0, 'highest_bid not correct');
         assert(existing_auction.highest_bidder ==  starknet::contract_address_const::<0>(), 'highest_bidder not correct');
     }
@@ -313,7 +312,7 @@ mod nameservice_tests {
 
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-        nameservice_dispatcher.create_auction_for_username(username, 100_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 100_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
     }
 
@@ -346,7 +345,7 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER());
@@ -400,7 +399,7 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2
@@ -462,7 +461,7 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER());
@@ -509,7 +508,7 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2
@@ -577,7 +576,7 @@ mod nameservice_tests {
         assert(stored_address == CALLER(), 'Address not set');
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2
@@ -642,7 +641,7 @@ mod nameservice_tests {
         assert(stored_address == CALLER(), 'Address not set');
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2
@@ -720,7 +719,7 @@ mod nameservice_tests {
         assert(stored_address == CALLER(), 'Address not set');
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER()); //10
-        nameservice_dispatcher.create_auction_for_username(username, 5_u256, false);
+        nameservice_dispatcher.create_auction_for_username(username, 5_u256);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         start_cheat_caller_address(payment_token_dispatcher.contract_address, NEW_CALLER()); //2

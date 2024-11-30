@@ -105,7 +105,6 @@ pub mod Nameservice {
     pub struct Auction {
         pub owner: ContractAddress,
         pub minimal_price: u256,
-        pub is_accepted_price_reached: bool,
         pub highest_bid: u256,
         pub highest_bidder: ContractAddress,
     }
@@ -211,7 +210,6 @@ pub mod Nameservice {
         owner: ContractAddress,
         username: felt252,
         minimal_price: u256,
-        is_accepted_price_reached: bool
 
     }
 
@@ -364,7 +362,6 @@ pub mod Nameservice {
             ref self: ContractState,
             username: felt252,
             minimal_price: u256,
-            is_accepted_price_reached: bool
         ) {
             let caller_address = get_caller_address();
             let username_address = self.get_username_address(username);
@@ -385,7 +382,6 @@ pub mod Nameservice {
             let new_auction = Auction {
                 owner: caller_address,
                 minimal_price: minimal_price,
-                is_accepted_price_reached: is_accepted_price_reached,
                 highest_bid: 0,
                 highest_bidder: contract_address_const::<0>(),
             };
@@ -398,7 +394,6 @@ pub mod Nameservice {
                         owner: caller_address,
                         username: username,
                         minimal_price,
-                        is_accepted_price_reached
                     }
                 );
         }
@@ -429,7 +424,6 @@ pub mod Nameservice {
             let mut updated_auction = auction;
             updated_auction.highest_bid = amount;
             updated_auction.highest_bidder = bidder;
-            updated_auction.is_accepted_price_reached = false;
             self.auctions.write(username, updated_auction);
         }
 
@@ -440,7 +434,6 @@ pub mod Nameservice {
 
             let auction = self.auctions.read(username);
             assert(auction.owner == caller, UserNameClaimErrors::USER_NOT_AUCTION_OWNER);
-            assert(auction.is_accepted_price_reached == false, UserNameClaimErrors::ACCEPTED_PRICE_REACHED);
 
             let order = self.orders.entry((username, id)).read();
             assert(order.is_active == true, UserNameClaimErrors::ORDER_INACTIVE);
@@ -452,10 +445,7 @@ pub mod Nameservice {
             updated_order.is_active = false;
             self.orders.entry((username, id)).write(order);
 
-            // Update auction is_accepted_price_reached
             let mut updated_auction = auction;
-            updated_auction.is_accepted_price_reached = true;
-            self.auctions.write(username, updated_auction);
 
             // Send token from contract to auction owner
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
@@ -492,7 +482,6 @@ pub mod Nameservice {
             let mut updated_auction = auction;
             updated_auction.highest_bid = 0;
             updated_auction.highest_bidder = contract_address_const::<0>();
-            updated_auction.is_accepted_price_reached = false;
             self.auctions.write(username, updated_auction);
 
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };

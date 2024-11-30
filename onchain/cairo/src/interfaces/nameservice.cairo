@@ -10,7 +10,6 @@ pub trait INameservice<TContractState> {
         ref self: TContractState,
         username: felt252,
         minimal_price: u256,
-        is_accepted_price_reached: bool
     );
     fn place_order(ref self: TContractState, username: felt252, amount: u256);
     fn cancel_order(ref self: TContractState, username: felt252, id: u64);
