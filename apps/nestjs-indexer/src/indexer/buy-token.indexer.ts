@@ -69,6 +69,7 @@ export class BuyTokenIndexer {
 
     const transferId = `${transactionHash}_${event.index}`;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, callerFelt, tokenAddressFelt] = event.keys;
 
     const ownerAddress = validateAndParseAddress(
@@ -151,21 +152,6 @@ export class BuyTokenIndexer {
       transactionType: 'buy',
     };
 
-    console.log('buy token', {
-      transferId,
-      blockNumber: Number(blockNumber),
-      blockHash,
-      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      ownerAddress,
-      tokenAddress,
-      amount,
-      price,
-      protocolFee,
-      lastPrice,
-      quoteAmount,
-      timestamp,
-    });
-
-    await this.buyTokenService.createBuyToken(data);
+    await this.buyTokenService.create(data);
   }
 }
