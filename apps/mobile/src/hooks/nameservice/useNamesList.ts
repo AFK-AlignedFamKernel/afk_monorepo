@@ -24,18 +24,28 @@ export const useNamesList = () => {
   const { account } = useAccount();
 
   const fetchNames = async () => {
+    console.log('Fetching names from endpoint:', NAMESERVICE_ENDPOINTS.claimed);
     const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.claimed);
+    
+    console.log('Names API Response:', {
+      status: response.status,
+      dataLength: response.data?.data?.length,
+      rawData: response.data
+    });
     
     if (!response.data?.data || !Array.isArray(response.data.data)) {
       throw new Error('Invalid data format received');
     }
 
-    return (response.data.data as RawName[]).map(name => ({
+    const formattedNames = (response.data.data as RawName[]).map(name => ({
       name: decodeUsername(name.username),
       owner: name.owner_address,
       expiryTime: formatExpiry(name.expiry),
       paid: name.paid
     }));
+
+    console.log('Formatted names:', formattedNames);
+    return formattedNames;
   };
 
   const query = useQuery({

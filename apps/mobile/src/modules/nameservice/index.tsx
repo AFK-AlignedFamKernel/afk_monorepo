@@ -40,10 +40,46 @@ export const NameserviceComponent: React.FC = () => {
   const renderContent = () => {
     const { names, isLoading } = useNamesList();
     
+    console.log('NameserviceComponent state:', {
+      selectedTab,
+      isLoading,
+      namesCount: names.length,
+      names
+    });
+
     switch(selectedTab) {
       case SelectedTab.DYNAMIC_GENERAL:
-        return <FormComponent />;
+        return (
+          <View style={styles.content}>
+            <FormComponent />
+          </View>
+        );
+      case SelectedTab.DYNAMIC_ALL:
+        console.log('Rendering All Names tab, count:', names.length);
+        return (
+          <View style={styles.content}>
+            <Text style={styles.text}>All Claimed Names</Text>
+            {isLoading ? (
+              <ActivityIndicator size="large" />
+            ) : names.length === 0 ? (
+              <Text style={styles.text}>No names found</Text>
+            ) : (
+              <NamesList 
+                names={names}
+                isLoading={isLoading}
+              />
+            )}
+          </View>
+        );
       case SelectedTab.DYNAMIC_OWNED:
+        const ownedNames = names.filter(name => 
+          name.owner.toLowerCase() === account?.address?.toLowerCase()
+        );
+        console.log('Rendering Your Names tab:', {
+          accountAddress: account?.address,
+          ownedNamesCount: ownedNames.length,
+          ownedNames
+        });
         return (
           <View style={styles.content}>
             <Text style={styles.text}>Your Names</Text>
@@ -53,9 +89,7 @@ export const NameserviceComponent: React.FC = () => {
               <Text style={styles.text}>No names found</Text>
             ) : (
               <NamesList 
-                names={names.filter(name => 
-                  name.owner.toLowerCase() === account?.address?.toLowerCase()
-                )}
+                names={ownedNames}
                 isLoading={isLoading}
               />
             )}
