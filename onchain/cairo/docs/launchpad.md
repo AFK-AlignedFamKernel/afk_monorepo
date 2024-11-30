@@ -6,13 +6,19 @@ launch a bonding curve fair launch, or add liquidity safely and unruggable for y
 
 ## What you can do:
 
-- Create token with supply choosen
-- Launch token bonding curve
-- Add Unrug Liquidity to DEX
+- Create token with supply choosen etc
+- Launch token bonding curve: in hard test
+- Add liquidity after bonding curve
 a. Ekubo (done)
 b. Jediswap (WIP)
 
+- Add Unrug Liquidity to DEX
+a. Ekubo (WIP)
+b. Jediswap (WIP)
+
+
 # Files scope
+
 launchpad.cairo : (WIP refacto into few components reusable)
 calcul.cairo
 memecoin.cairo & memecoin_v2.cairo soon
