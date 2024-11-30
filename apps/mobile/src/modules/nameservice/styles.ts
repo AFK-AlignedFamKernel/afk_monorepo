@@ -93,5 +93,12 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-  }
+  },
+  
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+  },
 }));
