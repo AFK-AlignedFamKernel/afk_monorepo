@@ -116,16 +116,18 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             View token page
           </Button>
 
-          <Button onPress={() => {
-            if (token?.memecoin_address) {
-              showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
-            }
-          }}>
-            Add Liquidity
-          </Button>
-
+          {account && account?.address == token?.owner && (
+            <Button
+              onPress={() => {
+                if (token?.memecoin_address) {
+                  showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
+                }
+              }}
+            >
+              Add Liquidity
+            </Button>
+          )}
         </>
-
       )}
     </View>
   );
