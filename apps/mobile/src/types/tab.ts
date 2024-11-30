@@ -52,6 +52,7 @@ export enum SelectedTab {
   STATS = "STATS",
   GRAPH = "GRAPH",
   DYNAMIC_OWNED = "DYNAMIC_OWNED",
+  DYNAMIC_ALL = "DYNAMIC_ALL",
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -384,6 +385,11 @@ export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab
     title: 'Buy Name',
     screen: 'Buy',
     tab: SelectedTab.DYNAMIC_GENERAL,
+  },
+  {
+    title: 'All Names',
+    screen: 'All',
+    tab: SelectedTab.DYNAMIC_ALL,
   },
   {
     title: 'Your Names',
