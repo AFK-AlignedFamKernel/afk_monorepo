@@ -15,7 +15,7 @@
     "check:all-strict": "yarn check && yarn format:check && yarn lint:strict && yarn ts:check"
   },
   "dependencies": {
-    "@cashu/cashu-ts": "^1.0.1",
+    "@cashu/cashu-ts": "^2.0.0",
     "@getalby/lightning-tools": "^5.0.3",
     "@getalby/sdk": "^3.6.1",
     "@noble/ciphers": "0.4.1",
@@ -24,6 +24,7 @@
     "@nostr-dev-kit/ndk": "^2.10.1",
     "@nostr-dev-kit/ndk-wallet": "^0.2.0",
     "@scure/base": "1.1.5",
+    "@scure/bip39": "^1.5.0",
     "@tanstack/react-query": "^5.40.0",
     "@webbtc/webln-types": "^2.1.0",
     "react": "^18.3.1",
