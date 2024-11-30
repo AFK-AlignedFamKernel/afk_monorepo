@@ -1,3 +1,4 @@
+#[starknet::interface]
 pub trait IDelegationPool<TContractState> {
     fn enter_delegation_pool(ref self: TContractState, amount: u256);
     fn add_to_delegation_pool(ref self: TContractState, amount: u256);

@@ -1,8 +1,10 @@
+#[starknet::interface]
 pub trait IRewardSupplier<TContractState> {
     fn calculate_staking_rewards(ref self: TContractState);
     fn claim_rewards(ref self: TContractState);
 }
 
+#[starknet::contract]
 mod RewardSupplier {
     #[storage]
     struct Storage {}
@@ -13,7 +15,7 @@ mod RewardSupplier {
 
     impl RewardSupplierImpl of super::IRewardSupplier<ContractState> {
         fn calculate_staking_rewards(ref self: ContractState) {
-            5
+            
         }
 
         fn claim_rewards(ref self: ContractState) {

@@ -113,3 +113,5 @@ pub mod tests {
     pub mod vault_tests;
 }
 
+pub mod lst_staking;
+

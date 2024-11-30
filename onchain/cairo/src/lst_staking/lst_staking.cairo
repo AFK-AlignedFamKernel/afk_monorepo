@@ -7,7 +7,9 @@ pub trait ILST_Staking<TContractState> {
     fn claim_rewards(ref self: TContractState);
 }
 
-pub struct StakerInfo {}
+pub struct StakerInfo {
+    
+}
 
 #[starknet::contract]
 mod LSTStaking {
