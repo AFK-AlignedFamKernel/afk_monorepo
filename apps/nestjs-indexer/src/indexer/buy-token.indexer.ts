@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress } from 'starknet';
+import { uint256, validateAndParseAddress, hash } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -19,7 +19,9 @@ export class BuyTokenIndexer {
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
-    this.eventKeys = [validateAndParseAddress(constants.event_keys.BUY_TOKEN)];
+    this.eventKeys = [
+      validateAndParseAddress(hash.getSelectorFromName('BuyToken')),
+    ];
   }
 
   async onModuleInit() {
@@ -38,7 +40,7 @@ export class BuyTokenIndexer {
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
-      case validateAndParseAddress(constants.event_keys.BUY_TOKEN):
+      case validateAndParseAddress(hash.getSelectorFromName('BuyToken')):
         this.logger.log('Event name: BuyToken');
         this.handleBuyTokenEvent(header, event, transaction);
         break;
