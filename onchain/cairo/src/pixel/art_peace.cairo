@@ -10,7 +10,7 @@ pub mod ArtPeace {
         ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
-        ChainFactionTemplateRemoved, InitParams,
+        ChainFactionTemplateRemoved, InitParams, MetadataPixel
     };
     use afk::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -84,6 +84,7 @@ pub mod ArtPeace {
         nft_contract: ContractAddress,
         // Map: (day_index, user's address, color index) -> amount of pixels placed
         user_pixels_placed: Map::<(u32, ContractAddress, u8), u32>,
+        user_pixels_metadata_placed: Map::<(u32, ContractAddress, u8), u32>,
         devmode: bool,
         faction_templates_count: u32,
         // Map: template id -> template metadata
@@ -299,6 +300,20 @@ pub mod ArtPeace {
         }
 
         fn place_pixel(ref self: ContractState, pos: u128, color: u8, now: u64) {
+            self.check_game_running();
+            self.check_timing(now);
+            let caller = starknet::get_caller_address();
+            assert(
+                now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
+                'Pixel not available'
+            );
+
+            place_basic_pixel_inner(ref self, pos, color, now);
+        }
+
+        fn place_pixel_metadata(
+            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        ) {
             self.check_game_running();
             self.check_timing(now);
             let caller = starknet::get_caller_address();

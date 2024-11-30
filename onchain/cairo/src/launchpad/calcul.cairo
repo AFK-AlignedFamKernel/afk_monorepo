@@ -40,7 +40,7 @@ pub fn calculate_starting_price_launch(
     starting_price
 }
 
-// TODO verify price bonding curve 
+// TODO verify price bonding curve
 // current sellable supply beofre launch
 pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
     assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
@@ -49,7 +49,8 @@ pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u2
     // sellable_supply.clone();
     // TODO check new formula
     let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / sellable_supply.clone();
-    // let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
+    // let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) /
+    // (sellable_supply.clone()*2);
     starting_price
 }
 
@@ -60,7 +61,8 @@ pub fn calculate_init_pricing(threshold_liquidity: u256, sellable_supply: u256) 
     // let starting_price = (threshold_liquidity.clone() * scaling_factor) /
     // sellable_supply.clone();
     // TODO check new formula init pricing with linear curve?
-    let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / (sellable_supply.clone()*2);
+    let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR)
+        / (sellable_supply.clone() * 2);
     starting_price
 }
 

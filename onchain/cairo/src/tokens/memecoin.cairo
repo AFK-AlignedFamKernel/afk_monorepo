@@ -180,7 +180,7 @@ pub mod Memecoin {
         allowances: Map::<(ContractAddress, ContractAddress), u256>,
         //memecoin
         team_allocation: u256,
-        tx_hash_tracker: LegacyMap<ContractAddress, felt252>,
+        tx_hash_tracker: Map::<ContractAddress, felt252>,
         transfer_restriction_delay: u64,
         launch_time: u64,
         launch_block_number: u64,
@@ -277,8 +277,10 @@ pub mod Memecoin {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress,
         decimals: u8,
+        recipient: ContractAddress,
+        owner: ContractAddress,
+        factory: ContractAddress
     ) {
         let caller = get_caller_address();
         self.name.write(name);
@@ -291,7 +293,8 @@ pub mod Memecoin {
         self.liquidity_type.write(Option::None);
 
         // Initialize the token / internal logic
-        self.initializer(factory_address: get_caller_address(), :initial_supply,);
+        // self.initializer(factory_address: get_caller_address(), :initial_supply,);
+        self.initializer(factory_address: factory, :initial_supply,);
 
         // Init Timelock Gov
         // proposers
@@ -304,7 +307,8 @@ pub mod Memecoin {
         // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
 
         let caller = get_caller_address();
-        self.creator.write(caller);
+        self.creator.write(caller.clone());
+        // self.ownable.initializer(caller);
         self.ownable.initializer(caller);
 
         // Register the contract's support for the ISRC6 interface
