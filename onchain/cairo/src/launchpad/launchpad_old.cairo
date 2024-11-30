@@ -1949,7 +1949,6 @@ pub mod LaunchpadMarketplace {
                 CallbackData, (u64, EkuboLP)
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
-
             // TODO comment and test claim
             // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 

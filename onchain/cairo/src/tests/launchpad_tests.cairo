@@ -971,8 +971,14 @@ mod launchpad_tests {
         //     }
         // );
 
-        spy.assert_emitted(@array![(launchpad.contract_address, expected_create_token_event),// (launchpad.contract_address, expected_launch_token_event)
-        ]);
+        spy
+            .assert_emitted(
+                @array![
+                    (
+                        launchpad.contract_address, expected_create_token_event
+                    ), // (launchpad.contract_address, expected_launch_token_event)
+                ]
+            );
     }
 
     #[test]
