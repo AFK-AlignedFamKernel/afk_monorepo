@@ -18,6 +18,8 @@ use starknet::ContractAddress;
 //     virtual
 // {}
 
+const TWO_POW_96: u256 = 0x1000000000000000000000000;
+
 // Overridable functions from Solidity contract migrated to configuration struct
 #[derive(Drop, Serde, starknet::Store)]
 pub struct DN404Options {
@@ -189,8 +191,7 @@ pub mod DN404 {
         options: DN404Options,
     ) {
         // Check if the unit is valid
-        // TODO: validate conditions
-        // assert!(options.unit - 1 < 2 ** 96 - 1, "InvalidUnit");
+        assert!(options.unit < super::TWO_POW_96, "InvalidUnit");
 
         // Check that the contract is not already initialized
         assert!(self.mirror_erc721.read().is_zero(), "DNAlreadyInitialized");
@@ -446,13 +447,13 @@ pub mod DN404 {
             /// DONE
 
             // Calculate NFT changes needed
-            let from_owned_length: u256 = from_data.owned_length.into();
+            let mut from_owned_length: u256 = from_data.owned_length.into();
             let mut to_owned_length: u256 = to_data.owned_length.into();
             let unit = self.options.read().unit;
 
             // Calculate NFTs to burn
-            let num_nft_burns: u256 = Self::zero_floor_sub(
-                from_owned_length, ((from_balance - amount) / unit).try_into().unwrap()
+            let mut num_nft_burns: u256 = Self::zero_floor_sub(
+                from_owned_length, (from_balance / unit).try_into().unwrap()
             );
             let mut num_nft_mints: u256 = 0;
 
@@ -463,7 +464,70 @@ pub mod DN404 {
                 num_nft_mints = Self::zero_floor_sub(to_balance / unit, to_owned_length);
             }
 
-            // TODO: implement direct transfers
+            if self.options.read().use_direct_transfers_if_possible {
+                // Calculate number of tokens to directly transfer
+                let n = Self::min(
+                    from_owned_length,
+                    Self::min(num_nft_burns, num_nft_mints)
+                );
+
+                if n != 0 {
+                    // Adjust burn and mint counts
+                    num_nft_burns -= n;
+                    num_nft_mints -= n;
+
+                    // Handle self-transfer case
+                    if from == to {
+                        to_owned_length += n;
+                    } else {
+                        // Register alias for recipient
+                        let to_alias = self._register_and_resolve_alias(ref to_data, to);
+                        let mut to_index = to_owned_length;
+                        let transfer_end = to_index + n;
+
+                        // Store transfer logs
+                        let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
+
+                        // Direct transfer loop
+                        while to_index < transfer_end {
+                            // Get token from sender
+                            from_owned_length -= 1;
+                            let token_id = self.owned.entry(from).read(from_owned_length.try_into().expect('OwnedLengthOverflow'));
+
+                            // Transfer to recipient
+                            self.owned.entry(to).write(to_index.try_into().expect('IndexOverflow'), token_id.try_into().expect('TokenIdOverflow'));
+                            self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+
+                            // Add to transfer logs
+                            nft_transfer_logs.append(
+                                NftTransferEvent { from: from, to: to, id: token_id.into() }
+                            );
+
+                            // Clear approvals if they exist
+                            if self.may_have_nft_approval.read(token_id.into()) {
+                                self.may_have_nft_approval.write(token_id.into(), false);
+                                self.nft_approvals.write(token_id.into(), Zero::zero());
+                            }
+
+                            to_index += 1;
+                        };
+
+                        // Update owned lengths
+                        to_data.owned_length = to_index.try_into().expect('OwnedLengthOverflow');
+                        from_data.owned_length = from_owned_length.try_into().expect('OwnedLengthOverflow');
+
+                        // Send transfer logs
+                        if nft_transfer_logs.len() > 0 {
+                            let dispatcher = IDN404MirrorDispatcher {
+                                contract_address: self.mirror_erc721.read(),
+                            };
+                            dispatcher.log_transfer(nft_transfer_logs);
+                        }
+                    }
+                }
+            }
+
+
             let total_nft_supply: u256 = self.total_nft_supply.read().into()
                 + num_nft_mints
                 - num_nft_burns;
@@ -534,7 +598,7 @@ pub mod DN404 {
                         to_index.try_into().expect('IndexOverflow'), 
                         token_id.try_into().expect('TokenIdOverflow')
                     );
-                    
+
                     self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
                     to_index += 1;
                     nft_transfer_logs
@@ -565,6 +629,14 @@ pub mod DN404 {
         // TODO: determine if this is needed
         fn is_account(address: ContractAddress) -> bool {
             true
+        }
+
+        fn min(a: u256, b: u256) -> u256 {
+            if a < b {
+                a
+            } else {
+                b
+            }
         }
 
         fn zero_floor_sub(a: u256, b: u256) -> u256 {
@@ -1052,11 +1124,8 @@ pub mod DN404 {
 
         fn _owner_at(self: @ContractState, id: u256) -> ContractAddress {
             // Get the owner alias from the owner_aliases mapping using the ownership index
-            println!("owner_at {}", id);
             let ownership_index = self._ownership_index(id);
-            println!("ownership_index {}", ownership_index);
             let owner_alias = self.owner_aliases.read(ownership_index);
-            println!("owner_alias {}", owner_alias);
             // Return the address associated with this alias
             self.alias_to_address.read(owner_alias)
         }
@@ -1081,8 +1150,9 @@ pub mod DN404 {
             alias: u32,
             index: u32
         ) {
-            self.owner_aliases.write(id.into(), alias);
-            self.owned_indexes.write(id.into(), index);
+            let ownership_index = self._ownership_index(id);
+            self.owner_aliases.write(ownership_index, alias);
+            self.owned_indexes.write(ownership_index, index);
         }
 
         /// Asserts that the caller is the `mirrorERC721` contract.

@@ -10,12 +10,17 @@ mod dn404_tests {
     use openzeppelin::utils::serde::SerializedAppend;
 
     // Constants for testing
+
     fn OWNER() -> ContractAddress {
         starknet::contract_address_const::<1>()
     }
 
-    fn RECIPIENT() -> ContractAddress {
+    fn SENDER() -> ContractAddress {
         starknet::contract_address_const::<2>()
+    }
+
+    fn RECIPIENT() -> ContractAddress {
+        starknet::contract_address_const::<3>()
     }
 
     fn declare_dn404() -> @ContractClass {
@@ -63,7 +68,7 @@ mod dn404_tests {
         let options = DN404Options {
             unit: 1000,
             use_one_indexed: true,
-            use_direct_transfers_if_possible: false, // TODO: not supported yet
+            use_direct_transfers_if_possible: true,
             add_to_burned_pool: false,
             use_exists_lookup: false,
             use_after_nft_transfers: false,
@@ -92,18 +97,13 @@ mod dn404_tests {
 
         // Check NFT balance (assuming 1 NFT per 1000 tokens)
         let nft_balance = mirror.balance_of(RECIPIENT());
-        println!("nft balance: {}", nft_balance);
         assert(nft_balance == 2, 'Should have 2 NFTs');
 
         // Verify NFT ownership
-        println!("checking nft ownership 2");
-        let nft2_owner = mirror.owner_of(2);
-        println!("nft2_owner: {:?}", nft2_owner);
-        println!("checking nft ownership 1");
         let nft1_owner = mirror.owner_of(1);
-        println!("nft1_owner: {:?}", nft1_owner);
-        assert(nft2_owner == RECIPIENT(), 'Wrong NFT 2 owner');
+        let nft2_owner = mirror.owner_of(2);
         assert(nft1_owner == RECIPIENT(), 'Wrong NFT 1 owner');
+        assert(nft2_owner == RECIPIENT(), 'Wrong NFT 2 owner');
     }
 
     #[test]
@@ -135,11 +135,16 @@ mod dn404_tests {
         let (dn404, mirror) = setup();
         let transfer_amount: u256 = 1000;
 
+        // Prepare (send tokens to sender)
+        start_cheat_caller_address(dn404.contract_address, OWNER());
+        dn404.transfer(SENDER(), transfer_amount);
+        stop_cheat_caller_address(dn404.contract_address);
+
         // Spy on Transfer events
         let mut spy = spy_events();
 
         // Do transfer
-        start_cheat_caller_address(dn404.contract_address, OWNER());
+        start_cheat_caller_address(dn404.contract_address, SENDER());
         dn404.transfer(RECIPIENT(), transfer_amount);
         stop_cheat_caller_address(dn404.contract_address);
 
@@ -148,14 +153,14 @@ mod dn404_tests {
             (
                 mirror.contract_address,
                 DN404Mirror::Event::Transfer(
-                    DN404Mirror::TransferEvent { from: OWNER(), to: RECIPIENT(), id: 1 }
+                    DN404Mirror::TransferEvent { from: SENDER(), to: RECIPIENT(), id: 1 }
                 )
             )
         ]);
     }
 
     #[test]
-    #[should_panic(expected: ('TokenDoesNotExist',))]
+    #[should_panic(expected: "TokenDoesNotExist")]
     fn test_invalid_nft_query() {
         let (_, mirror) = setup();
         
