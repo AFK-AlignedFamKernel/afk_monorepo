@@ -415,25 +415,11 @@ pub mod Nameservice {
             // Create a new order
             let bidder = get_caller_address();
 
-            // let quote_token = self.token_quote.read();
-             // check if new bidder already has an outbidded amount for the username(still in the contract)
-            // let bidder_amount = self.order_return.entry(bidder).entry(username).read();
-            // self.order_return.entry(bidder).entry(username).write(0);
-
-            // if amount > bidder_amount {
-            //     if self.is_payment_enabled.read() {
-            //         let payment_token = IERC20Dispatcher { contract_address: quote_token };
-            //         payment_token.transfer_from(bidder, get_contract_address(), (amount - bidder_amount));
-            //     }
-            // }
-
             let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
             payment_token.transfer_from(bidder, get_contract_address(), amount);
 
             let order_id = self.order_count.entry(username).read() + 1_u256;
             let new_order = Order { id: order_id, bidder: bidder, amount: amount,  is_active: true };
-
-            // let old_order = self.orders.read(username);
 
             // Store the order
             self.orders.entry((username, order_id)).write(new_order);
