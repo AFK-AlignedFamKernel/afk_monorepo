@@ -12,7 +12,8 @@ pub mod UserNameClaimErrors {
     pub const BID_LOW: felt252 = 'Bid too low';
     pub const INVALID_CANCEL_ORDER: felt252 = 'Invalid cancel order';
     pub const USER_NOT_AUCTION_OWNER: felt252 = 'Not the auction owner';
-
+    pub const ACCEPTED_PRICE_REACHED: felt252 = 'Accepted Price Reached';
+    pub const ORDER_INACTIVE: felt252 = 'Order is Inactive';
 }
 
 const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
@@ -100,19 +101,21 @@ pub mod Nameservice {
         pub is_claimed: bool
     }
 
-    #[derive(Drop, Debug, Serde, Copy, starknet::Store, PartialEq)]
+    #[derive(Drop, Debug, Serde, Copy, starknet::Store)]
     pub struct Auction {
         pub owner: ContractAddress,
         pub minimal_price: u256,
         pub is_accepted_price_reached: bool,
         pub highest_bid: u256,
-        pub highest_bidder: ContractAddress
+        pub highest_bidder: ContractAddress,
     }
 
     #[derive(Drop, Debug, Serde, Copy, starknet::Store, PartialEq)]
     struct Order {
+        id: u256,
         bidder: ContractAddress,
         amount: u256,
+        is_active: bool
     }
 
     #[storage]
@@ -123,8 +126,8 @@ pub mod Nameservice {
         subscription_expiry: Map::<ContractAddress, u64>,
         username_storage: Map::<felt252, NameserviceStorage>,
         auctions: Map::<felt252, Auction>,
-        orders: Map<felt252, Order>,
-        order_count: Map<felt252, u64>,
+        orders: Map::<(felt252, u256), Order>,
+        order_count: Map::<felt252, u256>,
         order_return: Map::<ContractAddress, Map<felt252, u256>>,
         subscription_price: u256,
         token_quote: ContractAddress,
@@ -372,6 +375,7 @@ pub mod Nameservice {
             );
 
             let existing_auction = self.auctions.read(username);
+            // TODO change ERROR NAME
             assert(
                 existing_auction.minimal_price == 0, 
                 UserNameClaimErrors::AUCTION_DOESNT_EXIST
@@ -410,50 +414,64 @@ pub mod Nameservice {
 
             // Create a new order
             let bidder = get_caller_address();
-            let quote_token = self.token_quote.read();
 
+            // let quote_token = self.token_quote.read();
              // check if new bidder already has an outbidded amount for the username(still in the contract)
-            let bidder_amount = self.order_return.entry(bidder).entry(username).read();
-            self.order_return.entry(bidder).entry(username).write(0);
+            // let bidder_amount = self.order_return.entry(bidder).entry(username).read();
+            // self.order_return.entry(bidder).entry(username).write(0);
 
-            if amount > bidder_amount {
-                if self.is_payment_enabled.read() {
-                    let payment_token = IERC20Dispatcher { contract_address: quote_token };
-                    payment_token.transfer_from(bidder, get_contract_address(), (amount - bidder_amount));
-                }
-            }
+            // if amount > bidder_amount {
+            //     if self.is_payment_enabled.read() {
+            //         let payment_token = IERC20Dispatcher { contract_address: quote_token };
+            //         payment_token.transfer_from(bidder, get_contract_address(), (amount - bidder_amount));
+            //     }
+            // }
 
-            let order_id = self.order_count.read(username) + 1;
-            let new_order = Order { bidder: bidder, amount: amount };
+            let payment_token = IERC20Dispatcher { contract_address: self.token_quote.read() };
+            payment_token.transfer_from(bidder, get_contract_address(), amount);
 
-            let old_order = self.orders.read(username);
+            let order_id = self.order_count.entry(username).read() + 1_u256;
+            let new_order = Order { id: order_id, bidder: bidder, amount: amount,  is_active: true };
+
+            // let old_order = self.orders.read(username);
 
             // Store the order
-            self.orders.write(username, new_order);
-            self.order_count.write(username, order_id);
-
-            let order_return_amount = self.order_return.entry(old_order.bidder).entry(username).read();
-            self.order_return.entry(old_order.bidder).entry(username).write((order_return_amount + old_order.amount));
+            self.orders.entry((username, order_id)).write(new_order);
+            self.order_count.entry(username).write(order_id);
 
             // Update auction if this is the highest bid
             let mut updated_auction = auction;
             updated_auction.highest_bid = amount;
             updated_auction.highest_bidder = bidder;
-            updated_auction.is_accepted_price_reached = true;
+            updated_auction.is_accepted_price_reached = false;
             self.auctions.write(username, updated_auction);
         }
-        
-        
+
         // TODO
-        fn accept_order(ref self: ContractState, username: felt252) {
+        fn accept_order(ref self: ContractState, username: felt252, id: u64) {
             let caller = get_caller_address();
+            let id: u256 = id.into();
 
             let auction = self.auctions.read(username);
             assert(auction.owner == caller, UserNameClaimErrors::USER_NOT_AUCTION_OWNER);
+            assert(auction.is_accepted_price_reached == false, UserNameClaimErrors::ACCEPTED_PRICE_REACHED);
 
-            let order = self.orders.read(username);
+            let order = self.orders.entry((username, id)).read();
+            assert(order.is_active == true, UserNameClaimErrors::ORDER_INACTIVE);
+
             let bidder = order.bidder;
 
+            // Update Order to inactive
+            let mut updated_order = order;
+            updated_order.is_active = false;
+            self.orders.entry((username, id)).write(order);
+
+            // Update auction is_accepted_price_reached
+            let mut updated_auction = auction;
+            updated_auction.is_accepted_price_reached = true;
+            self.auctions.write(username, updated_auction);
+
+            // Send token from contract to auction owner
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
             token.transfer(caller, order.amount);
 
@@ -470,30 +488,29 @@ pub mod Nameservice {
         }
 
         // TODO
-        fn cancel_order(ref self: ContractState, username: felt252) {
-            let bidder = get_caller_address();
+        fn cancel_order(ref self: ContractState, username: felt252, id: u64) {
+            let caller = get_caller_address();
             let auction = self.auctions.read(username);
-            let order = self.orders.read(username);
+            let id: u256 = id.into();
+            let order = self.orders.entry((username, id)).read();
 
-            let order_return_amount = self.order_return.entry(bidder).entry(username).read();
+            assert((order.bidder == caller), UserNameClaimErrors::INVALID_CANCEL_ORDER);
+            // Update order
+            let amount = order.amount;
+            let mut updated_order = order;
+            updated_order.amount = 0;
+            updated_order.is_active = false;
+            self.orders.entry((username, id)).write(updated_order);
 
-            assert((order.bidder == bidder) || (order_return_amount >= 0), UserNameClaimErrors::INVALID_CANCEL_ORDER);
-            // Update auction if this is the highest bid
-            let mut amount = 0;
-            if order.bidder == bidder {
-                amount = order.amount;
-                let mut updated_auction = auction;
-                updated_auction.highest_bid = 0;
-                updated_auction.highest_bidder = contract_address_const::<0>();
-                updated_auction.is_accepted_price_reached = false;
-                self.auctions.write(username, updated_auction);
-
-            } else {
-                amount = order_return_amount;
-            }
+            // Update auction if the caller is the highest bid
+            let mut updated_auction = auction;
+            updated_auction.highest_bid = 0;
+            updated_auction.highest_bidder = contract_address_const::<0>();
+            updated_auction.is_accepted_price_reached = false;
+            self.auctions.write(username, updated_auction);
 
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
-            token.transfer(bidder, amount);
+            token.transfer(caller, amount);
         }
 
         fn get_auction(self: @ContractState, username: felt252) -> Auction {
@@ -551,7 +568,6 @@ pub mod Nameservice {
                     }
                 );
         }
-
 
         // ADMIN
         // Admin functions
