@@ -1,5 +1,3 @@
-pub struct StakerInfo {}
-
 #[starknet::interface]
 pub trait ILST_Staking<TContractState> {
     fn stake(ref self: TContractState, amount: u256);
@@ -8,6 +6,8 @@ pub trait ILST_Staking<TContractState> {
     fn unstake_action(ref self: TContractState);
     fn claim_rewards(ref self: TContractState);
 }
+
+pub struct StakerInfo {}
 
 #[starknet::contract]
 mod LSTStaking {
