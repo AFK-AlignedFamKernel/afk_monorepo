@@ -26,8 +26,13 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
   const providerRpc = publicProvider();
   // const argentMobileConnector = useArgentMobileConnector();
 
+  const recommended =
+    Platform.OS === 'web'
+      ? [argent(), braavos(), ...kakarotConnectors(providerRpc)]
+      : [argent(), braavos()];
+
   const {connectors: injected} = useInjectedConnectors({
-    recommended: [argent(), braavos(), ...kakarotConnectors(providerRpc)],
+    recommended,
     includeRecommended: 'always',
     order: 'alphabetical',
     // Randomize the order of the connectors.
@@ -40,17 +45,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
         chains={[chain]}
         provider={providers}
         autoConnect
-        connectors={[
-          ...(Platform.OS === 'web' ? injected : []),
-          // argentMobileConnector({
-          //   chain: NETWORK_NAME,
-          //   wcProjectId: WALLET_CONNECT_ID,
-          //   dappName: 'AFK',
-          //   description: 'AFK Starknet dApp',
-          //   url: 'https://afk-community.xyz',
-          //   provider,
-          // }),
-        ]}
+        connectors={[...(Platform.OS === 'web' ? injected : [])]}
         explorer={voyager}
       >
         {children}
