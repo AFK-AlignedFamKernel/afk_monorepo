@@ -419,7 +419,6 @@ mod liquidity_tests {
         let (b, quote_token, launchpad) = request_fixture();
         let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
         let quote_to_deposit = 100;
-        let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
 
         let total_supply = DEFAULT_INITIAL_SUPPLY();
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
@@ -432,12 +431,12 @@ mod liquidity_tests {
                 contract_address_salt: SALT() + 1,
                 is_launch_bonding_now: false
             );
-        println!("token_address unrug lp withouth launch curve: {:?}", token_address);
+        println!("token_address unrug lp withouth launch curve: {:?}", token_address.clone());
 
         // start_cheat_caller_address(token_address, launchpad.contract_address);
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
 
         let amount_meme_supply_liq = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO;
 
@@ -449,9 +448,6 @@ mod liquidity_tests {
 
         let mut balance_meme_launch_owner = memecoin.balance_of(OWNER());
         println!("balance meme owner {:?}", balance_meme_launch_owner);
-
-        let mut balance_meme_launch_factory = memecoin.balance_of(FACTORY_ADDRESS());
-        println!("balance factory {:?}", balance_meme_launch_factory);
 
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
         balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
@@ -495,13 +491,11 @@ mod liquidity_tests {
         };
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
-
-
         // run_buy_by_amount(
         //     launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
         // );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        println!("balance balance_quote_launch {:?}", balance_quote_launch);
+        // let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+        // println!("balance balance_quote_launch {:?}", balance_quote_launch);
         println!("add liquidity unrug lp with launch threshold");
         let (id, position) = launchpad
             .add_liquidity_unrug_lp(

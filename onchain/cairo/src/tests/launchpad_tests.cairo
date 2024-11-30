@@ -982,6 +982,7 @@ mod launchpad_tests {
     }
 
     #[test]
+    #[fork("Mainnet")]
     fn test_buy_coin_with_different_supply() {
         let (sender, erc20, launchpad) = request_fixture();
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
@@ -1311,11 +1312,17 @@ mod launchpad_tests {
 
         // let token_address = default_token.token_address;
         let amount_to_buy = THRESHOLD_LIQUIDITY;
-        let amount_coin_get = run_calculation(
+        let amount_coin_get_max = run_calculation(
             launchpad, amount_to_buy, token_address, sender_address, false, true
         );
 
+        let amount_coin_get = amount_coin_get_max.clone();
         println!("amount coin get {:?}", amount_coin_get);
+        println!(
+            "DEFAULT_INITIAL_SUPPLY()/LIQUIDITY_RATIO, {:?}",
+            DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO,
+        );
+        assert!(amount_coin_get == DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO, "not 80 percent");
 
         let amount_coin_sell = run_calculation(
             launchpad, amount_to_buy, token_address, sender_address, true, true

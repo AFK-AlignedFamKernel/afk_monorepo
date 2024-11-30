@@ -40,7 +40,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
 
     const account = useAccount();
     const walletModal = useWalletModal();
-    const sendTransaction = useTransaction();
+    const {sendTransaction} = useTransaction({});
     const {hide: hideTransactionModal} = useTransactionModal();
     const waitConnection = useWaitConnection();
 
@@ -72,8 +72,8 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
         DEFAULT_TIMELOCK, // timelock
       ]);
 
-      const receipt = await sendTransaction({
-        calls: [
+      const {transaction_hash} = await sendTransaction(
+        [
           {
             contractAddress: TOKENS[token][CHAIN_ID].address,
             entrypoint: Entrypoint.APPROVE,
@@ -85,9 +85,9 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
             calldata: depositCallData,
           },
         ],
-      });
+      );
 
-      if (receipt?.isSuccess()) {
+      if (transaction_hash) {
         hideTipModal();
         hideTransactionModal();
         showSuccess({
@@ -102,9 +102,9 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
         });
       } else {
         let description = 'Please Try Again Later.';
-        if (receipt?.isRejected()) {
-          description = receipt.transaction_failure_reason.error_message;
-        }
+        // if (transaction_hash?.isRejected()) {
+          // description = receipt.transaction_failure_reason.error_message;
+        // }
 
         showDialog({
           title: 'Failed to send the tip',
