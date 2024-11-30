@@ -434,13 +434,15 @@ mod liquidity_tests {
             );
         println!("token_address unrug lp withouth launch curve: {:?}", token_address);
 
-        start_cheat_caller_address(token_address, launchpad.contract_address);
+        // start_cheat_caller_address(token_address, launchpad.contract_address);
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
         let amount_meme_supply_liq = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO;
 
         let lp_meme_supply = amount_meme_supply_liq.clone();
+
         memecoin.transfer(launchpad.contract_address, amount_meme_supply_liq);
         let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
         println!("balance meme {:?}", balance_meme_launch);
@@ -454,7 +456,15 @@ mod liquidity_tests {
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
         balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
         println!("balance meme {:?}", balance_meme_launch);
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
+
+        println!("transfer coin threshold unrug lp with launch liq");
+
+        let erc20 = IERC20Dispatcher { contract_address: quote_token.contract_address };
+
+        //
+
+        erc20.transfer(launchpad.contract_address, quote_to_deposit);
+
         // memecoin.approve(launchpad.contract_address, total_supply);
         // memecoin.transfer(launchpad.contract_address, total_supply);
 
@@ -479,18 +489,14 @@ mod liquidity_tests {
 
         let ekubo_pool_params = EkuboPoolParameters {
             fee: 0xc49ba5e353f7d00000000000000000,
-            tick_spacing: 500,
+            tick_spacing: 5000,
             starting_price,
             bound: 88719042
         };
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("transfer coin threshold unrug lp with launch liq");
 
-        let erc20 = IERC20Dispatcher { contract_address: quote_token.contract_address };
 
-        //
 
-        erc20.transfer(launchpad.contract_address, quote_to_deposit);
         // run_buy_by_amount(
         //     launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
         // );

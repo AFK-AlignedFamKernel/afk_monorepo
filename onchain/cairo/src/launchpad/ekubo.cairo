@@ -1,21 +1,17 @@
-
-use starknet::{get_contract_address, ContractAddress, ClassHash};
-use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
-use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
-use ekubo::interfaces::erc20::{
-    IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
-};
-use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
-use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
-use ekubo::interfaces::token_registry::{
-    ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
-};
-use ekubo::types::bounds::{Bounds};
-use ekubo::types::keys::PoolKey;
-use ekubo::types::{i129::i129};
-
 use afk::exchanges::ekubo::launcher::{
     IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
+};
+
+use afk::launchpad::calcul::{
+    calculate_starting_price_launch, calculate_slope, calculate_pricing,
+    get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
+};
+use afk::launchpad::errors;
+use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
+use afk::launchpad::math::{PercentageMath, pow_256};
+use afk::launchpad::utils::{
+    sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
+    calculate_aligned_bound_mag
 };
 use afk::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
@@ -26,45 +22,41 @@ use afk::types::launchpad_types::{
     EkuboLiquidityParameters, LiquidityParameters,
     // MemecoinCreated, MemecoinLaunched
 };
-
-use afk::launchpad::calcul::{
-    calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
-};
-use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
-use afk::launchpad::math::{PercentageMath, pow_256};
-use afk::launchpad::utils::{
-    sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-    calculate_aligned_bound_mag
-};
-use afk::launchpad::errors;
 use afk::utils::{sqrt};
 use core::num::traits::Zero;
+use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
+use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
+use ekubo::interfaces::erc20::{
+    IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
+};
+use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
+use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
+use ekubo::interfaces::token_registry::{ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,};
+use ekubo::types::bounds::{Bounds};
+use ekubo::types::keys::PoolKey;
+use ekubo::types::{i129::i129};
+
+use starknet::{get_contract_address, ContractAddress, ClassHash};
 
 #[starknet::interface]
 trait IEkuboAdapter<TContractState> {
-    fn owner(self: @TContractState) -> ContractAddress;
-    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
-    fn renounce_ownership(ref self: TContractState);
-    // fn add_liquidity_ekubo_bonding_curve(ref self: TContractState,
     fn add_liquidity_ekubo_bonding_curve(
         ref self: TContractState,
-            launch: TokenLaunch,
-            ekubo_core_address:ContractAddress,
-            ekubo_exchange_address:ContractAddress,
-            positions_ekubo:ContractAddress
-            // params: EkuboLaunchParameters
-        ) -> (u64, EkuboLP);
+        launch: TokenLaunch,
+        ekubo_core_address: ContractAddress,
+        ekubo_exchange_address: ContractAddress,
+        positions_ekubo: ContractAddress
+        // params: EkuboLaunchParameters
+    ) -> (u64, EkuboLP);
 }
-
 
 
 #[starknet::component]
 pub mod ekubo_adapter {
-    use core::starknet::{ContractAddress, get_caller_address};
-    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use super::Errors;
     use core::num::traits::Zero;
+    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use core::starknet::{ContractAddress, get_caller_address};
+    use super::Errors;
 
     #[storage]
     pub struct Storage {
@@ -76,102 +68,57 @@ pub mod ekubo_adapter {
         ekubo_exchange_address: ContractAddress
     }
 
-    #[event]
-    #[derive(Drop, starknet::Event)]
-    pub enum Event {
-        OwnershipTransferred: OwnershipTransferred
-    }
-
-    #[derive(Drop, starknet::Event)]
-    struct OwnershipTransferred {
-        previous_owner: ContractAddress,
-        new_owner: ContractAddress,
-    }
-
-    #[embeddable_as(EkuboAdapter)]
-    impl EkuboAdapterImpl<
-        TContractState, +HasComponent<TContractState>
-    > of super::IEkuboAdapter<ComponentState<TContractState>> {
-        fn owner(self: @ComponentState<TContractState>) -> ContractAddress {
-            self.owner.read()
-        }
-
-        fn transfer_ownership(
-            ref self: ComponentState<TContractState>, new_owner: ContractAddress
-        ) {
-            assert(!new_owner.is_zero(), Errors::ZERO_ADDRESS_OWNER);
-            self.assert_only_owner();
-            self._transfer_ownership(new_owner);
-        }
-
-        fn renounce_ownership(ref self: ComponentState<TContractState>) {
-            self.assert_only_owner();
-            self._transfer_ownership(Zero::zero());
-        }
-    }
 
     #[generate_trait]
     pub impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn initializer(ref self: ComponentState<TContractState>, owner: ContractAddress,
+        fn initializer(
+            ref self: ComponentState<TContractState>,
+            owner: ContractAddress,
             factory_address: ContractAddress,
             ekubo_registry: ContractAddress,
             core: ContractAddress,
             positions: ContractAddress,
             ekubo_exchange_address: ContractAddress
         ) {
-            self._transfer_ownership(owner);
             self.factory_address.write(factory_address);
             self.ekubo_registry.write(ekubo_registry);
             self.core.write(core);
             self.positions.write(positions);
             self.ekubo_exchange_address.write(ekubo_exchange_address);
         }
+    }
 
-        fn assert_only_owner(self: @ComponentState<TContractState>) {
-            let owner: ContractAddress = self.owner.read();
-            let caller: ContractAddress = get_caller_address();
-            assert(!caller.is_zero(), Errors::ZERO_ADDRESS_CALLER);
-            assert(caller == owner, Errors::NOT_OWNER);
-        }
-
-        fn _transfer_ownership(
-            ref self: ComponentState<TContractState>, new_owner: ContractAddress
-        ) {
-            let previous_owner: ContractAddress = self.owner.read();
-            self.owner.write(new_owner);
-            self
-                .emit(
-                    OwnershipTransferred { previous_owner: previous_owner, new_owner: new_owner }
-                );
-        }
-
-        pub fn add_liquidity_ekubo_bonding_curve(
-            ref self: ComponentState<TContractState>, 
+    #[embeddable_as(EkuboAdapter)]
+    impl EkuboAdapterImpl<
+        TContractState, +HasComponent<TContractState>
+    > of super::IEkuboAdapter<ComponentState<TContractState>> {
+        fn add_liquidity_ekubo_bonding_curve(
+            ref self: ComponentState<TContractState>,
             launch: TokenLaunch,
-            ekubo_core_address:ContractAddress,
-            ekubo_exchange_address:ContractAddress,
-            positions_ekubo:ContractAddress
+            ekubo_core_address: ContractAddress,
+            ekubo_exchange_address: ContractAddress,
+            positions_ekubo: ContractAddress
             // params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
             // TODO params of Ekubo launch
             // Init price and params of liquidity
-        
+
             // TODO assert of threshold and MC reached
             // let launch = self.launched_coins.read(coin_address);
             assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
             assert(launch.is_liquidity_launch == false, 'liquidity already launch');
-        
+
             // TODO calculate price
-        
+
             let starting_price: i129 = calculate_starting_price_launch(
                 launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
             );
             let lp_meme_supply = launch.initial_pool_supply;
-        
+
             // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-        
+
             let params: EkuboLaunchParameters = EkuboLaunchParameters {
                 owner: launch.owner,
                 token_address: launch.token_address,
@@ -185,14 +132,14 @@ pub mod ekubo_adapter {
                     bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
                 }
             };
-        
+
             // println!("Bound computed: {}", params.pool_params.bound);
-        
+
             // Register the token in Ekubo Registry
             let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
             //TODO token decimal, amount of 1 token?
             // println!("RIGHT HERE: {}", 1);
-        
+
             // let dex_address = self.core.read();
             // let positions_ekubo = self.positions.read();
             memecoin.approve(ekubo_exchange_address, lp_meme_supply);
@@ -206,9 +153,9 @@ pub mod ekubo_adapter {
             base_token.approve(ekubo_core_address, launch.liquidity_raised);
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
             // Call the core with a callback to deposit and mint the LP tokens.
-        
+
             // println!("HERE launch callback: {}", 2);
-        
+
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
                 CallbackData, (u64, EkuboLP)
@@ -216,15 +163,15 @@ pub mod ekubo_adapter {
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
             //TODO emit event
             let id_cast: u256 = id.try_into().unwrap();
-        
+
             // println!("RIGHT HERE: {}", 3);
-        
+
             // let mut launch_to_update = self.launched_coins.read(coin_address);
             // launch_to_update.is_liquidity_launch = true;
             // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-        
+
             // println!("RIGHT HERE: {}", 4);
-        
+
             // self
             //     .emit(
             //         LiquidityCreated {
@@ -237,7 +184,7 @@ pub mod ekubo_adapter {
             //             is_unruggable: false
             //         }
             //     );
-        
+
             (id, position)
         }
     }
@@ -483,9 +430,9 @@ fn buy_tokens_from_pool(
 
 pub fn add_liquidity_ekubo_bonding_curve(
     launch: TokenLaunch,
-    ekubo_core_address:ContractAddress,
-    ekubo_exchange_address:ContractAddress,
-    positions_ekubo:ContractAddress
+    ekubo_core_address: ContractAddress,
+    ekubo_exchange_address: ContractAddress,
+    positions_ekubo: ContractAddress
     // params: EkuboLaunchParameters
 ) -> (u64, EkuboLP) {
     // TODO params of Ekubo launch

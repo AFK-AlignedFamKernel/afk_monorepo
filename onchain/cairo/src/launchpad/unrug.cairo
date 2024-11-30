@@ -24,7 +24,7 @@ pub trait IUnrugLiquidity<TContractState> {
         is_unruggable: bool
     ) -> ContractAddress;
 
-    
+
     fn create_unrug_token(
         ref self: TContractState,
         owner: ContractAddress,
@@ -104,11 +104,10 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_exchanges_address(
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
-
 }
 
 #[starknet::contract]
-pub mod LaunchpadMarketplace {
+pub mod UnrugLiquidity {
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
@@ -1075,6 +1074,21 @@ pub mod LaunchpadMarketplace {
                     }
                 );
 
+                // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+                // println!("try set_launched");
+    
+                // memecoin
+                //     .set_launched(
+                //         LiquidityType::EkuboNFT(id),
+                //         LiquidityParameters::Ekubo(
+                //             EkuboLiquidityParameters {
+                //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
+                //             }
+                //         ),
+                //         :transfer_restriction_delay,
+                //         :max_percentage_buy_launch,
+                //         :team_allocation,
+                //     );
             (id, position)
         }
 
