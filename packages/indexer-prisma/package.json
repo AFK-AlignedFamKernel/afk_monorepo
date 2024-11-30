@@ -5,9 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx prisma generate && npx prisma db pull && tsc",
+    "build": "npx prisma generate && npx prisma db push && tsc",
     "generate":"npx prisma generate",
-    "pull":"npx prisma db pull" ,
+    "pull":"npx prisma db pull",
+    "push":"npx prisma db push" ,
     "prisma:setup": "npx prisma generate && npx prisma db push"
   },
   "keywords": [],

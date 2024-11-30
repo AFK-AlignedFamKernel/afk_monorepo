@@ -40,7 +40,7 @@ model token_launch {
   liquidity_raised String?
   price            String?
   cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
+  time_stamp       DateTime? @db.Timestamp(6)
 }
 
 model unrugmeme_deploy {
@@ -108,7 +108,7 @@ model token_transactions {
   amount           Decimal?  @db.Decimal
   cursor           BigInt?   @map("_cursor")
   transaction_type String
-  time_stamp       String?
+  time_stamp       DateTime? @db.Timestamp(6)
 }
 
 model renew_subscription {
