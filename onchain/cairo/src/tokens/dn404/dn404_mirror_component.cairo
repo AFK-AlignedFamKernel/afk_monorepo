@@ -21,7 +21,7 @@ pub trait IDN404Mirror<TContractState> {
     ) -> bool;
     fn transfer_from(
         ref self: TContractState, 
-        from: ContractAddress, 
+        from: ContractAddress,
         to: ContractAddress, 
         id: u256
     );
@@ -67,8 +67,15 @@ pub trait IDN404Mirror<TContractState> {
 pub mod DN404MirrorComponent {
 
     use starknet::{ContractAddress, get_caller_address};
-    use crate::tokens::dn404::dn404::{IDN404Dispatcher, IDN404DispatcherTrait};
+    use crate::tokens::dn404::dn404_component::{IDN404Dispatcher, IDN404DispatcherTrait};
     use core::num::traits::Zero;
+
+    use openzeppelin::introspection::src5::SRC5Component::InternalTrait as SRC5InternalTrait;
+    use openzeppelin::introspection::src5::SRC5Component::SRC5Impl;
+    use openzeppelin::introspection::src5::SRC5Component;
+
+    use openzeppelin::token::erc721::interface;
+    use openzeppelin::access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
 
     #[storage]
     struct Storage {
@@ -124,7 +131,9 @@ pub mod DN404MirrorComponent {
 
     #[embeddable_as(DN404MirrorImpl)]
     impl DN404Mirror<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
+        +Drop<TContractState>
     > of super::IDN404Mirror<ComponentState<TContractState>> {
         fn name(self: @ComponentState<TContractState>) -> felt252 {
             let dispatcher = IDN404Dispatcher {
@@ -262,7 +271,7 @@ pub mod DN404MirrorComponent {
         }
 
         fn pull_owner(ref self: ComponentState<TContractState>) -> bool {
-            let dispatcher = IDN404Dispatcher {
+            let dispatcher = IOwnableDispatcher {
                 contract_address: self.base_erc20.read(),
             };
 
@@ -326,10 +335,17 @@ pub mod DN404MirrorComponent {
 
     #[generate_trait]
     impl InternalImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
+        impl SRC5: SRC5Component::HasComponent<TContractState>,
+        +Drop<TContractState>
     > of InternalTrait<TContractState> {
         fn initialize(ref self: ComponentState<TContractState>, deployer: ContractAddress) {
             self.deployer.write(deployer);
+
+            // Register interfaces
+            let mut src5_component = get_dep_component_mut!(ref self, SRC5);
+            src5_component.register_interface(interface::IERC721_ID);
+            src5_component.register_interface(interface::IERC721_METADATA_ID);
         }
     }
 }

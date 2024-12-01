@@ -87,9 +87,6 @@ pub trait IDN404<TContractState> {
     fn total_nft_supply(self: @TContractState) -> u256;
     fn token_uri_nft(self: @TContractState, id: u256) -> felt252;
     fn implements_dn404(self: @TContractState) -> bool;
-
-    // TODO: use Ownable component
-    fn owner(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::component]
@@ -112,8 +109,6 @@ pub mod DN404Component {
         symbol: felt252,
         decimals: u8,
         options: DN404Options,
-        // TODO: use Ownable component
-        owner: ContractAddress,
         // Flags unwinded from AddressData
         skip_nft: Map<ContractAddress, bool>,
         skip_nft_initialized: Map<ContractAddress, bool>,
@@ -335,10 +330,6 @@ pub mod DN404Component {
         fn token_uri_nft(self: @ComponentState<TContractState>, id: u256) -> felt252 {
             self._token_uri(id)
         }
-
-        fn owner(self: @ComponentState<TContractState>) -> ContractAddress {
-            self.owner.read()
-        }
     }
 
     #[generate_trait]
@@ -406,8 +397,6 @@ pub mod DN404Component {
             self.name.write(name);
             self.symbol.write(symbol);
             self.decimals.write(decimals);
-    
-            self.owner.write(initial_supply_owner);
         }
 
         // Skip NFT Functions
