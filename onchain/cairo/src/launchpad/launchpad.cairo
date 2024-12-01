@@ -146,17 +146,15 @@ pub mod LaunchpadMarketplace {
     //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
     //     get_coin_amount_by_quote_amount
     // };
-    use afk::launchpad::calcul::launch::{
-        get_initial_price, get_amount_by_type_of_coin_or_quote
-    };
-    use afk::launchpad::calcul::linear::{
-        calculate_starting_price_launch, calculate_slope, calculate_pricing,
-        get_coin_amount_by_quote_amount
-    };
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+    };
+    use afk::launchpad::calcul::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
+    use afk::launchpad::calcul::linear::{
+        calculate_starting_price_launch, calculate_slope, calculate_pricing,
+        get_coin_amount_by_quote_amount
     };
     // use afk::launchpad::calcul::{
     //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
@@ -1479,10 +1477,10 @@ pub mod LaunchpadMarketplace {
             //     bond_type = bonding_type.clone();
             // }
 
-            // match bonding_type {
-            //     Option::Some(val) => { bond_type = value.clone(); },
-            //     Option::None => Option::None,
-            // }
+            match bonding_type {
+                Option::Some(val) => { bond_type = val.clone(); },
+                Option::None => {},
+            }
             // if Option::Some(value) = bonding_type {
             //     bond_type = value.clone();
             // };

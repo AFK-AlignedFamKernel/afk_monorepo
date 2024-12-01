@@ -1,16 +1,13 @@
-// use afk::launchpad::calcul::exponential::{
-//     get_coin_amount_by_quote_amount_exponential, calculate_initial_price
-// };
+use afk::launchpad::calcul::exponential::{
+    get_coin_amount_by_quote_amount_exponential, calculate_initial_price
+};
 use afk::launchpad::calcul::linear::{get_coin_amount_by_quote_amount, calculate_pricing};
 
 use afk::launchpad::errors;
 use afk::launchpad::math::{PercentageMath, pow_256, max_u256};
 use afk::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
-    LaunchParameters, EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback
+    TokenLaunch, BondingType, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+    EkuboLaunchParameters, LaunchCallback
 };
 use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
@@ -83,10 +80,10 @@ pub fn get_amount_by_type_of_coin_or_quote(
                         get_coin_amount_by_quote_amount(pool, amount, is_decreased)
                     }
                     // if is_quote_amount == true {
-                    //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
-                    // } else {
-                    //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
-                    // }
+                //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
+                // } else {
+                //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
+                // }
                 },
                 BondingType::Trapezoidal => {
                     get_coin_amount_by_quote_amount(pool, amount, is_decreased)
