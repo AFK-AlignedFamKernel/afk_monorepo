@@ -18,7 +18,8 @@ export enum EventKey {
   ClaimEvent = '0x1338111cc170c56fecb176d35cca4c04823f0b8d9c64cfb956c97b236ea6fc6',
 }
 
-export const DEFAULT_TIMELOCK = 7 * 24 * 60 * 60 * 1_000; // 7 days
+export const DEFAULT_TIMELOCK = 0; // 7 days
+// export const DEFAULT_TIMELOCK = 7 * 24 * 60 * 60 * 1_000; // 7 days
 
 export const WEB_MAX_WIDTH = 520;
 

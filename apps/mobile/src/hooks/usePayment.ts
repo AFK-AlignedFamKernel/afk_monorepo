@@ -37,66 +37,54 @@ export const usePayment = () => {
     if (!wallet) {
       return undefined;
     } else if (proofs) {
-      const proofsSpent = await wallet.checkProofsSpent(proofs);
-      let proofsCopy = Array.from(proofs);
-
-      if (proofsSpent) {
-        proofsCopy = proofsCopy?.filter((p) => !proofsSpent?.includes(p));
-      }
-
-      if (proofsCopy.length > 0) {
-        try {
-          const response = await meltTokens(pInvoice, proofsCopy);
-          if (response) {
-            const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} =
-              response;
-            setProofsFilter(selectedProofs);
-            if (privateKey && publicKey) {
-              await refetchTokens();
-              await deleteMultiple(
-                filteredTokenEvents.map((event) => event.id),
-                'proofs spent in transaction',
-              );
-              const tokenEvent = await createTokenEvent({
-                walletId,
-                mint: activeMint,
-                proofs: proofsToKeep,
-              });
-              const destroyedEvents = filteredTokenEvents.map((event) => ({
-                id: event.id,
-                marker: 'destroyed' as EventMarker,
-              }));
-              await createSpendingEvent({
-                walletId,
-                direction: 'out',
-                amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
-                unit: activeUnit,
-                events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
-              });
-            }
-            showToast({
-              title: 'Payment sent.',
-              type: 'success',
+      try {
+        const response = await meltTokens(pInvoice, proofs);
+        if (response) {
+          const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} = response;
+          setProofsFilter(selectedProofs);
+          if (privateKey && publicKey) {
+            await refetchTokens();
+            await deleteMultiple(
+              filteredTokenEvents.map((event) => event.id),
+              'proofs spent in transaction',
+            );
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: proofsToKeep,
             });
-            setProofs([...remainingProofs, ...proofsToKeep]);
-            setProofsStorage([...remainingProofs, ...proofsToKeep]);
-            const newInvoice: ICashuInvoice = {
-              amount: -(meltQuote.amount + meltQuote.fee_reserve),
-              bolt11: pInvoice,
-              quote: meltQuote.quote,
-              date: Date.now(),
-              state: MintQuoteState.PAID,
+            const destroyedEvents = filteredTokenEvents.map((event) => ({
+              id: event.id,
+              marker: 'destroyed' as EventMarker,
+            }));
+            await createSpendingEvent({
+              walletId,
               direction: 'out',
-            };
-            setTransactions([...transactions, newInvoice]);
-            return meltResponse;
-          } else {
-            return undefined;
+              amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
+              unit: activeUnit,
+              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+            });
           }
-        } catch (error) {
+          showToast({
+            title: 'Payment sent.',
+            type: 'success',
+          });
+          setProofs([...remainingProofs, ...proofsToKeep]);
+          setProofsStorage([...remainingProofs, ...proofsToKeep]);
+          const newInvoice: ICashuInvoice = {
+            amount: -(meltQuote.amount + meltQuote.fee_reserve),
+            bolt11: pInvoice,
+            quote: meltQuote.quote,
+            date: Date.now(),
+            state: MintQuoteState.PAID,
+            direction: 'out',
+          };
+          setTransactions([...transactions, newInvoice]);
+          return meltResponse;
+        } else {
           return undefined;
         }
-      } else {
+      } catch (error) {
         return undefined;
       }
     } else {
@@ -116,12 +104,7 @@ export const usePayment = () => {
       }
 
       if (proofs) {
-        const proofsSpent = await wallet.checkProofsSpent(proofs);
-        let proofsCopy = Array.from(proofs);
-
-        if (proofsSpent) {
-          proofsCopy = proofsCopy?.filter((p) => !proofsSpent?.includes(p));
-        }
+        const proofsCopy = Array.from(proofs);
 
         const availableAmount = proofsCopy.reduce((s, t) => (s += t.amount), 0);
 
@@ -142,10 +125,7 @@ export const usePayment = () => {
           }
         }
 
-        const {returnChange: proofsToKeep, send: proofsToSend} = await wallet.send(
-          amount,
-          selectedProofs,
-        );
+        const {keep: proofsToKeep, send: proofsToSend} = await wallet.send(amount, selectedProofs);
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {
@@ -175,7 +155,8 @@ export const usePayment = () => {
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
 
           const token = {
-            token: [{proofs: proofsToSend, mint: activeMint}],
+            mint: activeMint,
+            proofs: proofsToSend,
             activeUnit,
           } as Token;
 

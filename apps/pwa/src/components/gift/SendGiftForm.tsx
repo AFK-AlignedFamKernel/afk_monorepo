@@ -30,7 +30,7 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
   const account = useAccount();
   const {account: accountStarknet} = useAccountStarknet();
   const [token, setToken] = useState<Token>('ETH');
-  const [chain, setChain] = useState<ChainString>(chainProps ?? 'SEPOLIA');
+  const [chain, setChain] = useState<ChainString>(chainProps ?? 'STARKNET_SEPOLIA');
   const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
   const [usdAmount, setUsdAmount] = useState<string>('');
@@ -102,10 +102,10 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
         <Box>
           <Text>Connect you</Text>
           <Box display="flex">
-            <Box>
+            {/* <Box>
               <Text>EVM</Text>
               <CustomConnectButtonWallet></CustomConnectButtonWallet>
-            </Box>
+            </Box> */}
 
             <Box>
               <Text>Starknet</Text>

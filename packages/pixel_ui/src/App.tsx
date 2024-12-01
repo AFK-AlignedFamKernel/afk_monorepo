@@ -112,34 +112,38 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [endTimestamp, setEndTimestamp] = useState(0);
   useEffect(() => {
     const fetchGameData = async () => {
-      let response = await fetchWrapper('get-game-data');
-      if (!response.data) {
-        return;
-      }
-      setCurrentDay(response.data.day);
-      if (devnetMode) {
-        const days = 4;
-        if (response.data.day >= days) {
-          setGameEnded(true);
-        } else if (response.data.day === days - 1) {
-          setIsLastDay(true);
+      try {
+        let response = await fetchWrapper('get-game-data');
+        if (!response.data) {
+          return;
         }
-      } else {
-        let now = new Date();
-        const result = await getTodaysStartTime();
-        let dayEnd = new Date(result.data);
-        dayEnd.setHours(dayEnd.getHours() + 24);
-        // Now in seconds
-        let nowInSeconds = Math.floor(now.getTime() / 1000);
-        let dayEndInSeconds = Math.floor(dayEnd.getTime() / 1000);
-        if (nowInSeconds >= response.data.endTime) {
-          setGameEnded(true);
-        } else if (dayEndInSeconds >= response.data.endTime) {
-          setIsLastDay(true);
+        setCurrentDay(response.data.day);
+        if (devnetMode) {
+          const days = 4;
+          if (response.data.day >= days) {
+            setGameEnded(true);
+          } else if (response.data.day === days - 1) {
+            setIsLastDay(true);
+          }
+        } else {
+          let now = new Date();
+          const result = await getTodaysStartTime();
+          let dayEnd = new Date(result.data);
+          dayEnd.setHours(dayEnd.getHours() + 24);
+          // Now in seconds
+          let nowInSeconds = Math.floor(now.getTime() / 1000);
+          let dayEndInSeconds = Math.floor(dayEnd.getTime() / 1000);
+          if (nowInSeconds >= response.data.endTime) {
+            setGameEnded(true);
+          } else if (dayEndInSeconds >= response.data.endTime) {
+            setIsLastDay(true);
+          }
         }
+        setHost(response.data.host);
+        setEndTimestamp(response.data.endTime);
+      } catch(e) {
+        console.error(e);
       }
-      setHost(response.data.host);
-      setEndTimestamp(response.data.endTime);
     };
     fetchGameData();
   }, []);
@@ -264,12 +268,16 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   useEffect(() => {
     const getLastPlacedPixel = `get-last-placed-time?address=${queryAddress}`;
     async function fetchGetLastPlacedPixel() {
-      const response = await fetchWrapper(getLastPlacedPixel);
-      if (!response.data) {
-        return;
+      try {
+        const response = await fetchWrapper(getLastPlacedPixel);
+        if (!response.data) {
+          return;
+        }
+        const time = new Date(response.data);
+        setLastPlacedTime(time?.getTime());
+      } catch (e) {
+        console.error(e);
       }
-      const time = new Date(response.data);
-      setLastPlacedTime(time?.getTime());
     }
 
     fetchGetLastPlacedPixel();
@@ -402,39 +410,51 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
 
   useEffect(() => {
     async function fetchExtraPixelsEndpoint() {
-      let extraPixelsResponse = await fetchWrapper(
-        `get-extra-pixels?address=${queryAddress}`
-      );
-      if (!extraPixelsResponse.data) {
-        setExtraPixels(0);
-        return;
+      try {
+        let extraPixelsResponse = await fetchWrapper(
+          `get-extra-pixels?address=${queryAddress}`
+        );
+        if (!extraPixelsResponse.data) {
+          setExtraPixels(0);
+          return;
+        }
+        setExtraPixels(extraPixelsResponse.data);
       }
-      setExtraPixels(extraPixelsResponse.data);
+      catch (e) {
+        console.error(e);
+      }
     }
     fetchExtraPixelsEndpoint();
 
     async function fetchChainFactionPixelsEndpoint() {
-      let chainFactionPixelsResponse = await fetchWrapper(
-        `get-chain-faction-pixels?address=${queryAddress}`
-      );
-      if (!chainFactionPixelsResponse.data) {
-        setChainFactionPixelsData([]);
-        return;
+      try {
+        let chainFactionPixelsResponse = await fetchWrapper(
+          `get-chain-faction-pixels?address=${queryAddress}`
+        );
+        if (!chainFactionPixelsResponse.data) {
+          setChainFactionPixelsData([]);
+          return;
+        }
+        setChainFactionPixelsData(chainFactionPixelsResponse.data);
+      } catch (e) {
+        console.error(e);
       }
-      setChainFactionPixelsData(chainFactionPixelsResponse.data);
     }
     fetchChainFactionPixelsEndpoint();
 
     async function fetchFactionPixelsEndpoint() {
-      let factionPixelsResponse = await fetchWrapper(
-        `get-faction-pixels?address=${queryAddress}`
-      );
-      if (!factionPixelsResponse.data) {
-        setFactionPixelsData([]);
-        return;
-      }
-      setFactionPixelsData(factionPixelsResponse.data);
-    }
+      try {
+        let factionPixelsResponse = await fetchWrapper(
+          `get-faction-pixels?address=${queryAddress}`
+        );
+        if (!factionPixelsResponse.data) {
+          setFactionPixelsData([]);
+          return;
+        }
+        setFactionPixelsData(factionPixelsResponse.data);
+      } catch (e) {
+        console.error(e);
+      }}
     fetchFactionPixelsEndpoint();
   }, [queryAddress]);
 
@@ -452,10 +472,14 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     setPixelSelectedMode(true);
     // TODO: move http fetch for pixel data here?
 
-    let pixelInfo = await fetchWrapper(
-      `get-pixel-info&position=${x+y*canvasConfig.canvas.width}`
-    );
-    console.log("pixelInfo data",pixelInfo)
+    try {
+      let pixelInfo = await fetchWrapper(
+        `get-pixel-info&position=${x+y*canvasConfig.canvas.width}`
+      );
+      console.log("pixelInfo data",pixelInfo)
+    } catch (e) {
+      console.error(e);
+    }
 
   };
 
@@ -519,25 +543,32 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [userFactions, setUserFactions] = useState([]);
   useEffect(() => {
     async function fetchChainFaction() {
-      let chainFactionResponse = await fetchWrapper(
-        `get-my-chain-factions?address=${queryAddress}`
-      );
-      if (!chainFactionResponse.data) {
-        return;
-      }
-      if (chainFactionResponse.data.length === 0) {
-        return;
-      }
-      setChainFaction(chainFactionResponse.data[0]);
-    }
+      try {
+        let chainFactionResponse = await fetchWrapper(
+          `get-my-chain-factions?address=${queryAddress}`
+        );
+        if (!chainFactionResponse.data) {
+          return;
+        }
+        if (chainFactionResponse.data.length === 0) {
+          return;
+        }
+        setChainFaction(chainFactionResponse.data[0]);
+      } catch (e) {
+        console.error(e);
+      }}
     async function fetchUserFactions() {
-      let userFactionsResponse = await fetchWrapper(
-        `get-my-factions?address=${queryAddress}`
-      );
-      if (!userFactionsResponse.data) {
-        return;
+      try {
+        let userFactionsResponse = await fetchWrapper(
+          `get-my-factions?address=${queryAddress}`
+        );
+        if (!userFactionsResponse.data) {
+          return;
+        }
+        setUserFactions(userFactionsResponse.data);
+      } catch (e) {
+        console.error(e);
       }
-      setUserFactions(userFactionsResponse.data);
     }
     fetchChainFaction();
     fetchUserFactions();

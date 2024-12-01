@@ -10,6 +10,14 @@ pub struct Pixel {
 }
 
 #[derive(Drop, Serde, starknet::Store)]
+pub struct MetadataPixel {
+    // Color index in the palette
+    pub ipfs: ByteArray,
+    pub nostr_event_id: u256,
+    pub owner: starknet::ContractAddress,
+}
+
+#[derive(Drop, Serde, starknet::Store)]
 pub struct Faction {
     pub name: felt252,
     pub leader: starknet::ContractAddress,
@@ -48,6 +56,9 @@ pub trait IArtPeace<TContractState> {
 
     // Place pixels on the canvas
     fn place_pixel(ref self: TContractState, pos: u128, color: u8, now: u64);
+    fn place_pixel_metadata(
+        ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+    );
     fn place_pixel_xy(ref self: TContractState, x: u128, y: u128, color: u8, now: u64);
     fn place_pixel_blocktime(ref self: TContractState, pos: u128, color: u8);
     fn place_extra_pixels(
