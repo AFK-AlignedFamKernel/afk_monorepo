@@ -5,5 +5,7 @@ pub mod tokens {
     pub mod dn404 {
         pub mod dn404;
         pub mod dn404_mirror;
+        pub mod dn404_component;
+        pub mod dn404_mirror_component;
     }
 }
