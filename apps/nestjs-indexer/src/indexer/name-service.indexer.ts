@@ -41,7 +41,7 @@ export class NameServiceIndexer {
 
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('UsernameClaimed')):
-        this.logger.log('Event name: CreateLaunch');
+        this.logger.log('Event name: UsernameClaimed');
         this.handleUsernameClaimedEvent(header, event, transaction);
         break;
       default:
