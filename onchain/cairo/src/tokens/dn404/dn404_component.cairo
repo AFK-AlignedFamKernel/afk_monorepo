@@ -1,21 +1,12 @@
-// TODO: create component of it, implement a factory in the future
-
 // Changes comparing to Solidity DN404 contract:
+// - Types are changed because of absence of u96 and u88 types in Cairo
 // - Flags unwinded from Bitmap to several boolean maps
 // - Using 2 separate mappings for Owner aliases and Owned NFTs indexes
 // Unimplemented features:
 // - Packed logs
-// - Hooks (exists bitmap, afterNFTTransfers, etc)
+// - AfterNFTTransfers hook
+// - Exists bitmap
 use starknet::ContractAddress;
-
-// TODO: add hooks like in OZ:
-
-// /// @dev Hook that is called after a batch of NFT transfers.
-// /// The lengths of `from`, `to`, and `ids` are guaranteed to be the same.
-// function _afterNFTTransfers(address[] memory from, address[] memory to, uint256[] memory ids)
-//     internal
-//     virtual
-// {}
 
 const TWO_POW_96: u256 = 0x1000000000000000000000000;
 
@@ -39,8 +30,8 @@ pub struct DN404Options {
 
 #[starknet::interface]
 pub trait IDN404<TContractState> {
-    fn name(self: @TContractState) -> felt252;
-    fn symbol(self: @TContractState) -> felt252;
+    fn name(self: @TContractState) -> ByteArray;
+    fn symbol(self: @TContractState) -> ByteArray;
     fn decimals(self: @TContractState) -> u8;
     fn total_supply(self: @TContractState) -> u256;
     fn balance_of(self: @TContractState, owner: ContractAddress) -> u256;
@@ -85,7 +76,7 @@ pub trait IDN404<TContractState> {
     fn get_approved_nft(self: @TContractState, id: u256) -> ContractAddress;
     fn balance_of_nft(self: @TContractState, owner: ContractAddress) -> u256;
     fn total_nft_supply(self: @TContractState) -> u256;
-    fn token_uri_nft(self: @TContractState, id: u256) -> felt252;
+    fn token_uri_nft(self: @TContractState, id: u256) -> ByteArray;
     fn implements_dn404(self: @TContractState) -> bool;
 }
 
@@ -105,8 +96,8 @@ pub mod DN404Component {
 
     #[storage]
     struct Storage {
-        name: felt252,
-        symbol: felt252,
+        name: ByteArray,
+        symbol: ByteArray,
         decimals: u8,
         options: DN404Options,
         // Flags unwinded from AddressData
@@ -193,15 +184,26 @@ pub mod DN404Component {
         pub const InsufficientAllowance: felt252 = 'InsufficientAllowance';
     }
 
+    pub trait DN404HooksTrait<TContractState> {
+        fn after_nft_transfers(
+            ref self: ComponentState<TContractState>,
+            from: ContractAddress,
+            to: ContractAddress,
+            ids: Array<u256>
+        );
+        fn token_uri(self: @ComponentState<TContractState>, id: u256) -> ByteArray;
+    }
+
     #[embeddable_as(DN404Impl)]
     impl DN404<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
+        +DN404HooksTrait<TContractState>,
     > of super::IDN404<ComponentState<TContractState>> {
-        fn name(self: @ComponentState<TContractState>) -> felt252 {
+        fn name(self: @ComponentState<TContractState>) -> ByteArray {
             self.name.read()
         }
 
-        fn symbol(self: @ComponentState<TContractState>) -> felt252 {
+        fn symbol(self: @ComponentState<TContractState>) -> ByteArray {
             self.symbol.read()
         }
 
@@ -327,19 +329,20 @@ pub mod DN404Component {
             self._total_nft_supply()
         }
 
-        fn token_uri_nft(self: @ComponentState<TContractState>, id: u256) -> felt252 {
+        fn token_uri_nft(self: @ComponentState<TContractState>, id: u256) -> ByteArray {
             self._token_uri(id)
         }
     }
 
     #[generate_trait]
-    impl InternalFunctions<
-        TContractState, +HasComponent<TContractState>
+    pub impl InternalFunctions<
+        TContractState, +HasComponent<TContractState>,
+        impl Hooks: DN404HooksTrait<TContractState>,
     > of InternalFunctionsTrait<TContractState> {
-        fn initialize(
+        fn initializer(
             ref self: ComponentState<TContractState>,
-            name: felt252,
-            symbol: felt252,
+            name: ByteArray,
+            symbol: ByteArray,
             decimals: u8,
             initial_token_supply: u256,
             initial_supply_owner: ContractAddress,
@@ -1222,9 +1225,8 @@ pub mod DN404Component {
             self.total_nft_supply.read().into()
         }
 
-        fn _token_uri(self: @ComponentState<TContractState>, id: u256) -> felt252 {
-            // TODO: override by hook
-            ''
+        fn _token_uri(self: @ComponentState<TContractState>, id: u256) -> ByteArray {
+            Hooks::token_uri(self, id)
         }
 
         fn _set_owner_alias_and_owned_index(

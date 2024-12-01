@@ -4,9 +4,9 @@ pub use DN404MirrorComponent::TransferEvent as NftTransferEvent;
 
 #[starknet::interface]
 pub trait IDN404Mirror<TContractState> {
-    fn name(self: @TContractState) -> felt252;
-    fn symbol(self: @TContractState) -> felt252;
-    fn token_uri(self: @TContractState, id: u256) -> felt252;
+    fn name(self: @TContractState) -> ByteArray;
+    fn symbol(self: @TContractState) -> ByteArray;
+    fn token_uri(self: @TContractState, id: u256) -> ByteArray;
     fn total_supply(self: @TContractState) -> u256;
     fn balance_of(self: @TContractState, nft_owner: ContractAddress) -> u256;
     fn owner_of(self: @TContractState, id: u256) -> ContractAddress;
@@ -135,21 +135,21 @@ pub mod DN404MirrorComponent {
         +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of super::IDN404Mirror<ComponentState<TContractState>> {
-        fn name(self: @ComponentState<TContractState>) -> felt252 {
+        fn name(self: @ComponentState<TContractState>) -> ByteArray {
             let dispatcher = IDN404Dispatcher {
                 contract_address: self.base_erc20.read(),
             };
             dispatcher.name()
         }
 
-        fn symbol(self: @ComponentState<TContractState>) -> felt252 {
+        fn symbol(self: @ComponentState<TContractState>) -> ByteArray {
             let dispatcher = IDN404Dispatcher {
                 contract_address: self.base_erc20.read(),
             };
             dispatcher.symbol()
         }
 
-        fn token_uri(self: @ComponentState<TContractState>, id: u256) -> felt252 {
+        fn token_uri(self: @ComponentState<TContractState>, id: u256) -> ByteArray {
             // ownerOf reverts if the token does not exist
             self.owner_of(id);
             let dispatcher = IDN404Dispatcher {
@@ -334,12 +334,12 @@ pub mod DN404MirrorComponent {
     }
 
     #[generate_trait]
-    impl InternalImpl<
+    pub impl InternalImpl<
         TContractState, +HasComponent<TContractState>,
         impl SRC5: SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of InternalTrait<TContractState> {
-        fn initialize(ref self: ComponentState<TContractState>, deployer: ContractAddress) {
+        fn initializer(ref self: ComponentState<TContractState>, deployer: ContractAddress) {
             self.deployer.write(deployer);
 
             // Register interfaces

@@ -86,6 +86,8 @@ pub mod tokens {
         pub mod dn404_mirror;
         pub mod dn404_component;
         pub mod dn404_mirror_component;
+        pub mod dn404_preset;
+        pub mod dn404_mirror_preset;
     }
 }
 
@@ -118,5 +120,6 @@ pub mod tests {
     pub mod utils;
     pub mod vault_tests;
     pub mod dn404_tests;
+    pub mod dn404_presets_test;
 }
 
