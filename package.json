@@ -20,6 +20,7 @@
     "build:backend:all":"pnpm run build:indexer-prisma && pnpm run build:prisma-db && cd apps/data-backend && pnpm install && pnpm run build:all",
     "run:backend":"cd apps/data-backend && pnpm run start",
     "run:backend:prod":"cd apps/data-backend && pnpm run start:prod",
+    "build:nestjs-indexer": "cd apps/nestjs-indexer && pnpm run build",
     "dev": "turbo run dev",
     "web":"turbo run dev --filter=website",
     "mobile":"turbo run start --filter=mobile",
