@@ -4,7 +4,6 @@
 // - Flags unwinded from Bitmap to several boolean maps
 // - Using 2 separate mappings for Owner aliases and Owned NFTs indexes
 // Unimplemented features:
-// - Burned pool
 // - Packed logs
 // - Hooks (exists bitmap, afterNFTTransfers, etc)
 use starknet::ContractAddress;
@@ -120,8 +119,6 @@ pub mod DN404 {
         skip_nft_initialized: Map<ContractAddress, bool>,
         num_aliases: u32,
         next_token_id: u32,
-        burned_pool_head: u32,
-        burned_pool_tail: u32,
         total_nft_supply: u32,
         total_supply: u96,
         mirror_erc721: ContractAddress,
@@ -133,7 +130,10 @@ pub mod DN404 {
         exists: Map<u256, bool>,
         allowance: Map<(ContractAddress, ContractAddress), u256>,
         owned: Map<ContractAddress, Map<u32, u32>>,
-        burned_pool: Span<u32>,
+        // Burned pool
+        burned_pool_head: u32,
+        burned_pool_tail: u32,
+        burned_pool: Map<u32, u32>,
         // Use two separate mappings for owner aliases and owned indexes:
         owner_aliases: Map<u256, u32>,
         owned_indexes: Map<u256, u32>,
@@ -423,8 +423,6 @@ pub mod DN404 {
         fn _transfer(
             ref self: ContractState, from: ContractAddress, to: ContractAddress, amount: u256
         ) {
-            // TODO: this code is generated and need to be rewritten
-
             // Basic validation
             assert!(!to.is_zero(), "TransferToZeroAddress");
             assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
@@ -443,8 +441,6 @@ pub mod DN404 {
 
             let mut to_balance: u256 = to_data.balance.into() + amount;
             to_data.balance = to_balance.try_into().expect('BalanceOverflow');
-
-            /// DONE
 
             // Calculate NFT changes needed
             let mut from_owned_length: u256 = from_data.owned_length.into();
@@ -539,20 +535,20 @@ pub mod DN404 {
 
             let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
 
-            // let burned_pool_tail = self.burned_pool_tail.read();
+            let mut burned_pool_tail = self.burned_pool_tail.read();
             if num_nft_burns != 0 {
-                // TODO: support [packed] logs
-                // TODO: support burned pool
+                // Check if we should add to burned pool
+                let add_to_burned_pool = self.options.read().add_to_burned_pool;
+
                 let mut from_index: u64 = from_owned_length
                     .try_into()
                     .expect('OwnedLengthOverflow');
                 let from_end: u64 = from_index
                     - num_nft_burns.try_into().expect('OwnedLengthOverflow');
                 from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
+
                 // Burn loop
-                // We don't rely on wrapping here because we use Vecs instead of circle bufferred
-                // array-like mapping
-                while from_index > from_end {
+                while from_index != from_end {
                     from_index -= 1;
                     // get last token from the sender's owned list
                     let token_id = self.owned.entry(from).read(from_index.try_into().unwrap());
@@ -562,12 +558,28 @@ pub mod DN404 {
                         .append(
                             NftTransferEvent { from: from, to: Zero::zero(), id: token_id.into(), }
                         );
-                    // TODO: process exists map
-                    // TODO: process burned pool
+
+                    // Add to burned pool if enabled
+                    if add_to_burned_pool {
+                        self.burned_pool.write(burned_pool_tail, token_id);
+                        burned_pool_tail += 1;
+                    }
+
+                    // Process exists map
+                    if self.options.read().use_exists_lookup {
+                        self.exists.write(token_id.into(), false);
+                    }
+
+                    // Clear approvals if they exist
                     if self.may_have_nft_approval.read(token_id.into()) {
                         self.may_have_nft_approval.write(token_id.into(), false);
                         self.nft_approvals.write(token_id.into(), Zero::zero());
                     }
+                };
+
+                // Update burned pool tail if needed
+                if add_to_burned_pool {
+                    self.burned_pool_tail.write(burned_pool_tail);
                 }
             }
 
@@ -581,11 +593,21 @@ pub mod DN404 {
                 let to_end = to_index + num_nft_mints;
                 to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
 
+                // Track burned pool head
+                let mut burned_pool_head = self.burned_pool_head.read();
+                let burned_pool_tail = self.burned_pool_tail.read();
+
                 // Mint loop
                 while to_index < to_end {
                     let mut token_id: u256 = 0;
-                    if self.burned_pool_head.read() != self.burned_pool_tail.read() {// TODO: support burned pool
+
+                    // Check if there are burned tokens available
+                    if burned_pool_head != burned_pool_tail {
+                        // Reuse a burned token ID
+                        token_id = self.burned_pool.read(burned_pool_head).into();
+                        burned_pool_head += 1;
                     } else {
+                        // No burned tokens available, mint new token ID
                         token_id = next_token_id;
                         while self.owner_aliases.read(token_id.into()) != 0 {
                             // TODO: support exists lookup
@@ -593,20 +615,26 @@ pub mod DN404 {
                         };
                         next_token_id = self._wrap_nft_id(token_id + 1, id_limit);
                     }
-                    // append token to the owner's owned list
+
+                    // Update exists lookup if enabled
+                    if self.options.read().use_exists_lookup {
+                        self.exists.write(token_id, true);
+                    }
+
+                    // Append token to owner's owned list
                     self.owned.entry(to).write(
-                        to_index.try_into().expect('IndexOverflow'), 
+                        to_index.try_into().expect('IndexOverflow'),
                         token_id.try_into().expect('TokenIdOverflow')
                     );
-
                     self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+
+                    nft_transfer_logs.append(NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), });
+
                     to_index += 1;
-                    nft_transfer_logs
-                        .append(
-                            NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), }
-                        );
                 };
 
+                // Update burned pool head and next token ID in storage
+                self.burned_pool_head.write(burned_pool_head);
                 self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
             }
 
@@ -741,11 +769,21 @@ pub mod DN404 {
                 // Store NFT transfer logs
                 let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
 
+                // Track burned pool head
+                let mut burned_pool_head = self.burned_pool_head.read();
+                let burned_pool_tail = self.burned_pool_tail.read();
+
                 // Mint loop
                 while to_index < to_end {
                     let mut token_id: u256 = 0;
-                    if self.burned_pool_head.read() != self.burned_pool_tail.read() {// TODO: support burned pool
+
+                    // Check if there are burned tokens available
+                    if burned_pool_head != burned_pool_tail {
+                        // Reuse a burned token ID
+                        token_id = self.burned_pool.read(burned_pool_head).into();
+                        burned_pool_head += 1;
                     } else {
+                        // No burned tokens available, mint new token ID
                         token_id = next_token_id;
                         while self.owner_aliases.read(token_id.into()) != 0 {
                             // TODO: support exists lookup
@@ -754,21 +792,27 @@ pub mod DN404 {
                         next_token_id = self._wrap_nft_id(token_id + 1, id_limit);
                     }
 
+                    // Update exists lookup if enabled
+                    if self.options.read().use_exists_lookup {
+                        self.exists.write(token_id, true);
+                    }
+
                     // Append token to owner's owned list
                     self.owned.entry(to).write(
                         to_index.try_into().expect('IndexOverflow'),
                         token_id.try_into().expect('TokenIdOverflow')
                     );
                     self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
-                    to_index += 1;
 
-                    nft_transfer_logs
-                        .append(
-                            NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), }
-                        );
+                    nft_transfer_logs.append(NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), });
+
+                    to_index += 1;
                 };
 
+                // Update burned pool head and next token ID
+                self.burned_pool_head.write(burned_pool_head);
                 self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
+
 
                 // Send NFT transfer logs to mirror
                 if nft_transfer_logs.len() > 0 {
@@ -777,6 +821,7 @@ pub mod DN404 {
                     };
                     dispatcher.log_transfer(nft_transfer_logs);
                 }
+                break;
             };
 
             // Update address data
@@ -920,11 +965,12 @@ pub mod DN404 {
             );
 
             if num_nft_burns != 0 {
-                // Update total NFT supply
+                // Update total NFT supply and check if we should add to burned pool
                 let total_nft_supply: u256 = self.total_nft_supply.read().into() - num_nft_burns;
                 self
                     .total_nft_supply
                     .write(total_nft_supply.try_into().expect('TotalSupplyOverflow'));
+                let add_to_burned_pool = self.options.read().add_to_burned_pool;
 
                 // Store NFT transfer logs
                 let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
@@ -936,6 +982,9 @@ pub mod DN404 {
                 let from_end: u64 = from_index
                     - num_nft_burns.try_into().expect('OwnedLengthOverflow');
                 from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
+
+                // Track burned pool tail
+                let mut burned_pool_tail = self.burned_pool_tail.read();
 
                 // Burn loop
                 while from_index > from_end {
@@ -952,15 +1001,28 @@ pub mod DN404 {
                         self.nft_approvals.write(token_id.into(), Zero::zero());
                     }
 
-                    // TODO: support exists lookup
-                    // TODO: support burned pool
+                    // Add to burned pool if enabled
+                    if add_to_burned_pool {
+                        self.burned_pool.write(burned_pool_tail, token_id);
+                        burned_pool_tail += 1;
+                    }
+
+                    // Update exists lookup if enabled
+                    if self.options.read().use_exists_lookup {
+                        self.exists.write(token_id.into(), false);
+                    }
 
                     // Add to transfer logs
                     nft_transfer_logs
                         .append(
-                            NftTransferEvent { from: from, to: Zero::zero(), id: token_id.into(), }
+                            NftTransferEvent { from: from, to: Zero::zero(), id: token_id.into() }
                         );
                 };
+
+                // Update burned pool tail if needed
+                if add_to_burned_pool {
+                    self.burned_pool_tail.write(burned_pool_tail);
+                }
 
                 // Send NFT transfer logs to mirror if any
                 if nft_transfer_logs.len() > 0 {
@@ -975,7 +1037,7 @@ pub mod DN404 {
             self.address_data.write(from, from_data);
 
             // Emit Transfer event
-            self.emit(TransferEvent { from: from, to: Zero::zero(), amount: amount, });
+            self.emit(TransferEvent { from: from, to: Zero::zero(), amount: amount });
             // TODO: afterNFTTransfers hook
         }
 
@@ -1020,7 +1082,8 @@ pub mod DN404 {
             assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
 
             // Verify ownership
-            let owner_alias = self.owner_aliases.read(id); // TODO: check if we need _restrictNFTId
+            let ownership_index = self._ownership_index(id);
+            let owner_alias = self.owner_aliases.read(ownership_index); // TODO: check if we need _restrictNFTId
             let owner = self.alias_to_address.read(owner_alias);
             assert!(from == owner, "TransferFromIncorrectOwner");
 
