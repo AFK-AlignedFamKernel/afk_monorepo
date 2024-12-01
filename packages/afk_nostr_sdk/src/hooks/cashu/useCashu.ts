@@ -1,21 +1,22 @@
 import {
   CashuMint,
   CashuWallet,
-  deriveSeedFromMnemonic,
-  generateNewMnemonic,
   getDecodedToken,
   getEncodedToken,
   GetInfoResponse,
+  MeltProofsResponse,
   MeltQuoteResponse,
-  MeltTokensResponse,
   MintActiveKeys,
   MintAllKeysets,
   MintKeyset,
   MintQuoteResponse,
   Proof,
+  ProofState,
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
+import {generateMnemonic as generateNewMnemonic, mnemonicToSeedSync} from '@scure/bip39';
+import {wordlist} from '@scure/bip39/wordlists/english';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -43,27 +44,15 @@ export interface ICashu {
   requestMintQuote: (nb: number) => Promise<{
     request: MintQuoteResponse;
   }>;
-  mintTokens: (
-    amount: number,
-    quote: MintQuoteResponse,
-  ) => Promise<{
-    proofs: Array<Proof>;
-  }>;
+  mintTokens: (amount: number, quote: MintQuoteResponse) => Promise<Proof[]>;
   payLnInvoice: (
     amount: number,
     request: MintQuoteResponse,
     proofs: Proof[],
   ) => Promise<{
-    response: MeltTokensResponse;
-    sentProofsSpent: Proof[];
-    returnChangeSpent: Proof[];
-  }>;
-  payLnInvoiceWithToken: (
-    token: string,
-    request: MintQuoteResponse,
-    meltQuote: MeltQuoteResponse,
-  ) => Promise<{
-    response: MeltTokensResponse;
+    payRes: MeltProofsResponse;
+    sentProofsSpent: ProofState[];
+    returnChangeSpent: ProofState[];
   }>;
   sendP2PK: (
     amount: number,
@@ -80,8 +69,10 @@ export interface ICashu {
     pProofs: Proof[],
   ) => Promise<{
     meltQuote: MeltQuoteResponse;
-    meltResponse: MeltTokensResponse;
+    meltResponse: MeltProofsResponse;
     proofsToKeep: Proof[];
+    remainingProofs: Proof[];
+    selectedProofs: Proof[];
   }>;
   getKeySets: () => Promise<MintAllKeysets>;
   getUnits: (url: string) => Promise<string[]>;
@@ -98,18 +89,14 @@ export interface ICashu {
     request: MintQuoteResponse,
     proofs: Proof[],
   ) => Promise<{
-    response: MeltTokensResponse;
-    sentProofsSpent: Proof[];
-    returnChangeSpent: Proof[];
+    payRes: MeltProofsResponse;
+    sentProofsSpent: ProofState[];
+    returnChangeSpent: ProofState[];
   }>;
-  getProofsSpents: (proofs: Proof[]) => Promise<Proof[]>;
+  getProofsSpents: (proofs: Proof[]) => Promise<ProofState[]>;
   checkMeltQuote: (quote: string) => Promise<MeltQuoteResponse>;
   checkMintQuote: (quote: string) => Promise<MintQuoteResponse>;
-  checkProofSpent: (proofs: {secret: string}[]) => Promise<
-    {
-      secret: string;
-    }[]
-  >;
+  checkProofSpent: (proofs: {secret: string}[]) => Promise<ProofState[]>;
   receiveEcash: (ecash: string) => Promise<Proof[]>;
   handleReceivedPayment: (amount: number, quote: MintQuoteResponse) => Promise<Proof[]>;
   mints: MintData[];
@@ -126,13 +113,12 @@ export interface ICashu {
 export const useCashu = (): ICashu => {
   const {ndkCashuWallet} = useNostrContext();
   const {privateKey} = useAuth();
-  const {setSeed, seed, mnemonic, setMnemonic} = useCashuStore();
+  const {setSeed, seed, setMnemonic} = useCashuStore();
 
   const [activeMint, setActiveMint] = useState<string>();
   const [activeUnit, setActiveUnit] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
   const [proofs, setProofs] = useState<Proof[]>([]);
-  const [mintQuoteResponse, setResponseQuote] = useState<MintQuoteResponse | undefined>();
 
   const mint = useMemo(() => {
     if (activeMint) return new CashuMint(activeMint);
@@ -141,20 +127,20 @@ export const useCashu = (): ICashu => {
   const wallet = useMemo(() => {
     if (mint)
       return new CashuWallet(mint, {
-        mnemonicOrSeed: mnemonic ?? seed,
+        bip39seed: seed,
         unit: activeUnit,
       });
-  }, [mint, mnemonic, seed, activeUnit]);
+  }, [mint, seed, activeUnit]);
 
   /** TODO saved in secure store */
   const generateMnemonic = () => {
-    const words = generateNewMnemonic();
+    const words = generateNewMnemonic(wordlist, 128);
     setMnemonic(words);
     return words;
   };
   /** TODO saved in secure store */
   const derivedSeedFromMnenomicAndSaved = (mnemonic: string) => {
-    const seedDerived = deriveSeedFromMnemonic(mnemonic);
+    const seedDerived = mnemonicToSeedSync(mnemonic);
     setSeed(seedDerived);
     return seedDerived;
   };
@@ -197,7 +183,7 @@ export const useCashu = (): ICashu => {
   };
 
   const getProofsSpents = async (proofs: Proof[]) => {
-    const proofsCheck = await wallet?.checkProofsSpent([...proofs]);
+    const proofsCheck = await wallet?.checkProofsStates([...proofs]);
     return proofsCheck;
   };
 
@@ -262,8 +248,7 @@ export const useCashu = (): ICashu => {
       if (!wallet) return;
 
       const request = await wallet?.createMintQuote(nb);
-      const mintQuote = await wallet?.checkMintQuote(request.quote);
-      setResponseQuote(mintQuote);
+      await wallet?.checkMintQuote(request.quote);
       return {
         request,
       };
@@ -273,7 +258,7 @@ export const useCashu = (): ICashu => {
   };
 
   const mintTokens = async (amount: number, quote: MintQuoteResponse) => {
-    const proofs = await wallet?.mintTokens(amount, quote.quote);
+    const proofs = await wallet?.mintProofs(amount, quote.quote);
     return proofs;
   };
 
@@ -295,15 +280,28 @@ export const useCashu = (): ICashu => {
         return undefined;
       }
 
+      //selectProofs
+      const selectedProofs: Proof[] = [];
+      const remainingProofs: Proof[] = [];
+      let proofsAmount = 0;
+      for (let i = 0; i < pProofs.length; i++) {
+        if (proofsAmount >= amountToSend) {
+          remainingProofs.push(pProofs[i]);
+        } else {
+          selectedProofs.push(pProofs[i]);
+          proofsAmount += pProofs[i].amount;
+        }
+      }
+
       // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
       // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
-      const {returnChange: proofsToKeep, send: proofsToSend} = await wallet.send(
+      const {keep: proofsToKeep, send: proofsToSend} = await wallet.send(
         amountToSend,
-        pProofs,
+        selectedProofs,
       );
-      const meltResponse = await wallet.meltTokens(meltQuote, proofsToSend);
+      const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
 
-      return {meltQuote, meltResponse, proofsToKeep};
+      return {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs};
     } catch (e) {
       console.log('Error meltTokens', e);
       return undefined;
@@ -313,33 +311,21 @@ export const useCashu = (): ICashu => {
   const payLnInvoice = async (amount: number, request: MintQuoteResponse, proofs: Proof[]) => {
     if (!wallet) return undefined;
 
-    const quote = await wallet.checkMeltQuote(request.quote);
-    const sendResponse = await wallet.send(amount, proofs);
-    const response = await wallet.payLnInvoice(request.request, sendResponse.send, quote);
+    const quote = await wallet.createMeltQuote(request.request);
+    const totalAmount = quote.fee_reserve + amount;
+    const {keep, send} = await wallet.send(totalAmount, proofs);
+    const payRes = await wallet.meltProofs(quote, send);
 
     // check states of spent and kept proofs after payment
-    const sentProofsSpent = await wallet.checkProofsSpent(sendResponse.send);
+    const sentProofsSpent = await wallet.checkProofsStates(send);
     // expect that all proofs are spent, i.e. sendProofsSpent == sendResponse.send
     // expect none of the sendResponse.returnChange to be spent
-    const returnChangeSpent = await wallet.checkProofsSpent(sendResponse.returnChange);
+    const returnChangeSpent = await wallet.checkProofsStates(keep);
 
     return {
-      response,
+      payRes,
       sentProofsSpent,
       returnChangeSpent,
-    };
-  };
-
-  const payLnInvoiceWithToken = async (
-    token: string,
-    request: MintQuoteResponse,
-    meltQuote: MeltQuoteResponse,
-  ) => {
-    if (!wallet) return undefined;
-    const response = await wallet.payLnInvoiceWithToken(request.request, token, meltQuote);
-
-    return {
-      response,
     };
   };
 
@@ -353,7 +339,8 @@ export const useCashu = (): ICashu => {
 
     const {send} = await wallet.send(amount, tokensProofs, {pubkey: bytesToHex(pubkeyRecipient)});
     const encoded = getEncodedToken({
-      token: [{mint: mintUrl, proofs: send}],
+      mint: mintUrl,
+      proofs: send,
     });
 
     return {
@@ -386,21 +373,20 @@ export const useCashu = (): ICashu => {
   ) => {
     if (!wallet) return undefined;
 
-    // get the quote from the mint
-    const quote_ = await wallet.checkMeltQuote(request.quote);
-
-    const sendResponse = await wallet.send(amount + fee, proofs);
-    const response = await wallet.payLnInvoice(externalInvoice, sendResponse.send, quote_);
+    const quote = await wallet.createMeltQuote(externalInvoice);
+    const totalAmount = fee + amount;
+    const {keep, send} = await wallet.send(totalAmount, proofs);
+    const payRes = await wallet.meltProofs(quote, send);
 
     // expect that we have not received the fee back, since it was external
 
     // check states of spent and kept proofs after payment
-    const sentProofsSpent = await wallet.checkProofsSpent(sendResponse.send);
+    const sentProofsSpent = await wallet.checkProofsStates(send);
     // expect that all proofs are spent, i.e. sendProofsSpent == sendResponse.send
     // expect none of the sendResponse.returnChange to be spent
-    const returnChangeSpent = await wallet.checkProofsSpent(sendResponse.returnChange);
+    const returnChangeSpent = await wallet.checkProofsStates(keep);
     return {
-      response,
+      payRes,
       sentProofsSpent,
       returnChangeSpent,
     };
@@ -416,14 +402,10 @@ export const useCashu = (): ICashu => {
     }
   };
 
-  const checkProofSpent = async (
-    proofs: {
-      secret: string;
-    }[],
-  ) => {
+  const checkProofSpent = async (proofs: Proof[]) => {
     try {
       if (!wallet) return undefined;
-      const proofsSpents = await wallet.checkProofsSpent(proofs);
+      const proofsSpents = await wallet.checkProofsStates(proofs);
       return proofsSpents;
     } catch (e) {
       console.log('Error checkProofSpent', e);
@@ -453,16 +435,13 @@ export const useCashu = (): ICashu => {
   };
 
   const handleReceivedPayment = async (amount: number, quote: MintQuoteResponse) => {
-    const receive = await mintTokens(Number(amount), quote);
-    console.log('receive', receive);
+    const mintTokensProofs = await mintTokens(Number(amount), quote);
 
     const encoded = getEncodedToken({
-      token: [{mint: mint?.mintUrl, proofs: receive?.proofs as Proof[]}],
+      mint: mint?.mintUrl,
+      proofs: mintTokensProofs,
     });
-    // const response = await wallet?.receive(encoded);
     const response = await receiveP2PK(encoded);
-
-    console.log('response', response);
 
     return response;
   };
@@ -494,7 +473,6 @@ export const useCashu = (): ICashu => {
     requestMintQuote,
     mintTokens,
     payLnInvoice,
-    payLnInvoiceWithToken,
     sendP2PK,
     receiveP2PK,
     meltTokens,

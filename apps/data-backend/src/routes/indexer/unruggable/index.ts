@@ -12,7 +12,7 @@ async function unrugRoutes(
   fastify: FastifyInstance,
   options: RouteOptions
 ) {
-  fastify.get("/unrug-create-token", async (request, reply) => {
+  fastify.get("/unrug/create-token", async (request, reply) => {
     try {
       const launches = await prisma.unrugmeme_deploy.findMany({
         select: {
@@ -34,7 +34,7 @@ async function unrugRoutes(
 
   fastify.get<{
     Params: DeployLaunchParams;
-  }>("/deploy-launch/:launch", async (request, reply) => {
+  }>("/unrug/deploy-launch/:launch", async (request, reply) => {
     try {
       const { launch } = request.params;
       if (!isValidStarknetAddress(launch)) {
@@ -105,7 +105,7 @@ async function unrugRoutes(
 
   fastify.get<{
     Params: DeployLaunchParams;
-  }>("/deploy-launch/stats/:launch", async (request, reply) => {
+  }>("/unrug/deploy-launch/stats/:launch", async (request, reply) => {
     try {
       const { launch } = request.params;
       if (!isValidStarknetAddress(launch)) {

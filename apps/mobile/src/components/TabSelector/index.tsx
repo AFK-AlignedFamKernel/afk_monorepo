@@ -33,7 +33,7 @@ const TabSelector: React.FC<ITabSelector> = ({
 
   const dynamicStyles = StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.surface,
+      // backgroundColor: theme.colors.surface,
       paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.divider,

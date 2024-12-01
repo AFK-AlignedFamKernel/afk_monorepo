@@ -220,29 +220,33 @@ const Account = (props) => {
   const [claimText, setClaimText] = useState('');
   useEffect(() => {
     const fetchAwards = async () => {
-      const getAwardsUrl = `${backendUrl}/get-user-rewards?address=${props.queryAddress}`;
-      const response = await fetch(getAwardsUrl);
-      if (response.ok) {
-        const result = await response.json();
-        setUserAwards(result.data);
-        let claimTextStr = 'You qualify for the following awards: \n';
-        if (!result.data || result.data.length === 0) {
-          claimTextStr += 'No awards\n';
-          setClaimText(claimTextStr);
-          return;
-        }
-        for (let i = 0; i < result.data.length; i++) {
-          let claimObject = result.data[i];
+      try {
+        const getAwardsUrl = `${backendUrl}/get-user-rewards?address=${props.queryAddress}`;
+        const response = await fetch(getAwardsUrl);
+        if (response.ok) {
+          const result = await response.json();
+          setUserAwards(result.data);
+          let claimTextStr = 'You qualify for the following awards: \n';
+          if (!result.data || result.data.length === 0) {
+            claimTextStr += 'No awards\n';
+            setClaimText(claimTextStr);
+            return;
+          }
+          for (let i = 0; i < result.data.length; i++) {
+            let claimObject = result.data[i];
+            claimTextStr +=
+              claimObject.type + ' : ' + claimObject.amount + 'STRK\n';
+          }
+          claimTextStr += '\nTo claim your award:\n';
+          // TODO: Hardcoded issue link
           claimTextStr +=
-            claimObject.type + ' : ' + claimObject.amount + 'STRK\n';
+            '1. Create a [github account](https://github.com) if you dont have one. \n2. Sign up for [OnlyDust](https://app.onlydust.com) and create a Billing Profile with your Starknet account used in the art/peace competition. \n3. Comment on [this Github issue](https://github.com/keep-starknet-strange/art-peace/issues/251) with a photo of your account page and what awards you qualify for. \nFollow us on [twitter](https://x.com/art_peace_sn) or join [telegram](https://t.me/art_peace_starknet/1) if you have questions! \nThank you!';
+          setClaimText(claimTextStr);
+        } else {
+          console.error('Failed to fetch awards:', await response.text());
         }
-        claimTextStr += '\nTo claim your award:\n';
-        // TODO: Hardcoded issue link
-        claimTextStr +=
-          '1. Create a [github account](https://github.com) if you dont have one. \n2. Sign up for [OnlyDust](https://app.onlydust.com) and create a Billing Profile with your Starknet account used in the art/peace competition. \n3. Comment on [this Github issue](https://github.com/keep-starknet-strange/art-peace/issues/251) with a photo of your account page and what awards you qualify for. \nFollow us on [twitter](https://x.com/art_peace_sn) or join [telegram](https://t.me/art_peace_starknet/1) if you have questions! \nThank you!';
-        setClaimText(claimTextStr);
-      } else {
-        console.error('Failed to fetch awards:', await response.text());
+      } catch(e) {
+        console.error('Failed to fetch awards:', e);
       }
     };
 

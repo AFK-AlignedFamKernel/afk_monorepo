@@ -2,6 +2,7 @@
 import {Box, Button, Input, Select, Stack, Text, useToast} from '@chakra-ui/react';
 import {useAccount as useAccountStarknet} from '@starknet-react/core';
 import axios from 'axios';
+import dynamic from 'next/dynamic';
 import {useEffect, useState} from 'react';
 import {useAccount, useSendTransaction, useWriteContract} from 'wagmi';
 
@@ -29,7 +30,7 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
   const account = useAccount();
   const {account: accountStarknet} = useAccountStarknet();
   const [token, setToken] = useState<Token>('ETH');
-  const [chain, setChain] = useState<ChainString>(chainProps ?? 'SEPOLIA');
+  const [chain, setChain] = useState<ChainString>(chainProps ?? 'STARKNET_SEPOLIA');
   const [giftType, setGiftType] = useState<GiftType>(GiftType.EXTERNAL_PRIVATE_KEY);
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
   const [usdAmount, setUsdAmount] = useState<string>('');
@@ -101,10 +102,10 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
         <Box>
           <Text>Connect you</Text>
           <Box display="flex">
-            <Box>
+            {/* <Box>
               <Text>EVM</Text>
               <CustomConnectButtonWallet></CustomConnectButtonWallet>
-            </Box>
+            </Box> */}
 
             <Box>
               <Text>Starknet</Text>
@@ -197,4 +198,4 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
   );
 };
 
-export default SendGiftForm;
+export default dynamic(() => Promise.resolve(SendGiftForm), {ssr: false});

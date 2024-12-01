@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.24.8",
-    "@cashu/cashu-ts": "^1.0.1",
+    "@cashu/cashu-ts": "^2.0.0",
     "@docusaurus/core": "^3.5.2",
     "@docusaurus/preset-classic": "^3.5.2",
     "@dynamic-labs/client": "4.0.0-alpha.8",
@@ -96,6 +96,7 @@
     "fast-text-encoding": "^1.0.6",
     "formik": "^2.4.6",
     "get-starknet-core": "^3.3.0",
+    "hls.js": "^1.5.17",
     "install": "^0.13.0",
     "jsqr": "^1.4.0",
     "memoize-one": "^6.0.0",

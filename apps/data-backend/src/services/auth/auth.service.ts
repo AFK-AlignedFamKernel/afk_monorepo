@@ -7,7 +7,7 @@ export class AuthService {
 
   async loginOrCreateUser(userAddress: string, loginType: string) {
     let user = await this.prisma.user.findUnique({
-      where: { userAddress }
+      where: { userAddress },
     });
 
     if (!user) {
@@ -15,22 +15,22 @@ export class AuthService {
         data: {
           userAddress,
           verified: false,
-          loginType
-        }
+          loginType,
+        },
       });
     }
 
     const tokenPayload = {
       id: user.id,
-      userAddress: user.userAddress
+      userAddress: user.userAddress,
     };
 
     const accessToken = this.fastify.jwt.sign(tokenPayload, {
-      expiresIn: config.jwt.accessTokenExpiry
+      expiresIn: config.jwt.accessTokenExpiry,
     });
 
     const refreshToken = this.fastify.jwt.sign(tokenPayload, {
-      expiresIn: config.jwt.refreshTokenExpiry
+      expiresIn: config.jwt.refreshTokenExpiry,
     });
 
     return {
@@ -38,11 +38,11 @@ export class AuthService {
         id: user.id,
         userAddress: user.userAddress,
         email: user.email,
-        verified: user.verified
+        verified: user.verified,
       },
       accessToken,
       refreshToken,
-      tokenType: "Bearer"
+      tokenType: "Bearer",
     };
   }
 
@@ -51,33 +51,36 @@ export class AuthService {
 
     // Verify user still exists
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
     });
 
     const tokenPayload = {
       id: user.id,
-      userAddress: user.userAddress
+      userAddress: user.userAddress,
     };
 
     // Generate new tokens
     const newAccessToken = this.fastify.jwt.sign(tokenPayload, {
-      expiresIn: config.jwt.accessTokenExpiry
+      expiresIn: config.jwt.accessTokenExpiry,
     });
 
     const newRefreshToken = this.fastify.jwt.sign(tokenPayload, {
-      expiresIn: config.jwt.refreshTokenExpiry
+      expiresIn: config.jwt.refreshTokenExpiry,
     });
 
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      tokenType: "Bearer"
+      tokenType: "Bearer",
     };
   }
 
   async getUserProfile(userId: string) {
     return this.prisma.user.findUniqueOrThrow({
-      where: { id: userId }
+      where: { id: userId },
+      include: {
+        socialAccounts: true,
+      },
     });
   }
 }

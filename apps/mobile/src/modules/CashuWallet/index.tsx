@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
+import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
+import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
 import {Modal, Text} from 'react-native';
@@ -15,7 +17,9 @@ import {
   useActiveMintStorage,
   useActiveUnitStorage,
   useMintStorage,
+  usePrivKeySignerStorage,
   useProofsStorage,
+  useWalletIdStorage,
 } from '../../hooks/useStorageState';
 import {useCashuContext} from '../../providers/CashuProvider';
 import {SelectedTab, TABS_CASHU} from '../../types/tab';
@@ -58,9 +62,14 @@ export const CashuView = () => {
   const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
   const {value: activeUnit, setValue: setActiveUnitStorage} = useActiveUnitStorage();
   const {value: proofs} = useProofsStorage();
+  const {setValue: setPrivKey} = usePrivKeySignerStorage();
+  const {setValue: setWalletId} = useWalletIdStorage();
 
   //context
   const {buildMintData, setMints, setActiveMint, setActiveUnit, setProofs} = useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
+
+  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
 
   useEffect(() => {
     setMints(mints);
@@ -116,6 +125,22 @@ export const CashuView = () => {
     setActiveUnitStorage(data.units[0]);
     setMintsStorage([data]);
     setAddingMint(false);
+
+    const privKey = getRandomBytes(32);
+    const privateKeyHex = Buffer.from(privKey).toString('hex');
+    setPrivKey(privateKeyHex);
+
+    const id = randomUUID();
+    setWalletId(id);
+
+    if (publicKey && privateKey) {
+      // nostr event
+      await createWalletEvent({
+        name: id,
+        mints: mints.map((mint) => mint.url),
+        privkey: privateKeyHex,
+      });
+    }
   };
 
   return (
@@ -208,7 +233,7 @@ export const CashuView = () => {
         </ScrollView>
       </SafeAreaView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-        <ScanQRCode onClose={handleCloseScanner} />
+        <ScanQRCode onClose={handleCloseScanner} onSuccess={handleCloseScanner} />
       </Modal>
       <Modal
         animationType="fade"
