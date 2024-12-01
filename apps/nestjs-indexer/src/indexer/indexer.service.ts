@@ -6,6 +6,7 @@ import {
   v1alpha2 as starknet,
   StarkNetCursor,
 } from '@apibara/starknet';
+import { validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
 import { env } from 'src/common/env';
 import { IndexerConfig } from './interfaces';
@@ -62,12 +63,15 @@ export class IndexerService {
 
   private combineFilters(): Uint8Array {
     const combinedFilter = Filter.create().withHeader({ weak: true });
-    const allEventKeys = this.configs.flatMap((config) => config.eventKeys);
-    const uniqueEventKeys = [...new Set(allEventKeys)];
 
-    uniqueEventKeys.forEach((eventKey) => {
+    const contractAddressFieldElements = [
+      validateAndParseAddress(constants.contracts.sepolia.LAUNCHPAD_ADDRESS),
+      validateAndParseAddress(constants.contracts.sepolia.NAMESERVICE_ADDRESS),
+    ].map((address) => FieldElement.fromBigInt(BigInt(address)));
+
+    contractAddressFieldElements.forEach((contractAddressFieldElement) => {
       combinedFilter.addEvent((event) =>
-        event.withKeys([FieldElement.fromBigInt(BigInt(eventKey))]),
+        event.withFromAddress(contractAddressFieldElement),
       );
     });
 
