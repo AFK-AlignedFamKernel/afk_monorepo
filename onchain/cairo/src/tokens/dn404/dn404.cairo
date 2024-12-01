@@ -178,6 +178,26 @@ pub mod DN404 {
         SkipNFTSet: SkipNFTSetEvent,
     }
 
+    mod errors {
+        pub const TransferToZeroAddress: felt252 = 'TransferToZeroAddress';
+        pub const DNNotInitialized: felt252 = 'DNNotInitialized';
+        pub const TotalSupplyOverflow: felt252 = 'TotalSupplyOverflow';
+        pub const BalanceOverflow: felt252 = 'BalanceOverflow';
+        pub const OwnedLengthOverflow: felt252 = 'OwnedLengthOverflow';
+        pub const IndexOverflow: felt252 = 'IndexOverflow';
+        pub const TokenIdOverflow: felt252 = 'TokenIdOverflow';
+        pub const InsufficientBalance: felt252 = 'InsufficientBalance';
+        pub const InvalidUnit: felt252 = 'InvalidUnit';
+        pub const MirrorAddressIsZero: felt252 = 'MirrorAddressIsZero';
+        pub const TransferFromIncorrectOwner: felt252 = 'TransferFromIncorrectOwner';
+        pub const TransferCallerNotOwnerNorApproved: felt252 = 'TransfCallerNotOwnerNorApproved';
+        pub const TokenDoesNotExist: felt252 = 'TokenDoesNotExist';
+        pub const ApprovalCallerNotOwnerNorApproved: felt252 = 'ApprovCallerNotOwnerNorApproved';
+        pub const CallerNotMirror: felt252 = 'CallerNotMirror';
+        pub const DNAlreadyInitialized: felt252 = 'DNAlreadyInitialized';
+        pub const InsufficientAllowance: felt252 = 'InsufficientAllowance';
+    }
+
     #[constructor]
     fn constructor(
         ref self: ContractState,
@@ -191,13 +211,13 @@ pub mod DN404 {
         options: DN404Options,
     ) {
         // Check if the unit is valid
-        assert!(options.unit < super::TWO_POW_96, "InvalidUnit");
+        assert(options.unit < super::TWO_POW_96, errors::InvalidUnit);
 
         // Check that the contract is not already initialized
-        assert!(self.mirror_erc721.read().is_zero(), "DNAlreadyInitialized");
+        assert(self.mirror_erc721.read().is_zero(), errors::DNAlreadyInitialized);
 
         // Assert that the mirror address is not zero
-        assert!(mirror.is_non_zero(), "MirrorAddressIsZero");
+        assert(mirror.is_non_zero(), errors::MirrorAddressIsZero);
 
         // Link the mirror contract
         let mirror_contract = IDN404MirrorDispatcher { contract_address: mirror, };
@@ -213,12 +233,12 @@ pub mod DN404 {
 
         if initial_token_supply != 0 {
             // Assert that the initial supply owner is not the zero address
-            assert!(initial_supply_owner.is_non_zero(), "TransferToZeroAddress");
+            assert(initial_supply_owner.is_non_zero(), errors::TransferToZeroAddress);
 
             // Assert that the total supply does not overflow
             let initial_token_supply_u96 = initial_token_supply
                 .try_into()
-                .expect('TotalSupplyOverflow');
+                .expect(errors::TotalSupplyOverflow);
             // TODO: pack AddressData effectively if needed
 
             self.total_supply.write(initial_token_supply_u96);
@@ -316,7 +336,7 @@ pub mod DN404 {
         ) -> bool {
             // TODO: support Permit2
             let allowed = self.allowance.read((from, get_caller_address()));
-            assert!(amount <= allowed, "InsufficientAllowance");
+            assert(amount <= allowed, errors::InsufficientAllowance);
             self._transfer(from, to, amount);
             return true;
         }
@@ -424,8 +444,8 @@ pub mod DN404 {
             ref self: ContractState, from: ContractAddress, to: ContractAddress, amount: u256
         ) {
             // Basic validation
-            assert!(!to.is_zero(), "TransferToZeroAddress");
-            assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
+            assert(!to.is_zero(), errors::TransferToZeroAddress);
+            assert(!self.mirror_erc721.read().is_zero(), errors::DNNotInitialized);
 
             // Get storage data
             let mut from_data = self.address_data.read(from);
@@ -433,14 +453,14 @@ pub mod DN404 {
 
             // Check balance and update balances
             let mut from_balance: u256 = from_data.balance.into();
-            assert!(amount <= from_balance, "InsufficientBalance");
+            assert(amount <= from_balance, errors::InsufficientBalance);
 
             // Update balances
             from_balance -= amount;
-            from_data.balance = from_balance.try_into().expect('BalanceOverflow');
+            from_data.balance = from_balance.try_into().expect(errors::BalanceOverflow);
 
             let mut to_balance: u256 = to_data.balance.into() + amount;
-            to_data.balance = to_balance.try_into().expect('BalanceOverflow');
+            to_data.balance = to_balance.try_into().expect(errors::BalanceOverflow);
 
             // Calculate NFT changes needed
             let mut from_owned_length: u256 = from_data.owned_length.into();
@@ -488,11 +508,18 @@ pub mod DN404 {
                         while to_index < transfer_end {
                             // Get token from sender
                             from_owned_length -= 1;
-                            let token_id = self.owned.entry(from).read(from_owned_length.try_into().expect('OwnedLengthOverflow'));
+                            let token_id = self.owned.entry(from).read(from_owned_length.try_into().expect(errors::OwnedLengthOverflow));
 
                             // Transfer to recipient
-                            self.owned.entry(to).write(to_index.try_into().expect('IndexOverflow'), token_id.try_into().expect('TokenIdOverflow'));
-                            self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+                            self.owned.entry(to).write(
+                                to_index.try_into().expect(errors::IndexOverflow),
+                                token_id.try_into().expect(errors::TokenIdOverflow)
+                            );
+                            self._set_owner_alias_and_owned_index(
+                                token_id.into(),
+                                to_alias,
+                                to_index.try_into().expect(errors::OwnedLengthOverflow)
+                            );
 
                             // Add to transfer logs
                             nft_transfer_logs.append(
@@ -509,8 +536,8 @@ pub mod DN404 {
                         };
 
                         // Update owned lengths
-                        to_data.owned_length = to_index.try_into().expect('OwnedLengthOverflow');
-                        from_data.owned_length = from_owned_length.try_into().expect('OwnedLengthOverflow');
+                        to_data.owned_length = to_index.try_into().expect(errors::OwnedLengthOverflow);
+                        from_data.owned_length = from_owned_length.try_into().expect(errors::OwnedLengthOverflow);
 
                         // Send transfer logs
                         if nft_transfer_logs.len() > 0 {
@@ -530,7 +557,7 @@ pub mod DN404 {
             self
                 .total_nft_supply
                 .write(
-                    total_nft_supply.try_into().expect('TotalSupplyOverflow')
+                    total_nft_supply.try_into().expect(errors::TotalSupplyOverflow)
                 ); // TODO: it's not written here in Solidity, just in the variable
 
             let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
@@ -542,10 +569,10 @@ pub mod DN404 {
 
                 let mut from_index: u64 = from_owned_length
                     .try_into()
-                    .expect('OwnedLengthOverflow');
+                    .expect(errors::OwnedLengthOverflow);
                 let from_end: u64 = from_index
-                    - num_nft_burns.try_into().expect('OwnedLengthOverflow');
-                from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
+                    - num_nft_burns.try_into().expect(errors::OwnedLengthOverflow);
+                from_data.owned_length = from_end.try_into().expect(errors::OwnedLengthOverflow);
 
                 // Burn loop
                 while from_index != from_end {
@@ -591,7 +618,7 @@ pub mod DN404 {
                     ._wrap_nft_id(self.next_token_id.read().into(), id_limit);
                 let mut to_index = to_owned_length;
                 let to_end = to_index + num_nft_mints;
-                to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
+                to_data.owned_length = to_end.try_into().expect(errors::OwnedLengthOverflow);
 
                 // Track burned pool head
                 let mut burned_pool_head = self.burned_pool_head.read();
@@ -623,10 +650,13 @@ pub mod DN404 {
 
                     // Append token to owner's owned list
                     self.owned.entry(to).write(
-                        to_index.try_into().expect('IndexOverflow'),
-                        token_id.try_into().expect('TokenIdOverflow')
+                        to_index.try_into().expect(errors::IndexOverflow),
+                        token_id.try_into().expect(errors::TokenIdOverflow)
                     );
-                    self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(
+                        token_id.into(), to_alias,
+                        to_index.try_into().expect(errors::OwnedLengthOverflow)
+                    );
 
                     nft_transfer_logs.append(NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), });
 
@@ -635,7 +665,7 @@ pub mod DN404 {
 
                 // Update burned pool head and next token ID in storage
                 self.burned_pool_head.write(burned_pool_head);
-                self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
+                self.next_token_id.write(next_token_id.try_into().expect(errors::TokenIdOverflow));
             }
 
             // TODO: send direct logs
@@ -724,20 +754,20 @@ pub mod DN404 {
         /// additional NFTs AND the `to` address's skipNFT flag is set to false.
         fn _mint(ref self: ContractState, to: ContractAddress, amount: u256) {
             // Basic validation
-            assert!(!to.is_zero(), "TransferToZeroAddress");
-            assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
+            assert(!to.is_zero(), errors::TransferToZeroAddress);
+            assert(!self.mirror_erc721.read().is_zero(), errors::DNNotInitialized);
 
             // Get storage data
             let mut to_data = self.address_data.read(to);
 
             // Update balances and calculate NFT changes needed
             let to_balance: u256 = to_data.balance.into() + amount;
-            to_data.balance = to_balance.try_into().expect('BalanceOverflow');
+            to_data.balance = to_balance.try_into().expect(errors::BalanceOverflow);
 
             // Update total supply
             let new_total_supply: u256 = self.total_supply.read().into() + amount;
-            assert!(new_total_supply >= amount, "TotalSupplyOverflow");
-            self.total_supply.write(new_total_supply.try_into().expect('TotalSupplyOverflow'));
+            assert(new_total_supply >= amount, errors::TotalSupplyOverflow);
+            self.total_supply.write(new_total_supply.try_into().expect(errors::TotalSupplyOverflow));
 
             let unit = self.options.read().unit;
             let to_end: u256 = to_balance / unit;
@@ -756,7 +786,7 @@ pub mod DN404 {
                 let total_nft_supply: u256 = self.total_nft_supply.read().into() + num_nft_mints;
                 self
                     .total_nft_supply
-                    .write(total_nft_supply.try_into().expect('TotalSupplyOverflow'));
+                    .write(total_nft_supply.try_into().expect(errors::TotalSupplyOverflow));
 
                 // Register and resolve alias
                 let to_alias = self._register_and_resolve_alias(ref to_data, to);
@@ -764,7 +794,7 @@ pub mod DN404 {
                     ._wrap_nft_id(self.next_token_id.read().into(), id_limit);
                 let mut to_index = to_owned_length;
                 let to_end = to_index + num_nft_mints;
-                to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
+                to_data.owned_length = to_end.try_into().expect(errors::OwnedLengthOverflow);
 
                 // Store NFT transfer logs
                 let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
@@ -799,10 +829,13 @@ pub mod DN404 {
 
                     // Append token to owner's owned list
                     self.owned.entry(to).write(
-                        to_index.try_into().expect('IndexOverflow'),
-                        token_id.try_into().expect('TokenIdOverflow')
+                        to_index.try_into().expect(errors::IndexOverflow),
+                        token_id.try_into().expect(errors::TokenIdOverflow)
                     );
-                    self._set_owner_alias_and_owned_index(token_id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(
+                        token_id.into(), to_alias,
+                        to_index.try_into().expect(errors::OwnedLengthOverflow)
+                    );
 
                     nft_transfer_logs.append(NftTransferEvent { from: Zero::zero(), to: to, id: token_id.into(), });
 
@@ -811,7 +844,7 @@ pub mod DN404 {
 
                 // Update burned pool head and next token ID
                 self.burned_pool_head.write(burned_pool_head);
-                self.next_token_id.write(next_token_id.try_into().expect('TokenIdOverflow'));
+                self.next_token_id.write(next_token_id.try_into().expect(errors::TokenIdOverflow));
 
 
                 // Send NFT transfer logs to mirror
@@ -839,21 +872,21 @@ pub mod DN404 {
         /// If any NFTs are minted, the burned pool will be invalidated (emptied).
         fn _mint_next(ref self: ContractState, to: ContractAddress, amount: u256) {
             // Basic validation
-            assert!(!to.is_zero(), "TransferToZeroAddress");
-            assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
+            assert(!to.is_zero(), errors::TransferToZeroAddress);
+            assert(!self.mirror_erc721.read().is_zero(), errors::DNNotInitialized);
 
             // Get storage data
             let mut to_data = self.address_data.read(to);
 
             // Update balances and calculate NFT changes needed
             let to_balance: u256 = to_data.balance.into() + amount;
-            to_data.balance = to_balance.try_into().expect('BalanceOverflow');
+            to_data.balance = to_balance.try_into().expect(errors::BalanceOverflow);
 
             // Calculate pre and new total supply
             let pre_total_supply: u256 = self.total_supply.read().into();
             let new_total_supply: u256 = pre_total_supply + amount;
-            assert!(new_total_supply >= amount, "TotalSupplyOverflow");
-            self.total_supply.write(new_total_supply.try_into().expect('TotalSupplyOverflow'));
+            assert(new_total_supply >= amount, errors::TotalSupplyOverflow);
+            self.total_supply.write(new_total_supply.try_into().expect(errors::TotalSupplyOverflow));
 
             let unit = self.options.read().unit;
             let to_end: u256 = to_balance / unit;
@@ -884,7 +917,7 @@ pub mod DN404 {
                 let total_nft_supply: u256 = self.total_nft_supply.read().into() + num_nft_mints;
                 self
                     .total_nft_supply
-                    .write(total_nft_supply.try_into().expect('TotalSupplyOverflow'));
+                    .write(total_nft_supply.try_into().expect(errors::TotalSupplyOverflow));
 
                 // Invalidate (empty) the burned pool
                 self.burned_pool_head.write(0);
@@ -893,7 +926,7 @@ pub mod DN404 {
                 // Register and resolve alias
                 let to_alias = self._register_and_resolve_alias(ref to_data, to);
                 let mut to_index = to_owned_length;
-                to_data.owned_length = to_end.try_into().expect('OwnedLengthOverflow');
+                to_data.owned_length = to_end.try_into().expect(errors::OwnedLengthOverflow);
 
                 // Store NFT transfer logs
                 let mut nft_transfer_logs: Array<NftTransferEvent> = ArrayTrait::new();
@@ -907,10 +940,10 @@ pub mod DN404 {
 
                     // Append token to owner's owned list
                     self.owned.entry(to).write(
-                        to_index.try_into().expect('IndexOverflow'),
-                        id.try_into().expect('TokenIdOverflow')
+                        to_index.try_into().expect(errors::IndexOverflow),
+                        id.try_into().expect(errors::TokenIdOverflow)
                     );
-                    self._set_owner_alias_and_owned_index(id.into(), to_alias, to_index.try_into().expect('OwnedLengthOverflow'));
+                    self._set_owner_alias_and_owned_index(id.into(), to_alias, to_index.try_into().expect(errors::OwnedLengthOverflow));
 
                     nft_transfer_logs
                         .append(NftTransferEvent { from: Zero::zero(), to: to, id: id.into(), });
@@ -942,21 +975,21 @@ pub mod DN404 {
         /// the amount required to support the current NFT balance.
         fn _burn(ref self: ContractState, from: ContractAddress, amount: u256) {
             // Basic validation
-            assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
+            assert(!self.mirror_erc721.read().is_zero(), errors::DNNotInitialized);
 
             // Get storage data
             let mut from_data = self.address_data.read(from);
 
             // Check balance and update balances
             let from_balance: u256 = from_data.balance.into();
-            assert!(amount <= from_balance, "InsufficientBalance");
+            assert(amount <= from_balance, errors::InsufficientBalance);
 
             // Update balances
-            from_data.balance = (from_balance - amount).try_into().expect('BalanceOverflow');
+            from_data.balance = (from_balance - amount).try_into().expect(errors::BalanceOverflow);
 
             // Update total supply
             let new_total_supply: u256 = self.total_supply.read().into() - amount;
-            self.total_supply.write(new_total_supply.try_into().expect('TotalSupplyOverflow'));
+            self.total_supply.write(new_total_supply.try_into().expect(errors::TotalSupplyOverflow));
 
             // Calculate NFTs to burn
             let from_owned_length: u256 = from_data.owned_length.into();
@@ -969,7 +1002,7 @@ pub mod DN404 {
                 let total_nft_supply: u256 = self.total_nft_supply.read().into() - num_nft_burns;
                 self
                     .total_nft_supply
-                    .write(total_nft_supply.try_into().expect('TotalSupplyOverflow'));
+                    .write(total_nft_supply.try_into().expect(errors::TotalSupplyOverflow));
                 let add_to_burned_pool = self.options.read().add_to_burned_pool;
 
                 // Store NFT transfer logs
@@ -978,10 +1011,10 @@ pub mod DN404 {
                 // Calculate burn range
                 let mut from_index: u64 = from_owned_length
                     .try_into()
-                    .expect('OwnedLengthOverflow');
+                    .expect(errors::OwnedLengthOverflow);
                 let from_end: u64 = from_index
-                    - num_nft_burns.try_into().expect('OwnedLengthOverflow');
-                from_data.owned_length = from_end.try_into().expect('OwnedLengthOverflow');
+                    - num_nft_burns.try_into().expect(errors::OwnedLengthOverflow);
+                from_data.owned_length = from_end.try_into().expect(errors::OwnedLengthOverflow);
 
                 // Track burned pool tail
                 let mut burned_pool_tail = self.burned_pool_tail.read();
@@ -1078,21 +1111,21 @@ pub mod DN404 {
             msg_sender: ContractAddress
         ) {
             // Basic validation
-            assert!(!to.is_zero(), "TransferToZeroAddress");
-            assert!(!self.mirror_erc721.read().is_zero(), "DNNotInitialized");
+            assert(!to.is_zero(), errors::TransferToZeroAddress);
+            assert(!self.mirror_erc721.read().is_zero(), errors::DNNotInitialized);
 
             // Verify ownership
             let ownership_index = self._ownership_index(id);
             let owner_alias = self.owner_aliases.read(ownership_index); // TODO: check if we need _restrictNFTId
             let owner = self.alias_to_address.read(owner_alias);
-            assert!(from == owner, "TransferFromIncorrectOwner");
+            assert(from == owner, errors::TransferFromIncorrectOwner);
 
             // Check approval
             if msg_sender != from {
                 let is_approved_for_all = self.operator_approvals.read((from, msg_sender)) != 0;
                 if !is_approved_for_all {
                     let approved = self.nft_approvals.read(id);
-                    assert!(approved == msg_sender, "TransferCallerNotOwnerNorApproved");
+                    assert(approved == msg_sender, errors::TransferCallerNotOwnerNorApproved);
                 }
             }
 
@@ -1103,9 +1136,9 @@ pub mod DN404 {
             // Update balances
             let unit = self.options.read().unit;
             let from_balance: u256 = from_data.balance.into();
-            assert!(unit <= from_balance, "InsufficientBalance");
-            from_data.balance = (from_balance - unit).try_into().expect('BalanceOverflow');
-            to_data.balance = (to_data.balance.into() + unit).try_into().expect('BalanceOverflow');
+            assert(unit <= from_balance, errors::InsufficientBalance);
+            from_data.balance = (from_balance - unit).try_into().expect(errors::BalanceOverflow);
+            to_data.balance = (to_data.balance.into() + unit).try_into().expect(errors::BalanceOverflow);
 
             // Clear approvals if they exist
             if self.may_have_nft_approval.read(id) {
@@ -1125,8 +1158,8 @@ pub mod DN404 {
             let to_owned_length = to_data.owned_length;
             to_data.owned_length += 1;
             self.owned.entry(to).write(
-                to_owned_length.try_into().expect('IndexOverflow'),
-                id.try_into().expect('TokenIdOverflow')
+                to_owned_length.try_into().expect(errors::IndexOverflow),
+                id.try_into().expect(errors::TokenIdOverflow)
             );
             let to_alias = self._register_and_resolve_alias(ref to_data, to);
             self._set_owner_alias_and_owned_index(id, to_alias, to_owned_length);
@@ -1141,7 +1174,7 @@ pub mod DN404 {
         }
 
         fn _get_approved(self: @ContractState, id: u256) -> ContractAddress {
-            assert!(self._exists(id), "TokenDoesNotExist");
+            assert(self._exists(id), errors::TokenDoesNotExist);
             self.nft_approvals.read(id)
         }
 
@@ -1154,7 +1187,7 @@ pub mod DN404 {
 
             if msg_sender != owner {
                 let is_approved_for_all = self.operator_approvals.read((owner, msg_sender)) != 0;
-                assert!(is_approved_for_all, "ApprovalCallerNotOwnerNorApproved");
+                assert(is_approved_for_all, errors::ApprovalCallerNotOwnerNorApproved);
             }
 
             self.nft_approvals.write(id, spender);
@@ -1181,7 +1214,7 @@ pub mod DN404 {
         }
 
         fn _owner_of(self: @ContractState, id: u256) -> ContractAddress {
-            assert!(self._exists(id), "TokenDoesNotExist");
+            assert(self._exists(id), errors::TokenDoesNotExist);
             self._owner_at(id)
         }
 
@@ -1220,7 +1253,7 @@ pub mod DN404 {
 
         /// Asserts that the caller is the `mirrorERC721` contract.
         fn assert_caller_is_mirror(ref self: ContractState) {
-            assert!(get_caller_address() == self.mirror_erc721.read(), "CallerNotMirror");
+            assert(get_caller_address() == self.mirror_erc721.read(), errors::CallerNotMirror);
         }
     }
 }

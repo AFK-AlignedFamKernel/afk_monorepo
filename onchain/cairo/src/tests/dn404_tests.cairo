@@ -161,7 +161,7 @@ mod dn404_tests {
     }
 
     #[test]
-    #[should_panic(expected: "TokenDoesNotExist")]
+    #[should_panic(expected: 'TokenDoesNotExist')]
     fn test_invalid_nft_query() {
         let (_, mirror) = setup();
         
@@ -277,7 +277,7 @@ mod dn404_tests {
     }
 
     #[test]
-    #[should_panic(expected: "InsufficientAllowance")]
+    #[should_panic(expected: 'InsufficientAllowance')]
     fn test_unauthorized_transfer() {
         let (dn404, _) = setup();
 

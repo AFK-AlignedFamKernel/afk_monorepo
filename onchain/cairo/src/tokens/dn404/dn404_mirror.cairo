@@ -117,6 +117,11 @@ pub mod DN404Mirror {
         OwnershipTransferred: OwnershipTransferredEvent,
     }
 
+    mod errors {
+        pub const SenderNotDeployer: felt252 = 'SenderNotDeployer';
+        pub const AlreadyLinked: felt252 = 'AlreadyLinked';
+    }
+
     #[constructor]
     fn constructor(ref self: ContractState, deployer: ContractAddress) {
         self.deployer.write(deployer);
@@ -308,11 +313,11 @@ pub mod DN404Mirror {
         fn link_mirror_contract(ref self: ContractState, deployer: ContractAddress) {
             // Check if the deployer is set and matches the caller
             if self.deployer.read().is_non_zero() {
-                assert!(deployer == self.deployer.read(), "SenderNotDeployer");
+                assert(deployer == self.deployer.read(), errors::SenderNotDeployer);
             }
 
             // Check if the base ERC20 is already linked
-            assert!(self.base_erc20.read().is_zero(), "AlreadyLinked");
+            assert(self.base_erc20.read().is_zero(), errors::AlreadyLinked);
 
             // Link the base ERC20 to the caller
             self.base_erc20.write(get_caller_address());
