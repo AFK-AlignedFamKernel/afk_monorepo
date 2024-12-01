@@ -2,10 +2,6 @@ export default {
   DECIMALS: 18,
   STARTING_BLOCK: 140_000,
   STARTING_BLOCK_UNRUG: 615_556,
-  STREAM_URL: {
-    mainnet: '',
-    sepolia: 'https://sepolia.starknet.a5a.ch',
-  },
   contracts: {
     mainnet: {
       FACTORY_ADDRESS:
@@ -19,10 +15,6 @@ export default {
       NAMESERVICE_ADDRESS:
         '0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f',
     },
-  },
-  event_keys: {
-    BUY_TOKEN:
-      '0xcb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797',
   },
   apibara: {
     MAX_RECEIVE_MESSAGE_LENGTH: 128 * 1_048_576,
