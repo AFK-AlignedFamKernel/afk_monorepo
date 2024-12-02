@@ -58,11 +58,11 @@ const MobileDrawerNavbar: React.FC = () => {
                   Pixel
                 </Button>
               </Link>
-              <Link href="/gift" passHref>
+              {/* <Link href="/gift" passHref>
                 <Button variant="ghost" width="100%" onClick={onClose}>
                   Gift
                 </Button>
-              </Link>
+              </Link> */}
               <ColorModeToggle></ColorModeToggle>
             </VStack>
           </DrawerBody>

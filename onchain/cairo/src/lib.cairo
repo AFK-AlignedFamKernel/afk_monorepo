@@ -11,13 +11,23 @@ pub mod social;
 pub mod staking;
 
 pub mod utils;
+
 pub mod launchpad {
-    pub mod calcul;
+    // pub mod calcul;
+    // pub mod exponential;
+    // pub mod linear;
+    // pub mod launch;
+
     pub mod errors;
     pub mod helpers;
     pub mod launchpad;
     pub mod math;
     pub mod utils;
+    pub mod calcul {
+        pub mod exponential;
+        pub mod launch;
+        pub mod linear;
+    }
 }
 pub mod quests {
     pub mod authority_quest;

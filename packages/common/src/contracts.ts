@@ -45,23 +45,19 @@ export const NAMESPACE_ADDRESS = {
 export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: "",
   // [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x595d9c14d5b52bae1bd5a88f3aefb521eca956fde4de95e400197f1080fa862",
-  // [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x5ea5ae49d6449896e096c567350ac639604426c61b16671c37fd9b196ec7fa9",
-  // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x011edd516083cc4f8f9ea801e5132b08f744c987db6f92e4734460ae4b14e94d",
-
-  
   // [constants.StarknetChainId.SN_SEPOLIA]:
   // "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
 
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x4fd0893672b60a123606ec9e492e54e795a13e969c6c2600195dcea956ada5d",
     
-  [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x1e00d0d7167938c2aa289850c96d7129ff16c1ed02b7542030bc2e39dc41885"
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x1e00d0d7167938c2aa289850c96d7129ff16c1ed02b7542030bc2e39dc41885"
     
-  
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x2eb4dac724b4507becc409667bdea68d697665e182702f294eb5bd8bfb28e26"
+    
 };
 
 export const ESCROW_ADDRESS = {
