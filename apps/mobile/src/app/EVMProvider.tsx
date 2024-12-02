@@ -13,6 +13,7 @@ import {coinbaseWallet, safe, walletConnect} from 'wagmi/connectors';
 
 import {injectedWithFallback} from '../modules/WalletModal/walletUtil';
 import {siweConfig} from './SiweUtils';
+
 const queryClient = new QueryClient();
 
 export const isWeb = Platform.OS === 'web';
@@ -62,33 +63,33 @@ const clipboardClient = {
 };
 const auth = authConnector({projectId, metadata});
 const chains = [mainnet, sepolia, kakarotEvm] as const;
-export const wagmiConfig = defaultWagmiConfig({
-  chains,
-  projectId,
-  metadata,
-  extraConnectors: [auth],
-});
-
-export const webConfig = createConfig({
-  chains: [mainnet, sepolia, kakarotSepolia],
-  // connectors: [walletConnect({projectId}), metaMask(), safe()],
-  connectors: [
-    injectedWithFallback(),
-    walletConnect(metadata),
-    coinbaseWallet({
-      appName: 'AFK',
-      appLogoUrl: 'https://avatars.githubusercontent.com/u/179229932',
-      reloadOnDisconnect: false,
-      enableMobileWalletLink: true,
-    }),
-    safe(),
-  ],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [kakarotSepolia.id]: http(),
-  },
-});
+export const wagmiConfig = !isWeb
+  ? defaultWagmiConfig({
+      chains,
+      projectId,
+      metadata,
+      extraConnectors: [auth],
+    })
+  : createConfig({
+      chains: [mainnet, sepolia, kakarotSepolia],
+      // connectors: [walletConnect({projectId}), metaMask(), safe()],
+      connectors: [
+        injectedWithFallback(),
+        walletConnect(metadata),
+        coinbaseWallet({
+          appName: 'AFK',
+          appLogoUrl: 'https://avatars.githubusercontent.com/u/179229932',
+          reloadOnDisconnect: false,
+          enableMobileWalletLink: true,
+        }),
+        safe(),
+      ],
+      transports: {
+        [mainnet.id]: http(),
+        [sepolia.id]: http(),
+        [kakarotSepolia.id]: http(),
+      },
+    });
 
 // const config = createConfig({
 //   chains: [mainnet, sepolia],
@@ -116,7 +117,7 @@ createAppKit({
 // });
 export const EVMProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   return (
-    <WagmiProvider config={isWeb ? webConfig : wagmiConfig}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         {/* <RainbowKitProvider> */}
         {/* Your App */}
