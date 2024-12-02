@@ -12,6 +12,7 @@ export const KEY_STORE = {
   ENCRYPTED_CASHU_MNEMONIC: 'encryptedCashuMnemonic',
   ENCRYPTED_CASHU_SEED: 'encryptedCashuSeed',
   AUTH_DATA: 'authData',
+  CODE_VERIFIER: 'CODE_VERIFIER',
 };
 export const storePublicKey = async (publicKey: string) => {
   if (isSecureStoreAvailable) {
@@ -43,6 +44,22 @@ export const storePrivateKey = async (privateKeyHex: string, password: string) =
   } catch (error) {
     // We shouldn't throw the original error for security reasons
     throw new Error('Error storing private key');
+  }
+};
+
+export const storeValue = async (key: string, value: string) => {
+  if (isSecureStoreAvailable) {
+    await SecureStore.setItemAsync(key, value);
+  } else {
+    await AsyncStorage.setItem(key, value);
+  }
+};
+
+export const retrieveValue = async (key: string): Promise<string | null> => {
+  if (isSecureStoreAvailable) {
+    return await SecureStore.getItemAsync(key);
+  } else {
+    return await AsyncStorage.getItem(key);
   }
 };
 

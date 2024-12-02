@@ -167,3 +167,13 @@ export const useSignerTypeStorage = (options?: {pollInterval?: number}) => {
   const hook = useStorageState<string>('SIGNER_TYPE', '', options);
   return useMemo(() => hook, [hook]);
 };
+
+export const usePrivKeySignerStorage = (options?: {pollInterval?: number}) => {
+  const hook = useStorageState<string>('PRIVATEKEY_SIGNER', '', options);
+  return useMemo(() => hook, [hook]);
+};
+
+export const useWalletIdStorage = (options?: {pollInterval?: number}) => {
+  const hook = useStorageState<string>('WALLET_ID', '', options);
+  return useMemo(() => hook, [hook]);
+};

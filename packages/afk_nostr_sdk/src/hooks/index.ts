@@ -5,8 +5,22 @@ export {
   useCashuBalance,
   useCashuMintList,
   useCashuSendWalletInfo,
+  useCashuSendWalletInfoManual,
   useCashuSpendingToken,
   useCashuTokenSend,
+  useCreateCashuSendWalletInfo,
+  useCreateNutZap,
+  useCreateSpendingEvent,
+  useCreateTokenEvent,
+  useCreateWalletEvent,
+  useDeleteTokenEvent,
+  useDeleteTokenEvents,
+  useGetCashuTokenEvents,
+  useGetCashuWalletsInfo,
+  useGetReceivedNutZaps,
+  useGetRecipientNutZapInfo,
+  useRecordNutZapRedemption,
+  useSetNutZapPreferences,
 } from './cashu';
 export {useChannels} from './channel/useChannels';
 export {useCreateChannel} from './channel/useCreateChannel';
@@ -41,6 +55,7 @@ export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useSearch} from './search/useSearch';
 export {useSearchUsers} from './search/useSearchUsers';
 export {useSearchTag} from './search/useTagSearch';
+export {useEditEvent, useGetLiveEvents, useGetSingleEvent, useLiveActivity} from './stream';
 export {useAllProfiles} from './useAllProfiles';
 export {useBookmark} from './useBookmark';
 export {useContacts} from './useContacts';
@@ -63,4 +78,3 @@ export {useSendVideo} from './videos/useSendVideo';
 export {useSendZap} from './zap/useZap';
 export {useConnectNWC} from './zap/useZap';
 export {useSendZapNote} from './zap/useZap';
-export {useLiveActivity, useGetLiveEvents, useEditEvent, useGetSingleEvent} from './stream';

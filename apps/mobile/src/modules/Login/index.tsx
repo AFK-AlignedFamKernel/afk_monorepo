@@ -245,7 +245,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       >
         <TextButton onPress={handleImportAccount}>Import Account</TextButton>
         <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
-        <LoginStarknet />
+        <LoginStarknet handleNavigation={() => navigationProps?.navigate('Feed')} />
       </View>
 
       {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}

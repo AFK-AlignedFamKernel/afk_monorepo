@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import {useAccount, useDisconnect} from '@starknet-react/core';
 import axios from 'axios';
 import React, {useState} from 'react';
@@ -16,11 +15,13 @@ import stylesheet from './styles';
 
 export type SignMessageModalProps = {
   hide: () => void;
+  handleNavigation: () => void;
+  handleToggleSign: () => void;
 };
 
-export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
+export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide, handleNavigation}) => {
+  const newTypedData = typedDataValidate;
   const toast = useToast();
-  const navigation = useNavigation();
   const styles = useStyles(stylesheet);
   const {account, address} = useAccount();
   const [signatureLoading, setSignatureLoading] = useState(false);
@@ -36,8 +37,11 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
         return;
       }
 
+      //Add Address
+      newTypedData.message.address = address as string;
+
       //:Attempt to sign message
-      const sig = (await account.signMessage(typedDataValidate)) as string[];
+      const sig = (await account.signMessage(newTypedData)) as string[];
       if (!sig) {
         toast.showToast({title: 'Failed to sign message', type: 'error'});
         return;
@@ -51,15 +55,11 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
         s: BigInt(sig[1]),
       } as WeierstrassSignatureType;
 
-      console.log(signedMessage, 'signeds');
-
       //Validate Signature
-      const isValid = await account
-        .verifyMessage(typedDataValidate, signedMessage)
-        .catch((error) => {
-          toast.showToast({title: error?.cause || error?.message, type: 'error'});
-          throw error;
-        });
+      const isValid = await account.verifyMessage(newTypedData, signedMessage).catch((error) => {
+        toast.showToast({title: error?.cause || error?.message, type: 'error'});
+        throw error;
+      });
 
       if (!isValid) {
         toast.showToast({title: 'Invalid Signature', type: 'error'});
@@ -70,8 +70,10 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
       mutate(
         {
           userAddress: address as string,
+          // signature: signedMessage,
           signature: signedMessage,
           loginType: 'starknet',
+          signedData: JSON.stringify(typedDataValidate),
         },
         {
           onSuccess(data) {
@@ -80,7 +82,7 @@ export const SignMessageModal: React.FC<SignMessageModalProps> = ({hide}) => {
             storeAuthData(data?.data?.data);
             hide();
             // @ts-ignore
-            navigation.navigate('Feed');
+            handleNavigation();
           },
           onError(error) {
             setSignatureLoading(false);

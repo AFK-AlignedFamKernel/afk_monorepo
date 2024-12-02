@@ -1,4 +1,5 @@
 afk::social::deposit::tests::deposit_claim
+<<<<<<< HEAD
 afk::social::deposit::tests::deposit_claim_gas_fee
 afk::tests::launchpad_tests::launchpad_tests::launchpad_test_calculation
 afk::tests::launchpad_tests::launchpad_tests::test_sell_coin_when_share_too_low
@@ -15,3 +16,6 @@ afk::tests::launchpad_tests::launchpad_tests::test_launchpad_end_to_end
 afk::tests::launchpad_tests::launchpad_tests::test_create_and_add_liquidity_unrug_liq_without_launchpad_but_launch
 afk::tests::launchpad_tests::launchpad_tests::test_create_and_add_liquidity_unrug
 afk::tests::launchpad_tests::launchpad_tests::test_add_liquidity_ekubo
+=======
+afk::tests::launchpad_tests::launchpad_tests::test_buy_coin_with_different_supply
+>>>>>>> 1de9e38916c02931cf21bb726ca64587a2558bb6

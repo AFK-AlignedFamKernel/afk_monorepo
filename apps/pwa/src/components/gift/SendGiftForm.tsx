@@ -2,6 +2,7 @@
 import {Box, Button, Input, Select, Stack, Text, useToast} from '@chakra-ui/react';
 import {useAccount as useAccountStarknet} from '@starknet-react/core';
 import axios from 'axios';
+import dynamic from 'next/dynamic';
 import {useEffect, useState} from 'react';
 import {useAccount, useSendTransaction, useWriteContract} from 'wagmi';
 
@@ -197,4 +198,4 @@ const SendGiftForm: React.FC<SendFormProps> = ({recipientAddress, chainProps}) =
   );
 };
 
-export default SendGiftForm;
+export default dynamic(() => Promise.resolve(SendGiftForm), {ssr: false});

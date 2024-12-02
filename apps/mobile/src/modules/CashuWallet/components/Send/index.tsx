@@ -6,10 +6,10 @@ import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import {randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
-import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {Modal, Platform, SafeAreaView, Share, TouchableOpacity, View} from 'react-native';
 import {Text, TextInput} from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
+import {CloseIcon, CopyIconStack, ScanQrIcon, ShareIcon} from '../../../../assets/icons';
 import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
 import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
 import {ToastConfig} from '../../../../context/Toast/ToastContext';
@@ -93,10 +93,13 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     return ecash;
   };
 
-  const handleCopy = async (type: 'ecash') => {
+  const handleCopy = async (type: 'ecash' | 'link') => {
     if (!generatedEcash) return;
     if (type == 'ecash') {
       await Clipboard.setStringAsync(generatedEcash);
+    } else if (type === 'link') {
+      const baseUrl = window.location.origin;
+      await Clipboard.setStringAsync(`${baseUrl}/receive/ecash/${generatedEcash}`);
     }
     const key = randomUUID();
     setModalToast({
@@ -212,6 +215,40 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     setGenerateEcash('');
     setIsGeneratingEcash(false);
     setInvoiceAmount('0');
+  };
+
+  const shareLink = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        // Web sharing for link
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Share AFK Gift Link',
+            url: `/receive/ecash/${generatedEcash}`,
+          });
+        } else {
+          // Fallback for browsers that don't support Web Share API
+          const baseUrl = window.location.origin;
+          await navigator.clipboard.writeText(`${baseUrl}/receive/ecash/${generatedEcash}`);
+          const key = randomUUID();
+          setShowModalToast(true);
+          setModalToast({type: 'success', title: 'Link copied to clipboard.,', key});
+        }
+      } else {
+        // Mobile sharing for link
+        const baseUrl = window.location.origin;
+        await Share.share({
+          title: 'Share AFK Gift Link',
+          message: `${baseUrl}/receive/ecash/${generatedEcash}`,
+          url: `/receive/ecash/${generatedEcash}`, // iOS only
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing link:', error);
+      const key = randomUUID();
+      setShowModalToast(true);
+      setModalToast({type: 'error', title: 'Error sharing.', key});
+    }
   };
 
   const renderTabContent = () => {
@@ -373,6 +410,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 15,
+                      width: '70%',
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
@@ -386,6 +424,37 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                       }
                     />
                     <GenerateQRCode data={generatedEcash} size={200} />
+                    <View style={styles.shareContainer}>
+                      <Text style={styles.giftLinkText}>Gift this ecash?</Text>
+                      <View style={styles.shareLinkBtns}>
+                        <Button
+                          onPress={shareLink}
+                          style={styles.modalShareButton}
+                          textStyle={styles.modalShareButtonText}
+                        >
+                          Share Link
+                          <ShareIcon
+                            width={20}
+                            height={20}
+                            color={theme.colors.primary}
+                            style={styles.shareIcon}
+                          />
+                        </Button>
+                        <Button
+                          onPress={() => handleCopy('link')}
+                          style={styles.modalShareButton}
+                          textStyle={styles.modalShareButtonText}
+                        >
+                          Copy link
+                          <CopyIconStack
+                            width={20}
+                            height={20}
+                            color={theme.colors.primary}
+                            style={styles.shareIcon}
+                          />
+                        </Button>
+                      </View>
+                    </View>
                     <Button
                       onPress={handleReset}
                       style={styles.modalActionButton}

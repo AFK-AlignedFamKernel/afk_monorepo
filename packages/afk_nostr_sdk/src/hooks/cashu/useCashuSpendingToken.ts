@@ -8,7 +8,6 @@ import {v2} from '../../utils/nip44';
 
 /**https://github.com/nostr-protocol/nips/blob/9f9ab83ee9809251d0466f22c188a0f13abd585a/60.md 
  * https://github.com/nostr-protocol/nips/pull/1369/files 
-
 Spending History Event
 Clients SHOULD publish kind:7376 events to create a transaction history when their balance changes.
 {

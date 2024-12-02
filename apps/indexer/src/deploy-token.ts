@@ -27,7 +27,7 @@ const filter = {
   },
   events: [
     {
-      fromAddress: LAUNCHPAD_ADDRESS.SEPOLIA,
+      fromAddress: Deno.env.get("LAUNCHPAD_ADDRESS") ?? LAUNCHPAD_ADDRESS.SEPOLIA,
       keys: [hash.getSelectorFromName("CreateToken")],
       includeReceipt: false,
     },

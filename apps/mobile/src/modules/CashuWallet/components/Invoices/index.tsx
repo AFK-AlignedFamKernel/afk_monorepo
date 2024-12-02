@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
-import {ICashuInvoice} from 'afk_nostr_sdk';
+import {ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
@@ -13,9 +13,12 @@ import {Button, Divider} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {
+  useActiveMintStorage,
+  useActiveUnitStorage,
   useInvoicesStorage,
   useProofsStorage,
   useTransactionsStorage,
+  useWalletIdStorage,
 } from '../../../../hooks/useStorageState';
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {getRelativeTime} from '../../../../utils/helpers';
@@ -27,12 +30,19 @@ export const Invoices = () => {
   const {showToast} = useToast();
 
   const {checkMintQuote, mintTokens, proofs, setProofs} = useCashuContext()!;
+  const {publicKey, privateKey} = useAuth();
 
   const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
   const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
   const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
+  const {value: activeMint} = useActiveMintStorage();
+  const {value: walletId} = useWalletIdStorage();
+  const {value: activeUnit} = useActiveUnitStorage();
 
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
+
+  const {mutateAsync: createTokenEvent} = useCreateTokenEvent();
+  const {mutateAsync: createSpendingEvent} = useCreateSpendingEvent();
 
   const handleVerify = async (quote?: string) => {
     try {
@@ -112,6 +122,20 @@ export const Invoices = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
+        if (privateKey && publicKey) {
+          const tokenEvent = await createTokenEvent({
+            walletId,
+            mint: activeMint,
+            proofs: receive?.proofs,
+          });
+          await createSpendingEvent({
+            walletId,
+            direction: 'in',
+            amount: invoice.amount.toString(),
+            unit: activeUnit,
+            events: [{id: tokenEvent.id, marker: 'created'}],
+          });
+        }
         if (!proofsStorage && !proofs) {
           setProofsStorage([...(receive?.proofs as Proof[])]);
           setProofs([...(receive?.proofs as Proof[])]);
