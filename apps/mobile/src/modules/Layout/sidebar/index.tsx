@@ -1,7 +1,7 @@
 // import { useAuth } from '../../../store/auth';
 import {useAuth, useNostrContext} from 'afk_nostr_sdk';
 import React, {useEffect, useMemo} from 'react';
-import {Image, Pressable, ScrollView, Text, View} from 'react-native';
+import {Image, Platform, Pressable, ScrollView, Text, View} from 'react-native';
 
 import {Icon} from '../../../components/Icon';
 import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
@@ -122,10 +122,13 @@ const Sidebar = ({navigation}: SidebarInterface) => {
         <Icon name="WalletIcon" size={24} />
         <Text style={styles.textItem}>Wallet</Text>
       </Pressable>
-      <Pressable onPress={handleStudioScreen} style={styles.item}>
-        <Icon name="VideoIcon" size={24} />
-        <Text style={styles.textItem}>Studio</Text>
-      </Pressable>
+
+      {Platform.OS === 'web' && (
+        <Pressable onPress={handleStudioScreen} style={styles.item}>
+          <Icon name="VideoIcon" size={24} />
+          <Text style={styles.textItem}>Studio</Text>
+        </Pressable>
+      )}
 
       <Pressable onPress={handleSocialScreen} style={styles.item}>
         <Icon name="SunIcon" size={24} />
