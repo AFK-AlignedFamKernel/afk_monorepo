@@ -18,6 +18,10 @@ const BPS: u256 = 10_000; // 100% = 10_000 bps
 //     100_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 const SCALE_FACTOR: u256 =
     100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
+
+// Define constants
+const MIN_PRICE: u256 = 1_u256; // Minimum price to prevent division by zero
+// const SCALE_FACTOR: u256 = 1_000_000_000_000_u256; // 1e12 for precision
 // const SCALE_FACTOR: u256 =100_000_000_000_000_000; // Scale factor decimals place for price
 // division and others stuff Total supply / LIQUIDITY_RATIO
 // Get the 20% of Bonding curve going to Liquidity
@@ -119,6 +123,21 @@ pub fn get_coin_amount_by_quote_amount(
 }
 
 
+pub fn get_initial_price(
+    threshold_liquidity: u256, sellable_supply: u256, bonding_curve_type: BondingType
+) -> u256 {
+    match bonding_curve_type {
+        BondingType::Linear => { 0 },
+        BondingType::Exponential => { 0 },
+        BondingType::Trapezoidal => { 0 },
+        _ => { 0 },
+        // BondingType::Linear => { 0_u256 },
+    // BondingType::Exponential => { 0_u256 },
+    // BondingType::Trapezoidal => { 0_u256 },
+    // _ => { 0_u256 },
+    }
+}
+
 pub fn get_amount_by_type_of_coin_or_quote(
     pool: TokenLaunch,
     coin_address: ContractAddress,
@@ -141,6 +160,13 @@ pub fn get_amount_by_type_of_coin_or_quote(
         Option::Some(x) => {
             match x {
                 BondingType::Linear => {
+                    if is_quote_amount == true {
+                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                    } else {
+                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                    }
+                },
+                BondingType::Exponential => {
                     if is_quote_amount == true {
                         get_coin_amount_by_quote_amount(pool, amount, is_decreased)
                     } else {

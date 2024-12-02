@@ -45,7 +45,8 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
 
   const account = useAccount();
   const walletModal = useWalletModal();
-  const sendTransaction = useTransaction();
+  // const sendTransaction = useTransaction({});
+  const {sendTransaction} = useTransaction({});
   const {hide: hideTransactionModal} = useTransactionModal();
   const waitConnection = useWaitConnection();
 
@@ -76,9 +77,7 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
       uint256.bnToUint256(`0x${event?.pubkey}`), // Recipient nostr pubkey
       DEFAULT_TIMELOCK, // timelock
     ]);
-
-    const receipt = await sendTransaction({
-      calls: [
+    const receipt = await sendTransaction([
         {
           contractAddress: TOKENS[token][CHAIN_ID].address,
           entrypoint: Entrypoint.APPROVE,
@@ -90,9 +89,10 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
           calldata: depositCallData,
         },
       ],
-    });
+    );
 
-    if (receipt?.isSuccess()) {
+    // TODO add receipt
+     if (receipt?.transaction_hash) {
       hideTipModal();
       hideTransactionModal();
       showSuccess({
@@ -107,9 +107,9 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
       });
     } else {
       let description = 'Please Try Again Later.';
-      if (receipt?.isRejected()) {
-        description = receipt.transaction_failure_reason.error_message;
-      }
+      // if (receipt?.isRejected()) {
+        // description = receipt.transaction_failure_reason.error_message;
+      // }
 
       showDialog({
         title: 'Failed to send the tip',
@@ -117,6 +117,23 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
         buttons: [{type: 'secondary', label: 'Close', onPress: () => hideDialog()}],
       });
     }
+
+    // const receipt = await sendTransaction({
+    //   calls: [
+    //     {
+    //       contractAddress: TOKENS[token][CHAIN_ID].address,
+    //       entrypoint: Entrypoint.APPROVE,
+    //       calldata: approveCallData,
+    //     },
+    //     {
+    //       contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+    //       entrypoint: Entrypoint.DEPOSIT,
+    //       calldata: depositCallData,
+    //     },
+    //   ],
+    // });
+
+   
   };
 
   return (

@@ -23,7 +23,7 @@ export const KeysMarketplace: React.FC<KeysMarketplaceSreenProps> = () => {
 
   const {provider} = useProvider();
   const account = useAccount();
-  const sendTransaction = useTransaction();
+  const {sendTransaction} = useTransaction({});
   const claim = useClaim();
   const estimateClaim = useEstimateClaim();
   const walletModal = useWalletModal();

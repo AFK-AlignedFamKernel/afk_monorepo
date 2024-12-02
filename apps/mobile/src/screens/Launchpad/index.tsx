@@ -19,7 +19,7 @@ export const LaunchpadScreen: React.FC<LaunchpadScreenProps> = () => {
 
   const {provider} = useProvider();
   const account = useAccount();
-  const sendTransaction = useTransaction({});
+  const {sendTransaction} = useTransaction({});
   const waitConnection = useWaitConnection();
   const {show: showTransactionModal} = useTransactionModal();
   const {showToast} = useToast();

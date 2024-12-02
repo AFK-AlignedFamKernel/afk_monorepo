@@ -141,7 +141,7 @@ pub mod LaunchpadMarketplace {
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
-    use afk::launchpad::calcul::{
+    use afk::launchpad::calcul::launch::{
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
         get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
     };
@@ -1439,7 +1439,8 @@ pub mod LaunchpadMarketplace {
             coin_address: ContractAddress,
             caller: ContractAddress,
             creator: ContractAddress,
-            is_unruggable: bool
+            is_unruggable: bool,
+            // bonding_type: Option<BondingType>
         ) {
             // let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
@@ -1448,7 +1449,11 @@ pub mod LaunchpadMarketplace {
             // Maybe not needed because you can also create the coin everyhwhere (Unrug) and launch
             let mut token_to_use = self.default_token.read();
             let mut quote_token_address = token_to_use.token_address.clone();
-            let bond_type = BondingType::Linear;
+            let mut bond_type = BondingType::Linear;
+
+            if bonding_type.is_some() {
+                bond_type = bonding_type.clone();
+            }
             // let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
