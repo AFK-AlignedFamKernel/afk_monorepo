@@ -18,6 +18,7 @@ export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
   const explorer = useExplorer();
   const kakarotScanTxUrl = 'https://sepolia.kakarotscan.org/tx/';
   const [txUrl, setTxUrl] = useState<string | undefined>(undefined);
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
   const {address, isConnected, connector} = useAccount();
   let walletType;
   if (connector instanceof InjectedConnector) {
@@ -59,18 +60,26 @@ export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
       // const {transaction_hash} = await writeAsync(args)
       const transaction_hash = await sendTransactionTx();
 
-      return true;
+      setTxHash(transaction_hash)
+      return {
+        isOk:true,
+        transaction_hash
+      };
       // return new Promise<GetTransactionReceiptResponse>((resolve) => {
       //   showTransactionModal(transaction_hash, resolve);
       // });
     } catch (error) {
       hideTransactionModal();
-      return undefined;
+      return {
+        transaction_hash:undefined,
+        isOk:false
+      };
     }
   };
 
   return {
     sendTransaction,
     txUrl,
+    txHash
   };
 };

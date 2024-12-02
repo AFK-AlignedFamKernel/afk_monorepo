@@ -156,10 +156,9 @@ export const TipsComponent: React.FC = () => {
           entrypoint: Entrypoint.CLAIM,
           calldata: claimCalldata,
         }]
-
       );
 
-      if (receipt) {
+      if (receipt?.transaction_hash) {
         tips.refetch();
         showToast({ type: 'success', title: 'Tip claimed successfully' });
       } else {

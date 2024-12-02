@@ -1,22 +1,22 @@
-import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useAccount, useProvider} from '@starknet-react/core';
-import {useNostrContext} from 'afk_nostr_sdk';
-import {useState} from 'react';
-import {View} from 'react-native';
-import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useAccount, useProvider } from '@starknet-react/core';
+import { useNostrContext } from 'afk_nostr_sdk';
+import { useState } from 'react';
+import { View } from 'react-native';
+import { byteArray, cairo, CallData, getChecksumAddress, uint256 } from 'starknet';
 
 import TabSelector from '../../components/TabSelector';
-import {ESCROW_ADDRESSES} from '../../constants/contracts';
-import {CHAIN_ID} from '../../constants/env';
-import {Entrypoint} from '../../constants/misc';
-import {ETH, STRK} from '../../constants/tokens';
-import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
-import {useClaim, useEstimateClaim} from '../../hooks/api';
-import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
-import {ChannelComponent} from '../../modules/ChannelCard';
-import {MainStackNavigationProps} from '../../types';
-import {TipsComponent} from '../Tips/TipsComponent';
+import { ESCROW_ADDRESSES } from '../../constants/contracts';
+import { CHAIN_ID } from '../../constants/env';
+import { Entrypoint } from '../../constants/misc';
+import { ETH, STRK } from '../../constants/tokens';
+import { useStyles, useTheme, useTips, useWaitConnection } from '../../hooks';
+import { useClaim, useEstimateClaim } from '../../hooks/api';
+import { useToast, useTransaction, useTransactionModal, useWalletModal } from '../../hooks/modals';
+import { ChannelComponent } from '../../modules/ChannelCard';
+import { MainStackNavigationProps } from '../../types';
+import { TipsComponent } from '../Tips/TipsComponent';
 import stylesheet from './styles';
 
 enum SelectedTab {
@@ -25,23 +25,23 @@ enum SelectedTab {
   CHANNELS,
 }
 export const Whatever: React.FC = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
   const [loading, setLoading] = useState<false | number>(false);
 
   const tips = useTips();
-  const {ndk} = useNostrContext();
+  const { ndk } = useNostrContext();
 
-  const {provider} = useProvider();
+  const { provider } = useProvider();
   const account = useAccount();
-  const sendTransaction = useTransaction();
+  const { sendTransaction } = useTransaction({});
   const claim = useClaim();
   const estimateClaim = useEstimateClaim();
   const walletModal = useWalletModal();
   const waitConnection = useWaitConnection();
-  const {show: showTransactionModal} = useTransactionModal();
-  const {showToast} = useToast();
+  const { show: showTransactionModal } = useTransactionModal();
+  const { showToast } = useToast();
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const onClaimPress = async (depositId: number) => {
@@ -93,7 +93,7 @@ export const Whatever: React.FC = () => {
       entrypoint: Entrypoint.BALANCE_OF,
       calldata: [connectedAccount.address],
     });
-    const balance = uint256.uint256ToBN({low: balanceLow, high: balanceHigh});
+    const balance = uint256.uint256ToBN({ low: balanceLow, high: balanceHigh });
 
     if (balance < gasFee) {
       // Send the claim through backend
@@ -104,14 +104,14 @@ export const Whatever: React.FC = () => {
       showTransactionModal(txHash, async (receipt) => {
         if (receipt.isSuccess()) {
           tips.refetch();
-          showToast({type: 'success', title: 'Tip claimed successfully'});
+          showToast({ type: 'success', title: 'Tip claimed successfully' });
         } else {
           let description = 'Please Try Again Later.';
           if (receipt.isRejected()) {
             description = receipt.transaction_failure_reason.error_message;
           }
 
-          showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
+          showToast({ type: 'error', title: `Failed to claim the tip. ${description}` });
         }
 
         setLoading(false);
@@ -143,33 +143,29 @@ export const Whatever: React.FC = () => {
         uint256.bnToUint256(0),
       ]);
 
-      const receipt = await sendTransaction({
-        calls: [
-          {
-            contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-            entrypoint: Entrypoint.CLAIM,
-            calldata: claimCalldata,
-          },
-        ],
-      });
+      const receipt = await sendTransaction([
+        {
+          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+          entrypoint: Entrypoint.CLAIM,
+          calldata: claimCalldata,
+        },
+      ],
+      );
 
-      if (receipt?.isSuccess()) {
+      if (receipt?.transaction_hash) {
         tips.refetch();
-        showToast({type: 'success', title: 'Tip claimed successfully'});
+        showToast({ type: 'success', title: 'Tip claimed successfully' });
       } else {
         let description = 'Please Try Again Later.';
-        if (receipt?.isRejected()) {
-          description = receipt.transaction_failure_reason.error_message;
-        }
 
-        showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
+        showToast({ type: 'error', title: `Failed to claim the tip. ${description}` });
       }
 
       setLoading(false);
     }
   };
 
-  const TABS: {screen?: string; title: string; tab: SelectedTab}[] = [
+  const TABS: { screen?: string; title: string; tab: SelectedTab }[] = [
     {
       title: 'Tips',
       screen: 'Tips',
