@@ -1470,8 +1470,8 @@ pub mod LaunchpadMarketplace {
             let mut token_to_use = self.default_token.read();
             let mut quote_token_address = token_to_use.token_address.clone();
             // let bond_type = BondingType::Linear;
-            // let mut bond_type = BondingType::Linear;
-            let mut bond_type = BondingType::Exponential;
+            let mut bond_type = BondingType::Linear;
+            // let mut bond_type = BondingType::Exponential;
 
             // if bonding_type.is_some() {
             //     bond_type = bonding_type.clone();
