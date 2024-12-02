@@ -86,7 +86,7 @@ pub mod StakingComponent {
 
             let zero_address = self.zero_address();
 
-            self.update_reward(zero_address);
+            self._update_reward(zero_address);
 
             let block_timestamp: u256 = get_block_timestamp().try_into().unwrap();
 
@@ -119,7 +119,7 @@ pub mod StakingComponent {
             let caller = get_caller_address();
             let this_contract = get_contract_address();
 
-            self.update_reward(caller);
+            self._update_reward(caller);
 
             assert(amount > 0, Errors::AMOUNT_IS_ZERO);
             let staking_token = IERC20Dispatcher { contract_address: self.staking_token.read() };
@@ -142,7 +142,7 @@ pub mod StakingComponent {
         fn withdraw(ref self: ComponentState<TContractState>, amount: u256) {
             let caller = get_caller_address();
 
-            self.update_reward(caller);
+            self._update_reward(caller);
 
             assert(amount > 0, Errors::AMOUNT_IS_ZERO);
 
@@ -167,7 +167,7 @@ pub mod StakingComponent {
         fn claim_reward(ref self: ComponentState<TContractState>) {
             let caller = get_caller_address();
 
-            self.update_reward(caller);
+            self._update_reward(caller);
 
             let reward = self.rewards.entry(caller).read();
 
@@ -273,7 +273,7 @@ pub mod StakingComponent {
         /// Initializes the contract by setting the owner, staking_token and reward_token.
         /// To prevent reinitialization, this should only be used inside of a contract's
         /// constructor.
-        fn initializer(
+        fn _initializer(
             ref self: ComponentState<TContractState>,
             owner: ContractAddress,
             staking_token: ContractAddress,
@@ -284,7 +284,7 @@ pub mod StakingComponent {
             self.rewards_token.write(reward_token);
         }
 
-        fn update_reward(ref self: ComponentState<TContractState>, account: ContractAddress) {
+        fn _update_reward(ref self: ComponentState<TContractState>, account: ContractAddress) {
             self.reward_per_token_stored.write(self.reward_per_token());
             self.updated_at.write(self.last_time_reward_applicable());
 

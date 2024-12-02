@@ -25,7 +25,7 @@ mod StakingRewards {
         staking_token: ContractAddress,
         reward_token: ContractAddress
     ) {
-        self.staking.initializer(owner, staking_token, reward_token);
+        self.staking._initializer(owner, staking_token, reward_token);
     }
 
     #[abi(embed_v0)]
