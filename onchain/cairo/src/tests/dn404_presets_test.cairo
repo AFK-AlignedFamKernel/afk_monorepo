@@ -112,6 +112,22 @@ mod dn404_presets_test {
     }
 
     #[test]
+    fn test_token_uri() {
+        let (dn404, mirror) = setup();
+        let transfer_amount: u256 = 10000;
+
+        // Do ERC20 transfer to create several NFTs
+        start_cheat_caller_address(dn404.contract_address, OWNER());
+        let success = dn404.transfer(RECIPIENT(), transfer_amount);
+        assert!(success, "Transfer should succeed");
+        stop_cheat_caller_address(dn404.contract_address);
+
+        // Check token URI for random NFT
+        let token_uri = mirror.token_uri(5);
+        assert!(token_uri == "https://dn404.com/5", "Wrong token URI");
+    }
+
+    #[test]
     fn test_skip_nft_transfer() {
         let (dn404, mirror) = setup();
         let transfer_amount: u256 = 2000;
