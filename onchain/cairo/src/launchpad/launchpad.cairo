@@ -136,15 +136,31 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
+    // use afk::calcul::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
+    // use afk::calcul::linear::{
+    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
+    //     get_coin_amount_by_quote_amount
+    // };
+    // use afk::launchpad::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
+    // use afk::launchpad::linear::{
+    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
+    //     get_coin_amount_by_quote_amount
+    // };
     use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
-    use afk::launchpad::calcul::{
+    use afk::launchpad::calcul::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
+    use afk::launchpad::calcul::linear::{
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
-        get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
+        get_coin_amount_by_quote_amount
     };
+    // use afk::launchpad::calcul::{
+    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
+    //     get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
+    // };
+
     use afk::launchpad::errors;
     // use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters };
     use afk::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
@@ -543,7 +559,8 @@ pub mod LaunchpadMarketplace {
                     caller,
                     contract_address,
                 );
-            self._launch_token(token_address, caller, contract_address, false);
+            // self._launch_token(token_address, caller, contract_address, false,);
+            self._launch_token(token_address, caller, contract_address, false, Option::None);
             token_address
         }
 
@@ -554,7 +571,8 @@ pub mod LaunchpadMarketplace {
 
             let token = self.token_created.read(coin_address);
             let is_unruggable = token.is_unruggable;
-            self._launch_token(coin_address, caller, contract_address, is_unruggable);
+            // self._launch_token(coin_address, caller, contract_address, is_unruggable);
+            self._launch_token(coin_address, caller, contract_address, is_unruggable, Option::None);
         }
 
         // Buy coin by quote amount
@@ -1134,7 +1152,9 @@ pub mod LaunchpadMarketplace {
                         caller,
                         contract_address,
                     );
-                self._launch_token(token_address, caller, contract_address, true);
+                // self._launch_token(token_address, caller, contract_address, true);
+                self._launch_token(token_address, caller, contract_address, true, Option::None);
+
                 token_address
             } else {
                 let token_address = self
@@ -1439,7 +1459,8 @@ pub mod LaunchpadMarketplace {
             coin_address: ContractAddress,
             caller: ContractAddress,
             creator: ContractAddress,
-            is_unruggable: bool
+            is_unruggable: bool,
+            bonding_type: Option<BondingType>
         ) {
             // let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
@@ -1448,7 +1469,21 @@ pub mod LaunchpadMarketplace {
             // Maybe not needed because you can also create the coin everyhwhere (Unrug) and launch
             let mut token_to_use = self.default_token.read();
             let mut quote_token_address = token_to_use.token_address.clone();
-            let bond_type = BondingType::Linear;
+            // let bond_type = BondingType::Linear;
+            let mut bond_type = BondingType::Linear;
+            // let mut bond_type = BondingType::Exponential;
+
+            // if bonding_type.is_some() {
+            //     bond_type = bonding_type.clone();
+            // }
+
+            match bonding_type {
+                Option::Some(val) => { bond_type = val.clone(); },
+                Option::None => {},
+            }
+            // if Option::Some(value) = bonding_type {
+            //     bond_type = value.clone();
+            // };
             // let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
@@ -1857,7 +1892,6 @@ pub mod LaunchpadMarketplace {
             // println!("distribute_team_alloc");
             // // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
-
             // TODO fix
             // Distribute
             //  set launched
@@ -1954,7 +1988,7 @@ pub mod LaunchpadMarketplace {
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
             // TODO comment and test claim
-            
+
             // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
             // let memecoin_dispatcher = IMemecoinDispatcher { contract_address: coin_address };

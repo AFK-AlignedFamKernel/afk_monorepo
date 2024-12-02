@@ -51,7 +51,7 @@ export const FormInstantiateKey = ({
 
   const account = useAccount();
   const walletModal = useWalletModal();
-  const {sendTransaction, txUrl} = useTransaction({});
+  const {sendTransaction, txUrl, txHash} = useTransaction({});
   const {hide: hideTransactionModal} = useTransactionModal();
   const waitConnection = useWaitConnection();
   const {handleInstantiateKeys} = useInstantiateKeys();
@@ -96,7 +96,7 @@ export const FormInstantiateKey = ({
     };
     if (!account || !account?.account) return;
 
-    const receipt = await sendTransaction(
+    const {transaction_hash} = await sendTransaction(
       [call],
       // {
       //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
@@ -111,7 +111,7 @@ export const FormInstantiateKey = ({
     //   // await handleInstantiateKeys(account?.account);
     // }
 
-    if (receipt) {
+    if (txHash && transaction_hash) {
       hideTransactionModal();
       showSuccess({
         amount: Number(amount),

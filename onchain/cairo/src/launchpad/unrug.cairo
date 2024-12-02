@@ -1074,21 +1074,21 @@ pub mod UnrugLiquidity {
                     }
                 );
 
-                // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
-                // println!("try set_launched");
-    
-                // memecoin
-                //     .set_launched(
-                //         LiquidityType::EkuboNFT(id),
-                //         LiquidityParameters::Ekubo(
-                //             EkuboLiquidityParameters {
-                //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
-                //             }
-                //         ),
-                //         :transfer_restriction_delay,
-                //         :max_percentage_buy_launch,
-                //         :team_allocation,
-                //     );
+            // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            // println!("try set_launched");
+
+            // memecoin
+            //     .set_launched(
+            //         LiquidityType::EkuboNFT(id),
+            //         LiquidityParameters::Ekubo(
+            //             EkuboLiquidityParameters {
+            //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
+            //             }
+            //         ),
+            //         :transfer_restriction_delay,
+            //         :max_percentage_buy_launch,
+            //         :team_allocation,
+            //     );
             (id, position)
         }
 

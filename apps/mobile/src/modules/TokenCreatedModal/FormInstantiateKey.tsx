@@ -51,7 +51,7 @@ export const FormInstantiateKey = ({
 
   const account = useAccount();
   const walletModal = useWalletModal();
-  const sendTransaction = useTransaction();
+  const {sendTransaction} = useTransaction({});
   const {hide: hideTransactionModal} = useTransactionModal();
   const waitConnection = useWaitConnection();
   const {handleInstantiateKeys} = useInstantiateKeys();
@@ -96,8 +96,8 @@ export const FormInstantiateKey = ({
     };
     if (!account || !account?.account) return;
 
-    const receipt = await sendTransaction({
-      calls: [
+    const receipt = await sendTransaction(
+      [
         call,
         // {
         //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
@@ -105,7 +105,7 @@ export const FormInstantiateKey = ({
         //   calldata: depositCallData,
         // },
       ],
-    });
+    );
     // const tx = await account?.account?.execute([call], undefined, {});
     // console.log('tx hash', tx?.transaction_hash);
     // if (tx?.transaction_hash) {
@@ -113,7 +113,7 @@ export const FormInstantiateKey = ({
     //   // await handleInstantiateKeys(account?.account);
     // }
 
-    if (receipt?.isSuccess()) {
+    if (receipt?.transaction_hash) {
       hideTransactionModal();
       showSuccess({
         amount: Number(amount),
@@ -132,9 +132,9 @@ export const FormInstantiateKey = ({
       });
     } else {
       let description = 'Please Try Again Later.';
-      if (receipt?.isRejected()) {
-        description = receipt.transaction_failure_reason.error_message;
-      }
+      // if (receipt?.isRejected()) {
+        // description = receipt.transaction_failure_reason.error_message;
+      // }
 
       showDialog({
         title: 'Failed to send the tip',
