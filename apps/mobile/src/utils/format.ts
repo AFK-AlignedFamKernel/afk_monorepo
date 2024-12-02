@@ -1,4 +1,4 @@
-import {cairo, Uint256, uint256} from 'starknet';
+import {cairo, Uint256, uint256, shortString} from 'starknet';
 
 export const feltToAddress = (felt: bigint) => {
   const newStrB = Buffer.from(felt.toString(16), 'ascii');
@@ -16,4 +16,18 @@ export const formatFloatToUint256 = (total_amount_float: number, decimals = 18) 
   }
 
   return total_amount;
+};
+
+export const decodeUsername = (hexUsername: string): string => {
+  try {
+    return shortString.decodeShortString(hexUsername.replace(/0x0+/, "0x"));
+  } catch (error) {
+    console.error("Error decoding username:", error);
+    return hexUsername;
+  }
+};
+
+export const formatExpiry = (hexExpiry: string): Date => {
+  const timestamp = parseInt(hexExpiry, 16);
+  return new Date(timestamp * 1000);
 };

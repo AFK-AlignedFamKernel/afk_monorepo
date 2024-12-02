@@ -1,4 +1,4 @@
-import {useWaitForTransaction} from '@starknet-react/core';
+import {useTransactionReceipt} from '@starknet-react/core';
 import {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {GetTransactionReceiptResponse} from 'starknet';
@@ -30,11 +30,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     error: transactionError,
     isLoading,
     refetch,
-  } = useWaitForTransaction({hash: transactionHash});
+  } = useTransactionReceipt({hash: transactionHash});
 
   useEffect(() => {
-    if (transactionHash) setStatus('processing');
-  }, [transactionHash]);
+    if (transactionHash) {
+      setStatus('processing');
+      const timeout = setTimeout(() => {
+        if (status === 'processing') {
+          setStatus('failure');
+        }
+      }, 60000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [transactionHash, status]);
 
   useEffect(() => {
     if (transactionError) {
