@@ -1,100 +1,60 @@
-import * as Yup from 'yup';
+export type ValidationErrors = {
+  amount?: string;
+  dexType?: string;
+  startingPrice?: string;
+  teamAllocation?: string;
+  teamVestingPeriod?: string;
+  teamVestingCliff?: string;
+  hodlLimit?: string;
+  liquidityLockTime?: string;
+  ekuboPrice?: string;
+  minLiquidity?: string;
+  liquidityType?: string;
+};
 
-export const AddLiquidityValidationSchema = Yup.object().shape({
-  amount: Yup.string()
-    .required('Amount is required')
-    .matches(/^\d*\.?\d*$/, 'Must be a valid number'),
-  
-  dexType: Yup.string()
-    .required('DEX type is required')
-    .oneOf(['UNRUGGABLE', 'EKUBO', 'JEDISWAP']),
+export const validateAddLiquidity = (values: any): ValidationErrors => {
+  const errors: ValidationErrors = {};
 
-  startingPrice: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Starting price is required')
-      .matches(/^\d*\.?\d*$/, 'Must be a valid number')
-  }),
+ 
+  if (!values.amount) {
+    errors.amount = 'Amount is required';
+  } else if (!/^\d*\.?\d*$/.test(values.amount)) {
+    errors.amount = 'Must be a valid number';
+  }
 
-  teamAllocation: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Team allocation is required')
-      .test('valid-percentage', 'Must be between 0 and 100', (value) => {
-        if (!value) return false;
-        const num = Number(value);
-        return !isNaN(num) && num >= 0 && num <= 100;
-      })
-  }),
+  // DEX type validation  
+  if (!values.dexType) {
+    errors.dexType = 'DEX type is required';
+  } else if (!['UNRUGGABLE', 'EKUBO', 'JEDISWAP'].includes(values.dexType)) {
+    errors.dexType = 'Invalid DEX type';
+  }
 
-  teamVestingPeriod: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Vesting period is required')
-      .test('min-days', 'Must be at least 1 day', (value) => {
-        if (!value) return false;
-        const days = Number(value);
-        return !isNaN(days) && days >= 1;
-      })
-  }),
+  // Unruggable specific validations
+  if (values.dexType === 'UNRUGGABLE') {
+    if (!values.startingPrice) {
+      errors.startingPrice = 'Starting price is required';
+    }
+    
+    if (!values.teamAllocation) {
+      errors.teamAllocation = 'Team allocation is required';
+    } else {
+      const allocation = Number(values.teamAllocation);
+      if (isNaN(allocation) || allocation < 0 || allocation > 100) {
+        errors.teamAllocation = 'Must be between 0 and 100';
+      }
+    }
 
-  teamVestingCliff: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Vesting cliff is required')
-      .test('min-days', 'Must be at least 0 days', (value) => {
-        if (!value) return false;
-        const days = Number(value);
-        return !isNaN(days) && days >= 0;
-      })
-  }),
+    if (!values.liquidityLockTime) {
+      errors.liquidityLockTime = 'Lock time is required';
+    } else {
+      const days = Number(values.liquidityLockTime);
+      if (isNaN(days) || days < 1) {
+        errors.liquidityLockTime = 'Must be at least 1 day';
+      }
+    }
+  }
 
-  hodlLimit: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Hodl limit is required')
-      .matches(/^\d*\.?\d*$/, 'Must be a valid number')
-  }),
 
-  liquidityLockTime: Yup.string().when('dexType', {
-    is: (val: string) => val === 'UNRUGGABLE',
-    then: () => Yup.string()
-      .required('Lock time is required')
-      .test('min-days', 'Must be at least 1 day', (value) => {
-        if (!value) return false;
-        const days = Number(value);
-        return !isNaN(days) && days >= 1;
-      })
-  }),
 
-  ekuboPrice: Yup.string().when('dexType', {
-    is: (val: string) => val === 'EKUBO',
-    then: () => Yup.string()
-      .required('Price is required')
-      .matches(/^\d*\.?\d*$/, 'Must be a valid number')
-      .test('min-price', 'Price must be greater than 0', (value) => {
-        if (!value) return false;
-        const price = Number(value);
-        return !isNaN(price) && price > 0;
-      })
-  }),
-
-  minLiquidity: Yup.string().when('dexType', {
-    is: (val: string) => val === 'JEDISWAP',
-    then: () => Yup.string()
-      .required('Minimum liquidity is required')
-      .matches(/^\d*\.?\d*$/, 'Must be a valid number')
-      .test('min-liquidity', 'Minimum liquidity must be greater than 0', (value) => {
-        if (!value) return false;
-        const liquidity = Number(value);
-        return !isNaN(liquidity) && liquidity > 0;
-      })
-  }),
-
-  liquidityType: Yup.string().when('dexType', {
-    is: (val: string) => val === 'EKUBO' || val === 'JEDISWAP',
-    then: () => Yup.string()
-      .required('Liquidity type is required')
-      .oneOf(['EKUBO_NFT', 'JEDISWAP_LP'], 'Invalid liquidity type')
-  })
-});
+  return errors;
+};
