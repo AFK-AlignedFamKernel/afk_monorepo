@@ -1,5 +1,4 @@
 import {useQuery} from '@tanstack/react-query';
-
 import {ApiIndexerInstance} from '../../../services/api';
 
 export const useMyTokensCreated = (launch?: string) => {
