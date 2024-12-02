@@ -435,9 +435,9 @@ mod liquidity_tests {
         println!("token_address unrug lp withouth launch curve: {:?}", token_address);
 
         // start_cheat_caller_address(token_address, launchpad.contract_address);
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-
         let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
 
         let amount_meme_supply_liq = DEFAULT_INITIAL_SUPPLY() / LIQUIDITY_RATIO;
 
