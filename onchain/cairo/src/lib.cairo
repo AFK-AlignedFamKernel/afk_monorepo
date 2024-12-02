@@ -95,6 +95,14 @@ pub mod tokens {
     pub mod memecoin_v2;
     pub mod quest_nft;
     pub mod token;
+    pub mod dn404 {
+        pub mod dn404;
+        pub mod dn404_mirror;
+        pub mod dn404_component;
+        pub mod dn404_mirror_component;
+        pub mod dn404_preset;
+        pub mod dn404_mirror_preset;
+    }
 }
 
 // TODO upgrade to correct OZ version
@@ -125,5 +133,7 @@ pub mod tests {
     pub mod tap_tests;
     pub mod utils;
     pub mod vault_tests;
+    pub mod dn404_tests;
+    pub mod dn404_presets_test;
     pub mod staking_tests;
 }
