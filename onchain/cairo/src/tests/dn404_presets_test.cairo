@@ -9,7 +9,7 @@ mod dn404_presets_test {
     use crate::tokens::dn404::dn404_preset::DN404Preset;
     use crate::tokens::dn404::dn404_component::{DN404Options, IDN404Dispatcher, IDN404DispatcherTrait};
     use crate::tokens::dn404::dn404_mirror_preset::DN404MirrorPreset;
-    use crate::tokens::dn404::dn404_mirror_component::{IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait};
+    use crate::tokens::dn404::dn404_mirror_component::{DN404MirrorComponent, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
 
     // Constants for testing
@@ -146,7 +146,7 @@ mod dn404_presets_test {
         stop_cheat_caller_address(dn404.contract_address);
 
         // Spy on Transfer events
-        // let mut spy = spy_events();
+        let mut spy = spy_events();
 
         // Do transfer
         start_cheat_caller_address(dn404.contract_address, SENDER());
@@ -154,16 +154,16 @@ mod dn404_presets_test {
         stop_cheat_caller_address(dn404.contract_address);
 
         // Verify NFT transfer event was emitted
-        // spy.assert_emitted(@array![
-        //     (
-        //         mirror.contract_address,
-        //         DN404MirrorPreset::Event::DN404MirrorEvent(
-        //             DN404MirrorComponent::Event::Transfer(
-        //                 DN404MirrorComponent::TransferEvent { from: SENDER(), to: RECIPIENT(), id: 1 }
-        //             )
-        //         )
-        //     )
-        // ]);
+        spy.assert_emitted(@array![
+            (
+                mirror.contract_address,
+                DN404MirrorPreset::Event::DN404MirrorEvent(
+                    DN404MirrorComponent::Event::Transfer(
+                        DN404MirrorComponent::TransferEvent { from: SENDER(), to: RECIPIENT(), id: 1 }
+                    )
+                )
+            )
+        ]);
     }
 
     #[test]
@@ -197,7 +197,7 @@ mod dn404_presets_test {
         assert!(mirror.owner_of(token2_id) == RECIPIENT(), "Wrong initial NFT 2 owner");
 
         // Start spying on events before burning
-        // let mut spy = spy_events();
+        let mut spy = spy_events();
 
         // Transfer back to OWNER (causes NFTs to be burned since OWNER has skip_nft=true)
         start_cheat_caller_address(dn404.contract_address, RECIPIENT());
@@ -206,27 +206,31 @@ mod dn404_presets_test {
         stop_cheat_caller_address(dn404.contract_address);
 
         // Verify burn events were emitted
-        // spy.assert_emitted(@array![
-        //     (
-        //         mirror.contract_address,
-        //         DN404MirrorPreset::Event::Transfer(
-        //             DN404MirrorPreset::TransferEvent { from: RECIPIENT(), to: Zero::zero(), id: token1_id }
-        //         )
-        //     ),
-        //     (
-        //         mirror.contract_address,
-        //         DN404MirrorPreset::Event::Transfer(
-        //             DN404MirrorPreset::TransferEvent { from: RECIPIENT(), to: Zero::zero(), id: token2_id }
-        //         )
-        //     )
-        // ]);
+        spy.assert_emitted(@array![
+            (
+                mirror.contract_address,
+                DN404MirrorPreset::Event::DN404MirrorEvent(
+                    DN404MirrorComponent::Event::Transfer(
+                        DN404MirrorComponent::TransferEvent { from: RECIPIENT(), to: Zero::zero(), id: token1_id }
+                    )
+                )
+            ),
+            (
+                mirror.contract_address,
+                DN404MirrorPreset::Event::DN404MirrorEvent(
+                    DN404MirrorComponent::Event::Transfer(
+                        DN404MirrorComponent::TransferEvent { from: RECIPIENT(), to: Zero::zero(), id: token2_id }
+                    )
+                )
+            )
+        ]);
 
         // Verify NFTs were burned
         let recipient_nft_balance = mirror.balance_of(RECIPIENT());
         assert!(recipient_nft_balance == 0, "Should have no NFTs after burn");
 
         // Reset spy for next transfer
-        // spy = spy_events();
+        spy = spy_events();
 
         // Transfer again to a new recipient - should reuse the burned token IDs
         start_cheat_caller_address(dn404.contract_address, OWNER());
@@ -235,20 +239,24 @@ mod dn404_presets_test {
         stop_cheat_caller_address(dn404.contract_address);
 
         // Verify mint events reuse the same token IDs
-        // spy.assert_emitted(@array![
-        //     (
-        //         mirror.contract_address,
-        //         DN404MirrorPreset::Event::Transfer(
-        //             DN404MirrorPreset::TransferEvent { from: Zero::zero(), to: SENDER(), id: token1_id }
-        //         )
-        //     ),
-        //     (
-        //         mirror.contract_address,
-        //         DN404MirrorPreset::Event::Transfer(
-        //             DN404MirrorComponent::TransferEvent { from: Zero::zero(), to: SENDER(), id: token2_id }
-        //         )
-        //     )
-        // ]);
+        spy.assert_emitted(@array![
+            (
+                mirror.contract_address,
+                DN404MirrorPreset::Event::DN404MirrorEvent(
+                    DN404MirrorComponent::Event::Transfer(
+                        DN404MirrorComponent::TransferEvent { from: Zero::zero(), to: SENDER(), id: token1_id }
+                    )
+                )
+            ),
+            (
+                mirror.contract_address,
+                DN404MirrorPreset::Event::DN404MirrorEvent(
+                    DN404MirrorComponent::Event::Transfer(
+                        DN404MirrorComponent::TransferEvent { from: Zero::zero(), to: SENDER(), id: token2_id }
+                    )
+                )
+            )
+        ]);
 
         // Verify the same token IDs were reused
         let sender_nft_balance = mirror.balance_of(SENDER());
