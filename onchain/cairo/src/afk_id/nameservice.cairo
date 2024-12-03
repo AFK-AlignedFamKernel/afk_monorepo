@@ -502,7 +502,7 @@ pub mod Nameservice {
 
             let new_username_address = self.usernames.read(new_username);
             // TODO check if claimd and expiry is not finish too
-            let username_storage = self.username_storage.entry(new_username);
+            // let username_storage = self.username_storage.entry(new_username);
 
             assert(
                 new_username_address == contract_address_const::<0>(),

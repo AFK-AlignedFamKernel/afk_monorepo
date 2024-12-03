@@ -7,8 +7,7 @@ mod TapQuests {
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ContractAddress, get_block_timestamp, get_contract_address
     };
     const DAILY_TIMESTAMP_SECONDS: u64 = 60 * 60 * 24;
 

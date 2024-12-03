@@ -1,13 +1,16 @@
 // use afk::launchpad::errors;
 // use afk::launchpad::math::{ max_u256};
 use afk::types::launchpad_types::{
-    TokenQuoteBuyCoin, TokenLaunch, BondingType, SetJediswapNFTRouterV2, SetJediswapV2Factory,
-    SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-    EkuboLaunchParameters, LaunchCallback
+    TokenLaunch, 
+    // BondingType, TokenQuoteBuyCoin,
+    // SetJediswapNFTRouterV2, SetJediswapV2Factory,
+    // SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+    // EkuboLaunchParameters, 
+    // LaunchCallback
 };
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
-use starknet::ContractAddress;
+// use starknet::ContractAddress;
 
 const BPS: u256 = 10_000; // 100% = 10_000 bps
 // const SCALE_FACTOR: u256  = 100_000_000_000_000_000_u256; // Scale factor decimals place for
@@ -175,7 +178,7 @@ pub fn get_coin_amount_by_quote_amount(
     // println!("price {:?}", price.clone());
     // println!("SCALE_FACTOR {:?}", SCALE_FACTOR.clone());
 
-    let price_scale_factor_test = price.clone() * SCALE_FACTOR;
+    // let price_scale_factor_test = price.clone() * SCALE_FACTOR;
     // println!("price_scale_factor_test {:?}", price_scale_factor_test.clone());
 
     // TODO fix this

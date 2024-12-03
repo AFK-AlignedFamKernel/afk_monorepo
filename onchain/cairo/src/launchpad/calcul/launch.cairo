@@ -1,17 +1,21 @@
 use afk::launchpad::calcul::exponential::{
-    get_coin_amount_by_quote_amount_exponential, calculate_initial_price
+    get_coin_amount_by_quote_amount_exponential, 
+    // calculate_initial_price
 };
 use afk::launchpad::calcul::linear::{
-    get_coin_amount_by_quote_amount, calculate_pricing, get_coin_amount, get_meme_amount
+    get_coin_amount_by_quote_amount, 
+    // calculate_pricing,
+     get_coin_amount, get_meme_amount
 };
 
 use afk::launchpad::errors;
-use afk::launchpad::math::{PercentageMath, pow_256, max_u256};
+// use afk::launchpad::math::{PercentageMath, pow_256, max_u256};
 use afk::types::launchpad_types::{
-    TokenLaunch, BondingType, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+    TokenLaunch, BondingType,
+    //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
     EkuboLaunchParameters, LaunchCallback
 };
-use ekubo::types::{i129::i129};
+// use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
 
 const BPS: u256 = 10_000; // 100% = 10_000 bps
@@ -61,9 +65,9 @@ pub fn get_amount_by_type_of_coin_or_quote(
         final_supply = total_supply - amount;
     }
 
-    let mut actual_supply = total_supply;
-    let mut starting_price = pool.starting_price.clone();
-    let step_increase_linear = pool.slope.clone();
+    // let mut actual_supply = total_supply;
+    // let mut starting_price = pool.starting_price.clone();
+    // let step_increase_linear = pool.slope.clone();
     let bonding_type = pool.bonding_curve_type.clone();
     match bonding_type {
         Option::Some(x) => {

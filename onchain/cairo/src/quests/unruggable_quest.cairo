@@ -1,6 +1,9 @@
 #[starknet::contract]
 pub mod UnruggableQuest {
-    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    // use afk::interfaces::pixel::{
+    //     IArtPeaceDispatcher, 
+    //     // IArtPeaceDispatcherTrait
+    // };
     use afk::interfaces::quests::{
         IQuest, IUnruggableQuest, IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait
     };

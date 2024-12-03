@@ -5,12 +5,16 @@ pub mod ArtPeace {
         ICanvasNFTAdditionalDispatcherTrait
     };
     use afk::interfaces::pixel::{
-        IArtPeace, Pixel, Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay, CanvasScaled,
+        IArtPeace, 
+        // Pixel,
+         Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay, CanvasScaled,
         PixelPlaced, BasicPixelPlaced, FactionPixelsPlaced, ChainFactionPixelsPlaced,
         ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
-        ChainFactionTemplateRemoved, InitParams, MetadataPixel
+        ChainFactionTemplateRemoved,
+        //  InitParams, 
+        MetadataPixel
     };
     use afk::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata

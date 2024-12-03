@@ -1,5 +1,5 @@
 // use afk::tokens::erc20::{IERC20};
-use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+// use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 use afk::types::launchpad_types::{
     LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
     EkuboLiquidityParameters, EkuboPoolParameters
@@ -118,12 +118,16 @@ pub mod Memecoin {
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_tx_info,
+        ContractAddress, 
+        // contract_address_const,
+         get_caller_address, 
+        // get_tx_info,
         get_block_timestamp, get_block_info
     };
     use super::{
-        LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
-        EkuboLiquidityParameters, EkuboPoolParameters
+        LiquidityType, LiquidityParameters, 
+        // SupportedExchanges, JediswapLiquidityParameters,
+        // EkuboLiquidityParameters, EkuboPoolParameters
     };
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -282,7 +286,7 @@ pub mod Memecoin {
         owner: ContractAddress,
         factory: ContractAddress
     ) {
-        let caller = get_caller_address();
+        // let caller = get_caller_address();
         self.name.write(name);
         self.symbol.write(symbol);
         self.decimals.write(decimals);

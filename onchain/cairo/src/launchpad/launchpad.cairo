@@ -821,7 +821,7 @@ pub mod LaunchpadMarketplace {
             // assert!(total_supply >= quote_amount, "share to sell > supply");
             // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
 
-            let old_price = old_pool.price.clone();
+            // let old_price = old_pool.price.clone();
             let total_price = old_pool.price.clone();
             // Update keys with new values
             let mut pool_update = old_pool.clone();
@@ -1077,9 +1077,9 @@ pub mod LaunchpadMarketplace {
         ) {
             // TODO auto distrib and claim?
 
-            let caller = get_caller_address();
+            // let caller = get_caller_address();
 
-            let pool = self.launched_coins.read(coin_address);
+            // let pool = self.launched_coins.read(coin_address);
 
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);

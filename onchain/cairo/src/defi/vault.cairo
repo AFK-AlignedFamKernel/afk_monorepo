@@ -1,5 +1,5 @@
 use afk::types::defi_types::{TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent};
-use starknet::ContractAddress;
+// use starknet::ContractAddress;
 
 // TODO
 // Create the as a Vault component
@@ -7,8 +7,10 @@ use starknet::ContractAddress;
 pub mod Vault {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::types::constants::{
+        // MINTER_ROLE,
+         ADMIN_ROLE};
     use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
@@ -19,8 +21,11 @@ pub mod Vault {
     };
 
     use starknet::{
-        ContractAddress, get_caller_address, contract_address_const, get_block_timestamp,
-        get_contract_address, ClassHash
+        ContractAddress, get_caller_address, 
+        get_contract_address, 
+        //  contract_address_const, 
+        // get_block_timestamp,
+        // ClassHash
     };
     use super::{DepositUser, TokenPermitted, MintDepositEvent, WithdrawDepositEvent};
 
