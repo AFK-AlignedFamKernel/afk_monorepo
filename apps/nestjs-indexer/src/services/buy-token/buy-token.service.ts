@@ -49,6 +49,25 @@ export class BuyTokenService {
         });
       }
 
+      await this.prismaService.shares_token_user.upsert({
+        where: {
+          id: `${data.ownerAddress}_${data.memecoinAddress}`,
+          owner: data.ownerAddress,
+          token_address: data.memecoinAddress,
+        },
+        update: {
+          amount_owned: {
+            increment: data.amount,
+          },
+        },
+        create: {
+          id: `${data.ownerAddress}_${data.memecoinAddress}`,
+          owner: data.ownerAddress,
+          token_address: data.memecoinAddress,
+          amount_owned: data.amount,
+        },
+      });
+
       await this.prismaService.token_transactions.create({
         data: {
           transfer_id: data.transferId,
