@@ -15,9 +15,11 @@ const BPS: u256 = 10_000; // 100% = 10_000 bps
 // price division and others stuff
 // const SCALE_FACTOR: u256 =
 //     100_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
-const SCALE_FACTOR: u256 =
-    100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
+// const SCALE_FACTOR: u256 =
+//     100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 
+const SCALE_FACTOR: u256 =
+    100_000_000_000_000_000__000_u256; // Scale factor decimals place for price division and others stuff
 // Define constants
 const MIN_PRICE: u256 = 1_u256; // Minimum price to prevent division by zero
 // const SCALE_FACTOR: u256 = 1_000_000_000_000_u256; // 1e12 for precision

@@ -19,7 +19,7 @@ use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 use starknet::{
     ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
-    get_block_timestamp, get_contract_address, ClassHash
+    get_block_timestamp
 };
 
 const MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION: u16 = 1_000; // 10%

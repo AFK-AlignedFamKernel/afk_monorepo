@@ -68,7 +68,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // ) -> u256;
 
     fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
-    fn get_share_key_of_user(
+    fn get_share_of_user_by_contract(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesTokenUser;
     fn get_all_launch(self: @TContractState) -> Span<TokenLaunch>;
@@ -274,7 +274,8 @@ pub mod LaunchpadMarketplace {
         launched_coins: Map::<ContractAddress, TokenLaunch>,
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
+        // shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
+        shares_by_users: Map::<ContractAddress, Map::<SharesTokenUser>>,
         bonding_type: Map::<ContractAddress, BondingType>,
         array_launched_coins: Map::<u64, TokenLaunch>,
         array_coins: Map::<u64, Token>,
@@ -294,6 +295,10 @@ pub mod LaunchpadMarketplace {
         creator_fee_percent: u256,
         is_fees_protocol: bool,
         step_increase_linear: u256,
+        is_fees_protocol_sell_enabled: bool,
+        is_fees_protocol_buy_enabled: bool,
+        is_fees_protocol_enabled: bool,
+        is_fees_enabled: bool,
         is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
         is_paid_launch_enable: bool,
@@ -685,10 +690,12 @@ pub mod LaunchpadMarketplace {
             }
 
             // Update share and coin stats for an user
-            let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut old_share = self.shares_by_users.entry((get_caller_address(), coin_address)).read();
+            let mut old_share = self.shares_by_users.entry(get_caller_address()).entry(coin_address).read();
 
             let mut share_user = old_share.clone();
-            if old_share.owner.is_zero() {
+            if share_user.owner.is_zero() {
                 share_user =
                     SharesTokenUser {
                         owner: get_caller_address(),
@@ -722,10 +729,17 @@ pub mod LaunchpadMarketplace {
 
             // TODO check reetrancy guard
             // Update state
+            // self
+            //     .shares_by_users
+            //     .entry((get_caller_address(), coin_address))
+            //     .write(share_user.clone());
+
             self
                 .shares_by_users
-                .entry((get_caller_address(), coin_address))
+                .entry(get_caller_address())
+                .entry(coin_address)
                 .write(share_user.clone());
+
             self.launched_coins.entry(coin_address).write(pool_coin.clone());
 
             // TODO finish test and fix
@@ -761,14 +775,15 @@ pub mod LaunchpadMarketplace {
                 );
         }
 
-
         fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
             let old_pool = self.launched_coins.read(coin_address);
             assert(!old_pool.owner.is_zero(), 'coin not found');
             assert(old_pool.is_liquidity_launch == false, 'token tradeable');
 
             let caller = get_caller_address();
-            let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut old_share = self.shares_by_users.entry((get_caller_address(), coin_address)).read();
+            let mut old_share = self.shares_by_users.entry(get_caller_address()).entry(coin_address).read();
             // Verify Amount owned
             let mut share_user = old_share.clone();
 
@@ -898,10 +913,19 @@ pub mod LaunchpadMarketplace {
             //     "total_token_holded mismatch after update"
             // );
 
+            // Old map version with tuple
+            // self
+            //     .shares_by_users
+            //     .entry((get_caller_address(), coin_address.clone()))
+            //     .write(share_user.clone());
+
+            
             self
                 .shares_by_users
-                .entry((get_caller_address(), coin_address.clone()))
+                .entry(get_caller_address())
+                .entry( coin_address.clone())
                 .write(share_user.clone());
+
             self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self
                 .emit(
@@ -1117,7 +1141,11 @@ pub mod LaunchpadMarketplace {
             assert(launch.is_liquidity_launch == true, 'not launch yet');
 
             // Verify share of user
-            let mut share_user = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut share_user = self.shares_by_users.read((get_caller_address(), coin_address));
+
+            // OLD MAP used with tuple
+            // let mut share_user = self.shares_by_users.entry((get_caller_address(), coin_address)).read();
+            let mut share_user = self.shares_by_users.entry(get_caller_address()).entry(coin_address).read();
 
             let max_amount_claimable = share_user.amount_owned;
             assert(max_amount_claimable >= amount, 'share below');
@@ -1128,7 +1156,10 @@ pub mod LaunchpadMarketplace {
 
             // Update new share and emit event
             share_user.amount_owned -= amount;
-            self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
+
+            // OLD MAP used with Tuple
+            // self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
+            self.shares_by_users.entry(get_caller_address()).entry(coin_address).write(share_user);
 
             self
                 .emit(
@@ -1178,10 +1209,14 @@ pub mod LaunchpadMarketplace {
             self.launched_coins.read(key_user)
         }
 
-        fn get_share_key_of_user(
+        fn get_share_of_user_by_contract(
             self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
         ) -> SharesTokenUser {
-            self.shares_by_users.read((owner, key_user))
+            // self.shares_by_users.read((owner, key_user))
+            // self.shares_by_users.entry((owner, key_user)).read()
+            // self.shares_by_users.entry((owner, key_user)).read()
+
+            self.shares_by_users.entry(owner).entry(key_user).read()
         }
 
         fn get_all_coins(self: @ContractState) -> Span<Token> {

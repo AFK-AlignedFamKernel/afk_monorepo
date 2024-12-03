@@ -10,7 +10,7 @@ mod liquidity_tests {
     use afk::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
         SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters
+        EkuboLaunchParameters, LaunchParameters, SharesTokenUser
     };
 
     use core::num::traits::Zero;

@@ -10,7 +10,8 @@ mod launchpad_tests {
     use afk::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
         SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters
+        EkuboLaunchParameters, LaunchParameters,
+        SharesTokenUser
     };
 
     use core::num::traits::Zero;
@@ -441,8 +442,13 @@ mod launchpad_tests {
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
         run_buy_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
+        let share_user = launchpad.get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
-        run_sell_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
+        // let amount_owned = share_user.amount_owned.try_into().unwrap();
+        let amount_owned = share_user.amount_owned;
+
+
+        run_sell_by_amount(launchpad, erc20, memecoin, amount_owned , token_address, sender_address,);
         //  All buy
 
         run_buy_by_amount(
@@ -775,7 +781,7 @@ mod launchpad_tests {
 
     #[test]
     // #[fork("Mainnet")]
-    fn test_get_share_key_of_user() {
+    fn test_get_share_of_user_by_contract() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
         let token_address = launchpad
@@ -791,7 +797,7 @@ mod launchpad_tests {
         let mut first_buy = 10_u256;
         run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
 
-        let share_key = launchpad.get_share_key_of_user(sender_address, memecoin.contract_address);
+        let share_key = launchpad.get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
         assert(share_key.owner == sender_address, 'wrong owner');
         assert(share_key.token_address == memecoin.contract_address, 'wrong token address');
@@ -866,8 +872,12 @@ mod launchpad_tests {
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
 
+        let share_user = launchpad.get_share_of_user_by_contract(sender_address, memecoin.contract_address);
+
+        let amount_owned = share_user.amount_owned.try_into().unwrap();
+
         run_sell_by_amount(
-            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
+            launchpad, erc20, memecoin, amount_owned+1, token_address, sender_address,
         );
     }
 
@@ -891,7 +901,10 @@ mod launchpad_tests {
 
         run_buy_by_amount(launchpad, erc20, memecoin, 10_u256, token_address, sender_address,);
 
-        run_sell_by_amount(launchpad, erc20, memecoin, 20_u256, token_address, sender_address,);
+        let share_user = launchpad.get_share_of_user_by_contract(sender_address, memecoin.contract_address);
+
+        let amount_owned=share_user.amount_owned;
+        run_sell_by_amount(launchpad, erc20, memecoin, amount_owned+20, token_address, sender_address,);
     }
 
     #[test]
@@ -995,9 +1008,9 @@ mod launchpad_tests {
             10_000_000_u256, // 10m
             100_000_000_u256, // 100m
             1_000_000_000_u256, // 1b
-            // 10_000_000_000_u256, // 10b
-            // 100_000_000_000_u256, // 100b
-            // 1_000_000_000_000_u256, // 1t
+            10_000_000_000_u256, // 10b
+            100_000_000_000_u256, // 100b
+            1_000_000_000_000_u256, // 1t
             // 10_000_000_000_000_u256, // 10t
             // 100_000_000_000_000_u256, // 100t
             // 100_000_000_000_000_000_000_000_000_000_000_u256
@@ -1469,7 +1482,7 @@ mod launchpad_tests {
         println!("result {:?}", result);
         println!("expected_meme_amount {:?}", expected_meme_amount);
 
-        let share_key = launchpad.get_share_key_of_user(sender_address, memecoin.contract_address);
+        let share_key = launchpad.get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
         assert(share_key.owner == sender_address, 'wrong owner');
         assert(share_key.amount_owned == result, 'wrong result');
