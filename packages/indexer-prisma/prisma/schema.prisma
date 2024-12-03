@@ -9,38 +9,39 @@ datasource db {
 }
 
 model token_deploy {
-  memecoin_address String?
+  transaction_hash String    @id
   network          String?
   block_hash       String?
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String    @id
+  memecoin_address String?
   owner_address    String?
   name             String?
   symbol           String?
   initial_supply   String?
   total_supply     String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model token_launch {
-  memecoin_address String?
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  transaction_hash String    @id
-  quote_token      String?
-  exchange_name    String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  total_supply     String?
-  current_supply   String?
-  liquidity_raised String?
-  price            String?
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
+  transaction_hash   String    @id
+  network            String?
+  block_hash         String?
+  block_number       BigInt?
+  block_timestamp    DateTime? @db.Timestamp(6)
+  memecoin_address   String?
+  quote_token        String?
+  exchange_name      String?
+  total_supply       String?
+  current_supply     String?
+  liquidity_raised   String?
+  total_token_holded String?
+  price              String?
+  cursor             BigInt?   @map("_cursor")
+  time_stamp         DateTime? @db.Timestamp(6)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model unrugmeme_deploy {
@@ -108,7 +109,7 @@ model token_transactions {
   amount           Decimal?  @db.Decimal
   cursor           BigInt?   @map("_cursor")
   transaction_type String
-  time_stamp       String?
+  time_stamp       DateTime? @db.Timestamp(6)
 }
 
 model renew_subscription {
@@ -150,13 +151,13 @@ model username_claimed {
   block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
   transaction_hash String    @id
-  expiry           String?
+  expiry           DateTime? @db.Timestamp(6)
   username         String?
   name             String?
   symbol           String?
   paid             String?
   quote_address    String?
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
   cursor           BigInt?   @map("_cursor")
-  time_stamp       String?
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
 }
