@@ -1,5 +1,5 @@
 // use afk::tokens::erc20::{IERC20};
-// use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 use afk::types::launchpad_types::{
     LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
     EkuboLiquidityParameters, EkuboPoolParameters
@@ -106,6 +106,7 @@ pub mod Memecoin {
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_account::interface;
     use openzeppelin_governance::timelock::TimelockControllerComponent;
+    use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 
     use openzeppelin_governance::votes::VotesComponent;
     use openzeppelin_introspection::src5::SRC5Component;
@@ -117,7 +118,8 @@ pub mod Memecoin {
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    use starknet::{ContractAddress, // contract_address_const,
+    use starknet::{ContractAddress, 
+        contract_address_const,
     get_caller_address, // get_tx_info,
     get_block_timestamp, get_block_info};
     use super::{LiquidityType, LiquidityParameters,// SupportedExchanges, JediswapLiquidityParameters,

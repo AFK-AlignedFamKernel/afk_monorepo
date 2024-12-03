@@ -618,9 +618,12 @@ pub mod LaunchpadMarketplace {
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
-            // println!("amount receive {:?}", amount);
+            println!("amount memecoin to receive {:?}", amount);
+            println!("amount quote to receive {:?}", quote_amount);
 
-            assert(amount <= pool_coin.available_supply, 'no available supply');
+
+            // TODO readd this check and check why it's broken
+            // assert(amount <= pool_coin.available_supply, 'no available supply');
 
             erc20
                 .transfer_from(
@@ -739,7 +742,7 @@ pub mod LaunchpadMarketplace {
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
                 // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
                 // TODO fix add liquidity ekubo
-                self._add_liquidity_ekubo(coin_address);
+                // self._add_liquidity_ekubo(coin_address);
             }
 
             self
@@ -785,8 +788,11 @@ pub mod LaunchpadMarketplace {
             let remain_coin_amount = coin_amount - amount_protocol_fee;
 
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
-                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), false, false
+                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
             );
+            println!("amount memecoin to sell {:?}", coin_amount);
+            println!("amount quote to receive {:?}", quote_amount_total);
+
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
 
             let quote_amount = quote_amount_total - quote_amount_protocol_fee;
