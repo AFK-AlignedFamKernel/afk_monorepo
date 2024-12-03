@@ -286,7 +286,10 @@ mod nameservice_tests {
         let existing_auction = nameservice_dispatcher.get_auction(username);
         assert(existing_auction.minimal_price == 100, 'Minimal price not correct');
         assert(existing_auction.highest_bid == 0, 'highest_bid not correct');
-        assert(existing_auction.highest_bidder ==  starknet::contract_address_const::<0>(), 'highest_bidder not correct');
+        assert(
+            existing_auction.highest_bidder == starknet::contract_address_const::<0>(),
+            'highest_bidder not correct'
+        );
     }
 
     #[test]
@@ -319,7 +322,7 @@ mod nameservice_tests {
     #[test]
     fn test_place_order() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -373,7 +376,7 @@ mod nameservice_tests {
     #[test]
     fn test_place_order_three() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -392,7 +395,7 @@ mod nameservice_tests {
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-       
+
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);
@@ -435,7 +438,7 @@ mod nameservice_tests {
     #[should_panic(expected: 'Bid too low')]
     fn test_place_order_fail() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -482,7 +485,7 @@ mod nameservice_tests {
     #[test]
     fn test_cancel_order() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -501,7 +504,7 @@ mod nameservice_tests {
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-       
+
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);
@@ -538,13 +541,12 @@ mod nameservice_tests {
         assert(caller_balance == 10_u256, 'caller balance incorrect');
         assert(new_caller_balance == 20_u256, 'new_caller balance incorrect');
         assert(third_caller_balance == 5_u256, 'third_caller balance incorrect');
-        
     }
 
     #[test]
     fn test_accept_order() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -563,7 +565,7 @@ mod nameservice_tests {
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-       
+
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);
@@ -589,7 +591,6 @@ mod nameservice_tests {
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.accept_order(username, 1);
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
-        
 
         let stored_username = nameservice_dispatcher.get_username(NEW_CALLER());
         assert(stored_username == username, 'Username not set');
@@ -609,7 +610,7 @@ mod nameservice_tests {
     #[test]
     fn test_accept_order_and_cancel_order() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -628,7 +629,7 @@ mod nameservice_tests {
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-       
+
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);
@@ -687,7 +688,7 @@ mod nameservice_tests {
     #[should_panic(expected: 'Not the auction owner')]
     fn test_accept_order_fail() {
         let (nameservice_dispatcher, payment_token_dispatcher, payment_token_mintable_dispatcher) =
-        setup();
+            setup();
 
         let MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
@@ -706,7 +707,7 @@ mod nameservice_tests {
         start_cheat_caller_address(payment_token_dispatcher.contract_address, CALLER());
         payment_token_dispatcher.approve(nameservice_dispatcher.contract_address, 20_u256);
         stop_cheat_caller_address(payment_token_dispatcher.contract_address);
-       
+
         let username = selector!("test");
         start_cheat_caller_address(nameservice_dispatcher.contract_address, CALLER());
         nameservice_dispatcher.claim_username(username);

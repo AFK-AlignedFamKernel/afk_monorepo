@@ -1,5 +1,5 @@
-use starknet::ContractAddress;
 use afk::afk_id::nameservice::Nameservice::{Auction};
+use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait INameservice<TContractState> {
@@ -7,9 +7,7 @@ pub trait INameservice<TContractState> {
     fn change_username(ref self: TContractState, new_username: felt252);
     fn change_main_username(ref self: TContractState, new_username: felt252);
     fn create_auction_for_username(
-        ref self: TContractState,
-        username: felt252,
-        minimal_price: u256,
+        ref self: TContractState, username: felt252, minimal_price: u256,
     );
     fn place_order(ref self: TContractState, username: felt252, amount: u256);
     fn cancel_order(ref self: TContractState, username: felt252, id: u64);

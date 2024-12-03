@@ -39,7 +39,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
         // ekubo_pool_params: Option<EkuboPoolParameters>,
     );
-    fn sell_coin(ref self: TContractState, coin_address: ContractAddress, quote_amount: u256);
+    fn sell_coin(ref self: TContractState, coin_address: ContractAddress, coin_amount: u256);
 
     fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
@@ -759,47 +759,49 @@ pub mod LaunchpadMarketplace {
         }
 
 
-        // TODO finish and fix
-        fn sell_coin(ref self: ContractState, coin_address: ContractAddress, quote_amount: u256) {
+        fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
             let old_pool = self.launched_coins.read(coin_address);
             assert(!old_pool.owner.is_zero(), 'coin not found');
+            assert(old_pool.is_liquidity_launch == false, 'token tradeable');
 
             let caller = get_caller_address();
             let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
-
+            // Verify Amount owned
             let mut share_user = old_share.clone();
+
+            assert(share_user.amount_owned >= coin_amount, 'above supply');
+
 
             // TODO erc20 token transfer
             let total_supply = old_pool.total_supply;
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
-            assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
-            assert(old_pool.is_liquidity_launch == false, 'token tradeable');
-
-            // TODO fix this function
-            // let mut amount = self
-            //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
 
             // Todo check user amount fee creator if needed
             let creator_fee_percent = self.creator_fee_percent.read();
             let protocol_fee_percent = self.protocol_fee_percent.read();
 
-            let amount_protocol_fee: u256 = quote_amount * protocol_fee_percent / BPS;
-            let amount_creator_fee = quote_amount * creator_fee_percent / BPS;
-            let remain_liquidity = quote_amount - amount_protocol_fee;
-            // let amount_to_user: u256 = quote_amount - amount_protocol_fee - amount_creator_fee;
+            let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
+            let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
+            let remain_coin_amount = coin_amount - amount_protocol_fee;
 
-            let mut amount = get_amount_by_type_of_coin_or_quote(
-                old_pool.clone(), coin_address.clone(), remain_liquidity.clone(), false, true
+            let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
+                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), false, false
             );
+            let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
 
-            // Verify Amount owned
-            assert(old_pool.total_supply >= quote_amount, 'above supply');
-            assert(share_user.amount_owned >= amount, 'above supply');
+            let quote_amount = quote_amount_total - quote_amount_protocol_fee;
+            assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
+
+            // TODO fix this function
+            // let mut amount = self
+            //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
+
+            // let amount_to_user: u256 = coin_amount - amount_protocol_fee - amount_creator_fee;
 
             // let mut total_price = amount;
             // println!("amount {:?}", amount);
-            // println!("quote_amount {:?}", quote_amount);
+            // println!("coin_amount {:?}", coin_amount);
             // println!("total_price {:?}", total_price);
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
 
@@ -824,8 +826,7 @@ pub mod LaunchpadMarketplace {
             // Update keys with new values
             let mut pool_update = old_pool.clone();
 
-            // let remain_liquidity = total_price ;
-            assert(old_pool.liquidity_raised >= remain_liquidity, 'liquidity <= amount');
+            // let remain_coin_amount = total_price ;
 
             // Ensure fee calculations are correct
             // assert(
@@ -836,23 +837,23 @@ pub mod LaunchpadMarketplace {
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = erc20.balance_of(get_contract_address());
             assert!(
-                contract_quote_balance >= quote_amount,
+                contract_quote_balance >= quote_amount_total,
                 "contract has insufficient quote token balance"
             );
 
             // Transfer protocol fee to the designated destination
-            if amount_protocol_fee > 0 {
-                erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+            if quote_amount_protocol_fee > 0 {
+                erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
 
             // Transfer the remaining quote amount to the user
-            if remain_liquidity > 0 {
-                erc20.transfer(caller, remain_liquidity);
+            if quote_amount > 0 {
+                erc20.transfer(caller, quote_amount);
             }
 
             // Assertion: Ensure the user receives the correct amount
-            let user_received = erc20.balance_of(caller);
-            assert(user_received >= remain_liquidity, 'user not receive amount');
+            // let user_received = erc20.balance_of(caller);
+            // assert(user_received >= , 'user not receive amount');
 
             // TODO sell coin if it's already sendable and transferable
             // ENABLE if direct launch coin
@@ -861,8 +862,8 @@ pub mod LaunchpadMarketplace {
 
             // TODO fix amount owned and sellable.
             // Update share user coin
-            share_user.amount_owned -= amount;
-            share_user.amount_sell += amount;
+            share_user.amount_owned -= remain_coin_amount;
+            share_user.amount_sell += remain_coin_amount;
 
             // TODO check reetrancy guard
 
@@ -873,9 +874,9 @@ pub mod LaunchpadMarketplace {
 
             // TODO finish update state
             // pool_update.price = total_price;
-            pool_update.liquidity_raised -= remain_liquidity;
-            pool_update.total_token_holded -= amount;
-            pool_update.available_supply += amount;
+            pool_update.liquidity_raised -= quote_amount;
+            pool_update.total_token_holded -= remain_coin_amount;
+            pool_update.available_supply += remain_coin_amount;
 
             // Assertion: Ensure the pool's liquidity and token holded are updated correctly
             // assert!(
@@ -911,7 +912,162 @@ pub mod LaunchpadMarketplace {
                     }
                 );
         }
+        // TODO finish and fix
+        // Old version taking quote_amount
+        // fn sell_coin(ref self: ContractState, coin_address: ContractAddress, quote_amount: u256)
+        // {
+        //     let old_pool = self.launched_coins.read(coin_address);
+        //     assert(!old_pool.owner.is_zero(), 'coin not found');
 
+        //     let caller = get_caller_address();
+        //     let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+
+        //     let mut share_user = old_share.clone();
+
+        //     // TODO erc20 token transfer
+        //     let total_supply = old_pool.total_supply;
+        //     let token_quote = old_pool.token_quote.clone();
+        //     let quote_token_address = token_quote.token_address.clone();
+        //     assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
+        //     assert(old_pool.is_liquidity_launch == false, 'token tradeable');
+
+        //     // TODO fix this function
+        //     // let mut amount = self
+        //     //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
+
+        //     // Todo check user amount fee creator if needed
+        //     let creator_fee_percent = self.creator_fee_percent.read();
+        //     let protocol_fee_percent = self.protocol_fee_percent.read();
+
+        //     let amount_protocol_fee: u256 = quote_amount * protocol_fee_percent / BPS;
+        //     let amount_creator_fee = quote_amount * creator_fee_percent / BPS;
+        //     let remain_liquidity = quote_amount - amount_protocol_fee;
+        //     // let amount_to_user: u256 = quote_amount - amount_protocol_fee -
+        //     amount_creator_fee;
+
+        //     let mut amount = get_amount_by_type_of_coin_or_quote(
+        //         old_pool.clone(), coin_address.clone(), remain_liquidity.clone(), false, true
+        //     );
+
+        //     // Verify Amount owned
+        //     assert(old_pool.total_supply >= quote_amount, 'above supply');
+        //     assert(share_user.amount_owned >= amount, 'above supply');
+
+        //     // let mut total_price = amount;
+        //     // println!("amount {:?}", amount);
+        //     // println!("quote_amount {:?}", quote_amount);
+        //     // println!("total_price {:?}", total_price);
+        //     let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+
+        //     // Ensure fee percentages are within valid bounds
+        //     assert(
+        //         protocol_fee_percent <= MAX_FEE_PROTOCOL
+        //             && protocol_fee_percent >= MIN_FEE_PROTOCOL,
+        //         'protocol fee out'
+        //     );
+        //     // assert(
+        //     //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >=
+        //     MIN_FEE_CREATOR, //     'creator_fee out'
+        //     // );
+
+        //     // assert!(old_share.amount_owned >= amount, "share to sell > supply");
+        //     // println!("amount{:?}", amount);
+        //     // assert!(total_supply >= quote_amount, "share to sell > supply");
+        //     // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
+
+        //     let old_price = old_pool.price.clone();
+        //     let total_price = old_pool.price.clone();
+        //     // Update keys with new values
+        //     let mut pool_update = old_pool.clone();
+
+        //     // let remain_liquidity = total_price ;
+        //     assert(old_pool.liquidity_raised >= remain_liquidity, 'liquidity <= amount');
+
+        //     // Ensure fee calculations are correct
+        //     // assert(
+        //     //     amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
+        //     //     'fee calculation mismatch'
+        //     // );
+
+        //     // Assertion: Check if the contract has enough quote tokens to transfer
+        //     let contract_quote_balance = erc20.balance_of(get_contract_address());
+        //     assert!(
+        //         contract_quote_balance >= quote_amount,
+        //         "contract has insufficient quote token balance"
+        //     );
+
+        //     // Transfer protocol fee to the designated destination
+        //     if amount_protocol_fee > 0 {
+        //         erc20.transfer(self.protocol_fee_destination.read(), amount_protocol_fee);
+        //     }
+
+        //     // Transfer the remaining quote amount to the user
+        //     if remain_liquidity > 0 {
+        //         erc20.transfer(caller, remain_liquidity);
+        //     }
+
+        //     // Assertion: Ensure the user receives the correct amount
+        //     let user_received = erc20.balance_of(caller);
+        //     assert(user_received >= remain_liquidity, 'user not receive amount');
+
+        //     // TODO sell coin if it's already sendable and transferable
+        //     // ENABLE if direct launch coin
+        //     // let memecoin = IERC20Dispatcher { contract_address: coin_address };
+        //     // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount);
+
+        //     // TODO fix amount owned and sellable.
+        //     // Update share user coin
+        //     share_user.amount_owned -= amount;
+        //     share_user.amount_sell += amount;
+
+        //     // TODO check reetrancy guard
+
+        //     // Assertion: Ensure pool liquidity remains consistent
+        //     assert!(
+        //         old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after
+        //         sale"
+        //     );
+
+        //     // TODO finish update state
+        //     // pool_update.price = total_price;
+        //     pool_update.liquidity_raised -= remain_liquidity;
+        //     pool_update.total_token_holded -= amount;
+        //     pool_update.available_supply += amount;
+
+        //     // Assertion: Ensure the pool's liquidity and token holded are updated correctly
+        //     // assert!(
+        //     //     pool_update.liquidity_raised + quote_amount == old_pool.liquidity_raised,
+        //     //     "liquidity_raised mismatch after update"
+        //     // );
+        //     // assert!(
+        //     //     pool_update.total_token_holded
+        //     //         + self
+        //     //             ._get_coin_amount_by_quote_amount(
+        //     //                 coin_address, quote_amount, true
+        //     //             ) == old_pool
+        //     //             .total_token_holded,
+        //     //     "total_token_holded mismatch after update"
+        //     // );
+
+        //     self
+        //         .shares_by_users
+        //         .entry((get_caller_address(), coin_address.clone()))
+        //         .write(share_user.clone());
+        //     self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
+        //     self
+        //         .emit(
+        //             SellToken {
+        //                 caller: caller,
+        //                 key_user: coin_address,
+        //                 amount: quote_amount,
+        //                 price: total_price, // Adjust if necessary
+        //                 protocol_fee: amount_protocol_fee,
+        //                 creator_fee: amount_creator_fee,
+        //                 timestamp: get_block_timestamp(),
+        //                 last_price: old_pool.price,
+        //             }
+        //         );
+        // }
 
         // TODO finish check
         //  Launch liquidity if threshold ok

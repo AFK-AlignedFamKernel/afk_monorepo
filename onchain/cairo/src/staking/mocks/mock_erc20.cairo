@@ -1,15 +1,19 @@
 #[starknet::contract]
 pub mod MockToken {
+    use core::num::traits::Zero;
+    use core::starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
+    };
+    use crate::staking::interfaces::IERC20;
     use starknet::event::EventEmitter;
     use starknet::{ContractAddress, get_caller_address};
-    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry};
-    use crate::staking::interfaces::IERC20;
-    use core::num::traits::Zero;
 
     #[storage]
     pub struct Storage {
         balances: Map<ContractAddress, u256>,
-        allowances: Map<(ContractAddress, ContractAddress), u256>, // Mapping<(owner, spender), amount>
+        allowances: Map<
+            (ContractAddress, ContractAddress), u256
+        >, // Mapping<(owner, spender), amount>
         token_name: ByteArray,
         symbol: ByteArray,
         decimal: u8,
@@ -62,7 +66,9 @@ pub mod MockToken {
             balance
         }
 
-        fn allowance(self: @ContractState, owner: ContractAddress, spender: ContractAddress) -> u256 {
+        fn allowance(
+            self: @ContractState, owner: ContractAddress, spender: ContractAddress
+        ) -> u256 {
             let allowance = self.allowances.entry((owner, spender)).read();
 
             allowance
@@ -79,14 +85,21 @@ pub mod MockToken {
             self.balances.entry(sender).write(sender_prev_balance - amount);
             self.balances.entry(recipient).write(recipient_prev_balance + amount);
 
-            assert(self.balances.entry(recipient).read() > recipient_prev_balance, 'Transaction failed');
+            assert(
+                self.balances.entry(recipient).read() > recipient_prev_balance, 'Transaction failed'
+            );
 
             self.emit(Transfer { from: sender, to: recipient, amount });
 
             true
         }
 
-        fn transfer_from(ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256) -> bool {
+        fn transfer_from(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) -> bool {
             let spender = get_caller_address();
 
             let spender_allowance = self.allowances.entry((sender, spender)).read();

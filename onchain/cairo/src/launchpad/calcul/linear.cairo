@@ -5,9 +5,9 @@ use afk::types::launchpad_types::{
     SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
     EkuboLaunchParameters, LaunchCallback
 };
+use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
-
 
 const BPS: u256 = 10_000; // 100% = 10_000 bps
 // const SCALE_FACTOR: u256  = 100_000_000_000_000_000_u256; // Scale factor decimals place for
@@ -25,7 +25,43 @@ const MIN_PRICE: u256 = 1_u256; // Minimum price to prevent division by zero
 // Get the 20% of Bonding curve going to Liquidity
 // Liquidity can be lock to Unrug
 const LIQUIDITY_RATIO: u256 = 5; // Divid by 5 the total supply.
+const SQRT_ITER: u256 = 1000_u256; // Divid by 5 the total supply.
 
+pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+    let total_supply = pool_coin.total_supply.clone();
+    let current_supply = pool_coin.available_supply.clone();
+    let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
+    let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+    let amount_sold = sellable_supply.clone() - current_supply.clone();
+    assert(sellable_supply.clone() > 0, 'Sellable supply == 0 ');
+
+    let slope = threshold_liquidity / (sellable_supply * sellable_supply);
+    let intercept = threshold_liquidity / (2 * sellable_supply);
+
+    let i_cast = (slope * amount_sold + intercept) * (slope * amount_sold + intercept)
+        + 2 * slope * amount_in;
+    let i = fast_sqrt(i_cast.try_into().unwrap(), SQRT_ITER.try_into().unwrap());
+    let amount_out = (i - (slope * amount_sold + intercept).try_into().unwrap())
+        / slope.try_into().unwrap();
+    amount_out.try_into().unwrap()
+}
+
+pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+    let total_supply = pool_coin.total_supply.clone();
+    let current_supply = pool_coin.available_supply.clone();
+    let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
+    let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+    let amount_sold = sellable_supply.clone() - current_supply.clone();
+    assert(sellable_supply.clone() > 0, 'Sellable supply == 0 ');
+
+    let slope = threshold_liquidity / (sellable_supply * sellable_supply);
+    let intercept = threshold_liquidity / (2 * sellable_supply);
+
+    let amount_out = slope * amount_sold * amount_in
+        + slope / 2 * amount_in * amount_in
+        + intercept * amount_in;
+    amount_out
+}
 // TODO fix starting price launch
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,

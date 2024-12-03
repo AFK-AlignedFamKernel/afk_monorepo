@@ -147,7 +147,6 @@ pub mod Nameservice {
         erc20: ERC20Component::Storage,
     }
 
-    
 
     #[event]
     #[derive(Drop, starknet::Event)]
@@ -210,7 +209,6 @@ pub mod Nameservice {
         owner: ContractAddress,
         username: felt252,
         minimal_price: u256,
-
     }
 
     // Required for hash computation.
@@ -359,24 +357,16 @@ pub mod Nameservice {
 
         // TODO
         fn create_auction_for_username(
-            ref self: ContractState,
-            username: felt252,
-            minimal_price: u256,
+            ref self: ContractState, username: felt252, minimal_price: u256,
         ) {
             let caller_address = get_caller_address();
             let username_address = self.get_username_address(username);
 
-            assert(
-                username_address == caller_address, 
-                UserNameClaimErrors::USER_NOT_OWNER
-            );
+            assert(username_address == caller_address, UserNameClaimErrors::USER_NOT_OWNER);
 
             let existing_auction = self.auctions.read(username);
             // TODO change ERROR NAME
-            assert(
-                existing_auction.minimal_price == 0, 
-                UserNameClaimErrors::AUCTION_DOESNT_EXIST
-            );
+            assert(existing_auction.minimal_price == 0, UserNameClaimErrors::AUCTION_DOESNT_EXIST);
 
             // Create a new auction
             let new_auction = Auction {
@@ -388,23 +378,13 @@ pub mod Nameservice {
 
             // Store the auction
             self.auctions.write(username, new_auction);
-            self
-                .emit(
-                    AuctionCreated {
-                        owner: caller_address,
-                        username: username,
-                        minimal_price,
-                    }
-                );
+            self.emit(AuctionCreated { owner: caller_address, username: username, minimal_price, });
         }
 
         // TODO
         fn place_order(ref self: ContractState, username: felt252, amount: u256) {
             let auction = self.auctions.read(username);
-            assert(
-                auction.minimal_price > 0, 
-                UserNameClaimErrors::AUCTION_DOESNT_EXIST
-            );
+            assert(auction.minimal_price > 0, UserNameClaimErrors::AUCTION_DOESNT_EXIST);
             assert(amount > auction.highest_bid, UserNameClaimErrors::BID_LOW);
 
             // Create a new order
@@ -414,7 +394,7 @@ pub mod Nameservice {
             payment_token.transfer_from(bidder, get_contract_address(), amount);
 
             let order_id = self.order_count.entry(username).read() + 1_u256;
-            let new_order = Order { id: order_id, bidder: bidder, amount: amount,  is_active: true };
+            let new_order = Order { id: order_id, bidder: bidder, amount: amount, is_active: true };
 
             // Store the order
             self.orders.entry((username, order_id)).write(new_order);
@@ -572,7 +552,6 @@ pub mod Nameservice {
             self.subscription_expiry.read(address)
         }
 
-        
 
         fn withdraw_fees(ref self: ContractState, amount: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);

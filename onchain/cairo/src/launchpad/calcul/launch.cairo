@@ -1,7 +1,9 @@
 use afk::launchpad::calcul::exponential::{
     get_coin_amount_by_quote_amount_exponential, calculate_initial_price
 };
-use afk::launchpad::calcul::linear::{get_coin_amount_by_quote_amount, calculate_pricing};
+use afk::launchpad::calcul::linear::{
+    get_coin_amount_by_quote_amount, calculate_pricing, get_coin_amount, get_meme_amount
+};
 
 use afk::launchpad::errors;
 use afk::launchpad::math::{PercentageMath, pow_256, max_u256};
@@ -68,9 +70,11 @@ pub fn get_amount_by_type_of_coin_or_quote(
             match x {
                 BondingType::Linear => {
                     if is_quote_amount == true {
-                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                        // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                        get_meme_amount(pool, amount)
                     } else {
-                        get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                        // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                        get_coin_amount(pool, amount)
                     }
                 },
                 BondingType::Exponential => {

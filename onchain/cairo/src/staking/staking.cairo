@@ -133,10 +133,7 @@ pub mod StakingComponent {
             let prev_supply = self.total_supply.read();
             self.total_supply.write(prev_supply + amount);
 
-            self.emit(StakedSuccessful {
-                user: caller,
-                amount
-            });
+            self.emit(StakedSuccessful { user: caller, amount });
         }
 
         fn withdraw(ref self: ComponentState<TContractState>, amount: u256) {
@@ -158,10 +155,7 @@ pub mod StakingComponent {
 
             assert(transfer, Errors::TRANSFER_FAILED);
 
-            self.emit(WithdrawalSuccessful {
-                user: caller,
-                amount
-            });
+            self.emit(WithdrawalSuccessful { user: caller, amount });
         }
 
         fn claim_reward(ref self: ComponentState<TContractState>) {
@@ -179,10 +173,7 @@ pub mod StakingComponent {
                 assert(transfer, Errors::TRANSFER_FAILED);
             }
 
-            self.emit(RewardsWithdrawn {
-                user: caller,
-                amount: reward
-            });
+            self.emit(RewardsWithdrawn { user: caller, amount: reward });
         }
 
 
