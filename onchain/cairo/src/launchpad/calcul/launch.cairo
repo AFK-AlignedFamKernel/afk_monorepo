@@ -1,20 +1,14 @@
-use afk::launchpad::calcul::exponential::{
-    get_coin_amount_by_quote_amount_exponential, 
-    // calculate_initial_price
+use afk::launchpad::calcul::exponential::{get_coin_amount_by_quote_amount_exponential,// calculate_initial_price
 };
 use afk::launchpad::calcul::linear::{
-    get_coin_amount_by_quote_amount, 
-    // calculate_pricing,
-     get_coin_amount, get_meme_amount
+    get_coin_amount_by_quote_amount, // calculate_pricing,
+    get_coin_amount, get_meme_amount
 };
 
 use afk::launchpad::errors;
 // use afk::launchpad::math::{PercentageMath, pow_256, max_u256};
-use afk::types::launchpad_types::{
-    TokenLaunch, BondingType,
-    //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-    EkuboLaunchParameters, LaunchCallback
-};
+use afk::types::launchpad_types::{TokenLaunch, BondingType, //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+EkuboLaunchParameters, LaunchCallback};
 // use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
 

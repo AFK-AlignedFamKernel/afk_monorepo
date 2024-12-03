@@ -771,7 +771,6 @@ pub mod LaunchpadMarketplace {
 
             assert(share_user.amount_owned >= coin_amount, 'above supply');
 
-
             // TODO erc20 token transfer
             let total_supply = old_pool.total_supply;
             let token_quote = old_pool.token_quote.clone();

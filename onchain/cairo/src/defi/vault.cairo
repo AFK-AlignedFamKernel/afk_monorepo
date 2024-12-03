@@ -8,9 +8,8 @@ pub mod Vault {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::vault::{IERCVault};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::constants::{
-        // MINTER_ROLE,
-         ADMIN_ROLE};
+    use afk::types::constants::{// MINTER_ROLE,
+    ADMIN_ROLE};
     use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
@@ -20,12 +19,9 @@ pub mod Vault {
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
 
-    use starknet::{
-        ContractAddress, get_caller_address, 
-        get_contract_address, 
-        //  contract_address_const, 
-        // get_block_timestamp,
-        // ClassHash
+    use starknet::{ContractAddress, get_caller_address, get_contract_address,//  contract_address_const,
+    // get_block_timestamp,
+    // ClassHash
     };
     use super::{DepositUser, TokenPermitted, MintDepositEvent, WithdrawDepositEvent};
 

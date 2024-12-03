@@ -118,19 +118,13 @@ pub mod MemecoinV2 {
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    use starknet::{
-        ContractAddress, 
-        // contract_address_const,
-         get_caller_address, 
-        // get_tx_info,
-        get_block_timestamp, get_block_info
-    };
-    use super::{
-        LiquidityType, LiquidityParameters,
-        //  SupportedExchanges,
-        //  JediswapLiquidityParameters,
-        // EkuboLiquidityParameters, 
-        // EkuboPoolParameters
+    use starknet::{ContractAddress, // contract_address_const,
+    get_caller_address, // get_tx_info,
+    get_block_timestamp, get_block_info};
+    use super::{LiquidityType, LiquidityParameters,//  SupportedExchanges,
+    //  JediswapLiquidityParameters,
+    // EkuboLiquidityParameters,
+    // EkuboPoolParameters
     };
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);

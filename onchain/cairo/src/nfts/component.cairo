@@ -1,9 +1,7 @@
 #[starknet::component]
 pub mod CanvasNFTStoreComponent {
     use afk::interfaces::nfts::{ICanvasNFTStore, NFTMetadata};
-    use starknet::storage::{
-        StoragePointerReadAccess, Map
-    };
+    use starknet::storage::{StoragePointerReadAccess, Map};
     #[storage]
     struct Storage {
         nfts_count: u256,

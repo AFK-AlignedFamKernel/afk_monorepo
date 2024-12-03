@@ -1,12 +1,10 @@
 // use afk::launchpad::errors;
 // use afk::launchpad::math::{ max_u256};
-use afk::types::launchpad_types::{
-    TokenLaunch, 
-    // BondingType, TokenQuoteBuyCoin,
-    // SetJediswapNFTRouterV2, SetJediswapV2Factory,
-    // SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-    // EkuboLaunchParameters, 
-    // LaunchCallback
+use afk::types::launchpad_types::{TokenLaunch,// BondingType, TokenQuoteBuyCoin,
+// SetJediswapNFTRouterV2, SetJediswapV2Factory,
+// SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+// EkuboLaunchParameters,
+// LaunchCallback
 };
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
@@ -91,19 +89,19 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     assert(sellable_supply.clone() > 0, 'Sellable supply == 0 ');
 
     let slope = (threshold_liquidity * SCALE_FACTOR) / (sellable_supply * sellable_supply);
-    let intercept = (threshold_liquidity*SCALE_FACTOR) / (2 * sellable_supply);
+    let intercept = (threshold_liquidity * SCALE_FACTOR) / (2 * sellable_supply);
     // let amount_out = slope * amount_sold * amount_in
     //     + slope / 2 * amount_in * amount_in
     //     + intercept * amount_in;
     // amount_out
 
-     // Calculate amount out
-     let term1 = (slope * amount_sold * amount_in) / SCALE_FACTOR;
-     let term2 = (slope / 2 * amount_in * amount_in) / SCALE_FACTOR;
-     let term3 = (intercept * amount_in) / SCALE_FACTOR;
- 
-     let amount_out = term1 + term2 + term3;
-     amount_out
+    // Calculate amount out
+    let term1 = (slope * amount_sold * amount_in) / SCALE_FACTOR;
+    let term2 = (slope / 2 * amount_in * amount_in) / SCALE_FACTOR;
+    let term3 = (intercept * amount_in) / SCALE_FACTOR;
+
+    let amount_out = term1 + term2 + term3;
+    amount_out
 }
 // TODO fix starting price launch
 pub fn calculate_starting_price_launch(
