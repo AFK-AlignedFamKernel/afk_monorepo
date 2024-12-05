@@ -1,9 +1,9 @@
 // use afk_launchpad::launchpad::errors;
-use afk_launchpad::launchpad::math::{max_u256};
 // use starknet::ContractAddress;
 use afk_launchpad::launchpad::math::{
     pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
 };
+use afk_launchpad::launchpad::math::{max_u256};
 use afk_launchpad::types::launchpad_types::{TokenLaunch, // BondingType, TokenQuoteBuyCoin,
 // SetJediswapNFTRouterV2, SetJediswapV2Factory,
 // SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
@@ -113,37 +113,6 @@ const SQRT_ITER: u256 = 1_u256;
 // return value >> 64  # Divide by 2^64
 // else:
 // return value  # Already fits into u128
-
-// pub fn dynamic_reduce_u256_to_u128(value: u256) -> u128 {
-//     let category = if value >= pow_256(2, 192) {
-//         println!("If's: {}", 1);
-//         3
-//     } else if value >= pow_256(2, 160) {
-//         println!("If's: {}", 2);
-//         2
-//     } else if value >= pow_256(2, 128) {
-//         println!("If's: {}", 3);
-//         1
-//     } else {
-//         println!("If's: {}", 4);
-
-//         0
-//     };
-
-//     let val = match category {
-//         3 => value ^ 128, // Divide by 2^128
-//         2 => value ^ 96, // Divide by 2^96
-//         1 => value ^ 64, // Divide by 2^64
-//         0 => value, // Already fits into u128
-//         _ => value,
-//         // _ => panic('Unexpected case'),
-//     };
-
-//     println!("val: {}", val);
-//     println!("value: {}", value);
-
-//     val.try_into().unwrap()
-// }
 
 pub fn get_meme_amount(
     pool_coin: TokenLaunch,
