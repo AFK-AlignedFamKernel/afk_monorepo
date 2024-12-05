@@ -327,7 +327,9 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
         println!("calcul amount");
         let amount = launchpad
-            .get_amount_by_type_of_coin_or_quote(token_address, amount_quote, is_decreased, is_quote_amount);
+            .get_amount_by_type_of_coin_or_quote(
+                token_address, amount_quote, is_decreased, is_quote_amount
+            );
         println!("amount to receive {:?}", amount);
         amount
     }
@@ -397,9 +399,7 @@ mod launchpad_tests {
         // assert(launched_token.owner == OWNER(), 'wrong owner');
         assert(launched_token.token_address == token_address, 'wrong token address');
         assert(launched_token.total_supply == DEFAULT_INITIAL_SUPPLY(), 'wrong initial supply');
-        assert(
-            launched_token.bonding_curve_type == BondingType::Linear, 'wrong type curve'
-        );
+        assert(launched_token.bonding_curve_type == BondingType::Linear, 'wrong type curve');
         assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
         assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
         // assert(
@@ -473,9 +473,7 @@ mod launchpad_tests {
         // assert(launched_token.owner == OWNER(), 'wrong owner');
         assert(launched_token.token_address == token_address, 'wrong token address');
         assert(launched_token.total_supply == DEFAULT_INITIAL_SUPPLY(), 'wrong initial supply');
-        assert(
-            launched_token.bonding_curve_type == BondingType::Linear, 'wrong type curve'
-        );
+        assert(launched_token.bonding_curve_type == BondingType::Linear, 'wrong type curve');
         assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
         assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
         assert(
@@ -768,10 +766,7 @@ mod launchpad_tests {
         assert(launched_token.owner == OWNER(), 'wrong owner');
         assert(launched_token.token_address == token_address, 'wrong token address');
         assert(launched_token.total_supply == DEFAULT_INITIAL_SUPPLY(), 'wrong initial supply');
-        assert(
-            launched_token.bonding_curve_type == BondingType::Linear,
-            'wrong initial supply'
-        );
+        assert(launched_token.bonding_curve_type == BondingType::Linear, 'wrong initial supply');
         assert(launched_token.price == 0_u256, 'wrong price');
         assert(launched_token.liquidity_raised == 0_u256, 'wrong liquidation raised');
         assert(launched_token.total_token_holded == 0_u256, 'wrong token holded');
@@ -785,6 +780,7 @@ mod launchpad_tests {
     fn test_get_share_of_user_by_contract() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
             .create_and_launch_token(
                 symbol: SYMBOL(),
@@ -794,8 +790,10 @@ mod launchpad_tests {
                 is_unruggable: false
             );
         let memecoin = IERC20Dispatcher { contract_address: token_address };
+        stop_cheat_caller_address(launchpad.contract_address);
 
-        let mut first_buy = 10_u256;
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        let mut first_buy = 9_u256;
         run_buy_by_amount(launchpad, erc20, memecoin, first_buy, token_address, sender_address,);
 
         let share_key = launchpad
@@ -1475,7 +1473,8 @@ mod launchpad_tests {
         let expected_meme_amount: u256 = expected_meme_amount_max
             / 10_u256; // Replace with the expected value from the formula
 
-        let result = launchpad.get_amount_by_type_of_coin_or_quote(token_address, quote_amount, false, true);
+        let result = launchpad
+            .get_amount_by_type_of_coin_or_quote(token_address, quote_amount, false, true);
 
         println!("result {:?}", result);
         println!("expected_meme_amount {:?}", expected_meme_amount);
