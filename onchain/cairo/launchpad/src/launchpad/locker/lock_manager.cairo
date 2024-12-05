@@ -1,9 +1,13 @@
 //TODO(low prio): implement fallback mechanism for snake_case entrypoints
 //TODO(low prio): implement a recover functions for tokens wrongly sent to the contract
+
 #[starknet::contract]
-mod LockManager {
+pub mod LockManager {
     use afk_launchpad::launchpad::locker::errors;
-    use alexandria_storage::list::{List, ListTrait};
+    use afk_launchpad::launchpad::locker::interface::{
+        TokenLock, LockPosition,
+        TokenUnlocked, TokenLocked, TokenWithdrawn, ILockManager};
+    // use alexandria_storage::list::{List, ListTrait};
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::traits::TryInto;
@@ -13,16 +17,39 @@ mod LockManager {
         ContractAddress, contract_address_const, get_caller_address, get_contract_address,
         get_block_timestamp, Store, ClassHash
     };
+    use core::num::traits::Zero;
+    use starknet::storage::{Vec,VecTrait, VecCopy, 
+    StorageAsPath, StoragePath, StoragePointerReadAccess, StoragePointerWriteAccess,
+        MutableVecTrait, VecIndexView,  IndexView, 
+        MutableVecIndexView, MutableVecAsPointer, VecAsPointer,
+};
 
+    use starknet::syscalls::deploy_syscall;
+    use starknet::storage::{
+        Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
+        StoragePointerReadAccess,
+        StoragePointerWriteAccess, StoragePathEntry,
+        // MutableEntryStoragePathEntry,
+    // StorableEntryReadAccess,
+    // StorageAsPathReadForward,
+    // MutableStorableEntryReadAccess,
+    // MutableStorableEntryWriteAccess,
+    // StorageAsPathWriteForward,
+    // PathableStorageEntryImpl
+    };
 
     #[storage]
     struct Storage {
         min_lock_time: u64,
         lock_nonce: u128,
-        locks: LegacyMap<ContractAddress, TokenLock>,
+        locks: Map<ContractAddress, TokenLock>,
         lock_position_class_hash: ClassHash,
-        user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
-        token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+        user_locks: Map<ContractAddress, Vec<felt252>>,
+        token_locks: Map<ContractAddress, Vec<felt252>>,
+        // user_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
+        // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
+        // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+        // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
     }
 
 
@@ -39,28 +66,28 @@ mod LockManager {
         LockAmountIncreased: LockAmountIncreased
     }
 
-    #[derive(Drop, starknet::Event)]
-    struct TokenLocked {
-        #[key]
-        lock_address: ContractAddress,
-        token: ContractAddress,
-        owner: ContractAddress,
-        amount: u256,
-        unlock_time: u64,
-    }
+    // #[derive(Drop, starknet::Event)]
+    // struct TokenLocked {
+    //     #[key]
+    //     lock_address: ContractAddress,
+    //     token: ContractAddress,
+    //     owner: ContractAddress,
+    //     amount: u256,
+    //     unlock_time: u64,
+    // }
 
-    #[derive(Drop, starknet::Event)]
-    struct TokenUnlocked {
-        #[key]
-        lock_address: ContractAddress,
-    }
+    // #[derive(Drop, starknet::Event)]
+    // struct TokenUnlocked {
+    //     #[key]
+    //     lock_address: ContractAddress,
+    // }
 
-    #[derive(Drop, starknet::Event)]
-    struct TokenWithdrawn {
-        #[key]
-        lock_address: ContractAddress,
-        amount: u256
-    }
+    // #[derive(Drop, starknet::Event)]
+    // struct TokenWithdrawn {
+    //     #[key]
+    //     lock_address: ContractAddress,
+    //     amount: u256
+    // }
 
     #[derive(Drop, starknet::Event)]
     struct LockOwnershipTransferred {
@@ -82,20 +109,20 @@ mod LockManager {
         amount_to_increase: u256
     }
 
-    #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
-    struct TokenLock {
-        token: ContractAddress,
-        owner: ContractAddress,
-        unlock_time: u64,
-    }
+    // #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
+    // struct TokenLock {
+    //     token: ContractAddress,
+    //     owner: ContractAddress,
+    //     unlock_time: u64,
+    // }
 
-    #[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
-    struct LockPosition {
-        token: ContractAddress,
-        amount: u256,
-        owner: ContractAddress,
-        unlock_time: u64
-    }
+    // #[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
+    // struct LockPosition {
+    //     token: ContractAddress,
+    //     amount: u256,
+    //     owner: ContractAddress,
+    //     unlock_time: u64
+    // }
 
     /// Initializes a new instance of a LockManager contract.  The constructor
     /// sets the minimum lock time for all locks created by this contract.
@@ -114,7 +141,8 @@ mod LockManager {
     }
 
     #[abi(embed_v0)]
-    impl LockManager of unruggable::locker::ILockManager<ContractState> {
+    impl LockManager of ILockManager<ContractState> {
+    // impl LockManager of afk_launchpad::launchpad::locker::interface::ILockManager<ContractState> {
         fn lock_tokens(
             ref self: ContractState,
             token: ContractAddress,
@@ -220,9 +248,9 @@ mod LockManager {
             let mut token_lock = self.locks.read(lock_address);
 
             // Update owner's lock lists
-            let mut user_locks = self.user_locks.read(token_lock.owner);
+            let mut user_locks = self.user_locks.read(token_lock.owner.try_into().unwrap());
             self.remove_lock_from_list(lock_address, user_locks);
-            let mut new_owner_locks: List<ContractAddress> = self.user_locks.read(new_owner);
+            let mut new_owner_locks: Vec<ContractAddress> = self.user_locks.read(new_owner.try_into().unwrap());
             new_owner_locks.append(lock_address);
 
             // Update lock details
@@ -266,26 +294,26 @@ mod LockManager {
         }
 
         fn user_locks_length(self: @ContractState, user: ContractAddress) -> u32 {
-            let user_locks: List<ContractAddress> = self.user_locks.read(user);
+            let user_locks: Vec<felt252> = self.user_locks.read(user);
             user_locks.len
         }
 
         fn user_lock_at(
             self: @ContractState, user: ContractAddress, index: u32
         ) -> ContractAddress {
-            let user_locks: List<ContractAddress> = self.user_locks.read(user);
+            let user_locks: Vec<felt252> = self.user_locks.read(user);
             user_locks[index]
         }
 
         fn token_locks_length(self: @ContractState, token: ContractAddress) -> u32 {
-            let list: List<ContractAddress> = self.token_locks.read(token);
+            let list: Vec<felt252> = self.token_locks.read(token);
             list.len()
         }
 
         fn token_locked_at(
             self: @ContractState, token: ContractAddress, index: u32
         ) -> ContractAddress {
-            let token_locks: List<ContractAddress> = self.token_locks.read(token);
+            let token_locks: Vec<felt252> = self.token_locks.read(token);
             token_locks[index]
         }
     }
@@ -352,7 +380,7 @@ mod LockManager {
             // Deploy a lock position contract that will receive the tokens.
             // This makes accountability for fee accrual easier,
             // as the tokens are not stored all together in the lock manager contract.
-            let (lock_address, _) = starknet::deploy_syscall(
+            let (lock_address, _) = deploy_syscall(
                 self.lock_position_class_hash.read(),
                 lock_nonce.into(),
                 array![token.into()].span(),
@@ -360,10 +388,10 @@ mod LockManager {
             )
                 .unwrap_syscall();
 
-            let mut user_locks: List<ContractAddress> = self.user_locks.read(withdrawer);
+            let user_locks: Vec<felt252> = self.user_locks.read(withdrawer.try_into().unwrap());
             user_locks.append(lock_address).unwrap_syscall();
 
-            let mut token_locks: List<ContractAddress> = self.token_locks.read(token);
+            let token_locks: Vec<felt252> = self.token_locks.read(token.try_into().unwrap());
             token_locks.append(lock_address).unwrap_syscall();
 
             self.locks.write(lock_address, token_lock);
@@ -376,6 +404,9 @@ mod LockManager {
             return lock_address;
         }
 
+
+        // TODO fix with new Vec
+
         /// Removes the id of a lock from the list of locks of a user.
         ///
         /// Internally, this function reads the list of locks of the specified `owner` or `tokens`
@@ -385,26 +416,47 @@ mod LockManager {
         /// The length of the list is then decremented by one, and the last element of the list is
         /// set to zero.
         fn remove_lock_from_list(
-            self: @ContractState, lock_address: ContractAddress, mut list: List<ContractAddress>
+            // self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
+            self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
         ) {
-            let list_len = list.len();
-            let mut i = 0;
-            loop {
-                if i == list_len {
-                    break;
-                }
-                let current_lock_address = list[i];
-                if current_lock_address != lock_address {
-                    i += 1;
-                    continue;
-                }
-                let last_element = list[list_len - 1];
-                list.set(i, last_element);
-                list.set(list_len - 1, 0.try_into().unwrap());
-                list.len -= 1;
-                Store::write(list.address_domain, list.base, list.len).unwrap_syscall();
-                break;
-            }
+            // let list_len = list.len();
+            // let mut i = 0;
+
+            // let mut list_new: Vec<ContractAddress> = Vec::new();
+
+            // let mut list_clone = list.clone();
+            // loop {
+            //     if i == list_len {
+            //         break;
+            //     }
+            //     let current_lock_address = list_clone[i];
+            //     if current_lock_address != lock_address {
+            //         i += 1;
+            //         continue;
+            //     }
+            //     let last_element = list_clone[list_len - 1];
+            //     list_clone.set(i, last_element);
+            //     list_clone.set(list_len - 1, 0.try_into().unwrap());
+            //     list_clone.len -= 1;
+            //     Store::write(list_clone.address_domain, list_clone.base, list_clone.len).unwrap_syscall();
+            //     break;
+            // // }
+            // loop {
+            //     if i == list_len {
+            //         break;
+            //     }
+            //     let current_lock_address = list[i];
+            //     if current_lock_address != lock_address {
+            //         i += 1;
+            //         continue;
+            //     }
+            //     let last_element = list[list_len - 1];
+            //     list.set(i, last_element);
+            //     list.set(list_len - 1, 0.try_into().unwrap());
+            //     // list.len -= 1;
+            //     Store::write(list.address_domain, list.base, list.len).unwrap_syscall();
+            //     break;
+            // }
         }
     }
 }

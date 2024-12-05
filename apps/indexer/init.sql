@@ -159,3 +159,11 @@ create table renew_subscription(
     _cursor BIGINT,
     time_stamp TEXT
 );
+
+
+create table shares_token_user(
+    id TEXT,
+    owner TEXT,
+    token_address TEXT,
+    amount_owned TEXT
+);
