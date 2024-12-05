@@ -197,7 +197,7 @@ pub mod LaunchpadMarketplace {
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
-        StoragePointerReadAccess,
+         StoragePointerReadAccess,
         StoragePointerWriteAccess, StoragePathEntry,
         // MutableEntryStoragePathEntry,
     // StorableEntryReadAccess,
@@ -1705,10 +1705,9 @@ pub mod LaunchpadMarketplace {
 
             let mut bond_type = BondingType::Linear;
             // let mut bond_type = Option::Some(BondingType::Linear);
-            if let Option::Some(v) = bonding_type {
-                // println!("The maximum is configured to be {}", v);
-                // bond_type=Option::Some(v.clone());
-                // bond_type = v.clone();
+            if let Option::Some(v) = bonding_type {// println!("The maximum is configured to be {}", v);
+            // bond_type=Option::Some(v.clone());
+            // bond_type = v.clone();
             } else {
                 bond_type = BondingType::Linear;
             }
