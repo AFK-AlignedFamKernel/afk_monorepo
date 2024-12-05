@@ -1,4 +1,8 @@
 // use afk_launchpad::launchpad::errors;
+// use starknet::ContractAddress;
+use afk_launchpad::launchpad::math::{
+    pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
+};
 use afk_launchpad::launchpad::math::{max_u256};
 use afk_launchpad::types::launchpad_types::{TokenLaunch, // BondingType, TokenQuoteBuyCoin,
 // SetJediswapNFTRouterV2, SetJediswapV2Factory,
@@ -8,7 +12,7 @@ use afk_launchpad::types::launchpad_types::{TokenLaunch, // BondingType, TokenQu
 };
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
-// use starknet::ContractAddress;
+
 
 const BPS: u256 = 10_000; // 100% = 10_000 bps
 // const SCALE_FACTOR: u256  = 100_000_000_000_000_000_u256; // Scale factor decimals place for
@@ -100,8 +104,20 @@ const SQRT_ITER: u256 = 1_u256;
 //     let amount_out = numerator / slope.try_into().unwrap();
 //     amount_out.try_into().unwrap()
 // }
-pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256,// current_threshold_liquidity: u256, // Admin-adjustable threshold liquidity
-// scale_factor: u256,
+
+// if value >= 2**192:
+// return value >> 128  # Divide by 2^128
+// else if value >= 2**160:
+// return value >> 96  # Divide by 2^96
+// elif value >= 2**128:
+// return value >> 64  # Divide by 2^64
+// else:
+// return value  # Already fits into u128
+
+pub fn get_meme_amount(
+    pool_coin: TokenLaunch,
+    amount_in: u256, // current_threshold_liquidity: u256, // Admin-adjustable threshold liquidity
+    // scale_factor: u256,
 // sqrt_iterations: u256, // Number of iterations for the square root approximation
 ) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
@@ -139,9 +155,14 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256,// current_thresh
     let term2 = (2 * slope * amount_in) / SCALE_FACTOR;
     let i_cast = term1 + term2;
 
+    let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
+
+    //TODO: account for when i_cast might be bigger than u128
     // Compute the square root using a safe approximation
-    let i = fast_sqrt(i_cast.try_into().unwrap(), SQRT_ITER.try_into().unwrap());
-    // let i = fast_sqrt(i_cast.try_into().unwrap(), sqrt_iterations.try_into().unwrap());
+    // let i = fast_sqrt(i_cast.try_into().unwrap(), SQRT_ITER.try_into().unwrap());
+    let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
+
+    let i = dynamic_scale_u128_to_u256(res, exp);
 
     // Calculate amount out
     let numerator = i - ((slope * amount_sold + intercept) / SCALE_FACTOR).try_into().unwrap();
