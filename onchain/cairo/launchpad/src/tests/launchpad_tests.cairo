@@ -799,11 +799,6 @@ mod launchpad_tests {
         let share_key = launchpad
             .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
-        println!("amount_owned 1: {}", share_key.amount_owned);
-        println!("amount_buy 1: {}", share_key.amount_buy);
-        println!("amount_sell 1: {}", share_key.amount_sell);
-        println!("total_paid 1: {}", share_key.total_paid);
-
         assert(share_key.owner == sender_address, 'wrong owner');
         assert(share_key.token_address == memecoin.contract_address, 'wrong token address');
     }

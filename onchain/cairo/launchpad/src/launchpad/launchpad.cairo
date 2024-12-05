@@ -1705,7 +1705,8 @@ pub mod LaunchpadMarketplace {
 
             let mut bond_type = BondingType::Linear;
             // let mut bond_type = Option::Some(BondingType::Linear);
-            if let Option::Some(v) = bonding_type {// println!("The maximum is configured to be {}", v);
+            if let Option::Some(v) =
+                bonding_type { // println!("The maximum is configured to be {}", v);
             // bond_type=Option::Some(v.clone());
             // bond_type = v.clone();
             } else {

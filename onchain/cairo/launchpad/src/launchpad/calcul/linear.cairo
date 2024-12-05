@@ -1,7 +1,9 @@
 // use afk_launchpad::launchpad::errors;
 use afk_launchpad::launchpad::math::{max_u256};
 // use starknet::ContractAddress;
-use afk_launchpad::launchpad::math::{pow_256};
+use afk_launchpad::launchpad::math::{
+    pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
+};
 use afk_launchpad::types::launchpad_types::{TokenLaunch, // BondingType, TokenQuoteBuyCoin,
 // SetJediswapNFTRouterV2, SetJediswapV2Factory,
 // SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
@@ -143,68 +145,6 @@ const SQRT_ITER: u256 = 1_u256;
 //     val.try_into().unwrap()
 // }
 
-pub fn dynamic_reduce_u256_to_u128(value: u256) -> (u128, u8) {
-    let category = if value >= pow_256(2, 192) {
-        println!("If's: {}", 1);
-        3
-    } else if value >= pow_256(2, 160) {
-        println!("If's: {}", 2);
-        2
-    } else if value >= pow_256(2, 128) {
-        println!("If's: {}", 3);
-        1
-    } else {
-        println!("If's: {}", 4);
-
-        0
-    };
-
-    let result = match category {
-        3 => {
-            let x = value / pow_256(2, 128); // Divide by 2^128
-            (x, 128)
-        },
-        2 => {
-            let x = value / pow_256(2, 96); // Divide by 2^96
-            (x, 96)
-        },
-        1 => {
-            let x = value / pow_256(2, 64); // Divide by 2^64
-             (x, 64)
-        },
-        0 => (value, 0), // Already fits into u128
-        _ => (value, 0),
-    };
-
-    println!("value: {}", value);
-
-    let (val, exponent) = result;
-    (val.try_into().unwrap(), exponent)
-}
-
-pub fn dynamic_scale_u128_to_u256(value: u128, e: u8) -> u256 {
-        let category = if e == 128 {
-        3
-    } else if e == 96 {
-        2
-    } else if e == 64 {
-        1
-    } else {
-        0
-    };
-
-    let val = match category {
-        3 => value.into() * pow_256(2, 128), // Multiply by 2^128
-        2 => value.into() * pow_256(2, 96), // Multiply by 2^96
-        1 => value.into() * pow_256(2, 96), // Multiply by 2^64
-        0 => value.into(),
-        _ => value.into(),
-    };
-
-    val.into()
-}
-
-
 pub fn get_meme_amount(
     pool_coin: TokenLaunch,
     amount_in: u256, // current_threshold_liquidity: u256, // Admin-adjustable threshold liquidity
@@ -225,8 +165,6 @@ pub fn get_meme_amount(
     let effective_scale_factor = SCALE_FACTOR * max_u256(1, 1_000 / sellable_supply);
     assert!(effective_scale_factor > 0, "Effective scale factor must be positive");
 
-    println!("step: {}", 2);
-
     // Pre-scale supply for very large ranges
     let scaled_supply = if sellable_supply > 1_000_000_000 {
         sellable_supply / SCALE_FACTOR
@@ -234,51 +172,34 @@ pub fn get_meme_amount(
         sellable_supply
     };
 
-    println!("step: {}", 3);
     // Calculate slope with dynamic threshold liquidity
     let slope = max_u256(
         (current_threshold_liquidity * effective_scale_factor) / (scaled_supply * scaled_supply),
         1, // Minimum slope to prevent division by zero
     );
 
-    println!("step: {}", 4);
     // Calculate intercept with dynamic threshold liquidity
     let intercept = (current_threshold_liquidity * effective_scale_factor) / (2 * scaled_supply);
     assert!(intercept > 0, "Intercept calculation resulted in zero");
 
-    println!("step: {}", 5);
     // Compute the intermediate value for `i_cast` with scale adjustments
     let term1 = (slope * amount_sold + intercept) * (slope * amount_sold + intercept);
     let term2 = (2 * slope * amount_in) / SCALE_FACTOR;
     let i_cast = term1 + term2;
-    // let i_cast =  5625000000_u256;
 
-    println!("step: {}", 6);
     let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
-
-    println!("term1: {}", term1);
-    println!("term2: {}", term2);
-    println!("i_cast: {}", i_cast);
-    println!("reduced_i_cast: {}", reduced_i_cast);
 
     //TODO: account for when i_cast might be bigger than u128
     // Compute the square root using a safe approximation
     // let i = fast_sqrt(i_cast.try_into().unwrap(), SQRT_ITER.try_into().unwrap());
     let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
 
-    println!("res: {}", res);
-    println!("exp: {}", exp);
-
     let i = dynamic_scale_u128_to_u256(res, exp);
-
-    println!("scaled_i_cast: {}", i);
 
     // Calculate amount out
     let numerator = i - ((slope * amount_sold + intercept) / SCALE_FACTOR).try_into().unwrap();
     let amount_out = numerator / slope.try_into().unwrap();
     amount_out.try_into().unwrap()
-
-    // 7_u256
 }
 
 
