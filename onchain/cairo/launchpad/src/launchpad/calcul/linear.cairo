@@ -120,7 +120,6 @@ pub fn get_meme_amount(
     // scale_factor: u256,
 // sqrt_iterations: u256, // Number of iterations for the square root approximation
 ) -> u256 {
-    println!("step: {}", 1);
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
