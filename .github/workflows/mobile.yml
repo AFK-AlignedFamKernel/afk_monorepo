@@ -63,5 +63,5 @@ jobs:
       - name: TypeScript Check
         run: pnpm ts:check
 
-      -name: Build
+      - name: Build
         run: pnpm build:web
