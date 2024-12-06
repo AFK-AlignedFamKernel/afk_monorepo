@@ -9,9 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: foundry-rs/setup-foundry@v3
-        with:
-          foundry-version: '0.25.0'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
       - name: Foundry version
         run: forge --version
         working-directory: onchain/solidity_contracts
