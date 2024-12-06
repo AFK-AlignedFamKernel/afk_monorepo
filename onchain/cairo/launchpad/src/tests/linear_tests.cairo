@@ -15,9 +15,12 @@ mod linear_tests {
 
     const THRESHOLD_LIQUIDITY: u256 = 10;
 
+    const SCALE_FACTOR: u256 = 100_000_000_000_000_000_000_u256;
 
 
-    fn get_token_launch(total_supply: u256, threshold_liquidity: u256, available_supply: u256) -> TokenLaunch {
+    fn get_token_launch(
+        total_supply: u256, threshold_liquidity: u256, available_supply: u256
+    ) -> TokenLaunch {
         let token_quote_buy = TokenQuoteBuyCoin {
             token_address: '123'.try_into().unwrap(),
             starting_price: 0_u256,
@@ -55,12 +58,12 @@ mod linear_tests {
     // #[test]
     // #[should_panic(expected: ('Sellable supply == 0',))]
     // fn test_get_meme_amount_sellable_amount_zero() {
-        //     let token_launch = get_token_launch(0_u256, 0_u256);
-        //     let amount_in = 10;
-        
-        //     let amount = get_meme_amount(token_launch, amount_in);
-        // }
-        
+    //     let token_launch = get_token_launch(0_u256, 0_u256);
+    //     let amount_in = 10;
+
+    //     let amount = get_meme_amount(token_launch, amount_in);
+    // }
+
     //     #[test]
     //     #[should_panic(expected: ('Threshold liquidity == 0',))]
     // fn test_get_meme_amount_threshold_liquidity_zero() {
@@ -71,12 +74,47 @@ mod linear_tests {
     // }
 
     #[test]
-    fn test_get_meme_amount_ok() {
-        let token_launch = get_token_launch(100_000_000, THRESHOLD_LIQUIDITY, 80_000_000);
-        let amount_in = 40_000_000;
+    fn test_get_meme_amount_with_diminishing_supply() {
+        let mut available_supply = 80_000_000;
+        let mut token_launch = get_token_launch(100_000_000, THRESHOLD_LIQUIDITY, available_supply);
+        let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
 
-        let amount = get_meme_amount(token_launch, amount_in);
+        let mut amount_outs = array![];
 
-        println!("amount: {}", amount);
+        for amount_in in amounts {
+            let amount_out = get_meme_amount(token_launch, amount_in);
+
+            token_launch.available_supply -= 20_000_000;
+            println!("token_launch.available_supply: {}",  token_launch.available_supply);
+            amount_outs.append(amount_out);
+            println!("looping ------------------------------------------",);
+        };
+
+        println!("amount 1 : {}", amount_outs.at(0));
+        println!("amount 2 : {}", amount_outs.at(1));
+        println!("amount 3 : {}", amount_outs.at(2));
+        println!("amount 4 : {}", amount_outs.at(3));
+    }
+
+    #[test]
+    fn test_get_meme_amount_fixed_supply() {
+        let mut available_supply = 80_000_000;
+        let mut token_launch = get_token_launch(100_000_000, THRESHOLD_LIQUIDITY, available_supply);
+        let amounts = array![10_000_000, 20_000_000, 40_000_000, 60_000_000, 79_000_000];
+
+        let mut amount_outs = array![];
+
+        for amount_in in amounts {
+            let amount_out = get_meme_amount(token_launch, amount_in);
+            amount_outs.append(amount_out);
+
+            println!("looping ------------------------------------------",);
+        };
+
+        println!("amount 1 : {}", amount_outs.at(0));
+        println!("amount 2 : {}", amount_outs.at(1));
+        println!("amount 3 : {}", amount_outs.at(2));
+        println!("amount 4 : {}", amount_outs.at(3));
+        println!("amount 4 : {}", amount_outs.at(4));
     }
 }
