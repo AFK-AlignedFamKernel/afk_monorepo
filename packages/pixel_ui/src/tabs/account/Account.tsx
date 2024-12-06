@@ -62,7 +62,7 @@ const Account = (props) => {
   };
 
 
-  const connectorLogo = (name) => {
+  const connectorLogo = (name:string) => {
     switch (name) {
       case 'Argent':
       case 'ArgentX':
@@ -94,7 +94,7 @@ const Account = (props) => {
   // TODO: Connect wallet page if no connectors
   // const { connect: connectHook, connectors } = useConnect();
 
-  let [availableConnectors, setAvailableConnectors] = useState([]);
+  let [availableConnectors, setAvailableConnectors] = useState<any>([]);
 
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
@@ -106,36 +106,6 @@ const Account = (props) => {
     );
   }, [props.address]);
 
-
-  // useEffect(() => {
-  //   if (devnetMode) {
-  //     // if (connected) {
-  //     //   setQueryAddress(
-  //     //     '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-  //     //   );
-  //     // } else {
-  //     //   setQueryAddress('0');
-  //     // }
-  //   } else {
-  //     if (!address) {
-  //       setQueryAddress('0');
-  //     } else {
-  //       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-  //     }
-  //   }
-  //   if (!address) {
-  //     setQueryAddress('0');
-  //   } else {
-  //     setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-  //   }
-
-  //   if (!account?.address) {
-  //     setQueryAddress('0');
-  //   } else {
-  //     setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
-  //   }
-
-  // }, [address, connected, account]);
 
 
   const [userAwards, setUserAwards] = useState([]);
@@ -459,11 +429,12 @@ const Account = (props) => {
                     {connectorLogo(connector.name) && (
                       <img
                         className='Account__wallet__icon'
+                        // @ts-ignore
                         src={connectorLogo(connector.name)}
                         alt='wallet'
                       />
                     )}
-                    <p>{connectorName(connector.name)}</p>
+                    <p>{connectorName?.(connector.name)}</p>
                   </div>
                 );
               })}

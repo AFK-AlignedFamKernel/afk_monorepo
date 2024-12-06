@@ -68,15 +68,15 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   };
 
   // Starknet wallet
-    const [wallet, setWallet] = useState(null);
+    const [wallet, setWallet] = useState<any>(null);
     const [address, setAddress] = useState(null);
-    const [connectorData, setConnectorData] = useState(null);
-    const [_connector, setConnector] = useState(null);
-    const [account, setAccount] = useState(null);
-    const [_sessionRequest, setSessionRequest] = useState(null);
-    const [_accountSessionSignature, setAccountSessionSignature] = useState(null);
+    const [connectorData, setConnectorData] = useState<any>(null);
+    const [_connector, setConnector] = useState<any>(null);
+    const [account, setAccount] = useState<any>(null);
+    const [_sessionRequest, setSessionRequest] = useState<any>(null);
+    const [_accountSessionSignature, setAccountSessionSignature] = useState<any>(null);
     const [isSessionable, setIsSessionable] = useState(false);
-    const [usingSessionKeys, setUsingSessionKeys] = useState(false);
+    const [usingSessionKeys, setUsingSessionKeys] = useState<any>(false);
     const [queryAddress, setQueryAddress] = useState('0');
     const [connected, setConnected] = useState(false); // TODO: change to only devnet
     useEffect(() => {
@@ -93,9 +93,9 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setQueryAddress('0');
         } else {
           setQueryAddress(
-            connectorData.account.slice(2).toLowerCase().padStart(64, '0')
+            connectorData?.account?.slice(2).toLowerCase().padStart(64, '0')
           );
-          setAddress(connectorData.account);
+          setAddress(connectorData?.account);
         }
       }
     }, [connectorData, connected]);
@@ -754,13 +754,7 @@ const disconnectWallet = async () => {
 
 const startSession = async () => {
   const sessionParams = {
-    // allowedMethods: allowedMethods,
-//Todo add the allowedMethods from the config and use process.env.NEXT_PUBLIC instead of process.env.REACT_APP since we are deploying to nextjs environment
-    allowedMethods: [
-      {
-        'Contract Address': process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS,
-        selector: 'place_extra_pixels',
-    }],
+    allowedMethods,
     expiry: expiry,
     metaData: metaData(false),
     publicDappKey: dappKey.publicKey
