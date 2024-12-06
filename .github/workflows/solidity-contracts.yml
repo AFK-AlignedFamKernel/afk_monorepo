@@ -1,6 +1,14 @@
 name: Solidity Contracts
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "onchain/solidity_contracts/**"
+  pull_request:
+    paths:
+      - "onchain/solidity_contracts/**"
 
 permissions: read-all
 

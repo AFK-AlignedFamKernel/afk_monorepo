@@ -7,8 +7,6 @@ on:
     paths:
       - "apps/website/**"
   pull_request:
-    branches:
-      - main
     paths:
       - "apps/website/**"
 

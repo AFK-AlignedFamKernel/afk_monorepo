@@ -1,6 +1,14 @@
 name: Starknet Contracts
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "onchain/cairo/**"
+  pull_request:
+    paths:
+      - "onchain/cairo/**"
 
 permissions: read-all
 
