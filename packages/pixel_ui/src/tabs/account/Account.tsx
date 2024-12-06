@@ -1,43 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { AccountInterface, constants, Signature, stark } from 'starknet';
+import {constants} from 'starknet';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
-import { backendUrl, devnetMode, expiry, metaData, dappKey, getProvider } from '../../utils/Consts.js';
-import { allowedMethods } from '../../utils/Session';
-import { connect, ConnectorData, StarknetWindowObject } from 'starknetkit-next';
+import { backendUrl, devnetMode } from '../../utils/Consts.js';
 import { fetchWrapper } from '../../services/apiService.js';
 import BeggarRankImg from '../../resources/ranks/Beggar.png';
 import OwlRankImg from '../../resources/ranks/Owl.png';
 import CrownRankImg from '../../resources/ranks/Crown.png';
 import WolfRankImg from '../../resources/ranks/Wolf.png';
-import EditIcon from '../../resources/icons/Edit.png';
-import SearchIcon from '../../resources/icons/Search.png';
 import ArgentIcon from '../../resources/icons/Argent.png';
 import BraavosIcon from '../../resources/icons/Braavos.png';
-import {
-  useAccount,
-  useContract,
-  useNetwork,
-  useConnect,
-  Connector
-} from '@starknet-react/core';
-import { disconnect } from 'starknetkit-next';
-import { buildSessionAccount, createSessionRequest, OffChainSession, openSession } from '@argent/x-sessions';
+
 const Account = (props) => {
-  const { address, account } = useAccount()
-  const [queryAddress, setQueryAddress] = useState('0');
   const [username, setUsername] = useState('');
   const [pixelCount, setPixelCount] = useState(0);
   const [accountRank, setAccountRank] = useState('');
-  const [accountState, setAccount] = useState<AccountInterface | undefined>();
+
   // TODO: Mint rank images when reached w/ button
   const [rankBackground, setRankBackground] = useState({
     background:
       'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1))'
   });
   const [accountRankImg, setAccountRankImg] = useState<any | null>(null);
-  const [isOpenConnector, setIsOpenConnector] = useState(false);
+
+  const {isSessionable, usingSessionKeys} = props!;
+
+  console.log(isSessionable, usingSessionKeys,"keys")
+
 
   const [usernameSaved, setUsernameSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -101,83 +91,11 @@ const Account = (props) => {
         return name;
     }
   };
-  const [_sessionRequest, setSessionRequest] = useState<OffChainSession | null>(null);
-  const [_accountSessionSignature, setAccountSessionSignature] = useState<string[] | Signature | null>(null);
-  const [isSessionable, setIsSessionable] = useState(false);
-  const [usingSessionKeys, setUsingSessionKeys] = useState(false);
   // TODO: Connect wallet page if no connectors
-  const { connect: connectHook, connectors } = useConnect();
-  const [connected, setConnected] = useState(false); // TODO: change to only devnet
+  // const { connect: connectHook, connectors } = useConnect();
 
-  let [availableConnectors, setAvailableConnectors] = useState(connectors);
-  // Account
-  // Starknet wallet
-  const [wallet, setWallet] = useState<StarknetWindowObject | undefined | null>(null);
-  const [connectorData, setConnectorData] = useState<ConnectorData | undefined | null>(null);
-  const [_connector, setConnector] = useState(null);
-  const canSession = (wallet) => {
-    let sessionableIds = [
-      'argentX',
-      'ArgentX',
-      'argent',
-      'Argent',
-      'argentMobile',
-      'ArgentMobile',
-      'argentWebWallet',
-      'ArgentWebWallet'
-    ];
-    if (sessionableIds.includes(wallet.id)) {
-      return true;
-    }
-    return false;
-  };
+  let [availableConnectors, setAvailableConnectors] = useState([]);
 
-  const connectWallet = async () => {
-    // if (devnetMode) {
-    //   setConnected(true);
-    //   return;
-    // }
-    console.log("try connect wallet")
-    const { wallet, connectorData, connector } =
-      await connect({
-        modalMode: 'alwaysAsk',
-        // webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
-        argentMobileOptions: {
-          dappName: 'afk/pwa',
-          url: window.location.hostname,
-          // chainId: CHAIN_ID,
-          icons: []
-        }
-      });
-    if (wallet && connectorData
-      && connector
-
-    ) {
-      console.log("wallet", wallet)
-      console.log("canSession")
-      const connectorCore = {
-        ...connector,
-        icon: {
-          dark: connector?.icon,
-          light: connector?.icon,
-        }
-      } as Connector
-      console.log("connectorCore", connectorCore)
-      // console.log("wallet?.selectedAddress", wallet?.selectedAddress)
-      // // setQueryAddress(connectorData?.account.address?.slice(2).toLowerCase().padStart(64, '0'));
-      // // setQueryAddress(connector?.wallet?.address?.slice(2).toLowerCase().padStart(64, '0'));
-      // setQueryAddress(wallet?.selectedAddress?.slice(2).toLowerCase().padStart(64, '0'));
-      setConnectorData(connectorData);
-      setConnected(true);
-      setWallet(wallet);
-      // let new_account = await connector.account(window?.starknet);
-      // setAccount(new_account);
-      setIsSessionable(canSession(wallet));
-      console.log('canSession(wallet):', canSession(wallet));
-      await connectHook({ connector: connectorCore })
-
-    }
-  };
   const [addressShort, setAddressShort] = useState('');
   useEffect(() => {
     if (!props.address) return;
@@ -187,35 +105,39 @@ const Account = (props) => {
         : ''
     );
   }, [props.address]);
-  useEffect(() => {
-    if (devnetMode) {
-      // if (connected) {
-      //   setQueryAddress(
-      //     '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-      //   );
-      // } else {
-      //   setQueryAddress('0');
-      // }
-    } else {
-      if (!address) {
-        setQueryAddress('0');
-      } else {
-        setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-      }
-    }
-    if (!address) {
-      setQueryAddress('0');
-    } else {
-      setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-    }
 
-    if (!account?.address) {
-      setQueryAddress('0');
-    } else {
-      setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
-    }
 
-  }, [address, connected, account]);
+  // useEffect(() => {
+  //   if (devnetMode) {
+  //     // if (connected) {
+  //     //   setQueryAddress(
+  //     //     '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
+  //     //   );
+  //     // } else {
+  //     //   setQueryAddress('0');
+  //     // }
+  //   } else {
+  //     if (!address) {
+  //       setQueryAddress('0');
+  //     } else {
+  //       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
+  //     }
+  //   }
+  //   if (!address) {
+  //     setQueryAddress('0');
+  //   } else {
+  //     setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
+  //   }
+
+  //   if (!account?.address) {
+  //     setQueryAddress('0');
+  //   } else {
+  //     setQueryAddress(account?.address?.slice(2).toLowerCase().padStart(64, '0'));
+  //   }
+
+  // }, [address, connected, account]);
+
+
   const [userAwards, setUserAwards] = useState([]);
   const [claimText, setClaimText] = useState('');
   useEffect(() => {
@@ -251,7 +173,7 @@ const Account = (props) => {
     };
 
     fetchAwards();
-  }, [queryAddress]);
+  }, [props.queryAddress]);
 
   const [showClaimInfo, setShowClaimInfo] = useState(false);
   useEffect(() => {
@@ -320,27 +242,19 @@ const Account = (props) => {
   };
 
   useEffect(() => {
-    // if (!props.connectors) return;
-    // if (devnetMode) {
-    //   setAvailableConnectors(props.connectors);
-    //   return;
-    // }
-
+    if (!props.connectors) return;
+    if (devnetMode) {
+      setAvailableConnectors(props.connectors);
+      return;
+    }
     const checkIfAvailable = async () => {
       let availableConnectors: any[] = [];
-      for (let i = 0; i < connectors.length; i++) {
-        let available = await connectors[i].available();
+      for (let i = 0; i < props.connectors.length; i++) {
+        let available = await props.connectors[i].available();
         if (available) {
-          availableConnectors.push(connectors[i]);
+          availableConnectors.push(props.connectors[i]);
         }
       }
-      // let availableConnectors: any[] = [];
-      // for (let i = 0; i < props.connectors.length; i++) {
-      //   let available = await props.connectors[i].available();
-      //   if (available) {
-      //     availableConnectors.push(props?.connectors[i]);
-      //   }
-      // }
       setAvailableConnectors(availableConnectors);
     };
     checkIfAvailable();
@@ -421,7 +335,7 @@ const Account = (props) => {
   };
 
   useEffect(() => {
-    const getUsernameUrl = `get-username?address=${queryAddress}`;
+    const getUsernameUrl = `get-username?address=${props.queryAddress}`;
     async function fetchUsernameUrl() {
       const result = await fetchWrapper(getUsernameUrl);
       if (result.data === null || result.data === '') {
@@ -433,11 +347,11 @@ const Account = (props) => {
       }
     }
     fetchUsernameUrl();
-  }, [queryAddress]);
+  }, [props.queryAddress]);
 
   useEffect(() => {
     const fetchPixelCount = async () => {
-      const getPixelCountUrl = `${backendUrl}/get-pixel-count?address=${queryAddress}`;
+      const getPixelCountUrl = `${backendUrl}/get-pixel-count?address=${props.queryAddress}`;
       const response = await fetch(getPixelCountUrl);
       if (response.ok) {
         const result = await response.json();
@@ -448,7 +362,7 @@ const Account = (props) => {
     };
 
     fetchPixelCount();
-  }, [queryAddress]);
+  }, [props.queryAddress]);
 
   const [animatedRankColor, setAnimatedRankColor] = React.useState(0);
   const btrColorOffset = 1000;
@@ -501,93 +415,17 @@ const Account = (props) => {
     console.log('Show pixel history');
   };
 
-  const startSession = async () => {
-    const sessionParams = {
-      allowedMethods: allowedMethods,
-      expiry: BigInt(expiry),
-      metaData: metaData(false),
-      publicDappKey: dappKey.publicKey
-    };
-    const provider = await getProvider()
-    let chainId = await provider.getChainId();
-    console.log("props wallet", props?.wallet)
-    console.log("chainId", chainId)
-    console.log("wallet", wallet)
-    console.log("window?.swo", window?.swo)
-    console.log("window?.starknet", window?.starknet)
-    const accountSessionSignature = await openSession({
-      // wallet: window?.starknet,
-      // wallet: wallet ?? props?.wallet ?? window?.swo,
-      wallet: wallet ?? props?.wallet ?? window?.starknet,
-      sessionParams: sessionParams,
-      // chainId: constants.StarknetChainId.SN_SEPOLIA?.toString() as constants.StarknetChainId
-      chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
-    });
-    const sessionRequest = createSessionRequest(
-      allowedMethods,
-      BigInt(expiry),
-      metaData(false),
-      dappKey.publicKey,
-
-    );
-    if (!accountSessionSignature || !sessionRequest) {
-      console.error('Session request failed');
-      return;
-    }
-    setSessionRequest(sessionRequest);
-    setAccountSessionSignature(accountSessionSignature);
-    if (!address
-      || !connectorData
-    ) {
-      console.error('No address or connector data');
-      return;
-    }
-    const sessionAccount = await buildSessionAccount({
-      useCacheAuthorisation: false,
-      accountSessionSignature: stark.formatSignature(accountSessionSignature),
-      sessionRequest: sessionRequest,
-      provider: provider,
-      chainId: chainId,
-      address: address,
-      dappKey: dappKey,
-      // argentSessionServiceBaseUrl:
-      //   process.env.REACT_APP_ARGENT_SESSION_SERVICE_BASE_URL
-    });
-    if (!sessionAccount) {
-      console.error('Session account failed');
-      return;
-    }
-    // setAccount(sessionAccount);
-    setUsingSessionKeys(true);
-  };
-  const disconnectWallet = async () => {
-    // if (devnetMode) {
-    //   setConnected(false);
-    //   return;
-    // }
-    console.log("disconnectWallet")
-    setWallet(null);
-    setConnectorData(null);
-    setConnected(false);
-    // setAccount(null);
-    setSessionRequest(null);
-    setAccountSessionSignature(null);
-    setUsingSessionKeys(false);
-    setIsSessionable(false);
-    setQueryAddress("0")
-    await disconnect()
-
-  };
-
   // TODO: Ethereum login
+
+ 
 
   return (
     <BasicTab
       title='Account'
-      queryAddress={queryAddress}
+      queryAddress={props.queryAddress}
       setActiveTab={props.setActiveTab}
     >
-      {queryAddress === '0' && (
+        {props.queryAddress === '0' && (
         <div
           style={{
             display: 'flex',
@@ -598,51 +436,11 @@ const Account = (props) => {
           <div className='Account__login'>
             <div
               className='Text__medium Button__primary Account__login__button'
-              onClick={() => {
-                // props.connectWallet
-                console.log("try connect")
-                connectWallet()
-
-                // // connect()
-                // setIsOpenConnector(!isOpenConnector)
-              }
-
-              }
+              onClick={props.connectWallet}
             >
               Starknet Login
             </div>
           </div>
-          {isOpenConnector &&
-
-            <>
-              {availableConnectors.map((connector) => {
-                return (
-                  <div
-                    className='Text__medium Button__primary Account__walletlogin__button'
-                    key={connector.id}
-                    onClick={() => {
-                      props.connectWallet(connector)
-
-                      connectWallet()
-                      // props.connectWallet(connector)
-                    }
-                    }
-                  >
-                    {/* {connectorLogo(connector.name) && (
-                      <img
-                        className='Account__wallet__icon'
-                        src={connectorLogo(connector.name)}
-                        alt='wallet'
-                      />
-                    )} */}
-                    <p>{connectorName(connector.name)}</p>
-                  </div>
-                );
-              })}
-
-            </>
-          }
-
           <div
             className={
               'Account__wallet__select' +
@@ -658,13 +456,13 @@ const Account = (props) => {
                     key={connector.id}
                     onClick={() => props.connectWallet(connector)}
                   >
-                    {/* {connectorLogo(connector.name) && (
+                    {connectorLogo(connector.name) && (
                       <img
                         className='Account__wallet__icon'
                         src={connectorLogo(connector.name)}
                         alt='wallet'
                       />
-                    )} */}
+                    )}
                     <p>{connectorName(connector.name)}</p>
                   </div>
                 );
@@ -704,7 +502,8 @@ const Account = (props) => {
           </div>
         </div>
       )}
-      {queryAddress !== '0' && (
+  
+      {props.queryAddress !== '0' && (
         <div>
           <h2 className='Text__medium Heading__sub Account__subheader'>Info</h2>
           {usernameSaved && !isEditing ? (
@@ -797,8 +596,8 @@ const Account = (props) => {
             <div className='Account__item'>
               <p className='Text__small Account__item__label'>Dev Account</p>
               <p className='Text__small Account__item__text'>
-                0x{queryAddress.slice(0, 4)}...
-                {queryAddress.slice(-4)}
+                0x{props.queryAddress.slice(0, 4)}...
+                {props.queryAddress.slice(-4)}
               </p>
             </div>
           )}
@@ -853,7 +652,7 @@ const Account = (props) => {
           <div className='Account__disconnect__button__separator'></div>
           <div className='Account__footer'>
             <div className='Account__kudos'>
-              {!props.usingSessionKeys && props.isSessionable ? (
+              {!usingSessionKeys && isSessionable ? (
                 <p className='Text__small Account__kudos__label'>
                   Tired of approving each pixel? Sessions coming soon!
                 </p>
@@ -864,23 +663,18 @@ const Account = (props) => {
               )}
             </div>
             <div>
-              {!props.usingSessionKeys &&
-                // && props.isSessionable 
-                (
-                  <div
-                    className='Text__small Button__primary Button__disabled'
-                    style={{ marginBottom: '0.3rem', backgroundColor: '#f00' }}
-                    onClick={() => {
-                      startSession()
-                      // props.startSession()
-                    }}
-                  >
-                    Start session
-                  </div>
-                )}
+              {!usingSessionKeys && isSessionable && (
+                <div
+                  className='Text__small Button__primary Button__disabled'
+                  style={{ marginBottom: '0.3rem', backgroundColor: '#f00' }}
+                  onClick={() => props.startSession()}
+                >
+                  Start session
+                </div>
+              )}
               <div
                 className='Text__small Button__primary Account__disconnect__button'
-                onClick={disconnectWallet}
+                onClick={() => props.disconnectWallet()}
               >
                 Logout
               </div>

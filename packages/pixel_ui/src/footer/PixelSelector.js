@@ -4,16 +4,16 @@ import '../utils/Styles.css';
 import React, {useEffect, useState} from 'react';
 
 import EraserIcon from '../resources/icons/Eraser.png';
-import { useAccount } from '@starknet-react/core';
 
 const PixelSelector = (props) => {
   // Track when a placement is available
 
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
+  const [placementMode, setPlacementMode] = useState(false);
+  const [ended, setEnded] = useState(false);
 
-  const {address} = useAccount()
   useEffect(() => {
-    if (!address) {
+    if (props.queryAddress === '0') {
       setPlacementTimer('Login to Play');
       return;
     }
@@ -32,8 +32,19 @@ const PixelSelector = (props) => {
     } else {
       // TODO: Use lowest timer out of base, chain, faction, ...
       setPlacementTimer(props.basePixelTimer);
+
     }
-  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, address]);
+    if (
+      placementTimer === '0:00' &&
+      placementMode &&
+      placementTimer !== 'Out of Pixels' &&
+      placementTimer !== 'Login to Play'
+    ) {
+      setEnded(true);
+    } else {
+      setEnded(false);
+    }
+  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props.query]);
 
   const toSelectorMode = (event) => {
     event.preventDefault();
@@ -50,6 +61,7 @@ const PixelSelector = (props) => {
     if (props.availablePixels > props.availablePixelsUsed) {
       props.setSelectorMode(true);
       props.setIsEraserMode(false);
+      // setPlacementMode(true);
     }
   };
 
@@ -62,118 +74,121 @@ const PixelSelector = (props) => {
     props.setSelectedColorId(-1);
     props.setSelectorMode(false);
     props.setIsEraserMode(false);
+    // setPlacementMode(false);
+    // setEnded(false);
   };
 
   return (
-    <div className="PixelSelector">
-      {props.selectorMode && (
-        <div className="PixelSelector__selector">
-          <div className="PixelSelector__selector__colors">
-            {props.colors.map((color, idx) => {
-              return (
-                <div
-                  className="PixelSelector__color PixelSelector__color__selectable"
-                  key={idx}
-                  style={{backgroundColor: `#${color}FF`}}
-                  onClick={() => selectColor(idx)}
-                ></div>
-              );
-            })}
-          </div>
-          <div className="Button__close" onClick={() => cancelSelector()}>
-            x
-          </div>
-        </div>
-      )}
-      {!props.selectorMode && (
-        <div
-          className={
-            'Button__primary Text__large ' +
-            (props.availablePixels > props.availablePixelsUsed
-              ? ''
-              : 'PixelSelector__button--invalid')
-          }
-          onClick={toSelectorMode}
-        >
-          <p className="PixelSelector__text">{placementTimer}</p>
-          {props.availablePixels > (props.basePixelUp ? 1 : 0) && (
-            <div className="PixelSelector__extras">
+    <div className='PixelSelector'>
+    {(props.selectorMode || ended) && (
+      <div className='PixelSelector__selector'>
+        <div className='PixelSelector__selector__colors'>
+          {props.colors.map((color, idx) => {
+            return (
               <div
-                style={{
-                  margin: '0 1rem',
-                  height: '2.4rem',
-                  width: '0.5rem',
-                  borderRadius: '0.25rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                }}
+                className='PixelSelector__color PixelSelector__color__selectable'
+                key={idx}
+                style={{ backgroundColor: `#${color}FF` }}
+                onClick={() => selectColor(idx)}
               ></div>
-              <p className="PixelSelector__text">
-                {props.availablePixels - props.availablePixelsUsed} left
-              </p>
-            </div>
-          )}
-          {props.selectedColorId !== -1 && (
+            );
+          })}
+        </div>
+        <div className='Button__close' onClick={() => cancelSelector()}>
+          x
+        </div>
+      </div>
+    )}
+    {!props.selectorMode && !ended && (
+      <div
+        className={
+          'Button__primary Text__large ' +
+          (props.availablePixels > props.availablePixelsUsed
+            ? ''
+            : 'PixelSelector__button--invalid')
+        }
+        onClick={toSelectorMode}
+      >
+        <p className='PixelSelector__text'>{placementTimer}</p>
+        {props.availablePixels > (props.basePixelUp ? 1 : 0) && (
+          <div className='PixelSelector__extras'>
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                margin: '0 0 0 0.5rem',
+                margin: '0 1rem',
+                height: '2.4rem',
+                width: '0.5rem',
+                borderRadius: '0.25rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.3)'
               }}
-            >
-              <div
-                className="PixelSelector__color"
-                style={{
-                  backgroundColor: `#${props.colors[props.selectedColorId]}FF`,
-                }}
-              ></div>
-              <div
-                className="Button__close"
-                style={{marginLeft: '1rem'}}
-                onClick={() => cancelSelector()}
-              >
-                x
-              </div>
-            </div>
-          )}
-          {props.isEraserMode && (
+            ></div>
+            <p className='PixelSelector__text'>
+              {props.availablePixels - props.availablePixelsUsed} left
+            </p>
+          </div>
+        )}
+        {props.selectedColorId !== -1 && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: '0 0 0 0.5rem'
+            }}
+          >
             <div
+              className='PixelSelector__color'
               style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                margin: '0 0 0 0.5rem',
+                backgroundColor: `#${props.colors[props.selectedColorId]}FF`
+              }}
+            ></div>
+            <div
+              className='Button__close'
+              style={{ marginLeft: '1rem' }}
+              onClick={() => cancelSelector()}
+            >
+              x
+            </div>
+          </div>
+        )}
+        {props.isEraserMode && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: '0 0 0 0.5rem'
+            }}
+          >
+            <div
+              className='PixelSelector__color'
+              style={{
+                backgroundColor: '#FFFFFF'
               }}
             >
-              <div
-                className="PixelSelector__color"
+              <img
+                src={EraserIcon}
+                alt='Eraser'
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  width: '2rem',
+                  height: '2rem'
                 }}
-              >
-                <img
-                  src={EraserIcon}
-                  alt="Eraser"
-                  style={{
-                    width: '2rem',
-                    height: '2rem',
-                  }}
-                />
-              </div>
-              <div
-                className="Button__close"
-                style={{marginLeft: '1rem'}}
-                onClick={() => cancelSelector()}
-              >
-                x
-              </div>
+              />
             </div>
-          )}
-        </div>
-      )}
-    </div>
+            <div
+              className='Button__close'
+              style={{ marginLeft: '1rem' }}
+              onClick={() => cancelSelector()}
+            >
+              x
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  
+  </div>
   );
 };
 

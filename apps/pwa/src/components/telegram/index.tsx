@@ -1,11 +1,12 @@
+'use client';
 import {SessionAccountInterface} from '@argent/tma-wallet';
 import {Button} from '@chakra-ui/react';
 import {useEffect, useState} from 'react';
 
-import {useArgentTMA} from '@/hooks/useArgent';
+import {useArgentTMAContext} from '@/context/argentTmContext';
 
 export const TelegramAccount = () => {
-  const argentTMA = useArgentTMA();
+  const {argentTMA} = useArgentTMAContext();
   const [accountTg, setAccount] = useState<SessionAccountInterface | undefined>();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -51,7 +52,12 @@ export const TelegramAccount = () => {
     // It will open the wallet and ask the user to approve the connection
     // The wallet will redirect back to the app and the account will be available
     // from the connect() method -- see above
-    await argentTMA?.requestConnection('custom_callback_data');
+    try {
+      const resp = await argentTMA?.requestConnection('custom_callback_data');
+      console.log(resp, 'resp');
+    } catch (error) {
+      console.log(error, 'err');
+    }
   };
 
   // useful for debugging

@@ -44,6 +44,11 @@ export const convertUrl = (url) => {
   return url.replace('$BACKEND_URL', backendUrl);
 };
 
+export const CHAIN_ID =
+  process.env.REACT_APP_CHAIN_ID === constants.NetworkName.SN_MAIN
+    ? constants.NetworkName.SN_MAIN
+    : constants.NetworkName.SN_SEPOLIA;
+
 export const getProvider = (chainId) => {
   const provider = new RpcProvider({
     nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL,
