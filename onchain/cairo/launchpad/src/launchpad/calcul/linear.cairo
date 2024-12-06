@@ -24,7 +24,7 @@ const BPS: u256 = 10_000; // 100% = 10_000 bps
 //     stuff
 
 const SCALE_FACTOR: u256 =
-    100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
+    100_000_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 // Define constants
 const MIN_PRICE: u256 = 1_u256; // Minimum price to prevent division by zero
 // const SCALE_FACTOR: u256 = 1_000_000_000_000_u256; // 1e12 for precision
@@ -118,7 +118,7 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
-    let amount_sold = sellable_supply.clone() - (current_supply.clone());
+    let amount_sold = sellable_supply.clone() - current_supply.clone();
 
     println!("amount_sold: {}", amount_sold);
     println!("current_supply: {}", current_supply);
