@@ -1,5 +1,4 @@
-import { Spacing, ThemedStyleSheet, Typography } from "../../styles";
-
+import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   // container: {
@@ -17,7 +16,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   profileButton: {
     // backgroundColor: '#6200ea',
-    backgroundColor:theme.colors.background,
+    backgroundColor: theme.colors.background,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -34,7 +33,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: '#fff',
     borderRadius: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
@@ -45,7 +44,7 @@ export default ThemedStyleSheet((theme) => ({
     borderBottomColor: '#ddd',
     fontSize: 16,
   },
- 
+
   content: {
     flex: 1,
     borderRadius: 999,

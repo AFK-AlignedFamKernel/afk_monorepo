@@ -157,9 +157,8 @@ export const RenderEventCard = ({
   });
 
   const handleJoinEvent = async () => {
-
     await handleCheckNostrAndSendConnectDialog();
-    
+
     if (!pubKey) {
       toast.showToast({title: 'Must be signed in', type: 'error'});
       return;

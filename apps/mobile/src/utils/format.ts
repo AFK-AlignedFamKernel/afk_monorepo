@@ -20,9 +20,9 @@ export const formatFloatToUint256 = (total_amount_float: number, decimals = 18) 
 
 export const decodeUsername = (hexUsername: string): string => {
   try {
-    return shortString.decodeShortString(hexUsername.replace(/0x0+/, "0x"));
+    return shortString.decodeShortString(hexUsername.replace(/0x0+/, '0x'));
   } catch (error) {
-    console.error("Error decoding username:", error);
+    console.error('Error decoding username:', error);
     return hexUsername;
   }
 };

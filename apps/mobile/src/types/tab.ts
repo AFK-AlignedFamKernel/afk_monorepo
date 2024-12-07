@@ -46,13 +46,13 @@ export enum SelectedTab {
   AFK_ID,
   NAMESERVICE,
   CONTACTS = 'contacts',
-  HOLDERS = "HOLDERS",
-  TX = "TX",
-  SHARES = "SHARES",
-  STATS = "STATS",
-  GRAPH = "GRAPH",
-  DYNAMIC_OWNED = "DYNAMIC_OWNED",
-  DYNAMIC_ALL = "DYNAMIC_ALL",
+  HOLDERS = 'HOLDERS',
+  TX = 'TX',
+  SHARES = 'SHARES',
+  STATS = 'STATS',
+  GRAPH = 'GRAPH',
+  DYNAMIC_OWNED = 'DYNAMIC_OWNED',
+  DYNAMIC_ALL = 'DYNAMIC_ALL',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [

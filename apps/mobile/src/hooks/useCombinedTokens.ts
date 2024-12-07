@@ -37,12 +37,12 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
 
   useEffect(() => {
     setTokens(combinedData);
-    setLaunchs(launchDataCombined)
+    setLaunchs(launchDataCombined);
   }, [combinedData]);
 
   return {
     tokens,
-    launchs:launchDataCombined,
+    launchs: launchDataCombined,
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
     isFetching: launchIsFetching || tokenIsFetching,

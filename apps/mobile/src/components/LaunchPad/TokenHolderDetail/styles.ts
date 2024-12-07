@@ -41,5 +41,5 @@ export default ThemedStyleSheet((theme) => ({
   emptyText: {
     color: theme.colors.textSecondary,
     textAlign: 'center',
-  }
+  },
 }));

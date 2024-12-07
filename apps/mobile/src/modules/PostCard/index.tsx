@@ -20,7 +20,7 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
 
   let repostedEvent = undefined;
   const [isRepost, setIsRepost] = useState(
-    isRepostProps ?? event?.kind == NDKKind.Repost ? true : false,
+    (isRepostProps ?? event?.kind == NDKKind.Repost) ? true : false,
   );
 
   if (event?.kind == NDKKind.Repost) {

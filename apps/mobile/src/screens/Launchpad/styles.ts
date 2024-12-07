@@ -19,8 +19,8 @@ export default ThemedStyleSheet((theme) => ({
   },
   activeToggle: {
     backgroundColor: theme.colors.primary,
-    color:theme.colors.badge,
-    border:theme.colors.badgeBorder
+    color: theme.colors.badge,
+    border: theme.colors.badgeBorder,
   },
   toggleButton: {
     flex: 1,

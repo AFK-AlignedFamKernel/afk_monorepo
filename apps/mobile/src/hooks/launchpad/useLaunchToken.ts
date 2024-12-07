@@ -16,11 +16,9 @@ export const useLaunchToken = () => {
     contractAddress?: string,
   ) => {
     try {
+      if (!account) return;
 
-
-      if(!account) return;
-
-      if(!coin_address) {
+      if (!coin_address) {
         return;
       }
       const addressContract =
@@ -34,7 +32,7 @@ export const useLaunchToken = () => {
         contractAddress: addressContract,
         entrypoint: 'launch_token',
         calldata: CallData.compile({
-          coin_address: coin_address
+          coin_address: coin_address,
           // ekubo_pool:CairoOptionVariant.None
         }),
       };

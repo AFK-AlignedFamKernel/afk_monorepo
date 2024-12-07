@@ -10,7 +10,7 @@ import {LaunchpadScreenProps, MainStackNavigationProps, NameserviceScreenProps} 
 import {SelectedTab} from '../../types/tab';
 import {LaunchpadComponent} from './LaunchpadComponent';
 import stylesheet from './styles';
-import { NameserviceComponent } from '../../modules/nameservice';
+import {NameserviceComponent} from '../../modules/nameservice';
 
 export const NameserviceScreen: React.FC<NameserviceScreenProps> = () => {
   const {theme} = useTheme();
