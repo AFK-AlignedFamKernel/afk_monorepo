@@ -7,7 +7,7 @@ export const useAddLiquidity = () => {
     coinAddress: string,
     amount: string,
     startingPrice: string,
-    lockTime: string
+    lockTime: string,
   ) => {
     try {
       const deployCall = {
@@ -17,7 +17,7 @@ export const useAddLiquidity = () => {
           coin_address: coinAddress,
           amount,
           starting_price: startingPrice,
-          lock_time: lockTime
+          lock_time: lockTime,
         }),
       };
 
@@ -33,7 +33,7 @@ export const useAddLiquidity = () => {
     account: AccountInterface,
     coinAddress: string,
     amount: string,
-    price: string
+    price: string,
   ) => {
     try {
       const deployCall = {
@@ -42,7 +42,7 @@ export const useAddLiquidity = () => {
         calldata: CallData.compile({
           token_address: coinAddress,
           amount,
-          price
+          price,
         }),
       };
 
@@ -58,7 +58,7 @@ export const useAddLiquidity = () => {
     account: AccountInterface,
     coinAddress: string,
     amount: string,
-    minLiquidity: string
+    minLiquidity: string,
   ) => {
     try {
       const deployCall = {
@@ -67,7 +67,7 @@ export const useAddLiquidity = () => {
         calldata: CallData.compile({
           token: coinAddress,
           amount,
-          min_liquidity: minLiquidity
+          min_liquidity: minLiquidity,
         }),
       };
 
@@ -82,6 +82,6 @@ export const useAddLiquidity = () => {
   return {
     addLiquidityUnrug,
     addLiquidityEkubo,
-    addLiquidityJediswap
+    addLiquidityJediswap,
   };
 };

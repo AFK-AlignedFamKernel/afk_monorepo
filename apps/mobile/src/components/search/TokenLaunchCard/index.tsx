@@ -1,18 +1,18 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { useProfile } from 'afk_nostr_sdk';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
 
-import { CopyIconStack } from '../../../assets/icons';
-import { useStyles, useTheme } from '../../../hooks';
-import { useToast } from '../../../hooks/modals';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { Button } from '../..';
-import { Text } from '../../Text';
+import {CopyIconStack} from '../../../assets/icons';
+import {useStyles, useTheme} from '../../../hooks';
+import {useToast} from '../../../hooks/modals';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {Button} from '../..';
+import {Text} from '../../Text';
 import stylesheet from './styles';
 
 export type LaunchCoinProps = {
@@ -21,10 +21,10 @@ export type LaunchCoinProps = {
   event?: NDKEvent;
   profileProps?: NDKUserProfile;
   token?: TokenDeployInterface;
-  dataMeged?:LaunchCoinProps;
+  dataMeged?: LaunchCoinProps;
   launch?: TokenLaunchInterface;
   isViewDetailDisabled?: boolean;
-  isTokenOnly?: boolean
+  isTokenOnly?: boolean;
 };
 
 enum AmountType {
@@ -40,19 +40,19 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   profileProps,
   event,
   isViewDetailDisabled,
-  isTokenOnly
+  isTokenOnly,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
-  const { showToast } = useToast();
-  const { theme } = useTheme();
+  const {showToast} = useToast();
+  const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
     await Clipboard.setStringAsync(token?.memecoin_address);
-    showToast({ type: 'info', title: 'Copied to clipboard' });
+    showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
   return (
@@ -60,7 +60,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
       <View style={styles.header}>
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
         <View style={styles.addressContainer}>
-          <Text numberOfLines={1} ellipsizeMode="middle" style={{ color: '#808080', flex: 1 }}>
+          <Text numberOfLines={1} ellipsizeMode="middle" style={{color: '#808080', flex: 1}}>
             {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
           </Text>
           <TouchableOpacity onPress={handleCopy}>
@@ -68,7 +68,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           </TouchableOpacity>
         </View>
         <View style={styles.priceTag}>
-          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
+          <Text style={{color: '#4CAF50'}}>${Number(token?.price || 0).toFixed(4)}</Text>
         </View>
       </View>
 
@@ -97,7 +97,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
 
       {!isViewDetailDisabled && (
         <>
-          {!isTokenOnly &&
+          {!isTokenOnly && (
             <Button
               onPress={() => {
                 if (token && token?.memecoin_address) {
@@ -110,9 +110,8 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             >
               View details
             </Button>
-
-          }
-          {isTokenOnly &&
+          )}
+          {isTokenOnly && (
             <Button
               onPress={() => {
                 if (token && token?.memecoin_address) {
@@ -125,10 +124,8 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             >
               View token page
             </Button>
-
-          }
+          )}
         </>
-
       )}
     </View>
   );

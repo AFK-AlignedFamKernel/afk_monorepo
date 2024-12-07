@@ -55,5 +55,5 @@ export default ThemedStyleSheet((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: theme.colors.overlay,
-  }
-})); 
+  },
+}));

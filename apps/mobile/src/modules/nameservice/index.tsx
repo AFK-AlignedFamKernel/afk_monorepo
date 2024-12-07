@@ -1,25 +1,24 @@
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, View, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {useState} from 'react';
+import {KeyboardAvoidingView, ScrollView, Text, View, ActivityIndicator} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
-import { Swap } from '../../components/Swap';
+import {TextButton} from '../../components';
+import {Swap} from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import { TOKENSMINT } from '../../constants/tokens';
-import { useStyles } from '../../hooks';
-import { WalletOnboarding } from '../../modules/Onboard/wallet';
-import { MainStackNavigationProps } from '../../types';
-import { SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET } from '../../types/tab';
-import { CashuWalletView } from '../CashuWallet';
-import { LightningNetworkWalletView } from '../Lightning';
+import {TOKENSMINT} from '../../constants/tokens';
+import {useStyles} from '../../hooks';
+import {WalletOnboarding} from '../../modules/Onboard/wallet';
+import {MainStackNavigationProps} from '../../types';
+import {SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET} from '../../types/tab';
+import {CashuWalletView} from '../CashuWallet';
+import {LightningNetworkWalletView} from '../Lightning';
 import stylesheet from './styles';
-import { FormComponent } from './form';
-import { NameCard } from '../../components/NameCard/nameCard';
-import { useAccount } from '@starknet-react/core';
-import { useNamesList } from '../../hooks/nameservice/useNamesList';
-import { NamesList } from '../../components/NamesList';
-
+import {FormComponent} from './form';
+import {NameCard} from '../../components/NameCard/nameCard';
+import {useAccount} from '@starknet-react/core';
+import {useNamesList} from '../../hooks/nameservice/useNamesList';
+import {NamesList} from '../../components/NamesList';
 
 export const NameserviceComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -35,19 +34,19 @@ export const NameserviceComponent: React.FC = () => {
     // }
   };
 
-  const { account } = useAccount();
-  
+  const {account} = useAccount();
+
   const renderContent = () => {
-    const { names, isLoading } = useNamesList();
-    
+    const {names, isLoading} = useNamesList();
+
     console.log('NameserviceComponent state:', {
       selectedTab,
       isLoading,
       namesCount: names.length,
-      names
+      names,
     });
 
-    switch(selectedTab) {
+    switch (selectedTab) {
       case SelectedTab.DYNAMIC_GENERAL:
         return (
           <View style={styles.content}>
@@ -64,21 +63,18 @@ export const NameserviceComponent: React.FC = () => {
             ) : names.length === 0 ? (
               <Text style={styles.text}>No names found</Text>
             ) : (
-              <NamesList 
-                names={names}
-                isLoading={isLoading}
-              />
+              <NamesList names={names} isLoading={isLoading} />
             )}
           </View>
         );
       case SelectedTab.DYNAMIC_OWNED:
-        const ownedNames = names.filter(name => 
-          name.owner.toLowerCase() === account?.address?.toLowerCase()
+        const ownedNames = names.filter(
+          (name) => name.owner.toLowerCase() === account?.address?.toLowerCase(),
         );
         console.log('Rendering Your Names tab:', {
           accountAddress: account?.address,
           ownedNamesCount: ownedNames.length,
-          ownedNames
+          ownedNames,
         });
         return (
           <View style={styles.content}>
@@ -88,10 +84,7 @@ export const NameserviceComponent: React.FC = () => {
             ) : names.length === 0 ? (
               <Text style={styles.text}>No names found</Text>
             ) : (
-              <NamesList 
-                names={ownedNames}
-                isLoading={isLoading}
-              />
+              <NamesList names={ownedNames} isLoading={isLoading} />
             )}
           </View>
         );

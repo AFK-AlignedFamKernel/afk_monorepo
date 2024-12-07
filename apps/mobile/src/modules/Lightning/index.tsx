@@ -241,8 +241,8 @@ export const LightningNetworkWallet = () => {
                   {isLoading
                     ? 'Connecting...'
                     : isExtensionAvailable
-                    ? 'Connect with Alby Extension'
-                    : 'Connect with Alby NWC'}
+                      ? 'Connect with Alby Extension'
+                      : 'Connect with Alby NWC'}
                 </Text>
               </Button>
             </View>

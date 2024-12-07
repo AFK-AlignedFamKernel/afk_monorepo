@@ -77,13 +77,21 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         <View style={styles.actionToggle}>
           <Button
             onPress={() => setTypeAction?.('BUY')}
-            style={[styles.toggleButton, styles.buttonBuy, typeAction === 'BUY' && styles.activeToggle]}
+            style={[
+              styles.toggleButton,
+              styles.buttonBuy,
+              typeAction === 'BUY' && styles.activeToggle,
+            ]}
           >
             Buy
           </Button>
           <Button
             onPress={() => setTypeAction?.('SELL')}
-            style={[styles.toggleButton, styles.buttonSell, typeAction === 'SELL' && styles.activeToggle]}
+            style={[
+              styles.toggleButton,
+              styles.buttonSell,
+              typeAction === 'SELL' && styles.activeToggle,
+            ]}
           >
             Sell
           </Button>
@@ -106,7 +114,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             <Button
               style={styles.maxButton}
               onPress={() => {
-                onSetAmount(toBalance?.formatted)
+                onSetAmount(toBalance?.formatted);
                 /* Set max balance */
               }}
             >
@@ -121,7 +129,10 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             Connect Wallet
           </Button>
         ) : (
-          <Button style={[styles.actionButton, typeAction == "SELL" && styles.buttonSell]} onPress={() => onHandleAction()}>
+          <Button
+            style={[styles.actionButton, typeAction == 'SELL' && styles.buttonSell]}
+            onPress={() => onHandleAction()}
+          >
             {typeAction || 'BUY'}
           </Button>
         )}

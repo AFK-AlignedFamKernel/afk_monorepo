@@ -1,8 +1,8 @@
-import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, cairo, CallData, constants } from 'starknet';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, cairo, CallData, constants} from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
-import { formatFloatToUint256 } from '../../utils/format';
+import {formatFloatToUint256} from '../../utils/format';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -10,13 +10,12 @@ export type DeployTokenFormValues = {
   symbol: string | undefined;
   initialSupply: number | undefined;
   contract_address_salt: string | undefined;
-  is_unruggable?: boolean
+  is_unruggable?: boolean;
 };
 
 export const useCreateToken = () => {
   const deployToken = async (account: AccountInterface, data: DeployTokenFormValues) => {
     try {
-
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
       //   data?.contract_address_salt ??
       //     (await account?.getChainId()) == constants.StarknetChainId.SN_MAIN
@@ -38,7 +37,7 @@ export const useCreateToken = () => {
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
           contract_address_salt: new Date().getTime(),
-          is_unruggable: cairo.felt( String(data?.is_unruggable))
+          is_unruggable: cairo.felt(String(data?.is_unruggable)),
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
           // contract_address_salt:cairo.felt(Math.random())
         }),
@@ -51,12 +50,9 @@ export const useCreateToken = () => {
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;
-
-
     } catch (error) {
-      console.log("Error deploy token", error)
+      console.log('Error deploy token', error);
     }
-
   };
 
   const deployTokenAndLaunch = async (account: AccountInterface, data: DeployTokenFormValues) => {
@@ -79,8 +75,7 @@ export const useCreateToken = () => {
           initialSupply: initial_supply,
           contract_address_salt: new Date().getTime(),
           // is_unruggable: data?.is_unruggable
-          is_unruggable: cairo.felt( String(data?.is_unruggable))
-
+          is_unruggable: cairo.felt(String(data?.is_unruggable)),
         }),
       };
 
@@ -89,10 +84,8 @@ export const useCreateToken = () => {
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;
     } catch (error) {
-      console.log("Error deploy token and launch", error)
-
+      console.log('Error deploy token and launch', error);
     }
-
   };
 
   const launchToken = async (account: AccountInterface, coin_address: string) => {
@@ -104,15 +97,14 @@ export const useCreateToken = () => {
           coin_address,
         }),
       };
-  
+
       const tx = await account.execute(deployCall);
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;
     } catch (error) {
-      console.log("Error launch token",error)
+      console.log('Error launch token', error);
     }
-
   };
 
   return {
