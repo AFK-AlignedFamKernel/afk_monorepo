@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import {
-  useAccount,
   useContract,
   useNetwork,
   useConnect
@@ -12,8 +11,7 @@ import PixelSelector from './footer/PixelSelector.js';
 import TabsFooter from './footer/TabsFooter.js';
 import TabPanel from './tabs/TabPanel.js';
 import { usePreventZoom, useLockScroll } from './utils/Window.js';
-import { backendUrl, wsUrl, devnetMode } from './utils/Consts.js';
-import logo from './resources/logo.png';
+import { backendUrl, wsUrl, devnetMode, provider, CHAIN_ID, allowedMethods, expiry, metaData, dappKey } from './utils/Consts.js';
 import canvasConfig from './configs/canvas.config.json';
 import { fetchWrapper, getTodaysStartTime } from './services/apiService.js';
 import art_peace_abi from './contracts/art_peace.abi.json';
@@ -21,8 +19,10 @@ import username_store_abi from './contracts/username_store.abi.json';
 import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
-import Hamburger from './resources/icons/Hamburger.png';
+import { connect as nextConnect } from 'starknetkit-next';
 import useMediaQuery from './hooks/useMediaQuery';
+import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
+import { stark } from 'starknet';
 const logoUrl = './resources/logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
 
@@ -68,27 +68,57 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   };
 
   // Starknet wallet
-  const { account, address } = useAccount();
+    const [wallet, setWallet] = useState<any>(null);
+    const [address, setAddress] = useState(null);
+    const [connectorData, setConnectorData] = useState<any>(null);
+    const [_connector, setConnector] = useState<any>(null);
+    const [account, setAccount] = useState<any>(null);
+    const [_sessionRequest, setSessionRequest] = useState<any>(null);
+    const [_accountSessionSignature, setAccountSessionSignature] = useState<any>(null);
+    const [isSessionable, setIsSessionable] = useState(false);
+    const [usingSessionKeys, setUsingSessionKeys] = useState<any>(false);
+    const [queryAddress, setQueryAddress] = useState('0');
+    const [connected, setConnected] = useState(false); // TODO: change to only devnet
+    useEffect(() => {
+      if (devnetMode) {
+        if (connected) {
+          setQueryAddress(
+            '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
+          );
+        } else {
+          setQueryAddress('0');
+        }
+      } else {
+        if (!connectorData) {
+          setQueryAddress('0');
+        } else {
+          setQueryAddress(
+            connectorData?.account?.slice(2).toLowerCase().padStart(64, '0')
+          );
+          setAddress(connectorData?.account);
+        }
+      }
+    }, [connectorData, connected]);
   const { chain } = useNetwork();
-  const [queryAddress, setQueryAddress] = useState('0');
-  const [connected, setConnected] = useState(false); // TODO: change to only devnet
-  useEffect(() => {
-    if (devnetMode) {
-      if (connected) {
-        setQueryAddress(
-          '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-        );
-      } else {
-        setQueryAddress('0');
-      }
-    } else {
-      if (!address) {
-        setQueryAddress('0');
-      } else {
-        setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-      }
-    }
-  }, [address, connected]);
+  // const [queryAddress, setQueryAddress] = useState('0');
+  // const [connected, setConnected] = useState(false); // TODO: change to only devnet
+  // useEffect(() => {
+  //   if (devnetMode) {
+  //     if (connected) {
+  //       setQueryAddress(
+  //         '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
+  //       );
+  //     } else {
+  //       setQueryAddress('0');
+  //     }
+  //   } else {
+  //     if (!address) {
+  //       setQueryAddress('0');
+  //     } else {
+  //       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
+  //     }
+  //   }
+  // }, [address, connected]);
 
   // Contracts
   // TODO: Pull addrs from api?
@@ -594,31 +624,77 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
 
+  
+  const canSession = (wallet) => {
+    let sessionableIds = [
+      'argentX',
+      'ArgentX',
+      'argent',
+      'Argent',
+      'argentMobile',
+      'ArgentMobile',
+      'argentWebWallet',
+      'ArgentWebWallet'
+    ];
+    if (sessionableIds.includes(wallet.id)) {
+      return true;
+    }
+    return false;
+  };
+
+
   // Account
-  const { connect, connectors } = useConnect();
-  const connectWallet = async (connector) => {
+  const { connectors } = useConnect();
+  // const connectWallet = async (connector) => {
+  //   if (devnetMode) {
+  //     setConnected(true);
+  //     return;
+  //   }
+  //   connect({ connector });
+  // };
+  const connectWallet = async () => {
     if (devnetMode) {
       setConnected(true);
       return;
     }
-    connect({ connector });
-  };
-  useEffect(() => {
-    if (devnetMode) return;
-    if (!connectors) return;
-    if (connectors.length === 0) return;
-
-    const connectIfReady = async () => {
-      for (let i = 0; i < connectors.length; i++) {
-        let ready = await connectors[i].ready();
-        if (ready) {
-          connectWallet(connectors[i]);
-          break;
-        }
+    const { wallet, connectorData, connector } = await nextConnect({
+      modalMode: 'alwaysAsk',
+      webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
+      argentMobileOptions: {
+        dappName: 'AFK/Lfg',
+        url: window.location.hostname,
+        chainId: CHAIN_ID,
+        icons: []
       }
-    };
-    connectIfReady();
-  }, [connectors]);
+    });
+    if (wallet && connectorData && connector) {
+      setWallet(wallet);
+      setConnectorData(connectorData);
+      setConnector(connector);
+      setConnected(true);
+      let new_account = await connector.account(provider);
+      setAccount(new_account);
+      setIsSessionable(canSession(wallet));
+      console.log('Wallet:', wallet, new_account);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (devnetMode) return;
+  //   if (!connectors) return;
+  //   if (connectors.length === 0) return;
+
+  //   const connectIfReady = async () => {
+  //     for (let i = 0; i < connectors.length; i++) {
+  //       let ready = await connectors[i].ready();
+  //       if (ready) {
+  //         connectWallet(connectors[i]);
+  //         break;
+  //       }
+  //     }
+  //   };
+  //   connectIfReady();
+  // }, [connectors]);
 
   // Tabs
   const [showExtraPixelsPanel, setShowExtraPixelsPanel] = useState(false);
@@ -658,6 +734,70 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     availablePixelsUsed,
     basePixelUp
   ]);
+
+
+
+const disconnectWallet = async () => {
+  if (devnetMode) {
+    setConnected(false);
+    return;
+  }
+  setWallet(null);
+  setConnectorData(null);
+  setConnected(false);
+  setAccount(null);
+  setSessionRequest(null);
+  setAccountSessionSignature(null);
+  setUsingSessionKeys(false);
+  setIsSessionable(false);
+};
+
+const startSession = async () => {
+  const sessionParams = {
+    allowedMethods,
+    expiry: expiry,
+    metaData: metaData(false),
+    publicDappKey: dappKey.publicKey
+  };
+  let chainId = await provider.getChainId();
+  const accountSessionSignature = await openSession({
+    wallet: wallet,
+    sessionParams: sessionParams as any,
+    chainId: chainId
+  });
+  const sessionRequest = createSessionRequest(
+    allowedMethods,
+    expiry as any,
+    metaData(false),
+    dappKey.publicKey
+  );
+  if (!accountSessionSignature || !sessionRequest) {
+    console.error('Session request failed');
+    return;
+  }
+  setSessionRequest(sessionRequest);
+  setAccountSessionSignature(accountSessionSignature);
+  if (!address || !connectorData) {
+    console.error('No address or connector data');
+    return;
+  }
+  const sessionAccount = await buildSessionAccount({
+    accountSessionSignature: stark.formatSignature(accountSessionSignature),
+    sessionRequest: sessionRequest,
+    provider: provider,
+    chainId: chainId,
+    address: address,
+    dappKey: dappKey,
+    argentSessionServiceBaseUrl:
+      process.env.REACT_APP_ARGENT_SESSION_SERVICE_BASE_URL
+  });
+  if (!sessionAccount) {
+    console.error('Session account failed');
+    return;
+  }
+  setAccount(sessionAccount);
+  setUsingSessionKeys(true);
+};
 
   return (
     <div className='App'>
@@ -736,6 +876,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             artPeaceContract={artPeaceContract}
             usernameContract={usernameContract}
             canvasNftContract={canvasNftContract}
+            usingSessionKeys={usingSessionKeys}
             setNotificationMessage={setNotificationMessage}
             colors={colors}
             activeTab={activeTab}
@@ -817,6 +958,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             isLastDay={isLastDay}
             endTimestamp={endTimestamp}
             host={host}
+
+            startSession={startSession}
+            isSessionable={isSessionable}
+            disconnectWallet={disconnectWallet}
+            
+        
           />
         </div>
         <div className='App__footer'>
@@ -850,6 +997,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 setIsEraseMode={setIsEraserMode}
                 isPortrait={isPortrait}
                 isMobile={isMobile}
+                
               />
             )}
             {isFooterSplit && !footerExpanded && (

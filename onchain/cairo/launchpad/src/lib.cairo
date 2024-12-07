@@ -57,6 +57,7 @@ pub mod tokens {
 #[cfg(test)]
 pub mod tests {
     pub mod launchpad_tests;
+    pub mod linear_tests;
     pub mod liquidity_tests;
     // pub mod unrug_tests;
 }
