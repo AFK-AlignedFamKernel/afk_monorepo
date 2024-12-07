@@ -1,7 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
-// import {prisma} from "indexer-prisma"
-
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
@@ -37,8 +35,8 @@ async function transactionsRoute(
           amount: true,
           quote_amount: true,
           price: true,
-          time_stamp:true,
-          liquidity_raised:true
+          time_stamp: true,
+          liquidity_raised: true,
         },
       });
 

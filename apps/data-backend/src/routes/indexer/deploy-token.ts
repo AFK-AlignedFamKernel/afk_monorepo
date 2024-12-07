@@ -1,7 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
-// import {prisma} from "indexer-prisma"
-
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
@@ -90,7 +88,7 @@ async function deployTokenRoute(
       }
 
       const deploys = await prisma.token_deploy.findMany({
-        where: {  owner_address:owner_address },
+        where: { owner_address: owner_address },
         select: {
           memecoin_address: true,
           owner_address: true,
@@ -112,7 +110,6 @@ async function deployTokenRoute(
         .send({ message: "Internal server error." });
     }
   });
-
 }
 
 export default deployTokenRoute;
