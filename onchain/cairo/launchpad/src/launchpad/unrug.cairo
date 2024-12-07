@@ -56,10 +56,14 @@ pub trait IUnrugLiquidity<TContractState> {
         ref self: TContractState, coin_address: ContractAddress,
         //  params: EkuboLaunchParameters
     ) -> (u64, EkuboLP);
+    fn add_liquidity_starkdefi(
+        ref self: TContractState, coin_address: ContractAddress,
+        //  params: EkuboLaunchParameters
+    ) -> (u64, EkuboLP);
     // ) -> Span<felt252>;
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
 
-    fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
+    // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
         ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
     );
@@ -69,17 +73,17 @@ pub trait IUnrugLiquidity<TContractState> {
     fn get_default_token(self: @TContractState,) -> TokenQuoteBuyCoin;
 
 
-    fn get_coin_amount_by_quote_amount(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
-    ) -> u256;
+    // fn get_coin_amount_by_quote_amount(
+    //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased:
+    //     bool
+    // ) -> u256;
 
     // fn get_quote_paid_by_amount_coin(
     //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased:
     //     bool
     // ) -> u256;
 
-    fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
-    fn get_all_coins(self: @TContractState) -> Span<Token>;
+    // fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
 
     // Admins
     fn set_token(ref self: TContractState, token_quote: TokenQuoteBuyCoin);
@@ -113,9 +117,10 @@ pub mod UnrugLiquidity {
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
-    use afk_launchpad::launchpad::calcul::{
+    use afk_launchpad::launchpad::calcul::launch::{get_amount_by_type_of_coin_or_quote};
+    use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
-        get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
+        // get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::errors;
     // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
@@ -347,7 +352,7 @@ pub mod UnrugLiquidity {
 
     // Public functions inside an impl block
     #[abi(embed_v0)]
-    impl LaunchpadMarketplace of super::IUnrugLiquidity<ContractState> {
+    impl UnrugLiquidity of super::IUnrugLiquidity<ContractState> {
         // ADMIN
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
@@ -505,7 +510,6 @@ pub mod UnrugLiquidity {
             let caller = get_caller_address();
 
             let pool = self.launched_coins.read(coin_address);
-            let coin = self.tok.read(coin_address);
 
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
@@ -558,36 +562,6 @@ pub mod UnrugLiquidity {
 
         fn get_threshold_liquidity(self: @ContractState) -> u256 {
             self.threshold_liquidity.read()
-        }
-
-        fn get_all_coins(self: @ContractState) -> Span<Token> {
-            let max_coin_id = self.total_token.read() + 1;
-            let mut coins: Array<Token> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_coin_id {}
-                let coin = self.array_coins.read(i);
-                if coin.owner.is_zero() {
-                    break coins.span();
-                }
-                coins.append(coin);
-                i += 1;
-            }
-        }
-
-        fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
-            let max_key_id = self.total_launch.read() + 1;
-            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_key_id {}
-                let pool = self.array_launched_coins.read(i);
-                if pool.owner.is_zero() {
-                    break launches.span();
-                }
-                launches.append(pool);
-                i += 1;
-            }
         }
 
         //TODO refac
@@ -674,6 +648,18 @@ pub mod UnrugLiquidity {
             let pool = self.launched_coins.read(coin_address);
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
 
+            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
+            self._add_liquidity_ekubo(coin_address)
+        }
+
+        fn add_liquidity_starkdefi(
+            ref self: ContractState, coin_address: ContractAddress,
+            // params: EkuboLaunchParameters
+        // ) ->  Span<felt252>  {
+        ) -> (u64, EkuboLP) {
+            let caller = get_caller_address();
+            let pool = self.launched_coins.read(coin_address);
+            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
             self._add_liquidity_ekubo(coin_address)
         }

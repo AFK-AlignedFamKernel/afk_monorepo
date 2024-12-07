@@ -1,5 +1,8 @@
 #[cfg(test)]
-mod linear_tests {
+mod exponential_tests {
+    use afk_launchpad::launchpad::calcul::exponential::{
+        get_coin_amount_by_quote_amount_exponential, calculate_initial_price, dynamic_scale_factor
+    };
     use afk_launchpad::launchpad::calcul::linear::{get_coin_amount, get_meme_amount};
     use afk_launchpad::types::launchpad_types::{
         TokenLaunch, BondingType, TokenQuoteBuyCoin, LiquidityType
@@ -14,6 +17,7 @@ mod linear_tests {
     }
 
     const THRESHOLD_LIQUIDITY: u256 = 10;
+    const GROWTH_FACTOR: u256 = 100_000_u256;
 
     const SCALE_FACTOR: u256 = 100_000_000_000_000_000_000_u256;
 
@@ -31,6 +35,18 @@ mod linear_tests {
             step_increase_linear: 0_u256,
             is_enable: true //TODO
         };
+        let mut available_supply = 80_000_000;
+
+        let dynamic_scale_factor = dynamic_scale_factor(
+            SCALE_FACTOR, available_supply, threshold_liquidity
+        );
+
+        // let starting_price= calculate_initial_price(THRESHOLD_LIQUIDITY,available_supply,
+        // GROWTH_FACTOR);
+        let starting_price = calculate_initial_price(
+            THRESHOLD_LIQUIDITY, available_supply, GROWTH_FACTOR, dynamic_scale_factor
+        );
+        println!("starting_price {:?}", starting_price);
 
         let token_launch = TokenLaunch {
             owner: OWNER(),
@@ -50,7 +66,8 @@ mod linear_tests {
             slope: 0_u256,
             threshold_liquidity, // Amount of maximal quote token to paid the coin launched
             liquidity_type: Option::None,
-            starting_price: 0_u256,
+            // starting_price: 0_u256,
+            starting_price: starting_price,
             protocol_fee_percent: 0_u256,
             creator_fee_percent: 0_u256,
         };
@@ -94,45 +111,102 @@ mod linear_tests {
     //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
     // }
 
+    
     #[test]
-    fn test_get_meme_amount_with_half_threshold() {
-        let mut available_supply = 80_000_000_u256;
-
-        let mut token_launch = get_token_launch(
-            // DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO,
-            DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply,
-        );
-        let amount_in = 5; // 50% of the threshold liquidity
-
-        println!("Initial Available Supply: {}", token_launch.available_supply);
-
-        let amount_out = get_meme_amount(token_launch, amount_in);
-        println!("Amount Out (Memecoin): {}", amount_out);
-
-        // Ensure the output is proportional
-        assert!(amount_out > 0, "Amount out should be greater than zero");
-        assert!(amount_out < token_launch.available_supply, "Amount out exceeds available supply");
-
-        // Update available supply
-        token_launch.available_supply -= amount_out;
-        println!("Remaining Available Supply: {}", token_launch.available_supply);
-
-        // Final assertions
-        assert!(
-            token_launch.available_supply > 0, "Supply should not be depleted at 50% threshold"
-        );
-    }
-
-
-    #[test]
-    fn test_get_meme_amount_with_two_buy_for_threshold() {
-        let mut available_supply = 80_000_000_u256;
+    fn test_get_meme_amount_with_5_steps() {
+        let mut available_supply = 80_000_000;
         // let mut token_launch = get_token_launch(
         //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
         // );
         let mut token_launch = get_token_launch(
             DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
         );
+
+        let dynamic_scale_factor = dynamic_scale_factor(
+            SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+        );
+        let amounts = array![1, 1,1,1,6];
+        let mut amount_outs = array![];
+        for amount_in in amounts {
+            println!("amount_in {:?}", amount_in);
+
+            let amount_out = get_coin_amount_by_quote_amount_exponential(
+                token_launch, amount_in, false, dynamic_scale_factor
+            );
+            println!("amount_out {:?}", amount_out);
+
+            assert!(amount_out <= token_launch.available_supply, "too much");
+
+            token_launch.available_supply -= amount_out;
+            // token_launch.available_supply -= amount_out - token_launch.available_supply;
+            println!("token_launch.available_supply: {}", token_launch.available_supply);
+            amount_outs.append(amount_out);
+            println!("looping {:?}------------------------------------------", amount_in);
+        };
+
+        println!("amount 1 : {}", amount_outs.at(0));
+        println!("amount 2 : {}", amount_outs.at(1));
+        // println!("amount 3 : {}", amount_outs.at(2));
+    // println!("amount 4 : {}", amount_outs.at(3));
+    }
+
+
+    #[test]
+    fn test_get_meme_amount_with_two_buy_for_threshold() {
+        let mut available_supply = 80_000_000;
+        // let mut token_launch = get_token_launch(
+        //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+        // );
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+        );
+
+        let dynamic_scale_factor = dynamic_scale_factor(
+            SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+        );
+
+        // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+        let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+        // let amounts = array![5, 5];
+        let amounts = array![5, 5];
+        let mut amount_outs = array![];
+
+        for amount_in in amounts {
+            println!("amount_in {:?}", amount_in);
+
+            let amount_out = get_coin_amount_by_quote_amount_exponential(
+                token_launch, amount_in, false, dynamic_scale_factor
+            );
+            println!("amount_out {:?}", amount_out);
+
+            assert!(amount_out <= token_launch.available_supply, "too much");
+
+            token_launch.available_supply -= amount_out;
+            // token_launch.available_supply -= amount_out - token_launch.available_supply;
+            println!("token_launch.available_supply: {}", token_launch.available_supply);
+            amount_outs.append(amount_out);
+            println!("looping ------------------------------------------");
+        };
+
+        println!("amount 1 : {}", amount_outs.at(0));
+        println!("amount 2 : {}", amount_outs.at(1));
+        // println!("amount 3 : {}", amount_outs.at(2));
+    // println!("amount 4 : {}", amount_outs.at(3));
+    }
+
+    #[test]
+    fn test_get_meme_amount_with_two_buy_for_threshold_low_supply() {
+        let mut available_supply = 80_000_u256;
+        // let mut token_launch = get_token_launch(
+        //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+        // );
+        let mut token_launch = get_token_launch(
+            100_000_u256, THRESHOLD_LIQUIDITY, available_supply
+        );
+        let dynamic_scale_factor = dynamic_scale_factor(
+            SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+        );
+
         // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
         let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
         let amounts = array![5, 5];
@@ -141,7 +215,9 @@ mod linear_tests {
         for amount_in in amounts {
             println!("amount_in {:?}", amount_in);
 
-            let amount_out = get_meme_amount(token_launch, amount_in);
+            let amount_out = get_coin_amount_by_quote_amount_exponential(
+                token_launch, amount_in, false, dynamic_scale_factor
+            );
             println!("amount_out {:?}", amount_out);
 
             assert!(amount_out <= token_launch.available_supply, "too much");

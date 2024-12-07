@@ -9,6 +9,7 @@ edition = "2023_11"
 starknet = ">=2.8.2"
 openzeppelin = { git = "https://github.com/openzeppelin/cairo-contracts", tag="v0.18.0" }
 ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
+alexandria_storage = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
 
 [dev-dependencies]

@@ -18,6 +18,16 @@ pub fn max_u256(a: u256, b: u256) -> u256 {
         b
     }
 }
+
+
+pub fn min_u256(a: u256, b: u256) -> u256 {
+    if a > b {
+        b
+    } else {
+        a
+    }
+}
+
 pub fn max(a: u64, b: u64) -> u64 {
     if a > b {
         a
