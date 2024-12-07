@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod liquidity_tests {
+mod unrug_tests {
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::launchpad::{
