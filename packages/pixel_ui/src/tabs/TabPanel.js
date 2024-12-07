@@ -17,6 +17,7 @@ import Templates from './templates/Templates.js';
 import Voting from './voting/Voting.js';
 
 const TabPanel = (props) => {
+
   return (
     <div className="TabPanel">
       <CSSTransition

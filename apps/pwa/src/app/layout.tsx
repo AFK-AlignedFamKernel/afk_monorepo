@@ -5,6 +5,8 @@ import type {Metadata} from 'next';
 // import {useRouter} from 'next/router';
 import Script from 'next/script';
 
+import {ArgentTMAProvider} from '@/context/argentTmContext';
+
 import Providers from './providers';
 
 export const metadata: Metadata = {
@@ -32,6 +34,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <head>
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -52,7 +55,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <ArgentTMAProvider>{children}</ArgentTMAProvider>
+        </Providers>
       </body>
     </html>
   );

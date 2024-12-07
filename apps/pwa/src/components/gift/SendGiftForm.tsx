@@ -17,7 +17,7 @@ interface SendFormProps {
   chainProps?: ChainString;
   tokenAddress?: string;
 }
-type ChainString = 'KAKAROT' | 'STARKNET' | 'SEPOLIA';
+type ChainString = 'KAKAROT' | 'STARKNET' | 'SEPOLIA' | 'STARKNET_SEPOLIA';
 type Token = 'ETH' | 'STRK' | 'USDC';
 enum GiftType {
   'INTERNAL',

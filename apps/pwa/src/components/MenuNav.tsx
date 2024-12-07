@@ -31,11 +31,10 @@ const MenuNav: React.FC<IMenuParent> = () => {
             </MenuItem> */}
             <AccountStarknet></AccountStarknet>
             {/* Dedicated Close Button */}
-
             {typeof window !== 'undefined' && window?.Telegram?.WebApp ? (
               <TelegramAccount></TelegramAccount>
             ) : null}
-
+            {/* <TelegramAccount></TelegramAccount> */}
             <MenuItem onClick={onClose} color="red.500" fontWeight="bold">
               Close Menu
             </MenuItem>
