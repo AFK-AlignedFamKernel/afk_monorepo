@@ -5,17 +5,16 @@ import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-nat
 
 import {Button} from '../../components';
 import Loading from '../../components/Loading';
-import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
 import {TokenCard} from '../../components/search/TokenCard';
+import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
 import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
+import {useMyTokensCreated} from '../../hooks/api/indexer/useMyTokensCreated';
+import {useTokens} from '../../hooks/api/indexer/useTokens';
 import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
 import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
 import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
 import {useLaunchpadStore} from '../../store/launchpad';
 import stylesheet from './styles';
-import {useGetToken} from '../../hooks/api/indexer/useToken';
-import {useMyTokensCreated} from '../../hooks/api/indexer/useMyTokensCreated';
-import {useTokens} from '../../hooks/api/indexer/useTokens';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -26,7 +25,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {tokens: launchsData, isLoading, isFetching} = useCombinedTokenData();
+  const {tokens: launchesData, isLoading, isFetching} = useCombinedTokenData();
   const {data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens} = useTokens();
   console.log('tokens data', tokens);
   const {
@@ -39,14 +38,14 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {publicKey} = useAuth();
   const {width} = useWindowDimensions();
   const isDesktop = width >= 1024 ? true : false;
-  const {tokens: tokensStore, setTokens, setLaunchs, launchs} = useLaunchpadStore();
+  const {tokens: tokensStore, setTokens, setLaunches, launches} = useLaunchpadStore();
 
-  const [tokenOrLaunch, setTokenOrLauch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD'>('LAUNCH');
+  const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD'>('LAUNCH');
 
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
-      setLaunchs(tokens);
+      setLaunches(tokens);
     }
 
     console.log('tokens', tokens);
@@ -70,20 +69,20 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       <View style={styles.actionToggle}>
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'LAUNCH' && styles.activeToggle]}
-          onPress={() => setTokenOrLauch('LAUNCH')}
+          onPress={() => setTokenOrLaunch('LAUNCH')}
         >
-          Launchs
+          Launches
         </Button>
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'TOKEN' && styles.activeToggle]}
-          onPress={() => setTokenOrLauch('TOKEN')}
+          onPress={() => setTokenOrLaunch('TOKEN')}
         >
           Tokens
         </Button>
 
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'MY_DASHBOARD' && styles.activeToggle]}
-          onPress={() => setTokenOrLauch('MY_DASHBOARD')}
+          onPress={() => setTokenOrLaunch('MY_DASHBOARD')}
         >
           My Tokens
         </Button>
@@ -96,7 +95,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           {tokenOrLaunch == 'LAUNCH' && (
             <FlatList
               contentContainerStyle={styles.flatListContent}
-              data={launchsData}
+              data={launchesData}
               // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
               keyExtractor={(item, i) => i.toString()}

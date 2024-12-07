@@ -60,7 +60,7 @@ const colors = {
   body: {
     body: {
       // bg: mode("#153e75","#153e75")
-      fontFamilly: 'monospace',
+      fontFamily: 'monospace',
       bg: '#153e75',
       // useColorMode("#153e75", "#153e75")
     },
@@ -134,7 +134,7 @@ const theme = extendTheme({
         // borderRadius: "base", // <-- border radius is same for all variants and sizes
       },
       fontFamily: 'monospace',
-      // fontFamilly:"PressStart2P",
+      // fontFamily:"PressStart2P",
 
       // // The default size and variant values
       defaultProps: {
@@ -172,7 +172,7 @@ const theme = extendTheme({
       //     color: 'white',
       //   },
       // },
-      // fontFamilly: "monospace",
+      // fontFamily: "monospace",
     },
   },
 });

@@ -1,5 +1,5 @@
-import { Block, DECIMALS, hash, uint256, Pool, formatUnits } from "./deps.ts";
-import { STARTING_BLOCK, NAMESERVICE_ADDRESS } from "./constants.ts";
+import {Block, DECIMALS, formatUnits, hash, Pool, uint256} from "./deps.ts";
+import {NAMESERVICE_ADDRESS, STARTING_BLOCK} from "./constants.ts";
 
 const ConnectionString = Deno.env.get("POSTGRES_CONNECTION_STRING")!;
 const pool = new Pool(ConnectionString, 1, true);
@@ -80,7 +80,7 @@ export default function DecodeUsernameClaimed({ header, events }: Block) {
     //   memecoin_address: token_address,
     //   caller: caller,
     // });
-    const amount_paid_formated = formatUnits(paid_amount, DECIMALS).toString();
+    const amount_paid_formatted = formatUnits(paid_amount, DECIMALS).toString();
 
     return {
       network: "starknet-sepolia",
@@ -92,7 +92,7 @@ export default function DecodeUsernameClaimed({ header, events }: Block) {
       name: username,
       username: username,
       expiry: expiry,
-      paid:amount_paid_formated,
+      paid:amount_paid_formatted,
       quote_token:quote_token,
       created_at: new Date().toISOString(),
     };

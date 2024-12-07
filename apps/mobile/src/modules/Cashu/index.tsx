@@ -4,8 +4,18 @@ import {MintQuoteResponse} from '@cashu/cashu-ts';
 import {useCashu, useCashuStore} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {SetStateAction, useEffect, useRef, useState} from 'react';
-import {Platform, Pressable, SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Modal, Text, TextInput} from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
 import {ChevronLeftIcon, ScanQrIcon} from '../../assets/icons';
@@ -377,7 +387,7 @@ function WalletInfo({
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
   return (
-    <View style={styles.walletcontainer}>
+    <View style={styles.walletContainer}>
       <View style={styles.infoSection}>
         <Text style={styles.sectionTitle}>Wallet Details</Text>
         <View style={styles.infoRow}>
