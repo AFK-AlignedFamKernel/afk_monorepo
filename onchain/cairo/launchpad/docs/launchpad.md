@@ -6,7 +6,7 @@ launch a bonding curve fair launch, or add liquidity safely and unruggable for y
 
 ## What you can do:
 
-- Create token with supply choosen etc
+- Create token with supply chosen etc
 - Launch token bonding curve: in hard test
 - Add liquidity after bonding curve
 a. Ekubo (done)

@@ -48,7 +48,7 @@ export const useInternalAccount = () => {
         // } else {
         //   const { secretKey, mnemonic, publicKey, strkPrivateKey } = result
         //   console.log("result", result)
-        //   showToast({ title: "Authentication succed.", type: "success" })
+        //   showToast({ title: "Authentication succeed.", type: "success" })
 
         //   setIsConnected(true)
         // }

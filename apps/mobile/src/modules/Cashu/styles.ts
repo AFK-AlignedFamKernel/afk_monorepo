@@ -296,7 +296,7 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: Spacing.small,
   },
   pasteButton: {
-    backgroundColor: 'transparant',
+    backgroundColor: 'transparent',
     borderRadius: 30,
     alignItems: 'center',
     borderWidth: 1,
@@ -361,7 +361,7 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   //Wallet Info
-  walletcontainer: {
+  walletContainer: {
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
     padding: Spacing.medium,

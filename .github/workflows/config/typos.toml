@@ -1,5 +1,6 @@
 [default.extend-words]
 ba = "ba"
+frst = "frst"
 
 [files]
 extend-exclude = ["/**/patches/**", "/**/assets/**", "/**/src/config/**", "**/*.config.ts"]
