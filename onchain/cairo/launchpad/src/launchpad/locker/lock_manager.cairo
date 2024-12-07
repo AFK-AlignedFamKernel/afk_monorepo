@@ -5,29 +5,18 @@
 pub mod LockManager {
     use afk_launchpad::launchpad::locker::errors;
     use afk_launchpad::launchpad::locker::interface::{
-        TokenLock, LockPosition,
-        TokenUnlocked, TokenLocked, TokenWithdrawn, ILockManager};
+        TokenLock, LockPosition, TokenUnlocked, TokenLocked, TokenWithdrawn, ILockManager
+    };
+    use core::num::traits::Zero;
     // use alexandria_storage::list::{List, ListTrait};
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::traits::TryInto;
     use debug::PrintTrait;
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
-    use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
-        get_block_timestamp, Store, ClassHash
-    };
-    use core::num::traits::Zero;
-    use starknet::storage::{Vec,VecTrait, VecCopy, 
-    StorageAsPath, StoragePath, StoragePointerReadAccess, StoragePointerWriteAccess,
-        MutableVecTrait, VecIndexView,  IndexView, 
-        MutableVecIndexView, MutableVecAsPointer, VecAsPointer,
-};
-
-    use starknet::syscalls::deploy_syscall;
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
-        StoragePointerReadAccess,
+         StoragePointerReadAccess,
         StoragePointerWriteAccess, StoragePathEntry,
         // MutableEntryStoragePathEntry,
     // StorableEntryReadAccess,
@@ -36,6 +25,17 @@ pub mod LockManager {
     // MutableStorableEntryWriteAccess,
     // StorageAsPathWriteForward,
     // PathableStorageEntryImpl
+    };
+    use starknet::storage::{
+        Vec, VecTrait, VecCopy, StorageAsPath, StoragePath, StoragePointerReadAccess,
+        StoragePointerWriteAccess, MutableVecTrait, VecIndexView, IndexView, MutableVecIndexView,
+        MutableVecAsPointer, VecAsPointer,
+    };
+
+    use starknet::syscalls::deploy_syscall;
+    use starknet::{
+        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
+        get_block_timestamp, Store, ClassHash
     };
 
     #[storage]
@@ -47,9 +47,9 @@ pub mod LockManager {
         user_locks: Map<ContractAddress, Vec<felt252>>,
         token_locks: Map<ContractAddress, Vec<felt252>>,
         // user_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-        // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-        // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
-        // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+    // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
+    // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+    // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
     }
 
 
@@ -142,7 +142,8 @@ pub mod LockManager {
 
     #[abi(embed_v0)]
     impl LockManager of ILockManager<ContractState> {
-    // impl LockManager of afk_launchpad::launchpad::locker::interface::ILockManager<ContractState> {
+        // impl LockManager of
+        // afk_launchpad::launchpad::locker::interface::ILockManager<ContractState> {
         fn lock_tokens(
             ref self: ContractState,
             token: ContractAddress,
@@ -250,7 +251,9 @@ pub mod LockManager {
             // Update owner's lock lists
             let mut user_locks = self.user_locks.read(token_lock.owner.try_into().unwrap());
             self.remove_lock_from_list(lock_address, user_locks);
-            let mut new_owner_locks: Vec<ContractAddress> = self.user_locks.read(new_owner.try_into().unwrap());
+            let mut new_owner_locks: Vec<ContractAddress> = self
+                .user_locks
+                .read(new_owner.try_into().unwrap());
             new_owner_locks.append(lock_address);
 
             // Update lock details
@@ -418,45 +421,45 @@ pub mod LockManager {
         fn remove_lock_from_list(
             // self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
             self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
-        ) {
-            // let list_len = list.len();
-            // let mut i = 0;
+        ) { // let list_len = list.len();
+        // let mut i = 0;
 
-            // let mut list_new: Vec<ContractAddress> = Vec::new();
+        // let mut list_new: Vec<ContractAddress> = Vec::new();
 
-            // let mut list_clone = list.clone();
-            // loop {
-            //     if i == list_len {
-            //         break;
-            //     }
-            //     let current_lock_address = list_clone[i];
-            //     if current_lock_address != lock_address {
-            //         i += 1;
-            //         continue;
-            //     }
-            //     let last_element = list_clone[list_len - 1];
-            //     list_clone.set(i, last_element);
-            //     list_clone.set(list_len - 1, 0.try_into().unwrap());
-            //     list_clone.len -= 1;
-            //     Store::write(list_clone.address_domain, list_clone.base, list_clone.len).unwrap_syscall();
-            //     break;
-            // // }
-            // loop {
-            //     if i == list_len {
-            //         break;
-            //     }
-            //     let current_lock_address = list[i];
-            //     if current_lock_address != lock_address {
-            //         i += 1;
-            //         continue;
-            //     }
-            //     let last_element = list[list_len - 1];
-            //     list.set(i, last_element);
-            //     list.set(list_len - 1, 0.try_into().unwrap());
-            //     // list.len -= 1;
-            //     Store::write(list.address_domain, list.base, list.len).unwrap_syscall();
-            //     break;
-            // }
+        // let mut list_clone = list.clone();
+        // loop {
+        //     if i == list_len {
+        //         break;
+        //     }
+        //     let current_lock_address = list_clone[i];
+        //     if current_lock_address != lock_address {
+        //         i += 1;
+        //         continue;
+        //     }
+        //     let last_element = list_clone[list_len - 1];
+        //     list_clone.set(i, last_element);
+        //     list_clone.set(list_len - 1, 0.try_into().unwrap());
+        //     list_clone.len -= 1;
+        //     Store::write(list_clone.address_domain, list_clone.base,
+        //     list_clone.len).unwrap_syscall();
+        //     break;
+        // // }
+        // loop {
+        //     if i == list_len {
+        //         break;
+        //     }
+        //     let current_lock_address = list[i];
+        //     if current_lock_address != lock_address {
+        //         i += 1;
+        //         continue;
+        //     }
+        //     let last_element = list[list_len - 1];
+        //     list.set(i, last_element);
+        //     list.set(list_len - 1, 0.try_into().unwrap());
+        //     // list.len -= 1;
+        //     Store::write(list.address_domain, list.base, list.len).unwrap_syscall();
+        //     break;
+        // }
         }
     }
 }

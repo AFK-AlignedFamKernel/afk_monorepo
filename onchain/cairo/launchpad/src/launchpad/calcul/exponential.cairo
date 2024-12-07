@@ -1,5 +1,5 @@
 use afk_launchpad::launchpad::errors;
-use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256};
+use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256, min_u256};
 use afk_launchpad::types::launchpad_types::{
     TokenLaunch, BondingType, EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType,
     CallbackData, EkuboLaunchParameters, LaunchCallback
@@ -77,28 +77,79 @@ pub fn exponential_approximation(x: u256, scale_factor: u256, terms: u256) -> u2
     result
 }
 
+pub fn dynamic_scale_factor(
+    base_scale_factor: u256, sellable_supply: u256, threshold_liquidity: u256
+) -> u256 {
+    // Ensure sellable supply and threshold liquidity are non-zero
+    assert(sellable_supply > 0, 'Sellable supply not above 0');
+    assert(threshold_liquidity > 0, 'Threshold liquidity below 0');
+
+    // Calculate ratio: max(S_sellable / Q_thresh, Q_thresh / S_sellable)
+    let ratio = if sellable_supply > threshold_liquidity {
+        sellable_supply / threshold_liquidity
+    } else {
+        threshold_liquidity / sellable_supply
+    };
+
+    // Scale the base factor by the ratio
+    let dynamic_factor = base_scale_factor * max_u256(1, ratio);
+
+    return dynamic_factor;
+}
+
+
+// pub fn calculate_initial_price(
+//     threshold_liquidity: u256, sellable_supply: u256, growth_factor: u256, // b
+//     dynamic_scale_factor:u256
+// ) -> u256 {
+//     // Constants
+
+//     // Compute the exponential term: e^(b * sellable_supply)
+//     let exponent = growth_factor * sellable_supply / SCALE_FACTOR;
+//     // let exp_value = e*exponent;
+//     // let exp_value = e*exponent;
+//     // Approximate e^(b * sellable_supply)
+//     let exp_value = exponential_approximation(exponent, SCALE_FACTOR, TAYLOR_TERMS);
+
+//     // math::exp(exponent); // Use Cairo's math library for exponentiation
+
+//     // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
+//     let denominator = exp_value - SCALE_FACTOR;
+//     assert!(denominator > 0, "Exponential denominator must not be zero");
+
+//     let initial_price = (threshold_liquidity * growth_factor) / denominator;
+//     initial_price
+// }
+
 pub fn calculate_initial_price(
-    threshold_liquidity: u256, sellable_supply: u256, growth_factor: u256, // b
+    threshold_liquidity: u256,
+    sellable_supply: u256,
+    growth_factor: u256, // b
+    dynamic_scale_factor: u256
 ) -> u256 {
     // Constants
 
     // Compute the exponential term: e^(b * sellable_supply)
-    let exponent = growth_factor * sellable_supply / SCALE_FACTOR;
+    let exponent = growth_factor * sellable_supply / dynamic_scale_factor;
     // let exp_value = e*exponent;
     // let exp_value = e*exponent;
     // Approximate e^(b * sellable_supply)
-    let exp_value = exponential_approximation(exponent, SCALE_FACTOR, TAYLOR_TERMS);
+    let exp_value = exponential_approximation(exponent, dynamic_scale_factor, TAYLOR_TERMS);
 
     // math::exp(exponent); // Use Cairo's math library for exponentiation
 
     // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
-    let denominator = exp_value - SCALE_FACTOR;
-    assert!(denominator > 0, "Exponential denominator must not be zero");
+    let denominator = exp_value - dynamic_scale_factor;
+    // assert!(denominator > 0, "Exponential denominator must not be zero");
 
-    let initial_price = (threshold_liquidity * growth_factor) / denominator;
+    // Clamp the denominator to avoid zero or negative values
+    let safe_denominator = max_u256(denominator, 1);
+
+    // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
+    let initial_price = (threshold_liquidity * growth_factor) / safe_denominator;
+    // let initial_price = (threshold_liquidity * growth_factor) / denominator;
     initial_price
 }
-
 
 pub fn exponential_price(initial_price: u256, growth_factor: u256, tokens_sold: u256,) -> u256 {
     // Calculate the price: P(x) = a * e^(b * x)
@@ -127,13 +178,19 @@ pub fn tokens_for_quote(initial_price: u256, growth_factor: u256, quote_amount: 
 }
 
 pub fn get_coin_amount_by_quote_amount_exponential(
-    pool_coin: TokenLaunch, quote_amount: u256, is_decreased: bool,
+    pool_coin: TokenLaunch, quote_amount: u256, is_decreased: bool, dynamic_scale_factor: u256
 ) -> u256 {
     // Total supply and current available supply
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
+    let threshold_liquidity = pool_coin.threshold_liquidity.clone();
     let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
     assert!(sellable_supply > 0, "Sellable supply must not be zero");
+    let growth_factor = 100_000_u256;
+
+    let adjusted_scale_factor = dynamic_scale_factor
+        * max_u256(1_u256, sellable_supply / threshold_liquidity);
+    // let adjusted_scale_factor = dynamic_scale_factor * max(1, quote_amount / growth_factor);
 
     // Starting price and growth factor
     let starting_price = pool_coin.starting_price.clone();
@@ -141,39 +198,110 @@ pub fn get_coin_amount_by_quote_amount_exponential(
     //     .growth_factor
     //     .clone(); // Represents `b` in the exponential formula
 
-    let growth_factor = 100_000_u256;
     // let growth_factor = GROWTH_FACTOR.clone();
     // Tokens sold so far
     let tokens_sold = sellable_supply.clone() - current_supply.clone();
 
     // Calculate the scaled price for the current state
 
-    let exponent = growth_factor * tokens_sold / SCALE_FACTOR;
-    let exp_value = exponential_approximation(exponent, SCALE_FACTOR, TAYLOR_TERMS);
+    let exponent = growth_factor * tokens_sold / adjusted_scale_factor;
+    let exp_value = exponential_approximation(exponent, adjusted_scale_factor, TAYLOR_TERMS);
 
-    let price = starting_price.clone() * exp_value / SCALE_FACTOR;
+    let price = starting_price.clone() * exp_value / adjusted_scale_factor;
     let scaled_price = max_u256(price, MIN_PRICE); // Ensure price is never below the minimum
     // };
     let mut q_out: u256 = 0;
     if is_decreased {
         // Sell path: Calculate how many tokens to return for a given quote amount
         // Solve for tokens: n = (1 / b) * ln((quote_amount * b / a) + 1)
-        let log_input = (quote_amount.clone() * growth_factor.clone()) / starting_price.clone()
-            + SCALE_FACTOR;
-        let ln_value = natural_log(log_input, SCALE_FACTOR, LN_TERMS);
-        let tokens = ln_value.clone() * SCALE_FACTOR / growth_factor.clone();
+        // let log_input = (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+        //     + dynamic_scale_factor;
 
+        let log_input = max_u256(
+            (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+                + adjusted_scale_factor,
+            1
+        );
+
+        // let ln_value = natural_log(log_input, adjusted_scale_factor, LN_TERMS);
+        let ln_value = max_u256(natural_log(log_input, adjusted_scale_factor, LN_TERMS), 1);
+
+        let tokens = ln_value.clone() * adjusted_scale_factor / growth_factor.clone();
+
+        q_out = min_u256(tokens, current_supply); // Clamp to available supply
         q_out = tokens;
     } else {
         // Buy path: Calculate tokens received for a given quote amount
         // Solve for tokens: n = (1 / b) * ln((quote_amount * b / a) + 1)
-        let log_input = (quote_amount.clone() * growth_factor.clone()) / starting_price.clone()
-            + SCALE_FACTOR;
-        let ln_value = natural_log(log_input, SCALE_FACTOR, LN_TERMS);
+        let log_input = max_u256(
+            (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+                + adjusted_scale_factor,
+            1
+        );
+
+        // let log_input = (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+        //     + dynamic_scale_factor;
+        // let ln_value = natural_log(log_input, adjusted_scale_factor, LN_TERMS);
+        let ln_value = max_u256(natural_log(log_input, adjusted_scale_factor, LN_TERMS), 1);
+
         // let tokens = math::ln(log_input) * SCALE_FACTOR / growth_factor;
-        let tokens = ln_value.clone() * SCALE_FACTOR / growth_factor.clone();
-        q_out = tokens;
+        let tokens = ln_value.clone() * adjusted_scale_factor / growth_factor.clone();
+        q_out = min_u256(tokens, current_supply); // Clamp to available supply
+        // q_out = tokens;
     }
 
     q_out
 }
+// pub fn get_coin_amount_by_quote_amount_exponential(
+//     pool_coin: TokenLaunch, quote_amount: u256, is_decreased: bool,
+
+// ) -> u256 {
+//     // Total supply and current available supply
+//     let total_supply = pool_coin.total_supply.clone();
+//     let current_supply = pool_coin.available_supply.clone();
+//     let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
+//     assert!(sellable_supply > 0, "Sellable supply must not be zero");
+
+//     // Starting price and growth factor
+//     let starting_price = pool_coin.starting_price.clone();
+//     // let growth_factor = pool_coin
+//     //     .growth_factor
+//     //     .clone(); // Represents `b` in the exponential formula
+
+//     let growth_factor = 100_000_u256;
+//     // let growth_factor = GROWTH_FACTOR.clone();
+//     // Tokens sold so far
+//     let tokens_sold = sellable_supply.clone() - current_supply.clone();
+
+//     // Calculate the scaled price for the current state
+
+//     let exponent = growth_factor * tokens_sold / SCALE_FACTOR;
+//     let exp_value = exponential_approximation(exponent, SCALE_FACTOR, TAYLOR_TERMS);
+
+//     let price = starting_price.clone() * exp_value / SCALE_FACTOR;
+//     let scaled_price = max_u256(price, MIN_PRICE); // Ensure price is never below the minimum
+//     // };
+//     let mut q_out: u256 = 0;
+//     if is_decreased {
+//         // Sell path: Calculate how many tokens to return for a given quote amount
+//         // Solve for tokens: n = (1 / b) * ln((quote_amount * b / a) + 1)
+//         let log_input = (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+//             + SCALE_FACTOR;
+//         let ln_value = natural_log(log_input, SCALE_FACTOR, LN_TERMS);
+//         let tokens = ln_value.clone() * SCALE_FACTOR / growth_factor.clone();
+
+//         q_out = tokens;
+//     } else {
+//         // Buy path: Calculate tokens received for a given quote amount
+//         // Solve for tokens: n = (1 / b) * ln((quote_amount * b / a) + 1)
+//         let log_input = (quote_amount.clone() * growth_factor.clone()) / scaled_price.clone()
+//             + SCALE_FACTOR;
+//         let ln_value = natural_log(log_input, SCALE_FACTOR, LN_TERMS);
+//         // let tokens = math::ln(log_input) * SCALE_FACTOR / growth_factor;
+//         let tokens = ln_value.clone() * SCALE_FACTOR / growth_factor.clone();
+//         q_out = tokens;
+//     }
+
+//     q_out
+// }
+

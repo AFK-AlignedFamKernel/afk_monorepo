@@ -1,7 +1,6 @@
 use starknet::ContractAddress;
 // use super::LockManager::{TokenLock, LockPosition};
 
-
 #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
 pub struct TokenLock {
     pub token: ContractAddress,

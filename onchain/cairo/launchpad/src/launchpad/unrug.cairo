@@ -74,7 +74,8 @@ pub trait IUnrugLiquidity<TContractState> {
 
 
     // fn get_coin_amount_by_quote_amount(
-    //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+    //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased:
+    //     bool
     // ) -> u256;
 
     // fn get_quote_paid_by_amount_coin(
@@ -116,12 +117,10 @@ pub mod UnrugLiquidity {
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
+    use afk_launchpad::launchpad::calcul::launch::{get_amount_by_type_of_coin_or_quote};
     use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
         // get_amount_by_type_of_coin_or_quote
-    };
-    use afk_launchpad::launchpad::calcul::launch::{
-        get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::errors;
     // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters

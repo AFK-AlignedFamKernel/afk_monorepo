@@ -2,7 +2,7 @@
 pub mod LockPosition {
     use afk_launchpad::launchpad::locker::interface::{
         ILockManagerDispatcher, ILockManagerDispatcherTrait
-    };    
+    };
     use core::num::traits::Zero;
 
     // use core::num::{BoundedU256};
@@ -25,16 +25,16 @@ pub mod LockPosition {
         self.lock_manager.write(lock_manager);
         self.locked_token.write(locked_token);
 
-
         // TODO fixed Approve max
-            // Give infinite allowance to the lock manager to retrieve the locked balance.
+        // Give infinite allowance to the lock manager to retrieve the locked balance.
 
-           let max_uint= Bounded::<u256>::MAX;
-        ERC20ABIDispatcher { contract_address: locked_token }
-            // .approve(lock_manager, BoundedInt::<u256>::max());
-        .approve(lock_manager, max_uint);
+        let max_uint = Bounded::<u256>::MAX;
+        ERC20ABIDispatcher {
+            contract_address: locked_token
+        } // .approve(lock_manager, BoundedInt::<u256>::max());
+            .approve(lock_manager, max_uint);
         // // Give infinite allowance to the lock manager to retrieve the locked balance.
-        // ERC20ABIDispatcher { contract_address: locked_token }
-        //     .approve(lock_manager, BoundedInt::<u256>::max());
+    // ERC20ABIDispatcher { contract_address: locked_token }
+    //     .approve(lock_manager, BoundedInt::<u256>::max());
     }
 }

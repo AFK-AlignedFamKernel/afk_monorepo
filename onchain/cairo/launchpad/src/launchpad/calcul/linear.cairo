@@ -3,7 +3,7 @@
 use afk_launchpad::launchpad::math::{
     pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
 };
-use afk_launchpad::launchpad::math::{max_u256};
+use afk_launchpad::launchpad::math::{max_u256, min_u256};
 use afk_launchpad::types::launchpad_types::{TokenLaunch, // BondingType, TokenQuoteBuyCoin,
 // SetJediswapNFTRouterV2, SetJediswapV2Factory,
 // SupportedExchanges, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
@@ -113,7 +113,6 @@ const SQRT_ITER: u256 = 1_u256;
 // return value >> 64  # Divide by 2^64
 // else:
 // return value  # Already fits into u128
-
 pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
@@ -131,11 +130,11 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let effective_scale_factor = SCALE_FACTOR * max_u256(1, 1_000 / sellable_supply);
     assert!(effective_scale_factor > 0, "Effective scale factor must be positive");
 
-    // Pre-scale supply for very large ranges
+    // Pre-scale supply for very large ranges and clamp to avoid negatives
     let scaled_supply = if sellable_supply > 1_000_000_000 {
-        current_supply - amount_in / SCALE_FACTOR
+        max_u256(current_supply - amount_in / SCALE_FACTOR, 1)
     } else {
-        current_supply - amount_in
+        max_u256(current_supply - amount_in, 1)
     };
 
     // Calculate slope with dynamic threshold liquidity
@@ -151,27 +150,93 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     assert!(intercept > 0, "Intercept calculation resulted in zero");
 
     // Compute the intermediate value for `i_cast` with scale adjustments
-    // let term1 = (slope * amount_sold + intercept) * (slope * amount_sold + intercept);
     let term1 = (slope * (current_supply + intercept)) * (slope * (current_supply + intercept));
     let term2 = (2 * slope * amount_in) / SCALE_FACTOR;
-    // let term2 = (2 * slope * amount_in) / (SCALE_FACTOR * scaled_supply);
-
     let i_cast = term1 + term2;
 
     let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
 
     // Compute the square root using a safe approximation
     let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
-
     let i = dynamic_scale_u128_to_u256(res, exp);
 
     // Calculate amount out
     let numerator = i - ((slope * amount_sold + intercept) / SCALE_FACTOR).try_into().unwrap();
+    let calculated_amount_out = numerator / slope.try_into().unwrap();
 
-    let amount_out = numerator / slope.try_into().unwrap();
+    // Clamp amount_out to available supply
+    println!("calculated_amount_out: {}", calculated_amount_out);
+    println!("current_supply: {}", current_supply);
+
+    let amount_out = min_u256(calculated_amount_out, current_supply);
+    // let amount_out = min_u256(current_supply, calculated_amount_out);
+
+    // let amount_out_fix = slope * amount_sold * amount_in + slope/2 * amount_in * amount_in +
+    // intercept * amount_in;
+    // let amount_out = min_u256(amount_out_fix, current_supply);
+
+    // Return clamped amount_out
     amount_out.try_into().unwrap()
 }
 
+// pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+//     let total_supply = pool_coin.total_supply.clone();
+//     let current_supply = pool_coin.available_supply.clone();
+//     let sellable_supply = total_supply.clone() - (total_supply.clone() / LIQUIDITY_RATIO);
+//     let amount_sold = sellable_supply.clone() - current_supply.clone();
+
+//     println!("amount_sold: {}", amount_sold);
+//     println!("current_supply: {}", current_supply);
+
+//     let current_threshold_liquidity = pool_coin.threshold_liquidity.clone();
+//     assert!(sellable_supply > 0, "Sellable supply == 0");
+//     assert!(current_threshold_liquidity > 0, "Threshold liquidity == 0");
+
+//     // Dynamically adjust scale factor for small ranges
+//     // TODO verify and test range
+//     let effective_scale_factor = SCALE_FACTOR * max_u256(1, 1_000 / sellable_supply);
+//     assert!(effective_scale_factor > 0, "Effective scale factor must be positive");
+
+//     // Pre-scale supply for very large ranges
+//     let scaled_supply = if sellable_supply > 1_000_000_000 {
+//         current_supply - amount_in / SCALE_FACTOR
+//     } else {
+//         current_supply - amount_in
+//     };
+
+//     // Calculate slope with dynamic threshold liquidity
+//     let slope = max_u256(
+//         (current_threshold_liquidity * effective_scale_factor) / (scaled_supply * scaled_supply),
+//         1, // Minimum slope to prevent division by zero
+//     );
+
+//     println!("slope: {}", slope);
+
+//     // Calculate intercept with dynamic threshold liquidity
+//     let intercept = (current_threshold_liquidity * effective_scale_factor) / (2 * scaled_supply);
+//     assert!(intercept > 0, "Intercept calculation resulted in zero");
+
+//     // Compute the intermediate value for `i_cast` with scale adjustments
+//     // let term1 = (slope * amount_sold + intercept) * (slope * amount_sold + intercept);
+//     let term1 = (slope * (current_supply + intercept)) * (slope * (current_supply + intercept));
+//     let term2 = (2 * slope * amount_in) / SCALE_FACTOR;
+//     // let term2 = (2 * slope * amount_in) / (SCALE_FACTOR * scaled_supply);
+
+//     let i_cast = term1 + term2;
+
+//     let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
+
+//     // Compute the square root using a safe approximation
+//     let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
+
+//     let i = dynamic_scale_u128_to_u256(res, exp);
+
+//     // Calculate amount out
+//     let numerator = i - ((slope * amount_sold + intercept) / SCALE_FACTOR).try_into().unwrap();
+
+//     let amount_out = numerator / slope.try_into().unwrap();
+//     amount_out.try_into().unwrap()
+// }
 
 // pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
 //     let total_supply = pool_coin.total_supply.clone();
