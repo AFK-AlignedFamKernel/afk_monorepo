@@ -36,9 +36,6 @@ export class SignatureService {
         s: BigInt(signature.s),
       } as WeierstrassSignatureType;
 
-
-      
-
       // Using dummy private key since we only need it for interface compatibility
       // This won't affect verification as we're only using public methods
       const dummyPrivateKey = "0x1";

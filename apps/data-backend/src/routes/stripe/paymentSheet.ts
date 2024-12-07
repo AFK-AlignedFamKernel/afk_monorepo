@@ -19,10 +19,10 @@ async function paymentSheet(fastify: FastifyInstance) {
           required: ["currency", "amount"],
           properties: {
             currency: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
-            amount: { type: "number" }
-          }
-        }
-      }
+            amount: { type: "number" },
+          },
+        },
+      },
     },
 
     async (request, reply) => {
@@ -41,7 +41,7 @@ async function paymentSheet(fastify: FastifyInstance) {
         const paymentIntent = await stripe.paymentIntents.create({
           amount: 1000, // Example amount in smallest currency unit (cents)
           currency: currency,
-          payment_method_types: ["card"]
+          payment_method_types: ["card"],
         });
 
         // reply.send({
@@ -51,7 +51,7 @@ async function paymentSheet(fastify: FastifyInstance) {
         return reply.code(200).send({
           paymentIntent: paymentIntent.client_secret,
           ephemeralKey: ephemeralKey.secret,
-          customer: customer.id
+          customer: customer.id,
         });
 
         // return reply.code(200).send({ ok: true });
