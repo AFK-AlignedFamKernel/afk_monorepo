@@ -111,6 +111,46 @@ mod exponential_tests {
     //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
     // }
 
+    
+    #[test]
+    fn test_get_meme_amount_with_5_steps() {
+        let mut available_supply = 80_000_000;
+        // let mut token_launch = get_token_launch(
+        //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+        // );
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+        );
+
+        let dynamic_scale_factor = dynamic_scale_factor(
+            SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+        );
+        let amounts = array![1, 1,1,1,6];
+        let mut amount_outs = array![];
+        for amount_in in amounts {
+            println!("amount_in {:?}", amount_in);
+
+            let amount_out = get_coin_amount_by_quote_amount_exponential(
+                token_launch, amount_in, false, dynamic_scale_factor
+            );
+            println!("amount_out {:?}", amount_out);
+
+            assert!(amount_out <= token_launch.available_supply, "too much");
+
+            token_launch.available_supply -= amount_out;
+            // token_launch.available_supply -= amount_out - token_launch.available_supply;
+            println!("token_launch.available_supply: {}", token_launch.available_supply);
+            amount_outs.append(amount_out);
+            println!("looping {:?}------------------------------------------", amount_in);
+        };
+
+        println!("amount 1 : {}", amount_outs.at(0));
+        println!("amount 2 : {}", amount_outs.at(1));
+        // println!("amount 3 : {}", amount_outs.at(2));
+    // println!("amount 4 : {}", amount_outs.at(3));
+    }
+
+
     #[test]
     fn test_get_meme_amount_with_two_buy_for_threshold() {
         let mut available_supply = 80_000_000;
@@ -127,6 +167,7 @@ mod exponential_tests {
 
         // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
         let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+        // let amounts = array![5, 5];
         let amounts = array![5, 5];
         let mut amount_outs = array![];
 
