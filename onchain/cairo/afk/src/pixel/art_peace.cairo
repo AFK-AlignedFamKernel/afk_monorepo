@@ -6,13 +6,14 @@ pub mod ArtPeace {
     };
     use afk::interfaces::pixel::{
         IArtPeace, // Pixel,
-        Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay, CanvasScaled,
-        PixelPlaced, BasicPixelPlaced, FactionPixelsPlaced, ChainFactionPixelsPlaced,
+         Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay,
+        CanvasScaled, PixelPlaced, BasicPixelPlaced, FactionPixelsPlaced, ChainFactionPixelsPlaced,
         ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, //  InitParams,
-        MetadataPixel
+         MetadataPixel,
+         PixelMetadataPlaced
     };
     use afk::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -94,6 +95,10 @@ pub mod ArtPeace {
         chain_faction_templates_count: u32,
         // Map: template id -> template metadata
         chain_faction_templates: Map::<u32, FactionTemplateMetadata>,
+        // New state
+        is_shield_pixel_activated: bool,
+        price_by_time_minute: u256,
+        token_address: ContractAddress,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
     }
@@ -106,6 +111,7 @@ pub mod ArtPeace {
         ColorAdded: ColorAdded,
         PixelPlaced: PixelPlaced,
         BasicPixelPlaced: BasicPixelPlaced,
+        PixelMetadataPlaced: PixelMetadataPlaced,
         FactionPixelsPlaced: FactionPixelsPlaced,
         ChainFactionPixelsPlaced: ChainFactionPixelsPlaced,
         ExtraPixelsPlaced: ExtraPixelsPlaced,
@@ -250,6 +256,54 @@ pub mod ArtPeace {
     //     self.daily_quests_count.write(init_params.daily_quests_count);
     // }
 
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+        // TODO: Make the function internal
+
+        fn _place_pixel_inner(ref self: ContractState, pos: u128, color: u8) {
+            self.check_valid_pixel(pos, color);
+
+            let caller = starknet::get_caller_address();
+            // TODO: let pixel = Pixel { color, owner: caller };
+            // TODO: self.canvas.write(pos, pixel);
+            let day = self.day_index.read();
+            self
+                .user_pixels_placed
+                .entry((day, caller, color))
+                .write(self.user_pixels_placed.read((day, caller, color)) + 1);
+            // TODO: Optimize?
+            self.emit(PixelPlaced { placed_by: caller, pos, day, color });
+        }
+
+        // TODO: Make the function internal
+        fn _place_basic_pixel_inner(ref self: ContractState, pos: u128, color: u8, now: u64) {
+            self._place_pixel_inner(pos, color);
+            let caller = starknet::get_caller_address();
+            self.last_placed_time.entry(caller).write(now);
+            self.emit(BasicPixelPlaced { placed_by: caller, timestamp: now });
+        }
+
+
+        fn _place_metadata(
+            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        ) {
+            // place_pixel_inner(ref self, pos, color);
+            let caller = starknet::get_caller_address();
+            let day = self.day_index.read();
+
+            self.last_placed_time.entry(caller).write(now);
+
+            // TODO add map for Metadata
+
+            // Check if ok
+            self
+                .emit(
+                    PixelMetadataPlaced { placed_by: caller, pos:pos,  day:day, color:color, metadata: metadata }
+                );
+        }
+
+    }
+
     #[abi(embed_v0)]
     impl ArtPeaceImpl of IArtPeace<ContractState> {
         // fn get_pixel(self: @ContractState, pos: u128) -> Pixel {
@@ -313,6 +367,7 @@ pub mod ArtPeace {
             place_basic_pixel_inner(ref self, pos, color, now);
         }
 
+
         fn place_pixel_metadata(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
@@ -326,6 +381,35 @@ pub mod ArtPeace {
 
             place_basic_pixel_inner(ref self, pos, color, now);
         }
+
+        fn add_pixel_metadata(
+            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        ) {
+            self.check_game_running();
+            self.check_timing(now);
+            let caller = starknet::get_caller_address();
+            assert(
+                now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
+                'Pixel not available'
+            );
+
+            // place_metadata(ref self, pos, color, now, metadata);
+            self._place_metadata(pos, color, now, metadata);
+        }
+
+        // TODO: Make the function internal
+        // fn place_metadata(
+        //     ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        // ) {
+        //     // place_pixel_inner(ref self, pos, color);
+        //     let caller = starknet::get_caller_address();
+        //     self.last_placed_time.entry(caller).write(now);
+        //     self
+        //         .emit(
+        //             PixelMetadataPlaced { placed_by: caller, timestamp: now, metadata: metadata }
+        //         );
+        // }
+
 
         fn place_pixel_xy(ref self: ContractState, x: u128, y: u128, color: u8, now: u64) {
             let pos = x + y * self.canvas_width.read();
@@ -437,11 +521,16 @@ pub mod ArtPeace {
             );
             self.check_game_running();
             let faction_id = self.factions_count.read() + 1;
-            let faction = Faction { name, leader, joinable, allocation };
+            let faction = Faction { name, leader, joinable, allocation, is_admin: true };
             self.factions.entry(faction_id).write(faction);
             self.factions_count.write(faction_id);
             // TODO fix emit event
-            self.emit(FactionCreated { faction_id, name, leader, joinable, allocation });
+            self
+                .emit(
+                    FactionCreated {
+                        faction_id, name, leader, joinable, allocation, is_admin: true
+                    }
+                );
         }
 
         fn change_faction_leader(
