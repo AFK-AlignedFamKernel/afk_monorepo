@@ -45,90 +45,89 @@ export const convertUrl = (url) => {
 };
 
 export const CHAIN_ID =
-  process.env.REACT_APP_CHAIN_ID === constants.NetworkName.SN_MAIN
+  process.env.NEXT_PUBLIC_CHAIN_ID === constants.NetworkName.SN_MAIN
     ? constants.NetworkName.SN_MAIN
     : constants.NetworkName.SN_SEPOLIA;
 
 export const getProvider = (chainId) => {
   const provider = new RpcProvider({
     nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL,
-    chainId: chainId ?? constants.StarknetChainId.SN_SEPOLIA
+    chainId: chainId || constants.StarknetChainId.SN_SEPOLIA
   });
   return provider
 }
 
 export const provider = new RpcProvider({
-  nodeUrl: process.env.PROVIDER_URL,
-  chainId: process.env.STARKNET_CHAIN_ID ?? constants.StarknetChainId.SN_SEPOLIA
+  nodeUrl: process.env.NEXT_PUBLIC_PROVIDER_URL,
+  chainId: process.env.NEXT_PUBLIC_STARKNET_CHAIN_ID || constants.StarknetChainId.SN_SEPOLIA
 });
 
 
-//Change the commented section to NEXTJS ENVS since we are deploying to next environment
 export const allowedMethods = [
-    {
+  {
     'Contract Address': process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS || "", 
     selector: 'place_extra_pixels',
-    }
-  // {
-  //   'Contract Address': process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS,
-  //   selector: 'claim_username'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_USERNAME_STORE_CONTRACT_ADDRESS,
-  //   selector: 'change_username'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'claim_today_quest'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'claim_main_quest'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'vote_color'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'place_extra_pixels'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'add_faction_template'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'join_faction'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'join_chain_faction'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'add_chain_faction_template'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'mint_nft'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS,
-  //   selector: 'like_nft'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_CANVAS_NFT_CONTRACT_ADDRESS,
-  //   selector: 'unlike_nft'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'increase_day_index'
-  // },
-  // {
-  //   'Contract Address': process.env.REACT_APP_STARKNET_CONTRACT_ADDRESS,
-  //   selector: 'place_pixel'
-  // }
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS || "",
+    selector: 'claim_username'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS || "",
+    selector: 'change_username'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'claim_today_quest'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'claim_main_quest'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'vote_color'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'place_extra_pixels'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'add_faction_template'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'join_faction'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'join_chain_faction'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'add_chain_faction_template'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'mint_nft'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS || "",
+    selector: 'like_nft'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS || "",
+    selector: 'unlike_nft'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'increase_day_index'
+  },
+  {
+    'Contract Address': process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS || "",
+    selector: 'place_pixel'
+  }
 ];
 
 export const expiry = Math.floor((Date.now() + 1000 * 60 * 60 * 24) / 1000);
@@ -168,7 +167,7 @@ export const parseUnits = (value, decimals) => {
 
 // TODO: Allow STRK fee tokens
 export const metaData = (isStarkFeeToken) => ({
-  projectID: 'art-peace',
+  projectID: 'afk',
   txFees: isStarkFeeToken ? [] : ETHFees
 });
 

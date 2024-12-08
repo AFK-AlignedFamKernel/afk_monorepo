@@ -1,22 +1,16 @@
 import './CanvasContainer.css';
 
-import { useAccount, useContractWrite } from '@starknet-react/core';
 import React, { useEffect, useRef, useState } from 'react';
-
 import canvasConfig from '../configs/canvas.config.json';
 import { fetchWrapper } from '../services/apiService.js';
-import { devnetMode } from '../utils/Consts.js';
 import Canvas from './Canvas';
 import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
-import { ART_PEACE_ADDRESS } from "common"
-import { CallData } from 'starknet';
 
 const CanvasContainer = (props) => {
 
-  const { account, address } = useAccount()
   // TODO: Handle window resize
   const width = canvasConfig.canvas.width;
   const height = canvasConfig.canvas.height;
@@ -235,55 +229,24 @@ const CanvasContainer = (props) => {
     props.setPixelPlacedBy(getPixelInfoEndpoint.data);
   };
 
-  const [calls, setCalls] = useState([]);
   const placePixelCall = async (position, color, now) => {
-    // if (devnetMode) return;
-    console.log("props artpeaceCOntract", props?.artPeaceContract)
-    // if (!props.address || !props.artPeaceContract) return;
-    if (!props.artPeaceContract) {
-      console.log('user connected', account?.address);
+      // if (devnetMode) return;
+      console.log("props artpeaceCOntract", props?.artPeaceContract, "contrr",)
+      // if (!props.address || !props.artPeaceContract) return;
+      if (!props.address || !props.artPeaceContract || !props.account) return;
+  
+        console.log('user connected', props.account?.address);
+        const pixelCalldata = props.artPeaceContract.populate('place_pixel', {
+          pos: position,
+          color: color,
+          now: now
+        });
 
-      const pixelCalldata = {
-        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        entrypoint: "place_pixel",
-        calldata: CallData.compile({
-          position: position,
-          color,
-          now
-        })
-
-      }
-      console.log("pixelCAlldata",pixelCalldata)
-      const tx = await account.execute([pixelCalldata])
-
-      console.log('tx hash', tx.transaction_hash);
-
-      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-
-
-    } else {
-      // TODO: Check valid inputs
-      setCalls(props.artPeaceContract.populateTransaction['place_pixel'](position, color, now));
-
-    }
+        console.log(pixelCalldata,"pixel")
+        const result = await props.account.execute([pixelCalldata]);
+        console.log(result,"res")
   };
 
-  useEffect(() => {
-    const placePixel = async () => {
-      // if (devnetMode) return;
-      console.log('Place Pixel calls:', calls);
-
-      if (calls.length === 0) return;
-      await writeAsync();
-      console.log('Place Pixel successful:', data, isPending);
-      // TODO: Update the UI with the new state
-    };
-    placePixel();
-  }, [calls]);
-
-  const { writeAsync, data, isPending } = useContractWrite({
-    calls,
-  });
 
   const pixelClicked = async (e) => {
     if (props.nftMintingMode || props.templateCreationMode) {
@@ -338,7 +301,7 @@ const CanvasContainer = (props) => {
     // if (!devnetMode) {
     props.setSelectedColorId(-1);
     props.colorPixel(position, colorId);
-    placePixelCall(position, colorId, timestamp);
+    await placePixelCall(position, colorId, timestamp);
     props.clearPixelSelection();
     props.setLastPlacedTime(timestamp * 1000);
     // return;
