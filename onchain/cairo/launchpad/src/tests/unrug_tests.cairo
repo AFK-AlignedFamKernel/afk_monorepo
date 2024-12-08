@@ -357,7 +357,7 @@ mod unrug_tests {
 
     #[test]
     #[fork("Mainnet")]
-    fn test_create_and_add_liquidity_unrug_liq_without_launchpad_threshold() {
+    fn test_create_and_add_liquidity_unrug_liq_lp() {
         let (b, quote_token, launchpad) = request_fixture();
         let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
         let quote_to_deposit = 100;
@@ -382,7 +382,7 @@ mod unrug_tests {
 
         let lp_meme_supply = amount_meme_supply_liq.clone();
 
-        memecoin.transfer(launchpad.contract_address, amount_meme_supply_liq);
+        // memecoin.transfer(launchpad.contract_address, amount_meme_supply_liq);
         let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
         println!("balance meme {:?}", balance_meme_launch);
 
