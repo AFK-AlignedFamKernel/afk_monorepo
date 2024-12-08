@@ -1,10 +1,10 @@
-import { provider } from "../utils/starknet";
+import { provider } from "../../utils/starknet";
 import { Account, constants } from "starknet";
 import dotenv from "dotenv";
 import { ART_PEACE_ADDRESS } from "common";
 import { createArtPeace } from "../utils/art_peace";
-import { CanvasConfig } from "../constants/canvas.config";
-import { prepareAndConnectContract } from "../utils/contract";
+import { CanvasConfig } from "../../constants/canvas.config";
+import { prepareAndConnectContract } from "../../utils/contract";
 dotenv.config();
 
 export const deployArtPeace = async () => {

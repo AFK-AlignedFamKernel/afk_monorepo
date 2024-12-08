@@ -1,5 +1,5 @@
 import { provider } from "../../utils/starknet";
-import { Account, constants } from "starknet";
+import { Account, constants, CallData, cairo } from "starknet";
 import dotenv from "dotenv";
 import { USERNAME_STORE_ADDRESS, ART_PEACE_ADDRESS} from "common";
 import { prepareAndConnectContract } from "../../utils/contract";
@@ -23,7 +23,7 @@ const CHAIN_FACTIONS=[
   "Hyperliquid",
   // "Linea"  
 ]
-export const deployChainFactionAdmin = async () => {
+export const deployAllChainFactionAdmin = async () => {
   let username_store_address: string | undefined = USERNAME_STORE_ADDRESS[
     constants.StarknetChainId.SN_SEPOLIA
   ] as any; // change default address
@@ -33,20 +33,38 @@ export const deployChainFactionAdmin = async () => {
 
   /** TODO script to save constants address */
 
-  const artPeaceContract = ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string; 
-  const art_peace_address = artPeaceContract;
+  const artPeaceContractAddress = ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string; 
  const art_peace = await prepareAndConnectContract(
-    art_peace_address,
+  artPeaceContractAddress,
     account
   );
 
 
   // Loop into Chain faction files
 
+  const calls=[]
+
+  for(let chain of CHAIN_FACTIONS) {
+    const feltName = cairo.felt( String(chain))
+
+    const initChainCall = {
+      contractAddress: artPeaceContractAddress,
+      entrypoint: 'init_chain_faction',
+      calldata: CallData.compile({
+        name: feltName,
+      }),
+    };
+
+    calls.push(initChainCall)
+  }
 
 
+  const tx = await account.execute(calls)
+
+  console.log("tx", tx)
+  
   return {
   };
 };
 
-deployChainFactionAdmin();
+deployAllChainFactionAdmin();
