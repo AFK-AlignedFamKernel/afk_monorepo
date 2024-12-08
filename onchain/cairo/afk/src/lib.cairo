@@ -95,6 +95,8 @@ pub mod templates {
 }
 pub mod pixel {
     pub mod art_peace;
+    pub mod canvas;
+    pub mod canvas_factory;
     // pub mod templates;
 // use art_peace::ArtPeace;
 
