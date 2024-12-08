@@ -11,7 +11,6 @@ const PixelSelector = (props) => {
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
   const [placementMode, setPlacementMode] = useState(false);
   const [ended, setEnded] = useState(false);
-
   useEffect(() => {
     if (props.queryAddress === '0') {
       setPlacementTimer('Login to Play');
@@ -32,7 +31,7 @@ const PixelSelector = (props) => {
     } else {
       // TODO: Use lowest timer out of base, chain, faction, ...
       setPlacementTimer(props.basePixelTimer);
-
+      props.clearAll();
     }
     if (
       placementTimer === '0:00' &&
@@ -44,7 +43,7 @@ const PixelSelector = (props) => {
     } else {
       setEnded(false);
     }
-  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props.query]);
+  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props]);
 
   const toSelectorMode = (event) => {
     event.preventDefault();
@@ -61,7 +60,7 @@ const PixelSelector = (props) => {
     if (props.availablePixels > props.availablePixelsUsed) {
       props.setSelectorMode(true);
       props.setIsEraserMode(false);
-      // setPlacementMode(true);
+      setPlacementMode(true);
     }
   };
 
@@ -74,8 +73,8 @@ const PixelSelector = (props) => {
     props.setSelectedColorId(-1);
     props.setSelectorMode(false);
     props.setIsEraserMode(false);
-    // setPlacementMode(false);
-    // setEnded(false);
+    setPlacementMode(false);
+    setEnded(false);
   };
 
   return (

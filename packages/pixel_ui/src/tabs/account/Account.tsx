@@ -26,8 +26,6 @@ const Account = (props) => {
 
   const {isSessionable, usingSessionKeys} = props!;
 
-  console.log(isSessionable, usingSessionKeys,"keys")
-
 
   const [usernameSaved, setUsernameSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
