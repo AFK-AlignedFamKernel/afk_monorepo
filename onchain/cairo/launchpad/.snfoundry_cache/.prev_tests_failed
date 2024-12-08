@@ -1,1 +1,3 @@
-afk_launchpad::tests::exponential_tests::exponential_tests::test_get_meme_amount_with_two_buy_for_threshold_low_supply
+afk_launchpad::tests::unrug_tests::unrug_tests::test_create_and_add_liquidity_unrug_liq_without_launchpad_threshold
+afk_launchpad::tests::unrug_tests::unrug_tests::test_add_liquidity_ekubo
+afk_launchpad::tests::unrug_tests::unrug_tests::test_create_and_add_liquidity_unrug

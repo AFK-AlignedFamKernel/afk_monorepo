@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod unrug_tests {
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
-    use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
-    use afk_launchpad::launchpad::launchpad::{
+    use afk_launchpad::launchpad::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+        // Event as LaunchpadEvent
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -41,9 +41,15 @@ mod unrug_tests {
     // }
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
         // 21_000_000 * pow_256(10, 18)
-        100
+        100_000_000_u256
         // * pow_256(10, 18)
     }
+
+    // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
+    //     // 21_000_000 * pow_256(10, 18)
+    //     100_000_u256
+    //     // * pow_256(10, 18)
+    // }
 
     // const INITIAL_KEY_PRICE:u256=1/100;
     const INITIAL_SUPPLY_DEFAULT: u256 = 100_000_000;
@@ -174,7 +180,7 @@ mod unrug_tests {
         // println!("request_fixture");
         let erc20_class = declare_erc20();
         let meme_class = declare_memecoin();
-        let launch_class = declare_launchpad();
+        let launch_class = declare_unrug_liquidity();
         request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class)
     }
 
@@ -258,8 +264,8 @@ mod unrug_tests {
         IUnrugLiquidityDispatcher { contract_address }
     }
 
-    fn declare_launchpad() -> @ContractClass {
-        declare("LaunchpadMarketplace").unwrap().contract_class()
+    fn declare_unrug_liquidity() -> @ContractClass {
+        declare("UnrugLiquidity").unwrap().contract_class()
     }
 
     fn declare_erc20() -> @ContractClass {
@@ -269,7 +275,6 @@ mod unrug_tests {
     fn declare_memecoin() -> @ContractClass {
         declare("Memecoin").unwrap().contract_class()
     }
-
 
     fn deploy_erc20(
         class: ContractClass,
@@ -291,75 +296,17 @@ mod unrug_tests {
         IERC20Dispatcher { contract_address }
     }
 
-
-    fn run_buy_by_amount(
-        launchpad: IUnrugLiquidityDispatcher,
-        erc20: IERC20Dispatcher,
-        memecoin: IERC20Dispatcher,
-        amount_quote: u256,
-        token_address: ContractAddress,
-        sender_address: ContractAddress,
-    ) {
-        start_cheat_caller_address(erc20.contract_address, sender_address);
-        erc20.approve(launchpad.contract_address, amount_quote);
-        let allowance = erc20.allowance(sender_address, launchpad.contract_address);
-        // println!("test allowance erc20 {}", allowance);
-        stop_cheat_caller_address(erc20.contract_address);
-
-        start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin {:?}", amount_quote,);
-        // launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
-        launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
-        stop_cheat_caller_address(launchpad.contract_address);
-    }
-
-
-    fn run_sell_by_amount(
-        launchpad: IUnrugLiquidityDispatcher,
-        erc20: IERC20Dispatcher,
-        memecoin: IERC20Dispatcher,
-        amount_quote: u256,
-        token_address: ContractAddress,
-        sender_address: ContractAddress,
-    ) {
-        println!("sell coin for amount quote{:?}", amount_quote);
-        let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
-        println!("test allowance meme coin{}", allowance);
-        launchpad.sell_coin(token_address, amount_quote);
-    }
-
-    fn run_calculation(
-        launchpad: IUnrugLiquidityDispatcher,
-        amount_quote: u256,
-        token_address: ContractAddress,
-        sender_address: ContractAddress,
-        is_decreased: bool,
-        is_quote_amount: bool
-    ) -> u256 {
-        start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin",);
-        launchpad.get_coin_amount_by_quote_amount(token_address, amount_quote, is_decreased)
-    }
-
-    fn calculate_slope(total_supply: u256) -> u256 {
-        let liquidity_supply = total_supply / LIQUIDITY_RATIO;
-        let liquidity_available = total_supply - liquidity_supply;
-        let slope = (2 * THRESHOLD_LIQUIDITY) / (liquidity_available * (liquidity_available - 1));
-        slope
-    }
-
     #[test]
     #[fork("Mainnet")]
     fn test_add_liquidity_ekubo() {
         let (sender, erc20, launchpad) = request_fixture();
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
-            .create_and_launch_token(
+            .create_token(
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
-                is_unruggable: false
+                contract_address_salt: SALT()
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(
@@ -367,50 +314,45 @@ mod unrug_tests {
             IERC20Dispatcher { contract_address: token_address }
                 .balance_of(launchpad.contract_address)
         );
-        let launch = launchpad.get_coin_launch(token_address);
+        // let launch = launchpad.get_coin_launch(token_address);
         let starting_price = i129 { sign: true, mag: 100_u128 };
-        println!("Initial available: {:?}", launch.initial_available_supply);
-        let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-        println!("lp_meme_supply {:?}", lp_meme_supply);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        let total_supply: u256 = memecoin.total_supply();
+        let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
+
+        // let total_token_holded: u256 = 1_000;
+        let lp_meme_supply = total_supply - total_token_holded;
+        // let lp_meme_supply = memecoin.total_supply();
+        println!("lp_meme_supply {:?}", lp_meme_supply);
         start_cheat_caller_address(memecoin.contract_address, OWNER());
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
         // memecoin.transfer(launchpad.contract_address, lp_meme_supply);
         memecoin.approve(launchpad.contract_address, lp_meme_supply);
+        // memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
+        // let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
+        // stop_cheat_caller_address(memecoin.contract_address);
         memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
-        stop_cheat_caller_address(memecoin.contract_address);
 
-        // let params: EkuboLaunchParameters = EkuboLaunchParameters {
-        //     owner: launch.owner,
-        //     token_address: launch.token_address,
-        //     quote_address: launch.token_quote.token_address,
-        //     lp_supply: lp_meme_supply,
-        //     // lp_supply: launch.liquidity_raised,
-        //     pool_params: EkuboPoolParameters {
-        //         fee: 0xc49ba5e353f7d00000000000000000,
-        //         tick_spacing: 5982,
-        //         starting_price,
-        //         bound: 88719042,
-        //     }
-        // };
-        // start_cheat_caller_address(erc20.contract_address, OWNER());
-
-        // memecoin.transfer(FACTORY_ADDRESS(), DEFAULT_INITIAL_SUPPLY());
-        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
-        // erc20.transfer(launchpad.contract_address, launch.liquidity_raised);
+        let params: EkuboLaunchParameters = EkuboLaunchParameters {
+            // owner: launchpad.contract_address,
+            owner: OWNER(),
+            token_address: token_address,
+            quote_address: erc20.contract_address,
+            lp_supply: lp_meme_supply,
+            // lp_supply: launch.liquidity_raised,
+            pool_params: EkuboPoolParameters {
+                fee: 0xc49ba5e353f7d00000000000000000,
+                tick_spacing: 5000,
+                starting_price,
+                bound: 88719042,
+            }
+        };
+        // erc20.transfer(launchpad.contract_address, lp_supply);
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy threshold liquidity");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        println!("balance quote {:?}", balance_quote_launch);
-
         println!("add liquidity ekubo");
-        // launchpad.add_liquidity_ekubo(token_address, params);
-        launchpad.add_liquidity_ekubo(token_address);
-        stop_cheat_caller_address(launchpad.contract_address);
+        launchpad.launch_on_ekubo(token_address, params);
+        // stop_cheat_caller_address(launchpad.contract_address);
     }
 
     #[test]
@@ -423,13 +365,11 @@ mod unrug_tests {
         let total_supply = DEFAULT_INITIAL_SUPPLY();
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
-            .create_unrug_token(
-                owner: launchpad.contract_address,
-                name: NAME(),
+            .create_token(
                 symbol: SYMBOL(),
+                name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT() + 1,
-                is_launch_bonding_now: false
+                contract_address_salt: SALT() + 1
             );
         println!("token_address unrug lp withouth launch curve: {:?}", token_address.clone());
 
@@ -534,228 +474,6 @@ mod unrug_tests {
 
     #[test]
     #[fork("Mainnet")]
-    fn test_create_and_add_liquidity_unrug_lp_launch_bonding_without_threshold() {
-        let (b, quote_token, launchpad) = request_fixture();
-        let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
-        let quote_to_deposit = 215_000;
-        let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
-
-        let total_supply = DEFAULT_INITIAL_SUPPLY();
-        // start_cheat_caller_address(launchpad.contract_address, OWNER());
-        let token_address = launchpad
-            .create_unrug_token(
-                owner: launchpad.contract_address,
-                name: NAME(),
-                symbol: SYMBOL(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT() + 1,
-                is_launch_bonding_now: true
-            );
-        println!("token_address unrug lp launch without threshold: {:?}", token_address);
-
-        start_cheat_caller_address(token_address, launchpad.contract_address);
-
-        let memecoin = IERC20Dispatcher { contract_address: token_address };
-
-        let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
-        // println!("balance meme {:?}", balance_meme_launch);
-
-        let mut balance_meme_launch_owner = memecoin.balance_of(OWNER());
-        // println!("balance meme owner {:?}", balance_meme_launch_owner);
-
-        // let mut balance_meme_launch_factory = memecoin.balance_of(FACTORY_ADDRESS());
-        // println!("balance factory {:?}", balance_meme_launch_factory);
-
-        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
-        balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
-        // println!("balance meme {:?}", balance_meme_launch);
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.approve(launchpad.contract_address, total_supply);
-        // memecoin.transfer(launchpad.contract_address, total_supply);
-
-        // stop_cheat_caller_address(token_address);
-        let launch = launchpad.get_coin_launch(token_address);
-
-        let lp_meme_supply = DEFAULT_INITIAL_SUPPLY() / 5;
-
-        // let total_token_holded: u256 = 1_000 * pow_256(10, 18);
-        // let total_token_holded: u256 = launch.total_supply - launch.total_token_holded;
-        // let total_token_holded: u256 = lp_meme_supply / 10;
-        // let total_token_holded: u256 = lp_meme_supply / 10;
-
-        // let total_token_holded: u256 = 1_000;
-
-        let launch_params = LaunchParameters {
-            memecoin_address: token_address,
-            transfer_restriction_delay: 100,
-            max_percentage_buy_launch: 200, // 2%
-            quote_address: quote_token.contract_address,
-            initial_holders: array![].span(),
-            initial_holders_amounts: array![].span(),
-            // initial_holders: array![launchpad.contract_address].span(),
-        // initial_holders_amounts: array![total_token_holded].span(),
-        };
-
-        let ekubo_pool_params = EkuboPoolParameters {
-            fee: 0xc49ba5e353f7d00000000000000000,
-            tick_spacing: 5982,
-            starting_price,
-            bound: 88719042
-        };
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy liquidity threshold unrug withouth threshold");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        // println!("balance_quote_launch {:?}", balance_quote_launch);
-        println!("add liquidity unrug lp withtout threshold");
-        let (id, position) = launchpad
-            .add_liquidity_unrug_lp(
-                token_address,
-                quote_token.contract_address,
-                lp_meme_supply,
-                launch_params,
-                EkuboPoolParameters {
-                    fee: 0xc49ba5e353f7d00000000000000000,
-                    tick_spacing: 5982,
-                    starting_price,
-                    bound: 88719042
-                }
-            );
-        // println!("id: {:?}", id);
-
-        // let pool_key = PoolKey {
-    //     token0: position.pool_key.token0,
-    //     token1: position.pool_key.token1,
-    //     fee: position.pool_key.fee.try_into().unwrap(),
-    //     tick_spacing: position.pool_key.tick_spacing.try_into().unwrap(),
-    //     extension: position.pool_key.extension
-    // };
-
-        // let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
-    // let liquidity = core.get_pool_liquidity(pool_key);
-    // let price = core.get_pool_price(pool_key);
-    // let reserve_memecoin = IERC20Dispatcher { contract_address: token_address }
-    //     .balance_of(core.contract_address);
-    // let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
-    //     .balance_of(core.contract_address);
-    // println!("Liquidity: {}", liquidity);
-
-    }
-
-
-    #[test]
-    #[fork("Mainnet")]
-    fn test_add_liquidity_jediswap() {
-        println!("try add liq jediswap");
-        let (sender, erc20, launchpad) = request_fixture();
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
-        launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
-        let token_address = launchpad
-            .create_and_launch_token(
-                symbol: SYMBOL(),
-                name: NAME(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
-                is_unruggable: false
-            );
-        println!("token_address ekubo launch: {:?}", token_address);
-        println!(
-            "Balance of launchpad: {:?}",
-            IERC20Dispatcher { contract_address: token_address }
-                .balance_of(launchpad.contract_address)
-        );
-        let launch = launchpad.get_coin_launch(token_address);
-        let starting_price = i129 { sign: true, mag: 100_u128 };
-        println!("Initial available: {:?}", launch.initial_available_supply);
-        let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-        println!("lp_meme_supply {:?}", lp_meme_supply);
-        let memecoin = IERC20Dispatcher { contract_address: token_address };
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
-        memecoin.transfer(launchpad.contract_address, lp_meme_supply);
-        memecoin.approve(launchpad.contract_address, lp_meme_supply);
-        memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
-        stop_cheat_caller_address(memecoin.contract_address);
-
-        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy threshold liquidity");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        println!("balance quote {:?}", balance_quote_launch);
-
-        println!("add liquidity ekubo");
-        // launchpad.add_liquidity_ekubo(token_address, params);
-        // launchpad.add_liquidity_ekubo(token_address);
-        launchpad.add_liquidity_jediswap(token_address);
-
-        stop_cheat_caller_address(launchpad.contract_address);
-    }
-
-
-    #[test]
-    #[fork("Mainnet")]
-    fn test_add_liquidity_jediswap_unrug() {
-        println!("try add liq jediswap unrug");
-        let (sender, erc20, launchpad) = request_fixture();
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
-        launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
-        let token_address = launchpad
-            .create_and_launch_token(
-                symbol: SYMBOL(),
-                name: NAME(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
-                is_unruggable: true
-            );
-        println!("token_address jediswap unrug launch: {:?}", token_address);
-        println!(
-            "Balance of launchpad: {:?}",
-            IERC20Dispatcher { contract_address: token_address }
-                .balance_of(launchpad.contract_address)
-        );
-        let launch = launchpad.get_coin_launch(token_address);
-        let starting_price = i129 { sign: true, mag: 100_u128 };
-        println!("Initial available: {:?}", launch.initial_available_supply);
-        let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-        println!("lp_meme_supply {:?}", lp_meme_supply);
-        let memecoin = IERC20Dispatcher { contract_address: token_address };
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
-        memecoin.transfer(launchpad.contract_address, lp_meme_supply);
-        memecoin.approve(launchpad.contract_address, lp_meme_supply);
-        memecoin.approve(EKUBO_EXCHANGE_ADDRESS(), lp_meme_supply);
-        stop_cheat_caller_address(memecoin.contract_address);
-
-        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy threshold liquidity");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        println!("balance quote {:?}", balance_quote_launch);
-
-        println!("add liquidity ekubo");
-        // launchpad.add_liquidity_ekubo(token_address, params);
-        // launchpad.add_liquidity_ekubo(token_address);
-        launchpad.add_liquidity_jediswap(token_address);
-
-        stop_cheat_caller_address(launchpad.contract_address);
-    }
-
-
-    #[test]
-    #[fork("Mainnet")]
     fn test_create_and_add_liquidity_unrug() {
         let (b, quote_token, launchpad) = request_fixture();
         let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
@@ -765,13 +483,11 @@ mod unrug_tests {
         let total_supply = DEFAULT_INITIAL_SUPPLY();
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
-            .create_unrug_token(
-                owner: launchpad.contract_address,
-                name: NAME(),
+            .create_token(
                 symbol: SYMBOL(),
+                name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT() + 1,
-                is_launch_bonding_now: true
+                contract_address_salt: SALT() + 1
             );
         println!("token_address unrug: {:?}", token_address);
 
@@ -789,18 +505,15 @@ mod unrug_tests {
 
         // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
         balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
+
+        let total_supply: u256 = memecoin.total_supply();
+        let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
+        // let total_token_holded: u256 = 1_000;
+        let lp_meme_supply = total_supply - total_token_holded;
         println!("balance meme {:?}", balance_meme_launch);
         start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.approve(launchpad.contract_address, total_supply);
-        // memecoin.transfer(launchpad.contract_address, total_supply);
-
-        // stop_cheat_caller_address(token_address);
-        let launch = launchpad.get_coin_launch(token_address);
-
-        // let total_token_holded: u256 = 1_000 * pow_256(10, 18);
-        let total_token_holded: u256 = launch.total_supply - launch.total_token_holded;
-        // let total_token_holded: u256 = 1_000;
-
+        memecoin.approve(launchpad.contract_address, lp_meme_supply);
+        // memecoin.transfer(launchpad.contract_address, lp_meme_supply);
         let launch_params = LaunchParameters {
             memecoin_address: token_address,
             transfer_restriction_delay: 100,
@@ -818,129 +531,18 @@ mod unrug_tests {
             starting_price,
             bound: 88719042
         };
+        let quote_address = quote_token.contract_address;
+        let quote_deposit = 100_u256;
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy liquidity threshold unrug");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
         let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
         println!("balance balance_quote_launch {:?}", balance_quote_launch);
         println!("add liquidity unrug");
         let (id, position) = launchpad
             .add_liquidity_unrug(
                 token_address,
-                launch_params,
-                EkuboPoolParameters {
-                    fee: 0xc49ba5e353f7d00000000000000000,
-                    tick_spacing: 5982,
-                    starting_price,
-                    bound: 88719042
-                }
-            );
-        // println!("id: {:?}", id);
-
-        // let pool_key = PoolKey {
-    //     token0: position.pool_key.token0,
-    //     token1: position.pool_key.token1,
-    //     fee: position.pool_key.fee.try_into().unwrap(),
-    //     tick_spacing: position.pool_key.tick_spacing.try_into().unwrap(),
-    //     extension: position.pool_key.extension
-    // };
-
-        // let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
-    // let liquidity = core.get_pool_liquidity(pool_key);
-    // let price = core.get_pool_price(pool_key);
-    // let reserve_memecoin = IERC20Dispatcher { contract_address: token_address }
-    //     .balance_of(core.contract_address);
-    // let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
-    //     .balance_of(core.contract_address);
-    // println!("Liquidity: {}", liquidity);
-
-    }
-
-
-    #[test]
-    #[fork("Mainnet")]
-    fn test_create_and_add_liquidity_unrug_liq_without_launchpad_but_launch() {
-        let (b, quote_token, launchpad) = request_fixture();
-        let starting_price = i129 { sign: true, mag: 4600158 }; // 0.01ETH/MEME
-        let quote_to_deposit = 215_000;
-        let factory = IFactoryDispatcher { contract_address: FACTORY_ADDRESS() };
-
-        let total_supply = DEFAULT_INITIAL_SUPPLY();
-        // start_cheat_caller_address(launchpad.contract_address, OWNER());
-        let token_address = launchpad
-            .create_unrug_token(
-                owner: launchpad.contract_address,
-                name: NAME(),
-                symbol: SYMBOL(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT() + 1,
-                is_launch_bonding_now: true
-            );
-        println!("token_address unrug: {:?}", token_address);
-
-        start_cheat_caller_address(token_address, launchpad.contract_address);
-
-        let memecoin = IERC20Dispatcher { contract_address: token_address };
-        let mut balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
-        println!("balance meme {:?}", balance_meme_launch);
-
-        let mut balance_meme_launch_owner = memecoin.balance_of(OWNER());
-        println!("balance meme owner {:?}", balance_meme_launch_owner);
-
-        let mut balance_meme_launch_factory = memecoin.balance_of(FACTORY_ADDRESS());
-        println!("balance factory {:?}", balance_meme_launch_factory);
-
-        // memecoin.transfer(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
-        balance_meme_launch = memecoin.balance_of(launchpad.contract_address);
-        println!("balance meme {:?}", balance_meme_launch);
-        start_cheat_caller_address(memecoin.contract_address, OWNER());
-        // memecoin.approve(launchpad.contract_address, total_supply);
-        // memecoin.transfer(launchpad.contract_address, total_supply);
-
-        // stop_cheat_caller_address(token_address);
-        let launch = launchpad.get_coin_launch(token_address);
-
-        let lp_meme_supply = DEFAULT_INITIAL_SUPPLY() / 5;
-
-        // let total_token_holded: u256 = 1_000 * pow_256(10, 18);
-        // let total_token_holded: u256 = launch.total_supply - launch.total_token_holded;
-        let total_token_holded: u256 = lp_meme_supply / 10;
-        // let total_token_holded: u256 = 1_000;
-
-        let launch_params = LaunchParameters {
-            memecoin_address: token_address,
-            transfer_restriction_delay: 100,
-            max_percentage_buy_launch: 200, // 2%
-            quote_address: quote_token.contract_address,
-            initial_holders: array![].span(),
-            initial_holders_amounts: array![].span(),
-            // initial_holders: array![launchpad.contract_address].span(),
-        // initial_holders_amounts: array![total_token_holded].span(),
-        };
-
-        let ekubo_pool_params = EkuboPoolParameters {
-            fee: 0xc49ba5e353f7d00000000000000000,
-            tick_spacing: 5982,
-            starting_price,
-            bound: 88719042
-        };
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy liquidity threshold unrug");
-
-        run_buy_by_amount(
-            launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
-        );
-        let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-        println!("balance balance_quote_launch {:?}", balance_quote_launch);
-        println!("add liquidity unrug");
-        let (id, position) = launchpad
-            .add_liquidity_unrug_lp(
-                token_address,
-                quote_token.contract_address,
+                quote_address,
                 lp_meme_supply,
+                quote_deposit,
                 launch_params,
                 EkuboPoolParameters {
                     fee: 0xc49ba5e353f7d00000000000000000,
@@ -949,8 +551,7 @@ mod unrug_tests {
                     bound: 88719042
                 }
             );
-        // println!("id: {:?}", id);
-
+        println!("id: {:?}", id);
         // let pool_key = PoolKey {
     //     token0: position.pool_key.token0,
     //     token1: position.pool_key.token1,

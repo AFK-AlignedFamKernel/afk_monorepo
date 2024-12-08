@@ -16,8 +16,8 @@ pub mod launchpad {
     pub mod errors;
     pub mod helpers;
     pub mod launchpad;
-    // pub mod unrug;
     pub mod math;
+    pub mod unrug;
     pub mod utils;
     pub mod locker {
         pub mod errors;
@@ -60,5 +60,5 @@ pub mod tests {
     pub mod launchpad_tests;
     pub mod linear_tests;
     pub mod liquidity_tests;
-    // pub mod unrug_tests;
+    pub mod unrug_tests;
 }

@@ -111,7 +111,6 @@ mod exponential_tests {
     //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
     // }
 
-    
     #[test]
     fn test_get_meme_amount_with_5_steps() {
         let mut available_supply = 80_000_000;
@@ -125,7 +124,7 @@ mod exponential_tests {
         let dynamic_scale_factor = dynamic_scale_factor(
             SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
         );
-        let amounts = array![1, 1,1,1,6];
+        let amounts = array![1, 1, 1, 1, 6];
         let mut amount_outs = array![];
         for amount_in in amounts {
             println!("amount_in {:?}", amount_in);
