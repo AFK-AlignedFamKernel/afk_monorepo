@@ -13,11 +13,21 @@ mod linear_tests {
         'creator'.try_into().unwrap()
     }
 
-    const THRESHOLD_LIQUIDITY: u256 = 10;
+    const SCALE_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 
-    const SCALE_FACTOR: u256 = 100_000_000_000_000_000_000_u256;
+    const DEFAULT_SUPPLY_0: u256 = 100_000_000_000_000_000_000_u256; // 100
+    const DEFAULT_SUPPLY_1: u256 = 1_000_000_000_000_000_000_000_000_u256; // 1_000_000
+    const DEFAULT_SUPPLY_2: u256 = 100_000_000_000_000_000_000_000_000_u256; // 100_000_000
+    const DEFAULT_SUPPLY_3: u256 = 1_000_000_000_000_000_000_000_000_000_u256; // 1_000_000_000
+    const DEFAULT_SUPPLY_4: u256 = 10_000_000_000_000_000_000_000_000_000_u256; // 10_000_000_000
+    const DEFAULT_SUPPLY_5: u256 = 100_000_000_000_000_000_000_000_000_000_u256; // 100_000_000_000
+    
+    const THRESHOLD_LIQUIDITY_0: u256 = 1_000_000_000_000_000_000_u256; // 1
+    const THRESHOLD_LIQUIDITY_1: u256 = 10_000_000_000_000_000_000_u256; // 10
+    const THRESHOLD_LIQUIDITY_2: u256 = 100_000_000_000_000_000_000_u256; // 100
+    const THRESHOLD_LIQUIDITY_3: u256 = 1_000_000_000_000_000_000_000_u256; // 1_000
+    const THRESHOLD_LIQUIDITY_4: u256 = 10_000_000_000_000_000_000_000_u256; // 10_000
 
-    const DEFAULT_SUPPLY: u256 = 100_000_000_u256;
     const DEFAULT_LIQUIDITY_RATIO: u256 = 5_u256;
 
 
@@ -58,6 +68,676 @@ mod linear_tests {
         token_launch
     }
 
+
+    #[test]
+    fn test_get_meme_amount_on_curve_with_different_supplies() {
+
+        // 100
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 1_000_000
+        let mut available_supply = 800_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_1, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 200_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 200_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 200_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 200_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 200_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 200_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 200_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 200_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 1_000_000_000
+        let mut available_supply = 800_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_3, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 200_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 200_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 200_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 200_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 10_000_000_000
+        let mut available_supply = 8_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_4, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 2_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 2_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 2_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 2_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000_000
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+    }
+
+    #[test]
+    fn test_get_meme_amount_on_100_curve_with_different_thresholds() {
+
+        // 100 supply and 1 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_0, available_supply,
+        );
+
+        let amount_in_1 = 156_250_000_000_000_000_u256;
+        let amount_in_2 = 218_750_000_000_000_000_u256;
+        let amount_in_3 = 281_250_000_000_000_000_u256;
+        let amount_in_4 = 343_750_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100 supply and 10 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100 supply and 100 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_2, available_supply,
+        );
+
+        let amount_in_1 = 15_625_000_000_000_000_000_u256;
+        let amount_in_2 = 21_875_000_000_000_000_000_u256;
+        let amount_in_3 = 28_125_000_000_000_000_000_u256;
+        let amount_in_4 = 34_375_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100 supply and 1_000 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_3, available_supply,
+        );
+
+        let amount_in_1 = 156_250_000_000_000_000_000_u256;
+        let amount_in_2 = 218_750_000_000_000_000_000_u256;
+        let amount_in_3 = 281_250_000_000_000_000_000_u256;
+        let amount_in_4 = 343_750_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100 supply and 10_000 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_0, THRESHOLD_LIQUIDITY_4, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+    }
+
+    #[test]
+    fn test_get_meme_amount_on_100b_curve_with_different_thresholds() {
+
+        // 100_000_000_000 supply and 1 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_0, available_supply,
+        );
+
+        let amount_in_1 = 156_250_000_000_000_000_u256;
+        let amount_in_2 = 218_750_000_000_000_000_u256;
+        let amount_in_3 = 281_250_000_000_000_000_u256;
+        let amount_in_4 = 343_750_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000_000 supply and 10 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000_000 supply and 100 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_2, available_supply,
+        );
+
+        let amount_in_1 = 15_625_000_000_000_000_000_u256;
+        let amount_in_2 = 21_875_000_000_000_000_000_u256;
+        let amount_in_3 = 28_125_000_000_000_000_000_u256;
+        let amount_in_4 = 34_375_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000_000 supply and 1_000 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_3, available_supply,
+        );
+
+        let amount_in_1 = 156_250_000_000_000_000_000_u256;
+        let amount_in_2 = 218_750_000_000_000_000_000_u256;
+        let amount_in_3 = 281_250_000_000_000_000_000_u256;
+        let amount_in_4 = 343_750_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+
+        // 100_000_000_000 supply and 10_000 threshold
+        let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
+
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_5, THRESHOLD_LIQUIDITY_4, available_supply,
+        );
+
+        let amount_in_1 = 1_562_500_000_000_000_000_000_u256;
+        let amount_in_2 = 2_187_500_000_000_000_000_000_u256;
+        let amount_in_3 = 2_812_500_000_000_000_000_000_u256;
+        let amount_in_4 = 3_437_500_000_000_000_000_000_u256;
+
+        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        token_launch.available_supply -= amount_out_1;
+
+        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        token_launch.available_supply -= amount_out_2;
+
+        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        token_launch.available_supply -= amount_out_3;
+
+        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        token_launch.available_supply -= amount_out_4;
+
+        // Final assertions
+        assert!(
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+        );
+        assert!(
+            token_launch.available_supply == 0, "Available supply should be 0"
+        );
+    } 
+
     // #[test]
     // fn test_get_meme_amount_with_for_threshold() {
     //     let mut token_launch = get_token_launch(
@@ -94,70 +774,40 @@ mod linear_tests {
     //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
     // }
 
-    #[test]
-    fn test_get_meme_amount_with_half_threshold() {
-        let mut available_supply = 80_000_000_u256;
+    // #[test]
+    // fn test_get_meme_amount_with_two_buy_for_threshold() {
+    //     let mut available_supply = 80_000_000_u256;
+    //     // let mut token_launch = get_token_launch(
+    //     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+    //     // );
+    //     let mut token_launch = get_token_launch(
+    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+    //     );
+    //     // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+    //     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+    //     let amounts = array![5, 5];
+    //     let mut amount_outs = array![];
 
-        let mut token_launch = get_token_launch(
-            // DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO,
-            DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply,
-        );
-        let amount_in = 5; // 50% of the threshold liquidity
+    //     for amount_in in amounts {
+    //         println!("amount_in {:?}", amount_in);
 
-        println!("Initial Available Supply: {}", token_launch.available_supply);
+    //         let amount_out = get_meme_amount(token_launch, amount_in);
+    //         println!("amount_out {:?}", amount_out);
 
-        let amount_out = get_meme_amount(token_launch, amount_in);
-        println!("Amount Out (Memecoin): {}", amount_out);
+    //         assert!(amount_out <= token_launch.available_supply, "too much");
 
-        // Ensure the output is proportional
-        assert!(amount_out > 0, "Amount out should be greater than zero");
-        assert!(amount_out < token_launch.available_supply, "Amount out exceeds available supply");
+    //         token_launch.available_supply -= amount_out;
+    //         // token_launch.available_supply -= amount_out - token_launch.available_supply;
+    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
+    //         amount_outs.append(amount_out);
+    //         println!("looping ------------------------------------------");
+    //     };
 
-        // Update available supply
-        token_launch.available_supply -= amount_out;
-        println!("Remaining Available Supply: {}", token_launch.available_supply);
-
-        // Final assertions
-        assert!(
-            token_launch.available_supply > 0, "Supply should not be depleted at 50% threshold"
-        );
-    }
-
-
-    #[test]
-    fn test_get_meme_amount_with_two_buy_for_threshold() {
-        let mut available_supply = 80_000_000_u256;
-        // let mut token_launch = get_token_launch(
-        //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-        // );
-        let mut token_launch = get_token_launch(
-            DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
-        );
-        // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-        let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-        let amounts = array![5, 5];
-        let mut amount_outs = array![];
-
-        for amount_in in amounts {
-            println!("amount_in {:?}", amount_in);
-
-            let amount_out = get_meme_amount(token_launch, amount_in);
-            println!("amount_out {:?}", amount_out);
-
-            assert!(amount_out <= token_launch.available_supply, "too much");
-
-            token_launch.available_supply -= amount_out;
-            // token_launch.available_supply -= amount_out - token_launch.available_supply;
-            println!("token_launch.available_supply: {}", token_launch.available_supply);
-            amount_outs.append(amount_out);
-            println!("looping ------------------------------------------");
-        };
-
-        println!("amount 1 : {}", amount_outs.at(0));
-        println!("amount 2 : {}", amount_outs.at(1));
-        // println!("amount 3 : {}", amount_outs.at(2));
-    // println!("amount 4 : {}", amount_outs.at(3));
-    }
+    //     println!("amount 1 : {}", amount_outs.at(0));
+    //     println!("amount 2 : {}", amount_outs.at(1));
+    //     // println!("amount 3 : {}", amount_outs.at(2));
+    // // println!("amount 4 : {}", amount_outs.at(3));
+    // }
     //     #[test]
 // fn test_scale_factor_based_on_threshold_and_supply() {
 //     // Base scale factor
