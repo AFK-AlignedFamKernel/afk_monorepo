@@ -9,7 +9,7 @@ import {
 } from "starknet";
 import fs from "fs";
 import dotenv from "dotenv";
-import { provider } from "./starknet";
+import { provider } from "../starknet";
 import path from "path";
 import { finalizeEvent } from "nostr-tools";
 import { CanvasConfig } from "common";
@@ -17,11 +17,11 @@ import { CanvasConfig } from "common";
 dotenv.config();
 const PATH_ART_PEACE = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_ArtPeace.contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_ArtPeace.contract_class.json"
 );
 const PATH_ART_PEACE_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_ArtPeace.compiled_contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_ArtPeace.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
