@@ -8,27 +8,24 @@ pub mod LockManager {
         TokenLock, LockPosition, TokenUnlocked, TokenLocked, TokenWithdrawn, ILockManager
     };
     use core::num::traits::Zero;
-    // use alexandria_storage::list::{List, ListTrait};
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::traits::TryInto;
     use debug::PrintTrait;
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
     use starknet::storage::{
-        Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
-         StoragePointerReadAccess,
-        StoragePointerWriteAccess, StoragePathEntry,
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
         // MutableEntryStoragePathEntry,
-    // StorableEntryReadAccess,
-    // StorageAsPathReadForward,
-    // MutableStorableEntryReadAccess,
-    // MutableStorableEntryWriteAccess,
-    // StorageAsPathWriteForward,
-    // PathableStorageEntryImpl
+        // StorableEntryReadAccess,
+        // StorageAsPathReadForward,
+        // MutableStorableEntryReadAccess,
+        // MutableStorableEntryWriteAccess,
+        // StorageAsPathWriteForward,
+        // PathableStorageEntryImpl
     };
     use starknet::storage::{
-        Vec, VecTrait, VecCopy, StorageAsPath, StoragePath, StoragePointerReadAccess,
-        StoragePointerWriteAccess, MutableVecTrait, VecIndexView, IndexView, MutableVecIndexView,
+        Vec, VecTrait, VecCopy, StorageAsPath, StoragePath,
+        MutableVecTrait, VecIndexView, IndexView, MutableVecIndexView,
         MutableVecAsPointer, VecAsPointer,
     };
 
@@ -44,12 +41,12 @@ pub mod LockManager {
         lock_nonce: u128,
         locks: Map<ContractAddress, TokenLock>,
         lock_position_class_hash: ClassHash,
-        user_locks: Map<ContractAddress, Vec<felt252>>,
-        token_locks: Map<ContractAddress, Vec<felt252>>,
+        user_locks: Map<ContractAddress, Vec<ContractAddress>>,
+        token_locks: Map<ContractAddress, Vec<ContractAddress>>,
         // user_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-    // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-    // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
-    // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+        // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
+        // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+        // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
     }
 
 
@@ -66,28 +63,28 @@ pub mod LockManager {
         LockAmountIncreased: LockAmountIncreased
     }
 
-    // #[derive(Drop, starknet::Event)]
-    // struct TokenLocked {
-    //     #[key]
-    //     lock_address: ContractAddress,
-    //     token: ContractAddress,
-    //     owner: ContractAddress,
-    //     amount: u256,
-    //     unlock_time: u64,
-    // }
+    #[derive(Drop, starknet::Event)]
+    struct TokenLocked {
+        #[key]
+        lock_address: ContractAddress,
+        token: ContractAddress,
+        owner: ContractAddress,
+        amount: u256,
+        unlock_time: u64,
+    }
 
-    // #[derive(Drop, starknet::Event)]
-    // struct TokenUnlocked {
-    //     #[key]
-    //     lock_address: ContractAddress,
-    // }
+    #[derive(Drop, starknet::Event)]
+    struct TokenUnlocked {
+        #[key]
+        lock_address: ContractAddress,
+    }
 
-    // #[derive(Drop, starknet::Event)]
-    // struct TokenWithdrawn {
-    //     #[key]
-    //     lock_address: ContractAddress,
-    //     amount: u256
-    // }
+    #[derive(Drop, starknet::Event)]
+    struct TokenWithdrawn {
+        #[key]
+        lock_address: ContractAddress,
+        amount: u256
+    }
 
     #[derive(Drop, starknet::Event)]
     struct LockOwnershipTransferred {
@@ -109,20 +106,20 @@ pub mod LockManager {
         amount_to_increase: u256
     }
 
-    // #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
-    // struct TokenLock {
-    //     token: ContractAddress,
-    //     owner: ContractAddress,
-    //     unlock_time: u64,
-    // }
+    #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
+    struct TokenLock {
+        token: ContractAddress,
+        owner: ContractAddress,
+        unlock_time: u64,
+    }
 
-    // #[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
-    // struct LockPosition {
-    //     token: ContractAddress,
-    //     amount: u256,
-    //     owner: ContractAddress,
-    //     unlock_time: u64
-    // }
+    #[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
+    struct LockPosition {
+        token: ContractAddress,
+        amount: u256,
+        owner: ContractAddress,
+        unlock_time: u64
+    }
 
     /// Initializes a new instance of a LockManager contract.  The constructor
     /// sets the minimum lock time for all locks created by this contract.
@@ -142,8 +139,6 @@ pub mod LockManager {
 
     #[abi(embed_v0)]
     impl LockManager of ILockManager<ContractState> {
-        // impl LockManager of
-        // afk_launchpad::launchpad::locker::interface::ILockManager<ContractState> {
         fn lock_tokens(
             ref self: ContractState,
             token: ContractAddress,
@@ -223,6 +218,7 @@ pub mod LockManager {
                             unlock_time: 0
                         }
                     );
+
                 let mut user_locks = self.user_locks.read(owner);
                 let mut token_locks = self.token_locks.read(token_lock.token);
 
@@ -250,6 +246,7 @@ pub mod LockManager {
 
             // Update owner's lock lists
             let mut user_locks = self.user_locks.read(token_lock.owner.try_into().unwrap());
+            
             self.remove_lock_from_list(lock_address, user_locks);
             let mut new_owner_locks: Vec<ContractAddress> = self
                 .user_locks
