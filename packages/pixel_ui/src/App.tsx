@@ -22,7 +22,7 @@ import ModalPanel from './ui/ModalPanel.js';
 import { connect as nextConnect } from 'starknetkit-next';
 import useMediaQuery from './hooks/useMediaQuery';
 import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
-import { stark } from 'starknet';
+import { Contract, stark } from 'starknet';
 const logoUrl = './resources/logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
 
@@ -272,6 +272,25 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
   };
 
+  //CallData
+  const estimateInvokeFee = async ({
+    contractAddress,
+    entrypoint,
+    calldata
+  }) => {
+    try {
+      const { suggestedMaxFee } = await account.estimateInvokeFee({
+        contractAddress: contractAddress,
+        entrypoint: entrypoint,
+        calldata: calldata
+      });
+      return { suggestedMaxFee };
+    } catch (error) {
+      console.error(error);
+      return { suggestedMaxFee: BigInt(1000000000000000) };
+    }
+  };
+
   // Pixel selection data
   const [selectedColorId, setSelectedColorId] = useState(-1);
   const [pixelSelectedMode, setPixelSelectedMode] = useState(false);
@@ -322,6 +341,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     const updateBasePixelTimer = () => {
       let timeSinceLastPlacement = Date.now() - lastPlacedTime;
       let basePixelAvailable = timeSinceLastPlacement > timeBetweenPlacements;
+
       if (basePixelAvailable) {
         setBasePixelUp(true);
         setBasePixelTimer('00:00');
@@ -330,18 +350,22 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         let secondsTillPlacement = Math.floor(
           (timeBetweenPlacements - timeSinceLastPlacement) / 1000
         );
-        setBasePixelTimer(
-          `${Math.floor(secondsTillPlacement / 60)}:${secondsTillPlacement % 60 < 10 ? '0' : ''}${secondsTillPlacement % 60}`
-        );
+        let minutes = Math.floor(secondsTillPlacement / 60);
+        let seconds = secondsTillPlacement % 60;
+        setBasePixelTimer(`${minutes}:${seconds.toString().padStart(2, '0')}`);
         setBasePixelUp(false);
       }
     };
+
     const interval = setInterval(() => {
       updateBasePixelTimer();
     }, updateInterval);
-    updateBasePixelTimer();
+
+    updateBasePixelTimer(); // Call immediately
+
     return () => clearInterval(interval);
-  }, [lastPlacedTime]);
+  }, [lastPlacedTime, timeBetweenPlacements]);
+
 
   const [chainFactionPixelTimers, setChainFactionPixelTimers] = useState<string[]>([]);
   useEffect(() => {
@@ -513,6 +537,11 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
 
   };
 
+  const clearAll = () => {
+    clearExtraPixels();
+    setSelectedColorId(-1);
+  };
+
   const clearExtraPixels = useCallback(() => {
     setAvailablePixelsUsed(0);
     setExtraPixelsData([]);
@@ -657,16 +686,18 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
       setConnected(true);
       return;
     }
+
     const { wallet, connectorData, connector } = await nextConnect({
       modalMode: 'alwaysAsk',
-      webWalletUrl: process.env.REACT_APP_ARGENT_WEBWALLET_URL,
+      webWalletUrl: process.env.NEXT_PUBLIC_ARGENT_WEBWALLET_URL,
       argentMobileOptions: {
-        dappName: 'AFK/Lfg',
+        dappName: 'Afk/lfg',
         url: window.location.hostname,
         chainId: CHAIN_ID,
         icons: []
       }
     });
+
     if (wallet && connectorData && connector) {
       setWallet(wallet);
       setConnectorData(connectorData);
@@ -760,17 +791,23 @@ const startSession = async () => {
     publicDappKey: dappKey.publicKey
   };
   let chainId = await provider.getChainId();
+
+  console.log("chain", chainId)
   const accountSessionSignature = await openSession({
     wallet: wallet,
     sessionParams: sessionParams as any,
     chainId: chainId
   });
+
+
   const sessionRequest = createSessionRequest(
     allowedMethods,
     expiry as any,
     metaData(false),
     dappKey.publicKey
   );
+
+
   if (!accountSessionSignature || !sessionRequest) {
     console.error('Session request failed');
     return;
@@ -789,7 +826,7 @@ const startSession = async () => {
     address: address,
     dappKey: dappKey,
     argentSessionServiceBaseUrl:
-      process.env.REACT_APP_ARGENT_SESSION_SERVICE_BASE_URL
+      process.env.NEXT_PUBLIC_ARGENT_SESSION_SERVICE_BASE_URL
   });
   if (!sessionAccount) {
     console.error('Session account failed');
@@ -808,8 +845,10 @@ const startSession = async () => {
         />
         {modal && <ModalPanel modal={modal} setModal={setModal} />}
         <CanvasContainer
+          estimateInvokeFee={estimateInvokeFee}
           colorPixel={colorPixel}
           address={address}
+          account={account}
           artPeaceContract={artPeaceContract}
           colors={colors}
           canvasRef={canvasRef}
@@ -872,6 +911,7 @@ const startSession = async () => {
             queryAddress={queryAddress}
             account={account}
             chain={chain}
+            clearAll={clearAll}
             setConnected={setConnected}
             artPeaceContract={artPeaceContract}
             usernameContract={usernameContract}
@@ -962,7 +1002,7 @@ const startSession = async () => {
             startSession={startSession}
             isSessionable={isSessionable}
             disconnectWallet={disconnectWallet}
-            
+            estimateInvokeFee={estimateInvokeFee}
         
           />
         </div>
@@ -997,6 +1037,7 @@ const startSession = async () => {
                 setIsEraseMode={setIsEraserMode}
                 isPortrait={isPortrait}
                 isMobile={isMobile}
+                clearAll={clearAll}
                 
               />
             )}
