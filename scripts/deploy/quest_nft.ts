@@ -3,7 +3,7 @@ import { Account, constants } from "starknet";
 import dotenv from "dotenv";
 import { USERNAME_STORE_ADDRESS } from "common";
 import { prepareAndConnectContract } from "../utils/contract";
-import { createUsernameStore } from "../utils/username_store";
+import { createQuest } from "../utils/quest";
 dotenv.config();
 
 export const deployQuestNft = async () => {
@@ -17,7 +17,7 @@ export const deployQuestNft = async () => {
   let username_store;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     // const colors = CanvasConfig["colors"]
-    let usernameStoreContract = await createUsernameStore();
+    let usernameStoreContract = await createQuest();
     console.log("usernameStoreContract address", usernameStoreContract?.contract_address);
     if (usernameStoreContract?.contract_address) {
       username_store_address = usernameStoreContract?.contract_address;

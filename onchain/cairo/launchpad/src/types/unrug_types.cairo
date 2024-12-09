@@ -1,10 +1,10 @@
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::{i129};
 use ekubo::types::keys::PoolKey;
-use starknet::{ContractAddress, // get_caller_address
-// , storage_access::StorageBaseAddress,
-// contract_address_const,
-// get_block_timestamp, get_contract_address,
+use starknet::{ContractAddress, // get_caller_address,
+// storage_access::StorageBaseAddress, contract_address_const,
+// get_block_timestamp,
+// get_contract_address,
 };
 
 pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
@@ -36,7 +36,7 @@ pub enum BondingType {
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub price: u256,
     pub step_increase_linear: u256,
     pub is_enable: bool
@@ -51,13 +51,13 @@ pub enum TokenType {
     ERC404,
 }
 
-#[derive(Drop, Serde, Clone, starknet::Store)]
+#[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,
     pub creator: ContractAddress,
     pub token_address: ContractAddress,
-    pub symbol: ByteArray,
-    pub name: ByteArray,
+    pub symbol: felt252,
+    pub name: felt252,
     pub total_supply: u256,
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
@@ -75,7 +75,8 @@ pub struct TokenLaunch {
     pub initial_pool_supply: u256, // Liquidity token to add in the DEX
     pub initial_available_supply: u256, // Init available to buy
     pub total_supply: u256, // Total supply to buy
-    pub bonding_curve_type: Option<BondingType>,
+    // pub bonding_curve_type: Option<BondingType>,
+    pub bonding_curve_type: BondingType,
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyCoin, // Token launched
     pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
@@ -84,10 +85,29 @@ pub struct TokenLaunch {
     pub slope: u256,
     pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub protocol_fee_percent: u256,
     pub creator_fee_percent: u256,
 }
+
+#[derive(Drop, Serde, Copy, starknet::Store)]
+pub struct LaunchLiquidity {
+    pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
+    pub creator: ContractAddress,
+    pub token_address: ContractAddress,
+    pub price: u256, // Last price of the token. In TODO
+    pub available_supply: u256, // Available to buy
+    pub initial_pool_supply: u256, // Liquidity token to add in the DEX
+    pub initial_available_supply: u256, // Init available to buy
+    pub total_supply: u256, // Total supply to buy
+    pub created_at: u64,
+    pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
+    pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
+    pub liquidity_type: Option<LiquidityType>,
+    pub starting_price: u256,
+    pub protocol_fee_percent: u256,
+}
+
 
 #[derive(Drop, Serde, Clone, starknet::Store)]
 pub struct SharesTokenUser {
@@ -114,7 +134,7 @@ pub struct TokenLaunchFair {
     pub owner: ContractAddress,
     pub token_address: ContractAddress,
     pub price: u256,
-    pub initial_key_price: u256,
+    pub starting_price: u256,
     pub total_supply: u256,
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
@@ -129,7 +149,7 @@ pub struct TokenLaunchFair {
 pub struct StoredName {
     #[key]
     pub user: ContractAddress,
-    pub name: ByteArray,
+    pub name: felt252,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -166,8 +186,8 @@ pub struct CreateToken {
     pub caller: ContractAddress,
     #[key]
     pub token_address: ContractAddress,
-    pub symbol: ByteArray,
-    pub name: ByteArray,
+    pub symbol: felt252,
+    pub name: felt252,
     pub initial_supply: u256,
     pub total_supply: u256,
     pub is_unruggable: bool
@@ -186,6 +206,24 @@ pub struct CreateLaunch {
     pub total_supply: u256,
     pub slope: u256,
     pub threshold_liquidity: u256,
+    pub is_unruggable: bool,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct MemecoinCreated {
+    pub owner: ContractAddress,
+    pub name: felt252,
+    pub symbol: felt252,
+    pub initial_supply: u256,
+    pub memecoin_address: ContractAddress
+}
+
+
+#[derive(Drop, starknet::Event)]
+pub struct MemecoinLaunched {
+    pub memecoin_address: ContractAddress,
+    pub quote_token: ContractAddress,
+    pub exchange_name: felt252,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -197,12 +235,12 @@ pub struct LaunchUpdated {
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct SetJediwapV2Factory {
+pub struct SetJediswapV2Factory {
     pub address_jediswap_factory_v2: ContractAddress,
 }
 
 #[derive(Drop, starknet::Event)]
-pub struct SetJediwapNFTRouterV2 {
+pub struct SetJediswapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
 }
 

@@ -22,7 +22,16 @@ pub struct Faction {
     pub name: felt252,
     pub leader: starknet::ContractAddress,
     pub joinable: bool,
-    pub allocation: u32
+    pub allocation: u32,
+    pub is_admin: bool,
+}
+
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct FactionMetadata {
+    pub nostr_id_group: u256,
+    pub nostr_event_id: u256,
+    pub twitter_id: u256,
 }
 
 #[derive(Drop, Serde, starknet::Store)]
@@ -57,6 +66,9 @@ pub trait IArtPeace<TContractState> {
     // Place pixels on the canvas
     fn place_pixel(ref self: TContractState, pos: u128, color: u8, now: u64);
     fn place_pixel_metadata(
+        ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+    );
+    fn add_pixel_metadata(
         ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
     );
     fn place_pixel_xy(ref self: TContractState, x: u128, y: u128, color: u8, now: u64);
@@ -208,6 +220,18 @@ pub struct PixelPlaced {
 }
 
 #[derive(Drop, starknet::Event)]
+pub struct PixelMetadataPlaced {
+    #[key]
+    pub placed_by: ContractAddress,
+    #[key]
+    pub pos: u128,
+    #[key]
+    pub day: u32,
+    pub color: u8,
+    pub metadata: MetadataPixel,
+}
+
+#[derive(Drop, starknet::Event)]
 pub struct BasicPixelPlaced {
     #[key]
     pub placed_by: ContractAddress,
@@ -286,7 +310,19 @@ pub struct FactionCreated {
     pub leader: ContractAddress,
     pub joinable: bool,
     pub allocation: u32,
+    pub is_admin: bool,
 }
+
+#[derive(Drop, starknet::Event)]
+pub struct FactionUserFCreated {
+    #[key]
+    pub faction_id: u32,
+    pub name: felt252,
+    pub leader: ContractAddress,
+    pub joinable: bool,
+    pub allocation: u32,
+}
+
 
 #[derive(Drop, starknet::Event)]
 pub struct FactionLeaderChanged {

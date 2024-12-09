@@ -1,6 +1,6 @@
-// export {
-//   hash,
-// } from "https://esm.sh/v135/starknet@5.24.3/dist/index.js"
+export {
+  hash,
+} from "https://esm.sh/v135/starknet@5.24.3/dist/index.js"
 
 export const config = {
   streamUrl: Deno.env.get("APIBARA_STREAM_URL"),
@@ -293,7 +293,7 @@ export const config = {
         // Pixel Metadata Placed Event
         fromAddress: Deno.env.get("ART_PEACE_CONTRACT_ADDRESS"),
         keys: [
-          "0x48bbc69dde48e3d60dfee63f951ff486cb4cbc523ddd46118bee64fe6a8eae"
+          hash.getSelectorFromName("PixelMetadataPlaced")
         ],
         includeReverted: false,
         includeTransaction: false,

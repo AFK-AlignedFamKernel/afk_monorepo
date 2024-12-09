@@ -19,7 +19,6 @@ mod TapQuests {
         is_reward_token: bool,
     }
 
-
     #[constructor]
     fn constructor(
         ref self: ContractState, token_reward: u32, is_reward_nft: bool, is_reward_token: bool

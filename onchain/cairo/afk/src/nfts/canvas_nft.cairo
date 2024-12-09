@@ -71,8 +71,10 @@ mod CanvasNFT {
 
 
     #[constructor]
-    fn constructor(ref self: ContractState, name: ByteArray, symbol: ByteArray) {
-        let base_uri = "https://api.art-peace.net/nft-meta/nft-";
+    fn constructor(
+        ref self: ContractState, base_uri: ByteArray, name: ByteArray, symbol: ByteArray
+    ) {
+        // let base_uri = "https://api.art-peace.net/nft-meta/nft-";
         self.erc721.initializer(name, symbol, base_uri);
     }
 

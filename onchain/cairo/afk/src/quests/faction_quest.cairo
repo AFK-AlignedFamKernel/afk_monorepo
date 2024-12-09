@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod FactionQuest {
     use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::interfaces::quests::{// IAuthorityQuest,
+    use afk::interfaces::quests::{ // IAuthorityQuest,
     IQuest};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
