@@ -272,27 +272,89 @@ pub mod LockManager {
         }
 
         fn user_locks_length(self: @ContractState, user: ContractAddress) -> u32 {
-            let user_locks_length = self.user_locks_list.entry(user).len();
+            // Only count active locks
+            let mut active_count = 0;
+            let mut i = 0;
+            
+            while i < self.user_locks_list.entry(user).len() {
+                let lock_address = self.user_locks_list.entry(user).at(i).read();
 
-            user_locks_length.try_into().unwrap()
+                if self.user_locks.entry((user, lock_address)).read() {
+                    active_count += 1;
+                }
+                i += 1;
+            };
+            
+            active_count
         }
 
         fn user_lock_at(
             self: @ContractState, user: ContractAddress, index: u32
         ) -> ContractAddress {
-            self.user_locks_list.entry(user).at(index.into()).read()
+            // Return only active locks
+            let mut active_index = 0;
+            let mut i = 0;
+            let mut user_lock = contract_address_const::<0>();
+            
+            while i < self.user_locks_list.entry(user).len() {
+                let lock_address = self.user_locks_list.entry(user).at(i).read();
+
+                if self.user_locks.entry((user, lock_address)).read() {
+                    if active_index == index {
+                        user_lock = lock_address;
+                        break;
+                    }
+                    active_index += 1;
+                }
+                i += 1;
+            };
+
+            user_lock
         }
 
         fn token_locks_length(self: @ContractState, token: ContractAddress) -> u32 {
-            let token_locks_length = self.token_locks_list.entry(token).len();
+            // Only count active locks
+            let mut active_count = 0;
+            let mut i = 0;
+            
+            while i < self.token_locks_list.entry(token).len() {
+                let lock_address = self.token_locks_list.entry(token).at(i).read();
 
-            token_locks_length.try_into().unwrap()
+                if self.token_locks.entry((token, lock_address)).read() {
+                    active_count += 1;
+                }
+                i += 1;
+            };
+            
+            active_count
         }
 
         fn token_locked_at(
             self: @ContractState, token: ContractAddress, index: u32
         ) -> ContractAddress {
-            self.token_locks_list.entry(token).at(index.into()).read()
+            // self.token_locks_list.entry(token).at(index.into()).read()
+
+            // Return only active locks
+            // let token_locks = self.token_locks_list.entry(token).read();
+
+            let mut active_index = 0;
+            let mut i = 0;
+            let mut token_lock = contract_address_const::<0>();
+            
+            while i < self.token_locks_list.entry(token).len() {
+                let lock_address = self.token_locks_list.entry(token).at(i).read();
+
+                if self.token_locks.entry((token, lock_address)).read() {
+                    if active_index == index {
+                        token_lock = lock_address;
+                        break;
+                    }
+                    active_index += 1;
+                }
+                i += 1;
+            };
+
+            token_lock
         }
     }
 
@@ -367,8 +429,13 @@ pub mod LockManager {
                 .unwrap_syscall();
 
             self.user_locks.entry((withdrawer, lock_address)).write(true);
-
             self.token_locks.entry((token, lock_address)).write(true);
+
+            // Add to user lock lists
+            self.user_locks_list.entry(withdrawer).append().write(lock_address);
+
+            // Add to user lock lists
+            self.token_locks_list.entry(token).append().write(lock_address);
 
             self.locks.write(lock_address, token_lock);
 
