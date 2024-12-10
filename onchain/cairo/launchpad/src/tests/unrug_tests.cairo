@@ -42,10 +42,8 @@ mod unrug_tests {
     // const THRESHOLD_LIQUIDITY(): u256 = 10 * pow_256(10, 18);
 
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
-        100_000_000_u256* pow_256(10, 18)
+        100_000_000_u256 * pow_256(10, 18)
     }
-
-    
 
 
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {

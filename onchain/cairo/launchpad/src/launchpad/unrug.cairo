@@ -5,8 +5,7 @@ use afk_launchpad::types::launchpad_types::{
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters,
-    EkuboUnrugLaunchParameters
+    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -828,7 +827,7 @@ pub mod UnrugLiquidity {
                     // base_token.approve(ekubo_core_address, pool.liquidity_raised);
                     // base_token.approve(positions_address, pool.liquidity_raised);
                     // base_token.transfer(positions_address, pool.liquidity_raised);
-                
+
                     // println!("step: {}", 4);
                     let registry = ITokenRegistryDispatcher { contract_address: registry_address };
                     // println!("step: {}", 5);
