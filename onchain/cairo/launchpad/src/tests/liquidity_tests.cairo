@@ -67,7 +67,7 @@ mod liquidity_tests {
 
     const THRESHOLD_LIQUIDITY: u256 = 10_000_000_000_000_000_000_u256; // 10
     // const THRESHOLD_LIQUIDITY: u256 = 10;
-    
+
     fn FACTORY_ADDRESS() -> ContractAddress {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }

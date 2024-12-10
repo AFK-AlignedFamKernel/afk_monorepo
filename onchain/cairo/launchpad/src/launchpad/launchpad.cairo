@@ -1761,10 +1761,10 @@ pub mod LaunchpadMarketplace {
             //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
             // );
 
-            // TODO precompute maybe and saved 
+            // TODO precompute maybe and saved
             // Also start User params after
             let starting_price = 1_u256;
-            let slope =1_u256;
+            let slope = 1_u256;
             // let starting_price = threshold_liquidity / total_supply;
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
