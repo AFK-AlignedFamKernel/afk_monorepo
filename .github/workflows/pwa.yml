@@ -7,8 +7,6 @@ on:
     paths:
       - "apps/pwa/**"
   pull_request:
-    branches:
-      - main
     paths:
       - "apps/pwa/**"
 
@@ -63,5 +61,5 @@ jobs:
       - name: TypeScript Check
         run: pnpm ts:check
 
-      -name: Build
+      - name: Build
         run: pnpm build

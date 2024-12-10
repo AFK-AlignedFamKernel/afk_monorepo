@@ -1,40 +1,55 @@
 name: Starknet Contracts
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "onchain/cairo/**"
+  pull_request:
+    paths:
+      - "onchain/cairo/**"
 
 permissions: read-all
 
 jobs:
-  check:
+  afk-contracts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: '2.6.5'
-      - name: Scarb version
-        run: scarb --version
-        working-directory: onchain/cairo
+          tool-versions: onchain/cairo/afk/.tool-versions
+          scarb-lock: onchain/cairo/afk/scarb.lock
       - name: Check cairo format
         run: scarb fmt --check
-        working-directory: onchain/cairo
+        working-directory: onchain/cairo/afk
       - name: Build cairo programs
         run: scarb build
-        working-directory: onchain/cairo
-  tests:
+        working-directory: onchain/cairo/afk
+      - uses: foundry-rs/setup-snfoundry@v3
+        with:
+          tool-versions: onchain/cairo/afk/.tool-versions
+      - name: Run cairo tests
+        run: snforge test
+        working-directory: onchain/cairo/afk
+  launchpad:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: '2.6.5'
-      - name: Scarb version
-        run: scarb --version
-        working-directory: onchain/cairo
-      - uses: actions/checkout@v4
+          tool-versions: onchain/cairo/launchpad/.tool-versions
+          scarb-lock: onchain/cairo/launchpad/scarb.lock
+      - name: Check cairo format
+        run: scarb fmt --check
+        working-directory: onchain/cairo/launchpad
+      - name: Build cairo programs
+        run: scarb build
+        working-directory: onchain/cairo/launchpad
       - uses: foundry-rs/setup-snfoundry@v3
         with:
-          starknet-foundry-version: '0.25.0'
+          tool-versions: onchain/cairo/launchpad/.tool-versions
       - name: Run cairo tests
         run: snforge test
-        working-directory: onchain/cairo
+        working-directory: onchain/cairo/launchpad
