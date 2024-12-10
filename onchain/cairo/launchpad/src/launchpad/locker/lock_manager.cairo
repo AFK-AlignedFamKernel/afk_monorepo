@@ -332,11 +332,7 @@ pub mod LockManager {
         fn token_locked_at(
             self: @ContractState, token: ContractAddress, index: u32
         ) -> ContractAddress {
-            // self.token_locks_list.entry(token).at(index.into()).read()
-
             // Return only active locks
-            // let token_locks = self.token_locks_list.entry(token).read();
-
             let mut active_index = 0;
             let mut i = 0;
             let mut token_lock = contract_address_const::<0>();
