@@ -310,6 +310,16 @@ pub struct EkuboLaunchParameters {
 }
 
 #[derive(Copy, Drop, Serde)]
+pub struct EkuboUnrugLaunchParameters {
+    pub owner: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub lp_supply: u256,
+    pub lp_quote_supply: u256,
+    pub pool_params: EkuboPoolParameters
+}
+
+#[derive(Copy, Drop, Serde)]
 pub struct EkuboLP {
     pub owner: ContractAddress,
     pub quote_address: ContractAddress,

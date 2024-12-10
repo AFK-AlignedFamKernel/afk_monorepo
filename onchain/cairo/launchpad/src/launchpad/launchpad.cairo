@@ -1748,12 +1748,23 @@ pub mod LaunchpadMarketplace {
             let liquidity_available = total_supply - liquidity_supply;
 
             // let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            let starting_price = calculate_pricing(
-                threshold_liquidity.clone(), supply_distribution.clone()
-            );
-            let slope = calculate_slope(
-                threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
-            );
+            // let starting_price = calculate_pricing(
+            //     threshold_liquidity.clone(), supply_distribution.clone()
+            // );
+            // let slope = calculate_slope(
+            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
+            // );
+            // let starting_price = calculate_pricing(
+            //     threshold_liquidity.clone(), supply_distribution.clone()
+            // );
+            // let slope = calculate_slope(
+            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
+            // );
+
+            // TODO precompute maybe and saved 
+            // Also start User params after
+            let starting_price = 1_u256;
+            let slope =1_u256;
             // let starting_price = threshold_liquidity / total_supply;
             // // @TODO Deploy an ERC404
             // // Option for liquidity providing and Trading
