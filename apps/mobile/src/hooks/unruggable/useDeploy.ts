@@ -6,7 +6,7 @@ export type DeployTokenFormValues = {
   symbol: string | undefined;
   initialSupply: number | undefined;
   contract_address_salt: string | undefined;
-  is_unruggable?:boolean
+  is_unruggable?: boolean;
 };
 
 export const useDeployTokenUnruggable = () => {

@@ -14,7 +14,7 @@ import prismaPlugin from "./plugins/prisma";
 import twitterPlugin from "./plugins/twitter-oauth";
 import { launchBot } from "./services/telegram-app";
 import declareRoutes from "./router";
-import fastifySession from '@fastify/session';
+import fastifySession from "@fastify/session";
 import fastifyOauth2 from "@fastify/oauth2";
 
 // Type declarations
@@ -53,7 +53,7 @@ async function buildServer() {
   await fastify.register(authPlugin);
   // await fastify.register(twitterPlugin);
   await fastify.register(fastifyOauth2, {
-    name: 'twitterOAuth',
+    name: "twitterOAuth",
     credentials: {
       client: {
         id: process.env.TWITTER_API_KEY!,
@@ -61,15 +61,15 @@ async function buildServer() {
       },
       // auth: fastifyOauth2.TWITTER_CONFIGURATION,
       auth: {
-        authorizeHost: 'https://api.twitter.com',
-        authorizePath: '/oauth/authorize',
-        tokenHost: 'https://api.twitter.com',
-        tokenPath: '/oauth/access_token',
-      }
+        authorizeHost: "https://api.twitter.com",
+        authorizePath: "/oauth/authorize",
+        tokenHost: "https://api.twitter.com",
+        tokenPath: "/oauth/access_token",
+      },
     },
-    startRedirectPath: '/auth/login',
+    startRedirectPath: "/auth/login",
     callbackUri: process.env.TWITTER_CALLBACK_URL!,
-  })
+  });
 
   //Middleware to verify JWT
   const JWT_SECRET = config.jwt.secret;
@@ -84,7 +84,7 @@ async function buildServer() {
   });
 
   fastify.register(fastifySession, {
-    secret: JWT_SECRET ?? 'your-secret-key',
+    secret: JWT_SECRET ?? "your-secret-key",
     cookie: { secure: process.env.NODE_ENV == "production" ? true : false }, // Set to true in production
   });
 
@@ -92,7 +92,7 @@ async function buildServer() {
   // Auth
   // await fastify.register(authRoutes);
   // Indexer
-  await declareRoutes(fastify)
+  await declareRoutes(fastify);
 
   // Initialize WebSocket handlers
   fastify.ready((err) => {

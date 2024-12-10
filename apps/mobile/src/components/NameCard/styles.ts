@@ -1,4 +1,4 @@
-import { ThemedStyleSheet, Spacing } from '../../styles';
+import {ThemedStyleSheet, Spacing} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   card: {
@@ -9,12 +9,12 @@ export default ThemedStyleSheet((theme) => ({
     borderWidth: 1,
     borderColor: `${theme.colors.primary}20`,
     shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: {width: 0, height: 8},
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 8,
   },
-  
+
   innerContainer: {
     backgroundColor: `${theme.colors.background}80`,
     borderRadius: 16,
@@ -22,7 +22,7 @@ export default ThemedStyleSheet((theme) => ({
     borderWidth: 1,
     borderColor: `${theme.colors.primary}10`,
   },
-  
+
   nameText: {
     fontSize: 28,
     fontWeight: '700',
@@ -30,30 +30,30 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: Spacing.medium,
     letterSpacing: 0.5,
   },
-  
+
   detailsContainer: {
     marginTop: Spacing.medium,
     gap: Spacing.small,
   },
-  
+
   ownerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.small,
   },
-  
+
   label: {
     fontSize: 14,
     color: theme.colors.white,
     fontWeight: '600',
   },
-  
+
   value: {
     fontSize: 14,
     color: theme.colors.white,
     opacity: 0.8,
   },
-  
+
   expiryContainer: {
     marginTop: Spacing.medium,
     backgroundColor: `${theme.colors.primary}10`,
@@ -64,5 +64,5 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.small,
-  }
-})); 
+  },
+}));

@@ -88,7 +88,7 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
   },
   pasteButton: {
-    backgroundColor: 'transparant',
+    backgroundColor: 'transparent',
     borderRadius: 30,
     alignItems: 'center',
     borderWidth: 1,

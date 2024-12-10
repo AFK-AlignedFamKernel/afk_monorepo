@@ -7,8 +7,8 @@ import {useToast, useWalletModal} from '../../hooks/modals';
 
 import {AddLiquidityValidationSchema} from './validation';
 import stylesheet from './styles';
-import { useState } from 'react';
-import { useAddLiquidity } from '../../hooks/launchpad/useAddLiquidity';
+import {useState} from 'react';
+import {useAddLiquidity} from '../../hooks/launchpad/useAddLiquidity';
 
 type FormValues = {
   amount: string;
@@ -47,7 +47,7 @@ export const AddLiquidityForm: React.FC<{
     liquidityType: 'EKUBO_NFT',
     unlockTime: '',
     teamVestingPeriod: '0',
-    teamVestingCliff: '0'
+    teamVestingCliff: '0',
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -70,23 +70,18 @@ export const AddLiquidityForm: React.FC<{
             tokenAddress,
             values.amount,
             values.startingPrice!,
-            values.liquidityLockTime!
+            values.liquidityLockTime!,
           );
           break;
         case 'EKUBO':
-          await addLiquidityEkubo(
-            account.account,
-            tokenAddress,
-            values.amount,
-            values.ekuboPrice!
-          );
+          await addLiquidityEkubo(account.account, tokenAddress, values.amount, values.ekuboPrice!);
           break;
         case 'JEDISWAP':
           await addLiquidityJediswap(
             account.account,
             tokenAddress,
             values.amount,
-            values.minLiquidity!
+            values.minLiquidity!,
           );
           break;
       }
@@ -97,14 +92,19 @@ export const AddLiquidityForm: React.FC<{
       showToast({
         type: 'error',
         title: 'Failed to add liquidity',
-     
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderDexFields = (values: FormValues, handleChange: any, handleBlur: any, errors: any, touched: any) => {
+  const renderDexFields = (
+    values: FormValues,
+    handleChange: any,
+    handleBlur: any,
+    errors: any,
+    touched: any,
+  ) => {
     switch (values.dexType) {
       case 'UNRUGGABLE':
         return (
@@ -248,7 +248,7 @@ export const AddLiquidityForm: React.FC<{
   };
 
   return (
-    <Formik 
+    <Formik
       initialValues={initialValues}
       validationSchema={AddLiquidityValidationSchema}
       onSubmit={onSubmit}
@@ -265,16 +265,15 @@ export const AddLiquidityForm: React.FC<{
             {['UNRUGGABLE', 'EKUBO', 'JEDISWAP'].map((dex) => (
               <Button
                 key={dex}
-                style={[
-                  styles.dexButton,
-                  values.dexType === dex && styles.dexButtonActive
-                ]}
+                style={[styles.dexButton, values.dexType === dex && styles.dexButtonActive]}
                 onPress={() => handleChange('dexType')(dex)}
               >
-                <Text style={[
-                  styles.dexButtonText,
-                  values.dexType === dex && styles.dexButtonTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.dexButtonText,
+                    values.dexType === dex && styles.dexButtonTextActive,
+                  ]}
+                >
                   {dex}
                 </Text>
               </Button>
@@ -290,17 +289,12 @@ export const AddLiquidityForm: React.FC<{
               value={values.amount}
               keyboardType="decimal-pad"
             />
-            {touched.amount && errors.amount && (
-              <Text style={styles.error}>{errors.amount}</Text>
-            )}
+            {touched.amount && errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
           </View>
 
           {renderDexFields(values, handleChange, handleBlur, errors, touched)}
 
-          <Button 
-            onPress={() => handleSubmit()}
-            disabled={isLoading}
-          >
+          <Button onPress={() => handleSubmit()} disabled={isLoading}>
             {isLoading ? 'Adding Liquidity...' : 'Add Liquidity'}
           </Button>
         </View>

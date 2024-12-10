@@ -15,14 +15,13 @@ export type ValidationErrors = {
 export const validateAddLiquidity = (values: any): ValidationErrors => {
   const errors: ValidationErrors = {};
 
- 
   if (!values.amount) {
     errors.amount = 'Amount is required';
   } else if (!/^\d*\.?\d*$/.test(values.amount)) {
     errors.amount = 'Must be a valid number';
   }
 
-  // DEX type validation  
+  // DEX type validation
   if (!values.dexType) {
     errors.dexType = 'DEX type is required';
   } else if (!['UNRUGGABLE', 'EKUBO', 'JEDISWAP'].includes(values.dexType)) {
@@ -34,7 +33,7 @@ export const validateAddLiquidity = (values: any): ValidationErrors => {
     if (!values.startingPrice) {
       errors.startingPrice = 'Starting price is required';
     }
-    
+
     if (!values.teamAllocation) {
       errors.teamAllocation = 'Team allocation is required';
     } else {
@@ -53,8 +52,6 @@ export const validateAddLiquidity = (values: any): ValidationErrors => {
       }
     }
   }
-
-
 
   return errors;
 };

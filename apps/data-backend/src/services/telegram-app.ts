@@ -4,8 +4,8 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT
 const WEB_APP_URL =
   process.env.TELEGRAM_WEB_APP ?? "https://lfg.afk-community.xyz"; // Replace with your web app's URL
 
-
-const MOBILE_APP_URL = process.env.TELEGRAM_MOBILE_APP ?? "https:/afk-community.xyz"
+const MOBILE_APP_URL =
+  process.env.TELEGRAM_MOBILE_APP ?? "https:/afk-community.xyz";
 // Use require instead of import because of the error "Cannot use import statement outside a module"
 import { Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
@@ -78,24 +78,24 @@ function listenToCommands(bot) {
               [
                 {
                   text: "Start AFK",
-                  web_app: { url: MOBILE_APP_URL ?? process.env.TELEGRAM_MOBILE_APP },
+                  web_app: {
+                    url: MOBILE_APP_URL ?? process.env.TELEGRAM_MOBILE_APP,
+                  },
                 },
               ],
             ],
           },
         });
       } catch (error) {
-        console.log("Error", error)
-
+        console.log("Error", error);
       }
-
     });
 
     // Register a listener for the /help command, and reply with a message whenever it's used
     bot.help(async (ctx) => {
       await ctx.reply("Run the /start command to use our mini app");
     });
-  } catch (e) { }
+  } catch (e) {}
 }
 
 /**
@@ -157,7 +157,7 @@ function listenToMiniAppData(bot) {
       }
     });
   } catch (e) {
-    console.log("Error listenMiniAppData", e)
+    console.log("Error listenMiniAppData", e);
   }
 }
 
@@ -194,7 +194,7 @@ function listenToQueries(bot) {
       // Using context shortcut
       await ctx.answerInlineQuery(result);
     });
-  } catch (e) { }
+  } catch (e) {}
 }
 /**
  * Listens to process stop events and performs a graceful bot stop
@@ -207,7 +207,7 @@ function enableGracefulStop(bot) {
     // Enable graceful stop
     process.once("SIGINT", () => bot.stop("SIGINT"));
     process.once("SIGTERM", () => bot.stop("SIGTERM"));
-  } catch (e) { }
+  } catch (e) {}
 }
 
 /**

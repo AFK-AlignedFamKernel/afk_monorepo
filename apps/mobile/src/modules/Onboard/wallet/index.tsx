@@ -1,11 +1,11 @@
 import {useAuth} from 'afk_nostr_sdk';
-import {FC, useState} from 'react';
-import React from 'react';
+import React, {FC, useState} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 
 import {Button} from '../../../components';
 import {useToast} from '../../../hooks/modals';
 import {WalletManager} from '../../../utils/storage/wallet-manager';
+
 export const WalletOnboarding: FC = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -63,7 +63,7 @@ export const WalletOnboarding: FC = () => {
       } else {
         const {secretKey, mnemonic, publicKey, strkPrivateKey} = result;
         console.log('result', result);
-        showToast({title: 'Authentication succed.', type: 'success'});
+        showToast({title: 'Authentication succeed.', type: 'success'});
 
         setIsConnected(true);
       }

@@ -1,4 +1,4 @@
-import { ThemedStyleSheet, Spacing } from '../../styles';
+import {ThemedStyleSheet, Spacing} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -26,4 +26,4 @@ export default ThemedStyleSheet((theme) => ({
     textAlign: 'center',
     marginTop: Spacing.medium,
   },
-})); 
+}));

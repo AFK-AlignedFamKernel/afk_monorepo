@@ -72,20 +72,18 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
         DEFAULT_TIMELOCK, // timelock
       ]);
 
-      const {transaction_hash} = await sendTransaction(
-        [
-          {
-            contractAddress: TOKENS[token][CHAIN_ID].address,
-            entrypoint: Entrypoint.APPROVE,
-            calldata: approveCallData,
-          },
-          {
-            contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-            entrypoint: Entrypoint.DEPOSIT,
-            calldata: depositCallData,
-          },
-        ],
-      );
+      const {transaction_hash} = await sendTransaction([
+        {
+          contractAddress: TOKENS[token][CHAIN_ID].address,
+          entrypoint: Entrypoint.APPROVE,
+          calldata: approveCallData,
+        },
+        {
+          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+          entrypoint: Entrypoint.DEPOSIT,
+          calldata: depositCallData,
+        },
+      ]);
 
       if (transaction_hash) {
         hideTipModal();
@@ -103,7 +101,7 @@ export const TipModalStarknet = forwardRef<Modalize, TipModalStarknetProps>(
       } else {
         let description = 'Please Try Again Later.';
         // if (transaction_hash?.isRejected()) {
-          // description = receipt.transaction_failure_reason.error_message;
+        // description = receipt.transaction_failure_reason.error_message;
         // }
 
         showDialog({

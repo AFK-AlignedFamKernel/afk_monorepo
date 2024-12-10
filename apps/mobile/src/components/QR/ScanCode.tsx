@@ -384,8 +384,8 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
                 {isProcessing
                   ? 'Processing...'
                   : scannedData?.toLowerCase().startsWith('lnbc')
-                  ? 'Pay'
-                  : 'Receive'}
+                    ? 'Pay'
+                    : 'Receive'}
               </Button>
             </View>
           </View>

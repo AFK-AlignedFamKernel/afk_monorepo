@@ -1,14 +1,17 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../../utils/http";
 import { isValidStarknetAddress } from "../../../utils/starknet";
 
 interface NameserviceParams {
   username?: string;
-  owner_address?:string
+  owner_address?: string;
 }
 
-async function nameserviceRoutes(fastify: FastifyInstance, options: RouteOptions) {
+async function nameserviceRoutes(
+  fastify: FastifyInstance,
+  options: RouteOptions
+) {
   fastify.get<{
     Params: NameserviceParams;
   }>("/username-claimed", async (request, reply) => {
