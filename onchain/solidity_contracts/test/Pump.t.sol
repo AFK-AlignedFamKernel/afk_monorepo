@@ -146,7 +146,7 @@ contract PumpLaunchTest is Test {
         // assertEq(amountOwned, 20 * 10**18); // 50 bought initially - 30 sold
     }
 
-    function testFailSellTokenNoInit() public {
+    function testSellTokenNoInitFailed() public {
         // Attempt to sell tokens without balance should fail
         vm.expectRevert();
         vm.prank(user);
@@ -154,7 +154,7 @@ contract PumpLaunchTest is Test {
     }
 
 
-    function testFailSellTokenWithoutBalance() public {
+    function testSellTokenWithoutBalanceFailed() public {
         
                // Admin launches token
         vm.prank(admin);

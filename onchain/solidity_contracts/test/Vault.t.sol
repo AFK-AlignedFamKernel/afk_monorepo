@@ -80,7 +80,6 @@ contract ABTCVaultTest is Test {
     }
 
     function testSetWrappedBTCTokenUnauthorized() public {
-        vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 AccessControlUnauthorizedAccount.selector,
@@ -88,6 +87,7 @@ contract ABTCVaultTest is Test {
                 vault.ADMIN_ROLE()
             )
         );
+        vm.prank(user1);
         vault.setWrappedBTCToken(address(wbtc), true, 1e18, block.timestamp);
     }
 
@@ -144,7 +144,6 @@ contract ABTCVaultTest is Test {
 
     function testMintUnauthorized() public {
         uint256 mintAmount = 100 * 1e18;
-        vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 AccessControlUnauthorizedAccount.selector,
@@ -152,6 +151,7 @@ contract ABTCVaultTest is Test {
                 vault.MINTER_ROLE()
             )
         );
+        vm.prank(user1);
         vault.mint(user2, mintAmount);
     }
 
@@ -165,7 +165,6 @@ contract ABTCVaultTest is Test {
     function testBurnUnauthorized() public {
         uint256 mintAmount = 100 * 1e18;
         vault.mint(user1, mintAmount);
-        vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 AccessControlUnauthorizedAccount.selector,
@@ -173,6 +172,7 @@ contract ABTCVaultTest is Test {
                 vault.MINTER_ROLE()
             )
         );
+        vm.prank(user1);
         vault.burn(user1, mintAmount);
     }
 
@@ -182,7 +182,6 @@ contract ABTCVaultTest is Test {
     }
 
     function testPauseUnauthorized() public {
-        vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 AccessControlUnauthorizedAccount.selector,
@@ -190,6 +189,7 @@ contract ABTCVaultTest is Test {
                 vault.PAUSER_ROLE()
             )
         );
+        vm.prank(user1);
         vault.pause();
     }
 
