@@ -6,6 +6,7 @@ use afk_launchpad::types::launchpad_types::{
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
     EkuboLiquidityParameters, LiquidityParameters,
+    EkuboUnrugLaunchParameters
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -102,7 +103,6 @@ pub mod UnrugLiquidity {
     use afk_launchpad::launchpad::calcul::launch::{get_amount_by_type_of_coin_or_quote};
     use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
-        // get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::errors;
     // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
@@ -825,6 +825,10 @@ pub mod UnrugLiquidity {
                     let base_token = EKIERC20Dispatcher {
                         contract_address: launch_params.quote_address
                     };
+                    // base_token.approve(ekubo_core_address, pool.liquidity_raised);
+                    // base_token.approve(positions_address, pool.liquidity_raised);
+                    // base_token.transfer(positions_address, pool.liquidity_raised);
+                
                     // println!("step: {}", 4);
                     let registry = ITokenRegistryDispatcher { contract_address: registry_address };
                     // println!("step: {}", 5);
