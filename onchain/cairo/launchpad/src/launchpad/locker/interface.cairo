@@ -1,5 +1,5 @@
-use starknet::ContractAddress;
 use crate::launchpad::locker::lock_manager::LockManager::LockPosition;
+use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait ILockManager<TContractState> {

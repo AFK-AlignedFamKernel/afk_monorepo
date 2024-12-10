@@ -9,13 +9,12 @@ pub mod LockManager {
     use core::num::traits::Zero;
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
+    use core::starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry, MutableVecTrait,
+        Vec, VecTrait
+    };
     use core::traits::TryInto;
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
-    use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, 
-        Map, StoragePathEntry,
-        MutableVecTrait, Vec, VecTrait
-    };
 
     use starknet::syscalls::deploy_syscall;
     use starknet::{
@@ -174,7 +173,8 @@ pub mod LockManager {
 
         fn withdraw(ref self: ContractState, lock_address: ContractAddress) {
             let token_lock = self.locks.read(lock_address);
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
+                .balanceOf(lock_address);
             self.partial_withdraw(lock_address, actual_balance);
         }
 
@@ -182,7 +182,8 @@ pub mod LockManager {
             self.assert_only_lock_owner(lock_address);
 
             let token_lock = self.locks.read(lock_address);
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
+                .balanceOf(lock_address);
 
             assert(amount <= actual_balance, errors::WITHDRAW_AMOUNT_TOO_HIGH);
             assert(get_block_timestamp() >= token_lock.unlock_time, errors::STILL_LOCKED);
@@ -211,7 +212,8 @@ pub mod LockManager {
             }
 
             // Interactions
-            ERC20ABIDispatcher { contract_address: token_lock.token }.transferFrom(lock_address, owner, amount);
+            ERC20ABIDispatcher { contract_address: token_lock.token }
+                .transferFrom(lock_address, owner, amount);
             self.emit(TokenWithdrawn { lock_address, amount });
         }
 
@@ -245,7 +247,8 @@ pub mod LockManager {
                 };
             }
 
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
+                .balanceOf(lock_address);
 
             LockPosition {
                 token: token_lock.token,
@@ -378,7 +381,8 @@ pub mod LockManager {
         }
 
         /// Sets user_locks Map<> with a given key to false
-        /// Internally, this function updates the Map<> of locks of the specified `owner` and `lock_address`
+        /// Internally, this function updates the Map<> of locks of the specified `owner` and
+        /// `lock_address`
         /// it set's it to false, which indicates that the lock is no longer available
         fn remove_user_lock(
             ref self: ContractState, owner: ContractAddress, lock_address: ContractAddress

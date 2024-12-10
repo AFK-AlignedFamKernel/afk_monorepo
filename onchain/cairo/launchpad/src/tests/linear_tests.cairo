@@ -21,7 +21,7 @@ mod linear_tests {
     const DEFAULT_SUPPLY_3: u256 = 1_000_000_000_000_000_000_000_000_000_u256; // 1_000_000_000
     const DEFAULT_SUPPLY_4: u256 = 10_000_000_000_000_000_000_000_000_000_u256; // 10_000_000_000
     const DEFAULT_SUPPLY_5: u256 = 100_000_000_000_000_000_000_000_000_000_u256; // 100_000_000_000
-    
+
     const THRESHOLD_LIQUIDITY_0: u256 = 1_000_000_000_000_000_000_u256; // 1
     const THRESHOLD_LIQUIDITY_1: u256 = 10_000_000_000_000_000_000_u256; // 10
     const THRESHOLD_LIQUIDITY_2: u256 = 100_000_000_000_000_000_000_u256; // 100
@@ -71,7 +71,6 @@ mod linear_tests {
 
     #[test]
     fn test_get_meme_amount_on_curve_with_different_supplies() {
-
         // 100
         let mut available_supply = 80_000_000_000_000_000_000_u256;
 
@@ -109,9 +108,7 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 1_000_000
         let mut available_supply = 800_000_000_000_000_000_000_000_u256;
@@ -139,20 +136,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 200_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 200_000 tokens"
+            amount_out_1 == 200_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 200_000 tokens"
         );
         assert!(
-            amount_out_2 == 200_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 200_000 tokens"
+            amount_out_2 == 200_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 200_000 tokens"
         );
         assert!(
-            amount_out_3 == 200_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 200_000 tokens"
+            amount_out_3 == 200_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 200_000 tokens"
         );
         assert!(
-            amount_out_4 == 200_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 200_000 tokens"
+            amount_out_4 == 200_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 200_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000
         let mut available_supply = 80_000_000_000_000_000_000_000_000_u256;
@@ -180,20 +179,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 1_000_000_000
         let mut available_supply = 800_000_000_000_000_000_000_000_000_u256;
@@ -221,20 +222,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 200_000_000 tokens"
+            amount_out_1 == 200_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 200_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 200_000_000 tokens"
+            amount_out_2 == 200_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 200_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 200_000_000 tokens"
+            amount_out_3 == 200_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 200_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 200_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 200_000_000 tokens"
+            amount_out_4 == 200_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 200_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 10_000_000_000
         let mut available_supply = 8_000_000_000_000_000_000_000_000_000_u256;
@@ -262,20 +265,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 2_000_000_000 tokens"
+            amount_out_1 == 2_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 2_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 2_000_000_000 tokens"
+            amount_out_2 == 2_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 2_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 2_000_000_000 tokens"
+            amount_out_3 == 2_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 2_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 2_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 2_000_000_000 tokens"
+            amount_out_4 == 2_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 2_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000_000
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
@@ -303,26 +308,26 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
-
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
     }
 
     #[test]
     fn test_get_meme_amount_on_100_curve_with_different_thresholds() {
-
         // 100 supply and 1 threshold
         let mut available_supply = 80_000_000_000_000_000_000_u256;
 
@@ -360,9 +365,7 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100 supply and 10 threshold
         let mut available_supply = 80_000_000_000_000_000_000_u256;
@@ -401,9 +404,7 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100 supply and 100 threshold
         let mut available_supply = 80_000_000_000_000_000_000_u256;
@@ -442,9 +443,7 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100 supply and 1_000 threshold
         let mut available_supply = 80_000_000_000_000_000_000_u256;
@@ -483,9 +482,7 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100 supply and 10_000 threshold
         let mut available_supply = 80_000_000_000_000_000_000_u256;
@@ -524,14 +521,11 @@ mod linear_tests {
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
     }
 
     #[test]
     fn test_get_meme_amount_on_100b_curve_with_different_thresholds() {
-
         // 100_000_000_000 supply and 1 threshold
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
 
@@ -558,20 +552,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000_000 supply and 10 threshold
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
@@ -599,20 +595,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000_000 supply and 100 threshold
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
@@ -640,20 +638,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000_000 supply and 1_000 threshold
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
@@ -681,20 +681,22 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
         // 100_000_000_000 supply and 10_000 threshold
         let mut available_supply = 80_000_000_000_000_000_000_000_000_000_u256;
@@ -722,93 +724,94 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_1 should be 20_000_000_000 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_1 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_2 should be 20_000_000_000 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_2 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_3 should be 20_000_000_000 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_3 should be 20_000_000_000 tokens"
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256, "Amount_out_4 should be 20_000_000_000 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
+            "Amount_out_4 should be 20_000_000_000 tokens"
         );
-        assert!(
-            token_launch.available_supply == 0, "Available supply should be 0"
-        );
-    } 
-
+        assert!(token_launch.available_supply == 0, "Available supply should be 0");
+    }
     // #[test]
-    // fn test_get_meme_amount_with_for_threshold() {
-    //     let mut token_launch = get_token_launch(
-    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     );
-    //     let amounts = array![5, 5]; // Quote tokens used for each transaction
-    //     let mut amount_outs = array![];
+// fn test_get_meme_amount_with_for_threshold() {
+//     let mut token_launch = get_token_launch(
+//         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     );
+//     let amounts = array![5, 5]; // Quote tokens used for each transaction
+//     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         println!("amount_in {:?}", amount_in);
 
     //         // Calculate the memecoin amount out
-    //         let amount_out = get_meme_amount(token_launch.clone(), amount_in);
-    //         println!("amount_out {:?}", amount_out);
+//         let amount_out = get_meme_amount(token_launch.clone(), amount_in);
+//         println!("amount_out {:?}", amount_out);
 
     //         // Assert amount_out does not exceed available supply
-    //         assert!(
-    //             amount_out <= token_launch.available_supply, "Amount sold exceeds available
-    //             supply"
-    //         );
+//         assert!(
+//             amount_out <= token_launch.available_supply, "Amount sold exceeds available
+//             supply"
+//         );
 
     //         // Update available supply
-    //         token_launch.available_supply -= amount_out;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         token_launch.available_supply -= amount_out;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
 
     //         // Store the result for verification
-    //         amount_outs.append(amount_out);
-    //         println!("looping ------------------------------------------");
-    //     }
+//         amount_outs.append(amount_out);
+//         println!("looping ------------------------------------------");
+//     }
 
     //     // Final assertions
-    //     println!("amount 1: {}", amount_outs.at(0));
-    //     println!("amount 2: {}", amount_outs.at(1));
-    //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
-    // }
+//     println!("amount 1: {}", amount_outs.at(0));
+//     println!("amount 2: {}", amount_outs.at(1));
+//     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
+// }
 
     // #[test]
-    // fn test_get_meme_amount_with_two_buy_for_threshold() {
-    //     let mut available_supply = 80_000_000_u256;
-    //     // let mut token_launch = get_token_launch(
-    //     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     // );
-    //     let mut token_launch = get_token_launch(
-    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
-    //     );
-    //     // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     let amounts = array![5, 5];
-    //     let mut amount_outs = array![];
+// fn test_get_meme_amount_with_two_buy_for_threshold() {
+//     let mut available_supply = 80_000_000_u256;
+//     // let mut token_launch = get_token_launch(
+//     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     // );
+//     let mut token_launch = get_token_launch(
+//         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+//     );
+//     // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+//     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+//     let amounts = array![5, 5];
+//     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         println!("amount_in {:?}", amount_in);
 
     //         let amount_out = get_meme_amount(token_launch, amount_in);
-    //         println!("amount_out {:?}", amount_out);
+//         println!("amount_out {:?}", amount_out);
 
     //         assert!(amount_out <= token_launch.available_supply, "too much");
 
     //         token_launch.available_supply -= amount_out;
-    //         // token_launch.available_supply -= amount_out - token_launch.available_supply;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
-    //         amount_outs.append(amount_out);
-    //         println!("looping ------------------------------------------");
-    //     };
+//         // token_launch.available_supply -= amount_out - token_launch.available_supply;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         amount_outs.append(amount_out);
+//         println!("looping ------------------------------------------");
+//     };
 
     //     println!("amount 1 : {}", amount_outs.at(0));
-    //     println!("amount 2 : {}", amount_outs.at(1));
-    //     // println!("amount 3 : {}", amount_outs.at(2));
-    // // println!("amount 4 : {}", amount_outs.at(3));
-    // }
-    //     #[test]
+//     println!("amount 2 : {}", amount_outs.at(1));
+//     // println!("amount 3 : {}", amount_outs.at(2));
+// // println!("amount 4 : {}", amount_outs.at(3));
+// }
+//     #[test]
 // fn test_scale_factor_based_on_threshold_and_supply() {
 //     // Base scale factor
 //     let base_scale_factor = 1000000000000; // 10^12
