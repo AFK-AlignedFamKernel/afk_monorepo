@@ -41,15 +41,13 @@ mod liquidity_tests {
     // }
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
         // 21_000_000 * pow_256(10, 18)
-        100
-        // * pow_256(10, 18)
+        100_u256 * pow_256(10, 18)
     }
 
     // const INITIAL_KEY_PRICE:u256=1/100;
     const INITIAL_SUPPLY_DEFAULT: u256 = 100_000_000;
     const INITIAL_KEY_PRICE: u256 = 1;
     const STEP_LINEAR_INCREASE: u256 = 1;
-    const THRESHOLD_LIQUIDITY: u256 = 10;
     const THRESHOLD_MARKET_CAP: u256 = 500;
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
@@ -67,6 +65,9 @@ mod liquidity_tests {
 
     const LIQUIDITY_RATIO: u256 = 5;
 
+    const THRESHOLD_LIQUIDITY: u256 = 10_000_000_000_000_000_000_u256; // 10
+    // const THRESHOLD_LIQUIDITY: u256 = 10;
+    
     fn FACTORY_ADDRESS() -> ContractAddress {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }

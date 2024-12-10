@@ -114,6 +114,7 @@ COPY . .
 RUN pnpm install --force
 
 RUN pnpm run build:prisma-db
+RUN pnpm run build:backend:prisma
 RUN pnpm run build:indexer-prisma
 RUN pnpm run build:backend:all
 # Build the indexer-prisma package

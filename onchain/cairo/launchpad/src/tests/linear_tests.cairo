@@ -68,7 +68,6 @@ mod linear_tests {
         token_launch
     }
 
-
     #[test]
     fn test_get_meme_amount_on_curve_with_different_supplies() {
         // 100
@@ -740,6 +739,43 @@ mod linear_tests {
             "Amount_out_4 should be 20_000_000_000 tokens"
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
+    }
+
+    #[test]
+    fn test_get_coin_amount_on_curve() {
+        let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(amount_out == 1_562_500_000_000_000_000_u256, "Amount_out should be 1.5625 coins");
+
+        available_supply = 40_000_000_000_000_000_000_000_000_u256;
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(amount_out == 2_187_500_000_000_000_000_u256, "Amount_out should be 2.1875 coins");
+
+        available_supply = 20_000_000_000_000_000_000_000_000_u256;
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(amount_out == 2_812_500_000_000_000_000_u256, "Amount_out should be 2.8125 coins");
+
+        available_supply = 0_u256;
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(amount_out == 3_437_500_000_000_000_000_u256, "Amount_out should be 3.4375 coins");
+
+        available_supply = 0_u256;
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        amount_in = 80_000_000_000_000_000_000_000_000_u256;
+        amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            amount_out == 10_000_000_000_000_000_000_u256, "Amount_out should be 10.0000 coins"
+        );
     }
     // #[test]
 // fn test_get_meme_amount_with_for_threshold() {
