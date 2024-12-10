@@ -39,17 +39,42 @@ mod launchpad_tests {
     //     100_000_000
     //     // * pow_256(10, 18)
     // }
+
+    // 100 supply for the low range
+    // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
+    //     100_u256 * pow_256(10, 18)
+    // }
+
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
-        // 21_000_000 * pow_256(10, 18)
-        100
-        // * pow_256(10, 18)
+        // 100_u256 * pow_256(10, 18)
+        1_000_000_000_u256 * pow_256(10, 18)
     }
 
+    fn DEFAULT_100_SUPPLY() -> u256 {
+        100_u256 * pow_256(10, 18)
+    }
+
+    fn DEFAULT_100M_SUPPLY() -> u256 {
+        100_000_000_u256 * pow_256(10, 18)
+    }
+
+    fn DEFAULT_1B_SUPPLY() -> u256 {
+        1_000_000_000_u256 * pow_256(10, 18)
+    }
+
+    fn DEFAULT_BIG_SUPPLY() -> u256 {
+        100_000_000_000_000_u256 * pow_256(10, 18)
+    }
+
+    fn DEFAULT_100_T_SUPPLY() -> u256 {
+        100_000_000_000_000_u256 * pow_256(10, 18)
+    }
     // const INITIAL_KEY_PRICE:u256=1/100;
     const INITIAL_SUPPLY_DEFAULT: u256 = 100_000_000;
     const INITIAL_KEY_PRICE: u256 = 1;
     const STEP_LINEAR_INCREASE: u256 = 1;
-    const THRESHOLD_LIQUIDITY: u256 = 10;
+    // const THRESHOLD_LIQUIDITY: u256 = 10;d
+    const THRESHOLD_LIQUIDITY: u256 = 10 * pow_256(10, 18);
     const THRESHOLD_MARKET_CAP: u256 = 500;
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
@@ -1006,19 +1031,33 @@ mod launchpad_tests {
 
         let mut token_addresses: Array<ContractAddress> = array![];
         let init_supplies: Array<u256> = array![
-            100_u256,
-            100_000_u256, // 100k
-            1_000_000_u256, // 1m
-            10_000_000_u256, // 10m
-            100_000_000_u256, // 100m
-            1_000_000_000_u256, // 1b
-            10_000_000_000_u256, // 10b
-            100_000_000_000_u256, // 100b
-            1_000_000_000_000_u256, // 1t
+            100_u256 + pow_256(10, 18),
+            100_000_u256 * pow_256(10, 18), // 100k
+            1_000_000_u256 * pow_256(10, 18), // 1m
+            10_000_000_u256 * pow_256(10, 18), // 10m
+            100_000_000_u256 * pow_256(10, 18), // 100m
+            1_000_000_000_u256 * pow_256(10, 18), // 1b
+            10_000_000_000_u256 * pow_256(10, 18), // 10b
+            100_000_000_000_u256 * pow_256(10, 18), // 100b
+            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
             // 10_000_000_000_000_u256, // 10t
         // 100_000_000_000_000_u256, // 100t
         // 100_000_000_000_000_000_000_000_000_000_000_u256
         ];
+        // let init_supplies: Array<u256> = array![
+        //     100_u256,
+        //     100_000_u256, // 100k
+        //     1_000_000_u256, // 1m
+        //     10_000_000_u256, // 10m
+        //     100_000_000_u256, // 100m
+        //     1_000_000_000_u256, // 1b
+        //     10_000_000_000_u256, // 10b
+        //     100_000_000_000_u256, // 100b
+        //     1_000_000_000_000_u256, // 1t
+        //     // 10_000_000_000_000_u256, // 10t
+        // // 100_000_000_000_000_u256, // 100t
+        // // 100_000_000_000_000_000_000_000_000_000_000_u256
+        // ];
         let mut i = 0;
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
@@ -1060,7 +1099,7 @@ mod launchpad_tests {
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
-        let init_supplies: Array<u256> = array![100_000_000_u256, // 100m
+        let init_supplies: Array<u256> = array![100_000_000_u256 + pow_256(10, 18), // 100m
         // 100_000_000_000_000_000_000_000_000_000_000_u256
         ];
         let mut i = 0;

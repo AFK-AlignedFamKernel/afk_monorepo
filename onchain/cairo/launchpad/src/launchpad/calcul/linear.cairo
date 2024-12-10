@@ -2,9 +2,7 @@ use afk_launchpad::launchpad::math::{
     pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
 };
 use afk_launchpad::launchpad::math::{max_u256, min_u256};
-use afk_launchpad::types::launchpad_types::{TokenLaunch,
-
-};
+use afk_launchpad::types::launchpad_types::{TokenLaunch,};
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
 
@@ -15,7 +13,7 @@ const SCALE_FACTOR: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
 const SCALE_ROOT_FACTOR: u256 = 1_000_000_000_000_000_u256;
 const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 const MIN_PRICE: u256 = 1_u256;
-const LIQUIDITY_RATIO: u256 = 5; 
+const LIQUIDITY_RATIO: u256 = 5;
 const SQRT_ITER: u256 = 1_000_u256;
 
 pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
@@ -35,7 +33,9 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let scaled_intercept = scaled_threshold_liquidity / (2 * sellable_supply);
 
     let term0 = scaled_slope * amount_sold / DECIMAL_FACTOR + scaled_intercept;
-    let term1 = (scaled_slope * amount_sold / DECIMAL_FACTOR + scaled_intercept) * (scaled_slope * amount_sold / DECIMAL_FACTOR + scaled_intercept) / SCALE_FACTOR;
+    let term1 = (scaled_slope * amount_sold / DECIMAL_FACTOR + scaled_intercept)
+        * (scaled_slope * amount_sold / DECIMAL_FACTOR + scaled_intercept)
+        / SCALE_FACTOR;
     let term2 = 2 * scaled_slope * amount_in / DECIMAL_FACTOR;
     let i_cast = term1 + term2;
 
@@ -76,16 +76,6 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let amount_out = term0 - term1 + term2;
     amount_out
 }
-
-
-
-
-
-
-
-
-
-
 
 
 pub fn calculate_starting_price_launch(
