@@ -110,6 +110,8 @@ RUN npm install -g pnpm
 # Copy the entire repository into the Docker container
 COPY . .
 
+# Install open ssl
+RUN apk add --no-cache openssl
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 

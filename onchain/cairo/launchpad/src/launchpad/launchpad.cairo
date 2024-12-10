@@ -610,11 +610,6 @@ pub mod LaunchpadMarketplace {
             // let threshold_liquidity = self.threshold_liquidity.read();
             let threshold_liquidity = pool_coin.threshold_liquidity.clone();
 
-            //new liquidity after purchase
-            let new_liquidity = pool_coin.liquidity_raised + quote_amount;
-
-            //assertion
-            assert(new_liquidity <= threshold_liquidity, 'threshold liquidity exceeded');
 
             // TODO erc20 token transfer
             let token_quote = old_launch.token_quote.clone();
@@ -627,28 +622,39 @@ pub mod LaunchpadMarketplace {
             let old_price = pool_coin.price.clone();
             let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let mut remain_liquidity = total_price - amount_protocol_fee;
+            let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
+
+            println!("amount quote to send {:?}", quote_amount);
+            println!("remain_quote_to_liquidity {:?}", remain_quote_to_liquidity);
+            
+            //new liquidity after purchase
+            let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
+
+            //assertion
+            assert(new_liquidity <= threshold_liquidity, 'threshold liquidity exceeded');
             // let mut amount = 0;
             // Pay with quote token
             // Transfer quote & coin
             // TOdo fix issue price
             let mut amount = get_amount_by_type_of_coin_or_quote(
-                pool_coin.clone(), coin_address.clone(), remain_liquidity.clone(), false, true
+                pool_coin.clone(), coin_address.clone(), remain_quote_to_liquidity.clone(), false, true
             );
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
             println!("amount memecoin to receive {:?}", amount);
-            println!("amount quote to receive {:?}", quote_amount);
 
             // TODO readd this check and check why it's broken
             // assert(amount <= pool_coin.available_supply, 'no available supply');
+            println!("transfer protocol fees {:?}", amount_protocol_fee);
 
             erc20
                 .transfer_from(
                     get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
                 );
-            // println!("remain_liquidity {:?}", remain_liquidity);
-            erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
+            println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
+
+            erc20.transfer_from(get_caller_address(), get_contract_address(), remain_quote_to_liquidity);
             // In case the user want to buy more than the threshold
             // Give the available supply
             // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
@@ -734,12 +740,14 @@ pub mod LaunchpadMarketplace {
             // pool_coin.price = total_price / amount;
 
             // Check if liquidity threshold raise
-            let threshold = self.threshold_liquidity.read();
+            // let threshold = self.threshold_liquidity.read();
+            let threshold = pool_coin.threshold_liquidity.clone();
+            let threshold_liq = self.threshold_liquidity.read();
             let threshold_mc = self.threshold_market_cap.read();
             // println!("threshold {:?}", threshold);
             // println!("pool_coin.liquidity_raised {:?}", pool_coin.liquidity_raised);
 
-            let mc = (pool_coin.price * total_supply_memecoin);
+            // let mc = (pool_coin.price * total_supply_memecoin);
             // TODO add liquidity launch
             // TOTAL_SUPPLY / 5
             // 20% go the liquidity
@@ -834,6 +842,8 @@ pub mod LaunchpadMarketplace {
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
 
             let quote_amount = quote_amount_total - quote_amount_protocol_fee;
+            println!("quote_amount {:?}", quote_amount);
+
             assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
 
             // TODO fix this function
@@ -885,10 +895,11 @@ pub mod LaunchpadMarketplace {
             );
 
             // Transfer protocol fee to the designated destination
+            println!("transfer fees protocol");
             if quote_amount_protocol_fee > 0 {
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
-
+            println!("transfer quote amount");
             // Transfer the remaining quote amount to the user
             if quote_amount > 0 {
                 erc20.transfer(caller, quote_amount);
@@ -905,6 +916,7 @@ pub mod LaunchpadMarketplace {
 
             // TODO fix amount owned and sellable.
             // Update share user coin
+            
             share_user.amount_owned -= remain_coin_amount;
             share_user.amount_sell += remain_coin_amount;
 

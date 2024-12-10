@@ -471,7 +471,7 @@ mod launchpad_tests {
         println!("buy coin {:?}", THRESHOLD_LIQUIDITY);
 
         run_buy_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
-        println!("get share user {:?}");
+        println!("get share user");
 
         let share_user = launchpad
             .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
