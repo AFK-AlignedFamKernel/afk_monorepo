@@ -41,7 +41,7 @@ mod liquidity_tests {
     // }
     fn DEFAULT_INITIAL_SUPPLY() -> u256 {
         // 21_000_000 * pow_256(10, 18)
-        100
+        100_u256
         // * pow_256(10, 18)
     }
 

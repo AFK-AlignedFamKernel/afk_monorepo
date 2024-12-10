@@ -1,3 +1,7 @@
-afk_launchpad::tests::unrug_tests::unrug_tests::test_create_and_add_liquidity_unrug_liq_without_launchpad_threshold
-afk_launchpad::tests::unrug_tests::unrug_tests::test_add_liquidity_ekubo
-afk_launchpad::tests::unrug_tests::unrug_tests::test_create_and_add_liquidity_unrug
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_create_and_add_liquidity_unrug_liq_without_launchpad_threshold
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_add_liquidity_ekubo
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_create_and_add_liquidity_unrug_liq_without_launchpad_but_launch
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_create_and_add_liquidity_unrug_lp_launch_bonding_without_threshold
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_add_liquidity_jediswap
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_add_liquidity_jediswap_unrug
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_create_and_add_liquidity_unrug
