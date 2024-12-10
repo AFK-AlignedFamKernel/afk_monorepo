@@ -225,9 +225,12 @@ pub mod LockManager {
 
             let mut token_lock = self.locks.read(lock_address);
 
-            // Update owner's lock lists
+            // Update user_locks
             self.remove_user_lock(token_lock.owner, lock_address);
             self.user_locks.entry((new_owner, lock_address)).write(true);
+
+            // Add lock to new_owner's lock lists
+            self.user_locks_list.entry(new_owner).append().write(lock_address);
 
             // Update lock details
             token_lock.owner = new_owner;
