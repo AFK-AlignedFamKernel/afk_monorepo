@@ -15,7 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
-    "prisma:setup": "npx prisma generate && npx prisma db push",
+    "prisma:setup": "npx prisma generate && npx prisma db pull",
     "prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
     "prettier:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "ts:check": "tsc --noEmit"

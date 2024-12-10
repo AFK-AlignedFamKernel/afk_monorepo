@@ -42,7 +42,7 @@ pub trait IUnrugLiquidity<TContractState> {
         ref self: TContractState,
         coin_address: ContractAddress,
         quote_address: ContractAddress,
-        lp_meme_supply:u256,
+        lp_meme_supply: u256,
         lp_quote_amount: u256,
         launch_params: LaunchParameters,
         ekubo_pool_params: EkuboPoolParameters
@@ -555,7 +555,12 @@ pub mod UnrugLiquidity {
 
             self
                 ._add_internal_liquidity_unrug(
-                    coin_address, quote_address,lp_meme_supply, lp_quote_amount, launch_params, ekubo_pool_params
+                    coin_address,
+                    quote_address,
+                    lp_meme_supply,
+                    lp_quote_amount,
+                    launch_params,
+                    ekubo_pool_params
                 )
             // INTEGRATION not working
         // self._add_liquidity_unrug(launch_params, ekubo_pool_params)
@@ -1269,9 +1274,9 @@ pub mod UnrugLiquidity {
                 quote_address: quote_address,
                 lp_supply: lp_meme_supply,
                 // lp_supply: launch.liquidity_raised,
-                pool_params:ekubo_pool_params
+                pool_params: ekubo_pool_params
             };
-          
+
             // let params: EkuboLaunchParameters = EkuboLaunchParameters {
             //     owner: launch.owner,
             //     token_address: launch.token_address,
