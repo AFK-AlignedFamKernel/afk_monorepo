@@ -4,29 +4,17 @@
 #[starknet::contract]
 pub mod LockManager {
     use afk_launchpad::launchpad::locker::errors;
-    use afk_launchpad::launchpad::locker::interface::{
-        TokenLock, LockPosition, TokenUnlocked, TokenLocked, TokenWithdrawn, ILockManager
-    };
+    use afk_launchpad::launchpad::locker::interface::ILockManager;
+
     use core::num::traits::Zero;
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::traits::TryInto;
-    use debug::PrintTrait;
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
-        // MutableEntryStoragePathEntry,
-        // StorableEntryReadAccess,
-        // StorageAsPathReadForward,
-        // MutableStorableEntryReadAccess,
-        // MutableStorableEntryWriteAccess,
-        // StorageAsPathWriteForward,
-        // PathableStorageEntryImpl
-    };
-    use starknet::storage::{
-        Vec, VecTrait, VecCopy, StorageAsPath, StoragePath,
-        MutableVecTrait, VecIndexView, IndexView, MutableVecIndexView,
-        MutableVecAsPointer, VecAsPointer,
+    use core::starknet::storage::{
+        StoragePointerReadAccess, StoragePointerWriteAccess, 
+        Map, StoragePathEntry,
+        MutableVecTrait, Vec, VecTrait
     };
 
     use starknet::syscalls::deploy_syscall;
@@ -41,14 +29,11 @@ pub mod LockManager {
         lock_nonce: u128,
         locks: Map<ContractAddress, TokenLock>,
         lock_position_class_hash: ClassHash,
-        user_locks: Map<ContractAddress, Vec<ContractAddress>>,
-        token_locks: Map<ContractAddress, Vec<ContractAddress>>,
-        // user_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-        // token_locks: LegacyMap<ContractAddress, Vec<ContractAddress>>,
-        // user_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
-        // token_locks: LegacyMap<ContractAddress, List<ContractAddress>>,
+        user_locks: Map<(ContractAddress, ContractAddress), bool>,
+        token_locks: Map<(ContractAddress, ContractAddress), bool>,
+        user_locks_list: Map<ContractAddress, Vec<ContractAddress>>,
+        token_locks_list: Map<ContractAddress, Vec<ContractAddress>>,
     }
-
 
     /// Events
 
@@ -64,26 +49,26 @@ pub mod LockManager {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct TokenLocked {
+    pub struct TokenLocked {
         #[key]
-        lock_address: ContractAddress,
-        token: ContractAddress,
-        owner: ContractAddress,
-        amount: u256,
-        unlock_time: u64,
+        pub lock_address: ContractAddress,
+        pub token: ContractAddress,
+        pub owner: ContractAddress,
+        pub amount: u256,
+        pub unlock_time: u64,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct TokenUnlocked {
+    pub struct TokenUnlocked {
         #[key]
-        lock_address: ContractAddress,
+        pub lock_address: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct TokenWithdrawn {
+    pub struct TokenWithdrawn {
         #[key]
-        lock_address: ContractAddress,
-        amount: u256
+        pub lock_address: ContractAddress,
+        pub amount: u256
     }
 
     #[derive(Drop, starknet::Event)]
@@ -107,18 +92,18 @@ pub mod LockManager {
     }
 
     #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
-    struct TokenLock {
-        token: ContractAddress,
-        owner: ContractAddress,
-        unlock_time: u64,
+    pub struct TokenLock {
+        pub token: ContractAddress,
+        pub owner: ContractAddress,
+        pub unlock_time: u64,
     }
 
     #[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
-    struct LockPosition {
-        token: ContractAddress,
-        amount: u256,
-        owner: ContractAddress,
-        unlock_time: u64
+    pub struct LockPosition {
+        pub token: ContractAddress,
+        pub amount: u256,
+        pub owner: ContractAddress,
+        pub unlock_time: u64
     }
 
     /// Initializes a new instance of a LockManager contract.  The constructor
@@ -189,8 +174,7 @@ pub mod LockManager {
 
         fn withdraw(ref self: ContractState, lock_address: ContractAddress) {
             let token_lock = self.locks.read(lock_address);
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
-                .balanceOf(lock_address);
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
             self.partial_withdraw(lock_address, actual_balance);
         }
 
@@ -198,8 +182,8 @@ pub mod LockManager {
             self.assert_only_lock_owner(lock_address);
 
             let token_lock = self.locks.read(lock_address);
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
-                .balanceOf(lock_address);
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
+
             assert(amount <= actual_balance, errors::WITHDRAW_AMOUNT_TOO_HIGH);
             assert(get_block_timestamp() >= token_lock.unlock_time, errors::STILL_LOCKED);
 
@@ -219,20 +203,15 @@ pub mod LockManager {
                         }
                     );
 
-                let mut user_locks = self.user_locks.read(owner);
-                let mut token_locks = self.token_locks.read(token_lock.token);
-
-                // Remove lock from user and token lists
-                self.remove_lock_from_list(lock_address, user_locks);
-                self.remove_lock_from_list(lock_address, token_locks);
+                // Remove lock from user and token lists -> Set lock to false
+                self.remove_user_lock(owner, lock_address);
+                self.remove_token_lock(token_lock.token, lock_address);
 
                 self.emit(TokenUnlocked { lock_address });
             }
 
             // Interactions
-            ERC20ABIDispatcher { contract_address: token_lock.token }
-                .transferFrom(lock_address, owner, amount);
-
+            ERC20ABIDispatcher { contract_address: token_lock.token }.transferFrom(lock_address, owner, amount);
             self.emit(TokenWithdrawn { lock_address, amount });
         }
 
@@ -240,18 +219,13 @@ pub mod LockManager {
             ref self: ContractState, lock_address: ContractAddress, new_owner: ContractAddress
         ) {
             self.assert_only_lock_owner(lock_address);
-
             assert(new_owner.into() != 0_felt252, errors::ZERO_WITHDRAWER);
+
             let mut token_lock = self.locks.read(lock_address);
 
             // Update owner's lock lists
-            let mut user_locks = self.user_locks.read(token_lock.owner.try_into().unwrap());
-            
-            self.remove_lock_from_list(lock_address, user_locks);
-            let mut new_owner_locks: Vec<ContractAddress> = self
-                .user_locks
-                .read(new_owner.try_into().unwrap());
-            new_owner_locks.append(lock_address);
+            self.remove_user_lock(token_lock.owner, lock_address);
+            self.user_locks.entry((new_owner, lock_address)).write(true);
 
             // Update lock details
             token_lock.owner = new_owner;
@@ -270,8 +244,9 @@ pub mod LockManager {
                     unlock_time: 0
                 };
             }
-            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }
-                .balanceOf(lock_address);
+
+            let actual_balance = ERC20ABIDispatcher { contract_address: token_lock.token }.balanceOf(lock_address);
+
             LockPosition {
                 token: token_lock.token,
                 amount: actual_balance,
@@ -294,27 +269,27 @@ pub mod LockManager {
         }
 
         fn user_locks_length(self: @ContractState, user: ContractAddress) -> u32 {
-            let user_locks: Vec<felt252> = self.user_locks.read(user);
-            user_locks.len
+            let user_locks_length = self.user_locks_list.entry(user).len();
+
+            user_locks_length.try_into().unwrap()
         }
 
         fn user_lock_at(
             self: @ContractState, user: ContractAddress, index: u32
         ) -> ContractAddress {
-            let user_locks: Vec<felt252> = self.user_locks.read(user);
-            user_locks[index]
+            self.user_locks_list.entry(user).at(index.into()).read()
         }
 
         fn token_locks_length(self: @ContractState, token: ContractAddress) -> u32 {
-            let list: Vec<felt252> = self.token_locks.read(token);
-            list.len()
+            let token_locks_length = self.token_locks_list.entry(token).len();
+
+            token_locks_length.try_into().unwrap()
         }
 
         fn token_locked_at(
             self: @ContractState, token: ContractAddress, index: u32
         ) -> ContractAddress {
-            let token_locks: Vec<felt252> = self.token_locks.read(token);
-            token_locks[index]
+            self.token_locks_list.entry(token).at(index.into()).read()
         }
     }
 
@@ -388,11 +363,9 @@ pub mod LockManager {
             )
                 .unwrap_syscall();
 
-            let user_locks: Vec<felt252> = self.user_locks.read(withdrawer.try_into().unwrap());
-            user_locks.append(lock_address).unwrap_syscall();
+            self.user_locks.entry((withdrawer, lock_address)).write(true);
 
-            let token_locks: Vec<felt252> = self.token_locks.read(token.try_into().unwrap());
-            token_locks.append(lock_address).unwrap_syscall();
+            self.token_locks.entry((token, lock_address)).write(true);
 
             self.locks.write(lock_address, token_lock);
 
@@ -404,59 +377,19 @@ pub mod LockManager {
             return lock_address;
         }
 
+        /// Sets user_locks Map<> with a given key to false
+        /// Internally, this function updates the Map<> of locks of the specified `owner` and `lock_address`
+        /// it set's it to false, which indicates that the lock is no longer available
+        fn remove_user_lock(
+            ref self: ContractState, owner: ContractAddress, lock_address: ContractAddress
+        ) {
+            self.user_locks.entry((owner, lock_address)).write(false);
+        }
 
-        // TODO fix with new Vec
-
-        /// Removes the id of a lock from the list of locks of a user.
-        ///
-        /// Internally, this function reads the list of locks of the specified `owner` or `tokens`
-        /// from the `user_locks` and `token_locks` mapping.
-        /// It then iterates over the list and replaces the specified `lock_address` with the last
-        /// element of the list.
-        /// The length of the list is then decremented by one, and the last element of the list is
-        /// set to zero.
-        fn remove_lock_from_list(
-            // self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
-            self: @ContractState, lock_address: ContractAddress, mut list: Vec<ContractAddress>
-        ) { // let list_len = list.len();
-        // let mut i = 0;
-
-        // let mut list_new: Vec<ContractAddress> = Vec::new();
-
-        // let mut list_clone = list.clone();
-        // loop {
-        //     if i == list_len {
-        //         break;
-        //     }
-        //     let current_lock_address = list_clone[i];
-        //     if current_lock_address != lock_address {
-        //         i += 1;
-        //         continue;
-        //     }
-        //     let last_element = list_clone[list_len - 1];
-        //     list_clone.set(i, last_element);
-        //     list_clone.set(list_len - 1, 0.try_into().unwrap());
-        //     list_clone.len -= 1;
-        //     Store::write(list_clone.address_domain, list_clone.base,
-        //     list_clone.len).unwrap_syscall();
-        //     break;
-        // // }
-        // loop {
-        //     if i == list_len {
-        //         break;
-        //     }
-        //     let current_lock_address = list[i];
-        //     if current_lock_address != lock_address {
-        //         i += 1;
-        //         continue;
-        //     }
-        //     let last_element = list[list_len - 1];
-        //     list.set(i, last_element);
-        //     list.set(list_len - 1, 0.try_into().unwrap());
-        //     // list.len -= 1;
-        //     Store::write(list.address_domain, list.base, list.len).unwrap_syscall();
-        //     break;
-        // }
+        fn remove_token_lock(
+            ref self: ContractState, token: ContractAddress, lock_address: ContractAddress
+        ) {
+            self.token_locks.entry((token, lock_address)).write(false);
         }
     }
 }

@@ -1,44 +1,5 @@
 use starknet::ContractAddress;
-// use super::LockManager::{TokenLock, LockPosition};
-
-#[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
-pub struct TokenLock {
-    pub token: ContractAddress,
-    pub owner: ContractAddress,
-    pub unlock_time: u64,
-}
-
-#[derive(Drop, Copy, PartialEq, starknet::Store, Serde)]
-pub struct LockPosition {
-    pub token: ContractAddress,
-    pub amount: u256,
-    pub owner: ContractAddress,
-    pub unlock_time: u64
-}
-
-
-#[derive(Drop, starknet::Event)]
-pub struct TokenLocked {
-    #[key]
-    pub lock_address: ContractAddress,
-    pub token: ContractAddress,
-    pub owner: ContractAddress,
-    pub amount: u256,
-    pub unlock_time: u64,
-}
-
-#[derive(Drop, starknet::Event)]
-pub struct TokenUnlocked {
-    #[key]
-    pub lock_address: ContractAddress,
-}
-
-#[derive(Drop, starknet::Event)]
-pub struct TokenWithdrawn {
-    #[key]
-    pub lock_address: ContractAddress,
-    pub amount: u256
-}
+use crate::launchpad::locker::lock_manager::LockManager::LockPosition;
 
 #[starknet::interface]
 pub trait ILockManager<TContractState> {
