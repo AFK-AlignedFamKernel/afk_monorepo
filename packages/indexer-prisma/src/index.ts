@@ -10,7 +10,7 @@ prisma.$connect()
 export * from '@prisma/client'
 
 export default prisma
-export { PrismaClient, prisma }
+export { PrismaClient }
 
 // import { PrismaClient } from '@prisma/client'
 
