@@ -1,6 +1,14 @@
 name: Backend
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+  pull_request:
+    paths:
+      - "backend/**"
 
 permissions: read-all
 
@@ -14,4 +22,5 @@ jobs:
         with:
           go-version: '1.22.0'
       - name: Build
-        run: go mod download && go build
+        run: go mod download && go build -o main ./cmd/backend/backend.go
+        working-directory: backend

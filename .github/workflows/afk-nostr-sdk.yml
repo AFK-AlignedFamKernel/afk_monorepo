@@ -7,8 +7,6 @@ on:
     paths:
       - "packages/afk_nostr_sdk/**"
   pull_request:
-    branches:
-      - main
     paths:
       - "packages/afk_nostr_sdk/**"
 
@@ -62,6 +60,6 @@ jobs:
 
       - name: TypeScript Check
         run: pnpm ts:check
-      
+
       - name: Build
         run: pnpm build
