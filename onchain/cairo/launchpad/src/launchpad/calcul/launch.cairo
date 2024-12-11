@@ -55,16 +55,6 @@ pub fn get_amount_by_type_of_coin_or_quote(
     is_decreased: bool,
     is_quote_amount: bool,
 ) -> u256 {
-    let mut total_supply = pool.total_token_holded.clone();
-    let mut final_supply = total_supply + amount;
-
-    if is_decreased {
-        final_supply = total_supply - amount;
-    }
-
-    // let mut actual_supply = total_supply;
-    // let mut starting_price = pool.starting_price.clone();
-    // let step_increase_linear = pool.slope.clone();
     let bonding_type = pool.bonding_curve_type.clone();
     match bonding_type {
         BondingType::Linear => {

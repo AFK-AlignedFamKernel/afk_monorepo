@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",  // Output directory for compiled JS files
-    "module": "CommonJS",  // Use CommonJS for Node.js compatibility
-    "target": "ESNext",
-    "lib": ["dom", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src/**/*", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
