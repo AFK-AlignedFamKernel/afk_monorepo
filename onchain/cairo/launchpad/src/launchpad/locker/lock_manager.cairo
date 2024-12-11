@@ -10,16 +10,14 @@ pub mod LockManager {
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry, MutableVecTrait,
-        Vec, VecTrait
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry, Vec,
+        MutableVecTrait, VecTrait
     };
-    use core::traits::TryInto;
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 
     use starknet::syscalls::deploy_syscall;
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
-        get_block_timestamp, Store, ClassHash
+        ContractAddress, contract_address_const, get_caller_address, get_block_timestamp, ClassHash
     };
 
     #[storage]
@@ -278,7 +276,7 @@ pub mod LockManager {
             // Only count active locks
             let mut active_count = 0;
             let mut i = 0;
-            
+
             while i < self.user_locks_list.entry(user).len() {
                 let lock_address = self.user_locks_list.entry(user).at(i).read();
 
@@ -287,7 +285,7 @@ pub mod LockManager {
                 }
                 i += 1;
             };
-            
+
             active_count
         }
 
@@ -298,7 +296,7 @@ pub mod LockManager {
             let mut active_index = 0;
             let mut i = 0;
             let mut user_lock = contract_address_const::<0>();
-            
+
             while i < self.user_locks_list.entry(user).len() {
                 let lock_address = self.user_locks_list.entry(user).at(i).read();
 
@@ -319,7 +317,7 @@ pub mod LockManager {
             // Only count active locks
             let mut active_count = 0;
             let mut i = 0;
-            
+
             while i < self.token_locks_list.entry(token).len() {
                 let lock_address = self.token_locks_list.entry(token).at(i).read();
 
@@ -328,7 +326,7 @@ pub mod LockManager {
                 }
                 i += 1;
             };
-            
+
             active_count
         }
 
@@ -339,7 +337,7 @@ pub mod LockManager {
             let mut active_index = 0;
             let mut i = 0;
             let mut token_lock = contract_address_const::<0>();
-            
+
             while i < self.token_locks_list.entry(token).len() {
                 let lock_address = self.token_locks_list.entry(token).at(i).read();
 
