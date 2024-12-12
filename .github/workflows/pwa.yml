@@ -59,7 +59,7 @@ jobs:
         run: pnpm lint
 
       - name: Lint fix
-      run: pnpm lint:fix
+        run: pnpm lint:fix
 
       - name: TypeScript Check
         run: pnpm ts:check
