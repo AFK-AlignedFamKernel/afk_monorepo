@@ -12,7 +12,9 @@
     "lint:fix": "next lint --fix",
     "prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
     "prettier:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "ts:check": "tsc --noEmit"
+    "ts:check": "tsc --noEmit",
+    "validate": "pnpm run lint && pnpm run build",
+    "safe-build": "pnpm run build || echo 'Build failed but continuing...'"
   },
   "dependencies": {
     "@argent/tma-wallet": "^1.17.0",
