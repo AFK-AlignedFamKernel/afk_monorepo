@@ -1,21 +1,21 @@
 import {createStore} from 'zustand';
 
 import {UserShareProps} from '../components/LaunchPad/UserShare';
-import {LaunchDataMerged, TokenDeployInterface, TokenLaunchInterface} from '../types/keys';
+import {LaunchDataMerged, TokenDeployInterface} from '../types/keys';
 import createBoundedUseStore from './createBoundedUseStore';
 
 type State = {
   userShare?: UserShareProps;
   userShares?: UserShareProps[];
   tokens?: TokenDeployInterface[];
-  launchs?: LaunchDataMerged[];
+  launches?: LaunchDataMerged[];
 };
 
 type Action = {
   setUserShares: (userShares: UserShareProps[]) => void;
   setUserShare: (userShares: UserShareProps) => void;
   setTokens: (tokens: TokenDeployInterface[]) => void;
-  setLaunchs: (launchs: LaunchDataMerged[]) => void;
+  setLaunches: (launches: LaunchDataMerged[]) => void;
 };
 
 export const launchpadStore = createStore<State & Action>((set, get) => ({
@@ -24,7 +24,7 @@ export const launchpadStore = createStore<State & Action>((set, get) => ({
   userShare: undefined as unknown as UserShareProps,
   userShares: undefined as unknown as UserShareProps[],
   tokens: undefined as unknown as TokenDeployInterface[],
-  launchs: undefined as unknown as LaunchDataMerged[],
+  launches: undefined as unknown as LaunchDataMerged[],
 
   setUserShare: (userShare) => {
     set({userShare});
@@ -35,8 +35,8 @@ export const launchpadStore = createStore<State & Action>((set, get) => ({
   setTokens: (tokens) => {
     set({tokens});
   },
-  setLaunchs: (launchs) => {
-    set({launchs});
+  setLaunches: (launches) => {
+    set({launches});
   },
 }));
 

@@ -1,25 +1,25 @@
-import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useAllProfiles, useSearch } from 'afk_nostr_sdk';
-import { useAuth, useContacts } from 'afk_nostr_sdk';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View } from 'react-native';
+import {NDKKind} from '@nostr-dev-kit/ndk';
+import {useAllProfiles, useSearch} from 'afk_nostr_sdk';
+import {useAuth, useContacts} from 'afk_nostr_sdk';
+import {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
 
-import { AddPostIcon } from '../../assets/icons';
-import { BubbleUser } from '../../components/BubbleUser';
+import {AddPostIcon} from '../../assets/icons';
+import {BubbleUser} from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import { useStyles, useTheme } from '../../hooks';
-import { ChannelComponent } from '../../modules/ChannelCard';
-import { PostCard } from '../../modules/PostCard';
-import { VideoPostCard } from '../../modules/VideoPostCard';
-import { FeedScreenProps } from '../../types';
+import {useStyles, useTheme} from '../../hooks';
+import {ChannelComponent} from '../../modules/ChannelCard';
+import {PostCard} from '../../modules/PostCard';
+import {VideoPostCard} from '../../modules/VideoPostCard';
+import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
-import { RenderEventCard } from '../../modules/Studio';
+import {RenderEventCard} from '../../modules/Studio';
 
-export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
-  const { theme } = useTheme();
-  const { publicKey } = useAuth();
+export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
+  const {theme} = useTheme();
+  const {publicKey} = useAuth();
   const styles = useStyles(stylesheet);
-  const profiles = useAllProfiles({ limit: 10 });
+  const profiles = useAllProfiles({limit: 10});
   const [activeSortBy, setSortBy] = useState<string | undefined>();
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
@@ -31,10 +31,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     NDKKind.Metadata,
     NDKKind.VerticalVideo,
     NDKKind.HorizontalVideo,
-    30311 as NDKKind
+    30311 as NDKKind,
   ]);
 
-  const contacts = useContacts({ authors: [publicKey] });
+  const contacts = useContacts({authors: [publicKey]});
   const notes = useSearch({
     // search: search,
     kinds,
@@ -84,11 +84,11 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   }, [activeSortBy]);
 
   const handleNavigate = (id: string) => {
-    navigation.navigate('WatchStream', { streamId: id });
+    navigation.navigate('WatchStream', {streamId: id});
   };
 
   const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', { streamId: id });
+    navigation.navigate('ViewStreamGuest', {streamId: id});
   };
 
   return (
@@ -106,7 +106,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         setKinds={setKinds}
         setSortBy={setSortBy}
         sortBy={activeSortBy}
-      // contactList={contacts?.data?.map((item) => item)}
+        // contactList={contacts?.data?.map((item) => item)}
       />
 
       {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
@@ -128,14 +128,14 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
                 />
               }
               ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-              renderItem={({ item }) => <BubbleUser event={item} />}
+              renderItem={({item}) => <BubbleUser event={item} />}
             />
           </>
         }
         contentContainerStyle={styles.flatListContent}
         data={feedData}
         keyExtractor={(item) => item?.id}
-        renderItem={({ item }) => {
+        renderItem={({item}) => {
           if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
           } else if (item.kind === NDKKind.ChannelMessage) {
@@ -144,7 +144,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} />;
-          } 
+          }
           // else if (item.kind === 30311) {
           //   return <RenderEventCard
           //     handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
@@ -164,7 +164,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       <Pressable
         style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
       </Pressable>

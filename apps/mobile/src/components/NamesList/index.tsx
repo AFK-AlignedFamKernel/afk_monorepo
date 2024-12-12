@@ -1,6 +1,6 @@
-import { View, FlatList, ActivityIndicator } from 'react-native';
-import { NameCard } from '../NameCard/nameCard';
-import { useStyles } from '../../hooks';
+import {View, FlatList, ActivityIndicator} from 'react-native';
+import {NameCard} from '../NameCard/nameCard';
+import {useStyles} from '../../hooks';
 import stylesheet from './styles';
 
 interface Name {
@@ -14,7 +14,7 @@ interface NamesListProps {
   isLoading?: boolean;
 }
 
-export const NamesList: React.FC<NamesListProps> = ({ names, isLoading }) => {
+export const NamesList: React.FC<NamesListProps> = ({names, isLoading}) => {
   const styles = useStyles(stylesheet);
 
   if (isLoading) {
@@ -29,16 +29,12 @@ export const NamesList: React.FC<NamesListProps> = ({ names, isLoading }) => {
     <View style={styles.container}>
       <FlatList
         data={names}
-        renderItem={({ item }) => (
-          <NameCard
-            name={item.name}
-            owner={item.owner}
-            expiryTime={item.expiryTime}
-          />
+        renderItem={({item}) => (
+          <NameCard name={item.name} owner={item.owner} expiryTime={item.expiryTime} />
         )}
-        keyExtractor={item => item.name}
+        keyExtractor={(item) => item.name}
         contentContainerStyle={styles.list}
       />
     </View>
   );
-}; 
+};

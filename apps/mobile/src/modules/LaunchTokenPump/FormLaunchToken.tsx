@@ -84,7 +84,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         symbol: values.symbol,
         initialSupply: values?.initialSupply,
         contract_address_salt: values.contract_address_salt,
-        is_unruggable:values.is_unruggable
+        is_unruggable: values.is_unruggable,
       };
       if (!account || !account?.account) return;
       console.log('test deploy');

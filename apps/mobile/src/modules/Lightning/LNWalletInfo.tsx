@@ -1,8 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import React from 'react';
-import {Pressable, TouchableOpacity, View} from 'react-native';
-import {ActivityIndicator, Text, TextInput} from 'react-native';
+import {ActivityIndicator, Pressable, Text, TextInput, TouchableOpacity, View} from 'react-native';
 
 import {IconButton} from '../../components';
 import {useStyles} from '../../hooks';
@@ -35,7 +34,7 @@ export function LNWalletInfo({
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
   return (
-    <View style={styles.walletcontainer}>
+    <View style={styles.walletContainer}>
       <View style={styles.infoSection}>
         <Text style={styles.sectionTitle}>Wallet Details</Text>
         <View style={styles.infoRow}>

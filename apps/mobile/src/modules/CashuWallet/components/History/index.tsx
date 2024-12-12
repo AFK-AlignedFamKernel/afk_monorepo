@@ -32,7 +32,7 @@ export const History = () => {
           (i) => i?.state === MintQuoteState?.ISSUED || i?.state === MintQuoteState.PAID,
         );
         const invoicesSorted = invoicesPaid
-          .map((invoice) => ({...invoice} as ICashuInvoice))
+          .map((invoice) => ({...invoice}) as ICashuInvoice)
           .reverse();
         setTxInvoices([...invoicesSorted]);
       }
@@ -86,8 +86,8 @@ export const History = () => {
                           item.direction === 'out'
                             ? styles.dirOutText
                             : item.direction === 'in'
-                            ? styles.dirInText
-                            : null,
+                              ? styles.dirInText
+                              : null,
                         ]}
                       >
                         {item?.direction}

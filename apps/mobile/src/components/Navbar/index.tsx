@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 
-import { useStyles, useWindowDimensions } from '../../hooks';
-import { Icon } from '../Icon';
+import {useStyles, useWindowDimensions} from '../../hooks';
+import {Icon} from '../Icon';
 import stylesheet from './styles';
 import CustomProfileMenu from '../Starknet/CustomProfile';
 interface CustomHeaderInterface {
@@ -10,7 +10,7 @@ interface CustomHeaderInterface {
   navigation?: any;
   showLogo?: boolean;
 }
-export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) => {
+export const Navbar = ({title, navigation, showLogo}: CustomHeaderInterface) => {
   const styles = useStyles(stylesheet);
   const dimensions = useWindowDimensions();
   const isDesktop = React.useMemo(() => {
@@ -22,10 +22,10 @@ export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) =
     <View style={styles.header}>
       {showLogo && (
         <View style={styles.logoContainer}>
-          <Image style={styles.logo}
-            //  source={require('../../assets/pepe-logo.png')} 
+          <Image
+            style={styles.logo}
+            //  source={require('../../assets/pepe-logo.png')}
             source={require('../../assets/afk_logo_circle.png')}
-
           />
           <Text style={styles.headerTitle}>{title}</Text>
 

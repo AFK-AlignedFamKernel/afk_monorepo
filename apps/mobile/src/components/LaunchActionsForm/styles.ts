@@ -34,16 +34,16 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 8,
   },
   buttonSell: {
-    backgroundColor:theme.colors.red
+    backgroundColor: theme.colors.red,
   },
   buttonBuy: {
-    backgroundColor:theme.colors.green
+    backgroundColor: theme.colors.green,
   },
   activeToggle: {
     // backgroundColor: theme.colors.primary,
     borderColor: theme.colors.blue,
-    color:theme.colors.badge,
-    border:theme.colors.badgeBorder
+    color: theme.colors.badge,
+    border: theme.colors.badgeBorder,
   },
   inputContainer: {
     gap: Spacing.xsmall,

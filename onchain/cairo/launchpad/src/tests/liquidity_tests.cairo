@@ -432,7 +432,7 @@ mod liquidity_tests {
                 contract_address_salt: SALT() + 1,
                 is_launch_bonding_now: false
             );
-        println!("token_address unrug lp withouth launch curve: {:?}", token_address.clone());
+        println!("token_address unrug lp without launch curve: {:?}", token_address.clone());
 
         // start_cheat_caller_address(token_address, launchpad.contract_address);
 
@@ -604,14 +604,14 @@ mod liquidity_tests {
             bound: 88719042
         };
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        println!("buy liquidity threshold unrug withouth threshold");
+        println!("buy liquidity threshold unrug without threshold");
 
         run_buy_by_amount(
             launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
         );
         let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
         // println!("balance_quote_launch {:?}", balance_quote_launch);
-        println!("add liquidity unrug lp withtout threshold");
+        println!("add liquidity unrug lp without threshold");
         let (id, position) = launchpad
             .add_liquidity_unrug_lp(
                 token_address,

@@ -1,15 +1,14 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
-// import {prisma} from "indexer-prisma"
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
 interface DeployLaunchParams {
   launch: string;
-  owner_address?:string
+  owner_address?: string;
 }
 interface DeployLaunchByUserParams {
-  owner_address:string
+  owner_address: string;
 }
 async function deployLaunchRoute(
   fastify: FastifyInstance,
@@ -122,9 +121,8 @@ async function deployLaunchRoute(
     }
   });
 
-
   // @TODO fix
-  
+
   // fastify.get<{
   //   Params: DeployLaunchByUserParams;
   // }>("/deploy-launch/from/:user/", async (request, reply) => {

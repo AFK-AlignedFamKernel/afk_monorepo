@@ -1,5 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../../utils/http";
 import { isValidStarknetAddress } from "../../../utils/starknet";
 
@@ -8,16 +8,12 @@ interface DeployLaunchParams {
 }
 
 // Routes for Unrug data of dashboard
-async function unrugRoutes(
-  fastify: FastifyInstance,
-  options: RouteOptions
-) {
+async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get("/unrug/create-token", async (request, reply) => {
     try {
       const launches = await prisma.unrugmeme_deploy.findMany({
         select: {
           memecoin_address: true,
-      
         },
       });
 
@@ -84,7 +80,6 @@ async function unrugRoutes(
         },
         select: {
           memecoin_address: true,
-       
         },
       });
 

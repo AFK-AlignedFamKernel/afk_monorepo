@@ -78,21 +78,20 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
       DEFAULT_TIMELOCK, // timelock
     ]);
     const receipt = await sendTransaction([
-        {
-          contractAddress: TOKENS[token][CHAIN_ID].address,
-          entrypoint: Entrypoint.APPROVE,
-          calldata: approveCallData,
-        },
-        {
-          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-          entrypoint: Entrypoint.DEPOSIT,
-          calldata: depositCallData,
-        },
-      ],
-    );
+      {
+        contractAddress: TOKENS[token][CHAIN_ID].address,
+        entrypoint: Entrypoint.APPROVE,
+        calldata: approveCallData,
+      },
+      {
+        contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+        entrypoint: Entrypoint.DEPOSIT,
+        calldata: depositCallData,
+      },
+    ]);
 
     // TODO add receipt
-     if (receipt?.transaction_hash) {
+    if (receipt?.transaction_hash) {
       hideTipModal();
       hideTransactionModal();
       showSuccess({
@@ -108,7 +107,7 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
     } else {
       let description = 'Please Try Again Later.';
       // if (receipt?.isRejected()) {
-        // description = receipt.transaction_failure_reason.error_message;
+      // description = receipt.transaction_failure_reason.error_message;
       // }
 
       showDialog({
@@ -132,8 +131,6 @@ export const FormTipStarknet: React.FC<FormTipModalStarknetProps> = ({
     //     },
     //   ],
     // });
-
-   
   };
 
   return (

@@ -73,7 +73,7 @@ export default ThemedStyleSheet((theme) => ({
     marginHorizontal: 20,
   },
   pasteButton: {
-    backgroundColor: 'transparant',
+    backgroundColor: 'transparent',
     borderRadius: 30,
     alignItems: 'center',
     borderWidth: 1,
@@ -140,7 +140,7 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 16,
     marginTop: 15,
   },
-  shareLinkBtns: {
+  shareLinkButtons: {
     display: 'flex',
     flexDirection: 'row',
     gap: 20,

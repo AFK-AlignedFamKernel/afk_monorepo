@@ -53,7 +53,7 @@ jobs:
           fi
 
       - name: Prettier Format Check
-        run: pnpm prettier:check
+        run: pnpm format:check
 
       - name: TypeScript Check
         run: pnpm ts:check

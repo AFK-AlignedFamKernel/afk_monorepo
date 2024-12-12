@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { View, Button, Text, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {View, Button, Text, StyleSheet} from 'react-native';
 import axios from 'axios';
 
 const API_URL = process.env.EXPO_PUBLIC_INDEXER_BACKEND_URL ?? 'http://localhost:3000'; // Replace with your Fastify backend URL
 
-const TwitterOauth = ({ navigation }: any) => {
+const TwitterOauth = ({navigation}: any) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [screenName, setScreenName] = useState<string | null>(null);
 
   const initiateOAuth = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/auth/login`);
-      navigation.navigate('OAuthWebView', { authUrl: data.url });
+      const {data} = await axios.get(`${API_URL}/auth/login`);
+      navigation.navigate('OAuthWebView', {authUrl: data.url});
     } catch (error) {
       console.error('Failed to start OAuth:', error);
     }
@@ -19,7 +19,7 @@ const TwitterOauth = ({ navigation }: any) => {
 
   const postTweet = async () => {
     try {
-      const { data } = await axios.post(`${API_URL}/tweet`, {
+      const {data} = await axios.post(`${API_URL}/tweet`, {
         tweetContent: 'Hello from React Native!',
       });
       alert('Tweet posted successfully: ' + data.tweet.text);
@@ -45,9 +45,9 @@ const TwitterOauth = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, marginBottom: 20 },
-  welcome: { marginBottom: 20, fontSize: 16 },
+  container: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  title: {fontSize: 20, marginBottom: 20},
+  welcome: {marginBottom: 20, fontSize: 16},
 });
 
 export default TwitterOauth;
