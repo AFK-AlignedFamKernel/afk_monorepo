@@ -2,21 +2,29 @@ import './PixelSelector.css';
 import '../utils/Styles.css';
 
 import React, {useEffect, useState} from 'react';
+import {
+  useAccount,
+  // useContract,
+  // useNetwork,
+  // useConnect
+} from '@starknet-react/core';
 
 import EraserIcon from '../resources/icons/Eraser.png';
 
 const PixelSelector = (props) => {
   // Track when a placement is available
 
+  const {account} = useAccount()
+
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
   const [placementMode, setPlacementMode] = useState(false);
   const [ended, setEnded] = useState(false);
   useEffect(() => {
-    if (props.queryAddress === '0') {
+    if (props.queryAddress === '0' || !account?.address) {
       setPlacementTimer('Login to Play');
       return;
     }
-    if (props.availablePixels > 0) {
+    if (props.availablePixels > 0 || account?.address) {
       let amountAvailable = props.availablePixels - props.availablePixelsUsed;
       if (amountAvailable > 1) {
         setPlacementTimer('Place Pixels');
@@ -43,7 +51,7 @@ const PixelSelector = (props) => {
     } else {
       setEnded(false);
     }
-  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props]);
+  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props, account?.address]);
 
   const toSelectorMode = (event) => {
     event.preventDefault();

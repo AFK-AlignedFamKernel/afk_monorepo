@@ -354,7 +354,7 @@ mod unrug_tests {
             }
         };
         // erc20.transfer(launchpad.contract_address, lp_supply);
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
         println!("add liquidity ekubo");
         launchpad.launch_on_ekubo(token_address, params);
         // stop_cheat_caller_address(launchpad.contract_address);
@@ -434,7 +434,7 @@ mod unrug_tests {
             starting_price,
             bound: 88719042
         };
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
 
         // run_buy_by_amount(
         //     launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY(), token_address, OWNER(),
@@ -538,7 +538,7 @@ mod unrug_tests {
         };
         let quote_address = quote_token.contract_address;
         let quote_deposit = 100_u256;
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
         let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
         println!("balance balance_quote_launch {:?}", balance_quote_launch);
         println!("add liquidity unrug");

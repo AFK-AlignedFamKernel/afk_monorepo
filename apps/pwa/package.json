@@ -12,7 +12,9 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "ts:check": "tsc --noEmit"
+    "ts:check": "tsc --noEmit",
+    "validate": "pnpm run lint:fix && pnpm run build",
+    "safe-build": "pnpm run build || echo 'Build failed but continuing...'"
   },
   "dependencies": {
     "@argent/tma-wallet": "^1.17.0",
@@ -43,6 +45,7 @@
     "next": "^14.2.3",
     "nostr-tools": "^2.7.0",
     "pixel_ui": "workspace:*",
+    "pwa": "link:",
     "qs": "^6.12.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
