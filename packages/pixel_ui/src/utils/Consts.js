@@ -1,6 +1,10 @@
 import { ec, RpcProvider, constants } from 'starknet';
 import backendConfigProd from '../configs/backend.config.json';
 import backendConfigDev from '../configs/backend.dev.config.json';
+import {ART_PEACE_ADDRESS} from 'common';
+
+const ART_CONTRACT_ADDRESS = ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]
+
 const isProduction = process.env.NEXT_PUBLIC_NODE_ENV == "true" ||
   process.env.NEXT_PUBLIC_NODE_ENV == "production" || process.env.EXPO_PUBLIC_NODE_ENV == "production" ? true : false
 /** TODO add ENV and config for prod and test */
@@ -65,7 +69,7 @@ export const provider = new RpcProvider({
 
 export const allowedMethods = [
   {
-    'Contract Address': process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS || "", 
+    'Contract Address': process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS || process.env.EXPO_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS || ART_CONTRACT_ADDRESS || "", 
     selector: 'place_extra_pixels',
   },
   {
@@ -73,7 +77,7 @@ export const allowedMethods = [
     selector: 'claim_username'
   },
   {
-    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS || "",
+    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS ||  process.env.EXPO_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS,
     selector: 'change_username'
   },
   {
