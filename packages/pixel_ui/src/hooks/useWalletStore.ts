@@ -24,7 +24,7 @@ interface WalletState {
     
   
     setWallet: (wallet: any) => void
-    setConnectorData: (connectorData: {account:string, chainId:string}) => void
+    setConnectorData: (connectorData:any) => void
     setConnector: (connector: any) => void
     setConnected: (connected: boolean) => void
     setAccount: (account: any) => void
@@ -102,7 +102,7 @@ const canSession = (wallet) => {
           argentMobileOptions: {
             dappName: 'Afk/lfg',
             url: window.location.hostname,
-            chainId: process.env.NEXT_PUBLIC_CHAIN_ID || "",
+            chainId: process.env.NEXT_PUBLIC_CHAIN_ID || "" as any,
             icons: []
           }
         });
@@ -242,7 +242,7 @@ const canSession = (wallet) => {
             argentMobileOptions: {
               dappName: 'Afk/lfg',
               url: window.location.hostname,
-              chainId: process.env.NEXT_PUBLIC_CHAIN_ID || "",
+              chainId: process.env.NEXT_PUBLIC_CHAIN_ID || "" as any,
               icons: []
             }
           });
@@ -251,8 +251,8 @@ const canSession = (wallet) => {
           setWallet(connectedWallet)
           setIsSessionable(canSession(connectedWallet))
           setConnectorData({
-            account:connectorData.account,
-            chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString(): undefined
+            account:connectorData?.account,
+            chainId: connectorData?.chainId ? BigInt(connectorData?.chainId).toString(): undefined
           });
   
           if (!connectedWallet) {
