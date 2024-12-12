@@ -77,7 +77,7 @@ export const allowedMethods = [
     selector: 'claim_username'
   },
   {
-    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS ||  process.env.EXPO_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS,
+    'Contract Address': process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS ||  process.env.EXPO_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS || "",
     selector: 'change_username'
   },
   {
