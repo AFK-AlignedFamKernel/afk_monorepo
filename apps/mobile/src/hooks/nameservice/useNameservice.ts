@@ -1,11 +1,11 @@
-import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
-import { KEYS_ADDRESS, NAMESERVICE_ADDRESS, TOKENS_ADDRESS } from 'common';
-import { AccountInterface, cairo, CallData, constants, RpcProvider, uint256 } from 'starknet';
-import { TokenQuoteBuyKeys } from '../../types/keys';
-import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
-import { prepareAndConnectContract } from '../keys/useDataKeys';
-import { useQuery } from '@tanstack/react-query';
-import { ApiIndexerInstance } from '../../services/api';
+import {useAccount, useNetwork, useProvider} from '@starknet-react/core';
+import {KEYS_ADDRESS, NAMESERVICE_ADDRESS, TOKENS_ADDRESS} from 'common';
+import {AccountInterface, cairo, CallData, constants, RpcProvider, uint256} from 'starknet';
+import {TokenQuoteBuyKeys} from '../../types/keys';
+import {feltToAddress, formatFloatToUint256} from '../../utils/format';
+import {prepareAndConnectContract} from '../keys/useDataKeys';
+import {useQuery} from '@tanstack/react-query';
+import {ApiIndexerInstance} from '../../services/api';
 
 export const NAMESERVICE_ENDPOINTS = {
   claimed: '/username-claimed',
@@ -28,7 +28,7 @@ export const useNameservice = () => {
   const chain = useNetwork();
   const rpcProvider = useProvider();
   const chainId = chain?.chain?.id;
-  const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
 
   const handleBuyUsername = async (
     account: AccountInterface,
@@ -37,12 +37,16 @@ export const useNameservice = () => {
   ) => {
     if (!account) return;
 
-    const addressContract = contractAddress ?? NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const addressContract =
+      contractAddress ?? NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     console.log('addressContract', addressContract);
     console.log('read asset');
 
     const nameservice = await prepareAndConnectContract(provider, addressContract);
-    let quote_address:string = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??  TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ?? "";
+    let quote_address: string =
+      TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??
+      TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ??
+      '';
     console.log('read nameservice asset');
 
     try {
@@ -82,7 +86,7 @@ export const useNameservice = () => {
       contractAddress: addressContract,
       entrypoint: 'claim_username',
       calldata: CallData.compile({
-        username: username 
+        username: username,
       }),
     };
 
@@ -91,7 +95,7 @@ export const useNameservice = () => {
     const tx = await account?.execute([approveCall, claimedUsername], undefined, {});
     console.log('tx hash', tx.transaction_hash);
     const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx
+    return wait_tx;
   };
 
   return {
@@ -101,13 +105,13 @@ export const useNameservice = () => {
 
 // New indexer hooks
 export const useNameserviceData = () => {
-  const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
-  
+  const provider = new RpcProvider({nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL});
+
   const query = useQuery({
     queryKey: ['nameservice_data'],
     queryFn: async () => {
       const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.claimed);
-      
+
       if (response.status !== 200) {
         throw new Error('Failed to fetch nameservice data');
       }
@@ -121,8 +125,10 @@ export const useNameserviceData = () => {
 
     const addressContract = NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const nameservice = await prepareAndConnectContract(provider, addressContract);
-    let quote_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ?? 
-                       TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ?? "";
+    let quote_address =
+      TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??
+      TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ??
+      '';
 
     try {
       quote_address = await nameservice.get_token_quote();
@@ -156,7 +162,7 @@ export const useNameserviceData = () => {
       contractAddress: addressContract,
       entrypoint: 'claim_username',
       calldata: CallData.compile({
-        username: username
+        username: username,
       }),
     };
 
@@ -174,7 +180,7 @@ export const useNameserviceByUsername = (username: string) => {
     queryKey: ['nameservice_data', username],
     queryFn: async () => {
       const response = await ApiIndexerInstance.get(NAMESERVICE_ENDPOINTS.byUsername(username));
-      
+
       if (response.status !== 200) {
         throw new Error('Failed to fetch nameservice data');
       }

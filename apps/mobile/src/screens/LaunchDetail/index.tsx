@@ -30,11 +30,11 @@ import {
 } from '../../types/keys';
 import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
 import stylesheet from './styles';
-import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
-import { TokenTx } from '../../components/LaunchPad/TokenTx';
+import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
+import {TokenTx} from '../../components/LaunchPad/TokenTx';
 // import { TokenStats } from '../../components/LaunchPad/TokenStats';
-import { UserShare } from '../../components/LaunchPad/UserShare';
-import { useGetToken } from '../../hooks/api/indexer/useToken';
+import {UserShare} from '../../components/LaunchPad/UserShare';
+import {useGetToken} from '../../hooks/api/indexer/useToken';
 
 interface LaunchDetailStyles {
   holdersTotal: ViewStyle;
@@ -101,15 +101,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const {showToast} = useToast();
   const walletModal = useWalletModal();
 
-  const [amount, setAmount] = useState<string | undefined>("0");
+  const [amount, setAmount] = useState<string | undefined>('0');
 
-  const handleSetAmount = (_amount?:string) => {
-    let nb_amount= Number(_amount)
-    if(_amount && isNaN(Number(_amount)) ) {
-      setAmount(nb_amount?.toFixed(2).toString())
+  const handleSetAmount = (_amount?: string) => {
+    let nb_amount = Number(_amount);
+    if (_amount && isNaN(Number(_amount))) {
+      setAmount(nb_amount?.toFixed(2).toString());
     }
-
-  }
+  };
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
@@ -119,7 +118,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   };
 
   useEffect(() => {
-    console.log("launchData",launchData)
+    console.log('launchData', launchData);
     if (launchData && launchData.data) {
       setTokens(launchData?.data);
       setToken(launchData?.data);
@@ -196,8 +195,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
     console.log('token', token);
 
-    if (!token?.memecoin_address)  {
-      return showToast({title:"Token can't be find", type:"info"})
+    if (!token?.memecoin_address) {
+      return showToast({title: "Token can't be find", type: 'info'});
     }
     // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
@@ -275,7 +274,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 isDisabledForm
               />
             )}
-            
+
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
               <>
                 <View style={styles.holdersTotal}>
@@ -295,7 +294,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               <TokenStats loading={statsLoading} stats={stats} />
             )} */}
 
-            {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+            {selectedTab == SelectedTab.USER_SHARE &&
+            launch?.memecoin_address &&
+            account?.address ? (
               <UserShare
                 loading={sharesLoading}
                 shares={shares}
@@ -304,7 +305,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               />
             ) : (
               !account?.address &&
-              selectedTab == SelectedTab.USER_SHARE && 
+              selectedTab == SelectedTab.USER_SHARE &&
               launch?.memecoin_address && (
                 <View>
                   <Text>Please connect</Text>
@@ -362,7 +363,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                   isDisabledForm
                 />
               )}
-              
+
               {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
                 <>
                   <View style={styles.holdersTotal}>
@@ -382,7 +383,9 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 <TokenStats loading={statsLoading} stats={stats} />
               )} */}
 
-              {selectedTab == SelectedTab.USER_SHARE && launch?.memecoin_address && account?.address ? (
+              {selectedTab == SelectedTab.USER_SHARE &&
+              launch?.memecoin_address &&
+              account?.address ? (
                 <UserShare
                   loading={sharesLoading}
                   shares={shares}
@@ -391,7 +394,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 />
               ) : (
                 !account?.address &&
-                selectedTab == SelectedTab.USER_SHARE && 
+                selectedTab == SelectedTab.USER_SHARE &&
                 launch?.memecoin_address && (
                   <View>
                     <Text>Please connect</Text>

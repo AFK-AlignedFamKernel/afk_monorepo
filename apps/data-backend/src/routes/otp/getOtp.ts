@@ -7,7 +7,10 @@ interface GetOtpRequestBody {
   nickname: string;
 }
 
-async function getOtp(fastify: FastifyInstance, twilio_verification: VerificationListInstance) {
+async function getOtp(
+  fastify: FastifyInstance,
+  twilio_verification: VerificationListInstance
+) {
   fastify.post<{ Body: GetOtpRequestBody }>(
     "/get_otp",
 
@@ -18,10 +21,10 @@ async function getOtp(fastify: FastifyInstance, twilio_verification: Verificatio
           required: ["phone_number", "nickname"],
           properties: {
             phone_number: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
-            nickname: { type: "string", pattern: "^[A-Za-z]{1,20}$" }
-          }
-        }
-      }
+            nickname: { type: "string", pattern: "^[A-Za-z]{1,20}$" },
+          },
+        },
+      },
     },
 
     async (request, reply) => {
@@ -33,9 +36,9 @@ async function getOtp(fastify: FastifyInstance, twilio_verification: Verificatio
 
         const record_by_phone_number = await prisma.registration.findFirst({
           where: {
-            phone_number: phone_number
+            phone_number: phone_number,
           },
-          orderBy: { created_at: "desc" }
+          orderBy: { created_at: "desc" },
         });
 
         if (!record_by_phone_number) {
@@ -43,14 +46,14 @@ async function getOtp(fastify: FastifyInstance, twilio_verification: Verificatio
             await prisma.registration.create({
               data: {
                 phone_number: phone_number,
-                nickname
-              }
+                nickname,
+              },
             });
           } catch (error: any) {
             fastify.log.error(error);
             if (error.code === "23505") {
               return reply.code(409).send({
-                message: "A user with the given phone number already exists."
+                message: "A user with the given phone number already exists.",
               });
             }
             return reply.code(500).send({ message: "Internal server error" });
@@ -59,12 +62,12 @@ async function getOtp(fastify: FastifyInstance, twilio_verification: Verificatio
 
         const send_msg_res = await twilio_verification.create({
           to: phone_number,
-          channel: "sms"
+          channel: "sms",
         });
         if (send_msg_res.status != "pending") {
           fastify.log.error("Error sending message to phone number");
           return reply.code(500).send({
-            message: "We are facing some issues. Please try again later"
+            message: "We are facing some issues. Please try again later",
           });
         }
 

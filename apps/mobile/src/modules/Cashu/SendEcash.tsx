@@ -335,14 +335,16 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   ]}
                   onValueChange={setSelectedCurrency}
                 >
-                  {mintUnitsMap.get(selectedMint.url)?.map((unitInfo) => (
-                    <Picker.Item
-                      key={unitInfo.unit}
-                      label={unitInfo.unit.toUpperCase()}
-                      value={unitInfo.unit}
-                      color={theme.colors.inputText}
-                    />
-                  ))}
+                  {mintUnitsMap
+                    .get(selectedMint.url)
+                    ?.map((unitInfo) => (
+                      <Picker.Item
+                        key={unitInfo.unit}
+                        label={unitInfo.unit.toUpperCase()}
+                        value={unitInfo.unit}
+                        color={theme.colors.inputText}
+                      />
+                    ))}
                 </Picker>
                 <Text style={styles.modalTabLabel}>Amount</Text>
                 <TextInput

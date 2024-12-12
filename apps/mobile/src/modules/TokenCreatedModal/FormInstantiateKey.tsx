@@ -96,16 +96,14 @@ export const FormInstantiateKey = ({
     };
     if (!account || !account?.account) return;
 
-    const receipt = await sendTransaction(
-      [
-        call,
-        // {
-        //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-        //   entrypoint: Entrypoint.DEPOSIT,
-        //   calldata: depositCallData,
-        // },
-      ],
-    );
+    const receipt = await sendTransaction([
+      call,
+      // {
+      //   contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+      //   entrypoint: Entrypoint.DEPOSIT,
+      //   calldata: depositCallData,
+      // },
+    ]);
     // const tx = await account?.account?.execute([call], undefined, {});
     // console.log('tx hash', tx?.transaction_hash);
     // if (tx?.transaction_hash) {
@@ -133,7 +131,7 @@ export const FormInstantiateKey = ({
     } else {
       let description = 'Please Try Again Later.';
       // if (receipt?.isRejected()) {
-        // description = receipt.transaction_failure_reason.error_message;
+      // description = receipt.transaction_failure_reason.error_message;
       // }
 
       showDialog({

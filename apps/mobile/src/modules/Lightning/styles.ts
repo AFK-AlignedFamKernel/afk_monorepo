@@ -111,7 +111,7 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   //Wallet Info
-  walletcontainer: {
+  walletContainer: {
     backgroundColor: theme.colors.surface,
     borderRadius: 10,
     padding: Spacing.medium,

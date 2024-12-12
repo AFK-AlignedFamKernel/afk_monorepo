@@ -39,7 +39,7 @@ export const FormLaunchTokenUnruggable: React.FC = () => {
     // ticker: '',
     initialSupply: 100,
     contract_address_salt: '',
-    is_unruggable:false
+    is_unruggable: false,
   };
 
   const onSubmitPress = () => {

@@ -8,7 +8,7 @@ import {useTransactionModal} from './useTransactionModal';
 interface UseTransactionInterface {
   callsProps?: Call[];
 }
-export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
+export const useTransaction = ({callsProps = []}: UseTransactionInterface) => {
   const {show: showTransactionModal, hide: hideTransactionModal, shown} = useTransactionModal();
   // const {writeAsync} = useContractWrite({});
 
@@ -60,10 +60,10 @@ export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
       // const {transaction_hash} = await writeAsync(args)
       const transaction_hash = await sendTransactionTx();
 
-      setTxHash(transaction_hash)
+      setTxHash(transaction_hash);
       return {
-        isOk:true,
-        transaction_hash
+        isOk: true,
+        transaction_hash,
       };
       // return new Promise<GetTransactionReceiptResponse>((resolve) => {
       //   showTransactionModal(transaction_hash, resolve);
@@ -71,8 +71,8 @@ export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
     } catch (error) {
       hideTransactionModal();
       return {
-        transaction_hash:undefined,
-        isOk:false
+        transaction_hash: undefined,
+        isOk: false,
       };
     }
   };
@@ -80,6 +80,6 @@ export const useTransaction = ({callsProps=[]}: UseTransactionInterface) => {
   return {
     sendTransaction,
     txUrl,
-    txHash
+    txHash,
   };
 };

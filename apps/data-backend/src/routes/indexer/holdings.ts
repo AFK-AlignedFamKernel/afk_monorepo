@@ -1,7 +1,5 @@
 import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma"
-// import {prisma} from "indexer-prisma"
-
+import prisma from "indexer-prisma";
 import { HTTPStatus } from "../../utils/http";
 import { isValidStarknetAddress } from "../../utils/starknet";
 
@@ -23,7 +21,6 @@ async function holdingsRoute(fastify: FastifyInstance, options: RouteOptions) {
     }
 
     try {
-
       const distributions = await prisma.token_transactions.groupBy({
         by: ["owner_address", "transaction_type"],
         // by: ["owner_address", "transaction_type"], // TODO add by tx type and sum sell and buy

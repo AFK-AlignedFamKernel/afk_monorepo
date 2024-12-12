@@ -42,6 +42,6 @@ export default ThemedStyleSheet((theme) => ({
   },
   checkboxLabel: {
     fontSize: 15,
-    color: theme.colors.text
+    color: theme.colors.text,
   },
 }));

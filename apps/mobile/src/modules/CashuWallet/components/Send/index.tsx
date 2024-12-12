@@ -6,8 +6,16 @@ import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
 import {randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
-import {Modal, Platform, SafeAreaView, Share, TouchableOpacity, View} from 'react-native';
-import {Text, TextInput} from 'react-native';
+import {
+  Modal,
+  Platform,
+  SafeAreaView,
+  Share,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import {CloseIcon, CopyIconStack, ScanQrIcon, ShareIcon} from '../../../../assets/icons';
 import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
@@ -426,7 +434,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                     <GenerateQRCode data={generatedEcash} size={200} />
                     <View style={styles.shareContainer}>
                       <Text style={styles.giftLinkText}>Gift this ecash?</Text>
-                      <View style={styles.shareLinkBtns}>
+                      <View style={styles.shareLinkButtons}>
                         <Button
                           onPress={shareLink}
                           style={styles.modalShareButton}

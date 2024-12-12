@@ -29,9 +29,9 @@ const NDK_KIND_OPTIONS = [
   {label: 'Group Chat', value: NDKKind.GroupChat},
   {label: 'Channel Message', value: NDKKind.ChannelMessage},
   {label: 'Metadata', value: NDKKind.Metadata},
-  {label: 'Stream', value:30311 },
-  {label: 'Video', value:NDKKind.HorizontalVideo },
-  {label: 'Video shorts', value:NDKKind.VerticalVideo },
+  {label: 'Stream', value: 30311},
+  {label: 'Video', value: NDKKind.HorizontalVideo},
+  {label: 'Video shorts', value: NDKKind.VerticalVideo},
 ];
 
 // const SORT_OPTIONS = [
