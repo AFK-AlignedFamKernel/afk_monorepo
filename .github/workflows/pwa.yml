@@ -54,12 +54,12 @@ jobs:
 
       - name: Prettier Format Check
         run: pnpm format:check
+        
+      - name: Lint fix
+        run: pnpm lint:fix
       
       - name: Lint
         run: pnpm lint
-
-      - name: Lint fix
-        run: pnpm lint:fix
 
       - name: TypeScript Check
         run: pnpm ts:check
