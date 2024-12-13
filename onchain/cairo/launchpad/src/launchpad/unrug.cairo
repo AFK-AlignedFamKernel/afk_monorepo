@@ -5,7 +5,7 @@ use afk_launchpad::types::launchpad_types::{
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters
+    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, UnrugCallbackData, UnrugLaunchCallback
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -31,11 +31,11 @@ pub trait IUnrugLiquidity<TContractState> {
     // erc20 VOTE
     // Byte Array for Memecoin
     fn launch_on_ekubo(
-        ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+        ref self: TContractState, coin_address: ContractAddress, unrug_params: EkuboUnrugLaunchParameters
     ) -> (u64, EkuboLP);
     fn launch_on_starkdefi(
         ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
-    ) -> (u64, EkuboLP);
+    );
     // ) -> Span<felt252>;
     fn launch_on_jediswap(ref self: TContractState, coin_address: ContractAddress,);
     fn add_liquidity_unrug(
@@ -132,6 +132,11 @@ pub mod UnrugLiquidity {
     use ekubo::types::keys::PoolKey;
     use ekubo::types::{i129::i129};
 
+    use openzeppelin::token::erc20::interface::{
+        IERC20Dispatcher as OZIERC20Dispatcher, IERC20DispatcherTrait as OZIERC20DispatcherTrait,
+        ERC20ABIDispatcher, ERC20ABIDispatcherTrait
+    };
+
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::storage::{
@@ -148,7 +153,7 @@ pub mod UnrugLiquidity {
         SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
         EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
+        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, UnrugCallbackData, UnrugLaunchCallback
         // MemecoinCreated, MemecoinLaunched
     };
 
@@ -586,23 +591,24 @@ pub mod UnrugLiquidity {
         }
 
         fn launch_on_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+            ref self: ContractState, coin_address: ContractAddress, unrug_params: EkuboUnrugLaunchParameters
             // ) ->  Span<felt252>  {
         ) -> (u64, EkuboLP) {
             let caller = get_caller_address();
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-            self._add_liquidity_ekubo(coin_address, params)
+            self._add_liquidity_ekubo(coin_address, unrug_params)
         }
 
         fn launch_on_starkdefi(
             ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
             // ) ->  Span<felt252>  {
-        ) -> (u64, EkuboLP) {
+        ) {
             let caller = get_caller_address();
             // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-            self._add_liquidity_ekubo(coin_address, params)
+            // self._add_liquidity_ekubo(coin_address, params)
+
         }
     }
 
@@ -623,10 +629,10 @@ pub mod UnrugLiquidity {
             // println!("locked caller address: {:?}", get_caller_address());
             // println!("core address in locked: {:?}", core_address);
 
-            match consume_callback_data::<CallbackData>(core, data) {
-                CallbackData::LaunchCallback(params) => {
+            match consume_callback_data::<UnrugCallbackData>(core, data) {
+                UnrugCallbackData::UnrugLaunchCallback(params) => {
                     // println!("step: {}", 1);
-                    let launch_params: EkuboLaunchParameters = params.params;
+                    let launch_params: EkuboUnrugLaunchParameters = params.unrug_params;
                     let (token0, token1) = sort_tokens(
                         launch_params.token_address, launch_params.quote_address
                     );
@@ -732,11 +738,14 @@ pub mod UnrugLiquidity {
                     // println!("balance of token: {}", balance);
 
                     // println!("step: {}", 17);
+
                     let id = self
                         ._supply_liquidity_ekubo(
                             pool_key,
                             launch_params.token_address,
+                            launch_params.quote_address,
                             launch_params.lp_supply,
+                            launch_params.lp_quote_supply,
                             full_range_bounds
                         );
 
@@ -880,88 +889,52 @@ pub mod UnrugLiquidity {
             ref self: ContractState,
             pool_key: PoolKey,
             token: ContractAddress,
-            amount: u256,
+            token_quote: ContractAddress,
+            lp_supply: u256,
+            lp_quote_supply: u256,
             bounds: Bounds
         ) -> u64 {
-            // println!("mint deposit NOW HERE: {}", 1);
-
             let positions_address = self.positions.read();
-            let positions = IPositionsDispatcher { contract_address: positions_address };
-            println!("mint deposit NOW HERE: {}", 2);
+            let positions = IPositionsDispatcher {contract_address: positions_address};
+            // The token must be transferred to the positions contract before calling mint.
+            ERC20ABIDispatcher { contract_address: token }
+                .transfer(recipient: positions.contract_address, amount: lp_supply);
 
-            // // The token must be transferred to the positions contract before calling mint.
-            // IERC20Dispatcher { contract_address: token }
-            //     .transfer(recipient: positions.contract_address, :amount);
-            // println!("mint deposit NOW HERE: {}", 3);
+            ERC20ABIDispatcher { contract_address: token_quote }
+                .transfer(recipient: positions.contract_address, amount: lp_quote_supply);
 
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
-            // let (id, liquidity, _, _) = positions
-            // .mint_and_deposit_and_clear_both(pool_key, bounds, min_liquidity: 0);
-            println!("mint deposit NOW HERE: {}", 4);
             id
         }
 
         fn _add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters
+            ref self: ContractState, coin_address: ContractAddress, unrug_params: EkuboUnrugLaunchParameters
         ) -> (u64, EkuboLP) {
-            // TODO params of Ekubo launch
-            // Init price and params of liquidity
-
             let caller = get_caller_address();
             println!("RIGHT HERE: {}", 1);
 
-            // TODO calculate price
-
-            // Verify Params Unrug
-            // Verify Liquidity Params
-            let lp_meme_supply = params.lp_supply.clone();
+            let lp_meme_supply = unrug_params.lp_supply.clone();
             println!("Get supply: {}", 2);
-
-            // let params: EkuboLaunchParameters = EkuboLaunchParameters {
-            //     owner: launch.owner,
-            //     token_address: launch.token_address,
-            //     quote_address: launch.token_quote.token_address,
-            //     lp_supply: lp_meme_supply,
-            //     // lp_supply: launch.liquidity_raised,
-            //     pool_params: EkuboPoolParameters {
-            //         fee: 0xc49ba5e353f7d00000000000000000,
-            //         tick_spacing: 5000,
-            //         starting_price,
-            //         bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-            //     }
-            // };
-
-            // println!("Bound computed: {}", params.pool_params.bound);
-
-            // Register the token in Ekubo Registry
-            // let registry_address = self.ekubo_registry.read();
-            // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
 
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
+            let memecoin = EKIERC20Dispatcher { contract_address: unrug_params.token_address };
             //TODO token decimal, amount of 1 token?
 
             println!("Get memecoin: {}", 3);
 
-            // let pool = self.launched_coins.read(coin_address);
-            // let dex_address = self.core.read();
             let positions_ekubo = self.positions.read();
-            // memecoin.approve(ekubo_exchange_address, lp_meme_supply);
-            // memecoin.approve(ekubo_core_address, lp_meme_supply);
-            // memecoin.approve(positions_ekubo, lp_meme_supply);
-            // assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
-            let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
-            //TODO token decimal, amount of 1 token?
-            // let pool = self.launched_coins.read(coin_address);
+
+            let base_token = EKIERC20Dispatcher { contract_address: unrug_params.quote_address };
+
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
             // Call the core with a callback to deposit and mint the LP tokens.
             println!("HERE launch callback: {}", 4);
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
-                CallbackData, (u64, EkuboLP)
-            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
+                UnrugCallbackData, (u64, EkuboLP)
+            >(core, @UnrugCallbackData::UnrugLaunchCallback(UnrugLaunchCallback { unrug_params }));
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
             //TODO emit event
             let id_cast: u256 = id.try_into().unwrap();
