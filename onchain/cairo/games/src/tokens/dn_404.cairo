@@ -1,6 +1,6 @@
-// use afk::tokens::erc20::{IERC20};
-use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
-use afk::types::launchpad_types::{
+// use afk_games::tokens::erc20::{IERC20};
+use afk_games::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+use afk_games::types::launchpad_types::{
     LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
     EkuboLiquidityParameters, EkuboPoolParameters
 };
@@ -97,9 +97,9 @@ pub trait IDn404<TContractState> {
 
 #[starknet::contract]
 pub mod MemecoinV2 {
-    use afk::errors;
-    use afk::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
-    use afk::math::PercentageMath;
+    use afk_games::errors;
+    use afk_games::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
+    use afk_games::math::PercentageMath;
     use core::num::traits::Zero;
 
     use openzeppelin_access::accesscontrol::AccessControlComponent;

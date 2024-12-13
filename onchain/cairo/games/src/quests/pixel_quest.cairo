@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod PixelQuest {
-    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::interfaces::quests::{IQuest, IPixelQuest};
+    use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk_games::interfaces::quests::{IQuest, IPixelQuest};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };

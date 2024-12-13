@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod ChainFactionQuest {
-    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::interfaces::quests::{IAuthorityQuest, IQuest};
+    use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk_games::interfaces::quests::{IAuthorityQuest, IQuest};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, // StoragePathEntry,
          Map

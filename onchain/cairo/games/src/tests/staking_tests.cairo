@@ -1,4 +1,4 @@
-use afk::staking::interfaces::{
+use afk_games::staking::interfaces::{
     IERC20Dispatcher, IERC20DispatcherTrait, IStakingDispatcher, IStakingDispatcherTrait
 };
 use snforge_std::{

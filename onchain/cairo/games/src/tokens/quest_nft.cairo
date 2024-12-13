@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 
 #[starknet::contract]
 pub mod QuestNFT {
-    use afk::interfaces::quest::{IQuestNFT};
+    use afk_games::interfaces::quest::{IQuestNFT};
 
     // use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};

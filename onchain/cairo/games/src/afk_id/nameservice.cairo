@@ -6,7 +6,7 @@ pub mod UserNameClaimErrors {
     pub const INVALID_PAYMENT: felt252 = 'Invalid payment amount';
     pub const INVALID_PRICE: felt252 = 'Invalid price setting';
     pub const INVALID_USERNAME: felt252 = 'Invalid username format';
-    pub const INVALID_DOMAIN_SUFFIX: felt252 = 'Domain must end with .afk';
+    pub const INVALID_DOMAIN_SUFFIX: felt252 = 'Domain must end with .afk_games';
     pub const AUCTION_DOESNT_EXIST: felt252 = 'Auction does not exist';
     pub const USER_NOT_OWNER: felt252 = 'User not owner';
     pub const BID_LOW: felt252 = 'Bid too low';
@@ -22,9 +22,9 @@ const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
 #[starknet::contract]
 pub mod Nameservice {
-    use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::interfaces::nameservice::INameservice;
-    // use afk::interfaces::username_store::INameservice;
+    use afk_games::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk_games::interfaces::nameservice::INameservice;
+    // use afk_games::interfaces::username_store::INameservice;
     use openzeppelin::access::ownable::OwnableComponent;
 
     use openzeppelin::upgrades::UpgradeableComponent;
@@ -269,7 +269,7 @@ pub mod Nameservice {
         self.is_payment_enabled.write(is_payment_enabled);
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(MINTER_ROLE, get_contract_address());
-        self.erc20.initializer(".afk", ".afk");
+        self.erc20.initializer(".afk_games", ".afk_games");
         // self.erc20.mint(owner, 1n);
     }
 

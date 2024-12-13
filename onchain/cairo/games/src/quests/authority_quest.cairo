@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod AuthorityQuest {
-    use afk::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
-    use afk::interfaces::quests::{IAuthorityQuest, IQuest};
+    use afk_games::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
+    use afk_games::interfaces::quests::{IAuthorityQuest, IQuest};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };

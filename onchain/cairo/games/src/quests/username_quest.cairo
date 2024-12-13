@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod UsernameQuest {
-    use afk::interfaces::quests::{IQuest};
-    use afk::interfaces::username_store::{IUsernameStoreDispatcher, IUsernameStoreDispatcherTrait,};
+    use afk_games::interfaces::quests::{IQuest};
+    use afk_games::interfaces::username_store::{IUsernameStoreDispatcher, IUsernameStoreDispatcherTrait,};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };

@@ -1,10 +1,10 @@
 #[starknet::contract]
 pub mod UnruggableQuest {
-    // use afk::interfaces::pixel::{
+    // use afk_games::interfaces::pixel::{
     //     IArtPeaceDispatcher,
     //     // IArtPeaceDispatcherTrait
     // };
-    use afk::interfaces::quests::{
+    use afk_games::interfaces::quests::{
         IQuest, IUnruggableQuest, IUnruggableMemecoinDispatcher, IUnruggableMemecoinDispatcherTrait
     };
     use starknet::storage::{

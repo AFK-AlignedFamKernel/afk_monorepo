@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod RainbowQuest {
-    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::interfaces::quests::{IQuest, IRainbowQuest};
+    use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk_games::interfaces::quests::{IQuest, IRainbowQuest};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };

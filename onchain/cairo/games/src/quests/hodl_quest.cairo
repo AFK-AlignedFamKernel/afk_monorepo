@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod HodlQuest {
-    use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-    use afk::interfaces::quests::{IQuest};
+    use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+    use afk_games::interfaces::quests::{IQuest};
     use core::traits::TryInto;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map

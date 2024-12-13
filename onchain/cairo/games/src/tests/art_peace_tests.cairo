@@ -1,14 +1,14 @@
-use afk::interfaces::nfts::{
+use afk_games::interfaces::nfts::{
     IArtPeaceNFTMinterDispatcher, IArtPeaceNFTMinterDispatcherTrait, ICanvasNFTStoreDispatcher,
     ICanvasNFTStoreDispatcherTrait, NFTMintParams, NFTMetadata
 };
-use afk::interfaces::pixel::InitParams;
-use afk::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
-use afk::interfaces::pixel_template::{
+use afk_games::interfaces::pixel::InitParams;
+use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+use afk_games::interfaces::pixel_template::{
     ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait, ITemplateVerifierDispatcher,
     ITemplateVerifierDispatcherTrait, TemplateMetadata
 };
-use afk::tests::utils;
+use afk_games::tests::utils;
 use core::hash::{HashStateTrait, HashStateExTrait};
 
 use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};

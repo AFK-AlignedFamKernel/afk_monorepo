@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tap_tests {
-    use afk::interfaces::quest::{ITapQuestsDispatcher, ITapQuestsDispatcherTrait};
+    use afk_games::interfaces::quest::{ITapQuestsDispatcher, ITapQuestsDispatcherTrait};
     use snforge_std::{
         declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
         start_cheat_block_timestamp,

@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod quest_factory_tests {
-    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::quest::{
+    use afk_games::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk_games::interfaces::quest::{
         IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestNFTDispatcher,
         IQuestNFTDispatcherTrait, ITapQuestsDispatcher, ITapQuestsDispatcherTrait
     };
 
-    use afk::interfaces::vault::{IERCVaultDispatcher};
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::quest::{QuestInfo};
+    use afk_games::interfaces::vault::{IERCVaultDispatcher};
+    use afk_games::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk_games::types::quest::{QuestInfo};
     use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
 
     use snforge_std::{

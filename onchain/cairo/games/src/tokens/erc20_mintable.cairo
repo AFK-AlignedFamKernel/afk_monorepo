@@ -1,4 +1,4 @@
-use afk::interfaces::erc20_mintable::{IERC20Mintable};
+use afk_games::interfaces::erc20_mintable::{IERC20Mintable};
 use starknet::ContractAddress;
 
 #[starknet::contract]

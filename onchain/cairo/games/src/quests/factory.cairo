@@ -1,11 +1,11 @@
 #[starknet::contract]
 pub mod QuestFactory {
-    use afk::interfaces::quest::{
+    use afk_games::interfaces::quest::{
         IQuestFactory, IQuestDispatcher, IQuestDispatcherTrait, IQuestNFTDispatcher,
         IQuestNFTDispatcherTrait
     };
-    use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    use afk::types::quest::{QuestInfo, UserQuestInfo};
+    use afk_games::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
+    use afk_games::types::quest::{QuestInfo, UserQuestInfo};
 
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map

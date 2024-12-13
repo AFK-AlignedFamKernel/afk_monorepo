@@ -1,7 +1,7 @@
 #[starknet::contract]
 mod TapQuests {
-    use afk::interfaces::quest::{ITapQuests, IQuest};
-    use afk::types::tap_types::{TapUserStats, TapDailyEvent};
+    use afk_games::interfaces::quest::{ITapQuests, IQuest};
+    use afk_games::types::tap_types::{TapUserStats, TapDailyEvent};
     use core::num::traits::Zero;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map

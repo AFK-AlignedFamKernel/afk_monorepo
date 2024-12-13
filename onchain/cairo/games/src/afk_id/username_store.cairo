@@ -6,7 +6,7 @@ pub mod UserNameClaimErrors {
 
 #[starknet::contract]
 pub mod UsernameStore {
-    use afk::interfaces::username_store::IUsernameStore;
+    use afk_games::interfaces::username_store::IUsernameStore;
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
     use starknet::{ContractAddress, contract_address_const, get_caller_address};
     use super::UserNameClaimErrors;

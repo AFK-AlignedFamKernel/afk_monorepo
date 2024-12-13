@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod NFTMintQuest {
-    use afk::interfaces::nfts::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
-    use afk::interfaces::quests::IQuest;
+    use afk_games::interfaces::nfts::{ICanvasNFTStoreDispatcher, ICanvasNFTStoreDispatcherTrait};
+    use afk_games::interfaces::quests::IQuest;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };

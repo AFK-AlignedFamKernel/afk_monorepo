@@ -1,10 +1,10 @@
 #[starknet::contract]
 pub mod ArtPeace {
-    use afk::interfaces::nfts::{
+    use afk_games::interfaces::nfts::{
         IArtPeaceNFTMinter, NFTMetadata, NFTMintParams, ICanvasNFTAdditionalDispatcher,
         ICanvasNFTAdditionalDispatcherTrait
     };
-    use afk::interfaces::pixel::{
+    use afk_games::interfaces::pixel::{
         IArtPeace, // Pixel,
          Faction, ChainFaction, MemberMetadata, ColorAdded, NewDay,
         CanvasScaled, PixelPlaced, BasicPixelPlaced, FactionPixelsPlaced, ChainFactionPixelsPlaced,
@@ -15,11 +15,11 @@ pub mod ArtPeace {
          MetadataPixel,
          PixelMetadataPlaced
     };
-    use afk::interfaces::pixel_template::{
+    use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
     };
-    use afk::interfaces::quests::{IQuestDispatcher, IQuestDispatcherTrait};
-    use afk::templates::template::TemplateStoreComponent;
+    use afk_games::interfaces::quests::{IQuestDispatcher, IQuestDispatcherTrait};
+    use afk_games::templates::template::TemplateStoreComponent;
     use core::dict::Felt252DictTrait;
     use core::hash::{HashStateTrait, HashStateExTrait};
     use core::poseidon::PoseidonTrait;
