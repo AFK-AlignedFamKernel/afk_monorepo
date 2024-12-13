@@ -1,14 +1,10 @@
-import type { FastifyInstance } from "fastify";
-import { type Account, addAddressPadding, uint256 } from "starknet";
-import { VerificationCheckListInstance } from "twilio/lib/rest/verify/v2/service/verificationCheck";
-import {
-  Entrypoint,
-  SN_CHAIN_ID,
-  VAULT_FACTORY_ADDRESSES,
-} from "../../constants/contracts";
-import { hashPhoneNumber } from "../../utils/format";
-import { computeAddress } from "../../utils/address";
-import { PrismaClient } from "@prisma/client";
+import type { FastifyInstance } from 'fastify';
+import { type Account, addAddressPadding, uint256 } from 'starknet';
+import { VerificationCheckListInstance } from 'twilio/lib/rest/verify/v2/service/verificationCheck';
+import { Entrypoint, SN_CHAIN_ID, VAULT_FACTORY_ADDRESSES } from '../../constants/contracts';
+import { hashPhoneNumber } from '../../utils/format';
+import { computeAddress } from '../../utils/address';
+import { PrismaClient } from '@prisma/client';
 
 interface VerifyOtpRequestBody {
   phone_number: string;
@@ -20,28 +16,23 @@ interface VerifyOtpRequestBody {
 async function verifyOtp(
   fastify: FastifyInstance,
   deployer: Account,
-  twilio_verification: VerificationCheckListInstance
+  twilio_verification: VerificationCheckListInstance,
 ) {
   fastify.post<{
     Body: VerifyOtpRequestBody;
   }>(
-    "/verify_otp",
+    '/verify_otp',
 
     {
       schema: {
         body: {
-          type: "object",
-          required: [
-            "phone_number",
-            "public_key_x",
-            "public_key_y",
-            "sent_otp",
-          ],
+          type: 'object',
+          required: ['phone_number', 'public_key_x', 'public_key_y', 'sent_otp'],
           properties: {
-            phone_number: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
-            sent_otp: { type: "string", pattern: "^[0-9]{6}$" },
-            public_key_x: { type: "string", pattern: "^0x[0-9a-fA-F]+$" },
-            public_key_y: { type: "string", pattern: "^0x[0-9a-fA-F]+$" },
+            phone_number: { type: 'string', pattern: '^\\+[1-9]\\d{1,14}$' },
+            sent_otp: { type: 'string', pattern: '^[0-9]{6}$' },
+            public_key_x: { type: 'string', pattern: '^0x[0-9a-fA-F]+$' },
+            public_key_y: { type: 'string', pattern: '^0x[0-9a-fA-F]+$' },
           },
         },
       },
@@ -49,8 +40,7 @@ async function verifyOtp(
 
     async (request, reply) => {
       try {
-        const { phone_number, sent_otp, public_key_x, public_key_y } =
-          request.body;
+        const { phone_number, sent_otp, public_key_x, public_key_y } = request.body;
 
         const prisma = new PrismaClient();
 
@@ -62,11 +52,11 @@ async function verifyOtp(
           })
           .catch((error) => {
             fastify.log.error(error);
-            return { status: "unrequested" };
+            return { status: 'unrequested' };
           });
 
         // The status of the verification. Can be: `pending`, `approved`, `canceled`, `max_attempts_reached`, `deleted`, `failed` or `expired`.
-        if (response.status != "approved") {
+        if (response.status != 'approved') {
           return reply.code(400).send({
             message: `Otp is ${response.status}.`,
           });
@@ -100,18 +90,17 @@ async function verifyOtp(
         const contractAddress = addAddressPadding(computeAddress(phone_number));
 
         fastify.log.info(
-          "Deploying account: ",
+          'Deploying account: ',
           contractAddress,
-          " for: ",
+          ' for: ',
           phone_number,
-          " with tx hash: ",
-          transaction_hash
+          ' with tx hash: ',
+          transaction_hash,
         );
 
         if (!transaction_hash) {
           return reply.code(500).send({
-            message:
-              "Error in deploying smart contract. Please try again later",
+            message: 'Error in deploying smart contract. Please try again later',
           });
         }
 
@@ -139,9 +128,9 @@ async function verifyOtp(
       } catch (error) {
         console.log(error);
         fastify.log.error(error);
-        return reply.code(500).send({ message: "Internal Server Error" });
+        return reply.code(500).send({ message: 'Internal Server Error' });
       }
-    }
+    },
   );
 }
 

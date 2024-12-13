@@ -1,7 +1,7 @@
-import type { FastifyInstance } from "fastify";
-import dotenv from "dotenv";
+import type { FastifyInstance } from 'fastify';
+import dotenv from 'dotenv';
 dotenv.config();
-const stripe = require("stripe")(process.env.STRIPE_SERVER_API_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SERVER_API_KEY);
 
 interface CreatePaymentSheet {
   currency: string;
@@ -10,16 +10,16 @@ interface CreatePaymentSheet {
 
 async function paymentSheet(fastify: FastifyInstance) {
   fastify.post<{ Body: CreatePaymentSheet }>(
-    "/payment-sheet",
+    '/payment-sheet',
 
     {
       schema: {
         body: {
-          type: "object",
-          required: ["currency", "amount"],
+          type: 'object',
+          required: ['currency', 'amount'],
           properties: {
-            currency: { type: "string", pattern: "^\\+[1-9]\\d{1,14}$" },
-            amount: { type: "number" },
+            currency: { type: 'string', pattern: '^\\+[1-9]\\d{1,14}$' },
+            amount: { type: 'number' },
           },
         },
       },
@@ -35,13 +35,13 @@ async function paymentSheet(fastify: FastifyInstance) {
         // Create an ephemeral key for the customer
         const ephemeralKey = await stripe.ephemeralKeys.create(
           { customer: customer.id },
-          { apiVersion: "2022-11-15" } // Ensure to use the latest API version
+          { apiVersion: '2022-11-15' }, // Ensure to use the latest API version
         );
 
         const paymentIntent = await stripe.paymentIntents.create({
           amount: 1000, // Example amount in smallest currency unit (cents)
           currency: currency,
-          payment_method_types: ["card"],
+          payment_method_types: ['card'],
         });
 
         // reply.send({
@@ -57,9 +57,9 @@ async function paymentSheet(fastify: FastifyInstance) {
         // return reply.code(200).send({ ok: true });
       } catch (error) {
         fastify.log.error(error);
-        return reply.code(500).send({ message: "Internal Server Error" });
+        return reply.code(500).send({ message: 'Internal Server Error' });
       }
-    }
+    },
   );
 }
 

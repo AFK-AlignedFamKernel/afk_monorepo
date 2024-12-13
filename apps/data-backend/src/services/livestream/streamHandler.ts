@@ -1,9 +1,9 @@
-import { Socket } from "socket.io";
+import { Socket } from 'socket.io';
 
-import * as fs from "fs";
-import path from "path";
-import { streamEvents, STREAM_EVENTS } from "./streamEvent";
-import { setupStream, streamingUrl } from "./streamService";
+import * as fs from 'fs';
+import path from 'path';
+import { streamEvents, STREAM_EVENTS } from './streamEvent';
+import { setupStream, streamingUrl } from './streamService';
 
 /**
  * Stream Component
@@ -34,7 +34,7 @@ export async function handleStartStream(
   data: {
     userId: string;
     streamKey: string;
-  }
+  },
 ) {
   try {
     const { ffmpegCommand, outputPath, inputStream } = await setupStream({
@@ -59,7 +59,7 @@ export async function handleStartStream(
     socket.join(data.streamKey);
 
     ffmpegCommand
-      .on("error", (err) => {
+      .on('error', (err) => {
         console.log(`Stream ${data.streamKey} Just triggered ended`, err);
 
         streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
@@ -68,8 +68,8 @@ export async function handleStartStream(
         });
       })
 
-      .on("end", (res) => {
-        console.log("ended", res);
+      .on('end', (res) => {
+        console.log('ended', res);
         activeStreams.delete(data.streamKey);
         streamEvents.emit(STREAM_EVENTS.STREAM_END, {
           streamKey: data.streamKey,
@@ -79,7 +79,7 @@ export async function handleStartStream(
     ffmpegCommand.output(outputPath).run();
 
     streamEvents.emit(STREAM_EVENTS.STREAMING_URL, {
-      streamingUrl: `${streamingUrl(data.streamKey, "stream.m3u8")}`,
+      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`,
     });
   } catch (error) {
     console.error(error);
@@ -94,18 +94,13 @@ export async function handleStartStream(
  * Handle streaming
  * Todo: Ideally we will want to process stream to a CDN.
  */
-export function handleStreamData(
-  socket: Socket,
-  data: { streamKey: string; chunk: Buffer }
-) {
+export function handleStreamData(socket: Socket, data: { streamKey: string; chunk: Buffer }) {
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream?.inputStream) return;
 
   try {
-    const chunk = Buffer.isBuffer(data.chunk)
-      ? data.chunk
-      : Buffer.from(data.chunk);
+    const chunk = Buffer.isBuffer(data.chunk) ? data.chunk : Buffer.from(data.chunk);
     stream.inputStream.push(chunk);
   } catch (error) {
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
@@ -124,7 +119,7 @@ export async function handleEndStream(
   data: {
     streamKey: string;
     userId: string;
-  }
+  },
 ) {
   const stream = activeStreams.get(data.streamKey);
 
@@ -138,7 +133,7 @@ export async function handleEndStream(
 
     // Kill FFmpeg process if it exists
     if (stream.command) {
-      stream.command.kill("SIGKILL");
+      stream.command.kill('SIGKILL');
     }
 
     activeStreams.delete(data.streamKey);
@@ -150,7 +145,7 @@ export async function handleEndStream(
 
     await cleanupStreamDirectory(data.streamKey);
   } catch (error) {
-    console.error("Stream end error:", error);
+    console.error('Stream end error:', error);
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
       error: error.message,
       streamKey: data.streamKey,
@@ -160,12 +155,7 @@ export async function handleEndStream(
 
 const cleanupStreamDirectory = async (streamKey: string): Promise<void> => {
   try {
-    const streamPath = path.join(
-      process.cwd(),
-      "public",
-      "livestreams",
-      streamKey
-    );
+    const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamKey);
     if (fs.existsSync(streamPath)) {
       await fs.promises.rm(streamPath, { recursive: true, force: true });
     }
@@ -182,7 +172,7 @@ export function handleJoinStream(socket: Socket, data: { streamKey: string }) {
 
   if (!stream) {
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
-      error: "Stream not found",
+      error: 'Stream not found',
     });
     return;
   }
@@ -213,7 +203,7 @@ export function handleDisconnect(socket: Socket) {
 
         // Kill FFmpeg process if it exists
         if (stream.command) {
-          stream.command.kill("SIGKILL");
+          stream.command.kill('SIGKILL');
         }
 
         activeStreams.delete(streamKey);
@@ -222,7 +212,7 @@ export function handleDisconnect(socket: Socket) {
           streamKey: streamKey,
         });
       } catch (error) {
-        console.error("Stream end error on disconnect:", error);
+        console.error('Stream end error on disconnect:', error);
         streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
           error: error.message,
           streamKey: streamKey,

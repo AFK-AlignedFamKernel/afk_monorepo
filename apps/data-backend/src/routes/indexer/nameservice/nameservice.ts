@@ -1,20 +1,17 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma";
-import { HTTPStatus } from "../../../utils/http";
-import { isValidStarknetAddress } from "../../../utils/starknet";
+import type { FastifyInstance, RouteOptions } from 'fastify';
+import prisma from 'indexer-prisma';
+import { HTTPStatus } from '../../../utils/http';
+import { isValidStarknetAddress } from '../../../utils/starknet';
 
 interface NameserviceParams {
   username?: string;
   owner_address?: string;
 }
 
-async function nameserviceRoutes(
-  fastify: FastifyInstance,
-  options: RouteOptions
-) {
+async function nameserviceRoutes(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get<{
     Params: NameserviceParams;
-  }>("/username-claimed", async (request, reply) => {
+  }>('/username-claimed', async (request, reply) => {
     try {
       const usernamesClaimed = await prisma.username_claimed.findMany({
         // where: { transaction_type: "buy" },
@@ -32,15 +29,13 @@ async function nameserviceRoutes(
         data: usernamesClaimed,
       });
     } catch (error) {
-      console.error("Error fetching buy tokens:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error fetching buy tokens:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
   fastify.get<{
     Params: NameserviceParams;
-  }>("/username-claimed/username/:username", async (request, reply) => {
+  }>('/username-claimed/username/:username', async (request, reply) => {
     try {
       const usernamesClaimed = await prisma.username_claimed.findMany({
         // where: { transaction_type: "buy" },
@@ -58,15 +53,13 @@ async function nameserviceRoutes(
         data: usernamesClaimed,
       });
     } catch (error) {
-      console.error("Error fetching buy tokens:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error fetching buy tokens:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
   fastify.get<{
     Params: NameserviceParams;
-  }>("/username-claimed/user/:user", async (request, reply) => {
+  }>('/username-claimed/user/:user', async (request, reply) => {
     try {
       const { username } = request.params;
 
@@ -86,10 +79,8 @@ async function nameserviceRoutes(
         data: usernameClaimedByUser,
       });
     } catch (error) {
-      console.error("Error fetching username by user:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error fetching username by user:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 }

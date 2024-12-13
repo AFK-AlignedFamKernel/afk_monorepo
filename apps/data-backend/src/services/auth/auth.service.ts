@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { FastifyInstance } from "fastify";
-import { config } from "../../config";
+import { PrismaClient } from '@prisma/client';
+import { FastifyInstance } from 'fastify';
+import { config } from '../../config';
 
 export class AuthService {
   constructor(private prisma: PrismaClient, private fastify: FastifyInstance) {}
@@ -42,7 +42,7 @@ export class AuthService {
       },
       accessToken,
       refreshToken,
-      tokenType: "Bearer",
+      tokenType: 'Bearer',
     };
   }
 
@@ -71,7 +71,7 @@ export class AuthService {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      tokenType: "Bearer",
+      tokenType: 'Bearer',
     };
   }
 

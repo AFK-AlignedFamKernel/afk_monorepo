@@ -1,10 +1,10 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
+import type { FastifyInstance, RouteOptions } from 'fastify';
 import {
   FUNKIT_STRIPE_SOURCE_CURRENCY,
   SOURCE_OF_FUND_KEY,
   TOKEN_INFO,
-} from "../../constants/funkit";
-import { generateClientMetadata } from "../../utils/funkit";
+} from '../../constants/funkit';
+import { generateClientMetadata } from '../../utils/funkit';
 
 interface InitCheckoutBody {
   quoteId: string;
@@ -12,35 +12,28 @@ interface InitCheckoutBody {
   estSubtotalUsd: number;
 }
 
-const FUNKIT_API_KEY = process.env.FUNKIT_API_KEY || "";
+const FUNKIT_API_KEY = process.env.FUNKIT_API_KEY || '';
 
 async function createFunkitStripeCheckout(
   fastify: FastifyInstance,
-  _options: RouteOptions
+  _options: RouteOptions,
 ): Promise<void> {
   fastify.post<{ Body: InitCheckoutBody }>(
-    "/create_funkit_stripe_checkout",
+    '/create_funkit_stripe_checkout',
     async (request, reply) => {
-      const { quoteId, paymentTokenAmount, estSubtotalUsd } =
-        request.body as InitCheckoutBody;
+      const { quoteId, paymentTokenAmount, estSubtotalUsd } = request.body as InitCheckoutBody;
       if (!quoteId) {
-        return reply.status(400).send({ message: "quoteId is required." });
+        return reply.status(400).send({ message: 'quoteId is required.' });
       }
       if (!paymentTokenAmount) {
-        return reply
-          .status(400)
-          .send({ message: "paymentTokenAmount is required." });
+        return reply.status(400).send({ message: 'paymentTokenAmount is required.' });
       }
       if (!estSubtotalUsd) {
-        return reply
-          .status(400)
-          .send({ message: "estSubtotalUsd is required." });
+        return reply.status(400).send({ message: 'estSubtotalUsd is required.' });
       }
       try {
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
-        const { initializeCheckout, createStripeBuySession } = await import(
-          "@funkit/api-base"
-        );
+        const { initializeCheckout, createStripeBuySession } = await import('@funkit/api-base');
         const depositAddress = await initializeCheckout({
           userOp: null,
           quoteId,
@@ -52,9 +45,7 @@ async function createFunkitStripeCheckout(
           apiKey: FUNKIT_API_KEY,
         });
         if (!depositAddress) {
-          return reply
-            .status(500)
-            .send({ message: "Failed to start a funkit checkout." });
+          return reply.status(500).send({ message: 'Failed to start a funkit checkout.' });
         }
         // 2 - Generate stripe session
         const stripeSession = await createStripeBuySession({
@@ -66,14 +57,8 @@ async function createFunkitStripeCheckout(
           walletAddress: depositAddress,
           isSandbox: false,
         });
-        if (
-          !stripeSession ||
-          !stripeSession.id ||
-          !stripeSession.redirect_url
-        ) {
-          return reply
-            .status(500)
-            .send({ message: "Failed to start a stripe checkout session." });
+        if (!stripeSession || !stripeSession.id || !stripeSession.redirect_url) {
+          return reply.status(500).send({ message: 'Failed to start a stripe checkout session.' });
         }
         return reply.send({
           stripeCheckoutId: stripeSession.id,
@@ -81,12 +66,10 @@ async function createFunkitStripeCheckout(
           funkitDepositAddress: depositAddress,
         });
       } catch (error: any) {
-        console.error("Failed to start a checkout:", error);
-        return reply
-          .status(500)
-          .send({ message: "Failed to start a checkout." });
+        console.error('Failed to start a checkout:', error);
+        return reply.status(500).send({ message: 'Failed to start a checkout.' });
       }
-    }
+    },
   );
 }
 
