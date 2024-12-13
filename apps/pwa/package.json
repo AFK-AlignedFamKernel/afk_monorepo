@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "https": "next dev --experimental-https",
     "start": "next start",
     "build:app": "pnpm run build:nostr_sdk && next build",
     "build": "next build",
