@@ -46,7 +46,7 @@ jobs:
 
       - name: Build Prisma client
         run: pnpm generate
-        working-directory: ../../packages/indexer-prisma
+        working-directory: ./packages/indexer-prisma
 
       - name: Prettier Format Check
         run: pnpm format:check
