@@ -110,6 +110,10 @@ const canSession = (wallet) => {
         if (wallet && connectorData && connector) {
 
           const new_account = await connector.account(provider);
+
+          console.log(new_account, "sjsjsj")
+
+  
           set({
             wallet,
             connectorData:{account:connectorData?.account,chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString(): undefined},
@@ -231,6 +235,7 @@ const canSession = (wallet) => {
 
   export const useAutoConnect = () => {
     const {setWallet, setConnector, setConnectorData,connectorData, setIsSessionable,
+      setAccount,
       } = useWalletStore()
   
     useEffect(() => {
@@ -246,7 +251,8 @@ const canSession = (wallet) => {
               icons: []
             }
           });
-  
+          const new_account = await connector.account(provider);
+          setAccount(new_account)
           setConnector(connector);
           setWallet(connectedWallet)
           setIsSessionable(canSession(connectedWallet))
@@ -266,7 +272,7 @@ const canSession = (wallet) => {
       if (!connectorData) {
         autoConnect();
       }
-    }, [setConnector, setConnectorData, connectorData, setIsSessionable, setWallet]);
+    }, [setConnector, setConnectorData, connectorData, setIsSessionable, setWallet, setAccount]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
