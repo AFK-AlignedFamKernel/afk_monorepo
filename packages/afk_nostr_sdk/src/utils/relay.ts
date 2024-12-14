@@ -13,6 +13,8 @@ export const RELAYS_TEST = [
   'wss://nos.lol'
 ];
 
+// export const RELAYS_TEST = ['wss://relay.n057r.club', 'wss://relay.nostr.net'];
+
 export const RELAY_AFK_PRODUCTION = 'wss://nostr-relay-nestjs-production.up.railway.app';
 
 export const AFK_RELAYS =
