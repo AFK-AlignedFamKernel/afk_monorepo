@@ -1,5 +1,5 @@
 use core::starknet::{ContractAddress, ClassHash};
-use afk::pixel::canvas::Canvas;
+use afk_games::pixel::canvas::Canvas;
 
 #[starknet::interface]
 pub trait ICanvasFactory<TContractState> {
@@ -20,7 +20,7 @@ pub trait ICanvasFactory<TContractState> {
 pub mod CanvasFactory {
     use starknet::syscalls::deploy_syscall;
     use core::starknet::{get_caller_address, ContractAddress, ClassHash};
-    use afk::pixel::canvas::Canvas;
+    use afk_games::pixel::canvas::Canvas;
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
          StoragePointerReadAccess,

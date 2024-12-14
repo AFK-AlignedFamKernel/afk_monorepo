@@ -1,6 +1,6 @@
 #[starknet::component]
 pub mod TemplateStoreComponent {
-    use afk::interfaces::pixel_template::{ITemplateStore, TemplateMetadata};
+    use afk_games::interfaces::pixel_template::{ITemplateStore, TemplateMetadata};
     use core::num::traits::Zero;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{

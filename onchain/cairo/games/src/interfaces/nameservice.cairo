@@ -1,4 +1,4 @@
-use afk::afk_id::nameservice::Nameservice::{Auction};
+use afk_games::afk_id::nameservice::Nameservice::{Auction};
 use starknet::ContractAddress;
 
 #[starknet::interface]

@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod vault_test {
-    use afk::defi::vault::Vault::Event;
-    use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::defi_types::{ // TokenPermitted, DepositUser,
+    use afk_games::defi::vault::Vault::Event;
+    use afk_games::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk_games::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
+    use afk_games::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk_games::types::defi_types::{ // TokenPermitted, DepositUser,
         MintDepositEvent, WithdrawDepositEvent
     };
     use snforge_std::{

@@ -1,5 +1,5 @@
-use afk::types::quest::{QuestInfo, UserQuestInfo};
-use afk::types::tap_types::{TapUserStats};
+use afk_games::types::quest::{QuestInfo, UserQuestInfo};
+use afk_games::types::tap_types::{TapUserStats};
 use starknet::ContractAddress;
 
 #[starknet::interface]

@@ -37,6 +37,7 @@ pub(crate) fn deploy_contract() -> ContractAddress {
     let contract = declare("ArtPeace").unwrap().contract_class();
     let mut calldata = array![];
     InitParams {
+        host:HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,
@@ -94,6 +95,7 @@ pub(crate) fn deploy_with_quests_contract(
     let daily_quests_count = 3;
     let mut calldata = array![];
     InitParams {
+        host:HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,
@@ -169,8 +171,10 @@ fn deploy_nft_contract() -> ContractAddress {
     let mut calldata = array![];
     let name: ByteArray = "CanvasNFTs";
     let symbol: ByteArray = "A/P";
+    let base_uri: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
     name.serialize(ref calldata);
     symbol.serialize(ref calldata);
+    base_uri.serialize(ref calldata);
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::NFT_CONTRACT()).unwrap();
     contract_addr
 }
@@ -178,7 +182,7 @@ fn deploy_nft_contract() -> ContractAddress {
 
 fn deploy_erc20_mock() -> ContractAddress {
     // use DualVmToken erc20 for testing
-    let contract = declare("DualVmToken").unwrap().contract_class();
+    let contract = declare("ERC20").unwrap().contract_class();
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
     let recipient: ContractAddress = utils::HOST();
     let mut calldata = array![];

@@ -2,7 +2,7 @@
 version = 1
 
 [[package]]
-name = "afk"
+name = "afk_games"
 version = "0.1.0"
 dependencies = [
  "alexandria_math",

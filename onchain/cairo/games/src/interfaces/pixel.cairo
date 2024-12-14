@@ -155,20 +155,20 @@ pub trait IArtPeace<TContractState> {
     // Templates
     fn add_faction_template(
         ref self: TContractState,
-        template_metadata: afk::interfaces::pixel_template::FactionTemplateMetadata
+        template_metadata: afk_games::interfaces::pixel_template::FactionTemplateMetadata
     );
     // fn add_faction_template(
     //     ref self: TContractState,
-    //     template_metadata: afk::pixel::templates::interfaces::FactionTemplateMetadata
+    //     template_metadata: afk_games::pixel::templates::interfaces::FactionTemplateMetadata
     // );
     fn remove_faction_template(ref self: TContractState, template_id: u32);
     // fn add_chain_faction_template(
     //     ref self: TContractState,
-    //     template_metadata: afk::pixel::templates::interfaces::FactionTemplateMetadata
+    //     template_metadata: afk_games::pixel::templates::interfaces::FactionTemplateMetadata
     // );
     fn add_chain_faction_template(
         ref self: TContractState,
-        template_metadata: afk::interfaces::pixel_template::FactionTemplateMetadata
+        template_metadata: afk_games::interfaces::pixel_template::FactionTemplateMetadata
     );
     fn remove_chain_faction_template(ref self: TContractState, template_id: u32);
 
@@ -366,7 +366,7 @@ pub struct ChainFactionJoined {
 pub struct FactionTemplateAdded {
     #[key]
     pub template_id: u32,
-    pub template_metadata: afk::interfaces::pixel_template::FactionTemplateMetadata,
+    pub template_metadata: afk_games::interfaces::pixel_template::FactionTemplateMetadata,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -379,7 +379,7 @@ pub struct FactionTemplateRemoved {
 pub struct ChainFactionTemplateAdded {
     #[key]
     pub template_id: u32,
-    pub template_metadata: afk::interfaces::pixel_template::FactionTemplateMetadata,
+    pub template_metadata: afk_games::interfaces::pixel_template::FactionTemplateMetadata,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -390,7 +390,7 @@ pub struct ChainFactionTemplateRemoved {
 
 #[derive(Drop, Serde)]
 pub struct InitParams {
-    // pub host: ContractAddress,
+    pub host: ContractAddress,
     pub canvas_width: u128,
     pub canvas_height: u128,
     pub time_between_pixels: u64,

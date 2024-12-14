@@ -1,9 +1,9 @@
 #[starknet::contract]
 mod CanvasNFT {
-    use afk::interfaces::nfts::ICanvasNFTStore;
-    use afk::interfaces::nfts::{ICanvasNFTAdditional, ICanvasNFTLikeAndUnlike, NFTMetadata};
-    use afk::nfts::component::CanvasNFTStoreComponent::CanvasNFTMinted;
-    use afk::nfts::component::CanvasNFTStoreComponent;
+    use afk_games::interfaces::nfts::ICanvasNFTStore;
+    use afk_games::interfaces::nfts::{ICanvasNFTAdditional, ICanvasNFTLikeAndUnlike, NFTMetadata};
+    use afk_games::nfts::component::CanvasNFTStoreComponent::CanvasNFTMinted;
+    use afk_games::nfts::component::CanvasNFTStoreComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     // use openzeppelin::token::erc721::ERC721Component;
     use openzeppelin::token::erc721::interface::IERC721Metadata;
