@@ -71,13 +71,15 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const { 
     connectWallet, 
     startSession,
-    account, address,
+    account,
+    address,
     queryAddress,
     setConnected,
     isSessionable,
     disconnectWallet,
     usingSessionKeys 
   } = useWalletStore()
+
 
   //Connect
   useQueryAddressEffect()
