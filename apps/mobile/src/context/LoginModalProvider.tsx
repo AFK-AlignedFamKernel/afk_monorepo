@@ -21,7 +21,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
   const loginModalRef = useRef<LoginModal>(null);
 
 
-  const navigation = useNavigation<MainStackNavigationProps>()
+  // const navigation = useNavigation<MainStackNavigationProps>()
 
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
@@ -62,8 +62,9 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
         ref={loginModalRef}
         adjustToContentHeight
       >
+        {/* TODO: Add navigationProps in the Login Modal others issues */}
         <LoginNostrModule 
-        navigationProps={navigation}
+        // navigationProps={navigation}
         />
       </Modalize>
 
