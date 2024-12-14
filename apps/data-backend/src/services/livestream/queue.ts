@@ -8,11 +8,7 @@ class UploadQueue {
   private windowMs: number;
   private maxRequestsPerWindow: number;
 
-  constructor(options: {
-    concurrency: number;
-    windowMs: number;
-    maxRequestsPerWindow: number;
-  }) {
+  constructor(options: { concurrency: number; windowMs: number; maxRequestsPerWindow: number }) {
     this.concurrency = options.concurrency;
     this.windowMs = options.windowMs;
     this.maxRequestsPerWindow = options.maxRequestsPerWindow;
@@ -72,11 +68,8 @@ async function retry<T>(
     minTimeout: number;
     maxTimeout: number;
     factor: number;
-    onFailedAttempt?: (error: {
-      attemptNumber: number;
-      retriesLeft: number;
-    }) => Promise<void>;
-  }
+    onFailedAttempt?: (error: { attemptNumber: number; retriesLeft: number }) => Promise<void>;
+  },
 ): Promise<T> {
   let attempt = 1;
 
@@ -99,7 +92,7 @@ async function retry<T>(
 
       const timeout = Math.min(
         options.maxTimeout,
-        options.minTimeout * Math.pow(options.factor, attempt - 1)
+        options.minTimeout * Math.pow(options.factor, attempt - 1),
       );
 
       await new Promise((resolve) => setTimeout(resolve, timeout));
@@ -121,13 +114,8 @@ export const retryOptions = {
   factor: 2,
   minTimeout: 1000,
   maxTimeout: 5000,
-  onFailedAttempt: async (error: {
-    attemptNumber: number;
-    retriesLeft: number;
-  }) => {
-    console.log(
-      `Upload attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`
-    );
+  onFailedAttempt: async (error: { attemptNumber: number; retriesLeft: number }) => {
+    console.log(`Upload attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`);
     await new Promise((resolve) => setTimeout(resolve, 1000));
   },
 };

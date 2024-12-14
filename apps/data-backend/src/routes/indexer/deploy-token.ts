@@ -1,18 +1,15 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma";
-import { HTTPStatus } from "../../utils/http";
-import { isValidStarknetAddress } from "../../utils/starknet";
+import type { FastifyInstance, RouteOptions } from 'fastify';
+import prisma from 'indexer-prisma';
+import { HTTPStatus } from '../../utils/http';
+import { isValidStarknetAddress } from '../../utils/starknet';
 
 interface DeployTokenParams {
   token: string;
   owner_address?: string;
 }
 
-async function deployTokenRoute(
-  fastify: FastifyInstance,
-  options: RouteOptions
-) {
-  fastify.get("/deploy", async (request, reply) => {
+async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions) {
+  fastify.get('/deploy', async (request, reply) => {
     try {
       const deploys = await prisma.token_deploy.findMany({
         select: {
@@ -30,22 +27,20 @@ async function deployTokenRoute(
         data: deploys,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 
   fastify.get<{
     Params: DeployTokenParams;
-  }>("/deploy/:token", async (request, reply) => {
+  }>('/deploy/:token', async (request, reply) => {
     try {
       const { token } = request.params;
       if (!isValidStarknetAddress(token)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -67,22 +62,20 @@ async function deployTokenRoute(
         data: deploys,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 
   fastify.get<{
     Params: DeployTokenParams;
-  }>("/deploy/from/:user/", async (request, reply) => {
+  }>('/deploy/from/:user/', async (request, reply) => {
     try {
       const { owner_address } = request.params;
       if (owner_address && !isValidStarknetAddress(owner_address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -104,10 +97,8 @@ async function deployTokenRoute(
         data: deploys,
       });
     } catch (error) {
-      console.error("Error deploying launch by user:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch by user:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 }

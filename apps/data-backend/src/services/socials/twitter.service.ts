@@ -1,12 +1,8 @@
-import { type IParsedOAuth2TokenResult, TwitterApi } from "twitter-api-v2";
-import { addDays } from "date-fns";
-import {
-  ConnectTwitterParams,
-  SocialPlatform,
-  TwitterUserDetails,
-} from "../../types";
-import { PrismaClient } from "@prisma/client";
-import { FastifyInstance } from "fastify";
+import { type IParsedOAuth2TokenResult, TwitterApi } from 'twitter-api-v2';
+import { addDays } from 'date-fns';
+import { ConnectTwitterParams, SocialPlatform, TwitterUserDetails } from '../../types';
+import { PrismaClient } from '@prisma/client';
+import { FastifyInstance } from 'fastify';
 
 export class TwitterService {
   private client: TwitterApi;
@@ -20,12 +16,9 @@ export class TwitterService {
   }
 
   async getAuthorizationLink() {
-    const data = this.client.generateOAuth2AuthLink(
-      process.env.TWITTER_CALLBACK_URL!,
-      {
-        scope: ["tweet.read", "users.read", "offline.access"],
-      }
-    );
+    const data = this.client.generateOAuth2AuthLink(process.env.TWITTER_CALLBACK_URL!, {
+      scope: ['tweet.read', 'users.read', 'offline.access'],
+    });
 
     return data;
   }
@@ -51,7 +44,7 @@ export class TwitterService {
     const me = await userClient.v2.me();
 
     if (!me.data) {
-      throw new Error("Failed to fetch Twitter user details");
+      throw new Error('Failed to fetch Twitter user details');
     }
 
     return {
@@ -74,8 +67,10 @@ export class TwitterService {
       }
 
       // 2. Complete OAuth flow
-      const { accessToken, refreshToken, expiresIn } =
-        await this.handleCallback({ code, codeVerifier });
+      const { accessToken, refreshToken, expiresIn } = await this.handleCallback({
+        code,
+        codeVerifier,
+      });
 
       // 3. Get user details from Twitter
       const twitterUser = await this.getUserDetails(accessToken);
@@ -111,7 +106,7 @@ export class TwitterService {
         },
       });
     } catch (error) {
-      console.error("Error connecting Twitter account:", error);
+      console.error('Error connecting Twitter account:', error);
       throw error;
     }
   }
@@ -128,7 +123,7 @@ export class TwitterService {
       });
 
       if (!socialAccount) {
-        throw new Error("No Twitter account found for user");
+        throw new Error('No Twitter account found for user');
       }
 
       // Check if token needs refresh (1 day buffer)
@@ -137,8 +132,9 @@ export class TwitterService {
         : true;
 
       if (shouldRefresh && socialAccount.refreshToken) {
-        const { accessToken, refreshToken } =
-          await this.client.refreshOAuth2Token(socialAccount.refreshToken);
+        const { accessToken, refreshToken } = await this.client.refreshOAuth2Token(
+          socialAccount.refreshToken,
+        );
 
         // Update tokens in database
         return await this.prisma.socialAccount.update({
@@ -155,7 +151,7 @@ export class TwitterService {
 
       return socialAccount;
     } catch (error) {
-      console.error("Error refreshing Twitter token:", error);
+      console.error('Error refreshing Twitter token:', error);
       throw error;
     }
   }
@@ -172,15 +168,12 @@ export class TwitterService {
       });
 
       if (!socialAccount) {
-        throw new Error("No Twitter account found for user");
+        throw new Error('No Twitter account found for user');
       }
 
       // Revoke tokens if they exist
       if (socialAccount.accessToken) {
-        await this.client.revokeOAuth2Token(
-          socialAccount.accessToken,
-          "access_token"
-        );
+        await this.client.revokeOAuth2Token(socialAccount.accessToken, 'access_token');
       }
 
       // Delete the social account record
@@ -192,7 +185,7 @@ export class TwitterService {
 
       return true;
     } catch (error) {
-      console.error("Error disconnecting Twitter account:", error);
+      console.error('Error disconnecting Twitter account:', error);
       throw error;
     }
   }

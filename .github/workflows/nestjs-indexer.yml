@@ -1,4 +1,4 @@
-name: Data Backend App
+name: NestJS Indexer App
 
 on: [push, pull_request]
 
@@ -8,7 +8,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./apps/data-backend
+        working-directory: ./apps/nestjs-indexer
 
     steps:
       - name: Checkout Code
@@ -43,6 +43,10 @@ jobs:
           else
             pnpm install
           fi
+
+      - name: Build Prisma client
+        run: pnpm generate
+        working-directory: ./packages/indexer-prisma
 
       - name: Prettier Format Check
         run: pnpm format:check

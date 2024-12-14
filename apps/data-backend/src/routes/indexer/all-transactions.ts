@@ -1,25 +1,22 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma";
-import { HTTPStatus } from "../../utils/http";
-import { isValidStarknetAddress } from "../../utils/starknet";
+import type { FastifyInstance, RouteOptions } from 'fastify';
+import prisma from 'indexer-prisma';
+import { HTTPStatus } from '../../utils/http';
+import { isValidStarknetAddress } from '../../utils/starknet';
 
 interface AllTransactionsParams {
   tokenAddress: string;
 }
 
-async function allTransactionsRoute(
-  fastify: FastifyInstance,
-  options: RouteOptions
-) {
+async function allTransactionsRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get<{
     Params: AllTransactionsParams;
-  }>("/all-transactions/:tokenAddress", async (request, reply) => {
+  }>('/all-transactions/:tokenAddress', async (request, reply) => {
     try {
       const { tokenAddress } = request.params;
       if (!isValidStarknetAddress(tokenAddress)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -48,10 +45,8 @@ async function allTransactionsRoute(
         data: allTransactions,
       });
     } catch (error) {
-      console.error("Error fetching buy tokens:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error fetching buy tokens:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 }

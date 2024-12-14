@@ -1,11 +1,6 @@
-import {
-  Account,
-  RpcProvider,
-  TypedData,
-  WeierstrassSignatureType,
-} from "starknet";
+import { Account, RpcProvider, TypedData, WeierstrassSignatureType } from 'starknet';
 
-import { NODE_URL, SN_CHAIN_ID } from "../../constants/contracts";
+import { NODE_URL, SN_CHAIN_ID } from '../../constants/contracts';
 
 export class SignatureService {
   private provider: RpcProvider;
@@ -38,17 +33,13 @@ export class SignatureService {
 
       // Using dummy private key since we only need it for interface compatibility
       // This won't affect verification as we're only using public methods
-      const dummyPrivateKey = "0x1";
-      const account = new Account(
-        this.provider,
-        accountAddress,
-        dummyPrivateKey
-      );
+      const dummyPrivateKey = '0x1';
+      const account = new Account(this.provider, accountAddress, dummyPrivateKey);
 
       return await account.verifyMessage(signedData, formattedSignature);
     } catch (error) {
-      console.log("verification failed:", error);
-      throw Error("Error:" + error);
+      console.log('verification failed:', error);
+      throw Error('Error:' + error);
     }
   }
 }

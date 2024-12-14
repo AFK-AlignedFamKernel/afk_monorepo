@@ -1,7 +1,7 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma";
-import { HTTPStatus } from "../../../utils/http";
-import { isValidStarknetAddress } from "../../../utils/starknet";
+import type { FastifyInstance, RouteOptions } from 'fastify';
+import prisma from 'indexer-prisma';
+import { HTTPStatus } from '../../../utils/http';
+import { isValidStarknetAddress } from '../../../utils/starknet';
 
 interface DeployLaunchParams {
   launch: string;
@@ -9,7 +9,7 @@ interface DeployLaunchParams {
 
 // Routes for Unrug data of dashboard
 async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
-  fastify.get("/unrug/create-token", async (request, reply) => {
+  fastify.get('/unrug/create-token', async (request, reply) => {
     try {
       const launches = await prisma.unrugmeme_deploy.findMany({
         select: {
@@ -21,22 +21,20 @@ async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
         data: launches,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 
   fastify.get<{
     Params: DeployLaunchParams;
-  }>("/unrug/deploy-launch/:launch", async (request, reply) => {
+  }>('/unrug/deploy-launch/:launch', async (request, reply) => {
     try {
       const { launch } = request.params;
       if (!isValidStarknetAddress(launch)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -54,22 +52,20 @@ async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
         data: launchPool,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 
   fastify.get<{
     Params: DeployLaunchParams;
-  }>("/unrug/tokens-transfers", async (request, reply) => {
+  }>('/unrug/tokens-transfers', async (request, reply) => {
     try {
       const { launch } = request.params;
       if (!isValidStarknetAddress(launch)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -91,22 +87,20 @@ async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
         data: undefined,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 
   fastify.get<{
     Params: DeployLaunchParams;
-  }>("/unrug/deploy-launch/stats/:launch", async (request, reply) => {
+  }>('/unrug/deploy-launch/stats/:launch', async (request, reply) => {
     try {
       const { launch } = request.params;
       if (!isValidStarknetAddress(launch)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: "Invalid token address",
+          message: 'Invalid token address',
         });
         return;
       }
@@ -128,10 +122,8 @@ async function unrugRoutes(fastify: FastifyInstance, options: RouteOptions) {
         data: undefined,
       });
     } catch (error) {
-      console.error("Error deploying launch:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 }
