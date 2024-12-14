@@ -1,4 +1,3 @@
-
 pub mod errors;
 
 pub mod math;
@@ -46,7 +45,6 @@ pub mod pixel {
 }
 
 
-
 pub mod quests {
     pub mod authority_quest;
     pub mod chain_faction_quest;
@@ -62,8 +60,6 @@ pub mod quests {
     pub mod username_quest;
     pub mod vote_quest;
 }
-
-
 
 
 pub mod types {

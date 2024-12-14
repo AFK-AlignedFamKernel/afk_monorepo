@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod quest_factory_tests {
-    use afk_games::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk_games::interfaces::erc20_mintable::{
+        IERC20MintableDispatcher, IERC20MintableDispatcherTrait
+    };
     use afk_games::interfaces::quest::{
         IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestNFTDispatcher,
         IQuestNFTDispatcherTrait, ITapQuestsDispatcher, ITapQuestsDispatcherTrait

@@ -1,5 +1,5 @@
-use core::starknet::{ContractAddress, ClassHash};
 use afk_games::pixel::canvas::Canvas;
+use core::starknet::{ContractAddress, ClassHash};
 
 #[starknet::interface]
 pub trait ICanvasFactory<TContractState> {
@@ -18,9 +18,8 @@ pub trait ICanvasFactory<TContractState> {
 
 #[starknet::contract]
 pub mod CanvasFactory {
-    use starknet::syscalls::deploy_syscall;
-    use core::starknet::{get_caller_address, ContractAddress, ClassHash};
     use afk_games::pixel::canvas::Canvas;
+    use core::starknet::{get_caller_address, ContractAddress, ClassHash};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
          StoragePointerReadAccess,
@@ -33,6 +32,7 @@ pub mod CanvasFactory {
     // StorageAsPathWriteForward,
     // PathableStorageEntryImpl
     };
+    use starknet::syscalls::deploy_syscall;
     #[storage]
     struct Storage {
         owner: ContractAddress,
@@ -124,7 +124,8 @@ pub mod CanvasFactory {
         fn create_canvas(
             ref self: ContractState, init_params: super::Canvas::InitParams
         ) -> (ContractAddress, u64) {
-            // TODO: Serialize before calling this function to defer serialization to the contract input
+            // TODO: Serialize before calling this function to defer serialization to the contract
+            // input
             let mut init_params_serialized = array![];
             init_params.serialize(ref init_params_serialized);
             let deploy_res = deploy_syscall(

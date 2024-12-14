@@ -254,7 +254,8 @@ pub mod Canvas {
 
         let caller = starknet::get_caller_address();
         // TODO: let pixel = Pixel { color, owner: caller };
-        // TODO: self.canvas.write(pos, pixel);                                                     let day = self.day_index.read();
+        // TODO: self.canvas.write(pos, pixel);
+        // let day = self.day_index.read();
         // self
         //     .user_pixels_placed
         //     .write((day, caller, color), self.user_pixels_placed.read((day, caller, color)) + 1);

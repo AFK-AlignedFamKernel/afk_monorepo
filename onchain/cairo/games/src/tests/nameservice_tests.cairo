@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod nameservice_tests {
     use afk_games::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk_games::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk_games::interfaces::erc20_mintable::{
+        IERC20MintableDispatcher, IERC20MintableDispatcherTrait
+    };
     use afk_games::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,

@@ -11,10 +11,7 @@ pub mod ArtPeace {
         ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
-        ChainFactionTemplateRemoved, 
-         InitParams,
-         MetadataPixel,
-         PixelMetadataPlaced
+        ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -221,8 +218,7 @@ pub mod ArtPeace {
         while i < color_count {
             self.color_palette.write(i, *init_params.color_palette.at(i.into()));
             // TODO fix events
-            self.emit(ColorAdded { color_key: i, color: *init_params.color_palette.at(i.into())
-            });
+            self.emit(ColorAdded { color_key: i, color: *init_params.color_palette.at(i.into()) });
             i += 1;
         };
 
@@ -299,10 +295,11 @@ pub mod ArtPeace {
             // Check if ok
             self
                 .emit(
-                    PixelMetadataPlaced { placed_by: caller, pos:pos,  day:day, color:color, metadata: metadata }
+                    PixelMetadataPlaced {
+                        placed_by: caller, pos: pos, day: day, color: color, metadata: metadata
+                    }
                 );
         }
-
     }
 
     #[abi(embed_v0)]
@@ -410,7 +407,6 @@ pub mod ArtPeace {
         //             PixelMetadataPlaced { placed_by: caller, timestamp: now, metadata: metadata }
         //         );
         // }
-
 
         fn place_pixel_xy(ref self: ContractState, x: u128, y: u128, color: u8, now: u64) {
             let pos = x + y * self.canvas_width.read();

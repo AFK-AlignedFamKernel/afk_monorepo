@@ -1,6 +1,8 @@
 #[starknet::contract]
 pub mod TemplateQuest {
-    use afk_games::interfaces::pixel_template::{ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait};
+    use afk_games::interfaces::pixel_template::{
+        ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait
+    };
     use afk_games::interfaces::quests::IQuest;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map

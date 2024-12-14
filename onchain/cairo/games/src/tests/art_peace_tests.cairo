@@ -37,7 +37,7 @@ pub(crate) fn deploy_contract() -> ContractAddress {
     let contract = declare("ArtPeace").unwrap().contract_class();
     let mut calldata = array![];
     InitParams {
-        host:HOST(),
+        host: utils::HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,
@@ -95,7 +95,7 @@ pub(crate) fn deploy_with_quests_contract(
     let daily_quests_count = 3;
     let mut calldata = array![];
     InitParams {
-        host:HOST(),
+        host: utils::HOST(),
         canvas_width: WIDTH,
         canvas_height: HEIGHT,
         time_between_pixels: TIME_BETWEEN_PIXELS,

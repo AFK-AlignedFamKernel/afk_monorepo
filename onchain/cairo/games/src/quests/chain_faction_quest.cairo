@@ -1,5 +1,4 @@
 #[starknet::contract]
-
 pub mod ChainFactionQuest {
     use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
     use afk_games::interfaces::quests::{IAuthorityQuest, IQuest};

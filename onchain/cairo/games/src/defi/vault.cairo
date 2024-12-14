@@ -1,11 +1,15 @@
-use afk_games::types::defi_types::{TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent};
+use afk_games::types::defi_types::{
+    TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent
+};
 use starknet::ContractAddress;
 
 // TODO
 // Create the as a Vault component
 #[starknet::contract]
 pub mod Vault {
-    use afk_games::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
+    use afk_games::interfaces::erc20_mintable::{
+        IERC20MintableDispatcher, IERC20MintableDispatcherTrait
+    };
     use afk_games::interfaces::vault::{IERCVault};
     use afk_games::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_games::types::constants::{ // MINTER_ROLE,
