@@ -36,11 +36,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
 
   const contacts = useContacts({authors: [publicKey]});
   const notes = useSearch({
-    // search: search,
     kinds,
-    limit: 10,
-    // authors: activeSortBy && contacts?.data?.?? [],
-    // sortBy: activeSortBy,
+    limit: 50,
   });
   
   // console.log(notes, 'notes');
@@ -74,7 +71,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     const filtered = filteredNotes();
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, [search, notes.data?.pages]);
+  }, []);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
@@ -85,6 +82,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       setFeedData(forYouNotes as any);
     }
   }, [activeSortBy]);
+
 
   const handleNavigate = (id: string) => {
     navigation.navigate('WatchStream', {streamId: id});
