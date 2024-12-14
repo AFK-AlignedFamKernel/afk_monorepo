@@ -38,8 +38,6 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const notes = useSearch({
     kinds,
     limit: 50,
-    authors: publicKey ? [publicKey] : undefined,
-  
   });
   
   // console.log(notes, 'notes');
@@ -73,7 +71,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     const filtered = filteredNotes();
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, [search, notes.data?.pages]);
+  }, []);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
@@ -85,17 +83,6 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     }
   }, [activeSortBy]);
 
-  useEffect(() => {
-    if (notes.isLoading) {
-      console.log('Loading notes...');
-    }
-    if (notes.error) {
-      console.error('Notes error:', notes.error);
-    }
-    if (notes.data) {
-      console.log('Notes data:', notes.data);
-    }
-  }, [notes.isLoading, notes.error, notes.data]);
 
   const handleNavigate = (id: string) => {
     navigation.navigate('WatchStream', {streamId: id});
