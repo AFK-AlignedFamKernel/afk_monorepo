@@ -29,9 +29,9 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     NDKKind.GroupChat,
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
-    NDKKind.VerticalVideo,
-    NDKKind.HorizontalVideo,
-    30311 as NDKKind,
+    // NDKKind.VerticalVideo,
+    // NDKKind.HorizontalVideo,
+    // 30311 as NDKKind,
   ]);
 
   const contacts = useContacts({authors: [publicKey]});
@@ -43,7 +43,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     // sortBy: activeSortBy,
   });
   
-  console.log(notes, 'notes');
+  // console.log(notes, 'notes');
+  console.log("notes", notes);
 
   // Filter profiles based on the search query
   const profilesSearch =
