@@ -85,6 +85,7 @@ export type MainStackParams = {
   SocialPayment: undefined;
   TwitterCallback: {code: string};
   Nameservice: undefined;
+  Console: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -118,6 +119,7 @@ export type HomeBottomStackParams = {
   ShortVideos: undefined;
   TokenDetail: {coinAddress: string};
   Nameservice: undefined;
+  Console: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -394,6 +396,11 @@ export type SocialPayment = CompositeScreenProps<
 // Social Login
 export type TwitterCallback = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'TwitterCallback'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type ConsoleScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Console'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

@@ -15,8 +15,6 @@ export const LaunchpadScreen: React.FC<LaunchpadScreenProps> = () => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const [loading, setLoading] = useState<false | number>(false);
-  const {ndk} = useNostrContext();
-
   const {provider} = useProvider();
   const account = useAccount();
   const {sendTransaction} = useTransaction({});

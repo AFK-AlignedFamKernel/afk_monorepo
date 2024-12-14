@@ -65,6 +65,7 @@ import {ThemedStyleSheet} from '../styles';
 // Utilities
 import {AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams} from '../types';
 import {initGoogleAnalytics, logPageView} from '../utils/analytics';
+import { ConsoleScreen } from '../screens/Console';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -127,6 +128,17 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
           tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CoinIcon" />,
+        }}
+      />
+
+
+      <HomeBottomTabsStack.Screen
+        name="Console"
+        component={ConsoleScreen as any}
+        options={{
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: 'grey',
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="ConsoleIcon" />,
         }}
       />
 
@@ -325,6 +337,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
+      <MainStack.Screen name="Console" component={ConsoleScreen} />
+
     </MainStack.Navigator>
   );
 };

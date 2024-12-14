@@ -1,5 +1,20 @@
 import Svg, {G, Path, Rect, SvgProps} from 'react-native-svg';
 
+
+export const ConsoleIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      fill="currentColor" 
+      d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14z"
+    />
+    <Path
+      fill="currentColor"
+      d="M6 7h5v5H6zm7 0h5v5h-5zm-7 7h5v3H6zm7 0h5v3h-5z"
+    />
+  </Svg>
+);
+
+
 export const AddPostIcon: React.FC<SvgProps> = (props) => (
   <Svg viewBox="0 0 72 72" fill="none" {...props}>
     <Path
