@@ -26,11 +26,13 @@ COPY package.json pnpm-workspace.yaml ./
 
 # Install pnpm globally
 RUN npm install -g pnpm
+RUN apk add --no-cache openssl
 
 # Copy the entire repository into the Docker container
 COPY . .
 
-RUN apk add --no-cache openssl
+# RUN apk add --no-cache openssl
+
 
 # Install all dependencies for the workspace
 RUN pnpm install --force

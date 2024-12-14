@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod keys_tests {
-    use afk::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
-    use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::keys_types::{
+    use afk_launchpad::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
+    use afk_launchpad::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk_launchpad::types::keys_types::{
         MINTER_ROLE, ADMIN_ROLE, KeysBonding, TokenQuoteBuyKeys, BondingType
     };
     use core::array::SpanTrait;
