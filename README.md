@@ -24,7 +24,7 @@ Freedom requires censorship resistance, and Nostr provides exactly that.
 
 ## Contribute
 
-Register to [Only Dust](https://onlydust.com/) to get rewarded for your contributions.
+Register to [Only Dust](https://app.onlydust.com/p/afk---aligned-fam-kernel) to get rewarded for your contributions.
 
 Tech stack:
 
@@ -56,7 +56,7 @@ Packages:
 ## Mobile
 
 The AFK Mobile app is built with React-native & Expo.
-[Current version](https://app.afk-community)
+[Current version](https://afk-community.xyz/app)
 
 Pick an issue with the labels "mobile" to start work on React-native and contribute!
 
