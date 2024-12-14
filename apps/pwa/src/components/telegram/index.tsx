@@ -2,7 +2,6 @@
 import {copyToClipboard} from '@/utils/copy';
 import {ArgentTMA, SessionAccountInterface} from '@argent/tma-wallet';
 import {Button, useToast} from '@chakra-ui/react';
-import WebApp from '@twa-dev/sdk';
 import {ART_PEACE_ADDRESS} from 'common';
 import {useEffect, useMemo, useState} from 'react';
 import {CallData, num, RPC} from 'starknet';
@@ -92,8 +91,8 @@ const initArgentTMA = () => {
   if (
     typeof window !== 'undefined' &&
     window.Telegram &&
-    WebApp.isActive &&
-    WebApp.platform !== 'unknown'
+    window.Telegram.WebApp.isActive &&
+    window.Telegram.WebApp.platform !== 'unknown'
   ) {
     return ArgentTMA.init(ARGENT_CONFIG as any);
   }
