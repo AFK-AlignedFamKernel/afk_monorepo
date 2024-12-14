@@ -5,6 +5,7 @@ export const RELAYS_PROD = [
   'wss://purplepag.es',
   'wss://relay.snort.social',
   'wss://nos.lol'
+  // 'wss://relay.n057r.club', 'wss://relay.nostr.net',
 ];
 
 export const RELAYS_TEST = [
