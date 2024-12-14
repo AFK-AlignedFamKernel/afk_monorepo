@@ -1,9 +1,9 @@
 export const RELAYS_PROD = [
   'wss://relay.primal.net',
+  'wss://relay.damus.io',
   'wss://relay.nostr.band',
   'wss://purplepag.es',
   'wss://relay.snort.social',
-  'wss://relay.damus.io',
   'wss://nos.lol',
   // 'wss://relay.n057r.club', 'wss://relay.nostr.net',
 ];
@@ -18,17 +18,11 @@ export const AFK_RELAYS =
   process.env.NODE_ENV == 'production'
     ? [
         // 'wss://nostr.joyboy.community',
-        'wss://nostr-relay-nestjs-production.up.railway.app',
         ...RELAYS_PROD,
+        'wss://nostr-relay-nestjs-production.up.railway.app',
       ]
     : [
-        // ...RELAYS_PROD,
         'ws://nostr-relay-nestjs-production.up.railway.app',
-        // ...RELAYS_PROD,
-
-        // 'wss://nostr.joyboy.community',
-        // 'wss://nostr-relay-nestjs-production.up.railway.app',
-        // 'wss://nostr-relay-nestjs-production.up.railway.app',
         ...RELAYS_TEST,
         // 'ws://localhost:8080', // comment if you don't run a relayer in localhost
         // 'ws://localhost:3000', // comment if you don't run a relayer in localhost

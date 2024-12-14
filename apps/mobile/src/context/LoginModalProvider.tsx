@@ -1,8 +1,10 @@
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
 
 import {Modalize} from '../components';
 import {LoginNostrModule} from '../modules/Login';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
+import { MainStackNavigationProps } from '../types';
 
 export type LoginModalContextType = {
   show: () => void;
@@ -17,6 +19,9 @@ export type LoginModal = Modalize;
 
 export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const loginModalRef = useRef<LoginModal>(null);
+
+
+  const navigation = useNavigation<MainStackNavigationProps>()
 
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
@@ -57,7 +62,9 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
         ref={loginModalRef}
         adjustToContentHeight
       >
-        <LoginNostrModule />
+        <LoginNostrModule 
+        navigationProps={navigation}
+        />
       </Modalize>
 
       {successModal && <TipSuccessModal {...successModal} />}

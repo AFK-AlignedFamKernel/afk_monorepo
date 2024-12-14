@@ -2,7 +2,7 @@ import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useAllProfiles, useSearch} from 'afk_nostr_sdk';
 import {useAuth, useContacts} from 'afk_nostr_sdk';
 import {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
+import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View, Text} from 'react-native';
 
 import {AddPostIcon} from '../../assets/icons';
 import {BubbleUser} from '../../components/BubbleUser';
@@ -42,6 +42,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     // authors: activeSortBy && contacts?.data?.?? [],
     // sortBy: activeSortBy,
   });
+  
+  console.log(notes, 'notes');
 
   // Filter profiles based on the search query
   const profilesSearch =
@@ -110,7 +112,15 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       />
 
       {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
-      {notes?.data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>}
+      {notes?.data?.pages?.length == 0 && 
+      
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text>No notes found</Text>
+        <Text>Try to refresh the page or contact the support please!</Text>
+        {/* <Button title="Go to console" onPress={() => navigation.navigate('Console')} /> */}
+      </View>
+      
+      }
 
       <FlatList
         ListHeaderComponent={

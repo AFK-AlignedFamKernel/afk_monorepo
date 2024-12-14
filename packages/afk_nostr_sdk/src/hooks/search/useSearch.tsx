@@ -34,7 +34,7 @@ export const useSearch = (options?: UseSearch) => {
         authors: options?.authors,
         search: options?.search,
         // content: options?.search,
-        until: pageParam || Math.round(Date.now() / 1000),
+        // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
       console.log('notes', notes);
