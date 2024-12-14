@@ -331,24 +331,14 @@ const MainNavigator: React.FC = () => {
 
 // Root Navigator
 const RootNavigator: React.FC = () => {
-  // const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
-
-  // useEffect(() => {
-  //   retrievePublicKey().then((key) => {
-  //     setPublicKey(key);
-  //   });
-  // }, []);
-
   const {publicKey} = useAuth();
   return (
     <RootStack.Navigator screenOptions={{headerShown: false}}>
-      {/* {publicKey ? (
+      {publicKey ? (
         <RootStack.Screen name="MainStack" component={MainNavigator} />
       ) : (
         <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-      )} */}
-      {/* <RootStack.Screen name="AuthStack" component={AuthNavigator} /> */}
-      <RootStack.Screen name="MainStack" component={MainNavigator} />
+      )}
     </RootStack.Navigator>
   );
 };
