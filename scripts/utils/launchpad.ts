@@ -5,6 +5,7 @@ import {
   cairo,
   uint256,
   byteArray,
+  CallData,
   Uint256,
 } from "starknet";
 import fs from "fs";
@@ -130,23 +131,48 @@ export const createLaunchpad = async (
     }
 
     const { transaction_hash, contract_address } =
-      await account0.deployContract({
-        classHash: LaunchpadClassHash,
-        constructorCalldata: [
-          accountAddress0,
-          initial_key_price,
-          tokenAddress,
-          step_increase_linear,
-          coin_class_hash_memecoin_last,
-          threshold_liquidity,
-          threshold_marketcap,
-          factory_address,
-          ekubo_registry,
-          core,
-          positions,
-          ekubo_exchange_address
-        ],
-      });
+    await account0.deployContract({
+      classHash: LaunchpadClassHash,
+      constructorCalldata: [
+        {
+          CallData.compile({
+            accountAddress0,
+            initial_key_price,
+            tokenAddress,
+            step_increase_linear,
+            coin_class_hash_memecoin_last,
+            threshold_liquidity,
+            threshold_marketcap,
+            factory_address,
+            ekubo_registry,
+            core,
+            positions,
+            ekubo_exchange_address
+          })
+
+        }
+       
+      ],
+    });
+
+    // const { transaction_hash, contract_address } =
+    //   await account0.deployContract({
+    //     classHash: LaunchpadClassHash,
+    //     constructorCalldata: [
+    //       accountAddress0,
+    //       initial_key_price,
+    //       tokenAddress,
+    //       step_increase_linear,
+    //       coin_class_hash_memecoin_last,
+    //       threshold_liquidity,
+    //       threshold_marketcap,
+    //       factory_address,
+    //       ekubo_registry,
+    //       core,
+    //       positions,
+    //       ekubo_exchange_address
+    //     ],
+    //   });
 
     console.log("transaction_hash", transaction_hash);
     console.log("contract_address", contract_address);

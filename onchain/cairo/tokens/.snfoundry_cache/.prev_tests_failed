@@ -1,0 +1,7 @@
+afk::tests::art_peace_tests::nft_mint_test
+afk::tests::art_peace_tests::nft_set_base_uri_test
+afk::tests::art_peace_tests::deploy_test
+afk::tests::art_peace_tests::increase_day_test
+afk::tests::art_peace_tests::increase_day_panic_test
+afk::tests::art_peace_tests::deposit_reward_test
+afk::tests::art_peace_tests::place_pixel_test

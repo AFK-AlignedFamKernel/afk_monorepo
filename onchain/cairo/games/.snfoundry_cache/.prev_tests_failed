@@ -1,0 +1,3 @@
+afk_games::tests::art_peace_tests::nft_set_base_uri_test
+afk_games::tests::art_peace_tests::nft_mint_test
+afk_games::tests::art_peace_tests::deposit_reward_test
