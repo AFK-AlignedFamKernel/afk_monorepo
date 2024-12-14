@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -18,7 +19,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "start:dev:db": "bash src/scripts/postgres.sh"
+    "start:dev:db": "bash src/scripts/postgres.sh",
+    "ts:check": "tsc --noEmit"
   },
   "dependencies": {
     "@apibara/protocol": "^0.4.9",
@@ -29,6 +31,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.0.0",
     "env-var": "^7.5.0",
+    "indexer-prisma": "workspace:*",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "viem": "^2.21.53"

@@ -1,5 +1,5 @@
-import { ApolloServer, gql } from "apollo-server";
-const { prisma } = require("indexer-prisma");
+import { ApolloServer, gql } from 'apollo-server';
+const { prisma } = require('indexer-prisma');
 
 //GraphQL schema definitions
 

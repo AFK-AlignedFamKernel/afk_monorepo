@@ -1,7 +1,7 @@
-import type { FastifyInstance, RouteOptions } from "fastify";
-import prisma from "indexer-prisma";
-import { HTTPStatus } from "../../utils/http";
-import { isValidStarknetAddress } from "../../utils/starknet";
+import type { FastifyInstance, RouteOptions } from 'fastify';
+import prisma from 'indexer-prisma';
+import { HTTPStatus } from '../../utils/http';
+import { isValidStarknetAddress } from '../../utils/starknet';
 
 interface GraphParams {
   tokenAddress: string;
@@ -10,12 +10,12 @@ interface GraphParams {
 async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get<{
     Params: GraphParams;
-  }>("/candles/:tokenAddress", async (request, reply) => {
+  }>('/candles/:tokenAddress', async (request, reply) => {
     const { tokenAddress } = request.params;
     if (!isValidStarknetAddress(tokenAddress)) {
       reply.status(HTTPStatus.BadRequest).send({
         code: HTTPStatus.BadRequest,
-        message: "Invalid token address",
+        message: 'Invalid token address',
       });
       return;
     }
@@ -23,7 +23,7 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
     try {
       const transactions = await prisma.token_transactions.findMany({
         where: { memecoin_address: tokenAddress },
-        orderBy: { block_timestamp: "asc" },
+        orderBy: { block_timestamp: 'asc' },
         select: {
           price: true,
           block_timestamp: true,
@@ -33,7 +33,7 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
 
       if (transactions.length === 0) {
         return reply.status(HTTPStatus.NotFound).send({
-          error: "No transactions found for this token address.",
+          error: 'No transactions found for this token address.',
         });
       }
       // Hourly candles
@@ -53,10 +53,8 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
 
       reply.status(HTTPStatus.OK).send(candles);
     } catch (error) {
-      console.error("Error generating candles:", error);
-      reply
-        .status(HTTPStatus.InternalServerError)
-        .send({ message: "Internal server error." });
+      console.error('Error generating candles:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
 }

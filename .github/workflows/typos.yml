@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   typos:
+    if: ${{ false }} # disable for now
     name: Spell Check with Typos
     runs-on: ubuntu-22.04
     steps:

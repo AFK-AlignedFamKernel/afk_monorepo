@@ -1,11 +1,11 @@
-import { FastifyPluginAsync } from "fastify";
-import { TwitterService } from "../../services/socials/twitter.service";
-import { ConnectTwitterInput } from "../../validations/auth.validation";
+import { FastifyPluginAsync } from 'fastify';
+import { TwitterService } from '../../services/socials/twitter.service';
+import { ConnectTwitterInput } from '../../validations/auth.validation';
 
 const twitterRoutes: FastifyPluginAsync = async (fastify) => {
   const twitterService = new TwitterService(fastify.prisma, fastify);
   // Step 1: Start OAuth flow
-  fastify.get("/twitter/auth/login", async (request, reply) => {
+  fastify.get('/twitter/auth/login', async (request, reply) => {
     try {
       const data = await twitterService.getAuthorizationLink();
       reply.send({ success: true, data });
@@ -17,16 +17,16 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post<{ Body: ConnectTwitterInput }>(
-    "/twitter/connect-account",
+    '/twitter/connect-account',
     {
       schema: {
         body: {
-          type: "object",
-          required: ["code", "codeVerifier", "userId"],
+          type: 'object',
+          required: ['code', 'codeVerifier', 'userId'],
           properties: {
-            code: { type: "string" },
-            codeVerifier: { type: "string" },
-            userId: { type: "string" },
+            code: { type: 'string' },
+            codeVerifier: { type: 'string' },
+            userId: { type: 'string' },
           },
         },
       },
@@ -45,18 +45,18 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.code(401).send({ message: error.message });
         }
       }
-    }
+    },
   );
 
   fastify.post<{ Body: { userId: string } }>(
-    "/twitter/disconnect",
+    '/twitter/disconnect',
     {
       schema: {
         body: {
-          type: "object",
-          required: ["userId"],
+          type: 'object',
+          required: ['userId'],
           properties: {
-            userId: { type: "string" },
+            userId: { type: 'string' },
           },
         },
       },
@@ -71,7 +71,7 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.code(401).send({ message: error.message });
         }
       }
-    }
+    },
   );
 
   // // Step 2: Handle OAuth callback

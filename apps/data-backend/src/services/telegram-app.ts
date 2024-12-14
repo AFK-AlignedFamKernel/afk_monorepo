@@ -1,14 +1,12 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
-const WEB_APP_URL =
-  process.env.TELEGRAM_WEB_APP ?? "https://lfg.afk-community.xyz"; // Replace with your web app's URL
+const WEB_APP_URL = process.env.TELEGRAM_WEB_APP ?? 'https://lfg.afk-community.xyz'; // Replace with your web app's URL
 
-const MOBILE_APP_URL =
-  process.env.TELEGRAM_MOBILE_APP ?? "https:/afk-community.xyz";
+const MOBILE_APP_URL = process.env.TELEGRAM_MOBILE_APP ?? 'https:/afk-community.xyz';
 // Use require instead of import because of the error "Cannot use import statement outside a module"
-import { Telegraf } from "telegraf";
-import { message } from "telegraf/filters";
+import { Telegraf } from 'telegraf';
+import { message } from 'telegraf/filters';
 
 /**
  * Creates and launches Telegram bot, and assigns all the required listeners
@@ -31,14 +29,14 @@ export function launchBot(token: string) {
     listenToMiniAppData(bot);
 
     // Launch the bot
-    bot.launch().then(() => console.log("bot launched"));
+    bot.launch().then(() => console.log('bot launched'));
 
     // Handle stop events
     enableGracefulStop(bot);
 
     // return bot
   } catch (e) {
-    console.log("launchBot error", e);
+    console.log('launchBot error', e);
   }
 }
 
@@ -53,12 +51,12 @@ function listenToCommands(bot) {
     // Register a listener for the /start command, and reply with a message whenever it's used
     bot.start(async (ctx) => {
       try {
-        await ctx.reply("Welcome to MiniAppSample bot!", {
+        await ctx.reply('Welcome to MiniAppSample bot!', {
           reply_markup: {
             keyboard: [
               [
                 {
-                  text: "Start Mini App",
+                  text: 'Start Mini App',
                   web_app: { url: process.env.TELEGRAM_WEB_APP },
                 },
               ],
@@ -66,18 +64,18 @@ function listenToCommands(bot) {
           },
         });
 
-        await ctx.reply("Click on the button below to launch our mini app", {
+        await ctx.reply('Click on the button below to launch our mini app', {
           reply_markup: {
             inline_keyboard: [
               [
                 {
-                  text: "Start Mini App",
+                  text: 'Start Mini App',
                   web_app: { url: WEB_APP_URL ?? process.env.TELEGRAM_WEB_APP },
                 },
               ],
               [
                 {
-                  text: "Start AFK",
+                  text: 'Start AFK',
                   web_app: {
                     url: MOBILE_APP_URL ?? process.env.TELEGRAM_MOBILE_APP,
                   },
@@ -87,13 +85,13 @@ function listenToCommands(bot) {
           },
         });
       } catch (error) {
-        console.log("Error", error);
+        console.log('Error', error);
       }
     });
 
     // Register a listener for the /help command, and reply with a message whenever it's used
     bot.help(async (ctx) => {
-      await ctx.reply("Run the /start command to use our mini app");
+      await ctx.reply('Run the /start command to use our mini app');
     });
   } catch (e) {}
 }
@@ -107,26 +105,22 @@ function listenToCommands(bot) {
 function listenToMessages(bot: Telegraf) {
   try {
     // Listen to messages and reply with something when ever you receive them
-    bot.hears("hi", async (ctx) => {
-      await ctx.reply("Hey there!");
+    bot.hears('hi', async (ctx) => {
+      await ctx.reply('Hey there!');
     });
 
     // Listen to messages with the type 'sticker' and reply whenever you receive them
-    bot.on(message("text"), async (ctx) => {
-      await ctx.reply(
-        "I don't understand text but I like stickers, send me some!"
-      );
-      await ctx.reply(
-        "Or you can send me one of these commands \n/start\n/help"
-      );
+    bot.on(message('text'), async (ctx) => {
+      await ctx.reply("I don't understand text but I like stickers, send me some!");
+      await ctx.reply('Or you can send me one of these commands \n/start\n/help');
     });
 
     // Listen to messages with the type 'sticker' and reply whenever you receive them
-    bot.on(message("sticker"), async (ctx) => {
-      await ctx.reply("I like your sticker! 🔥");
+    bot.on(message('sticker'), async (ctx) => {
+      await ctx.reply('I like your sticker! 🔥');
     });
   } catch (e) {
-    console.log("listenToMessages", e);
+    console.log('listenToMessages', e);
   }
 }
 
@@ -138,26 +132,23 @@ function listenToMessages(bot: Telegraf) {
  */
 function listenToMiniAppData(bot) {
   try {
-    bot.on("message", async (ctx) => {
+    bot.on('message', async (ctx) => {
       if (ctx.message?.web_app_data?.data) {
         try {
           const data = ctx.message?.web_app_data?.data;
-          await ctx.telegram.sendMessage(
-            ctx.message.chat.id,
-            "Got message from MiniApp"
-          );
+          await ctx.telegram.sendMessage(ctx.message.chat.id, 'Got message from MiniApp');
           await ctx.telegram.sendMessage(ctx.message.chat.id, data);
         } catch (e) {
           await ctx.telegram.sendMessage(
             ctx.message.chat.id,
-            "Got message from MiniApp but failed to read"
+            'Got message from MiniApp but failed to read',
           );
           await ctx.telegram.sendMessage(ctx.message.chat.id, e);
         }
       }
     });
   } catch (e) {
-    console.log("Error listenMiniAppData", e);
+    console.log('Error listenMiniAppData', e);
   }
 }
 
@@ -169,7 +160,7 @@ function listenToMiniAppData(bot) {
  */
 function listenToQueries(bot) {
   try {
-    bot.on("callback_query", async (ctx) => {
+    bot.on('callback_query', async (ctx) => {
       // Explicit usage
       await ctx.telegram.answerCbQuery(ctx.callbackQuery.id);
 
@@ -177,11 +168,11 @@ function listenToQueries(bot) {
       await ctx.answerCbQuery();
     });
 
-    bot.on("inline_query", async (ctx) => {
+    bot.on('inline_query', async (ctx) => {
       const article = {
-        type: "article",
+        type: 'article',
         id: ctx.inlineQuery.id,
-        title: "Message for query",
+        title: 'Message for query',
         input_message_content: {
           message_text: `Message for query`,
         },
@@ -205,8 +196,8 @@ function listenToQueries(bot) {
 function enableGracefulStop(bot) {
   try {
     // Enable graceful stop
-    process.once("SIGINT", () => bot.stop("SIGINT"));
-    process.once("SIGTERM", () => bot.stop("SIGTERM"));
+    process.once('SIGINT', () => bot.stop('SIGINT'));
+    process.once('SIGTERM', () => bot.stop('SIGTERM'));
   } catch (e) {}
 }
 
@@ -225,9 +216,9 @@ export const handleMessageRequest = async (bot, request, response) => {
     // We are creating InlineQueryResultArticle
     // See https://core.telegram.org/bots/api#inlinequeryresultarticle
     const article = {
-      type: "article",
+      type: 'article',
       id: queryId,
-      title: "Message from the mini app",
+      title: 'Message from the mini app',
       input_message_content: {
         message_text: `MiniApp: ${message}`,
       },
@@ -238,7 +229,7 @@ export const handleMessageRequest = async (bot, request, response) => {
 
     // End the request with a success code
     await response.status(200).json({
-      message: "success!",
+      message: 'success!',
     });
   } catch (e) {
     const errorJson = JSON.stringify(e);
@@ -253,15 +244,15 @@ export const handleMessageRequest = async (bot, request, response) => {
 export async function sendWebAppButton(chatId) {
   try {
     const url = `${TELEGRAM_API_URL}/sendMessage`;
-    console.log("web app url", WEB_APP_URL);
+    console.log('web app url', WEB_APP_URL);
     const body = {
       chat_id: chatId,
-      text: "Click the button below to open the web app:",
+      text: 'Click the button below to open the web app:',
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "Open Web App",
+              text: 'Open Web App',
               web_app: {
                 url: WEB_APP_URL,
               },
@@ -272,9 +263,9 @@ export async function sendWebAppButton(chatId) {
     };
 
     const response = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
@@ -286,7 +277,7 @@ export async function sendWebAppButton(chatId) {
     const result = await response.json();
     console.log(result);
   } catch (e) {
-    console.log("Error sendWebApp", e);
+    console.log('Error sendWebApp', e);
   }
 }
 
@@ -300,9 +291,9 @@ export async function sendMessage(chatId, text) {
     };
 
     const response = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
@@ -311,6 +302,6 @@ export async function sendMessage(chatId, text) {
       console.error(`Error sending message: ${response.statusText}`);
     }
   } catch (e) {
-    console.log("sendMessage error", e);
+    console.log('sendMessage error', e);
   }
 }

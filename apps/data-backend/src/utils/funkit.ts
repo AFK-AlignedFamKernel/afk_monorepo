@@ -20,9 +20,9 @@ export function generateClientMetadata({
       symbol: pickedSourceAsset.symbol.toUpperCase(),
     },
     selectedPaymentMethodInfo: {
-      paymentMethod: "card",
-      title: "Debit or Credit",
-      description: "",
+      paymentMethod: 'card',
+      title: 'Debit or Credit',
+      description: '',
       meta: {},
     },
   };
@@ -31,9 +31,7 @@ export function generateClientMetadata({
 export function roundUpToFiveDecimalPlaces(inputNumber: string) {
   // Using toFixed to round up to 5 decimal places
   const multiplier = 10 ** 5;
-  const roundedString = (
-    Math.ceil(parseFloat(inputNumber) * multiplier) / multiplier
-  ).toFixed(5);
+  const roundedString = (Math.ceil(parseFloat(inputNumber) * multiplier) / multiplier).toFixed(5);
   // Converting the rounded string back to a number
   const roundedNumber = parseFloat(roundedString);
   return roundedNumber;
