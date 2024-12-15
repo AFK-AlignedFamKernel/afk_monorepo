@@ -24,7 +24,8 @@ RUN echo ${DNA_CLIENT_URL}
 RUN apk add --no-cache \
     openssl \
     libc6-compat \
-    openssl1.1-compat
+    openssl1.1
+    # openssl1.1-compat
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
@@ -55,7 +56,7 @@ FROM node:20-alpine AS production
 RUN apk add --no-cache \
     openssl \
     libc6-compat \
-    openssl1.1-compat
+    openssl1.1
 
 # Set the working directory in the production container
 WORKDIR /app
