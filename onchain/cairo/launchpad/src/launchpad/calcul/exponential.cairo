@@ -147,9 +147,24 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
 }
 
 pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
-    let amount_out = 0_u256;
-    amount_out
+    let total_supply = pool_coin.total_supply.clone();
+    let current_supply = pool_coin.available_supply.clone();
+    let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);
+    let amount_sold = sellable_supply - current_supply;
 
+    let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+    assert!(sellable_supply > 0, "Sellable supply == 0");
+    assert!(amount_in > 0, "Amount in == 0");
+    assert!(amount_in <= current_supply, "Amount in > current supply");
+
+    let exp_term = exponential_approximation(amount_sold, sellable_supply, TAYLOR_TERMS);
+
+    let term0 = threshold_liquidity * exp_term / DECIMAL_FACTOR;
+    let term1 = LN_10 * amount_in / sellable_supply;
+    let term2 = exponential_approximation(term1, 1, TAYLOR_TERMS);
+
+    let amount_out = term0 * term2 / 9;
+    amount_out
 }
 
 pub fn get_coin_amount_by_quote_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {

@@ -805,9 +805,9 @@ pub mod LaunchpadMarketplace {
                         }
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-            // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
-            // TODO fix add liquidity ekubo
-            // self._add_liquidity_ekubo(coin_address);
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+                // TODO fix add liquidity ekubo
+                self._add_liquidity_ekubo(coin_address);
             }
 
             println!("emit buy token");
