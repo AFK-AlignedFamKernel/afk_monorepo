@@ -117,8 +117,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       />
 
       {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
-      {!notes?.isLoading && notes?.data?.pages?.length == 0 && 
-      
+      {!notes?.isLoading && !notes?.isFetching && notes?.data?.pages?.length == 0 && 
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <Text
         style={{
