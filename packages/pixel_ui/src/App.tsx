@@ -20,7 +20,7 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
-import { useAutoConnect, useQueryAddressEffect, useWalletStore } from './hooks/useWalletStore';
+import { useAutoConnect, useQueryAddressEffect, useWalletStore, useConnectArgent } from 'afk_react_sdk';
 
 const logoUrl = './resources/logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -66,7 +66,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     };
   };
 
-  // Starknet wallet
+  //--> Starknet wallet
+  useQueryAddressEffect()
+  useAutoConnect()
+
+  //--> Connect Argent
+  useConnectArgent()
 
   const { 
     connectWallet, 
@@ -81,9 +86,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   } = useWalletStore()
 
 
-  //Connect
-  useQueryAddressEffect()
-  useAutoConnect()
 
   const { chain } = useNetwork();
   // const [queryAddress, setQueryAddress] = useState('0');
@@ -886,6 +888,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 isPortrait={isPortrait}
                 isMobile={isMobile}
                 clearAll={clearAll}
+                account={account}
                 
               />
             )}
