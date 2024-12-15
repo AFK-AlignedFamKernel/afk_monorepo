@@ -55,6 +55,7 @@ export {useSendPrivateMessage} from './messages/useSendPrivateMessage';
 export {useSearch} from './search/useSearch';
 export {useSearchUsers} from './search/useSearchUsers';
 export {useSearchTag} from './search/useTagSearch';
+export {useNotesFilter} from './search/useNotesFilter';
 export {useEditEvent, useGetLiveEvents, useGetSingleEvent, useLiveActivity} from './stream';
 export {useAllProfiles} from './useAllProfiles';
 export {useBookmark} from './useBookmark';

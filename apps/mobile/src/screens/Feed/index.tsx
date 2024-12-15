@@ -14,6 +14,7 @@ import {VideoPostCard} from '../../modules/VideoPostCard';
 import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
 import {RenderEventCard} from '../../modules/Studio';
+import { useNotesFilter } from 'afk_nostr_sdk/src/hooks';
 
 export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -29,19 +30,22 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     NDKKind.GroupChat,
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
-    // NDKKind.VerticalVideo,
-    // NDKKind.HorizontalVideo,
+    NDKKind.VerticalVideo,
+    NDKKind.HorizontalVideo,
     // 30311 as NDKKind,
   ]);
 
   const contacts = useContacts({authors: [publicKey]});
   const notes = useSearch({
     kinds,
-    limit: 50,
+    limit: 10,
+    // authors:[]
   });
-  
-  // console.log(notes, 'notes');
-  console.log("notes", notes);
+  // const notes = useNotesFilter({
+  //   kinds,
+  //   limit: 20,
+  // });
+  // console.log("notes", notes);
 
   // Filter profiles based on the search query
   const profilesSearch =
@@ -52,6 +56,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     if (!notes.data?.pages) return [];
 
     const flattenedPages = notes.data.pages.flat();
+    console.log("flattenedPages",flattenedPages)
 
     console.log(flattenedPages, 'note pages');
     if (!search || search.length === 0) {
@@ -85,13 +90,13 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   }, [activeSortBy]);
 
 
-  const handleNavigate = (id: string) => {
-    navigation.navigate('WatchStream', {streamId: id});
-  };
+  // const handleNavigate = (id: string) => {
+  //   navigation.navigate('WatchStream', {streamId: id});
+  // };
 
-  const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', {streamId: id});
-  };
+  // const handleNavigateToStreamView = (id: string) => {
+  //   navigation.navigate('ViewStreamGuest', {streamId: id});
+  // };
 
   return (
     <View style={styles.container}>
@@ -112,11 +117,18 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       />
 
       {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
-      {notes?.data?.pages?.length == 0 && 
+      {!notes?.isLoading && notes?.data?.pages?.length == 0 && 
       
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Text>No notes found</Text>
-        <Text>Try to refresh the page or contact the support please!</Text>
+        <Text
+        style={{
+          color:theme.colors.text
+        }}
+        >No notes found</Text>
+        <Text
+          style={{
+            color:theme.colors.text
+          }}>Try to refresh the page or contact the support please!</Text>
         {/* <Button title="Go to console" onPress={() => navigation.navigate('Console')} /> */}
       </View>
       
