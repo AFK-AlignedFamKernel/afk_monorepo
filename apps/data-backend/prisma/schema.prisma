@@ -14,7 +14,7 @@ datasource db {
 }
 
 model registration {
-  id               Int       @id() @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   contract_address String?
   nickname         String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
@@ -26,34 +26,32 @@ model registration {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  userAddress String   @unique
-  email       String?  @unique
-  loginType   String
-  verified    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  socialAccounts SocialAccount[]
+  id              String          @id @default(cuid())
+  useraddress     String          @unique
+  email           String?         @unique
+  logintype       String
+  verified        Boolean?        @default(false)
+  createdat       DateTime?       @default(now()) @db.Timestamp(6)
+  updatedat       DateTime?       @default(now()) @db.Timestamp(6)
+  social_accounts SocialAccount[]
 
   @@map("users")
 }
 
 model SocialAccount {
-  id           String   @id @default(cuid())
-  userId       String
+  id           String    @id @default(cuid())
+  userid       String
   platform     String
-  accountId    String
+  accountid    String
   username     String?
   picture      String?
-  accessToken  String?
-  refreshToken String?
-  expiresAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  accesstoken  String?
+  refreshtoken String?
+  expiresat    DateTime? @db.Timestamp(6)
+  createdat    DateTime? @default(now()) @db.Timestamp(6)
+  updatedat    DateTime? @default(now()) @db.Timestamp(6)
+  users        User      @relation(fields: [userid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, platform])
+  @@unique([userid, platform])
   @@map("social_accounts")
 }

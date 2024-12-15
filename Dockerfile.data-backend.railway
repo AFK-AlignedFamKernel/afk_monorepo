@@ -126,7 +126,7 @@ RUN pnpm --filter indexer-prisma build
 # Build indexer-prisma and owned prisma
 # RUN pnpm --filter data-backend build:all_repo
 # Build data-backend
-RUN pnpm --filter data-backend build:all 
+# RUN pnpm --filter data-backend build:all 
 # RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
