@@ -112,14 +112,6 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
 
         }
 
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={isModalVisible}
-          onRequestClose={() => setModalVisible(!isModalVisible)}
-        >
-          <CreateEventModal handleModal={() => setModalVisible(!isModalVisible)} />
-        </Modal>
 
         {/* <Modal
           animationType="fade"
