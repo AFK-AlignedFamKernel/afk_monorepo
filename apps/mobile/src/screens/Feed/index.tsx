@@ -116,7 +116,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
         // contactList={contacts?.data?.map((item) => item)}
       />
 
-      {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
+      {/* {notes?.isLoading && <ActivityIndicator></ActivityIndicator>} */}
+      {notes?.isFetching && <ActivityIndicator></ActivityIndicator>}
       {!notes?.isLoading && !notes?.isFetching && notes?.data?.pages?.length == 0 && 
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <Text
