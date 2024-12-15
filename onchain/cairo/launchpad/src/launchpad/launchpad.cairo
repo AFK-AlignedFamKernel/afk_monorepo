@@ -610,7 +610,6 @@ pub mod LaunchpadMarketplace {
             // let threshold_liquidity = self.threshold_liquidity.read();
             let threshold_liquidity = pool_coin.threshold_liquidity.clone();
 
-
             // TODO erc20 token transfer
             let token_quote = old_launch.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
@@ -626,7 +625,7 @@ pub mod LaunchpadMarketplace {
 
             println!("amount quote to send {:?}", quote_amount);
             println!("remain_quote_to_liquidity {:?}", remain_quote_to_liquidity);
-            
+
             //new liquidity after purchase
             let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
 
@@ -637,7 +636,11 @@ pub mod LaunchpadMarketplace {
             // Transfer quote & coin
             // TOdo fix issue price
             let mut amount = get_amount_by_type_of_coin_or_quote(
-                pool_coin.clone(), coin_address.clone(), remain_quote_to_liquidity.clone(), false, true
+                pool_coin.clone(),
+                coin_address.clone(),
+                remain_quote_to_liquidity.clone(),
+                false,
+                true
             );
             // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
@@ -654,7 +657,10 @@ pub mod LaunchpadMarketplace {
                 );
             println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
 
-            erc20.transfer_from(get_caller_address(), get_contract_address(), remain_quote_to_liquidity);
+            erc20
+                .transfer_from(
+                    get_caller_address(), get_contract_address(), remain_quote_to_liquidity
+                );
             // In case the user want to buy more than the threshold
             // Give the available supply
             // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
@@ -916,7 +922,7 @@ pub mod LaunchpadMarketplace {
 
             // TODO fix amount owned and sellable.
             // Update share user coin
-            
+
             share_user.amount_owned -= remain_coin_amount;
             share_user.amount_sell += remain_coin_amount;
 
