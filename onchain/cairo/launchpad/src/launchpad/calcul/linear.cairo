@@ -62,7 +62,6 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     assert!(amount_in <= amount_sold, "Amount to sell > amount sold");
 
     let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-    assert!(sellable_supply > 0, "Sellable supply == 0");
 
     let scaled_threshold_liquidity = threshold_liquidity * SCALE_FACTOR;
     let sellable_supply_squared = sellable_supply * sellable_supply / DECIMAL_FACTOR;
