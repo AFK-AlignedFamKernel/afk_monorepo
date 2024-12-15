@@ -1,6 +1,5 @@
 import './PixelSelector.css';
 import '../utils/Styles.css';
-import {  useWalletStore } from '../hooks/useWalletStore';
 
 import React, {useEffect, useState} from 'react';
 import {
@@ -14,10 +13,6 @@ import EraserIcon from '../resources/icons/Eraser.png';
 
 const PixelSelector = (props) => {
 
-  //Use account hooks from store.
-  const { 
-    account,
-  } = useWalletStore()
 
   // Track when a placement is available
 
@@ -27,11 +22,11 @@ const PixelSelector = (props) => {
   const [ended, setEnded] = useState(false);
 
   useEffect(() => {
-    if (props.queryAddress === '0' || !account?.address) {
+    if (props.queryAddress === '0' || !props.account?.address) {
       setPlacementTimer('Login to Play');
       return;
     }
-    if (props.availablePixels > 0 || account?.address) {
+    if (props.availablePixels > 0 || props.account?.address) {
       let amountAvailable = props.availablePixels - props.availablePixelsUsed;
       if (amountAvailable > 1) {
         setPlacementTimer('Place Pixels');
@@ -58,7 +53,7 @@ const PixelSelector = (props) => {
     } else {
       setEnded(false);
     }
-  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props, account?.address]);
+  }, [props.availablePixels, props.availablePixelsUsed, props.basePixelTimer, props.queryAddress, placementTimer, placementMode, props, props.account?.address]);
 
   const toSelectorMode = (event) => {
     event.preventDefault();
