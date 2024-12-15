@@ -115,19 +115,19 @@ RUN apk add --no-cache openssl
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
-RUN pnpm run build:prisma-db
+# RUN pnpm run build:prisma-db
 RUN pnpm run build:backend:prisma
 RUN pnpm run build:indexer-prisma
-RUN pnpm run build:backend:all
+# RUN pnpm run build:backend:all_repo
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
 # Build indexer-prisma and owned prisma
-RUN pnpm --filter data-backend build:all_repo
+# RUN pnpm --filter data-backend build:all_repo
 # Build data-backend
-RUN pnpm --filter data-backend build:all 
-# RUN pnpm --filter data-backend build
+# RUN pnpm --filter data-backend build:all 
+RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
 FROM node:20-alpine AS production

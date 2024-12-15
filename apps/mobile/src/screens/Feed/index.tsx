@@ -2,7 +2,7 @@ import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useAllProfiles, useSearch} from 'afk_nostr_sdk';
 import {useAuth, useContacts} from 'afk_nostr_sdk';
 import {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View} from 'react-native';
+import {ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View, Text} from 'react-native';
 
 import {AddPostIcon} from '../../assets/icons';
 import {BubbleUser} from '../../components/BubbleUser';
@@ -14,6 +14,7 @@ import {VideoPostCard} from '../../modules/VideoPostCard';
 import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
 import {RenderEventCard} from '../../modules/Studio';
+import { useNotesFilter } from 'afk_nostr_sdk/src/hooks';
 
 export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -31,17 +32,20 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     NDKKind.Metadata,
     NDKKind.VerticalVideo,
     NDKKind.HorizontalVideo,
-    30311 as NDKKind,
+    // 30311 as NDKKind,
   ]);
 
   const contacts = useContacts({authors: [publicKey]});
   const notes = useSearch({
-    // search: search,
     kinds,
     limit: 10,
-    // authors: activeSortBy && contacts?.data?.?? [],
-    // sortBy: activeSortBy,
+    // authors:[]
   });
+  // const notes = useNotesFilter({
+  //   kinds,
+  //   limit: 20,
+  // });
+  // console.log("notes", notes);
 
   // Filter profiles based on the search query
   const profilesSearch =
@@ -52,6 +56,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     if (!notes.data?.pages) return [];
 
     const flattenedPages = notes.data.pages.flat();
+    console.log("flattenedPages",flattenedPages)
 
     console.log(flattenedPages, 'note pages');
     if (!search || search.length === 0) {
@@ -69,9 +74,10 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   // Filter notes based on the search query
   useEffect(() => {
     const filtered = filteredNotes();
+    console.log('Filtered notes:', filtered);
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, [search, notes.data?.pages]);
+  }, [notes.data?.pages]);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
@@ -83,13 +89,14 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     }
   }, [activeSortBy]);
 
-  const handleNavigate = (id: string) => {
-    navigation.navigate('WatchStream', {streamId: id});
-  };
 
-  const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', {streamId: id});
-  };
+  // const handleNavigate = (id: string) => {
+  //   navigation.navigate('WatchStream', {streamId: id});
+  // };
+
+  // const handleNavigateToStreamView = (id: string) => {
+  //   navigation.navigate('ViewStreamGuest', {streamId: id});
+  // };
 
   return (
     <View style={styles.container}>
@@ -109,8 +116,23 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
         // contactList={contacts?.data?.map((item) => item)}
       />
 
-      {notes?.isLoading && <ActivityIndicator></ActivityIndicator>}
-      {notes?.data?.pages?.length == 0 && <ActivityIndicator></ActivityIndicator>}
+      {/* {notes?.isLoading && <ActivityIndicator></ActivityIndicator>} */}
+      {notes?.isFetching && <ActivityIndicator></ActivityIndicator>}
+      {!notes?.isLoading && !notes?.isFetching && notes?.data?.pages?.length == 0 && 
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text
+        style={{
+          color:theme.colors.text
+        }}
+        >No notes found</Text>
+        <Text
+          style={{
+            color:theme.colors.text
+          }}>Try to refresh the page or contact the support please!</Text>
+        {/* <Button title="Go to console" onPress={() => navigation.navigate('Console')} /> */}
+      </View>
+      
+      }
 
       <FlatList
         ListHeaderComponent={

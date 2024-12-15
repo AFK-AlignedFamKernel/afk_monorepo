@@ -1,0 +1,38 @@
+[package]
+name = "afk_utils"
+version = "0.1.0"
+edition = "2023_11"
+
+# See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
+
+[dependencies]
+starknet = ">=2.8.2"
+openzeppelin = { git = "https://github.com/openzeppelin/cairo-contracts", tag="v0.18.0" }
+ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+
+[dev-dependencies]
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.30.0" }
+
+#[lib]
+
+[scripts]
+test = "snforge test"
+
+[tool.fmt]
+sort-module-level-items = true
+
+[[target.starknet-contract]]
+casm = true
+sierra = true
+allowed-libfuncs-list.name = "experimental"
+
+[[tool.snforge.fork]]
+name = "Mainnet"
+url = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
+block_id.number = "615925"
+
+[[tool.snforge.fork]]
+name = "Sepolia"
+url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
+block_id.number = "615925"

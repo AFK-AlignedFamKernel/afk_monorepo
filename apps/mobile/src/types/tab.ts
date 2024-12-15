@@ -397,3 +397,63 @@ export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab
     tab: SelectedTab.DYNAMIC_OWNED,
   },
 ];
+
+export const TABS_CONSOLE: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Pump',
+    screen: 'Launchpad',
+    tab: SelectedTab.LAUNCHPAD_VIEW,
+  },
+  {
+    title: 'Pixel Peace',
+    screen: 'PixelPeace',
+    tab: SelectedTab.PIXEL_PEACE,
+  },
+  {
+    title: 'AFK Nameservice',
+    screen: 'AFK Nameservice',
+    tab: SelectedTab.NAMESERVICE,
+  },
+  // {
+  //   title: 'AFK ID',
+  //   screen: 'AFK ID',
+  //   tab: SelectedTab.AFK_ID,
+  // },
+  {
+    title: 'Keys',
+    screen: 'KeysMarketplace',
+    tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+  },
+  {
+    title: 'Slink',
+    screen: 'Slink',
+    tab: SelectedTab.SLINK,
+  },
+
+  {
+    title: '?',
+    screen: '?',
+    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+  },
+  {
+    title: '?!',
+    screen: '?!',
+    tab: SelectedTab.LAUNCH_TOKEN_PUMP,
+  },
+  // {
+  //   title: 'Channel',
+  //   screen: 'CreateChannel',
+  //   tab: SelectedTab.CREATE_CHANNEL,
+  // },
+  // {
+  //   title: 'Token',
+  //   screen: 'LaunchToken',
+  //   tab: SelectedTab.LAUNCH_TOKEN,
+  // },
+  // {
+  //   title: 'Messages',
+  //   screen: "ChannelsFeed",
+  //   tab: SelectedTab.MESSAGES
+
+  // },
+];

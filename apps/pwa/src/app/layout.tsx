@@ -5,8 +5,6 @@ import type {Metadata} from 'next';
 // import {useRouter} from 'next/router';
 import Script from 'next/script';
 
-import {ArgentTMAProvider} from '@/context/argentTmContext';
-
 import Providers from './providers';
 
 export const metadata: Metadata = {
@@ -55,9 +53,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body>
-        <Providers>
-          <ArgentTMAProvider>{children}</ArgentTMAProvider>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -1,30 +1,30 @@
-import Fastify from "fastify";
-import fs from "fs";
-import fastifyCors from "@fastify/cors";
-import fastifyIO from "fastify-socket.io";
-import { Server as SocketIOServer } from "socket.io";
-import path from "path";
-import { config } from "./config";
-import { setupWebSocket } from "./services/livestream/socket";
-import { authRoutes } from "./routes/auth";
-import { indexerRoutes } from "./routes/indexer/index";
-import authPlugin from "./plugins/auth";
-import jwt from "jsonwebtoken";
-import prismaPlugin from "./plugins/prisma";
-import twitterPlugin from "./plugins/twitter-oauth";
-import { launchBot } from "./services/telegram-app";
-import declareRoutes from "./router";
-import fastifySession from "@fastify/session";
-import fastifyOauth2 from "@fastify/oauth2";
+import Fastify from 'fastify';
+import fs from 'fs';
+import fastifyCors from '@fastify/cors';
+import fastifyIO from 'fastify-socket.io';
+import { Server as SocketIOServer } from 'socket.io';
+import path from 'path';
+import { config } from './config';
+import { setupWebSocket } from './services/livestream/socket';
+import { authRoutes } from './routes/auth';
+import { indexerRoutes } from './routes/indexer/index';
+import authPlugin from './plugins/auth';
+import jwt from 'jsonwebtoken';
+import prismaPlugin from './plugins/prisma';
+import twitterPlugin from './plugins/twitter-oauth';
+import { launchBot } from './services/telegram-app';
+import declareRoutes from './router';
+import fastifySession from '@fastify/session';
+import fastifyOauth2 from '@fastify/oauth2';
 
 // Type declarations
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyInstance {
     io: SocketIOServer;
   }
 }
 
-export const publicDir = path.join(__dirname, "public");
+export const publicDir = path.join(__dirname, 'public');
 
 async function buildServer() {
   const fastify = Fastify({
@@ -33,17 +33,17 @@ async function buildServer() {
 
   // CORS configuration
   await fastify.register(fastifyCors, {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
   // Socket.IO setup
   await fastify.register(fastifyIO, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
       credentials: true,
     },
   });
@@ -53,7 +53,7 @@ async function buildServer() {
   await fastify.register(authPlugin);
   // await fastify.register(twitterPlugin);
   await fastify.register(fastifyOauth2, {
-    name: "twitterOAuth",
+    name: 'twitterOAuth',
     credentials: {
       client: {
         id: process.env.TWITTER_API_KEY!,
@@ -61,31 +61,31 @@ async function buildServer() {
       },
       // auth: fastifyOauth2.TWITTER_CONFIGURATION,
       auth: {
-        authorizeHost: "https://api.twitter.com",
-        authorizePath: "/oauth/authorize",
-        tokenHost: "https://api.twitter.com",
-        tokenPath: "/oauth/access_token",
+        authorizeHost: 'https://api.twitter.com',
+        authorizePath: '/oauth/authorize',
+        tokenHost: 'https://api.twitter.com',
+        tokenPath: '/oauth/access_token',
       },
     },
-    startRedirectPath: "/auth/login",
+    startRedirectPath: '/auth/login',
     callbackUri: process.env.TWITTER_CALLBACK_URL!,
   });
 
   //Middleware to verify JWT
   const JWT_SECRET = config.jwt.secret;
-  fastify.decorate("verifyJWT", async (request, reply) => {
+  fastify.decorate('verifyJWT', async (request, reply) => {
     try {
-      const token = request.headers.authorization.split(" ")[1];
+      const token = request.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, JWT_SECRET);
       request.user = decoded;
     } catch (error) {
-      reply.code(401).send({ error: "Unauthorized" });
+      reply.code(401).send({ error: 'Unauthorized' });
     }
   });
 
   fastify.register(fastifySession, {
-    secret: JWT_SECRET ?? "your-secret-key",
-    cookie: { secure: process.env.NODE_ENV == "production" ? true : false }, // Set to true in production
+    secret: JWT_SECRET ?? 'your-secret-key',
+    cookie: { secure: process.env.NODE_ENV == 'production' ? true : false }, // Set to true in production
   });
 
   // Register routes
@@ -108,8 +108,7 @@ let server: any = null;
 async function start() {
   try {
     server = await buildServer();
-    const host =
-      process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1";
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
 
     await server.listen({
       port: config.server.port,
@@ -120,9 +119,9 @@ async function start() {
 
     // Launch Telegram bot
     try {
-      await launchBot(process.env.TELEGRAM_BOT_TOKEN || "");
+      await launchBot(process.env.TELEGRAM_BOT_TOKEN || '');
     } catch (error) {
-      console.error("Error launching bot:", error);
+      console.error('Error launching bot:', error);
     }
   } catch (err) {
     console.error(err);
@@ -132,26 +131,26 @@ async function start() {
 
 // Graceful shutdown handling
 async function shutdown() {
-  console.log("Received shutdown signal");
+  console.log('Received shutdown signal');
   if (server) {
     try {
       await server.close();
-      console.log("Server closed successfully");
+      console.log('Server closed successfully');
       process.exit(0);
     } catch (err) {
-      console.error("Error during shutdown:", err);
+      console.error('Error during shutdown:', err);
       process.exit(1);
     }
   }
 }
 
 // Handle shutdown signals
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
-process.on("SIGHUP", shutdown);
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGHUP', shutdown);
 
 // Start server if not in test environment
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== 'test') {
   start();
 }
 

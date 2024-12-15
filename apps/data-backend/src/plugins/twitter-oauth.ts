@@ -1,5 +1,5 @@
-import fp from "fastify-plugin";
-import fastifyOauth2 from "@fastify/oauth2";
+import fp from 'fastify-plugin';
+import fastifyOauth2 from '@fastify/oauth2';
 
 export default fp(async (fastify, opts) => {
   // fastify.decorate("oauth2Twitter",
@@ -42,7 +42,7 @@ export default fp(async (fastify, opts) => {
   // });
 });
 
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyInstance {
     twitterOAuth: any;
   }

@@ -1,4 +1,3 @@
-// useSearchUsers.ts
 import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
@@ -29,12 +28,13 @@ export const useSearch = (options?: UseSearch) => {
     },
     queryFn: async ({pageParam}) => {
       console.log('search query', options?.search);
+      // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
-        authors: options?.authors,
+        authors: options?.authors ?? [],
         search: options?.search,
         // content: options?.search,
-        until: pageParam || Math.round(Date.now() / 1000),
+        // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
       console.log('notes', notes);

@@ -1,4 +1,4 @@
-import { Signature, TypedData } from "starknet";
+import { Signature, TypedData } from 'starknet';
 export interface UserJwtPayload {
   id: string;
   userAddress: string;
@@ -20,7 +20,7 @@ export interface SignatureVerificationRequest {
  * Twitter Types
  */
 export enum SocialPlatform {
-  TWITTER = "TWITTER",
+  TWITTER = 'TWITTER',
   // Add other platforms as needed
   // GITHUB = "GITHUB",
   // GOOGLE = "GOOGLE",
