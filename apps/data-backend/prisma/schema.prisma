@@ -33,7 +33,7 @@ model User {
   verified        Boolean?        @default(false)
   createdat       DateTime?       @default(now()) @db.Timestamp(6)
   updatedat       DateTime?       @default(now()) @db.Timestamp(6)
-  social_accounts SocialAccount[]
+  socialAccounts SocialAccount[]
 
   @@map("users")
 }
