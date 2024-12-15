@@ -70,24 +70,65 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
     );
   }
 
-  if (data?.pages?.flat().length === 0) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.scrollContent}>
-          <Text style={styles.headerText}>Stream Studio Events</Text>
-          <RenderEmptyState
-            isVisible={isModalVisible}
-            handleModalOpen={() => setModalVisible(!isModalVisible)}
-          />
-          ;
-        </SafeAreaView>
-      </View>
-    );
-  }
+  // if (data?.pages?.flat().length === 0) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <SafeAreaView style={styles.scrollContent}>
+  //         <Text style={styles.headerText}>Stream Studio Events</Text>
+  //         <RenderEmptyState
+  //           isVisible={isModalVisible}
+  //           handleModalOpen={() => setModalVisible(!isModalVisible)}
+  //         />
+  //       </SafeAreaView>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.scrollContent}>
+
+        {data?.pages?.flat().length === 0 ?
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <Text style={styles.headerText}>Stream Studio Events</Text>
+              <RenderEmptyState
+                isVisible={isModalVisible}
+                handleModalOpen={() => setModalVisible(!isModalVisible)}
+                isEmpty={true}
+              />
+            </SafeAreaView>
+          </View> :
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <Text style={styles.headerText}>Stream Studio Events</Text>
+              <RenderEmptyState
+                isVisible={isModalVisible}
+                handleModalOpen={() => setModalVisible(!isModalVisible)}
+                isEmpty={false}
+              />
+            </SafeAreaView>
+          </View>
+
+        }
+
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => setModalVisible(!isModalVisible)}
+        >
+          <CreateEventModal handleModal={() => setModalVisible(!isModalVisible)} />
+        </Modal>
+
+        {/* <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isVisible}
+          onRequestClose={() => handleModalOpen()}
+        >
+          <CreateEventModal handleModal={() => handleModalOpen()} />
+        </Modal> */}
         <Text style={styles.headerText}>Stream Studio Events</Text>
         <FlatList
           data={data?.pages.flat()}
@@ -248,9 +289,11 @@ export const RenderEventCard = ({
 const RenderEmptyState = ({
   handleModalOpen,
   isVisible,
+  isEmpty
 }: {
   handleModalOpen: () => void;
   isVisible: boolean;
+    isEmpty: boolean;
 }) => {
   const {theme} = useTheme();
   const styles = useStyles(styleSheet);
@@ -258,20 +301,22 @@ const RenderEmptyState = ({
     <>
       <View style={styles.emptyStateContainer}>
         <Feather name="calendar" size={64} color={theme.colors.streamStudio_textSecondary} />
+        {isEmpty && 
         <Text style={styles.emptyStateText}>No events available</Text>
+        }
         <TouchableOpacity style={styles.createButton} onPress={() => handleModalOpen()}>
           <Feather name="plus" size={20} color={theme.colors.streamStudio_buttonText} />
           <Text style={styles.createButtonText}>Create Event</Text>
         </TouchableOpacity>
       </View>
-      <Modal
+      {/* <Modal
         animationType="fade"
         transparent={true}
         visible={isVisible}
         onRequestClose={() => handleModalOpen()}
       >
         <CreateEventModal handleModal={() => handleModalOpen()} />
-      </Modal>
+      </Modal> */}
     </>
   );
 };
