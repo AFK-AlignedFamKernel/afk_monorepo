@@ -69,9 +69,10 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   // Filter notes based on the search query
   useEffect(() => {
     const filtered = filteredNotes();
+    console.log('Filtered notes:', filtered);
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, []);
+  }, [notes.data?.pages]);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
