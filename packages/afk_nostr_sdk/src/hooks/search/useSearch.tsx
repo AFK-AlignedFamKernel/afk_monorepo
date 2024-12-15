@@ -31,7 +31,7 @@ export const useSearch = (options?: UseSearch) => {
       // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
-        // authors: options?.authors ?? [],
+        authors: options?.authors ?? [],
         search: options?.search,
         // content: options?.search,
         // until: pageParam || Math.round(Date.now() / 1000),
