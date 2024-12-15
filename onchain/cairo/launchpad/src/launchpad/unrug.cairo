@@ -820,39 +820,25 @@ pub mod UnrugLiquidity {
             unrug_params: EkuboUnrugLaunchParameters
         ) -> (u64, EkuboLP) {
             let caller = get_caller_address();
-            println!("RIGHT HERE: {}", 1);
 
             let lp_meme_supply = unrug_params.lp_supply.clone();
-            println!("Get supply: {}", 2);
 
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
             let memecoin = EKIERC20Dispatcher { contract_address: unrug_params.token_address };
-            //TODO token decimal, amount of 1 token?
-
-            println!("Get memecoin: {}", 3);
 
             let positions_ekubo = self.positions.read();
 
             let base_token = EKIERC20Dispatcher { contract_address: unrug_params.quote_address };
 
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            // Call the core with a callback to deposit and mint the LP tokens.
-            println!("HERE launch callback: {}", 4);
 
+            // Call the core with a callback to deposit and mint the LP tokens.
             let (id, position) = call_core_with_callback::<
-                // let span = call_core_with_callbac00k::<
                 UnrugCallbackData, (u64, EkuboLP)
             >(core, @UnrugCallbackData::UnrugLaunchCallback(UnrugLaunchCallback { unrug_params }));
-            // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
-            //TODO emit event
-            let id_cast: u256 = id.try_into().unwrap();
 
-            println!("liq added : {}", 5);
-            // let mut launch_to_update = self.launched_coins.read(coin_address);
-            // launch_to_update.is_liquidity_launch = true;
-            // self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-            // println!("RIGHT HERE: {}", 4);
+            let id_cast: u256 = id.try_into().unwrap();
 
             self
                 .emit(
@@ -867,21 +853,6 @@ pub mod UnrugLiquidity {
                     }
                 );
 
-            // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
-            // println!("try set_launched");
-
-            // memecoin
-            //     .set_launched(
-            //         LiquidityType::EkuboNFT(id),
-            //         LiquidityParameters::Ekubo(
-            //             EkuboLiquidityParameters {
-            //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
-            //             }
-            //         ),
-            //         :transfer_restriction_delay,
-            //         :max_percentage_buy_launch,
-            //         :team_allocation,
-            //     );
             (id, position)
         }
 
