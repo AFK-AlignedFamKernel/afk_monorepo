@@ -8,6 +8,7 @@
     "build:index": "tsc",
     "build:all_repo": "pnpm -w run build:indexer-prisma && pnpm run prisma:setup && tsc",
     "build:all": "pnpm run prisma:setup && tsc",
+    "build:prisma": "pnpm run prisma:setup",
     "start": "ts-node src/index.ts",
     "start:dev": "ts-node-dev src/index.ts",
     "start:prod": "ts-node dist/index.js",
