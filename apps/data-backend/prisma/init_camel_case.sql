@@ -11,17 +11,17 @@ CREATE TABLE registration (
 );
 
 CREATE TABLE users (
-    id          TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          TEXT PRIMARY KEY,
     userAddress TEXT UNIQUE NOT NULL,
     email       TEXT UNIQUE,
     loginType   TEXT NOT NULL,
     verified    BOOLEAN DEFAULT FALSE,
-    createdat   TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    updatedat   TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP
+    createdAt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE social_accounts (
-    id           TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    id           TEXT PRIMARY KEY,
     userId       TEXT NOT NULL,
     platform     TEXT NOT NULL,
     accountId    TEXT NOT NULL,
@@ -29,9 +29,9 @@ CREATE TABLE social_accounts (
     picture      TEXT,
     accessToken  TEXT,
     refreshToken TEXT,
-    expiresAt    TIMESTAMP(6),
-    createdAt    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    updatedAt    TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    expiresAt    TIMESTAMP,
+    createdAt    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE(userId, platform)
 );

@@ -2,8 +2,9 @@ import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
+import { useNostrStore } from '../../store';
 
-export type UseSearch = {
+export type UseSearchSubscription = {
   authors?: string[];
   search?: string;
   kind?: NDKKind;
@@ -12,8 +13,10 @@ export type UseSearch = {
   limit?: number;
 };
 
-export const useSearch = (options?: UseSearch) => {
+export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
   const {ndk} = useNostrContext();
+
+  const {setNotes} = useNostrStore();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -29,7 +32,7 @@ export const useSearch = (options?: UseSearch) => {
     queryFn: async ({pageParam}) => {
       console.log('search query', options?.search);
       // const notes = await ndk.fetchEvents({
-      const notes = await ndk.fetchEvents({
+      const notes = await ndk.subscribe({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors ?? [],
         search: options?.search,
@@ -37,8 +40,9 @@ export const useSearch = (options?: UseSearch) => {
         // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
-      console.log('notes', notes);
+      console.log('notes subscription', notes);
 
+      setNotes([...notes]);
       return [...notes];
       // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
@@ -46,4 +50,4 @@ export const useSearch = (options?: UseSearch) => {
   });
 };
 
-export default useSearch;
+export default useSubscriptionEvents;
