@@ -5,12 +5,16 @@ mod launchpad_tests {
     use afk_launchpad::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
+    use afk_launchpad::interfaces::unrug::{
+        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+    };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
         SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser
+        EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
+        EkuboUnrugLaunchParameters
     };
 
     use core::num::traits::Zero;
@@ -188,16 +192,20 @@ mod launchpad_tests {
     // Declare and create all contracts
     // Return sender_address, Erc20 quote and Launchpad contract
     fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+    // fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
+
         // println!("request_fixture");
         let erc20_class = declare_erc20();
         let meme_class = declare_memecoin();
+        let unrug_class = declare_unrug_liquidity();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class)
+        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class, *unrug_class)
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass, unrug_class: ContractClass
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+    // ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(
             erc20_class,
@@ -207,6 +215,23 @@ mod launchpad_tests {
             sender_address
         );
         let token_address = erc20.contract_address.clone();
+
+        let unrug_liquidity = deploy_unrug_liquidity(
+            unrug_class,
+            sender_address,
+            token_address.clone(),
+            INITIAL_KEY_PRICE,
+            STEP_LINEAR_INCREASE,
+            meme_class.class_hash,
+            THRESHOLD_LIQUIDITY,
+            THRESHOLD_MARKET_CAP,
+            FACTORY_ADDRESS(),
+            EKUBO_REGISTRY(),
+            EKUBO_CORE(),
+            EKUBO_POSITIONS(),
+            EKUBO_EXCHANGE_ADDRESS()
+        );
+
         let launchpad = deploy_launchpad(
             launch_class,
             sender_address,
@@ -220,7 +245,8 @@ mod launchpad_tests {
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS()
+            EKUBO_EXCHANGE_ADDRESS(),
+            unrug_liquidity.contract_address,
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
         // IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
@@ -244,9 +270,10 @@ mod launchpad_tests {
         launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
         launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
         (sender_address, erc20, launchpad)
+        // (sender_address, erc20, launchpad, unrug_liquidity)
     }
 
-    fn deploy_launchpad(
+    fn deploy_unrug_liquidity(
         class: ContractClass,
         admin: ContractAddress,
         token_address: ContractAddress,
@@ -263,7 +290,7 @@ mod launchpad_tests {
         // ekubo_registry: ITokenRegistryDispatcher,
     // core: ICoreDispatcher,
     // positions: IPositionsDispatcher,
-    ) -> ILaunchpadMarketplaceDispatcher {
+    ) -> IUnrugLiquidityDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
         calldata.append_serde(initial_key_price);
@@ -278,7 +305,48 @@ mod launchpad_tests {
         calldata.append_serde(positions);
         calldata.append_serde(ekubo_exchange_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
+        IUnrugLiquidityDispatcher { contract_address }
+    }
+
+    fn deploy_launchpad(
+        class: ContractClass,
+        admin: ContractAddress,
+        token_address: ContractAddress,
+        initial_key_price: u256,
+        step_increase_linear: u256,
+        coin_class_hash: ClassHash,
+        threshold_liquidity: u256,
+        threshold_marketcap: u256,
+        factory_address: ContractAddress,
+        ekubo_registry: ContractAddress,
+        core: ContractAddress,
+        positions: ContractAddress,
+        ekubo_exchange_address: ContractAddress,
+        unrug_liquidity_address: ContractAddress,
+        // ekubo_registry: ITokenRegistryDispatcher,
+    // core: ICoreDispatcher,
+    // positions: IPositionsDispatcher,
+    ) -> ILaunchpadMarketplaceDispatcher {
+        // println!("deploy marketplace");
+        let mut calldata = array![admin.into()];
+        calldata.append_serde(initial_key_price);
+        calldata.append_serde(token_address);
+        calldata.append_serde(step_increase_linear);
+        calldata.append_serde(coin_class_hash);
+        calldata.append_serde(threshold_liquidity);
+        calldata.append_serde(threshold_marketcap);
+        calldata.append_serde(factory_address);
+        calldata.append_serde(ekubo_registry);
+        calldata.append_serde(core);
+        calldata.append_serde(positions);
+        calldata.append_serde(ekubo_exchange_address);  
+        calldata.append_serde(unrug_liquidity_address);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
+    }
+
+    fn declare_unrug_liquidity() -> @ContractClass {
+        declare("UnrugLiquidity").unwrap().contract_class()
     }
 
     fn declare_launchpad() -> @ContractClass {

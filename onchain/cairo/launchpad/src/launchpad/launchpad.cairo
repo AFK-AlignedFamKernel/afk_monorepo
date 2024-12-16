@@ -6,6 +6,7 @@ use afk_launchpad::types::launchpad_types::{
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
     EkuboLiquidityParameters, LiquidityParameters,
+    EkuboUnrugLaunchParameters
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -147,10 +148,25 @@ pub mod LaunchpadMarketplace {
     //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
     //     get_coin_amount_by_quote_amount
     // };
+    use afk_launchpad::interfaces::unrug::{
+        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+        // Event as LaunchpadEvent
+    };
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+    };
+    use super::{
+        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
+        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
+        SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
+        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
+        EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
+        EkuboUnrugLaunchParameters
+
+        // MemecoinCreated, MemecoinLaunched
     };
     use afk_launchpad::launchpad::calcul::launch::{
         get_initial_price, get_amount_by_type_of_coin_or_quote
@@ -212,16 +228,6 @@ pub mod LaunchpadMarketplace {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
-    use super::{
-        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
-        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
-        SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
-        EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
-        // MemecoinCreated, MemecoinLaunched
-    };
-
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
@@ -334,6 +340,7 @@ pub mod LaunchpadMarketplace {
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress,
+        unrug_liquidity_address: ContractAddress,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -377,7 +384,8 @@ pub mod LaunchpadMarketplace {
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress
+        ekubo_exchange_address: ContractAddress,
+        unrug_liquidity_address: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
@@ -411,6 +419,7 @@ pub mod LaunchpadMarketplace {
         self.core.write(core);
         self.positions.write(positions);
         self.ekubo_exchange_address.write(ekubo_exchange_address);
+        self.unrug_liquidity_address.write(unrug_liquidity_address);
     }
 
     // Public functions inside an impl block
@@ -1845,107 +1854,155 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress,
             // params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
-            // TODO params of Ekubo launch
-            // Init price and params of liquidity
+            let unrug_liquidity = IUnrugLiquidityDispatcher { contract_address: self.unrug_liquidity_address.read() };
 
-            // TODO assert of threshold and MC reached
             let launch = self.launched_coins.read(coin_address);
-            assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
+
             assert(launch.is_liquidity_launch == false, 'liquidity already launch');
-
-            // TODO calculate price
-
-            // let launch_price = launch.initial_pool_supply / launch.threshold_liquidity;
-            // println!("launch_price {:?}", launch_price);
-
-            // let price_u128:u128=launch_price.try_into().unwrap();
-            // println!("price_u128 {:?}", price_u128);
-
-            // let starting_price = i129 { sign: true, mag: 100_u128 };
-            // let starting_price = i129 { sign: true, mag: 100_u128 };
-            // let starting_price = i129 { sign: true, mag: price_u128 };
+            assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
             let starting_price: i129 = calculate_starting_price_launch(
                 launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
             );
-            let lp_meme_supply = launch.initial_pool_supply;
+            let bound = calculate_aligned_bound_mag(starting_price, 2, 5000);
 
-            // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-
-            let params: EkuboLaunchParameters = EkuboLaunchParameters {
-                owner: launch.owner,
-                token_address: launch.token_address,
-                quote_address: launch.token_quote.token_address,
-                lp_supply: lp_meme_supply,
-                // lp_supply: launch.liquidity_raised,
-                pool_params: EkuboPoolParameters {
-                    fee: 0xc49ba5e353f7d00000000000000000,
-                    tick_spacing: 5000,
-                    starting_price,
-                    bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-                }
+            let pool_params = EkuboPoolParameters {
+                fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
+                tick_spacing: 5000, // TODO tick_spacing optional by user   
+                starting_price: starting_price, // TODO verify if starting_price is correct
+                bound: bound, // TODO verify if bound is correct
             };
-
-            // println!("Bound computed: {}", params.pool_params.bound);
-
-            // Register the token in Ekubo Registry
-            // let registry_address = self.ekubo_registry.read();
-            // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-
-            let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
-            //TODO token decimal, amount of 1 token?
-
-            // println!("RIGHT HERE: {}", 1);
-
-            let pool = self.launched_coins.read(coin_address);
-            // let dex_address = self.core.read();
-            let positions_ekubo = self.positions.read();
-            memecoin.approve(ekubo_exchange_address, lp_meme_supply);
-            memecoin.approve(ekubo_core_address, lp_meme_supply);
-            memecoin.approve(positions_ekubo, lp_meme_supply);
-            assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
-            let base_token = EKIERC20Dispatcher { contract_address: params.quote_address.clone() };
-            //TODO token decimal, amount of 1 token?
-            // let pool = self.launched_coins.read(coin_address);
-            base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-            base_token.approve(ekubo_core_address, pool.liquidity_raised);
-            let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            // Call the core with a callback to deposit and mint the LP tokens.
-
-            // println!("HERE launch callback: {}", 2);
-
-            let (id, position) = call_core_with_callback::<
-                // let span = call_core_with_callbac00k::<
-                CallbackData, (u64, EkuboLP)
-            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-            // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
-            //TODO emit event
+          
+            let params = EkuboUnrugLaunchParameters {
+                owner: launch.owner,
+                token_address: coin_address,
+                quote_address: launch.token_quote.token_address,
+                lp_supply: launch.initial_pool_supply,
+                lp_quote_supply: launch.liquidity_raised,
+                pool_params: pool_params
+            };
+            let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
             let id_cast: u256 = id.try_into().unwrap();
-
-            // println!("RIGHT HERE: {}", 3);
-
-            let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch = true;
-            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-            // println!("RIGHT HERE: {}", 4);
-
+          
             self
                 .emit(
                     LiquidityCreated {
                         id: id_cast,
                         pool: coin_address,
                         asset: coin_address,
-                        quote_token_address: base_token.contract_address,
+                        quote_token_address: launch.token_quote.token_address,
                         owner: launch.owner,
                         exchange: SupportedExchanges::Ekubo,
                         is_unruggable: false
                     }
                 );
-
             (id, position)
         }
+
+        // fn _add_liquidity_ekubo(
+        //     ref self: ContractState, coin_address: ContractAddress,
+        //     // params: EkuboLaunchParameters
+        // ) -> (u64, EkuboLP) {
+        //     // TODO params of Ekubo launch
+        //     // Init price and params of liquidity
+
+        //     // TODO assert of threshold and MC reached
+        //     let launch = self.launched_coins.read(coin_address);
+        //     assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
+        //     assert(launch.is_liquidity_launch == false, 'liquidity already launch');
+
+        //     // TODO calculate price
+
+        //     // let launch_price = launch.initial_pool_supply / launch.threshold_liquidity;
+        //     // println!("launch_price {:?}", launch_price);
+
+        //     // let price_u128:u128=launch_price.try_into().unwrap();
+        //     // println!("price_u128 {:?}", price_u128);
+
+        //     // let starting_price = i129 { sign: true, mag: 100_u128 };
+        //     // let starting_price = i129 { sign: true, mag: 100_u128 };
+        //     // let starting_price = i129 { sign: true, mag: price_u128 };
+        //     let starting_price: i129 = calculate_starting_price_launch(
+        //         launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
+        //     );
+        //     let lp_meme_supply = launch.initial_pool_supply;
+
+        //     // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
+
+        //     let params: EkuboLaunchParameters = EkuboLaunchParameters {
+        //         owner: launch.owner,
+        //         token_address: launch.token_address,
+        //         quote_address: launch.token_quote.token_address,
+        //         lp_supply: lp_meme_supply,
+        //         // lp_supply: launch.liquidity_raised,
+        //         pool_params: EkuboPoolParameters {
+        //             fee: 0xc49ba5e353f7d00000000000000000,
+        //             tick_spacing: 5000,
+        //             starting_price,
+        //             bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
+        //         }
+        //     };
+
+        //     // println!("Bound computed: {}", params.pool_params.bound);
+
+        //     // Register the token in Ekubo Registry
+        //     // let registry_address = self.ekubo_registry.read();
+        //     // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
+
+        //     let ekubo_core_address = self.core.read();
+        //     let ekubo_exchange_address = self.ekubo_exchange_address.read();
+        //     let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
+        //     //TODO token decimal, amount of 1 token?
+
+        //     // println!("RIGHT HERE: {}", 1);
+
+        //     let pool = self.launched_coins.read(coin_address);
+        //     // let dex_address = self.core.read();
+        //     let positions_ekubo = self.positions.read();
+        //     memecoin.approve(ekubo_exchange_address, lp_meme_supply);
+        //     memecoin.approve(ekubo_core_address, lp_meme_supply);
+        //     memecoin.approve(positions_ekubo, lp_meme_supply);
+        //     assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
+        //     let base_token = EKIERC20Dispatcher { contract_address: params.quote_address.clone() };
+        //     //TODO token decimal, amount of 1 token?
+        //     // let pool = self.launched_coins.read(coin_address);
+        //     base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
+        //     base_token.approve(ekubo_core_address, pool.liquidity_raised);
+        //     let core = ICoreDispatcher { contract_address: ekubo_core_address };
+        //     // Call the core with a callback to deposit and mint the LP tokens.
+
+        //     // println!("HERE launch callback: {}", 2);
+
+        //     let (id, position) = call_core_with_callback::<
+        //         // let span = call_core_with_callbac00k::<
+        //         CallbackData, (u64, EkuboLP)
+        //     >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
+        //     // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
+        //     //TODO emit event
+        //     let id_cast: u256 = id.try_into().unwrap();
+
+        //     // println!("RIGHT HERE: {}", 3);
+
+        //     let mut launch_to_update = self.launched_coins.read(coin_address);
+        //     launch_to_update.is_liquidity_launch = true;
+        //     self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+
+        //     // println!("RIGHT HERE: {}", 4);
+
+        //     self
+        //         .emit(
+        //             LiquidityCreated {
+        //                 id: id_cast,
+        //                 pool: coin_address,
+        //                 asset: coin_address,
+        //                 quote_token_address: base_token.contract_address,
+        //                 owner: launch.owner,
+        //                 exchange: SupportedExchanges::Ekubo,
+        //                 is_unruggable: false
+        //             }
+        //         );
+
+        //     (id, position)
+        // }
 
         /// TODO fix change
         fn _check_common_launch_parameters(
