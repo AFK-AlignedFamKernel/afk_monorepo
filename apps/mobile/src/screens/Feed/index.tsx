@@ -72,14 +72,14 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     );
     // console.log('search result is => ', filtered);
     return filtered;
-  }, [notes.data?.pages, search, notes]);
+  }, [notes.data?.pages, search]);
   // Filter notes based on the search query
   useEffect(() => {
     const filtered = filteredNotes();
     console.log('Filtered notes:', filtered);
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, [notes.data?.pages, notes]);
+  }, [notes.data?.pages]);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
