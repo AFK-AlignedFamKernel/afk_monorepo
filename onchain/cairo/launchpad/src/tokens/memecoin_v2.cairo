@@ -341,7 +341,7 @@ pub mod MemecoinV2 {
             max_percentage_buy_launch: u16,
             team_allocation: u256,
         ) {
-            self.assert_only_factory();
+            // self.assert_only_factory();
             assert(!self.is_launched(), errors::ALREADY_LAUNCHED);
             assert(
                 max_percentage_buy_launch >= MIN_MAX_PERCENTAGE_BUY_LAUNCH,
