@@ -20,7 +20,9 @@
     "@argent/x-sessions": "^6.7.4",
     "@argent/x-shared": "^1.32.1",
     "starknetkit-next": "npm:starknetkit@2.3.3",
-    "common": "workspace:*"
+    "common": "workspace:*",
+    "afk_react_sdk": "workspace:*",
+    "afk_sdk": "workspace:*"
   },
   "scripts": {
     "start": "react-scripts start",
