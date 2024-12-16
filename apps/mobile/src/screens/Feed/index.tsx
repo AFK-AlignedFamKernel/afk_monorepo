@@ -30,8 +30,8 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     NDKKind.GroupChat,
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
-    // NDKKind.VerticalVideo,
-    // NDKKind.HorizontalVideo,
+    NDKKind.VerticalVideo,
+    NDKKind.HorizontalVideo,
     // 30311 as NDKKind,
   ]);
 
