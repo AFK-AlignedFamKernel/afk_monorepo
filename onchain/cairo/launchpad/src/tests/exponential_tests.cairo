@@ -144,6 +144,138 @@ mod exponential_tests {
         );
     }
 
+    #[test]
+    fn test_get_coin_amount_on_curve() {
+
+        let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 864_754_900_043_247_556_u256;
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            864_754_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 0.8647 coins"
+        );
+        assert!(
+            amount_out <= 864_755_000_000_000_000_u256,
+            "Amount_out should be around 0.8647 coins"
+        );
+
+        let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 2_402_530_733_520_421_479_u256;
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            1_537_775_000_000_000_000 <= amount_out,
+            "Amount_out should be around 1.5377 coins"
+        );
+        assert!(
+            amount_out <= 1_537_776_000_000_000_000,
+            "Amount_out should be around 1.5377 coins"
+        );
+
+        let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 5_137_125_835_448_323_115_u256;
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            2_734_595_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 2.7345 coins"
+        );
+        assert!(
+            amount_out <= 2_734_596_000_000_000_000_u256,
+            "Amount_out should be around 2.7345 coins"
+        );
+
+        let mut available_supply = 0_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 10_000_000_000_000_000_000_u256;
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            4_862_874_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 4.8628 coins"
+        );
+        assert!(
+            amount_out <= 4_862_875_000_000_000_000_u256,
+            "Amount_out should be around 4.8628 coins"
+        );
+
+        let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 864_754_900_043_247_556_u256;
+        let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            864_754_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 0.8647 coins"
+        );
+        assert!(
+            amount_out <= 864_755_000_000_000_000_u256,
+            "Amount_out should be around 0.8647 coins"
+        );
+
+        let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 2_402_530_733_520_421_479_u256;
+        let mut amount_in = 40_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            2_402_530_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 2.4025 coins"
+        );
+        assert!(
+            amount_out <= 2_402_531_000_000_000_000_u256,
+            "Amount_out should be around 2.4025 coins"
+        );
+
+        let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 5_137_125_835_448_323_115_u256;
+        let mut amount_in = 60_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            5_137_125_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 5.1371 coins"
+        );
+        assert!(
+            amount_out <= 5_137_126_000_000_000_000_u256,
+            "Amount_out should be around 5.1371 coins"
+        );
+
+        let mut available_supply = 0_u256;
+        let mut token_launch = get_token_launch(
+            DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
+        );
+        token_launch.liquidity_raised = 10_000_000_000_000_000_000_u256;
+        let mut amount_in = 80_000_000_000_000_000_000_000_000_u256;
+        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        assert!(
+            9_999_999_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 10.0000 coins"
+        );
+        assert!(
+            amount_out <= 10_000_000_000_000_000_000_u256,
+            "Amount_out should be around 10.0000 coins"
+        );
+    }
+
     // #[test]
     // fn test_get_meme_amount_with_for_threshold() {
     //     let mut token_launch = get_token_launch(
