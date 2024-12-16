@@ -53,21 +53,19 @@ fn hash_to_curve() -> Option<EcPoint> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// fn main() {
-//     let _generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
-//     let H: EcPoint = hash_to_curve().unwrap();
-//     println!("Generator H: {}", H);
+    #[test]
+    fn test_pedersen_commit() {
+        let H: EcPoint = hash_to_curve().unwrap();
+        let value: felt252 = 77777;
+        let salt: felt252 = 228282189421094;
+        let commitment = pedersen_commit(value, salt, H);
+        
+        let is_valid = verify_commitment(commitment, value, salt, H);
+        assert(is_valid, 'The commitment is not valid');
+    }
 
-//     // Example usage
-//     let value: felt252 = 77777;
-//     let salt: felt252 = 228282189421094;
-
-//     // Create commitment
-//     let commitment = pedersen_commit(value, salt, H);
-//     println!("Commitment: {}", commitment);
-
-//     // Reveal and verify commitment
-//     let is_valid = verify_commitment(commitment, value, salt, H);
-//     println!("Commitment verification: {}", is_valid);
-// }
+}
