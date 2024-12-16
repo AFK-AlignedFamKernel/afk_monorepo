@@ -104,25 +104,25 @@ mod unrug_tests {
     }
 
 
-    // Mainnets
-
-    fn JEDISWAP_FACTORY() -> ContractAddress {
-        0x01aa950c9b974294787de8df8880ecf668840a6ab8fa8290bf2952212b375148.try_into().unwrap()
-    }
-
-    fn JEDISWAP_NFT_V2() -> ContractAddress {
-        0x0469b656239972a2501f2f1cd71bf4e844d64b7cae6773aa84c702327c476e5b.try_into().unwrap()
-    }
-
-    // SEPOLIA
+    // // Mainnets
 
     // fn JEDISWAP_FACTORY() -> ContractAddress {
-    //     0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c.try_into().unwrap()
+    //     0x01aa950c9b974294787de8df8880ecf668840a6ab8fa8290bf2952212b375148.try_into().unwrap()
     // }
 
     // fn JEDISWAP_NFT_V2() -> ContractAddress {
-    //     0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399.try_into().unwrap()
+    //     0x0469b656239972a2501f2f1cd71bf4e844d64b7cae6773aa84c702327c476e5b.try_into().unwrap()
     // }
+
+    /// SEPOLIA
+
+    fn JEDISWAP_FACTORY() -> ContractAddress {
+        0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c.try_into().unwrap()
+    }
+
+    fn JEDISWAP_NFT_V2() -> ContractAddress {
+        0x024fd9721eea36cf8cebc226fd9414057bbf895b47739822f849f622029f9399.try_into().unwrap()
+    }
 
     fn SALT() -> felt252 {
         'salty'.try_into().unwrap()
@@ -578,6 +578,47 @@ mod unrug_tests {
         let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address }
             .balance_of(core.contract_address);
         println!("Liquidity: {}", liquidity);
+    }
+
+    #[test]
+    // #[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7", block_number: 158847)]
+    fn test_launch_on_jediswap() {
+         let (sender, erc20, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        let token_address = launchpad
+            .create_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT()
+            );
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        println!("token_address ekubo launch: {:?}", token_address);
+        println!(
+            "Balance of launchpad: {:?}",
+            IERC20Dispatcher { contract_address: token_address }
+                .balance_of(launchpad.contract_address)
+        );
+
+        let starting_price = i129 { sign: true, mag: 4600158 };
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
+
+        let total_supply: u256 = memecoin.total_supply();
+        let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
+
+        let lp_meme_supply = total_supply - total_token_holded;
+        let lp_quote_supply = 100_u256;
+        println!("lp_meme_supply {:?}", lp_meme_supply);
+        
+        println!("set JEDISWAP_FACTORY", );
+        launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
+        println!("set JEDISWAP_NFT_V2", );
+        launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
+        
+        println!("launch on jedi", );
+        launchpad.launch_on_jediswap(token_address);
     }
 }
 

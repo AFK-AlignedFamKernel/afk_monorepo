@@ -507,10 +507,13 @@ pub mod UnrugLiquidity {
         }
         fn launch_on_jediswap(ref self: ContractState, coin_address: ContractAddress) {
             // TODO auto distrib and claim?
-            let caller = get_caller_address();
+            // let caller = get_caller_address();
 
-            let pool = self.launched_coins.read(coin_address);
-
+            println!("----------------------------");
+            
+            // let pool = self.launched_coins.read(coin_address);
+            
+            println!("----------------------------");
             // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
 
             self._add_liquidity_jediswap(coin_address);
@@ -1133,54 +1136,72 @@ pub mod UnrugLiquidity {
 
         // TODO add liquidity or increase
         // Better params of Mint
-        fn _add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
+        fn _add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress, quote_address: ContractAddress, ) {
+            println!("In _add_liquidity_jediswap",);
+
             let mut factory_address = self.address_jediswap_factory_v2.read();
             let nft_router_address = self.address_jediswap_nft_router_v2.read();
 
+            println!("step {}", 1);
+            
             if nft_router_address.is_zero() {
                 return;
             }
             let nft_router = IJediswapNFTRouterV2Dispatcher {
                 contract_address: nft_router_address
             };
-
-            let facto_address = nft_router.factory();
-
-            if !facto_address.is_zero() {
-                factory_address = facto_address.clone();
-            }
-
-            if factory_address.is_zero() {
-                return;
-            }
+            println!("step {}", 2);
+            
+            // let facto_address = nft_router.factory();
+            
+            // if !facto_address.is_zero() {
+            //     factory_address = facto_address.clone();
+            // }
+            println!("step {}", 3);
+            
+            // if factory_address.is_zero() {
+            //     return;
+            // }
             // let jediswap_address = self.exchange_configs.read(SupportedExchanges::Jediswap);
             //
+            println!("step {}", 4);
             let fee: u32 = 10_000;
+            println!("inline {}", 1);
             let factory = IJediswapFactoryV2Dispatcher { contract_address: factory_address };
+            println!("inline {}", 2);
             let launch = self.launched_coins.read(coin_address);
+            // let launch = self.launched_coins.entry(coin_address).read();
+            println!("inline {}", 3);
             let token_a = launch.token_address.clone();
+            println!("inline {}", 4);
             let asset_token_address = launch.token_address.clone();
+            println!("inline {}", 5);
             let quote_token_address = launch.token_quote.token_address.clone();
+            println!("inline {}", 6);
             let token_b = launch.token_quote.token_address.clone();
+            println!("inline {}", 7);
             // TODO tokens check
             // assert!(token_a != token_b, "same token");
             // Look if pool already exist
             // Init and Create pool if not exist
+            println!("step {}", 5);
             let mut pool: ContractAddress = factory.get_pool(token_a, token_b, fee);
             let sqrt_price_X96 = 0; // TODO change sqrt_price_X96
-
+            
             // TODO check if pool exist
             // Pool need to be create
             // Better params for Liquidity launching
             // let token_asset = IERC20Dispatcher { contract_address: token_a };
-
+            
+            println!("step {}", 6);
             // TODO
             // Used total supply if coin is minted
             // let total_supply_now = token_asset.total_supply().clone();
             let total_supply = launch.total_supply.clone();
             let liquidity_raised = launch.liquidity_raised.clone();
             // let total_supply = launch.total_supply.clone();
-
+            
+            println!("step {}", 7);
             let amount_coin_liq = total_supply / LIQUIDITY_RATIO;
             let amount0_desired = 0;
             let amount1_desired = 0;
@@ -1189,9 +1210,10 @@ pub mod UnrugLiquidity {
             let tick_lower: i32 = 0;
             let tick_upper: i32 = 0;
             let deadline: u64 = get_block_timestamp();
-
+            
             // @TODO check mint params
-
+            
+            println!("step {}", 8);
             if pool.into() == 0_felt252 {
                 pool = factory.create_pool(token_a, token_b, fee);
                 pool = nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
@@ -1216,22 +1238,23 @@ pub mod UnrugLiquidity {
                     recipient: launch.owner, // TODO add 
                     deadline: deadline,
                 };
-
+                
+                println!("step {}", 9);
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
                 // TODO Locked LP token
                 self
-                    .emit(
-                        LiquidityCreated {
-                            id: token_id,
-                            pool: pool,
-                            quote_token_address: quote_token_address,
-                            // token_id:token_id,
-                            owner: launch.owner,
-                            asset: asset_token_address,
-                            exchange: SupportedExchanges::Jediswap,
-                            is_unruggable: false
-                        }
-                    );
+                .emit(
+                    LiquidityCreated {
+                        id: token_id,
+                        pool: pool,
+                        quote_token_address: quote_token_address,
+                        // token_id:token_id,
+                        owner: launch.owner,
+                        asset: asset_token_address,
+                        exchange: SupportedExchanges::Jediswap,
+                        is_unruggable: false
+                    }
+                );
             } else { // TODO 
             // Increase liquidity of this pool.
             }
