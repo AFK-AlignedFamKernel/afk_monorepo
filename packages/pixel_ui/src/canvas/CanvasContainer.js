@@ -8,6 +8,9 @@ import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
+import { useContractAction} from "afk_sdk";
+import {ART_PEACE_ADDRESS} from "common"
+import {CallData} from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -229,22 +232,38 @@ const CanvasContainer = (props) => {
     props.setPixelPlacedBy(getPixelInfoEndpoint.data);
   };
 
+  //Pixel Call Hook
+  const { mutate: mutatePlacePixel} = useContractAction()
+
   const placePixelCall = async (position, color, now) => {
       // if (devnetMode) return;
-      console.log("props artpeaceCOntract", props?.artPeaceContract, "contrr",)
       // if (!props.address || !props.artPeaceContract) return;
       if (!props.address || !props.artPeaceContract || !props.account) return;
+      const timestamp = Math.floor(Date.now() / 1000);
+      mutatePlacePixel({
+        account: props.account,
+        callProps:{
+          calldata: CallData.compile({
+            position,
+            color,
+            now: timestamp,
+          }),
+          contractAddress:ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+          method:"place_pixel"
+        }
+      })
   
-        console.log('user connected', props.account?.address);
-        const pixelCalldata = props.artPeaceContract.populate('place_pixel', {
-          pos: position,
-          color: color,
-          now: now
-        });
+        // console.log('user connected', props.account?.address);
+        // const pixelCalldata = props.artPeaceContract.populate('place_pixel', {
+        //   pos: position,
+        //   color: color,
+        //   now: now
+        // });
+        
 
-        console.log(pixelCalldata,"pixel")
-        const result = await props.account.execute([pixelCalldata]);
-        console.log(result,"res")
+        // console.log(pixelCalldata,"pixel")
+        // const result = await props.account.execute([pixelCalldata]);
+        // console.log(result,"res")
   };
 
 

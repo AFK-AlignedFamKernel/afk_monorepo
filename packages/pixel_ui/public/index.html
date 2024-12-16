@@ -39,6 +39,7 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
+    
 
     <!-- Inter font -->
     <link rel="preconnect" href="https://rsms.me/" />
@@ -60,5 +61,21 @@
       <!-- Triggers the font to load immediately and then is replaced by the app -->
       <div>&emsp;</div>
     </div>
+        <!-- Telegram Web App script -->
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <script>
+          // Ensure Telegram Web App library is initialized correctly
+          document.addEventListener("DOMContentLoaded", function () {
+            if (window.Telegram && Telegram.WebApp) {
+              const tg = Telegram.WebApp;
+              tg.expand(); // Optional: Expands the web app to full screen
+              console.log("Telegram Web App initialized");
+              // Example: Change the background color
+              tg.setBackgroundColor("#ffffff");
+            } else {
+              console.error("Telegram Web App library failed to load.");
+            }
+          });
+        </script>
   </body>
 </html>
