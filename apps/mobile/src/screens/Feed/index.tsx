@@ -39,7 +39,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const notes = useSearch({
     kinds,
     // limit: 20,
-    authors: []
+    // authors: []
   });
   // const notes = useNotesFilter({
   //   kinds,
