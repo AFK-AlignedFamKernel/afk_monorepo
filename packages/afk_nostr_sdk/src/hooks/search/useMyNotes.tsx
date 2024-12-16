@@ -2,6 +2,7 @@ import {NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
+import { useAuth } from '../../store';
 
 export type UseSearch = {
   authors?: string[];
@@ -12,8 +13,9 @@ export type UseSearch = {
   limit?: number;
 };
 
-export const useSearch = (options?: UseSearch) => {
+export const useMyNotes = (options?: UseSearch) => {
   const {ndk} = useNostrContext();
+  const {publicKey} = useAuth();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -31,7 +33,7 @@ export const useSearch = (options?: UseSearch) => {
       // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
-        // authors: options?.authors ?? [], # TODO fix issue feed if authors is empty
+        authors: options?.authors ?? [publicKey],
         search: options?.search,
         // content: options?.search,
         // until: pageParam || Math.round(Date.now() / 1000),
@@ -46,4 +48,4 @@ export const useSearch = (options?: UseSearch) => {
   });
 };
 
-export default useSearch;
+export default useMyNotes;
