@@ -943,7 +943,7 @@ pub mod LaunchpadMarketplace {
 
             // TODO fix amount owned and sellable.
             // Update share user coin
-            println!("sell update share user coin");
+
             share_user.amount_owned -= remain_coin_amount;
             share_user.amount_sell += remain_coin_amount;
 

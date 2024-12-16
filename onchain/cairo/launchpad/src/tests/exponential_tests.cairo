@@ -70,7 +70,6 @@ mod exponential_tests {
 
     #[test]
     fn test_get_meme_amount_on_curve() {
-
         let mut available_supply = 80_000_000_000_000_000_000_000_000_u256;
 
         let mut token_launch = get_token_launch(
@@ -146,7 +145,6 @@ mod exponential_tests {
 
     #[test]
     fn test_get_coin_amount_on_curve() {
-
         let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
         let mut token_launch = get_token_launch(
             DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
@@ -155,12 +153,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            864_754_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 0.8647 coins"
+            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
         );
         assert!(
-            amount_out <= 864_755_000_000_000_000_u256,
-            "Amount_out should be around 0.8647 coins"
+            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins"
         );
 
         let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
@@ -171,12 +167,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            1_537_775_000_000_000_000 <= amount_out,
-            "Amount_out should be around 1.5377 coins"
+            1_537_775_000_000_000_000 <= amount_out, "Amount_out should be around 1.5377 coins"
         );
         assert!(
-            amount_out <= 1_537_776_000_000_000_000,
-            "Amount_out should be around 1.5377 coins"
+            amount_out <= 1_537_776_000_000_000_000, "Amount_out should be around 1.5377 coins"
         );
 
         let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
@@ -187,12 +181,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            2_734_595_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 2.7345 coins"
+            2_734_595_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.7345 coins"
         );
         assert!(
-            amount_out <= 2_734_596_000_000_000_000_u256,
-            "Amount_out should be around 2.7345 coins"
+            amount_out <= 2_734_596_000_000_000_000_u256, "Amount_out should be around 2.7345 coins"
         );
 
         let mut available_supply = 0_u256;
@@ -203,12 +195,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            4_862_874_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 4.8628 coins"
+            4_862_874_000_000_000_000_u256 <= amount_out, "Amount_out should be around 4.8628 coins"
         );
         assert!(
-            amount_out <= 4_862_875_000_000_000_000_u256,
-            "Amount_out should be around 4.8628 coins"
+            amount_out <= 4_862_875_000_000_000_000_u256, "Amount_out should be around 4.8628 coins"
         );
 
         let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
@@ -219,12 +209,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            864_754_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 0.8647 coins"
+            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
         );
         assert!(
-            amount_out <= 864_755_000_000_000_000_u256,
-            "Amount_out should be around 0.8647 coins"
+            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins"
         );
 
         let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
@@ -235,12 +223,10 @@ mod exponential_tests {
         let mut amount_in = 40_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            2_402_530_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 2.4025 coins"
+            2_402_530_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.4025 coins"
         );
         assert!(
-            amount_out <= 2_402_531_000_000_000_000_u256,
-            "Amount_out should be around 2.4025 coins"
+            amount_out <= 2_402_531_000_000_000_000_u256, "Amount_out should be around 2.4025 coins"
         );
 
         let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
@@ -251,12 +237,10 @@ mod exponential_tests {
         let mut amount_in = 60_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            5_137_125_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 5.1371 coins"
+            5_137_125_000_000_000_000_u256 <= amount_out, "Amount_out should be around 5.1371 coins"
         );
         assert!(
-            amount_out <= 5_137_126_000_000_000_000_u256,
-            "Amount_out should be around 5.1371 coins"
+            amount_out <= 5_137_126_000_000_000_000_u256, "Amount_out should be around 5.1371 coins"
         );
 
         let mut available_supply = 0_u256;
@@ -275,166 +259,164 @@ mod exponential_tests {
             "Amount_out should be around 10.0000 coins"
         );
     }
-
     // #[test]
-    // fn test_get_meme_amount_with_for_threshold() {
-    //     let mut token_launch = get_token_launch(
-    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     );
-    //     let amounts = array![5, 5]; // Quote tokens used for each transaction
-    //     let mut amount_outs = array![];
+// fn test_get_meme_amount_with_for_threshold() {
+//     let mut token_launch = get_token_launch(
+//         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     );
+//     let amounts = array![5, 5]; // Quote tokens used for each transaction
+//     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         println!("amount_in {:?}", amount_in);
 
     //         // Calculate the memecoin amount out
-    //         let amount_out = get_meme_amount(token_launch.clone(), amount_in);
-    //         println!("amount_out {:?}", amount_out);
+//         let amount_out = get_meme_amount(token_launch.clone(), amount_in);
+//         println!("amount_out {:?}", amount_out);
 
     //         // Assert amount_out does not exceed available supply
-    //         assert!(
-    //             amount_out <= token_launch.available_supply, "Amount sold exceeds available
-    //             supply"
-    //         );
+//         assert!(
+//             amount_out <= token_launch.available_supply, "Amount sold exceeds available
+//             supply"
+//         );
 
     //         // Update available supply
-    //         token_launch.available_supply -= amount_out;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         token_launch.available_supply -= amount_out;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
 
     //         // Store the result for verification
-    //         amount_outs.append(amount_out);
-    //         println!("looping ------------------------------------------");
-    //     }
+//         amount_outs.append(amount_out);
+//         println!("looping ------------------------------------------");
+//     }
 
     //     // Final assertions
-    //     println!("amount 1: {}", amount_outs.at(0));
-    //     println!("amount 2: {}", amount_outs.at(1));
-    //     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
-    // }
+//     println!("amount 1: {}", amount_outs.at(0));
+//     println!("amount 2: {}", amount_outs.at(1));
+//     assert!(token_launch.available_supply >= 0, "Available supply cannot be negative");
+// }
 
     // #[test]
-    // fn test_get_meme_amount_with_5_steps() {
-    //     let mut available_supply = 80_000_000;
-    //     // let mut token_launch = get_token_launch(
-    //     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     // );
-    //     let mut token_launch = get_token_launch(
-    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
-    //     );
+// fn test_get_meme_amount_with_5_steps() {
+//     let mut available_supply = 80_000_000;
+//     // let mut token_launch = get_token_launch(
+//     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     // );
+//     let mut token_launch = get_token_launch(
+//         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+//     );
 
     //     let dynamic_scale_factor = dynamic_scale_factor(
-    //         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
-    //     );
-    //     let amounts = array![1, 1, 1, 1, 6];
-    //     let mut amount_outs = array![];
-    //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+//     );
+//     let amounts = array![1, 1, 1, 1, 6];
+//     let mut amount_outs = array![];
+//     for amount_in in amounts {
+//         println!("amount_in {:?}", amount_in);
 
     //         let amount_out = get_coin_amount_by_quote_amount_exponential(
-    //             token_launch, amount_in, false, dynamic_scale_factor
-    //         );
-    //         println!("amount_out {:?}", amount_out);
+//             token_launch, amount_in, false, dynamic_scale_factor
+//         );
+//         println!("amount_out {:?}", amount_out);
 
     //         assert!(amount_out <= token_launch.available_supply, "too much");
 
     //         token_launch.available_supply -= amount_out;
-    //         // token_launch.available_supply -= amount_out - token_launch.available_supply;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
-    //         amount_outs.append(amount_out);
-    //         println!("looping {:?}------------------------------------------", amount_in);
-    //     };
+//         // token_launch.available_supply -= amount_out - token_launch.available_supply;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         amount_outs.append(amount_out);
+//         println!("looping {:?}------------------------------------------", amount_in);
+//     };
 
     //     println!("amount 1 : {}", amount_outs.at(0));
-    //     println!("amount 2 : {}", amount_outs.at(1));
-    //     // println!("amount 3 : {}", amount_outs.at(2));
-    // // println!("amount 4 : {}", amount_outs.at(3));
-    // }
-
+//     println!("amount 2 : {}", amount_outs.at(1));
+//     // println!("amount 3 : {}", amount_outs.at(2));
+// // println!("amount 4 : {}", amount_outs.at(3));
+// }
 
     // #[test]
-    // fn test_get_meme_amount_with_two_buy_for_threshold() {
-    //     let mut available_supply = 80_000_000;
-    //     // let mut token_launch = get_token_launch(
-    //     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     // );
-    //     let mut token_launch = get_token_launch(
-    //         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
-    //     );
+// fn test_get_meme_amount_with_two_buy_for_threshold() {
+//     let mut available_supply = 80_000_000;
+//     // let mut token_launch = get_token_launch(
+//     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     // );
+//     let mut token_launch = get_token_launch(
+//         DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, available_supply
+//     );
 
     //     let dynamic_scale_factor = dynamic_scale_factor(
-    //         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
-    //     );
+//         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+//     );
 
     //     // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     // let amounts = array![5, 5];
-    //     let amounts = array![5, 5];
-    //     let mut amount_outs = array![];
+//     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+//     // let amounts = array![5, 5];
+//     let amounts = array![5, 5];
+//     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         println!("amount_in {:?}", amount_in);
 
     //         let amount_out = get_coin_amount_by_quote_amount_exponential(
-    //             token_launch, amount_in, false, dynamic_scale_factor
-    //         );
-    //         println!("amount_out {:?}", amount_out);
+//             token_launch, amount_in, false, dynamic_scale_factor
+//         );
+//         println!("amount_out {:?}", amount_out);
 
     //         assert!(amount_out <= token_launch.available_supply, "too much");
 
     //         token_launch.available_supply -= amount_out;
-    //         // token_launch.available_supply -= amount_out - token_launch.available_supply;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
-    //         amount_outs.append(amount_out);
-    //         println!("looping ------------------------------------------");
-    //     };
+//         // token_launch.available_supply -= amount_out - token_launch.available_supply;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         amount_outs.append(amount_out);
+//         println!("looping ------------------------------------------");
+//     };
 
     //     println!("amount 1 : {}", amount_outs.at(0));
-    //     println!("amount 2 : {}", amount_outs.at(1));
-    //     // println!("amount 3 : {}", amount_outs.at(2));
-    // // println!("amount 4 : {}", amount_outs.at(3));
-    // }
+//     println!("amount 2 : {}", amount_outs.at(1));
+//     // println!("amount 3 : {}", amount_outs.at(2));
+// // println!("amount 4 : {}", amount_outs.at(3));
+// }
 
     // #[test]
-    // fn test_get_meme_amount_with_two_buy_for_threshold_low_supply() {
-    //     let mut available_supply = 80_000_u256;
-    //     // let mut token_launch = get_token_launch(
-    //     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
-    //     // );
-    //     let mut token_launch = get_token_launch(
-    //         100_000_u256, THRESHOLD_LIQUIDITY, available_supply
-    //     );
-    //     let dynamic_scale_factor = dynamic_scale_factor(
-    //         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
-    //     );
+// fn test_get_meme_amount_with_two_buy_for_threshold_low_supply() {
+//     let mut available_supply = 80_000_u256;
+//     // let mut token_launch = get_token_launch(
+//     //     DEFAULT_SUPPLY, THRESHOLD_LIQUIDITY, DEFAULT_SUPPLY / DEFAULT_LIQUIDITY_RATIO
+//     // );
+//     let mut token_launch = get_token_launch(
+//         100_000_u256, THRESHOLD_LIQUIDITY, available_supply
+//     );
+//     let dynamic_scale_factor = dynamic_scale_factor(
+//         SCALE_FACTOR, available_supply, THRESHOLD_LIQUIDITY
+//     );
 
     //     // let amounts = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
-    //     let amounts = array![5, 5];
-    //     let mut amount_outs = array![];
+//     let amounts_received = array![20_000_000, 20_000_000, 20_000_000, 19_000_000];
+//     let amounts = array![5, 5];
+//     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-    //         println!("amount_in {:?}", amount_in);
+//         println!("amount_in {:?}", amount_in);
 
     //         let amount_out = get_coin_amount_by_quote_amount_exponential(
-    //             token_launch, amount_in, false, dynamic_scale_factor
-    //         );
-    //         println!("amount_out {:?}", amount_out);
+//             token_launch, amount_in, false, dynamic_scale_factor
+//         );
+//         println!("amount_out {:?}", amount_out);
 
     //         assert!(amount_out <= token_launch.available_supply, "too much");
 
     //         token_launch.available_supply -= amount_out;
-    //         // token_launch.available_supply -= amount_out - token_launch.available_supply;
-    //         println!("token_launch.available_supply: {}", token_launch.available_supply);
-    //         amount_outs.append(amount_out);
-    //         println!("looping ------------------------------------------");
-    //     };
+//         // token_launch.available_supply -= amount_out - token_launch.available_supply;
+//         println!("token_launch.available_supply: {}", token_launch.available_supply);
+//         amount_outs.append(amount_out);
+//         println!("looping ------------------------------------------");
+//     };
 
     //     println!("amount 1 : {}", amount_outs.at(0));
-    //     println!("amount 2 : {}", amount_outs.at(1));
-    //     // println!("amount 3 : {}", amount_outs.at(2));
-    // // println!("amount 4 : {}", amount_outs.at(3));
-    // }
-    //     #[test]
+//     println!("amount 2 : {}", amount_outs.at(1));
+//     // println!("amount 3 : {}", amount_outs.at(2));
+// // println!("amount 4 : {}", amount_outs.at(3));
+// }
+//     #[test]
 // fn test_scale_factor_based_on_threshold_and_supply() {
 //     // Base scale factor
 //     let base_scale_factor = 1000000000000; // 10^12

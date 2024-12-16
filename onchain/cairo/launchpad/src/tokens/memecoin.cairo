@@ -379,6 +379,15 @@ pub mod Memecoin {
             true
         }
 
+        fn transferFrom(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256
+        ) -> bool {
+            self.transfer_from(sender, recipient, amount)
+        }
+
         fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
             let caller = get_caller_address();
             self.approve_helper(caller, spender, amount);

@@ -375,6 +375,11 @@ pub struct LaunchCallback {
     pub params: EkuboLaunchParameters,
 }
 
+#[derive(Serde, Drop, Copy)]
+pub struct UnrugLaunchCallback {
+    pub unrug_params: EkuboUnrugLaunchParameters,
+}
+
 // #[derive(Serde, Drop, Copy)]
 // struct WithdrawFeesCallback {
 //     id: u64,
@@ -386,4 +391,9 @@ pub struct LaunchCallback {
 pub enum CallbackData {
     // WithdrawFeesCallback: WithdrawFeesCallback,
     LaunchCallback: LaunchCallback,
+}
+
+#[derive(Serde, Drop, Copy)]
+pub enum UnrugCallbackData {
+    UnrugLaunchCallback: UnrugLaunchCallback,
 }

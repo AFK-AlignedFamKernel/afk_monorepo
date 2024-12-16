@@ -32,7 +32,7 @@ pub fn exponential_approximation(x: u256, y: u256, terms: u256) -> u256 {
         if term == 0 {
             break;
         }
-        term = term * x_scaled /  (i * DECIMAL_FACTOR);
+        term = term * x_scaled / (i * DECIMAL_FACTOR);
         result += term;
         i += 1_u256;
     };
@@ -59,7 +59,7 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
 
     result += k * LN_2;
 
-    let mut term = DECIMAL_FACTOR - numerator * DECIMAL_FACTOR / denominator ;
+    let mut term = DECIMAL_FACTOR - numerator * DECIMAL_FACTOR / denominator;
     let mut i = 1_u256;
 
     while i <= terms {
@@ -71,7 +71,7 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
         term = term * (DECIMAL_FACTOR - numerator * DECIMAL_FACTOR / denominator) / DECIMAL_FACTOR;
         i += 1_u256;
     };
-    result -= negative_result;    
+    result -= negative_result;
     result
 }
 
@@ -91,7 +91,7 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
     if numerator > denominator {
         top = denominator;
         bottom = numerator;
-        changed = true; 
+        changed = true;
     };
 
     let mut term = top * DECIMAL_FACTOR / bottom;
@@ -139,7 +139,7 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let log_term = logarithm_approximation_1px(term1, term2, TAYLOR_TERMS);
 
     let mut amount_out = term0 * log_term / DECIMAL_FACTOR;
-    
+
     if amount_out > current_supply {
         amount_out = current_supply;
     };
@@ -165,18 +165,19 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let term1 = DECIMAL_FACTOR * DECIMAL_FACTOR / exp_term_1;
 
     let mut amount_out = term0 / 9 * (DECIMAL_FACTOR - term1) / DECIMAL_FACTOR;
-    
+
     if amount_out > liquidity_raised {
         amount_out = liquidity_raised;
     };
     amount_out
 }
 
-pub fn get_coin_amount_by_quote_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+pub fn get_coin_amount_by_quote_amount_exponential(
+    pool_coin: TokenLaunch, amount_in: u256
+) -> u256 {
     let amount_out = 0_u256;
     amount_out
 }
-
 // pub fn natural_log(x: u256, scale_factor: u256, terms: u256) -> u256 {
 //     assert!(x > 0, "Input must be greater than zero");
 
@@ -236,7 +237,6 @@ pub fn get_coin_amount_by_quote_amount_exponential(pool_coin: TokenLaunch, amoun
 
 //     return dynamic_factor;
 // }
-
 
 // pub fn calculate_initial_price(
 //     threshold_liquidity: u256, sellable_supply: u256, growth_factor: u256, // b
