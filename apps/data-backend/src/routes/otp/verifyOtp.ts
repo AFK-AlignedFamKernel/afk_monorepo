@@ -4,7 +4,7 @@ import { VerificationCheckListInstance } from 'twilio/lib/rest/verify/v2/service
 import { Entrypoint, SN_CHAIN_ID, VAULT_FACTORY_ADDRESSES } from '../../constants/contracts';
 import { hashPhoneNumber } from '../../utils/format';
 import { computeAddress } from '../../utils/address';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'prisma-db';
 
 interface VerifyOtpRequestBody {
   phone_number: string;
