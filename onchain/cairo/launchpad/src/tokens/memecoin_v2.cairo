@@ -289,6 +289,9 @@ pub mod MemecoinV2 {
         self.creator.write(caller.clone());
         self.owner.write(owner.clone());
         self.factory_contract.write(factory.clone());
+        let caller = get_caller_address();
+        // self.creator.write(caller);
+        self.ownable.initializer(caller);
 
         // Init Timelock Gov
         // proposers
@@ -299,10 +302,6 @@ pub mod MemecoinV2 {
         executors.append(caller);
         let min_delay = 100_000;
         // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
-
-        let caller = get_caller_address();
-        self.creator.write(caller);
-        self.ownable.initializer(caller);
 
         // Register the contract's support for the ISRC6 interface
         self.src5.register_interface(interface::ISRC6_ID);

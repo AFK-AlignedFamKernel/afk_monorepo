@@ -17,25 +17,25 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_LAUNCHPAD = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_LaunchpadMarketplace.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.contract_class.json"
 );
 const PATH_LAUNCHPAD_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_LaunchpadMarketplace.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.compiled_contract_class.json"
 );
 
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.compiled_contract_class.json"
 );
 
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createLaunchpad = async (
+export const createUnrugLiquidity = async (
   tokenAddress: string,
   initial_key_price: Uint256,
   step_increase_linear: Uint256,
@@ -47,7 +47,6 @@ export const createLaunchpad = async (
   core: string,
   positions: string,
   ekubo_exchange_address: string,
-  unrug_liquidity_address: string,
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -62,7 +61,7 @@ export const createLaunchpad = async (
     console.log("threshold_marketcap", threshold_marketcap);
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
-    let LaunchpadClassHash = process.env.LAUNCHPAD_CLASS_HASH as string;
+    let UnrugClassHash = process.env.UNRUG_LIQUIDITY_CLASS_HASH as string;
 
     const compiledSierraAAaccount = json.parse(
       fs.readFileSync(PATH_LAUNCHPAD).toString("ascii")
@@ -124,8 +123,8 @@ export const createLaunchpad = async (
       console.log("DeclareResponse.class_hash", declareResponse.class_hash);
 
       const contractClassHash = declareResponse.class_hash;
-      LaunchpadClassHash = contractClassHash;
-      console.log("LaunchpadClassHash", LaunchpadClassHash);
+      UnrugClassHash = contractClassHash;
+      console.log("UnrugClass", UnrugClassHash);
 
       const nonce = await account0?.getNonce();
       console.log("nonce", nonce);
@@ -148,8 +147,7 @@ export const createLaunchpad = async (
             ekubo_registry,
             core,
             positions,
-            ekubo_exchange_address,
-            unrug_liquidity_address
+            ekubo_exchange_address
           })
 
         }

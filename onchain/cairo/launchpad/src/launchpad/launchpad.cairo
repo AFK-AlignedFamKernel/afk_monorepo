@@ -30,9 +30,13 @@ pub trait ILaunchpadMarketplace<TContractState> {
         name: felt252,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool
+        is_unruggable: bool,
+        bonding_type: BondingType
     ) -> ContractAddress;
-    fn launch_token(ref self: TContractState, coin_address: ContractAddress);
+    // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
+    fn launch_token(
+        ref self: TContractState, coin_address: ContractAddress, bonding_type: BondingType
+    );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
         // ekubo_pool_params: Option<EkuboPoolParameters>,
@@ -545,7 +549,8 @@ pub mod LaunchpadMarketplace {
             name: felt252,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
+            bonding_type: BondingType
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -561,19 +566,31 @@ pub mod LaunchpadMarketplace {
                     contract_address,
                 );
             // self._launch_token(token_address, caller, contract_address, false,);
-            self._launch_token(token_address, caller, contract_address, false, Option::None);
+            self
+                ._launch_token(
+                    token_address, caller, contract_address, false, Option::Some(bonding_type)
+                );
             token_address
         }
 
         // Launch coin to pool bonding curve
-        fn launch_token(ref self: ContractState, coin_address: ContractAddress) {
+        fn launch_token(
+            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType
+        ) {
             let caller = get_caller_address();
             let contract_address = get_contract_address();
 
             let token = self.token_created.read(coin_address);
             let is_unruggable = token.is_unruggable;
             // self._launch_token(coin_address, caller, contract_address, is_unruggable);
-            self._launch_token(coin_address, caller, contract_address, is_unruggable, Option::None);
+            self
+                ._launch_token(
+                    coin_address,
+                    caller,
+                    contract_address,
+                    is_unruggable,
+                    Option::Some(bonding_type)
+                );
         }
 
         // Buy coin by quote amount

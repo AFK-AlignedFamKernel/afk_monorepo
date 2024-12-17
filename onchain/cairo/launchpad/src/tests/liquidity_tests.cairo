@@ -360,7 +360,8 @@ mod liquidity_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
-                is_unruggable: false
+                is_unruggable: false,
+                bonding_type: BondingType::Linear
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(
