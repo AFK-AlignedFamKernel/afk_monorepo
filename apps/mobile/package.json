@@ -28,6 +28,7 @@
     "fix:all": "prettier --write \"src/**/*.{ts,tsx}\" && eslint --fix \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@argent/tma-wallet": "^1.17.0",
     "@babel/runtime": "^7.24.8",
     "@cashu/cashu-ts": "^2.0.0",
     "@docusaurus/core": "^3.5.2",
@@ -68,6 +69,8 @@
     "@walletconnect/react-native-compat": "2.16.1",
     "@webbtc/webln-types": "^2.1.0",
     "afk_nostr_sdk": "workspace:*",
+    "afk_sdk": "workspace:*",
+    "afk_react_sdk": "workspace:*",
     "axios": "^1.7.2",
     "babel-plugin-module-resolver": "^5.0.2",
     "buffer": "^6.0.3",
