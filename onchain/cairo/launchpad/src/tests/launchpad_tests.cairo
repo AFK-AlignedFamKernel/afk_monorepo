@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod launchpad_tests {
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
+    use afk_launchpad::interfaces::unrug::{
+        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+    };
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
@@ -10,7 +13,7 @@ mod launchpad_tests {
     use afk_launchpad::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
         SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser
+        EkuboLaunchParameters, LaunchParameters, SharesTokenUser, EkuboUnrugLaunchParameters
     };
 
     use core::num::traits::Zero;
@@ -188,16 +191,25 @@ mod launchpad_tests {
     // Declare and create all contracts
     // Return sender_address, Erc20 quote and Launchpad contract
     fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+        // fn request_fixture() -> (ContractAddress, IERC20Dispatcher,
+        // ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
+
         // println!("request_fixture");
         let erc20_class = declare_erc20();
         let meme_class = declare_memecoin();
+        let unrug_class = declare_unrug_liquidity();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class)
+        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class, *unrug_class)
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass,
+        meme_class: ContractClass,
+        launch_class: ContractClass,
+        unrug_class: ContractClass
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+        // ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher,
+        // IUnrugLiquidityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(
             erc20_class,
@@ -207,6 +219,23 @@ mod launchpad_tests {
             sender_address
         );
         let token_address = erc20.contract_address.clone();
+
+        let unrug_liquidity = deploy_unrug_liquidity(
+            unrug_class,
+            sender_address,
+            token_address.clone(),
+            INITIAL_KEY_PRICE,
+            STEP_LINEAR_INCREASE,
+            meme_class.class_hash,
+            THRESHOLD_LIQUIDITY,
+            THRESHOLD_MARKET_CAP,
+            FACTORY_ADDRESS(),
+            EKUBO_REGISTRY(),
+            EKUBO_CORE(),
+            EKUBO_POSITIONS(),
+            EKUBO_EXCHANGE_ADDRESS()
+        );
+
         let launchpad = deploy_launchpad(
             launch_class,
             sender_address,
@@ -220,7 +249,8 @@ mod launchpad_tests {
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS()
+            EKUBO_EXCHANGE_ADDRESS(),
+            unrug_liquidity.contract_address,
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
         // IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
@@ -244,6 +274,42 @@ mod launchpad_tests {
         launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
         launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
         (sender_address, erc20, launchpad)
+        // (sender_address, erc20, launchpad, unrug_liquidity)
+    }
+
+    fn deploy_unrug_liquidity(
+        class: ContractClass,
+        admin: ContractAddress,
+        token_address: ContractAddress,
+        initial_key_price: u256,
+        step_increase_linear: u256,
+        coin_class_hash: ClassHash,
+        threshold_liquidity: u256,
+        threshold_marketcap: u256,
+        factory_address: ContractAddress,
+        ekubo_registry: ContractAddress,
+        core: ContractAddress,
+        positions: ContractAddress,
+        ekubo_exchange_address: ContractAddress,
+        // ekubo_registry: ITokenRegistryDispatcher,
+    // core: ICoreDispatcher,
+    // positions: IPositionsDispatcher,
+    ) -> IUnrugLiquidityDispatcher {
+        // println!("deploy marketplace");
+        let mut calldata = array![admin.into()];
+        calldata.append_serde(initial_key_price);
+        calldata.append_serde(token_address);
+        calldata.append_serde(step_increase_linear);
+        calldata.append_serde(coin_class_hash);
+        calldata.append_serde(threshold_liquidity);
+        calldata.append_serde(threshold_marketcap);
+        calldata.append_serde(factory_address);
+        calldata.append_serde(ekubo_registry);
+        calldata.append_serde(core);
+        calldata.append_serde(positions);
+        calldata.append_serde(ekubo_exchange_address);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        IUnrugLiquidityDispatcher { contract_address }
     }
 
     fn deploy_launchpad(
@@ -260,6 +326,7 @@ mod launchpad_tests {
         core: ContractAddress,
         positions: ContractAddress,
         ekubo_exchange_address: ContractAddress,
+        unrug_liquidity_address: ContractAddress,
         // ekubo_registry: ITokenRegistryDispatcher,
     // core: ICoreDispatcher,
     // positions: IPositionsDispatcher,
@@ -277,8 +344,13 @@ mod launchpad_tests {
         calldata.append_serde(core);
         calldata.append_serde(positions);
         calldata.append_serde(ekubo_exchange_address);
+        calldata.append_serde(unrug_liquidity_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
+    }
+
+    fn declare_unrug_liquidity() -> @ContractClass {
+        declare("UnrugLiquidity").unwrap().contract_class()
     }
 
     fn declare_launchpad() -> @ContractClass {
@@ -742,27 +814,6 @@ mod launchpad_tests {
         );
 
         spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
-    }
-
-
-    #[test]
-    // #[fork("Mainnet")]
-    #[should_panic(expected: ('no threshold raised',))]
-    fn test_launch_liquidity_when_no_threshold_raised() {
-        let (_, _, launchpad) = request_fixture();
-
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-
-        let token_address = launchpad
-            .create_and_launch_token(
-                symbol: SYMBOL(),
-                name: NAME(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
-                is_unruggable: false
-            );
-
-        launchpad.launch_liquidity(token_address);
     }
 
 
@@ -1582,31 +1633,6 @@ mod launchpad_tests {
         let result = launchpad
             .get_amount_by_type_of_coin_or_quote(token_address, quote_amount_2, false, true);
     }
-    // #[test]
-// // #[fork("Mainnet")]
-// fn test_launch_liquidity_ok() {
-//     let (sender_address, erc20, launchpad) = request_fixture();
-
-    //     start_cheat_caller_address(launchpad.contract_address, OWNER());
-
-    //     let token_address = launchpad
-//         .create_and_launch_token(
-//             symbol: SYMBOL(),
-//             name: NAME(),
-//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-//             contract_address_salt: SALT(),
-//             is_unruggable: false
-//         );
-
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-
-    //     run_buy_by_amount(
-//         launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
-//     );
-
-    //     launchpad.launch_liquidity(token_address);
-// }
-
     // #[test]
 // #[fork("Mainnet")]
 // fn launchpad_buy_all_few_steps() {
