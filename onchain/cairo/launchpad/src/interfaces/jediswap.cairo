@@ -62,3 +62,40 @@ pub trait IJediswapNFTRouterV2<TState> {
     fn factory(self: @TState) -> ContractAddress;
 }
 
+#[starknet::interface]
+pub trait IJediswapRouter<T> {
+    fn factory(self: @T) -> ContractAddress;
+    fn sort_tokens(
+        self: @T, tokenA: ContractAddress, tokenB: ContractAddress
+    ) -> (ContractAddress, ContractAddress);
+    fn add_liquidity(
+        ref self: T,
+        tokenA: ContractAddress,
+        tokenB: ContractAddress,
+        amountADesired: u256,
+        amountBDesired: u256,
+        amountAMin: u256,
+        amountBMin: u256,
+        to: ContractAddress,
+        deadline: u64
+    ) -> (u256, u256, u256);
+    fn swap_exact_tokens_for_tokens(
+        ref self: T,
+        amountIn: u256,
+        amountOutMin: u256,
+        path: Array::<ContractAddress>,
+        to: ContractAddress,
+        deadline: u64
+    ) -> Array<u256>;
+}
+
+#[starknet::interface]
+pub trait IJediswapFactory<TContractState> {
+    fn get_pair(
+        self: @TContractState, token0: ContractAddress, token1: ContractAddress
+    ) -> ContractAddress;
+    fn create_pair(
+        ref self: TContractState, tokenA: ContractAddress, tokenB: ContractAddress
+    ) -> ContractAddress;
+}
+
