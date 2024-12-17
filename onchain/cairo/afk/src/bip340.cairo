@@ -205,7 +205,7 @@ fn sign(private_key: felt252, message: felt252) -> SchnorrSignature {
 }
 
 /// Verifies a Schnorr signature
-fn verify(public_key: EcPoint, message: felt252, signature: SchnorrSignature) -> bool {
+fn verify_sig(public_key: EcPoint, message: felt252, signature: SchnorrSignature) -> bool {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let e = compute_challenge(signature.R, public_key, message);
     
@@ -225,7 +225,7 @@ mod tests {
     use core::clone::Clone;
     use core::option::OptionTrait;
     use core::traits::Into;
-    use super::verify;
+    use super::*;
 
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
@@ -455,5 +455,20 @@ mod tests {
         let m: u256 = 0x2e5673c8b39f7a0d41219676661159c59a93644c06b81684718b8a0cd53f7f06;
 
         assert!(verify(px, rx, s, m.into()));
+    }
+    #[test]
+    fn test_20() {
+        let (private_key, public_key) = generate_keypair();
+    
+        // Message to sign
+        let message: felt252 = 'I love Cairo';
+        
+        // Sign message
+        let signature = sign(private_key, message);
+        
+        // Verify signature
+        let is_valid = verify_sig(public_key, message, signature);
+        
+        assert!(is_valid);
     }
 }
