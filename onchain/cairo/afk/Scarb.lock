@@ -9,6 +9,7 @@ dependencies = [
  "ekubo",
  "openzeppelin",
  "snforge_std",
+ "stark_vrf",
 ]
 
 [[package]]
@@ -138,3 +139,8 @@ source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.30.0#196f06b
 dependencies = [
  "snforge_scarb_plugin",
 ]
+
+[[package]]
+name = "stark_vrf"
+version = "0.1.0"
+source = "git+https://github.com/dojoengine/stark-vrf#96d6d2a88b1ef46c4a285d0ccc334237205edae3"
