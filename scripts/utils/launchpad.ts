@@ -5,7 +5,7 @@ import {
   cairo,
   uint256,
   byteArray,
-  CallData,
+  Calldata,
   Uint256,
 } from "starknet";
 import fs from "fs";
@@ -17,20 +17,20 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_LAUNCHPAD = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_LaunchpadMarketplace.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.contract_class.json"
 );
 const PATH_LAUNCHPAD_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_LaunchpadMarketplace.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.compiled_contract_class.json"
 );
 
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.compiled_contract_class.json"
 );
 
 
@@ -113,6 +113,7 @@ export const createLaunchpad = async (
       });
       console.log("declareIfNotToken", declareIfNotToken);
       coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
+      console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
 
       console.log("try declare launchpad");
       const declareResponse = await account0.declareIfNot({
@@ -135,24 +136,37 @@ export const createLaunchpad = async (
     await account0.deployContract({
       classHash: LaunchpadClassHash,
       constructorCalldata: [
-        {
-          CallData.compile({
-            accountAddress0,
-            initial_key_price,
-            tokenAddress,
-            step_increase_linear,
-            coin_class_hash_memecoin_last,
-            threshold_liquidity,
-            threshold_marketcap,
-            factory_address,
-            ekubo_registry,
-            core,
-            positions,
-            ekubo_exchange_address,
-            unrug_liquidity_address
-          })
+        accountAddress0,
+        initial_key_price,
+        tokenAddress,
+        step_increase_linear,
+        coin_class_hash_memecoin_last,
+        threshold_liquidity,
+        threshold_marketcap,
+        // factory_address,
+        // ekubo_registry,
+        // core,
+        // positions,
+        // ekubo_exchange_address,
+        unrug_liquidity_address
+        // {
+        //   Calldata.compile({
+        //     accountAddress0,
+        //     initial_key_price,
+        //     tokenAddress,
+        //     step_increase_linear,
+        //     coin_class_hash_memecoin_last,
+        //     threshold_liquidity,
+        //     threshold_marketcap,
+        //     factory_address,
+        //     ekubo_registry,
+        //     core,
+        //     positions,
+        //     ekubo_exchange_address,
+        //     unrug_liquidity_address
+        //   })
 
-        }
+        // }
        
       ],
     });

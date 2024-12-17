@@ -77,7 +77,7 @@ export const deployUnrugLiquidity = async () => {
   const TOKEN_CLASS_HASH =
     CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA];
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
-    let launchpadContract = await createUnrugLiquidity(
+    let unrugContract = await createUnrugLiquidity(
       TOKEN_QUOTE_ADDRESS,
       initial_key_price,
       step_increase_linear,
@@ -92,13 +92,13 @@ export const deployUnrugLiquidity = async () => {
       
     );
     console.log(
-      "launchpadContract address",
-      launchpadContract?.contract_address
+      "unrugAddress address",
+      unrugContract?.contract_address
     );
-    if (launchpadContract?.contract_address) {
-      launchpad_address = launchpadContract?.contract_address;
+    if (unrugContract?.contract_address) {
+      launchpad_address = unrugContract?.contract_address;
       launchpad = await prepareAndConnectContract(
-        launchpad_address ?? launchpadContract?.contract_address,
+        launchpad_address ?? unrugContract?.contract_address,
         account
       );
 
@@ -119,4 +119,4 @@ export const deployUnrugLiquidity = async () => {
   };
 };
 
-deployLaunchpad();
+deployUnrugLiquidity();

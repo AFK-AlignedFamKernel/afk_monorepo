@@ -1040,17 +1040,17 @@ pub mod UnrugLiquidity {
             memecoin.approve(positions_ekubo, lp_meme_supply);
 
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            println!("ekubo add liq");
+            // println!("ekubo add liq");
 
             let (id, position) = call_core_with_callback::<
                 CallbackData, (u64, EkuboLP)
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
-            println!("distribute_team_alloc");
+            // println!("distribute_team_alloc");
             // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
             let memecoin = IMemecoinDispatcher { contract_address: coin_address };
-            println!("try set_launched");
+            // println!("try set_launched");        
 
             // memecoin
             //     .set_launched(
@@ -1130,7 +1130,7 @@ pub mod UnrugLiquidity {
             memecoin.approve(ekubo_core_address, lp_supply);
 
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            println!("ekubo add liq");
+            // println!("ekubo add liq");
 
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.approve(ekubo_core_address, lp_supply);

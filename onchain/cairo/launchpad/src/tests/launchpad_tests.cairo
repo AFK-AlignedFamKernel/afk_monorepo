@@ -245,11 +245,11 @@ mod launchpad_tests {
             meme_class.class_hash,
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
-            FACTORY_ADDRESS(),
-            EKUBO_REGISTRY(),
-            EKUBO_CORE(),
-            EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS(),
+            // FACTORY_ADDRESS(),
+            // EKUBO_REGISTRY(),
+            // EKUBO_CORE(),
+            // EKUBO_POSITIONS(),
+            // EKUBO_EXCHANGE_ADDRESS(),
             unrug_liquidity.contract_address,
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
@@ -321,11 +321,11 @@ mod launchpad_tests {
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_marketcap: u256,
-        factory_address: ContractAddress,
-        ekubo_registry: ContractAddress,
-        core: ContractAddress,
-        positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress,
+        // factory_address: ContractAddress,
+        // ekubo_registry: ContractAddress,
+        // core: ContractAddress,
+        // positions: ContractAddress,
+        // ekubo_exchange_address: ContractAddress,
         unrug_liquidity_address: ContractAddress,
         // ekubo_registry: ITokenRegistryDispatcher,
     // core: ICoreDispatcher,
@@ -339,11 +339,11 @@ mod launchpad_tests {
         calldata.append_serde(coin_class_hash);
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
-        calldata.append_serde(factory_address);
-        calldata.append_serde(ekubo_registry);
-        calldata.append_serde(core);
-        calldata.append_serde(positions);
-        calldata.append_serde(ekubo_exchange_address);
+        // calldata.append_serde(factory_address);
+        // calldata.append_serde(ekubo_registry);
+        // calldata.append_serde(core);
+        // calldata.append_serde(positions);
+        // calldata.append_serde(ekubo_exchange_address);
         calldata.append_serde(unrug_liquidity_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
