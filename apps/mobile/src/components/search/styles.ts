@@ -6,37 +6,58 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor: '#f0f0f0',
+    justifyContent: 'space-between',
     backgroundColor: theme.colors.background,
-    color: theme.colors.text,
-    borderRadius: 20,
-    marginHorizontal: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 20,
+    color: theme.colors.textPrimary,
+    marginHorizontal: 32,
+    marginVertical: 30,
     overflowX: 'auto',
   },
-  iconContainer: {
-    marginRight: 10,
+  containerMobile: {
+    flexDirection: 'column',
+    gap: 10,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.textPrimary,
+    marginHorizontal: 32,
+    marginVertical: 30,
+    overflowX: 'auto',
   },
   rowContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap', // Allow wrapping if items overflow
-    justifyContent: 'space-between', // Adjust spacing between items
+    gap: 10,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.textPrimary,
+  },
+  searchInputContainer: {
+    position: 'relative',
+  },
+  searchInputContainerMobile: {
+    position: 'relative',
+    width: '100%'
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 8,
+    top: 8
   },
   button: {
-    paddingVertical: Spacing.small,
-    paddingHorizontal: Spacing.large,
-    backgroundColor: theme.colors.surface,
+    padding: 8,
+    backgroundColor: theme.colors.background,
     borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.divider,
-    // marginBottom: Spacing.small,
-    marginRight: Spacing.small, // Add spacing between items
     justifyContent: 'center',
     alignItems: 'center',
+    color: theme.colors.textPrimary,
+    opacity: 0.7
   },
   activeButton: {
-    backgroundColor: theme.colors.primary, // Active button background color
+    opacity: 1,
+    backgroundColor: theme.colors.primary,
   },
   buttonText: {
     color: theme.colors.text,
@@ -45,11 +66,26 @@ export default ThemedStyleSheet((theme) => ({
   input: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    borderColor: theme.colors.background,
-
+    borderColor: theme.colors.textPrimary,
+    borderWidth: 1,
+    borderRadius: 10,
     color: theme.colors.text,
+    paddingLeft: 35,
+    paddingRight: 8,
     paddingVertical: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
+    fontSize: 14,
+    width: 300,
   },
+  inputMobile: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.textPrimary,
+    borderWidth: 1,
+    borderRadius: 10,
+    color: theme.colors.text,
+    paddingLeft: 35,
+    paddingRight: 8,
+    paddingVertical: 8,
+    fontSize: 14,
+  }
 }));
