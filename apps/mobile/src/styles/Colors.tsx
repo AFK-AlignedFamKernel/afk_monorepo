@@ -16,6 +16,17 @@ export const LightTheme = {
   dark: false,
   colors: {
     ...CommonColors,
+
+    // new branding - todo delete or replace all the other colors
+    // below once everything is refactored with the new ui/ux
+
+    primary: '#00AA9D',
+    bg: '',
+    textPrimary: '',
+    overlay70: 'rgba(0, 0, 0, 0.7)',
+
+    // here ends the new branding colors
+
     red: '#EC796B',
 
     badge: '#F2F2F2',
@@ -66,7 +77,7 @@ export const LightTheme = {
     swap_divider: '#e4e4e7',
 
     // primary: '#EC796B',
-    primary: '#4FA89B',
+    // primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
 
     secondary: '#0C0C4F',
@@ -118,6 +129,17 @@ export const DarkTheme = {
   dark: true,
   colors: {
     ...CommonColors,
+
+    // new branding - todo delete or replace all the other colors
+    // below once everything is refactored with the new ui/ux
+
+    primary: '#00AA9D',
+    bg: '#0B0B0B',
+    textPrimary: '#FFFFFF',
+    overlay70: 'rgba(0, 0, 0, 0.7)',
+
+    // here ends the new branding colors
+
     red: '#EC796B',
 
     badge: '#2C2C2C',
@@ -168,13 +190,13 @@ export const DarkTheme = {
     swap_divider: '#3A3A3A',
 
     // primary: '#EC796B',
-    primary: '#4FA89B',
+    // primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
 
     secondary: '#0C0C4F',
     secondaryLight: 'rgba(12,12,79, 0.1)',
 
-    background: '#272727',
+    background: '#000000',
     surface: '#242424',
     elevated: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.5)',

@@ -2,15 +2,19 @@ import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {},
-  sidebar: {
+  sidebarDesktop: {
     width: '100%',
     height: '100%',
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: 20,
-    gap: 1,
-    color: theme.colors.text,
-
-    // borderRight:"1"
+    backgroundColor: theme.colors.bg,
+    padding: 40,
+    color: theme.colors.textPrimary,
+  },
+  sidebarMobile: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: theme.colors.bg,
+    padding: 28,
+    color: theme.colors.textPrimary,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -18,39 +22,80 @@ export default ThemedStyleSheet((theme) => ({
   },
   rowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+    gap: 12,
   },
-  logo: {
-    width: 40,
-    height: 40,
-    marginRight: Spacing.xsmall,
+  colContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 48,
+    gap: 8,
   },
-  sidebarText: {
+  logoDesktop: {
+    width: 50,
+    height: 50,
+  },
+  logoMobile: {
+    width: 32,
+    height: 32,
+  },
+  sidebarTextDesktop: {
+    fontSize: 25,
+    color: theme.colors.textPrimary,
+    fontWeight: 500,
+  },
+  sidebarTextMobile: {
     fontSize: 18,
-    color: theme.colors.text,
-    marginVertical: 5,
+    color: theme.colors.textPrimary,
+    fontWeight: 500,
+  },
+  sidebarItemsContainer: {
+    flexDirection: 'column',
+    gap: 24,
   },
   title: {
     fontWeight: 'bold',
     marginBottom: 16,
     color: theme.colors.text,
   },
-  item: {
+  itemDesktop: {
     display: 'flex',
-    width: '100%',
-    height: 100,
-    backgroundColor: theme.colors.background,
-    // flex
-    // flex: 1,
     flexDirection: 'row',
-    // paddingVertical: 8,
-    color: theme.colors.text,
+    alignItems: 'center',
+    width: '100%',
+    height: 55,
+    gap: 20,
+    color: theme.colors.textPrimary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
-  textItem: {
-    backgroundColor: theme.colors.background,
-    color: theme.colors.text,
+  itemMobile: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    height: 40,
+    gap: 10,
+    color: theme.colors.textPrimary,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  activeItem: {
+    backgroundColor: theme.colors.primary
+  },
+  inactiveItem: {
+    backgroundColor: theme.colors.bg
+  },
+  textItemDesktop: {
+    color: theme.colors.textPrimary,
+    fontSize: 16
+  },
+  textItemMobile: {
+    color: theme.colors.textPrimary,
+    fontSize: 14
   },
   outsideContainer: {
     position: 'absolute',
