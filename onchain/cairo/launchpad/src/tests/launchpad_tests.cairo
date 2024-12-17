@@ -1,20 +1,19 @@
 #[cfg(test)]
 mod launchpad_tests {
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
+    use afk_launchpad::interfaces::unrug::{
+        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+    };
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
-    };
-    use afk_launchpad::interfaces::unrug::{
-        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
         SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
-        EkuboUnrugLaunchParameters
+        EkuboLaunchParameters, LaunchParameters, SharesTokenUser, EkuboUnrugLaunchParameters
     };
 
     use core::num::traits::Zero;
@@ -192,7 +191,8 @@ mod launchpad_tests {
     // Declare and create all contracts
     // Return sender_address, Erc20 quote and Launchpad contract
     fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
-    // fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
+        // fn request_fixture() -> (ContractAddress, IERC20Dispatcher,
+        // ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
 
         // println!("request_fixture");
         let erc20_class = declare_erc20();
@@ -203,9 +203,13 @@ mod launchpad_tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass, unrug_class: ContractClass
+        erc20_class: ContractClass,
+        meme_class: ContractClass,
+        launch_class: ContractClass,
+        unrug_class: ContractClass
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
-    // ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IUnrugLiquidityDispatcher) {
+        // ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher,
+        // IUnrugLiquidityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(
             erc20_class,
@@ -339,7 +343,7 @@ mod launchpad_tests {
         calldata.append_serde(ekubo_registry);
         calldata.append_serde(core);
         calldata.append_serde(positions);
-        calldata.append_serde(ekubo_exchange_address);  
+        calldata.append_serde(ekubo_exchange_address);
         calldata.append_serde(unrug_liquidity_address);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         ILaunchpadMarketplaceDispatcher { contract_address }
@@ -810,27 +814,6 @@ mod launchpad_tests {
         );
 
         spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
-    }
-
-
-    #[test]
-    // #[fork("Mainnet")]
-    #[should_panic(expected: ('no threshold raised',))]
-    fn test_launch_liquidity_when_no_threshold_raised() {
-        let (_, _, launchpad) = request_fixture();
-
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-
-        let token_address = launchpad
-            .create_and_launch_token(
-                symbol: SYMBOL(),
-                name: NAME(),
-                initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT(),
-                is_unruggable: false
-            );
-
-        launchpad.launch_liquidity(token_address);
     }
 
 
@@ -1650,31 +1633,6 @@ mod launchpad_tests {
         let result = launchpad
             .get_amount_by_type_of_coin_or_quote(token_address, quote_amount_2, false, true);
     }
-    // #[test]
-// // #[fork("Mainnet")]
-// fn test_launch_liquidity_ok() {
-//     let (sender_address, erc20, launchpad) = request_fixture();
-
-    //     start_cheat_caller_address(launchpad.contract_address, OWNER());
-
-    //     let token_address = launchpad
-//         .create_and_launch_token(
-//             symbol: SYMBOL(),
-//             name: NAME(),
-//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-//             contract_address_salt: SALT(),
-//             is_unruggable: false
-//         );
-
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-
-    //     run_buy_by_amount(
-//         launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
-//     );
-
-    //     launchpad.launch_liquidity(token_address);
-// }
-
     // #[test]
 // #[fork("Mainnet")]
 // fn launchpad_buy_all_few_steps() {
