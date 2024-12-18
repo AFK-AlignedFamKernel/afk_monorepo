@@ -123,7 +123,7 @@ RUN pnpm run build:indexer-prisma
 RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
-# RUN pnpm --filter data-backend build:all_repo
+RUN pnpm --filter data-backend build:all_repo
 # RUN pnpm --filter data-backend build:all 
 RUN pnpm --filter data-backend build:prisma
 RUN pnpm --filter data-backend build
