@@ -15,7 +15,8 @@ create table token_launch(
     threshold_liquidity TEXT,
     price TEXT,
     _cursor BIGINT,
-    time_stamp TEXT
+    time_stamp TEXT,
+    total_token_holded TEXT,
 );
 
 create table token_deploy(
@@ -133,7 +134,6 @@ create table username_changed(
     block_number BIGINT,
     block_timestamp TIMESTAMP,
     transaction_hash TEXT PRIMARY KEY,
-
     name TEXT,
     old_name TEXT,
     paid TEXT,
@@ -150,7 +150,6 @@ create table renew_subscription(
     block_number BIGINT,
     block_timestamp TIMESTAMP,
     transaction_hash TEXT PRIMARY KEY,
-
     name TEXT,
     old_name TEXT,
     paid TEXT,
@@ -165,5 +164,10 @@ create table shares_token_user(
     id TEXT,
     owner TEXT,
     token_address TEXT,
-    amount_owned TEXT
+    total_token_holded TEXT,
+    amount_owned TEXT,
+    time_stamp DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _cursor BIGINT
+
 );
