@@ -63,6 +63,7 @@ export const createLaunchpad = async (
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
     let LaunchpadClassHash = process.env.LAUNCHPAD_CLASS_HASH as string;
+    console.log("LaunchpadClassHash", LaunchpadClassHash);
 
     const compiledSierraAAaccount = json.parse(
       fs.readFileSync(PATH_LAUNCHPAD).toString("ascii")
@@ -123,8 +124,10 @@ export const createLaunchpad = async (
         casm: compiledAACasm,
       });
       console.log("Declare deploy", declareResponse);
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+
+      // TODO wait for transaction
+      // await provider.waitForTransaction(declareResponse?.transaction_hash);
+      // console.log("DeclareResponse.class_hash", declareResponse.class_hash);
 
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;
