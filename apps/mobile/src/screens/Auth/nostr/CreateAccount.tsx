@@ -2,15 +2,18 @@ import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {useState} from 'react';
 
 import {LockIcon} from '../../../assets/icons';
-import {Button, Input, TextButton} from '../../../components';
-import {useTheme} from '../../../hooks';
+import {Button, Icon, Input, TextButton} from '../../../components';
+import {useStyles, useTheme} from '../../../hooks';
 import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../../types';
+import stylesheet from './styles';
+import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -117,30 +120,55 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     navigation.navigate('ImportKeys');
   };
 
+  const handleNavigateLogin = () => {
+    navigation.navigate('Login');
+  }
+
   return (
-    <Auth title="Create Account">
-      <Input placeholder="@ Username" value={username} onChangeText={setUsername} />
+    <Auth title="Sign Up">
+      <View style={styles.formContainer}>
+        <View>
+          <Text style={styles.inputLabel}>Username</Text>
+          <TextInput
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Username"
+            style={styles.input}
+          />
+        </View>
+        <View>
+          <Text style={styles.inputLabel}>Password</Text>
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="Password"
+              style={styles.input}
+            />
+            <Icon name={'EyeIcon'} size={20} color={'grayInput'} style={styles.eyeIcon} />
+          </View>
+        </View>
+        <Button
+          block
+          style={styles.formBtn}
+          variant="primary"
+          disabled={!username || !password}
+          onPress={handleCreateAccount}
+        >
+          Sign Up
+        </Button>
+      </View>
 
-      <Input
-        left={<LockIcon color={theme.colors.primary} />}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholder="Password"
-      />
+      <hr style={styles.divider} />
 
-      <Button
-        block
-        variant="secondary"
-        disabled={!username || !password}
-        onPress={handleCreateAccount}
-      >
-        Create Account
-      </Button>
+      <View style={styles.accountBtnContainer}>
+        <TouchableOpacity onPress={handleNavigateLogin} style={styles.accountBtn}>
+          Already have an account?
+        </TouchableOpacity>
+      </View>
 
-      <TextButton onPress={handleImportKey}>Import account</TextButton>
-
-      <Button onPress={() => navigation.goBack()}>Back</Button>
+      {/* <TextButton onPress={handleImportKey}>Import account</TextButton> */}
     </Auth>
   );
 };

@@ -31,7 +31,7 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
               {/* <Image style={styles.logoImage} source={require('../../assets/afkMascot.png')} /> */}
             </View>
 
-            <Text weight="bold" fontSize={22} style={styles.title}>
+            <Text weight="bold" fontSize={35} style={styles.title}>
               {title}
             </Text>
           </View>

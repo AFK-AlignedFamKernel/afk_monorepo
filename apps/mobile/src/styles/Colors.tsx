@@ -24,6 +24,7 @@ export const LightTheme = {
     bg: '',
     textPrimary: '',
     overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
 
     // here ends the new branding colors
 
@@ -137,6 +138,7 @@ export const DarkTheme = {
     bg: '#0B0B0B',
     textPrimary: '#FFFFFF',
     overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
 
     // here ends the new branding colors
 

@@ -1,12 +1,11 @@
-import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
+import {mnemonicToSeedSync} from '@scure/bip39';
 import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {Platform, TextInput, View, Image, Text} from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input, TextButton} from '../../components';
-import {useTheme} from '../../hooks';
+import {Button, Icon} from '../../components';
+import {useStyles, useTheme} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {MainStackNavigationProps} from '../../types';
@@ -21,6 +20,8 @@ import {
   storeCashuSeed,
 } from '../../utils/storage';
 import {LoginStarknet} from './StarknetLogin';
+import stylesheet from './styles';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -35,6 +36,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   handleSuccessCreateAccount,
 }: ILoginNostr) => {
   const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
   const setAuth = useAuth((state) => state.setAuth);
   const publicKey = useAuth((state) => state.publicKey);
 
@@ -91,7 +93,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       if (!mnemonicSaved) {
         const mnemonic = await generateMnemonic();
         await storeCashuMnemonic(mnemonic, password);
-        const seed = await deriveSeedFromMnemonic(mnemonic);
+        const seed = await mnemonicToSeedSync(mnemonic);
 
         const seedHex = Buffer.from(seed).toString('hex');
 
@@ -108,7 +110,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
         const mnemonic = Buffer.from(mnemonicSaved).toString('hex');
         console.log('mnemonic', mnemonic);
 
-        const seed = await deriveSeedFromMnemonic(mnemonic);
+        const seed = await mnemonicToSeedSync(mnemonic);
         const seedHex = Buffer.from(seed).toString('hex');
         console.log('seedHex', seedHex);
 
@@ -212,43 +214,60 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   // };
 
   return (
-    <Auth title="Login">
-      <Input
-        left={<LockIcon color={theme.colors.primary} />}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholder="Enter your password"
-      />
+    <Auth title="Log In">
+      <View style={styles.loginMethodsContainer}>
+        <Button
+          onPress={handleExtensionConnect}
+          style={styles.loginMethodBtn}
+          textStyle={styles.loginMethodBtnText}
+        >
+          <View style={styles.btnInnerContainer}>
+            <Image style={styles.loginMethodBtnImg} source={require('./../../assets/nostr.svg')} />
+            Nostr Extension
+          </View>
+        </Button>
+        <LoginStarknet
+          handleNavigation={() => navigationProps?.navigate('Feed')}
+          btnText={'Starknet Account'}
+          useCustomBtn
+        />
+      </View>
+      <Text style={styles.passwordLabel}>Password</Text>
+      <View style={styles.passwordInputContainer}>
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder="Enter your password"
+          style={styles.passwordInput}
+        />
+        <Icon name={'EyeIcon'} size={20} color={'grayInput'} style={styles.eyeIcon} />
+      </View>
+      <Text style={styles.passwordInstruction}>
+        It must be a combination of minimum 8 letters, numbers, and symbols.
+      </Text>
+      <View style={styles.importAccountBtnContainer}>
+        <TouchableOpacity onPress={handleImportAccount} style={styles.importAccountBtn}>
+          Forgot Password? Import Account
+        </TouchableOpacity>
+      </View>
 
       <Button
         block
-        style={{width: 'auto', maxWidth: 130}}
-        variant="secondary"
+        style={styles.loginBtn}
+        variant="primary"
         disabled={!password?.length}
         onPress={handleLogin}
       >
-        Login
+        Log In
       </Button>
+      <hr style={styles.divider} />
 
-      <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
-      {/* <ConnectWalletScreen /> */}
-      <View
-        style={
-          {
-            // display: 'flex',
-            // flex: 1,
-            // flexDirection: 'row',
-            // rowGap: 3,
-          }
-        }
-      >
-        <TextButton onPress={handleImportAccount}>Import Account</TextButton>
-        <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
-        <LoginStarknet handleNavigation={() => navigationProps?.navigate('Feed')} />
+      <View style={styles.noAccountBtnContainer}>
+        <TouchableOpacity onPress={handleCreateAccount} style={styles.noAccountBtn}>
+          No account yet? Sign Up
+        </TouchableOpacity>
       </View>
-
-      {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}
     </Auth>
   );
 };

@@ -227,4 +227,105 @@ export default ThemedStyleSheet((theme) => ({
     borderColor: theme.colors.divider,
     borderRadius: 5,
   },
+
+  // login
+  loginMethodsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  loginMethodBtn: {
+    borderRadius: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    minWidth: 270,
+    backgroundColor: theme.colors.bg,
+  },
+  btnInnerContainer: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  loginMethodBtnText: {
+    color: theme.colors.primary,
+    fontWeight: 500,
+    height: '100%'
+  },
+  loginMethodBtnImg: {
+    width: 20,
+    height: 20
+  },
+  passwordLabel: {
+    color: theme.colors.textPrimary,
+    marginTop: 40,
+    textAlign: 'left',
+    width: 550,
+    fontSize: 14,
+    marginBottom: 10
+  },
+  passwordInputContainer: {
+    position: 'relative',
+    width: 556,
+  },
+  passwordInput: {
+    paddingLeft: 16,
+    paddingRight: 48,
+    paddingVertical: 13,
+    color: theme.colors.grayInput,
+    backgroundColor: theme.colors.white,
+    borderRadius: 32
+  },
+  passwordInstruction: {
+    color: theme.colors.grayInput,
+    textAlign: 'left',
+    width: 550,
+    fontSize: 12,
+    marginTop: 5
+  },
+  eyeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+  },
+  importAccountBtnContainer: {
+    width: 556,
+  },
+  importAccountBtn: {
+    width: 215,
+    padding: 0,
+    fontWeight: 500,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 'auto',
+    marginTop: 16,
+    textAlign: 'right',
+    cursor: 'pointer'
+  },
+  loginBtn: {
+    width: 556,
+    marginTop: 16
+  },
+  divider: {
+    width: 556,
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  noAccountBtnContainer: {
+    width: 556,
+  },
+  noAccountBtn: {
+    width: 215,
+    padding: 0,
+    fontWeight: 500,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginRight: 'auto',
+    marginTop: 16,
+    textAlign: 'left',
+    cursor: 'pointer'
+  },
 }));
