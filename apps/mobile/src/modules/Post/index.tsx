@@ -193,30 +193,30 @@ export const Post: React.FC<PostProps> = ({
 
   return (
     <View style={styles.container}>
-      {repostedEvent ||
+      {/* {repostedEvent ||
         event?.kind == NDKKind.Repost ||
         (isRepost && (
           <View style={styles.repost}>
             <RepostIcon color={theme.colors.textLight} height={18} />
             <Text color="textLight">Reposted</Text>
           </View>
-        ))}
-
+        ))} */}
       <View style={styles.info}>
         <View style={styles.infoUser}>
+          {/* // user pic */}
           <Pressable onPress={() => handleProfilePress(event?.pubkey)}>
             <Avatar
-              size={asComment ? 40 : 50}
+              size={30}
               source={
                 profile?.image ? {uri: profile.image} : require('../../assets/degen-logo.png')
               }
             />
           </Pressable>
-
+          {/* // user info & time */}
           <Pressable style={styles.infoProfile} onPress={handleNavigateToPostDetails}>
             <Text
-              weight="bold"
-              color="textStrong"
+              weight="semiBold"
+              color="textSecondary"
               fontSize={asComment ? 13 : 15}
               lineHeight={20}
               numberOfLines={1}
@@ -229,7 +229,7 @@ export const Post: React.FC<PostProps> = ({
             </Text>
 
             <View style={styles.infoDetails}>
-              {(profile?.nip05 || profile?.name) && (
+              {/* {(profile?.nip05 || profile?.name) && (
                 <>
                   <Text
                     color="textLight"
@@ -243,34 +243,36 @@ export const Post: React.FC<PostProps> = ({
 
                   <View style={styles.infoDetailsDivider} />
                 </>
-              )}
+              )} */}
 
-              <Text color="textLight" fontSize={11} lineHeight={16}>
+              <View style={styles.infoDetailsDivider} />
+
+              <Text fontSize={12} lineHeight={16} color="textSecondary">
                 {getElapsedTimeStringFull((event?.created_at ?? Date.now()) * 1000)}
               </Text>
             </View>
           </Pressable>
         </View>
-
+        {/* // like button */}
         <Pressable onPress={toggleLike}>
           <View style={styles.infoLikes}>
             <Animated.View style={animatedIconStyle}>
               {isLiked ? (
-                <LikeFillIcon height={20} color={theme.colors.red} />
+                <LikeFillIcon height={15} color={theme.colors.greenLike} />
               ) : (
-                <LikeIcon height={20} color={theme.colors.text} />
+                <LikeIcon height={15} color={theme.colors.greenLike} />
               )}
             </Animated.View>
 
             {likes > 0 && (
               <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                {likes} {likes === 1 ? 'like' : 'likes'}
+                {likes}
               </Text>
             )}
           </View>
         </Pressable>
       </View>
-
+      {/* //content */}
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
           <ContentWithClickableHashtags
@@ -298,7 +300,6 @@ export const Post: React.FC<PostProps> = ({
           )}
         </Pressable>
       </View>
-
       {!asComment && (
         <View>
           <View style={styles.hashTagsContainer}>
@@ -309,73 +310,51 @@ export const Post: React.FC<PostProps> = ({
             ))}
           </View>
           <View style={styles.footer}>
-            <View style={styles.footerContent}>
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'baseline',
-                  gap: 10,
-                }}
-              >
-                <Pressable onPress={handleNavigateToPostDetails}>
-                  <View style={styles.footerComments}>
-                    <CommentIcon height={20} color={theme.colors.textSecondary} />
-
-                    <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                      {comments.data?.pages.flat().length} comments
-                    </Text>
-                  </View>
-                </Pressable>
-
-                <Pressable
-                  style={{marginHorizontal: 3}}
-                  onPress={() => {
-                    if (!event) return;
-                    showTipModal(event);
-                  }}
-                >
-                  <Icon name="CoinIcon" size={20} title="Tip" />
-                </Pressable>
-
-                <Pressable
-                  style={{marginHorizontal: 3}}
-                  onPress={handleRepost}
-                  disabled={repostMutation.isPending}
-                >
-                  <Icon name="RepostIcon" size={20} title="Repost" />
-                  {repostMutation.isPending && <ActivityIndicator size="small" />}
-                </Pressable>
-
-                <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
-                  <Icon
-                    name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
-                    size={20}
-                    title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            <Menu
-              open={menuOpen}
-              onClose={() => setMenuOpen(false)}
-              handle={
-                <IconButton icon="MoreHorizontalIcon" size={20} onPress={() => setMenuOpen(true)} />
-              }
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'baseline',
+                gap: 30,
+              }}
             >
-              <Menu.Item label="Share" icon="ShareIcon" />
-              <Menu.Item
-                label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
-                icon="CoinIcon"
+              <Pressable onPress={handleNavigateToPostDetails}>
+                <View style={styles.footerComments}>
+                  <CommentIcon height={15} color={theme.colors.textSecondary} />
+
+                  <Text color="textSecondary" fontSize={11} lineHeight={16}>
+                    {comments.data?.pages.flat().length}
+                  </Text>
+                </View>
+              </Pressable>
+
+              <Pressable onPress={handleRepost} disabled={repostMutation.isPending}>
+                <Icon name="RepostIcon" size={15} title="Repost" />
+                {/* todo add number of reposts */}
+                {repostMutation.isPending && <ActivityIndicator size="small" />}
+              </Pressable>
+
+              <Pressable
                 onPress={() => {
                   if (!event) return;
-
                   showTipModal(event);
-                  setMenuOpen(false);
                 }}
-              />
-            </Menu>
+              >
+                <Icon name="GiftIcon" size={15} title="Tip" />
+              </Pressable>
+
+              <Pressable onPress={() => {}}>
+                <Icon name="ShareIcon" size={15} title="Share" />
+              </Pressable>
+
+              {/* <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
+                  <Icon
+                    name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
+                    size={18}
+                    title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
+                  />
+                </Pressable> */}
+            </View>
           </View>
         </View>
       )}

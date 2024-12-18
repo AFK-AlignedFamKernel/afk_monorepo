@@ -77,8 +77,13 @@ export default ThemedStyleSheet((theme) => ({
   footer: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderColor: theme.colors.cardBorder,
+    paddingTop: 20,
+    paddingHorizontal: 10,
+    gap: 20
   },
   footerComments: {
     flexDirection: 'row',

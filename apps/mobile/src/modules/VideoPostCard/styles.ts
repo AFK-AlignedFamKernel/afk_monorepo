@@ -2,11 +2,13 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   card_container: {
-    backgroundColor: theme.colors.surface,
-    padding: Spacing.xsmall,
-    marginHorizontal: Spacing.medium,
-    marginBottom: Spacing.large,
-    borderRadius: 16,
+    backgroundColor: theme.colors.background,
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    marginBottom: 15,
+    borderRadius: 12,
+    borderWidth: 0.3,
+    borderColor: theme.colors.cardBorder,
   },
   hashtagColor: {
     color: theme.colors.primary,
@@ -45,7 +47,7 @@ export default ThemedStyleSheet((theme) => ({
     width: 3,
     height: 3,
     borderRadius: 3,
-    backgroundColor: theme.colors.textLight,
+    backgroundColor: theme.colors.textSecondary,
   },
   infoLikes: {
     flexDirection: 'row',
@@ -80,6 +82,11 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderColor: theme.colors.cardBorder,
+    paddingTop: 20,
+    paddingHorizontal: 10,
   },
   hashTagsContainer: {
     flexDirection: 'row',
@@ -108,6 +115,7 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'flex-start',
     flexWrap: 'wrap',
     width: '100%',
+    color: theme.colors.textTertiary
   },
   innerContentContainer: {
     flex: 1,

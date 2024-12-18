@@ -21,10 +21,14 @@ export const LightTheme = {
     // below once everything is refactored with the new ui/ux
 
     primary: '#00AA9D',
-    bg: '',
-    textPrimary: '',
+    bg: '#FFFFFF',
+    textPrimary: '#000000',
+    textSecondary: '#0B0B0B',
+    textTertiary: '#0B0B0B',
     overlay70: 'rgba(0, 0, 0, 0.7)',
     grayInput: '#697077',
+    cardBorder: '#C4C3D3',
+    greenLike: '#ADCF00',
 
     // here ends the new branding colors
 
@@ -91,7 +95,7 @@ export const LightTheme = {
     shadow: 'rgba(13, 13, 29, 0.2)',
 
     text: '#14142C',
-    textSecondary: '#6B6B8C',
+    // textSecondary: '#6B6B8C',
     textLight: '#8F979E',
     textStrong: '#121212',
     onPrimary: '#FFFFFF',
@@ -137,8 +141,13 @@ export const DarkTheme = {
     primary: '#00AA9D',
     bg: '#0B0B0B',
     textPrimary: '#FFFFFF',
+    textSecondary: '#E9F2EA',
+    textTertiary: '#FBFBFB',
     overlay70: 'rgba(0, 0, 0, 0.7)',
     grayInput: '#697077',
+    cardBorder: '#C4C3D3',
+    greenLike: '#ADCF00',
+
 
     // here ends the new branding colors
 
@@ -205,7 +214,7 @@ export const DarkTheme = {
     shadow: 'rgba(13, 13, 29, 0.2)',
 
     text: '#FFFFFF',
-    textSecondary: '#FFFFFF',
+    // textSecondary: '#FFFFFF',
     textLight: '#FFFFFF',
     textStrong: '#FFFFFF',
     onPrimary: '#FFFFFF',
