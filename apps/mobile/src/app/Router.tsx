@@ -418,6 +418,7 @@ const linking = {
           ImportKeys: 'import-keys',
           DappBrowser: 'browser',
           Oauth: 'oauth',
+          Profile: 'profile'
         },
       },
       MainStack: {

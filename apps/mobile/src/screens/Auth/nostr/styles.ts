@@ -24,6 +24,33 @@ export default ThemedStyleSheet((theme) => ({
     width: '100%',
     maxWidth: 556,
   },
+  methodBtn: {
+    borderRadius: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    maxWidth: '100%',
+    backgroundColor: theme.colors.bg,
+    flexGrow: 1
+  },
+  btnInnerContainer: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  methodBtnText: {
+    color: theme.colors.primary,
+    fontWeight: 500,
+    height: '100%'
+  },
+  methodBtnImg: {
+    width: 20,
+    height: 20,
+  },
   inputLabel: {
     color: theme.colors.primary,
     textAlign: 'left',

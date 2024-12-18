@@ -1,15 +1,14 @@
-import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {useCashu, useCashuStore, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 
-import {LockIcon} from '../../../assets/icons';
-import {Button, Icon, Input, TextButton} from '../../../components';
+import {Button, Icon} from '../../../components';
 import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../../types';
 import stylesheet from './styles';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -30,6 +29,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   } = useInternalAccount();
+  const {getPublicKey} = useNip07Extension();
 
   const handleCreateAccount = async () => {
     if (!username) {
@@ -122,7 +122,32 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
   const handleNavigateLogin = () => {
     navigation.navigate('Login');
-  }
+  };
+
+  const handleExtensionConnect = () => {
+    showDialog({
+      title: 'WARNING',
+      description: 'Used your Nostr extension.',
+      buttons: [
+        {
+          type: 'primary',
+          label: 'Continue',
+          onPress: async () => {
+            const publicKey = await getPublicKey();
+            // navigation.navigate('ImportKeys');
+            hideDialog();
+            // if (handleSuccess) {
+            //   handleSuccess();
+            // }
+            if (publicKey && navigation) {
+              navigation.navigate('Profile', {publicKey});
+            }
+          },
+        },
+        {type: 'default', label: 'Cancel', onPress: hideDialog},
+      ],
+    });
+  };
 
   const dimensions = useWindowDimensions();
   const isDesktop = useMemo(() => {
@@ -132,6 +157,20 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
   return (
     <Auth title="Sign Up">
       <View style={styles.formContainer}>
+        <Button
+          onPress={handleExtensionConnect}
+          style={styles.methodBtn}
+          textStyle={styles.methodBtnText}
+        >
+          <View style={styles.btnInnerContainer}>
+            <Image
+              style={styles.methodBtnImg}
+              source={require('./../../../assets/nostr.svg')}
+              tintColor={theme.colors.textPrimary}
+            />
+            <Text>Nostr Extension</Text>
+          </View>
+        </Button>
         <View>
           <Text style={styles.inputLabel}>Username</Text>
           <TextInput

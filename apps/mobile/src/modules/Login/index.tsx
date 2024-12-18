@@ -229,7 +229,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           textStyle={styles.loginMethodBtnText}
         >
           <View style={styles.btnInnerContainer}>
-            <Image style={styles.loginMethodBtnImg} source={require('./../../assets/nostr.svg')} />
+            <Image
+              style={styles.loginMethodBtnImg}
+              source={require('./../../assets/nostr.svg')}
+              tintColor={theme.colors.textPrimary}
+            />
             <Text>Nostr Extension</Text>
           </View>
         </Button>
