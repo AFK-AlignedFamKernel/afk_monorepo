@@ -177,6 +177,8 @@ pub mod Memecoin {
         decimals: u8,
         total_supply: u256,
         creator: ContractAddress,
+        owner: ContractAddress,
+        factory_contract: ContractAddress,
         balances: Map::<ContractAddress, u256>,
         allowances: Map::<(ContractAddress, ContractAddress), u256>,
         //memecoin
@@ -186,7 +188,6 @@ pub mod Memecoin {
         launch_time: u64,
         launch_block_number: u64,
         launch_liquidity_parameters: Option<LiquidityParameters>,
-        factory_contract: ContractAddress,
         liquidity_type: Option<LiquidityType>,
         max_percentage_buy_launch: u16,
         capped_total_supply: u256,
@@ -309,6 +310,8 @@ pub mod Memecoin {
 
         let caller = get_caller_address();
         self.creator.write(caller.clone());
+        self.owner.write(owner.clone());
+        self.factory_contract.write(factory.clone());
         // self.ownable.initializer(caller);
         self.ownable.initializer(caller);
 
