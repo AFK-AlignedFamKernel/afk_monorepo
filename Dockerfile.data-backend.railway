@@ -123,11 +123,10 @@ RUN pnpm run build:indexer-prisma
 RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
-# Build indexer-prisma and owned prisma
 # RUN pnpm --filter data-backend build:all_repo
 # RUN pnpm --filter data-backend build:all 
-RUN pnpm --filter data-backend build:prisma
-RUN pnpm --filter data-backend build
+# RUN pnpm --filter data-backend build:prisma
+# RUN pnpm --filter data-backend build
 
 # Use a smaller production base image
 FROM node:20-alpine AS production

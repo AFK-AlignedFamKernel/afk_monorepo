@@ -17,6 +17,7 @@
     "prisma:generate": "npx prisma generate",
     "prisma:push": "npx prisma db push",
     "prisma:setup": "npx prisma generate && npx prisma db pull",
+    "prisma:setup_push": "npx prisma generate && npx prisma db push",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "ts:check": "tsc --noEmit"

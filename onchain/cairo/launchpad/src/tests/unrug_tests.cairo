@@ -585,53 +585,53 @@ mod unrug_tests {
             .balance_of(core.contract_address);
         println!("Liquidity: {}", liquidity);
     }
-
     // #[test]
-    // #[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7", block_number: 158847)]
-    // fn test_launch_on_jediswap() {
-    //     let (sender, erc20, launchpad) = request_fixture();
-    //     start_cheat_caller_address(launchpad.contract_address, OWNER());
-    //     let token_address = launchpad
-    //         .create_token(
-    //             symbol: SYMBOL(),
-    //             name: NAME(),
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT()
-    //         );
-    //     start_cheat_caller_address(launchpad.contract_address, OWNER());
+// #[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7", block_number: 158847)]
+// fn test_launch_on_jediswap() {
+//     let (sender, erc20, launchpad) = request_fixture();
+//     start_cheat_caller_address(launchpad.contract_address, OWNER());
+//     let token_address = launchpad
+//         .create_token(
+//             symbol: SYMBOL(),
+//             name: NAME(),
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT()
+//         );
+//     start_cheat_caller_address(launchpad.contract_address, OWNER());
 
     //     println!("token_address ekubo launch: {:?}", token_address);
-    //     println!(
-    //         "Balance of launchpad: {:?}",
-    //         IERC20Dispatcher { contract_address: token_address }
-    //             .balance_of(launchpad.contract_address)
-    //     );
+//     println!(
+//         "Balance of launchpad: {:?}",
+//         IERC20Dispatcher { contract_address: token_address }
+//             .balance_of(launchpad.contract_address)
+//     );
 
     //     let starting_price = i129 { sign: true, mag: 4600158 };
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-    //     let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
+//     let memecoin = IERC20Dispatcher { contract_address: token_address };
+//     let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
 
     //     let total_supply: u256 = memecoin.total_supply();
-    //     let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
+//     let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
 
     //     let lp_meme_supply = total_supply - total_token_holded;
-    //     let lp_quote_supply = 100_u256;
-    //     println!("lp_meme_supply {:?}", lp_meme_supply);
+//     let lp_quote_supply = 100_u256;
+//     println!("lp_meme_supply {:?}", lp_meme_supply);
 
     //     // println!("set JEDISWAP_FACTORY",);
-    //     // launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
-    //     // println!("set JEDISWAP_NFT_V2",);
-    //     // launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
-        
+//     // launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
+//     // println!("set JEDISWAP_NFT_V2",);
+//     // launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
+
     //     launchpad.set_address_jediswap_router_v1(JEDISWAP_ROUTER_V1());
 
     //     let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
     //     println!("launch on jedi",);
-    //     launchpad
-    //         .launch_on_jediswap(
-    //             token_address, erc20.contract_address, lp_meme_supply, lp_quote_supply, unlock_time
-    //         );
-    // }
+//     launchpad
+//         .launch_on_jediswap(
+//             token_address, erc20.contract_address, lp_meme_supply, lp_quote_supply,
+//             unlock_time
+//         );
+// }
 }
 

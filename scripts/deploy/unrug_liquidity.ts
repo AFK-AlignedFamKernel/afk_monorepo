@@ -3,8 +3,8 @@ import { Account, cairo, constants, uint256 } from "starknet";
 // import { CLASS_HASH, ESCROW_ADDRESS, JEDISWAP_V2_FACTORY, JEDISWAP_V2_NFT_ROUTER, TOKENS_ADDRESS, } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
-import { createLaunchpad } from "../utils/launchpad";
-import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS, EKUBO_REGISTRY, UNRUGGABLE_LIQUIDITY_ADDRESSES } from "common";
+import { createUnrugLiquidity } from "../utils/unrug_liquidity";
+import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS, EKUBO_REGISTRY } from "common";
 import {
   CLASS_HASH,
   ESCROW_ADDRESS,
@@ -15,8 +15,8 @@ import {
 
 dotenv.config();
 
-export const deployLaunchpad = async () => {
-  console.log("deployLaunchpad");
+export const deployUnrugLiquidity = async () => {
+  console.log("deployUnrugLiquidity");
 
   let launchpad;
 
@@ -39,8 +39,6 @@ export const deployLaunchpad = async () => {
     let UNRUG_FACTORY_ADDRESS =
     UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
 
-    let UNRUG_LIQUIDITY_ADDRESS =
-    UNRUGGABLE_LIQUIDITY_ADDRESSES[constants.StarknetChainId.SN_SEPOLIA];
   let EKUBO_CORE_ADDRESS =
   EKUBO_CORE[constants.StarknetChainId.SN_SEPOLIA];
   let EKUBO_POSITION_ADDRESS =
@@ -79,7 +77,7 @@ export const deployLaunchpad = async () => {
   const TOKEN_CLASS_HASH =
     CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA];
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
-    let launchpadContract = await createLaunchpad(
+    let unrugContract = await createUnrugLiquidity(
       TOKEN_QUOTE_ADDRESS,
       initial_key_price,
       step_increase_linear,
@@ -90,18 +88,17 @@ export const deployLaunchpad = async () => {
       EKUBO_REGISTRY_ADDRESS,
       EKUBO_CORE_ADDRESS,
       EKUBO_POSITION_ADDRESS,
-      EKUBO_DEX_ADDRESS,
-      UNRUG_LIQUIDITY_ADDRESS
+      EKUBO_DEX_ADDRESS
       
     );
     console.log(
-      "launchpadContract address",
-      launchpadContract?.contract_address
+      "unrugAddress address",
+      unrugContract?.contract_address
     );
-    if (launchpadContract?.contract_address) {
-      launchpad_address = launchpadContract?.contract_address;
+    if (unrugContract?.contract_address) {
+      launchpad_address = unrugContract?.contract_address;
       launchpad = await prepareAndConnectContract(
-        launchpad_address ?? launchpadContract?.contract_address,
+        launchpad_address ?? unrugContract?.contract_address,
         account
       );
 
@@ -122,4 +119,4 @@ export const deployLaunchpad = async () => {
   };
 };
 
-deployLaunchpad();
+deployUnrugLiquidity();

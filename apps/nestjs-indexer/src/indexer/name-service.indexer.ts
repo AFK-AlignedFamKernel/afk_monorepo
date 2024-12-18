@@ -85,7 +85,7 @@ export class NameServiceIndexer {
         )
       : '';
 
-    const expiry = new Date(Number(FieldElement.toBigInt(expiryFelt)) * 1000);
+    const expiry = new Date(Number(FieldElement.toBigInt(expiryFelt)) * 1000)?.toString();
 
     const paidRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(paidLow),

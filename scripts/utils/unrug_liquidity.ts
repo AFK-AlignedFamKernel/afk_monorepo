@@ -15,13 +15,13 @@ import path from "path";
 import { finalizeEvent } from "nostr-tools";
 
 dotenv.config();
-const PATH_LAUNCHPAD = path.resolve(
+const PAHT_UNRUG_LIQUIDITY = path.resolve(
   __dirname,
-  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_UnrugLiquidity.contract_class.json"
 );
-const PATH_LAUNCHPAD_COMPILED = path.resolve(
+const PAHT_UNRUG_LIQUIDITY_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_LaunchpadMarketplace.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_UnrugLiquidity.compiled_contract_class.json"
 );
 
 const PATH_TOKEN = path.resolve(
@@ -35,7 +35,7 @@ const PATH_TOKEN_COMPILED = path.resolve(
 
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createLaunchpad = async (
+export const createUnrugLiquidity = async (
   tokenAddress: string,
   initial_key_price: Uint256,
   step_increase_linear: Uint256,
@@ -47,7 +47,6 @@ export const createLaunchpad = async (
   core: string,
   positions: string,
   ekubo_exchange_address: string,
-  unrug_liquidity_address: string,
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -62,14 +61,13 @@ export const createLaunchpad = async (
     console.log("threshold_marketcap", threshold_marketcap);
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
-    let LaunchpadClassHash = process.env.LAUNCHPAD_CLASS_HASH as string;
-    console.log("LaunchpadClassHash", LaunchpadClassHash);
+    let UnrugClassHash = process.env.UNRUG_LIQUIDITY_CLASS_HASH as string;
 
     const compiledSierraAAaccount = json.parse(
-      fs.readFileSync(PATH_LAUNCHPAD).toString("ascii")
+      fs.readFileSync(PAHT_UNRUG_LIQUIDITY).toString("ascii")
     );
     const compiledAACasm = json.parse(
-      fs.readFileSync(PATH_LAUNCHPAD_COMPILED).toString("ascii")
+      fs.readFileSync(PAHT_UNRUG_LIQUIDITY_COMPILED).toString("ascii")
     );
     /** Get class hash account */
 
@@ -112,69 +110,76 @@ export const createLaunchpad = async (
         contract: compiledContract,
         casm: compiledCasm,
       });
-      console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
-
       console.log("declareIfNotToken", declareIfNotToken);
       coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
-      console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
 
-      console.log("try declare launchpad");
+      console.log("try declare unrug liquidity");
       const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
       console.log("Declare deploy", declareResponse);
-
-      // TODO wait for transaction
-      // await provider.waitForTransaction(declareResponse?.transaction_hash);
-      // console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+      await provider.waitForTransaction(declareResponse?.transaction_hash);
+      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
 
       const contractClassHash = declareResponse.class_hash;
-      LaunchpadClassHash = contractClassHash;
-      console.log("LaunchpadClassHash", LaunchpadClassHash);
+      UnrugClassHash = contractClassHash;
+      console.log("UnrugClass", UnrugClassHash);
 
       const nonce = await account0?.getNonce();
       console.log("nonce", nonce);
     }
 
+    // const contractConstructor: Calldata = Calldata.compile({
+    //   accountAddress0,
+    //   initial_key_price,
+    //   tokenAddress,
+    //   step_increase_linear,
+    //   coin_class_hash_memecoin_last,
+    //   threshold_liquidity,
+    //   threshold_marketcap,
+    //   factory_address,
+    //   ekubo_registry,
+    //   core,
+    //   positions,
+    //   ekubo_exchange_address
+    // });
     const { transaction_hash, contract_address } =
-    await account0.deployContract({
-      classHash: LaunchpadClassHash,
-      constructorCalldata: [
-        accountAddress0,
-        initial_key_price,
-        tokenAddress,
-        step_increase_linear,
-        coin_class_hash_memecoin_last,
-        threshold_liquidity,
-        threshold_marketcap,
-        // factory_address,
-        // ekubo_registry,
-        // core,
-        // positions,
-        // ekubo_exchange_address,
-        unrug_liquidity_address
-        // {
-        //   Calldata.compile({
-        //     accountAddress0,
-        //     initial_key_price,
-        //     tokenAddress,
-        //     step_increase_linear,
-        //     coin_class_hash_memecoin_last,
-        //     threshold_liquidity,
-        //     threshold_marketcap,
-        //     factory_address,
-        //     ekubo_registry,
-        //     core,
-        //     positions,
-        //     ekubo_exchange_address,
-        //     unrug_liquidity_address
-        //   })
+      await account0.deployContract({
+        classHash: UnrugClassHash,
+        constructorCalldata: [
+          accountAddress0,
+          initial_key_price,
+          tokenAddress,
+          step_increase_linear,
+          coin_class_hash_memecoin_last,
+          threshold_liquidity,
+          threshold_marketcap,
+          factory_address,
+          ekubo_registry,
+          core,
+          positions,
+          ekubo_exchange_address
+          // {
+          //   Calldata.compile({
+          //     accountAddress0,
+          //     initial_key_price,
+          //     tokenAddress,
+          //     step_increase_linear,
+          //     coin_class_hash_memecoin_last,
+          //     threshold_liquidity,
+          //     threshold_marketcap,
+          //     factory_address,
+          //     ekubo_registry,
+          //     core,
+          //     positions,
+          //     ekubo_exchange_address
+          //   })
 
-        // }
-       
-      ],
-    });
+          // }
+
+        ],
+      });
 
     // const { transaction_hash, contract_address } =
     //   await account0.deployContract({
@@ -202,7 +207,7 @@ export const createLaunchpad = async (
     console.log("Tx deploy", tx);
     await provider.waitForTransaction(transaction_hash);
     console.log(
-      "✅ New contract Launchpad created.\n   address =",
+      "✅ New contract Unrug Liquidity created.\n   address =",
       contract_address
     );
 
@@ -213,6 +218,6 @@ export const createLaunchpad = async (
       // contract
     };
   } catch (error) {
-    console.log("Error createLaunchpad= ", error);
+    console.log("Error createUnrugLiquidity= ", error);
   }
 };

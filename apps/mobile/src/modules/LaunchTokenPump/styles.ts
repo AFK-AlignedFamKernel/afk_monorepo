@@ -7,6 +7,7 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   form: {
+    backgroundColor: theme.colors.background,
     gap: Spacing.xsmall,
     paddingVertical: Spacing.medium,
     paddingHorizontal: Spacing.pagePadding,

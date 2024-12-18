@@ -1,19 +1,21 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useAccount} from '@starknet-react/core';
-import {useQueryClient} from '@tanstack/react-query';
-import {useProfile} from 'afk_nostr_sdk';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useAccount } from '@starknet-react/core';
+import { useQueryClient } from '@tanstack/react-query';
+import { useProfile } from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {Formik, FormikProps} from 'formik';
-import {useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import { useAuth } from 'afk_nostr_sdk';
+import { Formik, FormikProps } from 'formik';
+import { useRef, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 
-import {Button, SquareInput, Text} from '../../components';
-import {useStyles, useWaitConnection} from '../../hooks';
-import {DeployTokenFormValues, useCreateToken} from '../../hooks/launchpad/useCreateToken';
-import {useToast, useWalletModal} from '../../hooks/modals';
+import { Button, SquareInput, Text } from '../../components';
+import { useStyles, useWaitConnection } from '../../hooks';
+import { DeployTokenFormValues, useCreateToken } from '../../hooks/launchpad/useCreateToken';
+import { useToast, useWalletModal } from '../../hooks/modals';
 import stylesheet from '../../screens/CreateChannel/styles';
-import {TipSuccessModalProps} from '../TipSuccessModal';
+import { TipSuccessModalProps } from '../TipSuccessModal';
+import { Picker } from '@react-native-picker/picker';
+import { BondingType } from '../../types/keys';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -40,12 +42,12 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
   const walletModal = useWalletModal();
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
-  const profile = useProfile({publicKey});
+  const profile = useProfile({ publicKey });
   const queryClient = useQueryClient();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const account = useAccount();
   const waitConnection = useWaitConnection();
-  const {deployToken, deployTokenAndLaunch} = useCreateToken();
+  const { deployToken, deployTokenAndLaunch } = useCreateToken();
 
   const [type, setType] = useState(TypeCreate.CREATE);
   const initialFormValues: FormValues = {
@@ -78,29 +80,40 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         if (!result) return;
       }
 
-      const data: DeployTokenFormValues = {
-        recipient: account?.address,
-        name: values.name,
-        symbol: values.symbol,
-        initialSupply: values?.initialSupply,
-        contract_address_salt: values.contract_address_salt,
-        is_unruggable: values.is_unruggable,
-      };
       if (!account || !account?.account) return;
       console.log('test deploy');
 
       let tx;
       if (type == TypeCreate.CREATE) {
+
+        const data: DeployTokenFormValues = {
+          recipient: account?.address,
+          name: values.name,
+          symbol: values.symbol,
+          initialSupply: values?.initialSupply,
+          contract_address_salt: values.contract_address_salt,
+          is_unruggable: values.is_unruggable,
+        };
         tx = await deployToken(account?.account, data);
       } else {
+
+        const data: DeployTokenFormValues = {
+          recipient: account?.address,
+          name: values.name,
+          symbol: values.symbol,
+          initialSupply: values?.initialSupply,
+          contract_address_salt: values.contract_address_salt,
+          is_unruggable: values.is_unruggable,
+          bonding_type: values.bonding_type
+        };
         tx = await deployTokenAndLaunch(account?.account, data);
       }
 
       if (tx) {
-        showToast({type: 'success', title: 'Token launch created successfully'});
+        showToast({ type: 'success', title: 'Token launch created successfully' });
       }
     } catch (error) {
-      showToast({type: 'error', title: 'Failed to create token and launch'});
+      showToast({ type: 'error', title: 'Failed to create token and launch' });
     }
   };
 
@@ -116,7 +129,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         onSubmit={onFormSubmit}
         validate={validateForm}
       >
-        {({handleChange, handleBlur, values, errors}) => (
+        {({ handleChange, handleBlur, values, errors }) => (
           <View style={styles.form}>
             <SquareInput
               placeholder="Token name"
@@ -142,6 +155,30 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
               value={values.initialSupply?.toString()}
               error={errors.initialSupply?.toString()}
             />
+
+
+            <View>
+              <Text>Only Linear is available atm.</Text>
+              
+              <Picker
+                // label="Please select a token"
+                selectedValue={values.bonding_type?.toString()}
+                // selectedValue={values.bonding_type?.toString()}
+                onValueChange={(itemValue) => {
+                  handleChange('bonding_type')
+                  // values.bonding_type= BondingType {itemValue}
+                }}
+              >
+                {Object.values(BondingType).map((bonding) => (
+                  <Picker.Item
+                    key={bonding?.toString()}
+                    label={bonding?.toString()}
+                    value={bonding?.toString()}
+                  />
+                ))}
+              </Picker>
+            </View>
+
 
             <Button onPress={() => onSubmitPress(TypeCreate.CREATE)}>Create coin</Button>
 
