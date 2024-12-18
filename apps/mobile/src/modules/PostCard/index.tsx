@@ -53,7 +53,7 @@ export const ContentWithClickableHashtags = ({content, onHashtagPress}: any) => 
   const matches = content?.match(hashtags);
 
   return (
-    <Text color="textStrong" fontSize={13} lineHeight={20}>
+    <Text color="textTertiary" fontSize={13} lineHeight={20} weight='semiBold'>
       {parts.map((part: string, index: number) => (
         <React.Fragment key={index}>
           {part}

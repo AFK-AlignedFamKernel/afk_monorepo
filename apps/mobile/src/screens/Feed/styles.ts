@@ -16,7 +16,8 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   flatListContent: {
-    paddingVertical: Spacing.large,
+    marginTop: 10,
+    paddingHorizontal: 25,
   },
 
   createPostButton: {
@@ -28,8 +29,7 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   stories: {
-    paddingVertical: Spacing.large,
-    paddingHorizontal: Spacing.pagePadding,
+    paddingHorizontal: 25,
   },
 
   storiesContainer: {
