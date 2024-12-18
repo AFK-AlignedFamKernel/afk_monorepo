@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "build:index": "tsc",
-    "build:all_repo": "pnpm -w run build:indexer-prisma && pnpm -w run build:prisma-db && tsc",
-    "build:all": "tsc",
+    "build:all_repo": "pnpm run build:all",
+    "build:all": "pnpm -w run build:indexer-prisma && pnpm -w run build:prisma-db && pnpm build",
     "build:prisma": "",
     "start": "ts-node src/index.ts",
     "start:dev": "ts-node-dev src/index.ts",
