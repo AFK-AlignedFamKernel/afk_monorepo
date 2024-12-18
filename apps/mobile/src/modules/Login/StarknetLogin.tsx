@@ -1,11 +1,11 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {TouchableOpacity, View, Image} from 'react-native';
 import {useAccount} from 'wagmi';
 
 import {Button, TextButton} from '../../components';
 import {StarkConnectModal} from './StarkModal';
 import {SignMessageModal} from './StarknetSigner';
-import {useStyles} from '../../hooks';
+import {useStyles, useWindowDimensions} from '../../hooks';
 import stylesheet from './styles';
 
 export const LoginStarknet = ({
@@ -41,8 +41,13 @@ export const LoginStarknet = ({
     }
   };
 
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   return (
-    <View>
+    <View style={{width: '100%'}}>
       {showConnect && (
         <StarkConnectModal
           handleToggleSign={() => setShowSignModal(!showSignModal)}
@@ -70,7 +75,7 @@ export const LoginStarknet = ({
           onPress={() => {
             setShow(true);
           }}
-          style={styles.loginMethodBtn}
+          style={[styles.loginMethodBtn, isDesktop && styles.loginMethodBtnDesktop]}
           textStyle={styles.loginMethodBtnText}
         >
           <View style={styles.btnInnerContainer}>

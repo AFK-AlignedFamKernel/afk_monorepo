@@ -232,6 +232,12 @@ export default ThemedStyleSheet((theme) => ({
   loginMethodsContainer: {
     flexDirection: 'row',
     gap: 16,
+    width: '100%',
+    maxWidth: 556,
+    flexWrap: 'wrap'
+  },
+  loginMethodsContainerDesktop: {
+    flexWrap: 'nowrap'
   },
   loginMethodBtn: {
     borderRadius: 32,
@@ -239,8 +245,12 @@ export default ThemedStyleSheet((theme) => ({
     paddingHorizontal: 12,
     borderWidth: 2,
     borderColor: theme.colors.primary,
-    minWidth: 270,
+    maxWidth: '100%',
     backgroundColor: theme.colors.bg,
+    flexGrow: 1
+  },
+  loginMethodBtnDesktop: {
+    width: 270,
   },
   btnInnerContainer: {
     width: '100%',
@@ -263,13 +273,15 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.textPrimary,
     marginTop: 40,
     textAlign: 'left',
-    width: 550,
+    width: '100%',
+    maxWidth: 550,
     fontSize: 14,
     marginBottom: 10
   },
   passwordInputContainer: {
     position: 'relative',
-    width: 556,
+    width: '100%',
+    maxWidth: 556,
   },
   passwordInput: {
     paddingLeft: 16,
@@ -277,12 +289,15 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: 13,
     color: theme.colors.grayInput,
     backgroundColor: theme.colors.white,
-    borderRadius: 32
+    borderRadius: 32,
+    borderColor: theme.colors.grayInput,
+    borderWidth: 1
   },
   passwordInstruction: {
     color: theme.colors.grayInput,
     textAlign: 'left',
-    width: 550,
+    width: '100%',
+    maxWidth: 550,
     fontSize: 12,
     marginTop: 5
   },
@@ -292,7 +307,8 @@ export default ThemedStyleSheet((theme) => ({
     right: 16,
   },
   importAccountBtnContainer: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
   },
   importAccountBtn: {
     width: 215,
@@ -306,16 +322,19 @@ export default ThemedStyleSheet((theme) => ({
     cursor: 'pointer'
   },
   loginBtn: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
     marginTop: 16
   },
   divider: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
     marginTop: 40,
     marginBottom: 40,
   },
   noAccountBtnContainer: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
   },
   noAccountBtn: {
     width: 215,
@@ -324,7 +343,7 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 12,
     color: theme.colors.primary,
     marginRight: 'auto',
-    marginTop: 16,
+    marginVertical: 16,
     textAlign: 'left',
     cursor: 'pointer'
   },

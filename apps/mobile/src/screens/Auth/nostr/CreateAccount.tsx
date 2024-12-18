@@ -1,9 +1,9 @@
 import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 
 import {LockIcon} from '../../../assets/icons';
 import {Button, Icon, Input, TextButton} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
+import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
@@ -124,6 +124,11 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     navigation.navigate('Login');
   }
 
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   return (
     <Auth title="Sign Up">
       <View style={styles.formContainer}>
@@ -160,7 +165,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
         </Button>
       </View>
 
-      <hr style={styles.divider} />
+      {isDesktop ? <hr style={styles.divider} /> : null}
 
       <View style={styles.accountBtnContainer}>
         <TouchableOpacity onPress={handleNavigateLogin} style={styles.accountBtn}>

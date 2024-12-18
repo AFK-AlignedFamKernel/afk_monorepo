@@ -23,7 +23,7 @@ export default ThemedStyleSheet((theme) => ({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.bg,
+    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
   },
@@ -38,24 +38,29 @@ export default ThemedStyleSheet((theme) => ({
     width: LOGO_SIZE,
     height: LOGO_SIZE,
     borderWidth: 5,
-    borderColor: theme.colors.bg,
+    borderColor: theme.colors.surface,
     borderRadius: 999,
   },
   title: {
     marginBottom: Spacing.xxxlarge,
     color: theme.colors.primary,
-    width: 556,
+    width: '100%',
+    maxWidth: 556,
     textAlign: 'left',
+  },
+  titleMobile: {
+    paddingHorizontal: 15,
+    marginBottom: Spacing.small,
   },
 
   contentContainer: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: theme.colors.surface,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: Spacing.medium,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: theme.colors.surface,
   },
 }));

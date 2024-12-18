@@ -1,8 +1,9 @@
 import {Image, KeyboardAvoidingView, ScrollView, View} from 'react-native';
 
 import {Text} from '../../components';
-import {useStyles} from '../../hooks';
+import {useStyles, useWindowDimensions} from '../../hooks';
 import stylesheet from './styles';
+import { useMemo } from 'react';
 
 export type AuthProps = {
   title: string;
@@ -11,6 +12,11 @@ export type AuthProps = {
 
 export const Auth: React.FC<AuthProps> = ({title, children}) => {
   const styles = useStyles(stylesheet);
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
@@ -31,7 +37,7 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
               {/* <Image style={styles.logoImage} source={require('../../assets/afkMascot.png')} /> */}
             </View>
 
-            <Text weight="bold" fontSize={35} style={styles.title}>
+            <Text weight="bold" fontSize={35} style={[styles.title, !isDesktop && styles.titleMobile]}>
               {title}
             </Text>
           </View>

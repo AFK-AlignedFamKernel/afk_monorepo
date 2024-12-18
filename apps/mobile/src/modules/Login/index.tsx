@@ -1,11 +1,11 @@
 import {mnemonicToSeedSync} from '@scure/bip39';
 import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Platform, TextInput, View, Image, Text} from 'react-native';
 
 import {Button, Icon} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
+import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {MainStackNavigationProps} from '../../types';
@@ -192,6 +192,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     });
   };
 
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   // const handleGoDegenApp = () => {
   //   // Brind dialog
   //   navigation.navigate('DegensStack', { screen: 'Games' });
@@ -215,15 +220,17 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
 
   return (
     <Auth title="Log In">
-      <View style={styles.loginMethodsContainer}>
+      <View
+        style={[styles.loginMethodsContainer, isDesktop && styles.loginMethodsContainerDesktop]}
+      >
         <Button
           onPress={handleExtensionConnect}
-          style={styles.loginMethodBtn}
+          style={[styles.loginMethodBtn, isDesktop && styles.loginMethodBtnDesktop]}
           textStyle={styles.loginMethodBtnText}
         >
           <View style={styles.btnInnerContainer}>
             <Image style={styles.loginMethodBtnImg} source={require('./../../assets/nostr.svg')} />
-            Nostr Extension
+            <Text>Nostr Extension</Text>
           </View>
         </Button>
         <LoginStarknet
@@ -261,7 +268,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       >
         Log In
       </Button>
-      <hr style={styles.divider} />
+      {isDesktop ? <hr style={styles.divider} /> : null}
 
       <View style={styles.noAccountBtnContainer}>
         <TouchableOpacity onPress={handleCreateAccount} style={styles.noAccountBtn}>

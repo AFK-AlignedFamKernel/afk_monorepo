@@ -21,17 +21,21 @@ export default ThemedStyleSheet((theme) => ({
   formContainer: {
     flexDirection: 'column',
     gap: 16,
+    width: '100%',
+    maxWidth: 556,
   },
   inputLabel: {
     color: theme.colors.primary,
     textAlign: 'left',
-    width: 550,
+    maxWidth: 550,
+    width: '100%',
     fontSize: 14,
     marginBottom: 10,
   },
   passwordInputContainer: {
     position: 'relative',
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
   },
   input: {
     paddingLeft: 16,
@@ -40,6 +44,8 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.grayInput,
     backgroundColor: theme.colors.white,
     borderRadius: 32,
+    borderColor: theme.colors.grayInput,
+    borderWidth: 1
   },
   eyeIcon: {
     position: 'absolute',
@@ -47,15 +53,18 @@ export default ThemedStyleSheet((theme) => ({
     right: 16,
   },
   formBtn: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
   },
   divider: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%',
     marginTop: 40,
     marginBottom: 40,
   },
   accountBtnContainer: {
-    width: 556,
+    maxWidth: 556,
+    width: '100%'
   },
   accountBtn: {
     width: 215,
@@ -66,6 +75,7 @@ export default ThemedStyleSheet((theme) => ({
     marginRight: 'auto',
     textAlign: 'left',
     cursor: 'pointer',
-    fontFamily: 'Arial'
+    fontFamily: 'Arial',
+    marginVertical: 16,
   },
 }));

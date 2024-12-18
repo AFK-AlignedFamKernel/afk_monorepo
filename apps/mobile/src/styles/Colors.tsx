@@ -199,7 +199,7 @@ export const DarkTheme = {
     secondaryLight: 'rgba(12,12,79, 0.1)',
 
     background: '#000000',
-    surface: '#242424',
+    surface: '#000000',
     elevated: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.5)',
     shadow: 'rgba(13, 13, 29, 0.2)',
