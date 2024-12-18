@@ -42,11 +42,11 @@ COPY . .
 # Install all dependencies for the workspace
 RUN pnpm install --force
 
-RUN pnpm run build:indexer-prisma
-RUN pnpm --filter indexer-prisma build
+#RUN pnpm run build:indexer-prisma
+#RUN pnpm --filter indexer-prisma build
 
 # Build nestjs-indexer
-RUN pnpm --filter nestjs-indexer build
+RUN pnpm --filter nestjs-indexer build:all
 
 # Use a smaller production base image
 FROM node:20-alpine AS production
