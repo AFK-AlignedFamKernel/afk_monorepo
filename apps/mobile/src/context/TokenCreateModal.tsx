@@ -35,7 +35,7 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
     if (!account?.address) {
       setStarknetAddress(undefined);
     }
-  }, [account]);
+  }, [account, account?.address]);
   const show = useCallback(
     (event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => {
       setEvent(event);

@@ -32,9 +32,9 @@ export const useLaunchToken = () => {
 
       // const orderToSend: BondingType = { Linear: {} };
       // const myCustomEnum = new CairoCustomEnum({ Linear: {} });
-      let myCustomEnum = new CairoCustomEnum({Linear:{} });
+      let bondingEnum = new CairoCustomEnum({Linear:{} });
       if(bonding_type){
-        myCustomEnum = new CairoCustomEnum({bonding_type});
+        bondingEnum = new CairoCustomEnum({bonding_type});
       }
       // const orderToSend: BondingType = { Linear };
       // const myCustomEnum = new CairoCustomEnum({ Response: orderToSend });
@@ -44,7 +44,7 @@ export const useLaunchToken = () => {
         entrypoint: 'launch_token',
         calldata: CallData.compile({
           coin_address: coin_address,
-          bonding_type: myCustomEnum
+          bonding_type: bondingEnum
           // ekubo_pool:CairoOptionVariant.None
         }),
       };

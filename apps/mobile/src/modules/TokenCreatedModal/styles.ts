@@ -5,6 +5,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   modal: {
     paddingBottom: Spacing.xxlarge,
+    background:theme.colors.background
   },
 
   header: {

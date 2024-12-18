@@ -135,8 +135,8 @@ export interface SharesKeys {
 }
 
 export enum BondingType {
-  Linear,
-  Exponential,
+  Linear=0,
+  Exponential=1,
   // Scoring, // Nostr data with Appchain connected to a Relayer
   // Limited,
 }
