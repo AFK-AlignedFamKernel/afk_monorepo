@@ -26,6 +26,7 @@ export const LightTheme = {
     textSecondary: '#0B0B0B',
     textTertiary: '#0B0B0B',
     overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
     cardBorder: '#C4C3D3',
     greenLike: '#ADCF00',
 
@@ -143,6 +144,7 @@ export const DarkTheme = {
     textSecondary: '#E9F2EA',
     textTertiary: '#FBFBFB',
     overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
     cardBorder: '#C4C3D3',
     greenLike: '#ADCF00',
 
@@ -206,7 +208,7 @@ export const DarkTheme = {
     secondaryLight: 'rgba(12,12,79, 0.1)',
 
     background: '#000000',
-    surface: '#242424',
+    surface: '#000000',
     elevated: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.5)',
     shadow: 'rgba(13, 13, 29, 0.2)',

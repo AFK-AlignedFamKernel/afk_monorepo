@@ -227,4 +227,124 @@ export default ThemedStyleSheet((theme) => ({
     borderColor: theme.colors.divider,
     borderRadius: 5,
   },
+
+  // login
+  loginMethodsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    width: '100%',
+    maxWidth: 556,
+    flexWrap: 'wrap'
+  },
+  loginMethodsContainerDesktop: {
+    flexWrap: 'nowrap'
+  },
+  loginMethodBtn: {
+    borderRadius: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    maxWidth: '100%',
+    backgroundColor: theme.colors.bg,
+    flexGrow: 1
+  },
+  loginMethodBtnDesktop: {
+    width: 270,
+  },
+  btnInnerContainer: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  loginMethodBtnText: {
+    color: theme.colors.primary,
+    fontWeight: 500,
+    height: '100%'
+  },
+  loginMethodBtnImg: {
+    width: 20,
+    height: 20
+  },
+  passwordLabel: {
+    color: theme.colors.textPrimary,
+    marginTop: 40,
+    textAlign: 'left',
+    width: '100%',
+    maxWidth: 550,
+    fontSize: 14,
+    marginBottom: 10
+  },
+  passwordInputContainer: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 556,
+  },
+  passwordInput: {
+    paddingLeft: 16,
+    paddingRight: 48,
+    paddingVertical: 13,
+    color: theme.colors.grayInput,
+    backgroundColor: theme.colors.white,
+    borderRadius: 32,
+    borderColor: theme.colors.grayInput,
+    borderWidth: 1
+  },
+  passwordInstruction: {
+    color: theme.colors.grayInput,
+    textAlign: 'left',
+    width: '100%',
+    maxWidth: 550,
+    fontSize: 12,
+    marginTop: 5
+  },
+  eyeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+  },
+  importAccountBtnContainer: {
+    maxWidth: 556,
+    width: '100%',
+  },
+  importAccountBtn: {
+    width: 215,
+    padding: 0,
+    fontWeight: 500,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 'auto',
+    marginTop: 16,
+    textAlign: 'right',
+    cursor: 'pointer'
+  },
+  loginBtn: {
+    maxWidth: 556,
+    width: '100%',
+    marginTop: 16
+  },
+  divider: {
+    maxWidth: 556,
+    width: '100%',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  noAccountBtnContainer: {
+    maxWidth: 556,
+    width: '100%',
+  },
+  noAccountBtn: {
+    width: 215,
+    padding: 0,
+    fontWeight: 500,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginRight: 'auto',
+    marginVertical: 16,
+    textAlign: 'left',
+    cursor: 'pointer'
+  },
 }));

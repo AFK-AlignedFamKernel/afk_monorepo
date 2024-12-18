@@ -1,16 +1,18 @@
-import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {useState} from 'react';
+import {useCashu, useCashuStore, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
+import {useMemo, useState} from 'react';
 
-import {LockIcon} from '../../../assets/icons';
-import {Button, Input, TextButton} from '../../../components';
-import {useTheme} from '../../../hooks';
+import {Button, Icon} from '../../../components';
+import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useInternalAccount} from '../../../hooks/account/useInternalAccount';
 import {useDialog, useToast} from '../../../hooks/modals';
 import {Auth} from '../../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../../types';
+import stylesheet from './styles';
+import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +29,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   } = useInternalAccount();
+  const {getPublicKey} = useNip07Extension();
 
   const handleCreateAccount = async () => {
     if (!username) {
@@ -117,30 +120,99 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
     navigation.navigate('ImportKeys');
   };
 
+  const handleNavigateLogin = () => {
+    navigation.navigate('Login');
+  };
+
+  const handleExtensionConnect = () => {
+    showDialog({
+      title: 'WARNING',
+      description: 'Used your Nostr extension.',
+      buttons: [
+        {
+          type: 'primary',
+          label: 'Continue',
+          onPress: async () => {
+            const publicKey = await getPublicKey();
+            // navigation.navigate('ImportKeys');
+            hideDialog();
+            // if (handleSuccess) {
+            //   handleSuccess();
+            // }
+            if (publicKey && navigation) {
+              navigation.navigate('Profile', {publicKey});
+            }
+          },
+        },
+        {type: 'default', label: 'Cancel', onPress: hideDialog},
+      ],
+    });
+  };
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   return (
-    <Auth title="Create Account">
-      <Input placeholder="@ Username" value={username} onChangeText={setUsername} />
+    <Auth title="Sign Up">
+      <View style={styles.formContainer}>
+        <Button
+          onPress={handleExtensionConnect}
+          style={styles.methodBtn}
+          textStyle={styles.methodBtnText}
+        >
+          <View style={styles.btnInnerContainer}>
+            <Image
+              style={styles.methodBtnImg}
+              source={require('./../../../assets/nostr.svg')}
+              tintColor={theme.colors.textPrimary}
+            />
+            <Text>Nostr Extension</Text>
+          </View>
+        </Button>
+        <View>
+          <Text style={styles.inputLabel}>Username</Text>
+          <TextInput
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Username"
+            style={styles.input}
+          />
+        </View>
+        <View>
+          <Text style={styles.inputLabel}>Password</Text>
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="Password"
+              style={styles.input}
+            />
+            <Icon name={'EyeIcon'} size={20} color={'grayInput'} style={styles.eyeIcon} />
+          </View>
+        </View>
+        <Button
+          block
+          style={styles.formBtn}
+          variant="primary"
+          disabled={!username || !password}
+          onPress={handleCreateAccount}
+        >
+          Sign Up
+        </Button>
+      </View>
 
-      <Input
-        left={<LockIcon color={theme.colors.primary} />}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholder="Password"
-      />
+      {isDesktop ? <hr style={styles.divider} /> : null}
 
-      <Button
-        block
-        variant="secondary"
-        disabled={!username || !password}
-        onPress={handleCreateAccount}
-      >
-        Create Account
-      </Button>
+      <View style={styles.accountBtnContainer}>
+        <TouchableOpacity onPress={handleNavigateLogin} style={styles.accountBtn}>
+          Already have an account?
+        </TouchableOpacity>
+      </View>
 
-      <TextButton onPress={handleImportKey}>Import account</TextButton>
-
-      <Button onPress={() => navigation.goBack()}>Back</Button>
+      {/* <TextButton onPress={handleImportKey}>Import account</TextButton> */}
     </Auth>
   );
 };

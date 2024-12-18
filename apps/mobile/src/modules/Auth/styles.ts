@@ -42,7 +42,15 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 999,
   },
   title: {
-    marginVertical: Spacing.large,
+    marginBottom: Spacing.xxxlarge,
+    color: theme.colors.primary,
+    width: '100%',
+    maxWidth: 556,
+    textAlign: 'left',
+  },
+  titleMobile: {
+    paddingHorizontal: 15,
+    marginBottom: Spacing.small,
   },
 
   contentContainer: {
@@ -52,7 +60,6 @@ export default ThemedStyleSheet((theme) => ({
   content: {
     flex: 1,
     alignItems: 'center',
-    gap: Spacing.medium,
     paddingHorizontal: Spacing.medium,
     backgroundColor: theme.colors.surface,
   },
