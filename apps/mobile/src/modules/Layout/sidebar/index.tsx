@@ -73,7 +73,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
 
   useEffect(() => {
     const key =
-      navigation.getState().history[navigation.getState().history.length - (isDesktop ? 1 : 2)].key;
+      navigation?.getState()?.history?.[navigation.getState().history.length - (isDesktop ? 1 : 2)]?.key;
     setCurrentRouteKey(key);
   }, [navigation.getState().history]);
 
