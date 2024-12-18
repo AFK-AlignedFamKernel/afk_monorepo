@@ -111,6 +111,8 @@ export const createLaunchpad = async (
         contract: compiledContract,
         casm: compiledCasm,
       });
+      console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
+
       console.log("declareIfNotToken", declareIfNotToken);
       coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
       console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
