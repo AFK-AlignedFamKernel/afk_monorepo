@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { VerificationListInstance } from 'twilio/lib/rest/verify/v2/service/verification';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'prisma-db';
 
 interface GetOtpRequestBody {
   phone_number: string;

@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash, shortString } from 'starknet';
+import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { NameServiceService } from 'src/services/name-service/name-service.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -85,7 +85,7 @@ export class NameServiceIndexer {
         )
       : '';
 
-    const expiry = new Date(Number(FieldElement.toBigInt(expiryFelt)) * 1000)?.toString();
+    const expiry = new Date(Number(FieldElement.toBigInt(expiryFelt)) * 1000);
 
     const paidRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(paidLow),

@@ -116,17 +116,19 @@ RUN apk add --no-cache openssl
 RUN pnpm install --force
 
 # RUN pnpm run build:prisma-db
-RUN pnpm run build:backend:prisma
-RUN pnpm run build:indexer-prisma
+# RUN pnpm run build:backend:prisma
+# RUN pnpm run build:indexer-prisma
 # RUN pnpm run build:backend:all_repo
 # Build the indexer-prisma package
-RUN pnpm --filter indexer-prisma build
+# RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
 # RUN pnpm --filter data-backend build:all_repo
 # RUN pnpm --filter data-backend build:all 
 # RUN pnpm --filter data-backend build:prisma
 # RUN pnpm --filter data-backend build
+
+RUN pnpm --filter data-backend build:all
 
 # Use a smaller production base image
 FROM node:20-alpine AS production
@@ -137,6 +139,7 @@ WORKDIR /app
 # Copy the node_modules and built files from the base stage
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
+COPY --from=base /app/packages/prisma-db ./packages/prisma-db
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
