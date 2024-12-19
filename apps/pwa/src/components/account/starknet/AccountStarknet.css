@@ -104,11 +104,7 @@
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid rgba(0, 0, 0, 0.5);
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 1),
-    rgba(255, 255, 255, 0.9)
-  );
+  background: linear-gradient(45deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9));
 }
 
 .Account__rank__img {
@@ -163,6 +159,7 @@
   padding: 0.5rem 1rem;
   height: 2.4rem;
   width: 100%;
+  background-color: white;
   flex: 1;
 }
 
