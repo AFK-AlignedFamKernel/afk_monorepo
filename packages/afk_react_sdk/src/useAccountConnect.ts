@@ -144,7 +144,10 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
       const argentTMA = initArgentTMA();
       if (!argentTMA) return;
       try {
-        await argentTMA.requestConnection('custom_callback_data');
+        await argentTMA.requestConnection({
+          callbackData: '',
+          approvalRequests: [],
+        });
       } catch (error) {
         console.log(error, 'err');
       }
