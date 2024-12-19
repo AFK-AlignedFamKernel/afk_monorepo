@@ -63,3 +63,11 @@ jobs:
 
       - name: Build
         run: pnpm build:web
+
+      - name: Build android
+        run: pnpm build:android
+
+      - name: Build IOS
+        run: pnpm build:ios
+
+

@@ -1,14 +1,14 @@
-name: PWA
+name: Mobile App Android & IOS
 
 on:
   push:
     branches:
       - main
     paths:
-      - "apps/pwa/**"
+      - "apps/mobile/**"
   pull_request:
     paths:
-      - "apps/pwa/**"
+      - "apps/mobile/**"
 
 jobs:
   check-app:
@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./apps/pwa
+        working-directory: ./apps/mobile
 
     steps:
       - name: Checkout Code
@@ -46,7 +46,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if [ -f "apps/pwa/pnpm-lock.yaml" ]; then
+          if [ -f "apps/mobile/pnpm-lock.yaml" ]; then
             pnpm install --frozen-lockfile
           else
             pnpm install
@@ -54,15 +54,17 @@ jobs:
 
       - name: Prettier Format Check
         run: pnpm format:check
-        
-      # - name: Lint fix
-      #   run: pnpm lint:fix
-      
-      # - name: Lint
-      #   run: pnpm lint
+
+      - name: ESLint Check
+        run: pnpm lint
 
       - name: TypeScript Check
         run: pnpm ts:check
 
-      - name: Build
-        run: pnpm build
+      - name: Build android
+        run: pnpm build:android
+
+      - name: Build IOS
+        run: pnpm build:ios
+
+
