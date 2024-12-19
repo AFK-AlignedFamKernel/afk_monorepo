@@ -138,6 +138,12 @@ RUN pnpm --filter data-backend build:all
 # Use a smaller production base image
 FROM node:20-alpine AS production
 
+
+# Install necessary dependencies in production
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat 
+
 # Set the working directory in the production container
 WORKDIR /app
 
