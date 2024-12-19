@@ -19,6 +19,7 @@ export const useNostrAuth = () => {
   }, [publicKey]);
 
   const handleCheckNostrAndSendConnectDialog = async () => {
+    // @todo fix
     if (!isNostrConnected) {
       show();
     }

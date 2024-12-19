@@ -22,7 +22,7 @@ import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
 import { useAutoConnect, useQueryAddressEffect, useWalletStore, useConnectArgent } from 'afk_react_sdk';
 
-const logoUrl = './resources/logo.png'
+const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
 
 interface IApp {
@@ -745,7 +745,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setLastPlacedTime={setLastPlacedTime}
         />
         {(!isMobile || activeTab === tabs[0]) && (
+          <div className='App__logo--mobile_container'>
           <img src={logoUrl} alt='logo' className='App__logo--mobile' />
+          <a href="/"> 
+            <h5>AFK</h5>
+         </a>
+          </div>
         )}
         <div
           className={
