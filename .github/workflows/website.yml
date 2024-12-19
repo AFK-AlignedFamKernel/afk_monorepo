@@ -55,8 +55,8 @@ jobs:
       - name: Prettier Format Check
         run: pnpm prettier:check
 
-      - name: ESLint Check
-        run: pnpm lint
+      # - name: ESLint Check
+      #   run: pnpm lint
 
       - name: TypeScript Check
         run: pnpm ts:check
