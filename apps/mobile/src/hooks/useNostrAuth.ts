@@ -7,22 +7,20 @@ import {useDialog} from './modals';
 import {useLoginModal} from './modals/useLoginModal';
 
 export const useNostrAuth = () => {
+  const navigationMain = useNavigation<MainStackNavigationProps>();
   const {publicKey, privateKey} = useAuth();
   const {ndk} = useNostrContext();
   const {showDialog, hideDialog} = useDialog();
   const {show} = useLoginModal();
   const {getPublicKey} = useNip07Extension();
-  const navigationMain = useNavigation<MainStackNavigationProps>();
 
   const isNostrConnected = useMemo(() => {
     return publicKey ? true : false;
   }, [publicKey]);
 
   const handleCheckNostrAndSendConnectDialog = async () => {
-    // @todo fix
     if (!isNostrConnected) {
-      handleGoLogin();
-      // show();
+      show();
     }
 
     return isNostrConnected;

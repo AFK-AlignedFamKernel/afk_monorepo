@@ -1,4 +1,4 @@
-import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
+import {useAuth, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useMemo, useState} from 'react';
 import {Platform, TextInput, View, Image, Text} from 'react-native';
@@ -28,12 +28,16 @@ interface ILoginNostr {
   navigationProps?: MainStackNavigationProps | any;
   handleSuccess?: () => void;
   handleSuccessCreateAccount?: () => void;
+  handleNavigateCreateAccount?: () => void;
+  handleNavigateImportKeys?: () => void;
 }
 export const LoginNostrModule: React.FC<ILoginNostr> = ({
   isNavigationAfterLogin,
   navigationProps,
   handleSuccess,
   handleSuccessCreateAccount,
+  handleNavigateCreateAccount,
+  handleNavigateImportKeys,
 }: ILoginNostr) => {
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
@@ -49,8 +53,6 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   const {showDialog, hideDialog} = useDialog();
   const {getPublicKey} = useNip07Extension();
   const {generateNewMnemonic, derivedSeedFromMnenomicAndSaved} = useCashuContext()!;
-
-  // const navigationMain = useNavigation<MainStackNavigationProps>();
 
   useEffect(() => {
     (async () => {
@@ -118,8 +120,8 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     }
     if (handleSuccess) {
       handleSuccess();
-    }
-    if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
+      return;
+    } else if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
       navigationProps?.navigate('Feed');
     }
   };
@@ -134,7 +136,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigationProps?.navigate('CreateAccount');
+            if (handleNavigateCreateAccount) {
+              handleNavigateCreateAccount();
+            } else {
+              navigationProps?.navigate('CreateAccount');
+            }
             hideDialog();
           },
         },
@@ -153,7 +159,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigationProps?.navigate('ImportKeys');
+            if (handleNavigateImportKeys) {
+              handleNavigateImportKeys();
+            } else {
+              navigationProps?.navigate('ImportKeys');
+            }
             hideDialog();
           },
         },
@@ -176,8 +186,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             hideDialog();
             if (handleSuccess) {
               handleSuccess();
-            }
-            if (publicKey && navigationProps) {
+            } else if (publicKey && navigationProps) {
               navigationProps.navigate('Profile', {publicKey});
             }
           },
