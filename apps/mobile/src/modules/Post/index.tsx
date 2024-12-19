@@ -151,6 +151,7 @@ export const Post: React.FC<PostProps> = ({
   const handleRepost = async () => {
     if (!event) return;
     try {
+      // @TODO fix
       await handleCheckNostrAndSendConnectDialog();
 
       await repostMutation.mutateAsync();

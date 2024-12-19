@@ -17,6 +17,7 @@ import {
   storePrivateKey,
   storePublicKey,
 } from '../../../utils/storage';
+import {useCashuContext} from '../../../providers/CashuProvider';
 
 export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -25,7 +26,7 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) =>
   const [privateKey, setPrivateKey] = useState('');
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
-  const {generateMnemonic} = useCashu();
+  const {generateMnemonic} = useCashuContext()!;
   const {setIsSeedCashuStorage} = useCashuStore();
 
   const handleImportAccount = async () => {
@@ -53,10 +54,11 @@ export const ImportKeys: React.FC<AuthImportKeysScreenProps> = ({navigation}) =>
     console.log('mnemonicSaved', mnemonicSaved);
 
     if (!mnemonicSaved) {
-      const mnemonic = await generateMnemonic();
-      console.log('mnemonic', mnemonic);
-      await storeCashuMnemonic(mnemonic, password);
-      setIsSeedCashuStorage(true);
+      // @TODO fix
+      // const mnemonic = await generateMnemonic();
+      // console.log('mnemonic', mnemonic);
+      // await storeCashuMnemonic(mnemonic, password);
+      // setIsSeedCashuStorage(true);
     }
 
     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
