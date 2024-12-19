@@ -1,9 +1,6 @@
 // use afk_launchpad::launchpad::errors;
 // use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256, min_u256};
-use afk_launchpad::types::launchpad_types::{
-    TokenLaunch,
-    
-};
+use afk_launchpad::types::launchpad_types::{TokenLaunch,};
 use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
 

@@ -94,14 +94,19 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // fn set_address_jediswap_nft_router_v2(
     //     ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
     // );
-    // fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory: ContractAddress);
+    // fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory:
+    // ContractAddress);
     // fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_exchanges_address(
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
-    );  
+    );
     fn set_is_fees_protocol_enabled(ref self: TContractState, is_fees_protocol_enabled: bool);
-    fn set_is_fees_protocol_enabled_buy(ref self: TContractState, is_fees_protocol_buy_enabled: bool);
-    fn set_is_fees_protocol_enabled_sell(ref self: TContractState, is_fees_protocol_sell_enabled: bool);
+    fn set_is_fees_protocol_enabled_buy(
+        ref self: TContractState, is_fees_protocol_buy_enabled: bool
+    );
+    fn set_is_fees_protocol_enabled_sell(
+        ref self: TContractState, is_fees_protocol_sell_enabled: bool
+    );
 }
 
 #[starknet::contract]
@@ -363,7 +368,7 @@ pub mod LaunchpadMarketplace {
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
 
         self.is_fees_protocol_buy_enabled.write(false);
-        self.is_fees_protocol_sell_enabled.write(false);    
+        self.is_fees_protocol_sell_enabled.write(false);
         self.is_fees_protocol_enabled.write(false);
 
         let init_token = TokenQuoteBuyCoin {
@@ -392,7 +397,6 @@ pub mod LaunchpadMarketplace {
         // self.positions.write(positions);
         // self.ekubo_exchange_address.write(ekubo_exchange_address);
         self.unrug_liquidity_address.write(unrug_liquidity_address);
-       
     }
 
     // Public functions inside an impl block
@@ -410,12 +414,16 @@ pub mod LaunchpadMarketplace {
             self.is_fees_protocol_enabled.write(is_fees_protocol_enabled);
         }
 
-        fn set_is_fees_protocol_enabled_buy(ref self: ContractState, is_fees_protocol_buy_enabled: bool) {
+        fn set_is_fees_protocol_enabled_buy(
+            ref self: ContractState, is_fees_protocol_buy_enabled: bool
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
-        fn set_is_fees_protocol_enabled_sell(ref self: ContractState, is_fees_protocol_sell_enabled: bool) {
+        fn set_is_fees_protocol_enabled_sell(
+            ref self: ContractState, is_fees_protocol_sell_enabled: bool
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_sell_enabled.write(is_fees_protocol_sell_enabled);
         }
@@ -606,9 +614,8 @@ pub mod LaunchpadMarketplace {
             let mut remain_quote_to_liquidity = total_price;
             // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
 
-
-            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read(); 
-            let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read(); 
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read();
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
@@ -781,14 +788,11 @@ pub mod LaunchpadMarketplace {
                 .entry(coin_address)
                 .write(share_user.clone());
 
-                
-
             // println!("check threshold");
             // TODO finish test and fix
             // Add slipage threshold
             // Fix price of the last
 
-            
             self.launched_coins.entry(coin_address).write(pool_coin.clone());
 
             if pool_coin.liquidity_raised >= threshold {
@@ -958,10 +962,12 @@ pub mod LaunchpadMarketplace {
 
             // Assertion: Ensure pool liquidity remains consistent
             // assert!(
-            //     old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after sale"
+            //     old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after
+            //     sale"
             // );
             assert(
-                old_pool.liquidity_raised >= quote_amount, errors::POOL_LIQUIDITY_INCONSISTENCY_AFTER_SALE
+                old_pool.liquidity_raised >= quote_amount,
+                errors::POOL_LIQUIDITY_INCONSISTENCY_AFTER_SALE
             );
             // TODO finish update state
             // pool_update.price = total_price;
@@ -1372,7 +1378,7 @@ pub mod LaunchpadMarketplace {
             } else {
                 bond_type = BondingType::Linear;
             }
-         
+
             // let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
@@ -1599,7 +1605,6 @@ pub mod LaunchpadMarketplace {
             let threshold_liquidity = launch.threshold_liquidity.clone();
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
             let mut threshold = threshold_liquidity - slippage_threshold;
-
 
             assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
             let starting_price: i129 = calculate_starting_price_launch(

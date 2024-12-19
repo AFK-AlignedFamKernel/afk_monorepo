@@ -1050,7 +1050,7 @@ pub mod UnrugLiquidity {
             // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
 
             let memecoin = IMemecoinDispatcher { contract_address: coin_address };
-            // println!("try set_launched");        
+            // println!("try set_launched");
 
             // memecoin
             //     .set_launched(

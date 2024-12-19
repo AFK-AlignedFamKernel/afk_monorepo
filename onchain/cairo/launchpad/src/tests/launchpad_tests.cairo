@@ -4,6 +4,7 @@ mod launchpad_tests {
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
+    use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
@@ -11,12 +12,11 @@ mod launchpad_tests {
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
-        CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, 
-        // SetJediswapNFTRouterV2,SetJediswapV2Factory, 
-        SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser, EkuboUnrugLaunchParameters
+        CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
+        SupportedExchanges, EkuboLP,
+        EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
+        EkuboUnrugLaunchParameters
     };
-    use afk_launchpad::launchpad::errors;
     use core::num::traits::Zero;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
@@ -2092,8 +2092,6 @@ mod launchpad_tests {
         let result = launchpad
             .get_amount_by_type_of_coin_or_quote(token_address, quote_amount_2, false, true);
     }
-
-    
     // #[test]
 // #[fork("Mainnet")]
 // fn launchpad_buy_all_few_steps() {
@@ -2256,55 +2254,54 @@ mod launchpad_tests {
 // Unit test
 //
 
-
     // #[test]
-    // #[should_panic(expected: ('Caller is missing role',))]
-    // fn test_set_address_jediswap_factory_v2_non_admin() {
-    //     let (_, _, launchpad) = request_fixture();
-    //     start_cheat_caller_address(launchpad.contract_address, ALICE());
+// #[should_panic(expected: ('Caller is missing role',))]
+// fn test_set_address_jediswap_factory_v2_non_admin() {
+//     let (_, _, launchpad) = request_fixture();
+//     start_cheat_caller_address(launchpad.contract_address, ALICE());
 
     //     launchpad.set_address_jediswap_factory_v2('jediswap'.try_into().unwrap());
-    // }
+// }
 
     // #[test]
-    // fn test_set_address_jediswap_factory_v2_ok() {
-    //     let (sender_address, _, launchpad) = request_fixture();
-    //     let mut spy = spy_events();
-    //     let jediswap_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+// fn test_set_address_jediswap_factory_v2_ok() {
+//     let (sender_address, _, launchpad) = request_fixture();
+//     let mut spy = spy_events();
+//     let jediswap_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
 
     //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 
     //     launchpad.set_address_jediswap_factory_v2(jediswap_v2_addr);
 
     //     let expected_event = LaunchpadEvent::SetJediswapV2Factory(
-    //         SetJediswapV2Factory { address_jediswap_factory_v2: jediswap_v2_addr }
-    //     );
-    //     spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
-    // }
+//         SetJediswapV2Factory { address_jediswap_factory_v2: jediswap_v2_addr }
+//     );
+//     spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+// }
 
     // #[test]
-    // #[should_panic(expected: ('Caller is missing role',))]
-    // fn test_set_address_jediswap_nft_router_v2_non_admin() {
-    //     let (_, _, launchpad) = request_fixture();
-    //     start_cheat_caller_address(launchpad.contract_address, ALICE());
+// #[should_panic(expected: ('Caller is missing role',))]
+// fn test_set_address_jediswap_nft_router_v2_non_admin() {
+//     let (_, _, launchpad) = request_fixture();
+//     start_cheat_caller_address(launchpad.contract_address, ALICE());
 
     //     launchpad.set_address_jediswap_nft_router_v2('jediswap'.try_into().unwrap());
-    // }
+// }
 
     // #[test]
-    // fn test_set_address_jediswap_nft_router_v2_ok() {
-    //     let (sender_address, _, launchpad) = request_fixture();
-    //     let mut spy = spy_events();
-    //     let jediswap_nft_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
+// fn test_set_address_jediswap_nft_router_v2_ok() {
+//     let (sender_address, _, launchpad) = request_fixture();
+//     let mut spy = spy_events();
+//     let jediswap_nft_v2_addr: ContractAddress = 'jediswap'.try_into().unwrap();
 
     //     start_cheat_caller_address(launchpad.contract_address, sender_address);
 
     //     launchpad.set_address_jediswap_nft_router_v2(jediswap_nft_v2_addr);
 
     //     let expected_event = LaunchpadEvent::SetJediswapNFTRouterV2(
-    //         SetJediswapNFTRouterV2 { address_jediswap_nft_router_v2: jediswap_nft_v2_addr }
-    //     );
-    //     spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
-    // }
+//         SetJediswapNFTRouterV2 { address_jediswap_nft_router_v2: jediswap_nft_v2_addr }
+//     );
+//     spy.assert_emitted(@array![(launchpad.contract_address, expected_event)]);
+// }
 
 }
