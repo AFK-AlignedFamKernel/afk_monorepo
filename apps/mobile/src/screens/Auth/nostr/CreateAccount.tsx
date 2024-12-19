@@ -9,6 +9,7 @@ import {Auth} from '../../../modules/Auth';
 import {AuthCreateAccountScreenProps} from '../../../types';
 import stylesheet from './styles';
 import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
+import {useCashuContext} from '../../../providers/CashuProvider';
 
 export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -19,7 +20,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
   const {ndk} = useNostrContext();
   const {setIsSeedCashuStorage} = useCashuStore();
-  const {generateMnemonic} = useCashu();
+  const {generateMnemonic} = useCashuContext()!;
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
   const {
@@ -55,6 +56,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
       navigation.navigate('SaveKeys', {privateKey, publicKey});
     }
 
+    // @TODO fix
     // if (resNostr?.secretKey && resNostr?.publicKey) {
     //   const {publicKey, privateKey} = await handleSavedNostrWalletOld(
     //     username,

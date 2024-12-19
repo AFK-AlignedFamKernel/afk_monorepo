@@ -22,6 +22,7 @@ import {
 import {LoginStarknet} from './StarknetLogin';
 import stylesheet from './styles';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {useCashuContext} from '../../providers/CashuProvider';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -48,7 +49,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
   const {getPublicKey} = useNip07Extension();
-  const {generateMnemonic} = useCashu();
+  const {generateMnemonic} = useCashuContext()!;
 
   // const navigationMain = useNavigation<MainStackNavigationProps>();
 
@@ -88,17 +89,15 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     try {
       const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
       if (!mnemonicSaved) {
-        const mnemonic = await generateMnemonic();
-        await storeCashuMnemonic(mnemonic, password);
-        const seed = await mnemonicToSeedSync(mnemonic);
-
-        const seedHex = Buffer.from(seed).toString('hex');
-
-        await storeCashuSeed(seedHex, password);
-
-        setMnemonic(mnemonic);
-        setSeed(seed);
-        setIsSeedCashuStorage(true);
+        // @TODO fix
+        // const mnemonic = await generateMnemonic();
+        // await storeCashuMnemonic(mnemonic, password);
+        // const seed = await mnemonicToSeedSync(mnemonic);
+        // const seedHex = Buffer.from(seed).toString('hex');
+        // await storeCashuSeed(seedHex, password);
+        // setMnemonic(mnemonic);
+        // setSeed(seed);
+        // setIsSeedCashuStorage(true);
       }
 
       const seedSaved = await retrieveAndDecryptCashuSeed(password);
