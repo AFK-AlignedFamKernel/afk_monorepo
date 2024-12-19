@@ -69,13 +69,13 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
 
   fastify.get<{
     Params: DeployTokenParams;
-  }>('/deploy/from/:user/', async (request, reply) => {
+  }>('/deploy/by/:owner_address/', async (request, reply) => {
     try {
       const { owner_address } = request.params;
       if (owner_address && !isValidStarknetAddress(owner_address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
-          message: 'Invalid token address',
+          message: 'Invalid user address',
         });
         return;
       }
