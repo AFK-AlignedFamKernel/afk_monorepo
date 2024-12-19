@@ -100,6 +100,10 @@ RUN echo ${ACCOUNT_PRIVATE_KEY}
 ARG JWT_SECRET
 RUN echo ${JWT_SECRET}
 
+# Install open ssl
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat 
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
@@ -110,8 +114,9 @@ RUN npm install -g pnpm
 # Copy the entire repository into the Docker container
 COPY . .
 
-# Install open ssl
-RUN apk add --no-cache openssl
+
+
+# RUN apk add --no-cache openssl
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
