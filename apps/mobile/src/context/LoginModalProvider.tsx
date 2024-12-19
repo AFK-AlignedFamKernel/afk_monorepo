@@ -1,10 +1,8 @@
 import {createContext, useCallback, useMemo, useRef, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
 
 import {Modalize} from '../components';
-import {LoginNostrModule} from '../modules/Login';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
-import { MainStackNavigationProps } from '../types';
+import {SharedAuthModalModule} from '../modules/Login/SharedModal';
 
 export type LoginModalContextType = {
   show: () => void;
@@ -19,9 +17,6 @@ export type LoginModal = Modalize;
 
 export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const loginModalRef = useRef<LoginModal>(null);
-
-
-  // const navigation = useNavigation<MainStackNavigationProps>()
 
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
@@ -52,7 +47,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
 
       <Modalize
         modalStyle={{
-          maxWidth: 500,
+          maxWidth: 700,
           width: '100%',
           marginLeft: 'auto',
           marginRight: 'auto',
@@ -62,10 +57,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
         ref={loginModalRef}
         adjustToContentHeight
       >
-        {/* TODO: Add navigationProps in the Login Modal others issues */}
-        <LoginNostrModule 
-        // navigationProps={navigation}
-        />
+        <SharedAuthModalModule handleSuccess={hide} />
       </Modalize>
 
       {successModal && <TipSuccessModal {...successModal} />}

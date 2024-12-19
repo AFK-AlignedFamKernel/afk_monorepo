@@ -15,8 +15,7 @@ import {
 } from '@cashu/cashu-ts';
 import {bytesToHex} from '@noble/curves/abstract/utils';
 import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
-import {generateMnemonic as generateNewMnemonic, mnemonicToSeedSync} from '@scure/bip39';
-import {wordlist} from '@scure/bip39/wordlists/english';
+import * as Bip39 from 'bip39';
 import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
@@ -34,7 +33,7 @@ export interface MintData {
 export interface ICashu {
   wallet: CashuWallet;
   mint: CashuMint;
-  generateMnemonic: () => string;
+  generateNewMnemonic: () => string;
   derivedSeedFromMnenomicAndSaved: (mnemonic: string) => Uint8Array;
   // connectCashMint: (mintUrl: string) => Promise<{
   //   mint: CashuMint;
@@ -133,20 +132,19 @@ export const useCashu = (): ICashu => {
   }, [mint, seed, activeUnit]);
 
   /** TODO saved in secure store */
-  const generateMnemonic = () => {
+  const generateNewMnemonic = () => {
     try {
-      // @TODO fix
-      // const words = generateNewMnemonic(wordlist);
-      // setMnemonic(words);
-      // return words;
-      return [];
+      const mn = Bip39.generateMnemonic(128, undefined, Bip39.wordlists['english']);
+      setMnemonic(mn);
+      return mn;
     } catch (e) {
-      console.log('[DEBUG E]', e);
+      console.error(e);
+      return '';
     }
   };
   /** TODO saved in secure store */
   const derivedSeedFromMnenomicAndSaved = (mnemonic: string) => {
-    const seedDerived = mnemonicToSeedSync(mnemonic);
+    const seedDerived = Bip39.mnemonicToSeedSync(mnemonic);
     setSeed(seedDerived);
     return seedDerived;
   };
@@ -472,7 +470,7 @@ export const useCashu = (): ICashu => {
   return {
     wallet,
     mint,
-    generateMnemonic,
+    generateNewMnemonic,
     derivedSeedFromMnenomicAndSaved,
     // connectCashMint,
     // connectCashWallet,

@@ -70,6 +70,7 @@
     "afk_nostr_sdk": "workspace:*",
     "axios": "^1.7.2",
     "babel-plugin-module-resolver": "^5.0.2",
+    "bip39": "^3.1.0",
     "buffer": "^6.0.3",
     "common": "workspace:*",
     "crypto-es": "^2.1.0",
