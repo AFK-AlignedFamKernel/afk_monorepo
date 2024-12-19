@@ -8,7 +8,7 @@ import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
-import { useContractAction} from "afk_react_sdk";
+import { useContractAction} from "afk_sdk";
 import {ART_PEACE_ADDRESS} from "common"
 import {CallData} from 'starknet';
 
