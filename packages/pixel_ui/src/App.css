@@ -9,6 +9,26 @@
   background-color: #fefdfb;
 }
 
+.App__logo--mobile_container{
+  position: fixed;
+  z-index: 99;
+  left: 1rem;
+  top: 0.5rem;
+  width: "100%";
+  height: 5rem;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  color: rgba(0, 0, 0, 0.9);
+
+}
+.App__logo--mobile {
+  width: auto;
+  height: 4.2rem;
+  margin-right: 0.5rem;
+  image-rendering: pixelated;
+}
+
 .App--background {
   height: 100vh;
   width: 100vw;
@@ -62,14 +82,10 @@
   pointer-events: none;
 }
 
-.App__logo--mobile {
-  position: fixed;
-  z-index: 99;
-  left: 1rem;
-  top: 1rem;
-  width: min(8rem, 15%);
-  image-rendering: pixelated;
-}
+/* desktop:text-2xl text-lg leading-7 font-bold" */
+
+
+
 
 .ExpandTabs__button {
   margin: 0;

@@ -134,9 +134,15 @@ export const useCashu = (): ICashu => {
 
   /** TODO saved in secure store */
   const generateMnemonic = () => {
-    const words = generateNewMnemonic(wordlist, 128);
-    setMnemonic(words);
-    return words;
+    try {
+      // @TODO fix
+      // const words = generateNewMnemonic(wordlist);
+      // setMnemonic(words);
+      // return words;
+      return [];
+    } catch (e) {
+      console.log('[DEBUG E]', e);
+    }
   };
   /** TODO saved in secure store */
   const derivedSeedFromMnenomicAndSaved = (mnemonic: string) => {

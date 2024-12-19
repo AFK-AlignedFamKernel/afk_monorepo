@@ -22,6 +22,7 @@
 .PixelSelector__text {
   margin: 0;
   padding: 0.25rem;
+  color: rgba(0, 0, 0, 0.9);
 }
 
 .PixelSelector__extras {
