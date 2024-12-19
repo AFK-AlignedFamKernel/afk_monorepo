@@ -1,4 +1,3 @@
-import {mnemonicToSeedSync} from '@scure/bip39';
 import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useEffect, useMemo, useState} from 'react';
@@ -49,7 +48,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
   const {getPublicKey} = useNip07Extension();
-  const {generateMnemonic} = useCashuContext()!;
+  const {generateNewMnemonic, derivedSeedFromMnenomicAndSaved} = useCashuContext()!;
 
   // const navigationMain = useNavigation<MainStackNavigationProps>();
 
@@ -89,15 +88,15 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     try {
       const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
       if (!mnemonicSaved) {
-        // @TODO fix
-        // const mnemonic = await generateMnemonic();
-        // await storeCashuMnemonic(mnemonic, password);
-        // const seed = await mnemonicToSeedSync(mnemonic);
-        // const seedHex = Buffer.from(seed).toString('hex');
-        // await storeCashuSeed(seedHex, password);
-        // setMnemonic(mnemonic);
-        // setSeed(seed);
-        // setIsSeedCashuStorage(true);
+        const mnemonic = generateNewMnemonic();
+
+        await storeCashuMnemonic(mnemonic, password);
+        const seed = derivedSeedFromMnenomicAndSaved(mnemonic);
+        const seedHex = Buffer.from(seed).toString('hex');
+        await storeCashuSeed(seedHex, password);
+        setMnemonic(mnemonic);
+        setSeed(seed);
+        setIsSeedCashuStorage(true);
       }
 
       const seedSaved = await retrieveAndDecryptCashuSeed(password);
@@ -106,7 +105,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
         const mnemonic = Buffer.from(mnemonicSaved).toString('hex');
         console.log('mnemonic', mnemonic);
 
-        const seed = await mnemonicToSeedSync(mnemonic);
+        const seed = derivedSeedFromMnenomicAndSaved(mnemonic);
         const seedHex = Buffer.from(seed).toString('hex');
         console.log('seedHex', seedHex);
 

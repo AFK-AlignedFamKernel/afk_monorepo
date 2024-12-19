@@ -20,7 +20,7 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
   const {ndk} = useNostrContext();
   const {setIsSeedCashuStorage} = useCashuStore();
-  const {generateMnemonic} = useCashuContext()!;
+  const {generateNewMnemonic} = useCashuContext()!;
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
   const {
@@ -45,30 +45,27 @@ export const CreateAccount: React.FC<AuthCreateAccountScreenProps> = ({navigatio
 
     const passkey = await handleGeneratePasskey();
     console.log('passkey', passkey);
+
     // const res = await handleGenerateWallet(passkey);
     // console.log('res handleGenerateWallet', res);
 
-    // const resNostr = await handleGenerateNostrWallet(passkey);
-    // console.log('resNostr handleGenerateNostrWallet', resNostr);
+    const resNostr = await handleGenerateNostrWallet(passkey);
+    console.log('resNostr handleGenerateNostrWallet', resNostr);
 
-    const {publicKey, privateKey} = await handleGenerateNostrWalletOld(username, password, passkey);
-    if (privateKey && publicKey) {
-      navigation.navigate('SaveKeys', {privateKey, publicKey});
+    // const {publicKey, privateKey} = await handleGenerateNostrWalletOld(username, password, passkey)
+
+    if (resNostr?.secretKey && resNostr?.publicKey) {
+      const {publicKey, privateKey} = await handleSavedNostrWalletOld(
+        username,
+        password,
+        resNostr?.secretKey,
+        resNostr?.publicKey,
+        passkey,
+      );
+      if (privateKey && publicKey) {
+        navigation.navigate('SaveKeys', {privateKey, publicKey});
+      }
     }
-
-    // @TODO fix
-    // if (resNostr?.secretKey && resNostr?.publicKey) {
-    //   const {publicKey, privateKey} = await handleSavedNostrWalletOld(
-    //     username,
-    //     password,
-    //     resNostr?.secretKey,
-    //     resNostr?.publicKey,
-    //     passkey,
-    //   );
-    //   if (privateKey && publicKey) {
-    //     navigation.navigate('SaveKeys', {privateKey, publicKey});
-    //   }
-    // }
 
     // const { privateKey, publicKey } = generateRandomKeypair();
     // await storePassword(password);
