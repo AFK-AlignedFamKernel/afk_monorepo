@@ -83,13 +83,10 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       showToast({type: 'error', title: 'Invalid password'});
       return;
     }
-
-    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
-    // console.log("mnemonicSaved", mnemonicSaved)
-    setIsSeedCashuStorage(true);
     setAuth(publicKey, privateKeyHex);
 
     try {
+      const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
       if (!mnemonicSaved) {
         const mnemonic = await generateMnemonic();
         await storeCashuMnemonic(mnemonic, password);
