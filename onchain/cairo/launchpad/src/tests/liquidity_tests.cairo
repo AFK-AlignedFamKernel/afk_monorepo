@@ -219,8 +219,8 @@ mod liquidity_tests {
         // );
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
-        launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
+        // launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY());
+        // launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_NFT_V2());
         (sender_address, erc20, launchpad)
     }
 

@@ -23,10 +23,10 @@ model registration {
 
 model User {
   id             String          @id @default(cuid())
-  email          String?         @unique
-  verified       Boolean?        @default(false)
-  loginType      String
   userAddress    String          @unique
+  email          String?         @unique
+  loginType      String
+  verified       Boolean?        @default(false)
   createdat      DateTime?       @default(now()) @db.Timestamp(6)
   updatedat      DateTime?       @default(now()) @db.Timestamp(6)
   socialAccounts SocialAccount[]
@@ -36,16 +36,16 @@ model User {
 
 model SocialAccount {
   id           String    @id @default(cuid())
+  userId       String
   platform     String
+  accountId    String
   username     String?
   picture      String?
   accessToken  String?
-  accountId    String
-  createdAt    DateTime? @default(now()) @db.Timestamp(6)
-  expiresAt    DateTime? @db.Timestamp(6)
   refreshToken String?
+  expiresAt    DateTime? @db.Timestamp(6)
+  createdAt    DateTime? @default(now()) @db.Timestamp(6)
   updatedAt    DateTime? @default(now()) @db.Timestamp(6)
-  userId       String
   users        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
 
   @@unique([userId, platform])
