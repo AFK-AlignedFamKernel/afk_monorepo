@@ -7,9 +7,9 @@ export function NavigationLinks() {
       <li>
         <Link href="/features">Features </Link>
       </li>
-      <li>
+      {/* <li>
         <Link href="/pixel">Pixel </Link>
-      </li>
+      </li> */}
       {/* <li>
         <CustomConnectButtonWallet
         // width={ "100px" }
