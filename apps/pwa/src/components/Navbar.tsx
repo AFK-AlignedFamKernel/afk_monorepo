@@ -90,7 +90,7 @@ export function Navbar() {
 
   return (
     <Box
-      className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center"
+      className="desktop:py-[26px] hidden py-3 px-6 desktop:px-[120px]  justify-between items-center"
       bg={bgColor}
       color={textColor}
     >
