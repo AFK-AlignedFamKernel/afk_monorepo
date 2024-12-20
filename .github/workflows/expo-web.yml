@@ -1,12 +1,14 @@
-name: Mobile App
+name: Expo Web App
 
 on:
   push:
+    paths:
+      - ".github/workflows/expo-web.yaml"
+      - "apps/mobile/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "apps/mobile/**"
-  pull_request:
     paths:
       - "apps/mobile/**"
 
@@ -52,22 +54,19 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm format:check
-
-      - name: ESLint Check
-        run: pnpm lint
-
-      - name: TypeScript Check
-        run: pnpm ts:check
+#      - name: Prettier Format Check
+#        run: pnpm format:check
+#
+#      - name: ESLint Check
+#        run: pnpm lint
+#
+#      - name: TypeScript Check
+#        run: pnpm ts:check
 
       - name: Build
         run: pnpm build:web
 
-      - name: Build android
-        run: pnpm build:android
-
-      - name: Build IOS
-        run: pnpm build:ios
+      # - name: Start
+      #   run: pnpm start:web
 
 

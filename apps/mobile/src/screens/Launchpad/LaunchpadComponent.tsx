@@ -1,20 +1,21 @@
-import {useAccount} from '@starknet-react/core';
-import {useAuth} from 'afk_nostr_sdk';
-import {useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
+import { useAccount } from '@starknet-react/core';
+import { useAuth } from 'afk_nostr_sdk';
+import { useEffect, useState } from 'react';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 
-import {Button} from '../../components';
+import { Button } from '../../components';
 import Loading from '../../components/Loading';
-import {TokenCard} from '../../components/search/TokenCard';
-import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
-import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useMyTokensCreated} from '../../hooks/api/indexer/useMyTokensCreated';
-import {useTokens} from '../../hooks/api/indexer/useTokens';
-import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
-import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
-import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
-import {useLaunchpadStore} from '../../store/launchpad';
+import { TokenCard } from '../../components/search/TokenCard';
+import { TokenLaunchCard } from '../../components/search/TokenLaunchCard';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { useMyTokensCreated } from '../../hooks/api/indexer/useMyTokensCreated';
+import { useTokens } from '../../hooks/api/indexer/useTokens';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
+import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
+import { FormLaunchToken } from '../../modules/LaunchTokenPump/FormLaunchToken';
+import { useLaunchpadStore } from '../../store/launchpad';
 import stylesheet from './styles';
+import { useMyLaunchCreated } from '../../hooks/api/indexer/useMyLaunchCreated';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -22,38 +23,51 @@ interface AllKeysComponentInterface {
 export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {tokens: launchesData, isLoading, isFetching} = useCombinedTokenData();
-  const {data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens} = useTokens();
+  const { launches: launchesData, isLoading, isFetching } = useCombinedTokenData();
+  const { data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens } = useTokens();
   console.log('tokens data', tokens);
   const {
     data: myTokens,
     isLoading: isLoadingMyTokens,
     isFetching: isFetchingMyTokens,
-  } = useMyTokensCreated();
-  const {show: showModal} = useTokenCreatedModal();
+  } = useMyTokensCreated(account?.address);
+  const {
+    data: myLaunchs,
+    isLoading: isLoadingMyLaunchs,
+    isFetching: isFetchingMyLaunchs,
+  } = useMyLaunchCreated(account?.address);
+
+  const { show: showModal } = useTokenCreatedModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  const {publicKey} = useAuth();
-  const {width} = useWindowDimensions();
+  const { publicKey } = useAuth();
+  const { width } = useWindowDimensions();
   const isDesktop = width >= 1024 ? true : false;
-  const {tokens: tokensStore, setTokens, setLaunches, launches} = useLaunchpadStore();
+  const { tokens: tokensStore, setTokens, setLaunches, launches, setMyTokens, seyMyLaunches } = useLaunchpadStore();
 
   const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD'>('LAUNCH');
 
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
-      setLaunches(tokens);
+      setLaunches(launchesData);
     }
 
+    if(myLaunchs) {
+      seyMyLaunches(myLaunchs)
+    }
+
+    if(myTokens) {
+      setMyTokens(myTokens)
+    }
     console.log('tokens', tokens);
     console.log('tokensStore', tokensStore);
-  }, [tokens, tokensStore]);
+  }, [tokens, launchesData, tokensStore, account?.address]);
+
   return (
     <View style={styles.container}>
-
       {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
@@ -103,7 +117,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item, index}) => {
+              renderItem={({ item, index }) => {
                 return <TokenLaunchCard key={index} token={item} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
@@ -119,7 +133,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item, index}) => {
+              renderItem={({ item, index }) => {
                 return <TokenCard key={index} token={item} isTokenOnly={true} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
@@ -137,7 +151,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                 keyExtractor={(item, i) => i.toString()}
                 key={`flatlist-${isDesktop ? 3 : 1}`}
                 numColumns={isDesktop ? 3 : 1}
-                renderItem={({item, index}) => {
+                renderItem={({ item, index }) => {
                   return <TokenCard key={index} token={item} isTokenOnly={true} />;
                 }}
                 refreshControl={<RefreshControl refreshing={isFetching} />}

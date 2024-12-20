@@ -12,8 +12,9 @@ mod launchpad_tests {
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
-        CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
-        SupportedExchanges, EkuboLP,
+        CreateToken, TokenQuoteBuyCoin, BondingType,
+        CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
+         SupportedExchanges, EkuboLP,
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
         EkuboUnrugLaunchParameters
     };
@@ -969,6 +970,7 @@ mod launchpad_tests {
                 threshold_liquidity: THRESHOLD_LIQUIDITY,
                 quote_token_address: erc20.contract_address,
                 is_unruggable: false,
+                bonding_type: BondingType::Linear
             }
         );
 

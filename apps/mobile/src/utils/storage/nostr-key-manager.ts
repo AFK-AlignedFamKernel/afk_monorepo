@@ -1,8 +1,7 @@
 // Rod Cashu wallet example
 // File: /NostrKeyManager.ts
 
-import {generateNewMnemonic} from '@cashu/cashu-ts';
-
+import * as Bip39 from 'bip39';
 import {generateRandomKeypair} from '../keypair';
 
 export class NostrKeyManager {
@@ -47,6 +46,7 @@ export class NostrKeyManager {
       const {secretKey, mnemonic} = await this.sessionRetrieveEncryptedData(storedPubKey);
       return {secretKey, publicKey: storedPubKey, mnemonic};
     }
+    return undefined;
   }
 
   static getIsWalletSetup() {
@@ -61,7 +61,7 @@ export class NostrKeyManager {
   }> {
     const {publicKey, privateKey: secretKey} = generateRandomKeypair();
     // const publicKey = getPublicKey(secretKey);
-    const mnemonic = generateNewMnemonic();
+    const mnemonic = Bip39.generateMnemonic(128, undefined, Bip39.wordlists['english']);
 
     await this.storeSecretKey(secretKey, publicKey, mnemonic, credential);
     localStorage.setItem(NostrKeyManager.STORAGE_KEY, publicKey);
