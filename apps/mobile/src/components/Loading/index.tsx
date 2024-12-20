@@ -7,6 +7,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { useTheme } from '../../hooks';
 
 interface LoadingAnimationProps {
   size?: number;
@@ -14,9 +15,10 @@ interface LoadingAnimationProps {
 }
 
 const Loading = () => {
+  const {theme} = useTheme();
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#0C0C4F" />
+      <ActivityIndicator size="large" color={theme.colors.primary} />
     </View>
   );
 };

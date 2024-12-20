@@ -53,15 +53,17 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   }, [tokens, tokensStore]);
   return (
     <View style={styles.container}>
-      {isLoading && <ActivityIndicator></ActivityIndicator>}
 
       {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
             showModal();
           }}
+          variant='primary'
+          style={styles.createTokenButton}
+          textStyle={styles.createTokenButtonText}
         >
-          <Text>Create token</Text>
+          <Text>Create your token</Text>
         </Button>
       )}
       {menuOpen && <FormLaunchToken />}

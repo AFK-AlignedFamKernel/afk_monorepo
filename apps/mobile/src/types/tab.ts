@@ -158,19 +158,22 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
   {
     title: 'Pump',
+    description: 'Pump Description',
     screen: 'Launchpad',
     tab: SelectedTab.LAUNCHPAD_VIEW,
   },
   {
     title: 'Pixel Peace',
+    description: 'Pixel Peace Description',
     screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
   },
   {
     title: 'AFK Nameservice',
+    description: 'AFK Nameservice Description',
     screen: 'AFK Nameservice',
     tab: SelectedTab.NAMESERVICE,
   },
@@ -181,22 +184,26 @@ export const TABS_MENU: {screen?: string; title: string; tab: SelectedTab}[] = [
   // },
   {
     title: 'Keys',
+    description: 'Keys Description',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
   },
   {
     title: 'Slink',
+    description: 'Slink Description',
     screen: 'Slink',
     tab: SelectedTab.SLINK,
   },
 
   {
     title: '?',
+    description: '? Description',
     screen: '?',
     tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
   },
   {
     title: '?!',
+    description: '?! Description',
     screen: '?!',
     tab: SelectedTab.LAUNCH_TOKEN_PUMP,
   },
