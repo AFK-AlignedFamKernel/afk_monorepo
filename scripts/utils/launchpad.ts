@@ -126,8 +126,9 @@ export const createLaunchpad = async (
       console.log("Declare deploy", declareResponse);
 
       // TODO wait for transaction
-      // await provider.waitForTransaction(declareResponse?.transaction_hash);
-      // console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+      console.log("wait declare response")
+      await provider.waitForTransaction(declareResponse?.transaction_hash);
+      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
 
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;

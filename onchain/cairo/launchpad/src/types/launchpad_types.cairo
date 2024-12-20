@@ -207,6 +207,7 @@ pub struct CreateLaunch {
     pub slope: u256,
     pub threshold_liquidity: u256,
     pub is_unruggable: bool,
+    pub bonding_type: BondingType,
 }
 
 #[derive(Drop, starknet::Event)]

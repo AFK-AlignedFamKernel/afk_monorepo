@@ -8,7 +8,7 @@ import {useStyles, useTheme, useWaitConnection} from '../../hooks';
 import {useToast, useTransaction, useTransactionModal} from '../../hooks/modals';
 import {LaunchpadScreenProps, MainStackNavigationProps, NameserviceScreenProps} from '../../types';
 import {SelectedTab} from '../../types/tab';
-import {LaunchpadComponent} from './LaunchpadComponent';
+import {LaunchpadComponent} from './NameserviceComponents';
 import stylesheet from './styles';
 import {NameserviceComponent} from '../../modules/nameservice';
 

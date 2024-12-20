@@ -97,7 +97,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
         data: deploys,
       });
     } catch (error) {
-      console.error('Error deploying launch by user:', error);
+      console.error('Error deploying tokens by user:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
