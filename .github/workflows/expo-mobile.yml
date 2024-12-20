@@ -1,9 +1,9 @@
-name: Mobile App
+name: Expo Mobile App Android & IOS
 
 on:
   push:
     paths:
-      - ".github/workflows/mobile.yaml"
+      - ".github/workflows/expo-mobile.yaml"
       - "apps/mobile/**"
       - "package.json"
   pull_request:
@@ -62,9 +62,6 @@ jobs:
 #
 #      - name: TypeScript Check
 #        run: pnpm ts:check
-
-      - name: Build
-        run: pnpm build:web
 
       - name: Build android
         run: pnpm build:android
