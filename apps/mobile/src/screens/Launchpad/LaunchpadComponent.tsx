@@ -45,12 +45,12 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
-      setLaunches(tokens);
+      setLaunches(launchesData);
     }
 
     console.log('tokens', tokens);
     console.log('tokensStore', tokensStore);
-  }, [tokens, tokensStore]);
+  }, [tokens, launchesData, tokensStore]);
   return (
     <View style={styles.container}>
 
