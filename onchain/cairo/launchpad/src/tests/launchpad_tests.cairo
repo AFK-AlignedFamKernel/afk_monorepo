@@ -969,6 +969,7 @@ mod launchpad_tests {
                 threshold_liquidity: THRESHOLD_LIQUIDITY,
                 quote_token_address: erc20.contract_address,
                 is_unruggable: false,
+                bonding_type: BondingType::Linear
             }
         );
 

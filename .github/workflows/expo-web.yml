@@ -66,4 +66,7 @@ jobs:
       - name: Build
         run: pnpm build:web
 
+      - name: Start
+        run: pnpm start:web
+
 

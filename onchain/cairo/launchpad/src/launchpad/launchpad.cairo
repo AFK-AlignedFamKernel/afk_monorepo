@@ -1376,7 +1376,10 @@ pub mod LaunchpadMarketplace {
             if let Option::Some(v) =
                 bonding_type { // println!("The maximum is configured to be {}", v);
             } else {
-                bond_type = BondingType::Linear;
+                // bond_type = BondingType::Linear;
+
+                // Default Exponential because gas optimization
+                bond_type = BondingType::Exponential;
             }
 
             // let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
@@ -1430,16 +1433,11 @@ pub mod LaunchpadMarketplace {
                 initial_pool_supply: liquidity_supply,
                 // available_supply:liquidity_supply,
                 // Todo price by pricetype after fix Enum instantiate
-                // bonding_curve_type: Option::Some(bond_type),
-                // bonding_curve_type: Option::Some(bond_type),
                 bonding_curve_type: bond_type,
-                // bonding_curve_type: BondingType,
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
                 starting_price: starting_price.clone(),
-                // starting_price: token_to_use.starting_price,
                 price: starting_price.clone(),
-                // price:init_price,
                 liquidity_raised: 0_u256,
                 total_token_holded: 0_u256,
                 is_liquidity_launch: false,
@@ -1496,7 +1494,8 @@ pub mod LaunchpadMarketplace {
                         slope: slope,
                         threshold_liquidity: threshold_liquidity,
                         quote_token_address: quote_token_address,
-                        is_unruggable: is_unruggable
+                        is_unruggable: is_unruggable,
+                        bonding_type:bond_type
                     }
                 );
         }
@@ -1507,8 +1506,9 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress,
             // params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
+            let unrug_liquidity_address = self.unrug_liquidity_address.read();
             let unrug_liquidity = IUnrugLiquidityDispatcher {
-                contract_address: self.unrug_liquidity_address.read()
+                contract_address: unrug_liquidity_address
             };
 
             let launch = self.launched_coins.read(coin_address);
@@ -1535,14 +1535,25 @@ pub mod LaunchpadMarketplace {
                 bound: bound, // TODO verify if bound is correct
             };
 
+            let lp_supply=launch.initial_pool_supply.clone();
+            let lp_quote_supply=launch.liquidity_raised.clone();
             let params = EkuboUnrugLaunchParameters {
                 owner: launch.owner,
                 token_address: coin_address,
-                quote_address: launch.token_quote.token_address,
-                lp_supply: launch.initial_pool_supply,
-                lp_quote_supply: launch.liquidity_raised,
+                quote_address: launch.token_quote.token_address.clone(),
+                lp_supply: lp_supply.clone(),
+                lp_quote_supply: lp_quote_supply.clone(),
                 pool_params: pool_params
             };
+
+            // Approve Quote
+            let quote_token = IERC20Dispatcher { contract_address: launch.token_quote.token_address.clone() };
+            quote_token.approve(unrug_liquidity_address, lp_quote_supply);
+        
+            // Approve Memecoin
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            memecoin.approve(unrug_liquidity_address, lp_supply);
+
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
             let id_cast: u256 = id.try_into().unwrap();
 
