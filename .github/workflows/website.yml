@@ -1,12 +1,14 @@
-name: Web App
+name: Website
 
 on:
   push:
+    paths:
+      - ".github/workflows/website.yml"
+      - "apps/website/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "apps/website/**"
-  pull_request:
     paths:
       - "apps/website/**"
 

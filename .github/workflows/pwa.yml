@@ -2,11 +2,13 @@ name: PWA
 
 on:
   push:
+    paths:
+      - ".github/workflows/pwa.yml"
+      - "apps/pwa/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "apps/pwa/**"
-  pull_request:
     paths:
       - "apps/pwa/**"
 

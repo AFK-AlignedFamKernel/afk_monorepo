@@ -1,6 +1,16 @@
 name: Data Backend App
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - ".github/workflows/data-backend.yml"
+      - "apps/data-backend/**"
+      - "package.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/data-backend/**"
 
 jobs:
   check-app:
