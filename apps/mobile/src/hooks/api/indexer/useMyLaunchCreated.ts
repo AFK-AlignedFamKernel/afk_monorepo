@@ -2,14 +2,14 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../../services/api';
 
-export const useMyTokensCreated = (userAddress?: string) => {
+export const useMyLaunchCreated = (userAddress?: string) => {
   return useQuery({
     queryKey: userAddress ? ['userAddress', userAddress] : ['deploy_token_by_user'],
     queryFn: async () => {
-      const endpoint = `/deploy/by/${userAddress}`;
+      const endpoint = `/deploy-launch/by/${userAddress}`;
       const res = await ApiIndexerInstance.get(endpoint);
       if (res.status !== 200) {
-        throw new Error('Failed to fetch token launch');
+        throw new Error('Failed to fetch my launch');
       }
 
       return res.data;
