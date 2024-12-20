@@ -22,14 +22,16 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
   const [launches, setLaunches] = useState<LaunchDataMerged[]>([]);
 
   useEffect(() => {
-    setTokens(deployData.data || []);
+    if (deployData) {
+      setTokens(deployData.data || []);
+    }
 
-    if (launchData.data) {
+    if (deployData && launchData) {
       setLaunches(
         launchData.data.map((launchToken: any) => ({
           ...(deployData.data.find(
             (deployedToken: LaunchDataMerged) =>
-              deployedToken.token_address === launchToken.token_address,
+              deployedToken.memecoin_address === launchToken.memecoin_address,
           ) || {}),
           ...launchToken,
         })),

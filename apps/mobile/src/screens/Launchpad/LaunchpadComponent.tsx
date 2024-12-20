@@ -1,7 +1,7 @@
 import {useAccount} from '@starknet-react/core';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
+import {FlatList, RefreshControl, Text, View} from 'react-native';
 
 import {Button} from '../../components';
 import Loading from '../../components/Loading';
@@ -25,7 +25,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {tokens: launchesData, isLoading, isFetching} = useCombinedTokenData();
+  const {launches: launchesData, isLoading, isFetching} = useCombinedTokenData();
   const {data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens} = useTokens();
   console.log('tokens data', tokens);
   const {
@@ -53,13 +53,12 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   }, [tokens, launchesData, tokensStore]);
   return (
     <View style={styles.container}>
-
       {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
             showModal();
           }}
-          variant='primary'
+          variant="primary"
           style={styles.createTokenButton}
           textStyle={styles.createTokenButtonText}
         >
