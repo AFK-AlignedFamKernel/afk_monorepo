@@ -25,7 +25,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {tokens: launchesData, isLoading, isFetching} = useCombinedTokenData();
+  const {launches: launchesData, isLoading, isFetching} = useCombinedTokenData();
   const {data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens} = useTokens();
   console.log('tokens data', tokens);
   const {
@@ -45,12 +45,12 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
-      setLaunches(tokens);
+      setLaunches(launchesData);
     }
 
     console.log('tokens', tokens);
     console.log('tokensStore', tokensStore);
-  }, [tokens, tokensStore]);
+  }, [tokens, launchesData, tokensStore]);
   return (
     <View style={styles.container}>
 
