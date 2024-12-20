@@ -133,7 +133,8 @@
     "text-encoding": "^0.7.0",
     "viem": "2.x",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@scure/bip39": "^1.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
