@@ -891,3 +891,14 @@ export const EyeIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+export const AnchorBack: React.FC<SvgProps> = (props) => (
+  <Svg width="28" height="46" viewBox="0 0 28 46" fill="none" {...props}>
+    <Path
+      d="M24 3.55554L3.57005 23.3536C3.26266 23.6514 3.2742 24.148 3.5951 24.4313L24 42.4444"
+      stroke="currentColor"
+      stroke-width="6.22222"
+      stroke-linecap="round"
+    />
+  </Svg>
+);

@@ -42,6 +42,19 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 10,
     textAlign: 'center',
   },
+  mainTitle: {
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+    fontSize: 35,
+    marginTop: 25,
+    fontWeight: 'bold',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 25,
+    left: 20,
+    zIndex: 20
+  },
   selectedContent: {
     flex: 1,
     backgroundColor: theme.colors.background,

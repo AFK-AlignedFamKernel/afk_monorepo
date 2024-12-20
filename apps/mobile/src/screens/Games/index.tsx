@@ -11,12 +11,18 @@ import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
 import stylesheet from './styles';
 import {NameserviceComponent} from '../../modules/nameservice';
-import {TouchableOpacity} from 'react-native-gesture-handler';
+import {IconButton} from '../../components';
 
 export const Games: React.FC<GameSreenProps> = ({navigation}) => {
   const theme = useTheme();
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(undefined);
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -24,10 +30,9 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
     }
   };
 
-  const dimensions = useWindowDimensions();
-  const isDesktop = useMemo(() => {
-    return dimensions.width >= 1024;
-  }, [dimensions]);
+  const handleGoBack = () => {
+    setSelectedTab(undefined);
+  };
 
   return (
     <View style={styles.container}>
@@ -69,6 +74,13 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
 
               {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
                 <View>
+                  <IconButton
+                    icon="AnchorBack"
+                    size={25}
+                    onPress={handleGoBack}
+                    style={styles.backButton}
+                  />
+                  <Text style={styles.mainTitle}>Fun Pump</Text>
                   <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
                 </View>
               )}
