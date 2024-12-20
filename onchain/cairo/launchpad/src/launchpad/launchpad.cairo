@@ -1495,7 +1495,7 @@ pub mod LaunchpadMarketplace {
                         threshold_liquidity: threshold_liquidity,
                         quote_token_address: quote_token_address,
                         is_unruggable: is_unruggable,
-                        bonding_type:bond_type
+                        bonding_type: bond_type
                     }
                 );
         }
@@ -1535,8 +1535,8 @@ pub mod LaunchpadMarketplace {
                 bound: bound, // TODO verify if bound is correct
             };
 
-            let lp_supply=launch.initial_pool_supply.clone();
-            let lp_quote_supply=launch.liquidity_raised.clone();
+            let lp_supply = launch.initial_pool_supply.clone();
+            let lp_quote_supply = launch.liquidity_raised.clone();
             let params = EkuboUnrugLaunchParameters {
                 owner: launch.owner,
                 token_address: coin_address,
@@ -1547,9 +1547,11 @@ pub mod LaunchpadMarketplace {
             };
 
             // Approve Quote
-            let quote_token = IERC20Dispatcher { contract_address: launch.token_quote.token_address.clone() };
+            let quote_token = IERC20Dispatcher {
+                contract_address: launch.token_quote.token_address.clone()
+            };
             quote_token.approve(unrug_liquidity_address, lp_quote_supply);
-        
+
             // Approve Memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.approve(unrug_liquidity_address, lp_supply);
