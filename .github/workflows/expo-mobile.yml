@@ -63,6 +63,15 @@ jobs:
 #      - name: TypeScript Check
 #        run: pnpm ts:check
 
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Build android
         run: eas build -p android
 
