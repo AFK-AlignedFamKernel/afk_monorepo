@@ -29,7 +29,7 @@ export const LightTheme = {
     grayInput: '#697077',
     cardBorder: '#C4C3D3',
     greenLike: '#ADCF00',
-    greenBg: '#025849',
+    grayBg: '#242C2E',
 
     // here ends the new branding colors
 
@@ -148,7 +148,7 @@ export const DarkTheme = {
     grayInput: '#697077',
     cardBorder: '#C4C3D3',
     greenLike: '#ADCF00',
-    greenBg: '#025849',
+    grayBg: '#242C2E',
 
 
     // here ends the new branding colors

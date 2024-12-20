@@ -39,11 +39,14 @@ export default ThemedStyleSheet((theme) => ({
   toggleButton: {
     width: 'auto',
     backgroundColor: theme.colors.background,
-    color: theme.colors.textPrimary,
-    fontWeight: 'semiBold',
     padding: 2,
     borderRadius: 0,
     height: 'auto'
+  },
+  toggleButtonText: {
+    color: theme.colors.textPrimary,
+    fontSize: 18,
+    fontWeight: 'semibold',
   },
   separator: {
     height: Spacing.xsmall,
