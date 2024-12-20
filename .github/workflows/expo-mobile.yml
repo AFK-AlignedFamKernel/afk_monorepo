@@ -72,6 +72,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install EAS CLI
+        run: pnpm install -g eas-cli
+
       - name: Build android
         run: eas build -p android
 
