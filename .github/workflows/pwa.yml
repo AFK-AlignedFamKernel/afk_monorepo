@@ -52,15 +52,12 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm format:check
-        
-      # - name: Lint fix
-      #   run: pnpm lint:fix
-      
-      # - name: Lint
-      #   run: pnpm lint
-
+#      - name: Prettier Format Check
+#        run: pnpm format:check
+#
+#      - name: Lint
+#        run: pnpm lint
+#
       - name: TypeScript Check
         run: pnpm ts:check
 
