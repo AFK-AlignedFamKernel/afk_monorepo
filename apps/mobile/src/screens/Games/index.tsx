@@ -1,10 +1,8 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
+import {useMemo, useState} from 'react';
+import {KeyboardAvoidingView, Pressable, ScrollView, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
-import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
+import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {PixelPeace} from '../../modules/PixelPeace';
 import {GameSreenProps} from '../../types';
 import {SelectedTab, TABS_MENU} from '../../types/tab';
@@ -13,85 +11,101 @@ import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
 import stylesheet from './styles';
 import {NameserviceComponent} from '../../modules/nameservice';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 export const Games: React.FC<GameSreenProps> = ({navigation}) => {
   const theme = useTheme();
   const styles = useStyles(stylesheet);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
-    SelectedTab.LAUNCHPAD_VIEW,
-  );
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(undefined);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
       navigation.navigate(screen as any);
     }
   };
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
-        <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
-          Cancel
-        </TextButton>
-      </SafeAreaView>
-      <KeyboardAvoidingView behavior="padding" style={styles.content}>
-        <TabSelector
-          activeTab={selectedTab}
-          handleActiveTab={handleTabSelected}
-          buttons={TABS_MENU}
-          addScreenNavigation={false}
-        ></TabSelector>
-        <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
-          <ScrollView>
-            {selectedTab == SelectedTab.PIXEL_PEACE && (
-              <>
-                <PixelPeace></PixelPeace>
-              </>
-            )}
+      {!selectedTab ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            {maxWidth: isDesktop ? '80%' : '100%', gap: isDesktop ? 30 : 15},
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {TABS_MENU.map((option) => (
+            <Pressable
+              style={[styles.menuItem, {borderRadius: isDesktop ? 38 : 15}]}
+              onPress={() => handleTabSelected(option.tab)}
+            >
+              <Text style={[styles.title, {fontSize: isDesktop ? 30 : 18}]}>{option.title}</Text>
+              <Text style={[styles.description, {fontSize: isDesktop ? 18 : 12}]}>
+                {option.description}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : (
+        <KeyboardAvoidingView behavior="padding" style={styles.selectedContent}>
+          <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
+            <ScrollView>
+              {selectedTab == SelectedTab.PIXEL_PEACE && (
+                <>
+                  <PixelPeace></PixelPeace>
+                </>
+              )}
 
-            {selectedTab == SelectedTab.SLINK && (
-              <>
-                <SlinksMap></SlinksMap>
-              </>
-            )}
+              {selectedTab == SelectedTab.SLINK && (
+                <>
+                  <SlinksMap></SlinksMap>
+                </>
+              )}
 
-            {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
-              <View>
-                <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
-              </View>
-            )}
-
-            {selectedTab == SelectedTab.NAMESERVICE && (
-              <View>
-                <NameserviceComponent></NameserviceComponent>
-              </View>
-            )}
-
-            {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE && (
-              <>
-                <View
-                  style={{
-                    paddingVertical: 5,
-                    borderRadius: 5,
-                    borderColor: theme.theme?.colors?.shadow,
-                  }}
-                >
-                  <Text style={styles.text}>Key pass for Starknet user</Text>
-                  <Text style={styles.text}>
-                    {' '}
-                    Send the force and tip your friends and favorite content creator.
-                  </Text>
-                  <Text style={styles.text}>
-                    {' '}
-                    Buy or sell the keys to get perks and rewards from them, linked to Nostr &
-                    Starknet.
-                  </Text>
+              {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
+                <View>
+                  <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
                 </View>
-                <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
-              </>
-            )}
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+              )}
+
+              {selectedTab == SelectedTab.NAMESERVICE && (
+                <View>
+                  <NameserviceComponent></NameserviceComponent>
+                </View>
+              )}
+
+              {selectedTab == SelectedTab?.VIEW_KEYS_MARKETPLACE && (
+                <>
+                  <View
+                    style={{
+                      paddingVertical: 5,
+                      borderRadius: 5,
+                      borderColor: theme.theme?.colors?.shadow,
+                    }}
+                  >
+                    <Text style={styles.text}>Key pass for Starknet user</Text>
+                    <Text style={styles.text}>
+                      {' '}
+                      Send the force and tip your friends and favorite content creator.
+                    </Text>
+                    <Text style={styles.text}>
+                      {' '}
+                      Buy or sell the keys to get perks and rewards from them, linked to Nostr &
+                      Starknet.
+                    </Text>
+                  </View>
+                  <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
+                </>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      )}
     </View>
   );
 };
