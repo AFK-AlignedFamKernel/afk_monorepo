@@ -2,11 +2,13 @@ name: AFK Nostr SDK Package
 
 on:
   push:
+    paths:
+      - ".github/workflows/afk-nostr-sdk.yml"
+      - "packages/afk_nostr_sdk/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "packages/afk_nostr_sdk/**"
-  pull_request:
     paths:
       - "packages/afk_nostr_sdk/**"
 

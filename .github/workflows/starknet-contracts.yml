@@ -2,11 +2,11 @@ name: Starknet Contracts
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "onchain/cairo/**"
   pull_request:
+    branches:
+      - main
     paths:
       - "onchain/cairo/**"
 
