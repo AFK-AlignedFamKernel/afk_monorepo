@@ -151,8 +151,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               <FlatList
                 contentContainerStyle={styles.flatListContent}
                 data={myTokens}
-                // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
                 keyExtractor={(item, i) => i.toString()}
                 key={`flatlist-${isDesktop ? 3 : 1}`}
                 numColumns={isDesktop ? 3 : 1}
