@@ -1501,16 +1501,28 @@ pub mod LaunchpadMarketplace {
             let starting_price: i129 = calculate_starting_price_launch(
                 launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
             );
+            // let starting_price = i129 { sign: true, mag: 4600158 };
 
+
+            // let tick_spacing =  60;
+            // let tick_spacing = 5000;
             let tick_spacing = 5982;
-            let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
 
+            println!("tick_spacing {:?}", tick_spacing);
+
+            // let tick_spacing = 5000;
+            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // println!("starting_price {:?}", starting_price);
+            println!("bounds {:?}", bound);
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-                tick_spacing: 5982, // TODO tick_spacing optional by user   
+                tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
                 starting_price: starting_price, // TODO verify if starting_price is correct
                 bound: 88719042,
+                // bound:bound
+                // bound: 88719042
                 // bound: bound, // TODO verify if bound is correct
             };
 
