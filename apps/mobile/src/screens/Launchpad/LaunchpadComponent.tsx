@@ -1,7 +1,7 @@
 import {useAccount} from '@starknet-react/core';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
-import {FlatList, RefreshControl, Text, View} from 'react-native';
+import {FlatList, RefreshControl, ScrollView, Text, View} from 'react-native';
 
 import {Button} from '../../components';
 import Loading from '../../components/Loading';
@@ -87,7 +87,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
       )}
 
-      <View style={styles.actionToggle}>
+      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}>
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'LAUNCH' && styles.activeToggle]}
           textStyle={styles.toggleButtonText}
@@ -110,7 +110,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         >
           My Tokens
         </Button>
-      </View>
+      </ScrollView>
 
       {isLoading ? (
         <Loading />
@@ -120,13 +120,11 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
             <FlatList
               contentContainerStyle={styles.flatListContent}
               data={launchesData}
-              // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              keyExtractor={(item, i) => i.toString()}
+              keyExtractor={(item) => item.token_address}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item, index}) => {
-                return <TokenLaunchCard key={index} token={item} />;
+              renderItem={({item}) => {
+                return <TokenLaunchCard key={item.token_address} token={item} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
             />
@@ -137,7 +135,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               contentContainerStyle={styles.flatListContent}
               data={tokens?.data}
               // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}

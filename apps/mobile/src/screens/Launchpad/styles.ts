@@ -23,8 +23,7 @@ export default ThemedStyleSheet((theme) => ({
 
 
   flatListContent: {
-    // paddingHorizontal: Spacing.pagePadding,
-    paddingVertical: Spacing.medium,
+    paddingVertical: Spacing.large,
   },
   actionToggle: {
     flexDirection: 'row',
@@ -47,9 +46,6 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.textPrimary,
     fontSize: 18,
     fontWeight: 'semibold',
-  },
-  separator: {
-    height: Spacing.xsmall,
   },
 
   tip: {
