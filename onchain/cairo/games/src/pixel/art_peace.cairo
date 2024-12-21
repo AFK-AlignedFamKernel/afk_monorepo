@@ -255,13 +255,11 @@ pub mod ArtPeace {
 
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait {
-
-
         fn _finalize_color_votes(ref self: ContractState) {
             let daily_new_colors_count = self.daily_new_colors_count.read();
             let day = self.day_index.read();
             let votable_colors_count = self.votable_colors_count.read(day);
-    
+
             let mut max_scores: Felt252Dict<u32> = Default::default();
             let mut votable_index: u8 = 1; // 0 means no vote
             while votable_index <= votable_colors_count {
@@ -287,7 +285,7 @@ pub mod ArtPeace {
                 };
                 votable_index += 1;
             };
-    
+
             // find threshold
             let mut threshold: u32 = 0;
             let mut min_index = daily_new_colors_count;
@@ -299,7 +297,7 @@ pub mod ArtPeace {
                 // No votes
                 threshold = 1;
             }
-    
+
             // update palette & votable colors
             let next_day = day + 1;
             let start_day_time = self.start_day_time.read();
@@ -333,53 +331,63 @@ pub mod ArtPeace {
                 self.votable_colors_count.entry(next_day).write(next_day_votable_index - 1);
             }
         }
-        
-    fn _place_user_faction_pixels_inner(
-        ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now: u64
-    ) -> u32 {
-        let faction_pixels = self
-            .get_user_faction_members_pixels(starknet::get_caller_address(), now);
-        if faction_pixels == 0 {
+
+        fn _place_user_faction_pixels_inner(
+            ref self: ContractState,
+            positions: Span<u128>,
+            colors: Span<u8>,
+            mut offset: u32,
+            now: u64
+        ) -> u32 {
+            let faction_pixels = self
+                .get_user_faction_members_pixels(starknet::get_caller_address(), now);
+            if faction_pixels == 0 {
+                return offset;
+            }
+
+            let pixel_count = positions.len();
+            let mut faction_pixels_left = faction_pixels;
+            while faction_pixels_left > 0 {
+                let pos = *positions.at(offset);
+                let color = *colors.at(offset);
+                // place_pixel_inner(ref self, pos, color);
+                self._place_pixel_inner(pos, color);
+                offset += 1;
+                faction_pixels_left -= 1;
+                if offset == pixel_count {
+                    break;
+                }
+            };
+            let caller = starknet::get_caller_address();
+            if faction_pixels_left == 0 {
+                let new_member_metadata = MemberMetadata {
+                    member_placed_time: now, member_pixels: 0
+                };
+                self.users_faction_meta.entry(caller).write(new_member_metadata);
+                self.emit(FactionPixelsPlaced { user: caller, placed_time: now, member_pixels: 0 });
+            } else {
+                let last_placed_time = self.users_faction_meta.read(caller).member_placed_time;
+                let new_member_metadata = MemberMetadata {
+                    member_placed_time: last_placed_time, member_pixels: faction_pixels_left
+                };
+                self.users_faction_meta.entry(caller).write(new_member_metadata);
+                self
+                    .emit(
+                        FactionPixelsPlaced {
+                            user: caller,
+                            placed_time: last_placed_time,
+                            member_pixels: faction_pixels_left
+                        }
+                    );
+            }
             return offset;
         }
-
-        let pixel_count = positions.len();
-        let mut faction_pixels_left = faction_pixels;
-        while faction_pixels_left > 0 {
-            let pos = *positions.at(offset);
-            let color = *colors.at(offset);
-            // place_pixel_inner(ref self, pos, color);
-            self._place_pixel_inner(pos, color);
-            offset += 1;
-            faction_pixels_left -= 1;
-            if offset == pixel_count {
-                break;
-            }
-        };
-        let caller = starknet::get_caller_address();
-        if faction_pixels_left == 0 {
-            let new_member_metadata = MemberMetadata { member_placed_time: now, member_pixels: 0 };
-            self.users_faction_meta.entry(caller).write(new_member_metadata);
-            self.emit(FactionPixelsPlaced { user: caller, placed_time: now, member_pixels: 0 });
-        } else {
-            let last_placed_time = self.users_faction_meta.read(caller).member_placed_time;
-            let new_member_metadata = MemberMetadata {
-                member_placed_time: last_placed_time, member_pixels: faction_pixels_left
-            };
-            self.users_faction_meta.entry(caller).write(new_member_metadata);
-            self
-                .emit(
-                    FactionPixelsPlaced {
-                        user: caller,
-                        placed_time: last_placed_time,
-                        member_pixels: faction_pixels_left
-                    }
-                );
-        }
-        return offset;
-    }
         fn _place_chain_faction_pixels_inner(
-            ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now: u64
+            ref self: ContractState,
+            positions: Span<u128>,
+            colors: Span<u8>,
+            mut offset: u32,
+            now: u64
         ) -> u32 {
             let pixel_count = positions.len();
             let caller = starknet::get_caller_address();
@@ -539,9 +547,8 @@ pub mod ArtPeace {
             );
 
             // place_basic_pixel_inner(ref self, pos, color, now);
-            // self._place_basic_pixel_inner(ref self, pos, color, now);    
+            // self._place_basic_pixel_inner(ref self, pos, color, now);
             self._place_basic_pixel_inner(pos, color, now);
-
         }
 
 
@@ -623,16 +630,19 @@ pub mod ArtPeace {
             }
 
             // pixels_placed =
-            //     place_chain_faction_pixels_inner(ref self, positions, colors, pixels_placed, now);
-            
-            pixels_placed = self._place_chain_faction_pixels_inner(positions, colors, pixels_placed, now);
+            //     place_chain_faction_pixels_inner(ref self, positions, colors, pixels_placed,
+            //     now);
+
+            pixels_placed = self
+                ._place_chain_faction_pixels_inner(positions, colors, pixels_placed, now);
             if pixels_placed == pixel_count {
                 return;
             }
 
             // pixels_placed =
             //     place_user_faction_pixels_inner(ref self, positions, colors, pixels_placed, now);
-            pixels_placed = self._place_user_faction_pixels_inner(positions, colors, pixels_placed, now);
+            pixels_placed = self
+                ._place_user_faction_pixels_inner(positions, colors, pixels_placed, now);
             if pixels_placed == pixel_count {
                 return;
             }
@@ -1397,203 +1407,205 @@ pub mod ArtPeace {
             }
         }
     }
-
     /// Internals
-    // fn finalize_color_votes(ref self: ContractState) {
-    //     let daily_new_colors_count = self.daily_new_colors_count.read();
-    //     let day = self.day_index.read();
-    //     let votable_colors_count = self.votable_colors_count.read(day);
+// fn finalize_color_votes(ref self: ContractState) {
+//     let daily_new_colors_count = self.daily_new_colors_count.read();
+//     let day = self.day_index.read();
+//     let votable_colors_count = self.votable_colors_count.read(day);
 
     //     let mut max_scores: Felt252Dict<u32> = Default::default();
-    //     let mut votable_index: u8 = 1; // 0 means no vote
-    //     while votable_index <= votable_colors_count {
-    //         let vote = self.color_votes.read((votable_index, day));
-    //         if vote <= max_scores.get(daily_new_colors_count.into() - 1) {
-    //             votable_index += 1;
-    //             continue;
-    //         }
-    //         // update max scores if needed
-    //         let mut max_scores_index: u32 = 0;
-    //         while max_scores_index < daily_new_colors_count {
-    //             if max_scores.get(max_scores_index.into()) < vote {
-    //                 // shift scores
-    //                 let mut i: u32 = daily_new_colors_count - 1;
-    //                 while i > max_scores_index {
-    //                     max_scores.insert(i.into(), max_scores.get(i.into() - 1));
-    //                     i -= 1;
-    //                 };
-    //                 max_scores.insert(max_scores_index.into(), vote);
-    //                 break;
-    //             }
-    //             max_scores_index += 1;
-    //         };
-    //         votable_index += 1;
-    //     };
+//     let mut votable_index: u8 = 1; // 0 means no vote
+//     while votable_index <= votable_colors_count {
+//         let vote = self.color_votes.read((votable_index, day));
+//         if vote <= max_scores.get(daily_new_colors_count.into() - 1) {
+//             votable_index += 1;
+//             continue;
+//         }
+//         // update max scores if needed
+//         let mut max_scores_index: u32 = 0;
+//         while max_scores_index < daily_new_colors_count {
+//             if max_scores.get(max_scores_index.into()) < vote {
+//                 // shift scores
+//                 let mut i: u32 = daily_new_colors_count - 1;
+//                 while i > max_scores_index {
+//                     max_scores.insert(i.into(), max_scores.get(i.into() - 1));
+//                     i -= 1;
+//                 };
+//                 max_scores.insert(max_scores_index.into(), vote);
+//                 break;
+//             }
+//             max_scores_index += 1;
+//         };
+//         votable_index += 1;
+//     };
 
     //     // find threshold
-    //     let mut threshold: u32 = 0;
-    //     let mut min_index = daily_new_colors_count;
-    //     while threshold == 0 && min_index > 0 {
-    //         min_index -= 1;
-    //         threshold = max_scores.get(min_index.into());
-    //     };
-    //     if threshold == 0 {
-    //         // No votes
-    //         threshold = 1;
-    //     }
+//     let mut threshold: u32 = 0;
+//     let mut min_index = daily_new_colors_count;
+//     while threshold == 0 && min_index > 0 {
+//         min_index -= 1;
+//         threshold = max_scores.get(min_index.into());
+//     };
+//     if threshold == 0 {
+//         // No votes
+//         threshold = 1;
+//     }
 
     //     // update palette & votable colors
-    //     let next_day = day + 1;
-    //     let start_day_time = self.start_day_time.read();
-    //     let end_day_time = start_day_time + DAY_IN_SECONDS;
-    //     let end_game_time = self.end_time.read();
-    //     let start_new_vote: bool = end_day_time < end_game_time;
-    //     let mut color_index = self.color_count.read();
-    //     let mut next_day_votable_index = 1;
-    //     votable_index = 1;
-    //     while votable_index <= votable_colors_count {
-    //         let vote = self.color_votes.read((votable_index, day));
-    //         let color = self.votable_colors.read((votable_index, day));
-    //         if vote >= threshold {
-    //             self.color_palette.entry(color_index).write(color);
-    //             self.emit(ColorAdded { color_key: color_index, color });
-    //             color_index += 1;
-    //         } else if start_new_vote {
-    //             self.votable_colors.entry((next_day_votable_index, next_day)).write(color);
-    //             self
-    //                 .emit(
-    //                     VotableColorAdded {
-    //                         day: next_day, color_key: next_day_votable_index, color
-    //                     }
-    //                 );
-    //             next_day_votable_index += 1;
-    //         }
-    //         votable_index += 1;
-    //     };
-    //     self.color_count.write(color_index);
-    //     if start_new_vote {
-    //         self.votable_colors_count.entry(next_day).write(next_day_votable_index - 1);
-    //     }
-    // }
+//     let next_day = day + 1;
+//     let start_day_time = self.start_day_time.read();
+//     let end_day_time = start_day_time + DAY_IN_SECONDS;
+//     let end_game_time = self.end_time.read();
+//     let start_new_vote: bool = end_day_time < end_game_time;
+//     let mut color_index = self.color_count.read();
+//     let mut next_day_votable_index = 1;
+//     votable_index = 1;
+//     while votable_index <= votable_colors_count {
+//         let vote = self.color_votes.read((votable_index, day));
+//         let color = self.votable_colors.read((votable_index, day));
+//         if vote >= threshold {
+//             self.color_palette.entry(color_index).write(color);
+//             self.emit(ColorAdded { color_key: color_index, color });
+//             color_index += 1;
+//         } else if start_new_vote {
+//             self.votable_colors.entry((next_day_votable_index, next_day)).write(color);
+//             self
+//                 .emit(
+//                     VotableColorAdded {
+//                         day: next_day, color_key: next_day_votable_index, color
+//                     }
+//                 );
+//             next_day_votable_index += 1;
+//         }
+//         votable_index += 1;
+//     };
+//     self.color_count.write(color_index);
+//     if start_new_vote {
+//         self.votable_colors_count.entry(next_day).write(next_day_votable_index - 1);
+//     }
+// }
 
     // fn place_pixel_inner(ref self: ContractState, pos: u128, color: u8) {
-    //     self.check_valid_pixel(pos, color);
+//     self.check_valid_pixel(pos, color);
 
     //     let caller = starknet::get_caller_address();
-    //     // TODO: let pixel = Pixel { color, owner: caller };
-    //     // TODO: self.canvas.write(pos, pixel);
-    //     let day = self.day_index.read();
-    //     self
-    //         .user_pixels_placed
-    //         .entry((day, caller, color))
-    //         .write(self.user_pixels_placed.read((day, caller, color)) + 1);
-    //     // TODO: Optimize?
-    //     self.emit(PixelPlaced { placed_by: caller, pos, day, color });
-    // }
+//     // TODO: let pixel = Pixel { color, owner: caller };
+//     // TODO: self.canvas.write(pos, pixel);
+//     let day = self.day_index.read();
+//     self
+//         .user_pixels_placed
+//         .entry((day, caller, color))
+//         .write(self.user_pixels_placed.read((day, caller, color)) + 1);
+//     // TODO: Optimize?
+//     self.emit(PixelPlaced { placed_by: caller, pos, day, color });
+// }
 
     // // TODO: Make the function internal
-    // fn place_basic_pixel_inner(ref self: ContractState, pos: u128, color: u8, now: u64) {
-    //     place_pixel_inner(ref self, pos, color);
-    //     let caller = starknet::get_caller_address();
-    //     self.last_placed_time.entry(caller).write(now);
-    //     self.emit(BasicPixelPlaced { placed_by: caller, timestamp: now });
-    // }
+// fn place_basic_pixel_inner(ref self: ContractState, pos: u128, color: u8, now: u64) {
+//     place_pixel_inner(ref self, pos, color);
+//     let caller = starknet::get_caller_address();
+//     self.last_placed_time.entry(caller).write(now);
+//     self.emit(BasicPixelPlaced { placed_by: caller, timestamp: now });
+// }
 
     // fn place_user_faction_pixels_inner(
-    //     ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now: u64
-    // ) -> u32 {
-    //     let faction_pixels = self
-    //         .get_user_faction_members_pixels(starknet::get_caller_address(), now);
-    //     if faction_pixels == 0 {
-    //         return offset;
-    //     }
+//     ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now:
+//     u64
+// ) -> u32 {
+//     let faction_pixels = self
+//         .get_user_faction_members_pixels(starknet::get_caller_address(), now);
+//     if faction_pixels == 0 {
+//         return offset;
+//     }
 
     //     let pixel_count = positions.len();
-    //     let mut faction_pixels_left = faction_pixels;
-    //     while faction_pixels_left > 0 {
-    //         let pos = *positions.at(offset);
-    //         let color = *colors.at(offset);
-    //         // place_pixel_inner(ref self, pos, color);
-    //         self._place_pixel_inner(pos, color);
-    //         offset += 1;
-    //         faction_pixels_left -= 1;
-    //         if offset == pixel_count {
-    //             break;
-    //         }
-    //     };
-    //     let caller = starknet::get_caller_address();
-    //     if faction_pixels_left == 0 {
-    //         let new_member_metadata = MemberMetadata { member_placed_time: now, member_pixels: 0 };
-    //         self.users_faction_meta.entry(caller).write(new_member_metadata);
-    //         self.emit(FactionPixelsPlaced { user: caller, placed_time: now, member_pixels: 0 });
-    //     } else {
-    //         let last_placed_time = self.users_faction_meta.read(caller).member_placed_time;
-    //         let new_member_metadata = MemberMetadata {
-    //             member_placed_time: last_placed_time, member_pixels: faction_pixels_left
-    //         };
-    //         self.users_faction_meta.entry(caller).write(new_member_metadata);
-    //         self
-    //             .emit(
-    //                 FactionPixelsPlaced {
-    //                     user: caller,
-    //                     placed_time: last_placed_time,
-    //                     member_pixels: faction_pixels_left
-    //                 }
-    //             );
-    //     }
-    //     return offset;
-    // }
+//     let mut faction_pixels_left = faction_pixels;
+//     while faction_pixels_left > 0 {
+//         let pos = *positions.at(offset);
+//         let color = *colors.at(offset);
+//         // place_pixel_inner(ref self, pos, color);
+//         self._place_pixel_inner(pos, color);
+//         offset += 1;
+//         faction_pixels_left -= 1;
+//         if offset == pixel_count {
+//             break;
+//         }
+//     };
+//     let caller = starknet::get_caller_address();
+//     if faction_pixels_left == 0 {
+//         let new_member_metadata = MemberMetadata { member_placed_time: now, member_pixels: 0
+//         };
+//         self.users_faction_meta.entry(caller).write(new_member_metadata);
+//         self.emit(FactionPixelsPlaced { user: caller, placed_time: now, member_pixels: 0 });
+//     } else {
+//         let last_placed_time = self.users_faction_meta.read(caller).member_placed_time;
+//         let new_member_metadata = MemberMetadata {
+//             member_placed_time: last_placed_time, member_pixels: faction_pixels_left
+//         };
+//         self.users_faction_meta.entry(caller).write(new_member_metadata);
+//         self
+//             .emit(
+//                 FactionPixelsPlaced {
+//                     user: caller,
+//                     placed_time: last_placed_time,
+//                     member_pixels: faction_pixels_left
+//                 }
+//             );
+//     }
+//     return offset;
+// }
 
     // fn place_chain_faction_pixels_inner(
-    //     ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now: u64
-    // ) -> u32 {
-    //     let pixel_count = positions.len();
-    //     let caller = starknet::get_caller_address();
-    //     let member_pixels = self.get_chain_faction_members_pixels(caller, now);
-    //     let mut member_pixels_left = member_pixels;
-    //     while member_pixels_left > 0 {
-    //         let pos = *positions.at(offset);
-    //         let color = *colors.at(offset);
-    //         // place_pixel_inner(ref self, pos, color);
-    //         self._place_pixel_inner(pos, color);
-    //         offset += 1;
-    //         member_pixels_left -= 1;
-    //         if offset == pixel_count {
-    //             break;
-    //         }
-    //     };
-    //     let caller = starknet::get_caller_address();
-    //     if member_pixels != 0 {
-    //         if member_pixels_left == 0 {
-    //             let new_member_metadata = MemberMetadata {
-    //                 member_placed_time: now, member_pixels: 0
-    //             };
-    //             self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
-    //             self
-    //                 .emit(
-    //                     ChainFactionPixelsPlaced {
-    //                         user: caller, placed_time: now, member_pixels: 0
-    //                     }
-    //                 );
-    //         } else {
-    //             let last_placed_time = self
-    //                 .users_chain_faction_meta
-    //                 .read(caller)
-    //                 .member_placed_time;
-    //             let new_member_metadata = MemberMetadata {
-    //                 member_placed_time: last_placed_time, member_pixels: member_pixels_left
-    //             };
-    //             self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
-    //             self
-    //                 .emit(
-    //                     ChainFactionPixelsPlaced {
-    //                         user: caller,
-    //                         placed_time: last_placed_time,
-    //                         member_pixels: member_pixels_left
-    //                     }
-    //                 );
-    //         }
-    //     }
-    //     return offset;
-    // }
+//     ref self: ContractState, positions: Span<u128>, colors: Span<u8>, mut offset: u32, now:
+//     u64
+// ) -> u32 {
+//     let pixel_count = positions.len();
+//     let caller = starknet::get_caller_address();
+//     let member_pixels = self.get_chain_faction_members_pixels(caller, now);
+//     let mut member_pixels_left = member_pixels;
+//     while member_pixels_left > 0 {
+//         let pos = *positions.at(offset);
+//         let color = *colors.at(offset);
+//         // place_pixel_inner(ref self, pos, color);
+//         self._place_pixel_inner(pos, color);
+//         offset += 1;
+//         member_pixels_left -= 1;
+//         if offset == pixel_count {
+//             break;
+//         }
+//     };
+//     let caller = starknet::get_caller_address();
+//     if member_pixels != 0 {
+//         if member_pixels_left == 0 {
+//             let new_member_metadata = MemberMetadata {
+//                 member_placed_time: now, member_pixels: 0
+//             };
+//             self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
+//             self
+//                 .emit(
+//                     ChainFactionPixelsPlaced {
+//                         user: caller, placed_time: now, member_pixels: 0
+//                     }
+//                 );
+//         } else {
+//             let last_placed_time = self
+//                 .users_chain_faction_meta
+//                 .read(caller)
+//                 .member_placed_time;
+//             let new_member_metadata = MemberMetadata {
+//                 member_placed_time: last_placed_time, member_pixels: member_pixels_left
+//             };
+//             self.users_chain_faction_meta.entry(caller).write(new_member_metadata);
+//             self
+//                 .emit(
+//                     ChainFactionPixelsPlaced {
+//                         user: caller,
+//                         placed_time: last_placed_time,
+//                         member_pixels: member_pixels_left
+//                     }
+//                 );
+//         }
+//     }
+//     return offset;
+// }
 }
