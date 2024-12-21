@@ -12,8 +12,9 @@ export default {
     sepolia: {
       // LAUNCHPAD_ADDRESS:
       //   '0x1e00d0d7167938c2aa289850c96d7129ff16c1ed02b7542030bc2e39dc41885',
-      LAUNCHPAD_ADDRESS:
-        '0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd',
+      // LAUNCHPAD_ADDRESS:
+      //   '0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd',
+      LAUNCHPAD_ADDRESS:"0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1",
       NAMESERVICE_ADDRESS:
         '0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f',
     },

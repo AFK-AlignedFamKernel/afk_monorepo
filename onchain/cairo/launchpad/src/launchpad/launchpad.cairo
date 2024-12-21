@@ -63,6 +63,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
         self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
     ) -> u256;
 
+    fn get_is_paid_launch_enable(self: @TContractState) -> bool;
+    fn get_is_paid_create_token_enable(self: @TContractState) -> bool;
+    fn get_amount_to_paid_launch(self: @TContractState) -> u256;
+    fn get_amount_to_paid_create_token(self: @TContractState) -> u256;
+
     // Views
     fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
     fn get_share_of_user_by_contract(
@@ -97,6 +102,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_is_fees_protocol_enabled_sell(
         ref self: TContractState, is_fees_protocol_sell_enabled: bool
     );
+    fn set_is_paid_launch_enable(ref self: TContractState, is_paid_launch_enable: bool);
+    fn set_is_paid_create_token_enable(ref self: TContractState, is_paid_create_token_enable: bool);
+    fn set_amount_to_paid_launch(ref self: TContractState, amount_to_paid_launch: u256);
+    fn set_amount_to_paid_create_token(ref self: TContractState, amount_to_paid_create_token: u256);
+    fn set_token_address_for_action(ref self: TContractState, token_address: ContractAddress);
 }
 
 #[starknet::contract]
@@ -170,7 +180,7 @@ pub mod LaunchpadMarketplace {
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
         EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
         EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
-        EkuboUnrugLaunchParameters
+        EkuboUnrugLaunchParameters, AdminsFeesParams
         // MemecoinCreated, MemecoinLaunched
     };
 
@@ -255,7 +265,7 @@ pub mod LaunchpadMarketplace {
         array_coins: Map::<u64, Token>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
-        // admins_fees_params: AdminsFeesParams,
+        admins_fees_params: AdminsFeesParams,
         // Parameters
         is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
@@ -270,13 +280,20 @@ pub mod LaunchpadMarketplace {
         creator_fee_percent: u256,
         is_fees_protocol: bool,
         step_increase_linear: u256,
+        // Admins params fees
         is_fees_protocol_sell_enabled: bool,
         is_fees_protocol_buy_enabled: bool,
         is_fees_protocol_enabled: bool,
         is_fees_enabled: bool,
         is_custom_launch_enable: bool,
-        is_custom_token_enable: bool,
+        // For create token
+        token_address_to_paid_create_token: ContractAddress,
+        token_address_to_paid_launch: ContractAddress,
+        amount_to_paid_create_token: u256,
         is_paid_create_token_enable: bool,
+        is_custom_token_enable: bool,
+        // For launch token
+        amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
         // Stats
@@ -342,9 +359,33 @@ pub mod LaunchpadMarketplace {
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
 
-        self.is_fees_protocol_buy_enabled.write(false);
-        self.is_fees_protocol_sell_enabled.write(false);
-        self.is_fees_protocol_enabled.write(false);
+        // TODO
+        // Launch and Create fees to false by default
+        // Still not test
+        self.is_paid_create_token_enable.write(false);
+        self.is_paid_launch_enable.write(false);
+        self.amount_to_paid_launch.write(1_u256);
+        self.amount_to_paid_create_token.write(1_u256);
+
+        // TODO
+        // Fees protocol to true by default
+        // Still not test wisely
+        self.is_fees_protocol_buy_enabled.write(true);
+        self.is_fees_protocol_sell_enabled.write(true);
+        self.is_fees_protocol_enabled.write(true);
+
+        let admins_fees_params = AdminsFeesParams {
+            token_address_to_paid_launch: token_address,
+            token_address_to_paid_create_token: token_address,
+            amount_to_paid_launch: 1_u256,
+            amount_to_paid_create_token: 1_u256,
+            is_fees_protocol_buy_enabled: true,
+            is_fees_protocol_sell_enabled: true,
+            is_fees_protocol_enabled: true,
+            is_paid_create_token_enable: false,
+            is_paid_launch_enable: false,
+        };
+        self.admins_fees_params.write(admins_fees_params);
 
         let init_token = TokenQuoteBuyCoin {
             token_address: token_address,
@@ -393,6 +434,21 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, is_fees_protocol_buy_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // let old_admins_fees_params = self.admins_fees_params.read();
+            // let admins_fees_params = AdminsFeesParams {
+            //     token_address_to_paid_launch:
+            //     old_admins_fees_params.token_address_to_paid_launch,
+            //     token_address_to_paid_create_token:
+            //     old_admins_fees_params.token_address_to_paid_create_token, amount_to_paid_launch:
+            //     old_admins_fees_params.amount_to_paid_launch, amount_to_paid_create_token:
+            //     old_admins_fees_params.amount_to_paid_create_token, is_fees_protocol_buy_enabled:
+            //     is_fees_protocol_buy_enabled, is_fees_protocol_sell_enabled:
+            //     old_admins_fees_params.is_fees_protocol_sell_enabled, is_fees_protocol_enabled:
+            //     old_admins_fees_params.is_fees_protocol_enabled, is_paid_create_token_enable:
+            //     old_admins_fees_params.is_paid_create_token_enable, is_paid_launch_enable:
+            //     old_admins_fees_params.is_paid_launch_enable,
+            // };
+            // self.admins_fees_params.write(admins_fees_params);
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
@@ -402,6 +458,7 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_sell_enabled.write(is_fees_protocol_sell_enabled);
         }
+
 
         fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
             // assert(protocol_fee_percent < MAX_FEE_PROTOCOL, 'protocol_fee_too_high');
@@ -471,13 +528,96 @@ pub mod LaunchpadMarketplace {
             };
         }
 
-
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.coin_class_hash.write(class_hash);
         }
 
 
+        fn set_is_paid_create_token_enable(
+            ref self: ContractState, is_paid_create_token_enable: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_paid_create_token_enable.write(is_paid_create_token_enable);
+        }
+
+        fn set_is_paid_launch_enable(ref self: ContractState, is_paid_launch_enable: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_paid_launch_enable.write(is_paid_launch_enable);
+        }
+
+        fn set_token_address_for_action(ref self: ContractState, token_address: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.token_address_to_paid_create_token.write(token_address);
+            self.token_address_to_paid_launch.write(token_address);
+        }
+
+        fn set_amount_to_paid_launch(ref self: ContractState, amount_to_paid_launch: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.amount_to_paid_launch.write(amount_to_paid_launch);
+        }
+
+        fn set_amount_to_paid_create_token(
+            ref self: ContractState, amount_to_paid_create_token: u256
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.amount_to_paid_create_token.write(amount_to_paid_create_token);
+        }
+
+        // Views functions public
+
+        fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
+            self.default_token.read()
+        }
+
+        fn get_threshold_liquidity(self: @ContractState) -> u256 {
+            self.threshold_liquidity.read()
+        }
+
+
+        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
+            self.launched_coins.read(key_user)
+        }
+
+        fn get_share_of_user_by_contract(
+            self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
+        ) -> SharesTokenUser {
+            // self.shares_by_users.read((owner, key_user))
+            // self.shares_by_users.entry((owner, key_user)).read()
+            // self.shares_by_users.entry((owner, key_user)).read()
+
+            self.shares_by_users.entry(owner).entry(key_user).read()
+        }
+
+        fn get_all_coins(self: @ContractState) -> Span<Token> {
+            let max_coin_id = self.total_token.read() + 1;
+            let mut coins: Array<Token> = ArrayTrait::new();
+            let mut i = 0; //Since the stream id starts from 0
+            loop {
+                if i >= max_coin_id {}
+                let coin = self.array_coins.read(i);
+                if coin.owner.is_zero() {
+                    break coins.span();
+                }
+                coins.append(coin);
+                i += 1;
+            }
+        }
+
+        fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
+            let max_key_id = self.total_launch.read() + 1;
+            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
+            let mut i = 0; //Since the stream id starts from 0
+            loop {
+                if i >= max_key_id {}
+                let pool = self.array_launched_coins.read(i);
+                if pool.owner.is_zero() {
+                    break launches.span();
+                }
+                launches.append(pool);
+                i += 1;
+            }
+        }
         // User call
 
         // Create token for an user
@@ -492,6 +632,7 @@ pub mod LaunchpadMarketplace {
         ) -> ContractAddress {
             let caller = get_caller_address();
             let contract_address = get_contract_address();
+
             let token_address = self
                 ._create_token(
                     symbol,
@@ -589,11 +730,19 @@ pub mod LaunchpadMarketplace {
             let mut remain_quote_to_liquidity = total_price;
             // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
 
+            // TODO without fees if it's correct
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read();
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
+
+                erc20
+                    .transfer_from(
+                        get_caller_address(),
+                        self.protocol_fee_destination.read(),
+                        amount_protocol_fee
+                    );
             }
 
             // println!("amount quote to send {:?}", quote_amount);
@@ -630,10 +779,11 @@ pub mod LaunchpadMarketplace {
             // assert(amount <= pool_coin.available_supply, 'no available supply');
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
 
-            erc20
-                .transfer_from(
-                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
-                );
+            // erc20
+            //     .transfer_from(
+            //         get_caller_address(), self.protocol_fee_destination.read(),
+            //         amount_protocol_fee
+            //     );
             // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
 
             erc20
@@ -838,9 +988,15 @@ pub mod LaunchpadMarketplace {
             let creator_fee_percent = self.creator_fee_percent.read();
             let protocol_fee_percent = self.protocol_fee_percent.read();
 
+            // let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
+            // let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
+
             let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
             let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
-            let remain_coin_amount = coin_amount - amount_protocol_fee;
+            let mut remain_coin_amount = coin_amount;
+            // let mut remain_coin_amount = coin_amount;
+            // let remain_coin_amount = coin_amount - amount_protocol_fee;
+
             assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
 
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
@@ -851,7 +1007,8 @@ pub mod LaunchpadMarketplace {
 
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
 
-            let quote_amount = quote_amount_total - quote_amount_protocol_fee;
+            // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
+            let mut quote_amount = quote_amount_total;
             //          println!("quote_amount {:?}", quote_amount);
 
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
@@ -902,14 +1059,20 @@ pub mod LaunchpadMarketplace {
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = erc20.balance_of(get_contract_address());
             assert(
-                contract_quote_balance >= quote_amount_total,
+                contract_quote_balance >= quote_amount_total
+                    && old_pool.liquidity_raised >= quote_amount_total,
                 errors::CONTRACT_HAS_INSUFFICIENT_QUOTE_BALANCE
                 // "contract has insufficient quote token balance"
             );
 
             // Transfer protocol fee to the designated destination
             // println!("sell transfer fees protocol");
-            if quote_amount_protocol_fee > 0 {
+
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
+
+            if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
+                quote_amount = quote_amount_total - quote_amount_protocol_fee;
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
             // println!("sell transfer quote amount");
@@ -1108,59 +1271,6 @@ pub mod LaunchpadMarketplace {
         }
 
 
-        fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
-            self.default_token.read()
-        }
-
-        fn get_threshold_liquidity(self: @ContractState) -> u256 {
-            self.threshold_liquidity.read()
-        }
-
-
-        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
-            self.launched_coins.read(key_user)
-        }
-
-        fn get_share_of_user_by_contract(
-            self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
-        ) -> SharesTokenUser {
-            // self.shares_by_users.read((owner, key_user))
-            // self.shares_by_users.entry((owner, key_user)).read()
-            // self.shares_by_users.entry((owner, key_user)).read()
-
-            self.shares_by_users.entry(owner).entry(key_user).read()
-        }
-
-        fn get_all_coins(self: @ContractState) -> Span<Token> {
-            let max_coin_id = self.total_token.read() + 1;
-            let mut coins: Array<Token> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_coin_id {}
-                let coin = self.array_coins.read(i);
-                if coin.owner.is_zero() {
-                    break coins.span();
-                }
-                coins.append(coin);
-                i += 1;
-            }
-        }
-
-        fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
-            let max_key_id = self.total_launch.read() + 1;
-            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_key_id {}
-                let pool = self.array_launched_coins.read(i);
-                if pool.owner.is_zero() {
-                    break launches.span();
-                }
-                launches.append(pool);
-                i += 1;
-            }
-        }
-
         // The function calculates the amiunt of quote_token you need to buy a coin in the pool
         fn get_amount_by_type_of_coin_or_quote(
             self: @ContractState,
@@ -1189,6 +1299,22 @@ pub mod LaunchpadMarketplace {
 
             // self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
             get_coin_amount_by_quote_amount(pool.clone(), quote_amount, is_decreased)
+        }
+
+        fn get_is_paid_launch_enable(self: @ContractState) -> bool {
+            self.is_paid_launch_enable.read()
+        }
+
+        fn get_is_paid_create_token_enable(self: @ContractState) -> bool {
+            self.is_paid_create_token_enable.read()
+        }
+
+        fn get_amount_to_paid_launch(self: @ContractState) -> u256 {
+            self.amount_to_paid_launch.read()
+        }
+
+        fn get_amount_to_paid_create_token(self: @ContractState) -> u256 {
+            self.amount_to_paid_create_token.read()
         }
         // fn get_quote_paid_by_amount_coin(
     //     self: @ContractState,
@@ -1274,6 +1400,29 @@ pub mod LaunchpadMarketplace {
             owner: ContractAddress,
             factory: ContractAddress,
         ) -> ContractAddress {
+            let caller = get_caller_address();
+
+            // TODO finish this
+            let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
+            if is_paid_create_token_enable {
+                // let admins_fees_params = self.admins_fees_params.read();
+                // let token_address_to_paid_create_token =
+                // admins_fees_params.token_address_to_paid_create_token;
+                let token_address_to_paid_create_token = self
+                    .token_address_to_paid_create_token
+                    .read();
+                // let amount_to_paid_create_token = admins_fees_params.amount_to_paid_create_token;
+                let amount_to_paid_create_token = self.amount_to_paid_create_token.read();
+
+                let erc20 = IERC20Dispatcher {
+                    contract_address: token_address_to_paid_create_token
+                };
+                erc20
+                    .transfer_from(
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_create_token
+                    );
+            }
+
             let mut calldata = array![name.into(), symbol.into()];
             Serde::serialize(@initial_supply, ref calldata);
             Serde::serialize(@18, ref calldata);
@@ -1336,8 +1485,22 @@ pub mod LaunchpadMarketplace {
             is_unruggable: bool,
             bonding_type: Option<BondingType>
         ) {
-            // let caller = get_caller_address();
+            let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
+
+            // TODO finish this and add tests
+            let is_paid_launch_enable = self.is_paid_launch_enable.read();
+            if is_paid_launch_enable {
+                let admins_fees_params = self.admins_fees_params.read();
+                let token_address_to_paid_launch = admins_fees_params.token_address_to_paid_launch;
+                let amount_to_paid_launch = admins_fees_params.amount_to_paid_launch;
+
+                let erc20 = IERC20Dispatcher { contract_address: token_address_to_paid_launch };
+                erc20
+                    .transfer_from(
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_launch
+                    );
+            }
 
             // TODO
             // Maybe not needed because you can also create the coin everyhwhere (Unrug) and launch
@@ -1498,21 +1661,63 @@ pub mod LaunchpadMarketplace {
             // WEIRD error to fix
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
 
+            // TODO fix starting price
+            // Fix tick spacing
+            // Fix bounds
             let starting_price: i129 = calculate_starting_price_launch(
                 launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
             );
+            // Uncomment this to used calculated starting price
+            let init_starting_price = i129 { sign: true, mag: 4600158 };
 
-            let tick_spacing = 5982;
+            let tick_spacing = 1000;
+            // let tick_spacing =  2000;
+            // 88712960
+            // let tick_spacing = 5000;
+            // let tick_spacing = 5982;
+            // println!("tick_spacing {:?}", tick_spacing);
+
+            // let tick_spacing = 5000;
+            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // Verify conditions
 
+            // Add these debug prints
+            // println!("Starting Price: {}", starting_price.mag);
+            // println!("Calculated Bound: {}", bound);
+            // println!("Tick Spacing: {}", tick_spacing);
+
+            assert(bound % tick_spacing == 0, 'Bound not aligned');
+            // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
+
+            // println!("starting_price {:?}", starting_price);
+            // println!("bounds {:?}", bound);
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-                tick_spacing: 5982, // TODO tick_spacing optional by user   
+                tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
                 starting_price: starting_price, // TODO verify if starting_price is correct
-                bound: 88719042,
-                // bound: bound, // TODO verify if bound is correct
+                // starting_price: init_starting_price, // TODO verify if starting_price is correct
+                bound: tick_spacing * 2,
+                // bound: 88719042,
+            // bound:bound
+            // bound:88712960
+            // bound: 88719042
+            // bound: bound, // TODO verify if bound is correct
             };
+
+            // let pool_params = EkuboPoolParameters {
+            //     fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
+            //     tick_spacing: tick_spacing, // TODO tick_spacing optional by user
+            //     // tick_spacing: 5000, // TODO tick_spacing optional by user
+            //     // starting_price: starting_price, // TODO verify if starting_price is correct
+            //     starting_price: init_starting_price, // TODO verify if starting_price is correct
+            //     bound: 88719042,
+            //     // bound:bound
+            //     // bound:88712960
+            //     // bound: 88719042
+            //     // bound: bound, // TODO verify if bound is correct
+            // };
 
             let lp_supply = launch.initial_pool_supply.clone();
             let lp_quote_supply = launch.liquidity_raised.clone();

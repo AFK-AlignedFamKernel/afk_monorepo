@@ -30,7 +30,7 @@ const WIDTH: u128 = 100;
 const HEIGHT: u128 = 100;
 const TIME_BETWEEN_PIXELS: u64 = 10;
 const LEANIENCE_MARGIN: u64 = 20;
-const BASE_URI: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
+// const BASE_URI: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
 
 pub(crate) fn deploy_contract() -> ContractAddress {
     deploy_nft_contract();
@@ -172,10 +172,10 @@ fn deploy_nft_contract() -> ContractAddress {
     let mut calldata = array![];
     let name: ByteArray = "CanvasNFTs";
     let symbol: ByteArray = "A/P";
-    // let base_uri: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
+    let base_uri: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
     name.serialize(ref calldata);
     symbol.serialize(ref calldata);
-    BASE_URI.serialize(ref calldata);
+    base_uri.serialize(ref calldata);
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::NFT_CONTRACT()).unwrap();
     contract_addr
 }
@@ -411,8 +411,8 @@ fn nft_mint_test() {
     assert!(nft.balance_of(utils::PLAYER2()) == 1, "NFT balance is not correct after transfer");
 
     let nft_meta = IERC721MetadataDispatcher { contract_address: nft.contract_address };
-    // let expected_uri = "https://api.art-peace.net/nft-meta/nft-0.json";
-    let expected_uri = BASE_URI + "0.json";
+    let expected_uri = "https://api.art-peace.net/nft-meta/nft-0.json";
+    // let expected_uri = BASE_URI + "0.json";
     assert!(nft_meta.token_uri(0) == expected_uri, "NFT URI is not correct");
 }
 

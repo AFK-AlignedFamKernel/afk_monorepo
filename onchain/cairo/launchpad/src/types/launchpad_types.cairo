@@ -30,14 +30,18 @@ pub enum BondingType {
     Limited
 }
 
-
 // Storage
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct AdminsFeesParams {
-    pub token_to_paid_launch: ContractAddress,
-    pub token_to_paid_create_token: ContractAddress,
+    pub token_address_to_paid_launch: ContractAddress,
+    pub token_address_to_paid_create_token: ContractAddress,
     pub amount_to_paid_launch: u256,
     pub amount_to_paid_create_token: u256,
+    pub is_fees_protocol_buy_enabled: bool,
+    pub is_fees_protocol_sell_enabled: bool,
+    pub is_fees_protocol_enabled: bool,
+    pub is_paid_create_token_enable: bool,
+    pub is_paid_launch_enable: bool,
 }
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct AdminsFeesParams {
