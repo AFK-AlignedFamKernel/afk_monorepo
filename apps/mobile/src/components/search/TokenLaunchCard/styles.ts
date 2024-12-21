@@ -3,7 +3,7 @@ import {StyleSheet} from 'react-native';
 export default (theme: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.grayBg40,
+      backgroundColor: theme.colors.cardBg,
       borderRadius: 20,
       padding: 20,
       flex: 1,
@@ -20,7 +20,7 @@ export default (theme: any) =>
     },
     tokenName: {
       fontSize: 16,
-      color: theme.colors.white,
+      color: theme.colors.textPrimary,
       fontWeight: 'medium',
     },
     tokenSymbol: {
@@ -37,7 +37,7 @@ export default (theme: any) =>
       justifyContent: 'space-between',
     },
     price: {
-      color: theme.colors.white,
+      color: theme.colors.textPrimary,
       fontSize: 30,
       fontWeight: 800
     },
@@ -72,5 +72,6 @@ export default (theme: any) =>
       textAlign: 'center',
       fontWeight: 800,
       fontSize: 15,
+      color: theme.colors.white
     }
   });
