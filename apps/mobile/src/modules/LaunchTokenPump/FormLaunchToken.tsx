@@ -187,7 +187,6 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
                     />
                   ))}
               </Picker>
-              <Text style={styles.inputInfo}>* Only Linear is available atm.</Text>
             </View>
 
             <Button variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
