@@ -5,7 +5,7 @@ use afk_launchpad::types::launchpad_types::{
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters
+    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -39,7 +39,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
-        // ekubo_pool_params: Option<EkuboPoolParameters>,
     );
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, coin_amount: u256);
     fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
@@ -88,15 +87,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, unrug_liquidity_address: ContractAddress
     );
     fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
-    // fn set_address_jediswap_factory_v2(
-    //     ref self: TContractState, address_jediswap_factory_v2: ContractAddress
-    // );
-    // fn set_address_jediswap_nft_router_v2(
-    //     ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
-    // );
-    // fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory:
-    // ContractAddress);
-    // fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_exchanges_address(
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
@@ -111,17 +101,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
-    // use afk_launchpad::calcul::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
-    // use afk_launchpad::calcul::linear::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_coin_amount_by_quote_amount
-    // };
-    // use afk_launchpad::launchpad::launch::{get_initial_price,
-    // get_amount_by_type_of_coin_or_quote};
-    // use afk_launchpad::launchpad::linear::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_coin_amount_by_quote_amount
-    // };
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::interfaces::jediswap::{
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
@@ -138,14 +117,7 @@ pub mod LaunchpadMarketplace {
         calculate_starting_price_launch, calculate_slope, calculate_pricing,
         get_coin_amount_by_quote_amount
     };
-    // use afk_launchpad::launchpad::calcul::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
-    // };
-
     use afk_launchpad::launchpad::errors;
-    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
-    // };
     use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
@@ -205,6 +177,8 @@ pub mod LaunchpadMarketplace {
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
     const MAX_STEPS_LOOP: u256 = 100;
+
+    // TODO add optional parameters to be select LIQ percent to be lock to Unrug at some point
     // Total supply / LIQUIDITY_RATIO
     // Get the 20% of Bonding curve going to Liquidity
     // Liquidity can be lock to Unrug
@@ -281,6 +255,7 @@ pub mod LaunchpadMarketplace {
         array_coins: Map::<u64, Token>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
+        // admins_fees_params: AdminsFeesParams,
         // Parameters
         is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
@@ -1524,21 +1499,27 @@ pub mod LaunchpadMarketplace {
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
 
             let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
+                launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
             );
-            let bound = calculate_aligned_bound_mag(starting_price, 2, 5000);
+
+            let tick_spacing = 5982;
+            let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
 
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-                tick_spacing: 5000, // TODO tick_spacing optional by user   
+                tick_spacing: 5982, // TODO tick_spacing optional by user   
+                // tick_spacing: 5000, // TODO tick_spacing optional by user
                 starting_price: starting_price, // TODO verify if starting_price is correct
-                bound: bound, // TODO verify if bound is correct
+                bound: 88719042,
+                // bound: bound, // TODO verify if bound is correct
             };
 
             let lp_supply = launch.initial_pool_supply.clone();
             let lp_quote_supply = launch.liquidity_raised.clone();
             let params = EkuboUnrugLaunchParameters {
-                owner: launch.owner,
+                // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
+                // be lock to Unrug at some point
+                owner: get_contract_address(), // TODO add optional parameters to be select LIQ percent to be lock to Unrug at some point
                 token_address: coin_address,
                 quote_address: launch.token_quote.token_address.clone(),
                 lp_supply: lp_supply.clone(),
@@ -1550,10 +1531,14 @@ pub mod LaunchpadMarketplace {
             let quote_token = IERC20Dispatcher {
                 contract_address: launch.token_quote.token_address.clone()
             };
+
+            let position_ekubo_address = unrug_liquidity.get_position_ekubo_address();
+            // quote_token.approve(position_ekubo_address, lp_quote_supply);
             quote_token.approve(unrug_liquidity_address, lp_quote_supply);
 
             // Approve Memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            // memecoin.approve(position_ekubo_address, lp_supply);
             memecoin.approve(unrug_liquidity_address, lp_supply);
 
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
