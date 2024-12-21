@@ -147,3 +147,20 @@ pub fn calculate_aligned_bound_mag(
         aligned_bound
     }
 }
+
+// pub fn calculate_aligned_bound_mag(
+//     starting_price: i129, multiplier: u128, tick_spacing: u128
+// ) -> u128 {
+//     assert!(starting_price.sign, "Starting price negative");
+
+//     // Calculate initial bound_mag proportional to starting_price
+//     let mut init_bound = starting_price.mag * multiplier;
+
+//     // Adjust bound_mag to align with tick_spacing
+//     let rem = init_bound % tick_spacing;
+//     if rem == 0 {
+//         init_bound
+//     } else {
+//         init_bound + (tick_spacing - rem)
+//     }
+// }

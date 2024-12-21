@@ -10,11 +10,55 @@ pub struct Pixel {
 }
 
 #[derive(Drop, Serde, starknet::Store)]
+pub struct PixelState {
+    // Color index in the palette
+    pub color: u8,
+    pub pos: u128,
+    pub timestamp: u64,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+}
+
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct PixelShield {
+    pub pos: u128,
+    pub timestamp: u64,
+    pub until: u64,
+    pub amount_paid: u256,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+}
+
+#[derive(Drop, Copy, Serde, Hash)]
+pub enum PixelShieldType {
+    BuyTime,
+    AuctionDeadlineDay,
+}
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct ShieldAdminParams {
+    pub timestamp: u64,
+    pub shield_type: PixelShieldType,
+    pub until: u64,
+    pub amount_to_paid: u256,
+    pub cost_per_second: u256,
+    pub cost_per_minute: u256,
+    pub contract_address: starknet::ContractAddress,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+}
+
+#[derive(Drop, Serde, starknet::Store)]
 pub struct MetadataPixel {
+    pub pos: u128,
     // Color index in the palette
     pub ipfs: ByteArray,
+    pub url: ByteArray,
     pub nostr_event_id: u256,
     pub owner: starknet::ContractAddress,
+    pub contract_address: starknet::ContractAddress,
+    pub faction_name: felt252,
 }
 
 #[derive(Drop, Serde, starknet::Store)]

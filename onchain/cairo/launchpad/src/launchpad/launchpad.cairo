@@ -1498,33 +1498,62 @@ pub mod LaunchpadMarketplace {
             // WEIRD error to fix
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
 
+            // TODO fix starting price
+            // Fix tick spacing
+            // Fix bounds
             let starting_price: i129 = calculate_starting_price_launch(
                 launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
             );
-            // let starting_price = i129 { sign: true, mag: 4600158 };
+            // Uncomment this to used calculated starting price
+            let init_starting_price = i129 { sign: true, mag: 4600158 };
 
 
-            // let tick_spacing =  60;
+            // let tick_spacing =  2000;
+            // 88712960
             // let tick_spacing = 5000;
             let tick_spacing = 5982;
-
-            println!("tick_spacing {:?}", tick_spacing);
+            // println!("tick_spacing {:?}", tick_spacing);
 
             // let tick_spacing = 5000;
             // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // Verify conditions
+            
+            // Add these debug prints
+            // println!("Starting Price: {}", starting_price.mag);
+            // println!("Calculated Bound: {}", bound);
+            // println!("Tick Spacing: {}", tick_spacing);
+            
+            assert(bound % tick_spacing == 0, 'Bound not aligned');
+            // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
+
             // println!("starting_price {:?}", starting_price);
-            println!("bounds {:?}", bound);
+            // println!("bounds {:?}", bound);
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
                 tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
-                starting_price: starting_price, // TODO verify if starting_price is correct
+                // starting_price: starting_price, // TODO verify if starting_price is correct
+                starting_price: init_starting_price, // TODO verify if starting_price is correct
                 bound: 88719042,
                 // bound:bound
+                // bound:88712960
                 // bound: 88719042
                 // bound: bound, // TODO verify if bound is correct
             };
+
+            // let pool_params = EkuboPoolParameters {
+            //     fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
+            //     tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
+            //     // tick_spacing: 5000, // TODO tick_spacing optional by user
+            //     // starting_price: starting_price, // TODO verify if starting_price is correct
+            //     starting_price: init_starting_price, // TODO verify if starting_price is correct
+            //     bound: 88719042,
+            //     // bound:bound
+            //     // bound:88712960
+            //     // bound: 88719042
+            //     // bound: bound, // TODO verify if bound is correct
+            // };
 
             let lp_supply = launch.initial_pool_supply.clone();
             let lp_quote_supply = launch.liquidity_raised.clone();
