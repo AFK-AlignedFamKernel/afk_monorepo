@@ -47,13 +47,16 @@ export const LAUNCHPAD_ADDRESS = {
 
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1e00d0d7167938c2aa289850c96d7129ff16c1ed02b7542030bc2e39dc41885"
-    
+
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x2eb4dac724b4507becc409667bdea68d697665e182702f294eb5bd8bfb28e26"
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd"
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd"
-    
-    
+    "0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1"
+
+
+
 };
 
 export const ESCROW_ADDRESS = {
@@ -80,14 +83,14 @@ export const TOKENS_ADDRESS = {
     BIG_TOKEN:
       "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
   },
-  [sepolia.id]:{
+  [sepolia.id]: {
     ETH: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
     USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   },
-  [kakarotSepolia.id]:{
+  [kakarotSepolia.id]: {
     ETH: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
   },
-  [mainnet.id]:{
+  [mainnet.id]: {
     USDC: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
   },
   [constants.StarknetChainId.SN_MAIN]: {
@@ -117,7 +120,7 @@ export const CLASS_HASH = {
     [constants.StarknetChainId.SN_SEPOLIA]:
       // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
       "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
-      [constants.StarknetChainId.SN_MAIN]:""
+    [constants.StarknetChainId.SN_MAIN]: ""
   },
   MEMECOIN: {
     [constants.StarknetChainId.SN_SEPOLIA]:
@@ -143,8 +146,8 @@ export const ART_PEACE_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
   [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
-    
+    "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+
 };
 
 export const USERNAME_STORE_ADDRESS = {
@@ -180,13 +183,13 @@ export const EKUBO_REGISTRY = {
 };
 
 export const NAMESERVICE_ADDRESS = {
-   [constants.StarknetChainId.SN_MAIN]: "",
+  [constants.StarknetChainId.SN_MAIN]: "",
   //  [constants.StarknetChainId.SN_SEPOLIA]:
   //  "0x4fe0ee38c814e0599a5140c5673a233d227ce0be9e22c3acdbee15ac9aefc10",
 
-   [constants.StarknetChainId.SN_SEPOLIA]:
-   "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
-  
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
+
 };
 
 export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
