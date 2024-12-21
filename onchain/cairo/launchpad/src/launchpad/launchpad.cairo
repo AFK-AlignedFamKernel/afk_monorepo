@@ -1507,10 +1507,11 @@ pub mod LaunchpadMarketplace {
             // Uncomment this to used calculated starting price
             let init_starting_price = i129 { sign: true, mag: 4600158 };
 
+            let tick_spacing =  1000;
             // let tick_spacing =  2000;
             // 88712960
             // let tick_spacing = 5000;
-            let tick_spacing = 5982;
+            // let tick_spacing = 5982;
             // println!("tick_spacing {:?}", tick_spacing);
 
             // let tick_spacing = 5000;
@@ -1532,9 +1533,10 @@ pub mod LaunchpadMarketplace {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
                 tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
-                // starting_price: starting_price, // TODO verify if starting_price is correct
-                starting_price: init_starting_price, // TODO verify if starting_price is correct
-                bound: 88719042,
+                starting_price: starting_price, // TODO verify if starting_price is correct
+                // starting_price: init_starting_price, // TODO verify if starting_price is correct
+                bound: tick_spacing*2,
+                // bound: 88719042,
                 // bound:bound
             // bound:88712960
             // bound: 88719042
