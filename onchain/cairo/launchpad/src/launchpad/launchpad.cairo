@@ -1507,7 +1507,6 @@ pub mod LaunchpadMarketplace {
             // Uncomment this to used calculated starting price
             let init_starting_price = i129 { sign: true, mag: 4600158 };
 
-
             // let tick_spacing =  2000;
             // 88712960
             // let tick_spacing = 5000;
@@ -1518,12 +1517,12 @@ pub mod LaunchpadMarketplace {
             // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             // Verify conditions
-            
+
             // Add these debug prints
             // println!("Starting Price: {}", starting_price.mag);
             // println!("Calculated Bound: {}", bound);
             // println!("Tick Spacing: {}", tick_spacing);
-            
+
             assert(bound % tick_spacing == 0, 'Bound not aligned');
             // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
 
@@ -1537,14 +1536,14 @@ pub mod LaunchpadMarketplace {
                 starting_price: init_starting_price, // TODO verify if starting_price is correct
                 bound: 88719042,
                 // bound:bound
-                // bound:88712960
-                // bound: 88719042
-                // bound: bound, // TODO verify if bound is correct
+            // bound:88712960
+            // bound: 88719042
+            // bound: bound, // TODO verify if bound is correct
             };
 
             // let pool_params = EkuboPoolParameters {
             //     fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-            //     tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
+            //     tick_spacing: tick_spacing, // TODO tick_spacing optional by user
             //     // tick_spacing: 5000, // TODO tick_spacing optional by user
             //     // starting_price: starting_price, // TODO verify if starting_price is correct
             //     starting_price: init_starting_price, // TODO verify if starting_price is correct

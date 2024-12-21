@@ -77,10 +77,10 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
 }
 
 // const SAFE_SCALE: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
-  // Use more conservative scaling to avoid extreme prices
+// Use more conservative scaling to avoid extreme prices
 const PRICE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
-   
+
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
