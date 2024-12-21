@@ -25,7 +25,7 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.grayInput,
-    backgroundColor: theme.colors.greenBg,
+    backgroundColor: theme.colors.grayBg,
     padding: 20,
     maxWidth: 400,
     aspectRatio: '1',
@@ -33,12 +33,12 @@ export default ThemedStyleSheet((theme) => ({
     cursor: 'pointer',
   },
   title: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.white,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   description: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.white,
     marginTop: 10,
     textAlign: 'center',
   },
@@ -53,7 +53,8 @@ export default ThemedStyleSheet((theme) => ({
     position: 'absolute',
     top: 25,
     left: 20,
-    zIndex: 20
+    zIndex: 20,
+    backgroundColor: theme.colors.background
   },
   selectedContent: {
     flex: 1,
@@ -64,7 +65,6 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     marginTop: Spacing.pagePadding,
     marginBottom: Spacing.pagePadding,
-    // color: theme.colors.text,
   },
   form: {
     flex: 1,

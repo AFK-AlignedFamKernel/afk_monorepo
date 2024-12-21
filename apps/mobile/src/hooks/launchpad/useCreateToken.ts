@@ -1,9 +1,9 @@
-import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, cairo, CairoCustomEnum, CallData, constants } from 'starknet';
+import {LAUNCHPAD_ADDRESS} from 'common';
+import {AccountInterface, cairo, CairoCustomEnum, CallData, constants} from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
-import { formatFloatToUint256 } from '../../utils/format';
-import { BondingType } from '../../types/keys';
+import {formatFloatToUint256} from '../../utils/format';
+import {BondingType} from '../../types/keys';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -12,7 +12,7 @@ export type DeployTokenFormValues = {
   initialSupply: number | undefined;
   contract_address_salt: string | undefined;
   is_unruggable?: boolean;
-  bonding_type?: BondingType
+  bonding_type?: BondingType;
 };
 
 export const useCreateToken = () => {
@@ -29,8 +29,6 @@ export const useCreateToken = () => {
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
       console.log('initial supply', initial_supply);
-
-
 
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
@@ -70,26 +68,21 @@ export const useCreateToken = () => {
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
-      let bondingEnum = new CairoCustomEnum({ Linear: {} });
-      console.log('bondingEnum', bondingEnum);
-      let bonding = data?.bonding_type
+      
+      let bondingEnum = new CairoCustomEnum({Exponential: 1});
+      console.log('[DEBUG] bondingEnum', bondingEnum);
 
-      console.log('bonding', bonding);
-
-
-      if (data.bonding_type) {
-        console.log('bondingEnum', bondingEnum);
-        bondingEnum = new CairoCustomEnum({ bonding });
-
-        /** TODO finish corret formatin like above depends on the selected value */
-        // if (data?.bonding_type == BondingType.Linear) {
-        //   bondingEnum = new CairoCustomEnum({ Linear: {} });
-        // }
-        // else {
-        //   bondingEnum = new CairoCustomEnum({ Exponential: {} });
-        // }
-
+      if (data?.bonding_type !== undefined) {
+        // Compare against the enum values
+        if (data.bonding_type === BondingType.Linear) {
+          console.log('[DEBUG] bondingEnum linear', data.bonding_type);
+          bondingEnum = new CairoCustomEnum({Linear: 0});
+        } else if (data.bonding_type === BondingType.Exponential) {
+          console.log('[DEBUG] bondingEnum exp', data.bonding_type);
+          bondingEnum = new CairoCustomEnum({Exponential: 1});
+        }
       }
+      console.log('[DEBUG] bondingEnum updt',bondingEnum);
 
       console.log('initial supply', initial_supply);
       const deployCall = {
@@ -102,7 +95,7 @@ export const useCreateToken = () => {
           contract_address_salt: new Date().getTime(),
           // is_unruggable: data?.is_unruggable
           is_unruggable: cairo.felt(String(data?.is_unruggable)),
-          bonding_type: bondingEnum
+          bonding_type: bondingEnum,
         }),
       };
 

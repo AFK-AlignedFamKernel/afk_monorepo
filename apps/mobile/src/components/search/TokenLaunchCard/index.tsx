@@ -3,17 +3,18 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
+import {ImageSourcePropType, TouchableOpacity, View, Button} from 'react-native';
 
 import {CopyIconStack} from '../../../assets/icons';
-import {useStyles, useTheme} from '../../../hooks';
+import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
 import {feltToAddress} from '../../../utils/format';
-import {Button} from '../..';
+// import {Button} from '../..';
 import {Text} from '../../Text';
 import stylesheet from './styles';
+import { useMemo } from 'react';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -55,50 +56,23 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     showToast({type: 'info', title: 'Copied to clipboard'});
   };
 
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDesktop && styles.containerDesktop]}>
       <View style={styles.header}>
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
-        <View style={styles.addressContainer}>
-          <Text numberOfLines={1} ellipsizeMode="middle" style={{color: '#808080', flex: 1}}>
-            {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
-          </Text>
-          <TouchableOpacity onPress={handleCopy}>
-            <CopyIconStack color={theme.colors.primary} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.priceTag}>
-          <Text style={{color: '#4CAF50'}}>${Number(token?.price || 0).toFixed(4)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Supply</Text>
-          <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Raised</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.liquidity_raised || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Threshold</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.threshold_liquidity || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Network</Text>
-          <Text style={styles.statValue}>{token?.network || '-'}</Text>
-        </View>
+        {token?.symbol ? <Text style={styles.tokenSymbol}>{token.symbol}</Text> : null}
+        <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text>
       </View>
 
       {!isViewDetailDisabled && (
         <>
           {!isTokenOnly && (
-            <Button
+            <TouchableOpacity
               onPress={() => {
                 if (token && token?.memecoin_address) {
                   navigation.navigate('LaunchDetail', {
@@ -108,11 +82,11 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
               }}
               style={styles.actionButton}
             >
-              View details
-            </Button>
+              <Text style={styles.actionButtonText}>View details</Text>
+            </TouchableOpacity>
           )}
           {isTokenOnly && (
-            <Button
+            <TouchableOpacity
               onPress={() => {
                 if (token && token?.memecoin_address) {
                   navigation.navigate('LaunchDetail', {
@@ -122,8 +96,8 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
               }}
               style={styles.actionButton}
             >
-              View token page
-            </Button>
+              <Text style={styles.actionButtonText}>View token page</Text>
+            </TouchableOpacity>
           )}
         </>
       )}

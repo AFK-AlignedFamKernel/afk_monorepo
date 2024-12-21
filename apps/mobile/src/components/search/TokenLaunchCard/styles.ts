@@ -1,28 +1,32 @@
 import {StyleSheet} from 'react-native';
 
-import {Spacing} from '../../../styles';
-
 export default (theme: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: '#1E1E1E',
-      borderRadius: 16,
+      backgroundColor: theme.colors.cardBg,
+      borderRadius: 20,
       padding: 20,
-      margin: 8,
-      borderWidth: 1,
-      borderColor: '#2A2A2A',
       flex: 1,
       maxWidth: '100%',
+      marginBottom: 20,
+    },
+    containerDesktop: {
+      marginRight: 20,
     },
     header: {
       flexDirection: 'column',
-      gap: 8,
-      marginBottom: 20,
+      gap: 5,
+      marginBottom: 5,
     },
     tokenName: {
-      fontSize: 24,
-      color: '#FFFFFF',
-      fontWeight: 'bold',
+      fontSize: 16,
+      color: theme.colors.textPrimary,
+      fontWeight: 'medium',
+    },
+    tokenSymbol: {
+      fontSize: 10,
+      color: theme.colors.grayInput,
+      fontWeight: 'medium',
     },
     addressContainer: {
       backgroundColor: '#2A2A2A',
@@ -32,12 +36,10 @@ export default (theme: any) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    priceTag: {
-      backgroundColor: '#2A2A2A',
-      paddingVertical: 4,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      alignSelf: 'flex-start',
+    price: {
+      color: theme.colors.textPrimary,
+      fontSize: 30,
+      fontWeight: 800
     },
     statsGrid: {
       flexDirection: 'row',
@@ -62,9 +64,14 @@ export default (theme: any) =>
     },
     actionButton: {
       backgroundColor: theme.colors.primary,
-      padding: Spacing.medium,
-      borderRadius: 8,
-      alignItems: 'center',
-      marginTop: Spacing.small,
+      padding: 6,
+      borderRadius: 20,
+      marginTop: 20,
     },
+    actionButtonText: {
+      textAlign: 'center',
+      fontWeight: 800,
+      fontSize: 15,
+      color: theme.colors.white
+    }
   });
