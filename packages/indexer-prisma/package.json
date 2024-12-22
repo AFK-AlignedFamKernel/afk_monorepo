@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx prisma generate && npx prisma db pull && tsc",
     "build:push": "npx prisma generate && npx prisma db push && tsc",
+    "build:pull": "npx prisma generate && npx prisma db pull && tsc",
     "generate": "npx prisma generate",
     "pull": "npx prisma db pull",
     "push": "npx prisma db push"

@@ -1216,7 +1216,6 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        
         let share_user = launchpad
             .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
@@ -1234,12 +1233,7 @@ mod launchpad_tests {
         println!("buy threshold liquidity");
 
         run_buy_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            THRESHOLD_LIQUIDITY,
-            token_address,
-            sender_address,
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
 
         // run_sell_by_amount(
@@ -1329,10 +1323,10 @@ mod launchpad_tests {
         );
 
         let share_user = launchpad
-        .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
+            .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
-    let amount_owned = share_user.amount_owned.try_into().unwrap();
-    println!("sell amount owned {:?}", amount_owned);
+        let amount_owned = share_user.amount_owned.try_into().unwrap();
+        println!("sell amount owned {:?}", amount_owned);
 
         run_sell_by_amount(
             launchpad, erc20, memecoin, amount_owned, token_address, sender_address,
@@ -1341,13 +1335,8 @@ mod launchpad_tests {
         println!("buy threshold liquidity less amount first buy");
 
         run_buy_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            // THRESHOLD_LIQUIDITY - amount_first_buy,
-            THRESHOLD_LIQUIDITY,
-            token_address,
-            sender_address,
+            launchpad, erc20, memecoin, // THRESHOLD_LIQUIDITY - amount_first_buy,
+            THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
         println!("sell threshold amount owned");
 
@@ -1551,7 +1540,15 @@ mod launchpad_tests {
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
-        let init_supplies: Array<u256> = array![100_000_000_u256 + pow_256(10, 18), // 100m
+        let init_supplies: Array<u256> = array![
+            100_000_u256 * pow_256(10, 18), // 100k
+            1_000_000_u256 * pow_256(10, 18), // 1m
+            10_000_000_u256 * pow_256(10, 18), // 10m
+            100_000_000_u256 * pow_256(10, 18), // 100m
+            1_000_000_000_u256 * pow_256(10, 18), // 1b
+            10_000_000_000_u256 * pow_256(10, 18), // 10b
+        100_000_000_000_u256 * pow_256(10, 18), // 100b
+        1_000_000_000_000_u256 * pow_256(10, 18), // 1t
         // 100_000_000_000_000_000_000_000_000_000_000_u256
         ];
         let mut i = 0;

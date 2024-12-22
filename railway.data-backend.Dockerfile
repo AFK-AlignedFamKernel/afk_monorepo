@@ -120,12 +120,12 @@ COPY . .
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
-# RUN pnpm run build:prisma-db
+RUN pnpm run build:prisma-db
 # RUN pnpm run build:backend:prisma
-# RUN pnpm run build:indexer-prisma
+RUN pnpm run build:indexer-prisma
 # RUN pnpm run build:backend:all_repo
 # Build the indexer-prisma package
-# RUN pnpm --filter indexer-prisma build
+RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
 # RUN pnpm --filter data-backend build:all_repo

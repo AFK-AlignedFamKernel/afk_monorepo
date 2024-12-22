@@ -111,11 +111,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
-    use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
-    use afk_launchpad::interfaces::jediswap::{
-        IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
-        IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
-    };
+
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
@@ -123,12 +119,13 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::calcul::launch::{
         get_initial_price, get_amount_by_type_of_coin_or_quote
     };
+
+    use afk_launchpad::launchpad::errors;
+    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, calculate_slope, calculate_pricing,
+        calculate_starting_price_launch, 
         get_coin_amount_by_quote_amount
     };
-    use afk_launchpad::launchpad::errors;
-    use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
@@ -140,16 +137,15 @@ pub mod LaunchpadMarketplace {
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
 
-    use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
     };
-    use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
-    use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
-    use ekubo::interfaces::token_registry::{
-        ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
-    };
+    // use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
+    // use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
+    // use ekubo::interfaces::token_registry::{
+    //     ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
+    // };
     use ekubo::types::bounds::{Bounds};
     use ekubo::types::keys::PoolKey;
     use ekubo::types::{i129::i129};
@@ -771,9 +767,9 @@ pub mod LaunchpadMarketplace {
             let mut threshold = threshold_liquidity - slippage_threshold;
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
-                // let mut slippage_threshold: u256 = threshold_liquidity * protocol_fee_percent / BPS;
+                // let mut slippage_threshold: u256 = threshold_liquidity * protocol_fee_percent // BPS;
                 // threshold = threshold_liquidity - slippage_threshold*2;// add slippage and fees
-                threshold = threshold_liquidity - slippage_threshold;// add slippage and fees
+                threshold = threshold_liquidity - slippage_threshold; // add slippage and fees
             }
             // let mut amount = 0;
             // Pay with quote token
@@ -1013,12 +1009,13 @@ pub mod LaunchpadMarketplace {
             // let remain_coin_amount = coin_amount - amount_protocol_fee;
 
             // if share_user.amount_owned >= old_pool.total_token_holded {
-            //     assert(share_user.amount_owned >= old_pool.total_token_holded, errors::SUPPLY_ABOVE_TOTAL_OWNED);
+            //     assert(share_user.amount_owned >= old_pool.total_token_holded,
+            //     errors::SUPPLY_ABOVE_TOTAL_OWNED);
             // }
 
             // TODO CHECK error even if used amount_owned as an input in test
             // Edge case calculation rounding
-            if  share_user.amount_owned >= remain_coin_amount {
+            if share_user.amount_owned >= remain_coin_amount {
                 // Used max amount_owned
                 remain_coin_amount = share_user.amount_owned;
             }
@@ -1039,7 +1036,7 @@ pub mod LaunchpadMarketplace {
             // Edge case calculation rounding
             // TODO
             //  GET the approximation slippage tolerance too not drained liq if big error
-            if  old_pool.liquidity_raised >= quote_amount {
+            if old_pool.liquidity_raised >= quote_amount {
                 quote_amount = old_pool.liquidity_raised;
             }
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
@@ -1704,10 +1701,9 @@ pub mod LaunchpadMarketplace {
             let mut tick_spacing = 1000;
 
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            if is_fees_protocol_enabled {
-                // tick_spacing = 2000;
-                // tick_spacing = 3000;
-                // tick_spacing=5928;
+            if is_fees_protocol_enabled {// tick_spacing = 2000;
+            // tick_spacing = 3000;
+            // tick_spacing=5928;
             }
             // let tick_spacing =  2000;
             // 88712960
@@ -1730,7 +1726,7 @@ pub mod LaunchpadMarketplace {
 
             // println!("starting_price {:?}", starting_price);
             // println!("bounds {:?}", bound);
-            let bound_spacing=tick_spacing*2;
+            let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
                 tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
@@ -1740,7 +1736,7 @@ pub mod LaunchpadMarketplace {
                 // bound: tick_spacing,
                 bound: bound_spacing,
                 // bound: bound,
-                // bound: 88719042,
+            // bound: 88719042,
             // bound:bound
             // bound:88712960
             // bound: 88719042
@@ -1800,7 +1796,8 @@ pub mod LaunchpadMarketplace {
             // TODO set_launched
             // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
             // let factory_address = memecoin.get_factory_address();
-            // if token_state.creator == get_contract_address() || factory_address == get_contract_address() {
+            // if token_state.creator == get_contract_address() || factory_address ==
+            // get_contract_address() {
             //     memecoin
             //         .set_launched(
             //             LiquidityType::EkuboNFT(id),

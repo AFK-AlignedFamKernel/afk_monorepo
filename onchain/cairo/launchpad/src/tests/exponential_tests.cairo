@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod exponential_tests {
-    use afk_launchpad::launchpad::calcul::exponential::{get_coin_amount_exponential, get_meme_amount_exponential};
+    use afk_launchpad::launchpad::calcul::exponential::{
+        get_coin_amount_exponential, get_meme_amount_exponential
+    };
     use afk_launchpad::types::launchpad_types::{
         TokenLaunch, BondingType, TokenQuoteBuyCoin, LiquidityType
     };
