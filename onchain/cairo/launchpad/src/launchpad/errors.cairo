@@ -41,3 +41,4 @@ pub const LIQUIDITY_ALREADY_LAUNCHED: felt252 = 'Liquidity already launched';
 pub const NO_THRESHOLD_RAISED: felt252 = 'No threshold raised';
 pub const AMOUNT_ZERO: felt252 = 'Amount zero';
 pub const NO_AVAILABLE_SUPPLY: felt252 = 'No available supply';
+pub const SUPPLY_ABOVE_TOTAL_OWNED: felt252 = 'Supply above total';

@@ -116,7 +116,7 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
     result
 }
 
-pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+pub fn get_meme_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);
@@ -143,7 +143,7 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     amount_out
 }
 
-pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+pub fn get_coin_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);

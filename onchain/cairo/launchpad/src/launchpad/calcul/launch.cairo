@@ -1,5 +1,7 @@
 use afk_launchpad::launchpad::calcul::exponential::{
     get_coin_amount_by_quote_amount_exponential, // calculate_initial_price
+    get_coin_amount_exponential,
+    get_meme_amount_exponential
 };
 use afk_launchpad::launchpad::calcul::linear::{
     get_coin_amount_by_quote_amount, // calculate_pricing,
@@ -68,9 +70,9 @@ pub fn get_amount_by_type_of_coin_or_quote(
         },
         BondingType::Exponential => {
             if is_quote_amount == true {
-                get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                get_meme_amount_exponential(pool, amount)
             } else {
-                get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                get_coin_amount_exponential(pool, amount)
             }
             // if is_quote_amount == true {
         //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
@@ -79,7 +81,17 @@ pub fn get_amount_by_type_of_coin_or_quote(
         // }
         },
         BondingType::Trapezoidal => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
-        _ => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
+        _ => { 
+            // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+        
+            if is_quote_amount == true {
+                // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                get_meme_amount(pool, amount)
+            } else {
+                // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+                get_coin_amount(pool, amount)
+            } 
+        },
     }
     // match bonding_type {
 //     Option::Some(x) => {

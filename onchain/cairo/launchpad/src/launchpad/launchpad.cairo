@@ -772,7 +772,8 @@ pub mod LaunchpadMarketplace {
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 // let mut slippage_threshold: u256 = threshold_liquidity * protocol_fee_percent / BPS;
-                threshold = threshold_liquidity - slippage_threshold*2;// add slippage and fees
+                // threshold = threshold_liquidity - slippage_threshold*2;// add slippage and fees
+                threshold = threshold_liquidity - slippage_threshold;// add slippage and fees
             }
             // let mut amount = 0;
             // Pay with quote token
@@ -1005,12 +1006,22 @@ pub mod LaunchpadMarketplace {
             // let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
             // let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
 
-            let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
-            let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
-            let mut remain_coin_amount = coin_amount;
+            let amount_protocol_fee: u256 = coin_amount.clone() * protocol_fee_percent / BPS;
+            let amount_creator_fee = coin_amount.clone() * creator_fee_percent / BPS;
+            let mut remain_coin_amount = coin_amount.clone();
             // let mut remain_coin_amount = coin_amount;
             // let remain_coin_amount = coin_amount - amount_protocol_fee;
 
+            // if share_user.amount_owned >= old_pool.total_token_holded {
+            //     assert(share_user.amount_owned >= old_pool.total_token_holded, errors::SUPPLY_ABOVE_TOTAL_OWNED);
+            // }
+
+            // TODO CHECK error even if used amount_owned as an input in test
+            // Edge case calculation rounding
+            if  share_user.amount_owned >= remain_coin_amount {
+                // Used max amount_owned
+                remain_coin_amount = share_user.amount_owned;
+            }
             assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
 
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
@@ -1020,11 +1031,17 @@ pub mod LaunchpadMarketplace {
             // println!("sell amount quote to receive {:?}", quote_amount_total);
 
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
-
             // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
             let mut quote_amount = quote_amount_total;
-            //          println!("quote_amount {:?}", quote_amount);
+            println!("sell check quote_amount {:?}", quote_amount);
+            println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
 
+            // Edge case calculation rounding
+            // TODO
+            //  GET the approximation slippage tolerance too not drained liq if big error
+            if  old_pool.liquidity_raised >= quote_amount {
+                quote_amount = old_pool.liquidity_raised;
+            }
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
             assert(old_pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
