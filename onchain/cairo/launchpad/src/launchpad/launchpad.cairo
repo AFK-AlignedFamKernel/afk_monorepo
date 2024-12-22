@@ -713,7 +713,7 @@ pub mod LaunchpadMarketplace {
             assert(!old_launch.owner.is_zero(), errors::COIN_NOT_FOUND);
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let mut pool_coin = old_launch.clone();
-            let total_supply_memecoin = memecoin.total_supply();
+            // let total_supply_memecoin = memecoin.total_supply();
             let threshold_liquidity = pool_coin.threshold_liquidity.clone();
 
             // TODO erc20 token transfer
@@ -732,12 +732,19 @@ pub mod LaunchpadMarketplace {
             let mut remain_quote_to_liquidity = total_price;
             // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
 
+            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let mut threshold = threshold_liquidity;
+            let mut threshold = threshold_liquidity - slippage_threshold;
+
             // TODO without fees if it's correct
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read();
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
+                threshold = threshold_liquidity - slippage_threshold; // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -760,17 +767,17 @@ pub mod LaunchpadMarketplace {
             // Add slippage threshold
             assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
-            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            
+            // Check if liquidity threshold raise
+            // let threshold = self.threshold_liquidity.read();
+            // let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            // // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            // let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let mut threshold = threshold_liquidity - slippage_threshold;
             // let mut threshold = threshold_liquidity;
-            let mut threshold = threshold_liquidity - slippage_threshold;
+            let threshold_liq = self.threshold_liquidity.read();
+            let threshold_mc = self.threshold_market_cap.read();
 
-            if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
-                // let mut slippage_threshold: u256 = threshold_liquidity * protocol_fee_percent // BPS;
-                // threshold = threshold_liquidity - slippage_threshold*2;// add slippage and fees
-                threshold = threshold_liquidity - slippage_threshold; // add slippage and fees
-            }
             // let mut amount = 0;
             // Pay with quote token
             // Transfer quote & coin
@@ -783,6 +790,10 @@ pub mod LaunchpadMarketplace {
                 true
             );
 
+
+            // TODO EDGES CASES
+            // Approximation amount
+
             // assert(pool_coin.available_supply >= amount, 'insufficient supply');
             assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
             // TODO check available to buy
@@ -791,11 +802,7 @@ pub mod LaunchpadMarketplace {
             // TODO readd this check and check why it's broken
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
 
-            // erc20
-            //     .transfer_from(
-            //         get_caller_address(), self.protocol_fee_destination.read(),
-            //         amount_protocol_fee
-            //     );
+  
             // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
 
             erc20
@@ -840,13 +847,13 @@ pub mod LaunchpadMarketplace {
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
             // println!("total_price {:?}", total_price);
-            // Change the Stats of pool:
+     
+
+            // Update the Stats of pool:
             // Liquidity raised
             // Available supply
             // Token holded
-
             // println!("update pool");
-
             // pool_coin.liquidity_raised += remain_liquidity;
             // Amount quote buy with fees deducted if enabled
             pool_coin.liquidity_raised += remain_quote_to_liquidity;
@@ -893,15 +900,6 @@ pub mod LaunchpadMarketplace {
             }
             // pool_coin.price = total_price / amount;
 
-            // Check if liquidity threshold raise
-            // let threshold = self.threshold_liquidity.read();
-            // let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-            // // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            // let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            // let mut threshold = threshold_liquidity - slippage_threshold;
-            // let mut threshold = threshold_liquidity;
-            let threshold_liq = self.threshold_liquidity.read();
-            let threshold_mc = self.threshold_market_cap.read();
             // println!("threshold {:?}", threshold);
             // println!("pool_coin.liquidity_raised {:?}", pool_coin.liquidity_raised);
 
@@ -1515,6 +1513,11 @@ pub mod LaunchpadMarketplace {
         ) {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
+
+            // TODO 
+            // TEST edges cases
+            // Supply
+            // Threshold and supply correlation
 
             // TODO finish this and add tests
             let is_paid_launch_enable = self.is_paid_launch_enable.read();

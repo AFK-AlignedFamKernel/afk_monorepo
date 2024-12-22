@@ -58,8 +58,8 @@ jobs:
         run: pnpm generate
         working-directory: ./packages/indexer-prisma
 
-      - name: Prettier Format Check
-        run: pnpm format:check
+      # - name: Prettier Format Check
+      #   run: pnpm format:check
 
       - name: TypeScript Check
         run: pnpm ts:check

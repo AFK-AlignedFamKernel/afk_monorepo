@@ -609,13 +609,18 @@ pub mod UnrugLiquidity {
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
 
 
+                    // TODO check errors possible
+                    // BOUNDS_TICK_SPACING
+                    // T
+
+                    // TODO used it or full_bounds
                     // Verify bound to use based on user params
                     // Add single tick bound
-                    let single_tick_bound = get_next_tick_bounds(
-                        launch_params.pool_params.starting_price,
-                        launch_params.pool_params.tick_spacing,
-                        is_token1_quote
-                    );
+                    // let single_tick_bound = get_next_tick_bounds(
+                    //     launch_params.pool_params.starting_price,
+                    //     launch_params.pool_params.tick_spacing,
+                    //     is_token1_quote
+                    // );
                     let id = self
                         ._supply_liquidity_ekubo(
                             pool_key,
@@ -623,8 +628,8 @@ pub mod UnrugLiquidity {
                             launch_params.quote_address,
                             launch_params.lp_supply,
                             launch_params.lp_quote_supply,
-                            // full_range_bounds,
-                            single_tick_bound,
+                            full_range_bounds,
+                            // single_tick_bound,
                             launch_params.owner,
                         );
 
