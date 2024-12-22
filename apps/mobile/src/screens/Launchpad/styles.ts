@@ -23,8 +23,7 @@ export default ThemedStyleSheet((theme) => ({
 
 
   flatListContent: {
-    // paddingHorizontal: Spacing.pagePadding,
-    paddingVertical: Spacing.medium,
+    paddingVertical: Spacing.large,
   },
   actionToggle: {
     flexDirection: 'row',
@@ -39,14 +38,14 @@ export default ThemedStyleSheet((theme) => ({
   toggleButton: {
     width: 'auto',
     backgroundColor: theme.colors.background,
-    color: theme.colors.textPrimary,
-    fontWeight: 'semiBold',
     padding: 2,
     borderRadius: 0,
     height: 'auto'
   },
-  separator: {
-    height: Spacing.xsmall,
+  toggleButtonText: {
+    color: theme.colors.textPrimary,
+    fontSize: 18,
+    fontWeight: 'semibold',
   },
 
   tip: {
