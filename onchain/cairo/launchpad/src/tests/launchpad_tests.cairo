@@ -1335,8 +1335,12 @@ mod launchpad_tests {
         println!("buy threshold liquidity less amount first buy");
 
         run_buy_by_amount(
-            launchpad, erc20, memecoin, // THRESHOLD_LIQUIDITY - amount_first_buy,
-            THRESHOLD_LIQUIDITY, token_address, sender_address,
+            launchpad,
+            erc20,
+            memecoin, // THRESHOLD_LIQUIDITY - amount_first_buy,
+            THRESHOLD_LIQUIDITY,
+            token_address,
+            sender_address,
         );
         println!("sell threshold amount owned");
 
@@ -1547,9 +1551,9 @@ mod launchpad_tests {
             100_000_000_u256 * pow_256(10, 18), // 100m
             1_000_000_000_u256 * pow_256(10, 18), // 1b
             10_000_000_000_u256 * pow_256(10, 18), // 10b
-        100_000_000_000_u256 * pow_256(10, 18), // 100b
-        1_000_000_000_000_u256 * pow_256(10, 18), // 1t
-        // 100_000_000_000_000_000_000_000_000_000_000_u256
+            100_000_000_000_u256 * pow_256(10, 18), // 100b
+            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
+            // 100_000_000_000_000_000_000_000_000_000_000_u256
         ];
         let mut i = 0;
 

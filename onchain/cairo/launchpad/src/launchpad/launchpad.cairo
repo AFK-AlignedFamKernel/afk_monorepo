@@ -111,7 +111,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
-
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
@@ -119,13 +118,13 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::calcul::launch::{
         get_initial_price, get_amount_by_type_of_coin_or_quote
     };
+    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc,
+    // check_common_launch_parameters};
+    use afk_launchpad::launchpad::calcul::linear::{
+        calculate_starting_price_launch, get_coin_amount_by_quote_amount
+    };
 
     use afk_launchpad::launchpad::errors;
-    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
-    use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, 
-        get_coin_amount_by_quote_amount
-    };
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
@@ -141,7 +140,8 @@ pub mod LaunchpadMarketplace {
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
     };
-    // use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
+    // use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher,
+    // IPositionsDispatcherTrait};
     // use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
     // use ekubo::interfaces::token_registry::{
     //     ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
@@ -767,7 +767,6 @@ pub mod LaunchpadMarketplace {
             // Add slippage threshold
             assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
-            
             // Check if liquidity threshold raise
             // let threshold = self.threshold_liquidity.read();
             // let threshold_liquidity = pool_coin.threshold_liquidity.clone();
@@ -790,7 +789,6 @@ pub mod LaunchpadMarketplace {
                 true
             );
 
-
             // TODO EDGES CASES
             // Approximation amount
 
@@ -802,7 +800,6 @@ pub mod LaunchpadMarketplace {
             // TODO readd this check and check why it's broken
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
 
-  
             // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
 
             erc20
@@ -847,7 +844,6 @@ pub mod LaunchpadMarketplace {
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
             // println!("total_price {:?}", total_price);
-     
 
             // Update the Stats of pool:
             // Liquidity raised
@@ -1514,7 +1510,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
-            // TODO 
+            // TODO
             // TEST edges cases
             // Supply
             // Threshold and supply correlation
@@ -1704,7 +1700,7 @@ pub mod LaunchpadMarketplace {
             let mut tick_spacing = 1000;
 
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            if is_fees_protocol_enabled {// tick_spacing = 2000;
+            if is_fees_protocol_enabled { // tick_spacing = 2000;
             // tick_spacing = 3000;
             // tick_spacing=5928;
             }

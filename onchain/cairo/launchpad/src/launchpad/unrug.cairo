@@ -608,7 +608,6 @@ pub mod UnrugLiquidity {
 
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
 
-
                     // TODO check errors possible
                     // BOUNDS_TICK_SPACING
                     // T
