@@ -121,19 +121,47 @@ pub fn contains<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>, value: 
     }
 }
 
+const MAX_TICK: u128 = 887272;
+
 pub fn calculate_aligned_bound_mag(
     starting_price: i129, multiplier: u128, tick_spacing: u128
 ) -> u128 {
-    assert!(starting_price.sign, "Starting price negative");
+    // assert!(starting_price.sign, "Starting price negative");
+    // assert!(tick_spacing > 0, "Invalid tick spacing");
 
     // Calculate initial bound_mag proportional to starting_price
     let mut init_bound = starting_price.mag * multiplier;
 
-    // Adjust bound_mag to align with tick_spacing
-    let rem = init_bound % tick_spacing;
-    if rem == 0 {
-        init_bound
+    // Ensure bound doesn't exceed max tick
+    if init_bound > MAX_TICK {
+        init_bound = MAX_TICK;
+    }
+
+    // Round down to nearest tick spacing multiple
+    let aligned_bound = (init_bound / tick_spacing) * tick_spacing;
+
+    // Ensure we have at least one tick spacing
+    if aligned_bound == 0 {
+        tick_spacing
     } else {
-        init_bound + (tick_spacing - rem)
+        aligned_bound
     }
 }
+// pub fn calculate_aligned_bound_mag(
+//     starting_price: i129, multiplier: u128, tick_spacing: u128
+// ) -> u128 {
+//     assert!(starting_price.sign, "Starting price negative");
+
+//     // Calculate initial bound_mag proportional to starting_price
+//     let mut init_bound = starting_price.mag * multiplier;
+
+//     // Adjust bound_mag to align with tick_spacing
+//     let rem = init_bound % tick_spacing;
+//     if rem == 0 {
+//         init_bound
+//     } else {
+//         init_bound + (tick_spacing - rem)
+//     }
+// }
+
+

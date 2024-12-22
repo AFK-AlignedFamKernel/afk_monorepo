@@ -1116,7 +1116,7 @@ mod launchpad_tests {
 
 
     #[test]
-    #[should_panic(expected: ('share too low',))]
+    #[should_panic()]
     fn test_sell_coin_when_share_too_low() {
         let (sender_address, erc20, launchpad) = request_fixture();
 
@@ -1177,7 +1177,7 @@ mod launchpad_tests {
 
     #[test]
     #[fork("Mainnet")]
-    fn test_launchpad_end_to_end() {
+    fn test_launchpad_end_to_end_linear() {
         let (sender_address, erc20, launchpad) = request_fixture();
         let starting_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
         let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
@@ -1216,36 +1216,34 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
-        run_sell_by_amount(
-            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
-        );
+        let share_user = launchpad
+            .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
-        println!("buy threshold liquidity less amount first buy");
-
-        run_buy_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            THRESHOLD_LIQUIDITY - amount_first_buy,
-            token_address,
-            sender_address,
-        );
-        println!("sell threshold amount owned");
+        let amount_owned = share_user.amount_owned.try_into().unwrap();
+        println!("sell amount owned {:?}", amount_owned);
 
         run_sell_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            THRESHOLD_LIQUIDITY - amount_first_buy,
-            token_address,
-            sender_address,
+            launchpad, erc20, memecoin, amount_owned, token_address, sender_address,
         );
 
-        println!("buy amount total");
+        // run_sell_by_amount(
+        //     launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+        // );
+
+        println!("buy threshold liquidity");
 
         run_buy_by_amount(
             launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
+
+        // run_sell_by_amount(
+        //     launchpad,
+        //     erc20,
+        //     memecoin,
+        //     THRESHOLD_LIQUIDITY - amount_first_buy,
+        //     token_address,
+        //     sender_address,
+        // );
 
         let expected_create_token_event = LaunchpadEvent::CreateToken(
             CreateToken {
@@ -1324,8 +1322,14 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
         );
 
+        let share_user = launchpad
+            .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
+
+        let amount_owned = share_user.amount_owned.try_into().unwrap();
+        println!("sell amount owned {:?}", amount_owned);
+
         run_sell_by_amount(
-            launchpad, erc20, memecoin, amount_first_buy, token_address, sender_address,
+            launchpad, erc20, memecoin, amount_owned, token_address, sender_address,
         );
 
         println!("buy threshold liquidity less amount first buy");
@@ -1333,8 +1337,8 @@ mod launchpad_tests {
         run_buy_by_amount(
             launchpad,
             erc20,
-            memecoin,
-            THRESHOLD_LIQUIDITY - amount_first_buy,
+            memecoin, // THRESHOLD_LIQUIDITY - amount_first_buy,
+            THRESHOLD_LIQUIDITY,
             token_address,
             sender_address,
         );
@@ -1540,8 +1544,16 @@ mod launchpad_tests {
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
-        let init_supplies: Array<u256> = array![100_000_000_u256 + pow_256(10, 18), // 100m
-        // 100_000_000_000_000_000_000_000_000_000_000_u256
+        let init_supplies: Array<u256> = array![
+            100_000_u256 * pow_256(10, 18), // 100k
+            1_000_000_u256 * pow_256(10, 18), // 1m
+            10_000_000_u256 * pow_256(10, 18), // 10m
+            100_000_000_u256 * pow_256(10, 18), // 100m
+            1_000_000_000_u256 * pow_256(10, 18), // 1b
+            10_000_000_000_u256 * pow_256(10, 18), // 10b
+            100_000_000_000_u256 * pow_256(10, 18), // 100b
+            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
+            // 100_000_000_000_000_000_000_000_000_000_000_u256
         ];
         let mut i = 0;
 

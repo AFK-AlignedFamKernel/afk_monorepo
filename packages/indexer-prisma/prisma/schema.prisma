@@ -30,6 +30,7 @@ model token_launch {
   transaction_hash   String    @id
   network            String?
   block_hash         String?
+  owner_address      String?
   block_number       BigInt?
   block_timestamp    DateTime? @db.Timestamp(6)
   memecoin_address   String?
@@ -38,8 +39,10 @@ model token_launch {
   total_supply       String?
   current_supply     String?
   liquidity_raised   String?
+  is_liquidity_added Boolean?
   total_token_holded String?
   price              String?
+  bonding_type       String?
   cursor             BigInt?   @map("_cursor")
   time_stamp         DateTime? @db.Timestamp(6)
   created_at         DateTime? @default(now()) @db.Timestamp(6)

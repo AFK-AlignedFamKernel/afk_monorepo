@@ -10,6 +10,9 @@ import { DeployTokenModule } from 'src/services/deploy-token/deploy-token.module
 import { BuyTokenModule } from 'src/services/buy-token/buy-token.module';
 import { SellTokenModule } from 'src/services/sell-token/sell-token.module';
 import { NameServiceModule } from 'src/services/name-service/name-service.module';
+import { LiquidityAddedModule } from 'src/services/liquidity-added/liquidity-added.module';
+import { LiquidityAddedService } from 'src/services/liquidity-added/liquidity-added.service';
+import { LiquidityAddedIndexer } from './liquidity-added.indexer';
 
 @Module({
   imports: [
@@ -18,6 +21,7 @@ import { NameServiceModule } from 'src/services/name-service/name-service.module
     BuyTokenModule,
     SellTokenModule,
     NameServiceModule,
+    // LiquidityAddedModule,
   ],
   providers: [
     TokenLaunchIndexer,
@@ -25,7 +29,9 @@ import { NameServiceModule } from 'src/services/name-service/name-service.module
     BuyTokenIndexer,
     SellTokenIndexer,
     NameServiceIndexer,
+    LiquidityAddedIndexer,
     IndexerService,
+    // LiquidityAddedService,
   ],
   exports: [
     TokenLaunchIndexer,
@@ -33,6 +39,7 @@ import { NameServiceModule } from 'src/services/name-service/name-service.module
     BuyTokenIndexer,
     SellTokenIndexer,
     NameServiceIndexer,
+    // LiquidityAddedIndexer
   ],
 })
 export class IndexerModule {}

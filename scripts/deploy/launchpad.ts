@@ -106,10 +106,10 @@ export const deployLaunchpad = async () => {
       );
 
       // Setup params
-      launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY_ADDRESS);
+      // launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY_ADDRESS);
 
       // NFT position address to add liquidity
-      launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_ADDRESS_NFT);
+      // launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_ADDRESS_NFT);
     }
   } else {
   }
