@@ -40,3 +40,4 @@ pub const INSUFFICIENT_ALLOWANCE: felt252 = 'Insufficient allowance';
 pub const LIQUIDITY_ALREADY_LAUNCHED: felt252 = 'Liquidity already launched';
 pub const NO_THRESHOLD_RAISED: felt252 = 'No threshold raised';
 pub const AMOUNT_ZERO: felt252 = 'Amount zero';
+pub const NO_AVAILABLE_SUPPLY: felt252 = 'No available supply';

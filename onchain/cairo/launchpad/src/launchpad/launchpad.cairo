@@ -370,9 +370,15 @@ pub mod LaunchpadMarketplace {
         // TODO
         // Fees protocol to true by default
         // Still not test wisely
-        self.is_fees_protocol_buy_enabled.write(true);
-        self.is_fees_protocol_sell_enabled.write(true);
-        self.is_fees_protocol_enabled.write(true);
+
+        self.is_fees_protocol_buy_enabled.write(false);
+        self.is_fees_protocol_sell_enabled.write(false);
+        self.is_fees_protocol_enabled.write(false);
+
+        // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
+        // self.is_fees_protocol_buy_enabled.write(true);
+        // self.is_fees_protocol_sell_enabled.write(true);
+        // self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -754,7 +760,20 @@ pub mod LaunchpadMarketplace {
             // Verify pool has sufficient available supply
 
             //assertion
+
+            // Add slippage threshold
             assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+
+            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let mut threshold = threshold_liquidity;
+            let mut threshold = threshold_liquidity - slippage_threshold;
+
+            if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
+                // let mut slippage_threshold: u256 = threshold_liquidity * protocol_fee_percent / BPS;
+                threshold = threshold_liquidity - slippage_threshold*2;// add slippage and fees
+            }
             // let mut amount = 0;
             // Pay with quote token
             // Transfer quote & coin
@@ -769,14 +788,10 @@ pub mod LaunchpadMarketplace {
 
             // assert(pool_coin.available_supply >= amount, 'insufficient supply');
             assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
-
-            // remain_liquidity = total_price - amount_protocol_fee;
             // TODO check available to buy
 
             // println!("amount memecoin to receive {:?}", amount);
-
             // TODO readd this check and check why it's broken
-            // assert(amount <= pool_coin.available_supply, 'no available supply');
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
 
             // erc20
@@ -835,7 +850,9 @@ pub mod LaunchpadMarketplace {
 
             // println!("update pool");
 
-            pool_coin.liquidity_raised += remain_liquidity;
+            // pool_coin.liquidity_raised += remain_liquidity;
+            // Amount quote buy with fees deducted if enabled
+            pool_coin.liquidity_raised += remain_quote_to_liquidity;
             pool_coin.total_token_holded += amount;
             pool_coin.price = total_price;
             // println!("subtract amount and available supply");
@@ -845,7 +862,6 @@ pub mod LaunchpadMarketplace {
                 pool_coin.available_supply = 0;
             } else {
                 // println!("subtract amount");
-
                 pool_coin.available_supply -= amount;
             }
 
@@ -882,12 +898,10 @@ pub mod LaunchpadMarketplace {
 
             // Check if liquidity threshold raise
             // let threshold = self.threshold_liquidity.read();
-            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            // let mut remain_liquidity = total_price - amount_protocol_fee;
-            // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
-            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            let mut threshold = threshold_liquidity - slippage_threshold;
+            // let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            // // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            // let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let mut threshold = threshold_liquidity - slippage_threshold;
             // let mut threshold = threshold_liquidity;
             let threshold_liq = self.threshold_liquidity.read();
             let threshold_mc = self.threshold_market_cap.read();
@@ -1670,7 +1684,14 @@ pub mod LaunchpadMarketplace {
             // Uncomment this to used calculated starting price
             let init_starting_price = i129 { sign: true, mag: 4600158 };
 
-            let tick_spacing = 1000;
+            let mut tick_spacing = 1000;
+
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            if is_fees_protocol_enabled {
+                // tick_spacing = 2000;
+                // tick_spacing = 3000;
+                // tick_spacing=5928;
+            }
             // let tick_spacing =  2000;
             // 88712960
             // let tick_spacing = 5000;
@@ -1679,7 +1700,7 @@ pub mod LaunchpadMarketplace {
 
             // let tick_spacing = 5000;
             // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
-            let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             // Verify conditions
 
             // Add these debug prints
@@ -1687,18 +1708,21 @@ pub mod LaunchpadMarketplace {
             // println!("Calculated Bound: {}", bound);
             // println!("Tick Spacing: {}", tick_spacing);
 
-            assert(bound % tick_spacing == 0, 'Bound not aligned');
+            // assert(bound % tick_spacing == 0, 'Bound not aligned');
             // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
 
             // println!("starting_price {:?}", starting_price);
             // println!("bounds {:?}", bound);
+            let bound_spacing=tick_spacing*2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
                 tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
                 starting_price: starting_price, // TODO verify if starting_price is correct
                 // starting_price: init_starting_price, // TODO verify if starting_price is correct
-                bound: tick_spacing * 2,
+                // bound: tick_spacing,
+                bound: bound_spacing,
+                // bound: bound,
                 // bound: 88719042,
             // bound:bound
             // bound:88712960
@@ -1706,19 +1730,7 @@ pub mod LaunchpadMarketplace {
             // bound: bound, // TODO verify if bound is correct
             };
 
-            // let pool_params = EkuboPoolParameters {
-            //     fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-            //     tick_spacing: tick_spacing, // TODO tick_spacing optional by user
-            //     // tick_spacing: 5000, // TODO tick_spacing optional by user
-            //     // starting_price: starting_price, // TODO verify if starting_price is correct
-            //     starting_price: init_starting_price, // TODO verify if starting_price is correct
-            //     bound: 88719042,
-            //     // bound:bound
-            //     // bound:88712960
-            //     // bound: 88719042
-            //     // bound: bound, // TODO verify if bound is correct
-            // };
-
+            // TODO fix issue when fees are enabled
             let lp_supply = launch.initial_pool_supply.clone();
             let lp_quote_supply = launch.liquidity_raised.clone();
             let params = EkuboUnrugLaunchParameters {
@@ -1769,8 +1781,9 @@ pub mod LaunchpadMarketplace {
 
             let token_state = self.token_created.read(coin_address);
             // TODO set_launched
-
-            // if token_state.creator == get_contract_address() {
+            // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            // let factory_address = memecoin.get_factory_address();
+            // if token_state.creator == get_contract_address() || factory_address == get_contract_address() {
             //     memecoin
             //         .set_launched(
             //             LiquidityType::EkuboNFT(id),
@@ -1811,7 +1824,7 @@ pub mod LaunchpadMarketplace {
 
             assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
             let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
+                launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
             );
             let bound = calculate_aligned_bound_mag(starting_price, 2, 5000);
 
