@@ -367,14 +367,14 @@ pub mod LaunchpadMarketplace {
         // Fees protocol to true by default
         // Still not test wisely
 
-        self.is_fees_protocol_buy_enabled.write(false);
-        self.is_fees_protocol_sell_enabled.write(false);
-        self.is_fees_protocol_enabled.write(false);
+        // self.is_fees_protocol_buy_enabled.write(false);
+        // self.is_fees_protocol_sell_enabled.write(false);
+        // self.is_fees_protocol_enabled.write(false);
 
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
-        // self.is_fees_protocol_buy_enabled.write(true);
-        // self.is_fees_protocol_sell_enabled.write(true);
-        // self.is_fees_protocol_enabled.write(true);
+        self.is_fees_protocol_buy_enabled.write(true);
+        self.is_fees_protocol_sell_enabled.write(true);
+        self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,

@@ -14,4 +14,5 @@ export interface TokenLaunch {
   cursor?: number;
   timeStamp?: Date;
   createdAt?: Date;
+  ownerAddress?:string
 }

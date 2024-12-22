@@ -30,6 +30,7 @@ model token_launch {
   transaction_hash   String    @id
   network            String?
   block_hash         String?
+  owner_address      String?
   block_number       BigInt?
   block_timestamp    DateTime? @db.Timestamp(6)
   memecoin_address   String?

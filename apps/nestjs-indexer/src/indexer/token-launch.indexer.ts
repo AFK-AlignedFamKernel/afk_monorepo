@@ -72,6 +72,10 @@ export class TokenLaunchIndexer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, callerFelt, tokenAddressFelt, quoteTokenAddressFelt] = event.keys;
 
+    const ownerAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
+    ) as ContractAddress;
+
     const tokenAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
@@ -152,6 +156,7 @@ export class TokenLaunchIndexer {
       amount: Number(amount),
       totalSupply,
       price,
+      ownerAddress
     };
 
     await this.tokenLaunchService.create(data);
