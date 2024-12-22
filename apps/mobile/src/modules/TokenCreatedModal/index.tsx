@@ -45,7 +45,7 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
 
     return (
       <Modalize
-        title="Token launch"
+        title="Create your token"
         ref={ref}
         disableScrollIfPossible={false}
         modalStyle={styles.modal}
