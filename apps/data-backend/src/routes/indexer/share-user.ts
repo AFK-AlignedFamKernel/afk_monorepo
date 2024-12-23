@@ -4,7 +4,7 @@ import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
 
 interface ShareUserParams {
-  token: string;
+  token?: string;
   owner_address?: string;
 }
 
@@ -14,7 +14,7 @@ async function routesShareUserRoutes(fastify: FastifyInstance, options: RouteOpt
   }>('/share-user/:owner_address/:token', async (request, reply) => {
     try {
       const { token, owner_address } = request.params;
-      if (!isValidStarknetAddress(token)) {
+      if (!token || !isValidStarknetAddress(token)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
           message: 'Invalid token address',
@@ -22,7 +22,7 @@ async function routesShareUserRoutes(fastify: FastifyInstance, options: RouteOpt
         return;
       }
 
-      if (!isValidStarknetAddress(owner_address)) {
+      if (!owner_address || !isValidStarknetAddress(owner_address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
           message: 'Invalid owner address',
@@ -48,9 +48,7 @@ async function routesShareUserRoutes(fastify: FastifyInstance, options: RouteOpt
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
-  fastify.get<{
-    Params: ShareUserParams;
-  }>('/share-user/', async (request, reply) => {
+  fastify.get('/share-user/', async (request, reply) => {
     try {
   
       const share_by_user = await prisma.shares_token_user.findMany({
