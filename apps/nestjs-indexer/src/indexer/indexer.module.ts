@@ -21,7 +21,7 @@ import { LiquidityAddedIndexer } from './liquidity-added.indexer';
     BuyTokenModule,
     SellTokenModule,
     NameServiceModule,
-    // LiquidityAddedModule,
+    LiquidityAddedModule,
   ],
   providers: [
     TokenLaunchIndexer,
@@ -29,9 +29,8 @@ import { LiquidityAddedIndexer } from './liquidity-added.indexer';
     BuyTokenIndexer,
     SellTokenIndexer,
     NameServiceIndexer,
-    LiquidityAddedIndexer,
     IndexerService,
-    // LiquidityAddedService,
+    LiquidityAddedIndexer,
   ],
   exports: [
     TokenLaunchIndexer,
@@ -39,7 +38,7 @@ import { LiquidityAddedIndexer } from './liquidity-added.indexer';
     BuyTokenIndexer,
     SellTokenIndexer,
     NameServiceIndexer,
-    // LiquidityAddedIndexer
+    LiquidityAddedIndexer
   ],
 })
 export class IndexerModule {}
