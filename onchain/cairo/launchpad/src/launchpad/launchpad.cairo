@@ -367,14 +367,14 @@ pub mod LaunchpadMarketplace {
         // Fees protocol to true by default
         // Still not test wisely
 
-        // self.is_fees_protocol_buy_enabled.write(false);
-        // self.is_fees_protocol_sell_enabled.write(false);
-        // self.is_fees_protocol_enabled.write(false);
+        self.is_fees_protocol_buy_enabled.write(false);
+        self.is_fees_protocol_sell_enabled.write(false);
+        self.is_fees_protocol_enabled.write(false);
 
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
-        self.is_fees_protocol_buy_enabled.write(true);
-        self.is_fees_protocol_sell_enabled.write(true);
-        self.is_fees_protocol_enabled.write(true);
+        // self.is_fees_protocol_buy_enabled.write(true);
+        // self.is_fees_protocol_sell_enabled.write(true);
+        // self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -1024,8 +1024,8 @@ pub mod LaunchpadMarketplace {
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
             // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
             let mut quote_amount = quote_amount_total;
-            println!("sell check quote_amount {:?}", quote_amount);
-            println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
+            // println!("sell check quote_amount {:?}", quote_amount);
+            // println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
 
             // Edge case calculation rounding
             // TODO
