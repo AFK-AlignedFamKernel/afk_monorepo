@@ -78,6 +78,17 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       if (!account || !account?.account) return;
       console.log('test deploy');
 
+
+      if(!formikRef?.current?.symbol) {
+        return showToast({type: 'info', title: 'Add symbol'});
+      } else    if(!formikRef?.current?.name) {
+        return showToast({type: 'info', title: 'Add name'});
+      }
+      else    if(!formikRef?.current?.initialSupply) {
+        return showToast({type: 'info', title: 'Add name'});
+      }
+
+
       let tx;
       if (type == TypeCreate.CREATE) {
         const data: DeployTokenFormValues = {

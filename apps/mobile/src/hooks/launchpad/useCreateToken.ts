@@ -69,17 +69,20 @@ export const useCreateToken = () => {
 
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
       
-      let bondingEnum = new CairoCustomEnum({Exponential: 1});
+      // let bondingEnum = new CairoCustomEnum({Exponential: 1});
+      let bondingEnum = new CairoCustomEnum({Exponential: {}});
       console.log('[DEBUG] bondingEnum', bondingEnum);
 
       if (data?.bonding_type !== undefined) {
         // Compare against the enum values
         if (data.bonding_type === BondingType.Linear) {
           console.log('[DEBUG] bondingEnum linear', data.bonding_type);
-          bondingEnum = new CairoCustomEnum({Linear: 0});
+          // bondingEnum = new CairoCustomEnum({Linear: 0});
+          bondingEnum = new CairoCustomEnum({Linear: {}});
         } else if (data.bonding_type === BondingType.Exponential) {
           console.log('[DEBUG] bondingEnum exp', data.bonding_type);
-          bondingEnum = new CairoCustomEnum({Exponential: 1});
+          // bondingEnum = new CairoCustomEnum({Exponential: 1});
+          bondingEnum = new CairoCustomEnum({Exponential: {}});
         }
       }
       console.log('[DEBUG] bondingEnum updt',bondingEnum);
