@@ -167,6 +167,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Total Supply</Text>
               <TextInput
+              // type="number"
                 value={values.initialSupply?.toString()}
                 onChangeText={handleChange('initialSupply')}
                 onBlur={handleBlur('initialSupply')}
