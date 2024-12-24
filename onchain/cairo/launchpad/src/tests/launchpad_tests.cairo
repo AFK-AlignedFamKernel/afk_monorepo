@@ -841,7 +841,7 @@ mod launchpad_tests {
             quote'
         );
     }
-    
+
     #[test]
     #[fork("Mainnet")]
     fn launchpad_buy_and_sell_exp() {
@@ -1619,7 +1619,10 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
         while i < init_supplies.len() {
-            println!("init_supply in loop test_buy_coin_with_different_supply {:?}", init_supplies.at(i).clone());
+            println!(
+                "init_supply in loop test_buy_coin_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
             println!("i {:?}", i.clone());
 
             let token_address = launchpad
@@ -1642,7 +1645,10 @@ mod launchpad_tests {
             );
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
             println!("balance quote in loop {:?}", balance_quote_launch);
-            println!("latest init_supply in loop test_buy_coin_with_different_supply {:?}", init_supplies.at(i).clone());
+            println!(
+                "latest init_supply in loop test_buy_coin_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
 
             i += 1;
         };
@@ -1690,7 +1696,10 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, OWNER());
 
         while i < init_supplies.len() {
-            println!("init_supply in loop test_buy_coin_exp_with_different_supply {:?}", init_supplies.at(i).clone());
+            println!(
+                "init_supply in loop test_buy_coin_exp_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
             println!("i {:?}", i.clone());
 
             let token_address = launchpad
@@ -1712,8 +1721,14 @@ mod launchpad_tests {
                 launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
             );
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-            println!("balance quote in loop test_buy_coin_exp_with_different_supply {:?}", balance_quote_launch);
-            println!("last init_supply in loop test_buy_coin_exp_with_different_supply {:?}", init_supplies.at(i).clone());
+            println!(
+                "balance quote in loop test_buy_coin_exp_with_different_supply {:?}",
+                balance_quote_launch
+            );
+            println!(
+                "last init_supply in loop test_buy_coin_exp_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
 
             i += 1;
         };

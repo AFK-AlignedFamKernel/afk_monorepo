@@ -84,7 +84,6 @@ const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
-
     // TODO check algo
     // quote ETH/MEME
     let launch_price = threshold_liquidity.clone() / initial_pool_supply.clone();

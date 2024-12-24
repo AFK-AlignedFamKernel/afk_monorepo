@@ -771,12 +771,12 @@ pub mod LaunchpadMarketplace {
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read();
 
-
-            // TODO edge cases 
+            // TODO edge cases
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
                 // TODO check slippage and fees
-                threshold = threshold_liquidity - (slippage_threshold*2); // add slippage and fees
+                threshold = threshold_liquidity
+                    - (slippage_threshold * 2); // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -843,7 +843,6 @@ pub mod LaunchpadMarketplace {
                 .transfer_from(
                     get_caller_address(), get_contract_address(), remain_quote_to_liquidity
                 );
-     
 
             // Assertion: Amount Received Validation
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
@@ -864,7 +863,7 @@ pub mod LaunchpadMarketplace {
             // println!("amount {:?}", amount);
 
             // TODO TEST
-            // EDGE CASE 
+            // EDGE CASE
             // HIGH RISK = CAN DRAINED ALL POOL VALUE
             // TODO check approximation, rounding and edges cases
             if amount >= pool_coin.available_supply {
@@ -1016,9 +1015,12 @@ pub mod LaunchpadMarketplace {
             // CAREFULLY CHECK AND TEST
             let mut amount_owned = share_user.amount_owned.clone();
             println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
-            
+
             if share_user.amount_owned >= old_pool.total_token_holded {
-                assert(share_user.amount_owned >= old_pool.total_token_holded, errors::SUPPLY_ABOVE_TOTAL_OWNED);
+                assert(
+                    share_user.amount_owned >= old_pool.total_token_holded,
+                    errors::SUPPLY_ABOVE_TOTAL_OWNED
+                );
             }
 
             // TODO CHECK error even if used amount_owned as an input in test
@@ -1051,7 +1053,7 @@ pub mod LaunchpadMarketplace {
 
             // TODO check fees
             // TEST issue of Unrug
-            
+
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
@@ -1062,13 +1064,13 @@ pub mod LaunchpadMarketplace {
                 quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
             }
             println!("sell quote_amount received final {:?}", quote_amount);
-            
+
             // Edge case calculation rounding
             // TODO
             //  GET the approximation slippage tolerance too not drained liq if big error
             // CAREFULLY CHECK AND TEST
-          
-            if old_pool.liquidity_raised  < quote_amount {
+
+            if old_pool.liquidity_raised < quote_amount {
                 quote_amount = old_pool.liquidity_raised.clone();
             }
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
@@ -1115,14 +1117,13 @@ pub mod LaunchpadMarketplace {
             //     'fee calculation mismatch'
             // );
 
-
-                       // Transfer protocol fee to the designated destination
+            // Transfer protocol fee to the designated destination
             // println!("sell transfer fees protocol");
 
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = erc20.balance_of(get_contract_address());
             println!("sell contract_quote_balance final {:?}", contract_quote_balance);
-            
+
             // TODO edge case approximation, rounding
             // CAREFULLY TEST EDGE CASE AND FUZZING
             // HIGH RISK = MONEY DRAINING
@@ -1137,7 +1138,7 @@ pub mod LaunchpadMarketplace {
             //  TODO fixed rounding before
             assert(
                 contract_quote_balance >= quote_amount,
-                    // && old_pool.liquidity_raised >= quote_amount,
+                // && old_pool.liquidity_raised >= quote_amount,
                 errors::CONTRACT_HAS_INSUFFICIENT_QUOTE_BALANCE
                 // "contract has insufficient quote token balance"
             );
@@ -1152,7 +1153,6 @@ pub mod LaunchpadMarketplace {
                 println!("sell transfer FEES");
 
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
-
             }
 
             // println!("sell transfer quote amount");
