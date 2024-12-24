@@ -789,12 +789,17 @@ pub mod LaunchpadMarketplace {
                 true
             );
 
+            let mut amount_coin_received = amount.clone();
+            // TODO check available to buy
             // TODO EDGES CASES
             // Approximation amount
+            // TEST
+            // Can cause draining
 
-            // assert(pool_coin.available_supply >= amount, 'insufficient supply');
+            // if pool_coin.available_supply < amount {
+            //     amount = pool_coin.available_supply;
+            // }
             assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
-            // TODO check available to buy
 
             // println!("amount memecoin to receive {:?}", amount);
             // TODO readd this check and check why it's broken
@@ -966,7 +971,7 @@ pub mod LaunchpadMarketplace {
 
         fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
             let old_pool = self.launched_coins.read(coin_address);
-            assert(!old_pool.owner.is_zero(), errors::COIN_NOT_FOUND);
+            assert(!old_pool.owner.is_zero(), errors::COIN_SHARE_NOT_FOUND);
             // assert(old_pool.is_liquidity_launch == false, 'token tradeable');
             assert(old_pool.is_liquidity_launch == false, errors::TOKEN_ALREADY_TRADEABLE);
 
@@ -1002,36 +1007,64 @@ pub mod LaunchpadMarketplace {
             // let mut remain_coin_amount = coin_amount;
             // let remain_coin_amount = coin_amount - amount_protocol_fee;
 
-            // if share_user.amount_owned >= old_pool.total_token_holded {
-            //     assert(share_user.amount_owned >= old_pool.total_token_holded,
-            //     errors::SUPPLY_ABOVE_TOTAL_OWNED);
-            // }
+            // TODO check
+            // Test edge case and calcul
+            // CAREFULLY CHECK AND TEST
+            let mut amount_owned = share_user.amount_owned.clone();
+            println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
+            
+            if share_user.amount_owned >= old_pool.total_token_holded {
+                assert(share_user.amount_owned >= old_pool.total_token_holded, errors::SUPPLY_ABOVE_TOTAL_OWNED);
+            }
 
             // TODO CHECK error even if used amount_owned as an input in test
             // Edge case calculation rounding
-            if share_user.amount_owned >= remain_coin_amount {
+            // Use max owned
+            // CAREFULLY CHECK AND TEST
+
+            println!("sell remain_coin_amount {:?}", remain_coin_amount);
+
+            if share_user.amount_owned < remain_coin_amount {
                 // Used max amount_owned
-                remain_coin_amount = share_user.amount_owned;
+                remain_coin_amount = share_user.amount_owned.clone();
+                // remain_coin_amount = share_user.amount_owned;
             }
             assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
+            println!("sell remain_coin_amount edge {:?}", remain_coin_amount);
 
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
                 old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
             );
-            // println!("sell amount memecoin {:?}", coin_amount);
+            println!("sell quote_amount_total received {:?}", quote_amount_total);
             // println!("sell amount quote to receive {:?}", quote_amount_total);
 
             let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
             // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
-            let mut quote_amount = quote_amount_total;
+            let mut quote_amount = quote_amount_total.clone();
             // println!("sell check quote_amount {:?}", quote_amount);
             // println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
 
+            // TODO check fees
+            // TEST issue of Unrug
+            
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
+            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+            // CAREFULLY CHECK AND TEST
+
+            if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
+                quote_amount = quote_amount_total - quote_amount_protocol_fee;
+                erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
+            }
+            println!("sell quote_amount received final {:?}", quote_amount);
+            
             // Edge case calculation rounding
             // TODO
             //  GET the approximation slippage tolerance too not drained liq if big error
-            if old_pool.liquidity_raised >= quote_amount {
-                quote_amount = old_pool.liquidity_raised;
+            // CAREFULLY CHECK AND TEST
+          
+            if old_pool.liquidity_raised  < quote_amount {
+                quote_amount = old_pool.liquidity_raised.clone();
             }
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
             assert(old_pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
@@ -1046,7 +1079,6 @@ pub mod LaunchpadMarketplace {
             // println!("amount {:?}", amount);
             // println!("coin_amount {:?}", coin_amount);
             // println!("total_price {:?}", total_price);
-            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
 
             // Ensure fee percentages are within valid bounds
             assert(
@@ -1078,25 +1110,26 @@ pub mod LaunchpadMarketplace {
             //     'fee calculation mismatch'
             // );
 
+
+                       // Transfer protocol fee to the designated destination
+            // println!("sell transfer fees protocol");
+
+
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = erc20.balance_of(get_contract_address());
+            println!("sell contract_quote_balance final {:?}", contract_quote_balance);
+
             assert(
-                contract_quote_balance >= quote_amount_total
-                    && old_pool.liquidity_raised >= quote_amount_total,
+                contract_quote_balance >= quote_amount,
+                    // && old_pool.liquidity_raised >= quote_amount,
                 errors::CONTRACT_HAS_INSUFFICIENT_QUOTE_BALANCE
                 // "contract has insufficient quote token balance"
             );
 
-            // Transfer protocol fee to the designated destination
-            // println!("sell transfer fees protocol");
-
-            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
-
             if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
-                quote_amount = quote_amount_total - quote_amount_protocol_fee;
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
+
             // println!("sell transfer quote amount");
             // Transfer the remaining quote amount to the user
             if quote_amount > 0 {
@@ -1697,8 +1730,12 @@ pub mod LaunchpadMarketplace {
             // Uncomment this to used calculated starting price
             let init_starting_price = i129 { sign: true, mag: 4600158 };
 
-            let mut tick_spacing = 1000;
+            // TODO default tick space
+            // Add default for main coin like others
+            let mut tick_spacing = 5928;
+            // let mut tick_spacing = 1000;
 
+            // Edge case to check and fix if fees enabled
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             if is_fees_protocol_enabled { // tick_spacing = 2000;
             // tick_spacing = 3000;
