@@ -79,6 +79,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     // Admins functions
     fn set_token(ref self: TContractState, token_quote: TokenQuoteBuyCoin);
+    fn set_default_init_supply(ref self: TContractState, default_init_supply: u256);
+    fn set_force_default_init_supply(ref self: TContractState, is_default_init_supply: bool);
     fn set_protocol_fee_percent(ref self: TContractState, protocol_fee_percent: u256);
     fn set_creator_fee_percent(ref self: TContractState, creator_fee_percent: u256);
     fn set_dollar_paid_coin_creation(ref self: TContractState, dollar_price: u256);
@@ -303,6 +305,8 @@ pub mod LaunchpadMarketplace {
         // positions: ContractAddress,
         // ekubo_exchange_address: ContractAddress,
         unrug_liquidity_address: ContractAddress,
+        default_init_supply: u256,
+        is_default_init_supply: bool,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -374,9 +378,9 @@ pub mod LaunchpadMarketplace {
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
         // EDGE CASE
         // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
-        // self.is_fees_protocol_buy_enabled.write(true);
-        // self.is_fees_protocol_sell_enabled.write(true);
-        // self.is_fees_protocol_enabled.write(true);
+        self.is_fees_protocol_buy_enabled.write(true);
+        self.is_fees_protocol_sell_enabled.write(true);
+        self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -423,10 +427,19 @@ pub mod LaunchpadMarketplace {
     #[abi(embed_v0)]
     impl LaunchpadMarketplace of super::ILaunchpadMarketplace<ContractState> {
         // ADMIN
-
-        fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
+        fn set_default_init_supply(ref self: ContractState, default_init_supply: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
+            self.default_init_supply.write(default_init_supply);
+        }
+
+        fn set_default_init_supply(ref self: ContractState, default_init_supply: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.default_init_supply.write(default_init_supply);
+        }
+
+        fn set_force_default_init_supply(ref self: ContractState, is_default_init_supply: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_default_init_supply.write(default_init_supply);
         }
 
         fn set_is_fees_protocol_enabled(ref self: ContractState, is_fees_protocol_enabled: bool) {
@@ -775,8 +788,7 @@ pub mod LaunchpadMarketplace {
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
                 // TODO check slippage and fees
-                threshold = threshold_liquidity
-                    - (slippage_threshold * 2); // add slippage and fees
+                threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -1130,9 +1142,10 @@ pub mod LaunchpadMarketplace {
             // CAN DRAINED ALL MONEY
 
             // TODO fixed rounding and approximation
+            // HIGH RISK SECURITY
             if contract_quote_balance < quote_amount {
                 println!("contract quote above try edge case rounding");
-                // quote_amount = contract_quote_balance.clone();
+                quote_amount = contract_quote_balance.clone();
             }
 
             //  TODO fixed rounding before
@@ -1148,8 +1161,7 @@ pub mod LaunchpadMarketplace {
             // HIGH RISK = BLOCKED SELL
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
-                // erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
-                // TODo edgecase
+                // TODO edgecase
                 println!("sell transfer FEES");
 
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);

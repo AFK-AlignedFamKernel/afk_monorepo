@@ -97,6 +97,9 @@ mod launchpad_tests {
     const LIQUIDITY_RATIO: u256 = 5;
     // const THRESHOLD_LIQUIDITY: u256 = 10 * pow_256(10, 18);
     const THRESHOLD_LIQUIDITY: u256 = 10_000_000_000_000_000_000_u256; // 10
+    // const THRESHOLD_LIQUIDITY: u256 = 1_000_000_000_000_000_000_000_u256; // 1000 for first
+    // release liq const THRESHOLD_LIQUIDITY: u256 = 2_000_000_000_000_000_000_000_u256; // 2000 for
+    // first release liq
 
     // fn THRESHOLD_LIQUIDITY() -> u256 {
     //     10_u256 * pow_256(10, 18)

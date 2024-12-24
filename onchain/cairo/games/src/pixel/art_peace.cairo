@@ -11,7 +11,8 @@ pub mod ArtPeace {
         ExtraPixelsPlaced, DailyQuestClaimed, MainQuestClaimed, VoteColor, VotableColorAdded,
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
-        ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced
+        ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
+        PixelState, PixelShieldType
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -39,6 +40,9 @@ pub mod ArtPeace {
         canvas_width: u128,
         canvas_height: u128,
         total_pixels: u128,
+        last_placed_pixel: Map::<u128, PixelState>,
+        last_placed_pixel_metadata: Map::<u128, PixelMetadataPlaced>,
+        last_placed_pixel_shield: Map::<u128, PixelShield>,
         // Map: user's address -> last time they placed a pixel
         last_placed_time: Map::<ContractAddress, u64>,
         time_between_pixels: u64,
@@ -438,14 +442,24 @@ pub mod ArtPeace {
             }
             return offset;
         }
+
+        // TODO finish check shield by shield type
+
+        fn _check_shield_ok(self: @ContractState, pos: u128, color: u8) {// let last_shield =self.last_placed_pixel_shield.entry(pos).read();
+
+        }
+
         // TODO: Make the function internal
 
         fn _place_pixel_inner(ref self: ContractState, pos: u128, color: u8) {
             self.check_valid_pixel(pos, color);
+            // self._check_shield_ok(pos, color);
 
             let caller = starknet::get_caller_address();
-            // TODO: let pixel = Pixel { color, owner: caller };
+            // TODO: let pixel = PixelState { color, pos,  owner: caller,
+            // timestamp:get_block_timestamp()};
             // TODO: self.canvas.write(pos, pixel);
+            // TODO: self.last_placed_pixel.write(pos, pixel);
             let day = self.day_index.read();
             self
                 .user_pixels_placed
@@ -467,8 +481,44 @@ pub mod ArtPeace {
         fn _place_metadata(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
+            // self._check_shield_ok(pos, color);
+
             // place_pixel_inner(ref self, pos, color);
             // self._place_pixel_inner(pos, color);
+
+            // TODO: let pixel = PixelState { color, pos,  owner: caller,
+            // timestamp:get_block_timestamp()};
+            // TODO: self.canvas.write(pos, pixel);
+            // TODO: self.last_placed_pixel_metadata.write(pos, pixel);
+            let caller = starknet::get_caller_address();
+            let day = self.day_index.read();
+
+            self.last_placed_time.entry(caller).write(now);
+
+            // TODO add map for Metadata
+
+            // Check if ok
+            self
+                .emit(
+                    PixelMetadataPlaced {
+                        placed_by: caller, pos: pos, day: day, color: color, metadata: metadata
+                    }
+                );
+        }
+
+
+        fn _place_shield(
+            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        ) {
+            // self._check_shield_ok(pos, color);
+
+            // place_pixel_inner(ref self, pos, color);
+            // self._place_pixel_inner(pos, color);
+
+            // TODO: let pixel = PixelState { color, pos,  owner: caller,
+            // timestamp:get_block_timestamp()};
+            // TODO: self.canvas.write(pos, pixel);
+            // TODO: self.last_placed_pixel_shield.write(pos, pixel);
             let caller = starknet::get_caller_address();
             let day = self.day_index.read();
 
