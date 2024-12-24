@@ -26,6 +26,7 @@ pub const PROTOCOL_FEE_OUT_OF_BOUNDS: felt252 = 'Protocol fee out';
 pub const CREATOR_FEE_TOO_HIGH: felt252 = 'Creator fee too high';
 pub const CREATOR_FEE_TOO_LOW: felt252 = 'Creator fee too low';
 pub const COIN_NOT_FOUND: felt252 = 'Coin not found';
+pub const COIN_SHARE_NOT_FOUND: felt252 = 'Coin share not found';
 pub const THRESHOLD_LIQUIDITY_EXCEEDED: felt252 = 'Threshold liquidity exceeded';
 pub const INSUFFICIENT_SUPPLY: felt252 = 'Insufficient supply';
 pub const TOKEN_ALREADY_TRADEABLE: felt252 = 'Token already tradeable';

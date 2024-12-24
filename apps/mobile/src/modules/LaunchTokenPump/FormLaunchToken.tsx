@@ -78,6 +78,15 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       if (!account || !account?.account) return;
       console.log('test deploy');
 
+      if(!values?.symbol) {
+        return showToast({type: 'info', title: 'Add symbol'});
+      } else    if(!values?.name) {
+        return showToast({type: 'info', title: 'Add name'});
+      }
+      else    if(!values?.initialSupply) {
+        return showToast({type: 'info', title: 'Initial supply required'});
+      }
+
       let tx;
       if (type == TypeCreate.CREATE) {
         const data: DeployTokenFormValues = {
@@ -158,6 +167,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Total Supply</Text>
               <TextInput
+              // type="number"
                 value={values.initialSupply?.toString()}
                 onChangeText={handleChange('initialSupply')}
                 onBlur={handleBlur('initialSupply')}

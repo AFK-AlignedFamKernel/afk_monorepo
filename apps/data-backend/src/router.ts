@@ -17,6 +17,7 @@ import { authRoutes } from './routes/auth';
 import nameserviceRoutes from './routes/indexer/nameservice/nameservice';
 import unrugRoutes from './routes/indexer/unruggable';
 import twitterRoutes from './routes/auth/twitter';
+import routesShareUserRoutes from './routes/indexer/share-user';
 // import getOtp from "./routes/otp/getOtp";
 // import verifyOtp from "./routes/otp/verifyOtp";
 // import type { Account } from 'starknet'
@@ -44,6 +45,8 @@ function declareRoutes(
   fastify.register(unrugRoutes);
   fastify.register(nameserviceRoutes);
   fastify.register(twitterRoutes);
+  fastify.register(routesShareUserRoutes);
+
   // fastify.register(getOtp, twilio_services?.verifications);
   // fastify.register(verifyOtp, deployer, twilio_services?.verificationChecks);
   // fastify.register(verifyOtp, [deployer, twilio_services?.verificationChecks]);

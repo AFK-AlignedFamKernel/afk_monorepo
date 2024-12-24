@@ -171,4 +171,5 @@ model shares_token_user {
   owner         String
   token_address String
   amount_owned  Decimal? @default(0) @db.Decimal
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
 }
