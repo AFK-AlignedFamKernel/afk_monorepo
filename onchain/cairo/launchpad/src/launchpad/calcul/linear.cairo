@@ -81,36 +81,13 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
 const PRICE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 
-// pub fn calculate_starting_price_launch(
-//     initial_pool_supply: u256, threshold_liquidity: u256,
-// ) -> i129 {
-//     // let launch_price = initial_pool_supply.clone() * PRICE_SCALE /
-//     threshold_liquidity.clone();
-//     let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
-//     let price_u128: u128 = launch_price.try_into().unwrap();
-//     let starting_price = i129 { sign: true, mag: price_u128 };
-
-//     starting_price
-// }
-
-// pub fn calculate_starting_price_launch(
-//     initial_pool_supply: u256, threshold_liquidity: u256,
-// ) -> i129 {
-//     // Scale up before division to maintain precision
-//     let scaled_initial_supply = initial_pool_supply.clone() * SAFE_SCALE;
-//     let launch_price = scaled_initial_supply / threshold_liquidity.clone();
-
-//     // Convert to u128 for i129 type
-//     let price_u128: u128 = launch_price.try_into().unwrap();
-//     let starting_price = i129 { sign: true, mag: price_u128 };
-
-//     starting_price
-// }
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
-    // let launch_price = initial_pool_supply.clone() * PRICE_SCALE / threshold_liquidity.clone();
-    let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+    // TODO check algo
+    // quote ETH/MEME
+    let launch_price = threshold_liquidity.clone() / initial_pool_supply.clone();
+    // let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
 
     // let launch_price =  threshold_liquidity.clone() / initial_pool_supply.clone();
     let price_u128: u128 = launch_price.try_into().unwrap();

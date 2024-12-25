@@ -52,10 +52,12 @@ export const LAUNCHPAD_ADDRESS = {
   //   "0x2eb4dac724b4507becc409667bdea68d697665e182702f294eb5bd8bfb28e26"
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd"
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1"
+
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1"
-
-
+    "0x3ed3046bf62bfcfba32e9282d64f432de3f0c383755b1aee8514c3d67109573"
+    
 
 };
 
