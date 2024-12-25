@@ -4,7 +4,7 @@ mod launchpad_tests {
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
-    use afk_launchpad::launchpad::errors;
+    // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
@@ -391,6 +391,26 @@ mod launchpad_tests {
         IERC20Dispatcher { contract_address }
     }
 
+    fn test_get_init_supplies() -> Array<u256> {
+        let init_supplies: Array<u256> = array![
+            // 100_u256 + pow_256(10, 18),
+            // 1_000_u256 + pow_256(10, 18),
+            // 10_000_u256 + pow_256(10, 18),
+            100_000_u256 * pow_256(10, 18), // 100k
+            1_000_000_u256 * pow_256(10, 18), // 1m
+            10_000_000_u256 * pow_256(10, 18), // 10m
+            100_000_000_u256 * pow_256(10, 18), // 100m
+            1_000_000_000_u256 * pow_256(10, 18), // 1b
+            10_000_000_000_u256 * pow_256(10, 18), // 10b
+            100_000_000_000_u256 * pow_256(10, 18), // 100b
+            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
+            // 10_000_000_000_000_u256, // 10t
+        // 100_000_000_000_000_u256, // 100t
+        // 100_000_000_000_000_000_000_000_000_000_000_u256
+        ];
+
+        init_supplies
+    }
 
     fn run_buy_by_amount(
         launchpad: ILaunchpadMarketplaceDispatcher,
@@ -720,7 +740,7 @@ mod launchpad_tests {
         );
 
         //  All buy
-        println!("buy coin {:?}", THRESHOLD_LIQUIDITY);
+        println!("buy all coin after sell {:?}", THRESHOLD_LIQUIDITY);
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         run_buy_by_amount(
@@ -1589,34 +1609,8 @@ mod launchpad_tests {
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
-        let init_supplies: Array<u256> = array![
-            100_u256 + pow_256(10, 18),
-            100_000_u256 * pow_256(10, 18), // 100k
-            1_000_000_u256 * pow_256(10, 18), // 1m
-            10_000_000_u256 * pow_256(10, 18), // 10m
-            100_000_000_u256 * pow_256(10, 18), // 100m
-            1_000_000_000_u256 * pow_256(10, 18), // 1b
-            10_000_000_000_u256 * pow_256(10, 18), // 10b
-            100_000_000_000_u256 * pow_256(10, 18), // 100b
-            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
-            // 10_000_000_000_000_u256, // 10t
-        // 100_000_000_000_000_u256, // 100t
-        // 100_000_000_000_000_000_000_000_000_000_000_u256
-        ];
-        // let init_supplies: Array<u256> = array![
-        //     100_u256,
-        //     100_000_u256, // 100k
-        //     1_000_000_u256, // 1m
-        //     10_000_000_u256, // 10m
-        //     100_000_000_u256, // 100m
-        //     1_000_000_000_u256, // 1b
-        //     10_000_000_000_u256, // 10b
-        //     100_000_000_000_u256, // 100b
-        //     1_000_000_000_000_u256, // 1t
-        //     // 10_000_000_000_000_u256, // 10t
-        // // 100_000_000_000_000_u256, // 100t
-        // // 100_000_000_000_000_000_000_000_000_000_000_u256
-        // ];
+        let init_supplies = test_get_init_supplies();
+
         let mut i = 0;
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
@@ -1659,6 +1653,7 @@ mod launchpad_tests {
 
     }
 
+
     #[test]
     #[fork("Mainnet")]
     fn test_buy_coin_exp_with_different_supply() {
@@ -1666,20 +1661,24 @@ mod launchpad_tests {
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
-        let init_supplies: Array<u256> = array![
-            100_u256 + pow_256(10, 18),
-            100_000_u256 * pow_256(10, 18), // 100k
-            1_000_000_u256 * pow_256(10, 18), // 1m
-            10_000_000_u256 * pow_256(10, 18), // 10m
-            100_000_000_u256 * pow_256(10, 18), // 100m
-            1_000_000_000_u256 * pow_256(10, 18), // 1b
-            10_000_000_000_u256 * pow_256(10, 18), // 10b
-            100_000_000_000_u256 * pow_256(10, 18), // 100b
-            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
-            // 10_000_000_000_000_u256, // 10t
-        // 100_000_000_000_000_u256, // 100t
-        // 100_000_000_000_000_000_000_000_000_000_000_u256
-        ];
+        let init_supplies = test_get_init_supplies();
+
+        // let init_supplies: Array<u256> = array![
+        //     // 100_u256 + pow_256(10, 18),
+        //     1_000_u256 + pow_256(10, 18),
+        //     10_000_u256 + pow_256(10, 18),
+        //     100_000_u256 * pow_256(10, 18), // 100k
+        //     1_000_000_u256 * pow_256(10, 18), // 1m
+        //     10_000_000_u256 * pow_256(10, 18), // 10m
+        //     100_000_000_u256 * pow_256(10, 18), // 100m
+        //     1_000_000_000_u256 * pow_256(10, 18), // 1b
+        //     10_000_000_000_u256 * pow_256(10, 18), // 10b
+        //     100_000_000_000_u256 * pow_256(10, 18), // 100b
+        //     1_000_000_000_000_u256 * pow_256(10, 18), // 1t
+        //     // 10_000_000_000_000_u256, // 10t
+        // // 100_000_000_000_000_u256, // 100t
+        // // 100_000_000_000_000_000_000_000_000_000_000_u256
+        // ];
         // let init_supplies: Array<u256> = array![
         //     100_u256,
         //     100_000_u256, // 100k

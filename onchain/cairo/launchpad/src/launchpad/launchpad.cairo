@@ -79,6 +79,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     // Admins functions
     fn set_token(ref self: TContractState, token_quote: TokenQuoteBuyCoin);
+    fn set_default_token(ref self: TContractState, default_token: TokenQuoteBuyCoin);
     fn set_default_init_supply(ref self: TContractState, default_init_supply: u256);
     fn set_force_default_init_supply(ref self: TContractState, is_default_init_supply: bool);
     fn set_protocol_fee_percent(ref self: TContractState, protocol_fee_percent: u256);
@@ -207,6 +208,10 @@ pub mod LaunchpadMarketplace {
     const SCALE_FACTOR: u256 =
         100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 
+    // MVP
+    // FIXED SUPPLY because edge cases not finish testing hard between threshold/supply
+    const FIXED_SUPPLY: u256 = 1_000_000_000_000_000_000_000_000_000_u256; // 1_000_000_000
+
     // Unrug params
 
     // CHANGE it
@@ -298,6 +303,10 @@ pub mod LaunchpadMarketplace {
         total_token: u64,
         total_launch: u64,
         total_shares_keys: u64,
+        // HIGH SECURITY RISK
+        // EDGE CASE SUPPLY AND THRESHOLD
+        max_supply_launch: u256,
+        min_supply_launch: u256,
         // External contract
         // factory_address: ContractAddress,
         // ekubo_registry: ContractAddress,
@@ -378,9 +387,9 @@ pub mod LaunchpadMarketplace {
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
         // EDGE CASE
         // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
-        self.is_fees_protocol_buy_enabled.write(true);
-        self.is_fees_protocol_sell_enabled.write(true);
-        self.is_fees_protocol_enabled.write(true);
+        // self.is_fees_protocol_buy_enabled.write(true);
+        // self.is_fees_protocol_sell_enabled.write(true);
+        // self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -427,9 +436,14 @@ pub mod LaunchpadMarketplace {
     #[abi(embed_v0)]
     impl LaunchpadMarketplace of super::ILaunchpadMarketplace<ContractState> {
         // ADMIN
-        fn set_default_init_supply(ref self: ContractState, default_init_supply: u256) {
+        fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.default_init_supply.write(default_init_supply);
+            self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
+        }
+
+        fn set_default_token(ref self: ContractState, default_token: TokenQuoteBuyCoin) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.default_token.write(default_token);
         }
 
         fn set_default_init_supply(ref self: ContractState, default_init_supply: u256) {
@@ -439,7 +453,7 @@ pub mod LaunchpadMarketplace {
 
         fn set_force_default_init_supply(ref self: ContractState, is_default_init_supply: bool) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.is_default_init_supply.write(default_init_supply);
+            self.is_default_init_supply.write(is_default_init_supply);
         }
 
         fn set_is_fees_protocol_enabled(ref self: ContractState, is_fees_protocol_enabled: bool) {
@@ -786,9 +800,24 @@ pub mod LaunchpadMarketplace {
 
             // TODO edge cases
             if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
+                // if pool_coin.liquidity_raised < quote_amount {
+                //     total_price = pool_coin.liquidity_raised.clone();
+                //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
+                //     remain_quote_to_liquidity = pool_coin.liquidity_raised.clone() -
+                //     amount_protocol_fee;
+                // } else {
+                //     remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
+                // }
+
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
+                // remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
                 // TODO check slippage and fees
-                threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and fees
+
+                // TODO check threshold min and Supply threshold
+                // threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and
+                // fees
+                threshold = threshold_liquidity
+                    - (slippage_threshold + amount_protocol_fee); // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -812,12 +841,6 @@ pub mod LaunchpadMarketplace {
             assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
             // Check if liquidity threshold raise
-            // let threshold = self.threshold_liquidity.read();
-            // let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-            // // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            // let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            // let mut threshold = threshold_liquidity - slippage_threshold;
-            // let mut threshold = threshold_liquidity;
             let threshold_liq = self.threshold_liquidity.read();
             let threshold_mc = self.threshold_market_cap.read();
 
@@ -1069,6 +1092,17 @@ pub mod LaunchpadMarketplace {
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
             let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+            // Edge case calculation rounding
+            // TODO
+            //  GET the approximation slippage tolerance too not drained liq if big error
+            // CAREFULLY CHECK AND TEST
+            // HIGH SECURITY
+            // Can drained all fund
+
+            if old_pool.liquidity_raised < quote_amount {
+                quote_amount = old_pool.liquidity_raised.clone();
+                quote_amount_total = old_pool.liquidity_raised.clone();
+            }
             // CAREFULLY CHECK AND TEST
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
@@ -1077,23 +1111,10 @@ pub mod LaunchpadMarketplace {
             }
             println!("sell quote_amount received final {:?}", quote_amount);
 
-            // Edge case calculation rounding
-            // TODO
-            //  GET the approximation slippage tolerance too not drained liq if big error
-            // CAREFULLY CHECK AND TEST
-
-            if old_pool.liquidity_raised < quote_amount {
-                quote_amount = old_pool.liquidity_raised.clone();
-            }
             // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
             assert(old_pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
             // TODO fix this function
-            // let mut amount = self
-            //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
-
-            // let amount_to_user: u256 = coin_amount - amount_protocol_fee - amount_creator_fee;
-
             // let mut total_price = amount;
             // println!("amount {:?}", amount);
             // println!("coin_amount {:?}", coin_amount);
@@ -1140,12 +1161,12 @@ pub mod LaunchpadMarketplace {
             // CAREFULLY TEST EDGE CASE AND FUZZING
             // HIGH RISK = MONEY DRAINING
             // CAN DRAINED ALL MONEY
-
             // TODO fixed rounding and approximation
             // HIGH RISK SECURITY
+
             if contract_quote_balance < quote_amount {
                 println!("contract quote above try edge case rounding");
-                quote_amount = contract_quote_balance.clone();
+                quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
             }
 
             //  TODO fixed rounding before
@@ -1159,10 +1180,11 @@ pub mod LaunchpadMarketplace {
             // TODO edge case fees threshold
             // CAREFULLY TEST
             // HIGH RISK = BLOCKED SELL
+            println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
 
             if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
                 // TODO edgecase
-                println!("sell transfer FEES");
+                println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
 
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
@@ -1170,7 +1192,7 @@ pub mod LaunchpadMarketplace {
             // println!("sell transfer quote amount");
             // Transfer the remaining quote amount to the user
             if quote_amount > 0 {
-                println!("sell transfer quote amount");
+                println!("sell transfer quote amount {:?}", quote_amount);
 
                 erc20.transfer(caller, quote_amount);
             }
@@ -1207,9 +1229,26 @@ pub mod LaunchpadMarketplace {
             //      println!("sell update pool");
 
             println!("sell pool update liq raised");
+            println!("remain_coin_amount {:?}", remain_coin_amount);
 
-            pool_update.liquidity_raised -= quote_amount;
+            // TODO check
+            // HIGH SECURITY
+            if pool_update.liquidity_raised >= quote_amount {
+                println!(
+                    "pool_update.liquidity_raised > quote_amount {:?}",
+                    pool_update.liquidity_raised > quote_amount
+                );
+                println!("pool_update.liquidity_raised {:?}", pool_update.liquidity_raised);
+                println!("quote_amount {:?}", quote_amount);
+                pool_update.liquidity_raised -= quote_amount;
+            } else {
+                pool_update.liquidity_raised = 0_u256;
+            }
+            println!("try update total_token_holded {:?}", pool_update.total_token_holded);
+
             pool_update.total_token_holded -= remain_coin_amount;
+            println!("try update available supply {:?}", pool_update.available_supply);
+
             pool_update.available_supply += remain_coin_amount;
 
             // Assertion: Ensure the pool's liquidity and token holded are updated correctly

@@ -20,7 +20,7 @@ pub struct PixelState {
 }
 
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct PixelShield {
     pub pos: u128,
     pub timestamp: u64,
@@ -36,7 +36,7 @@ pub enum PixelShieldType {
     AuctionDeadlineDay,
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct ShieldAdminParams {
     pub timestamp: u64,
     pub shield_type: PixelShieldType,
@@ -49,7 +49,7 @@ pub struct ShieldAdminParams {
     pub owner: starknet::ContractAddress,
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct MetadataPixel {
     pub pos: u128,
     // Color index in the palette
@@ -61,7 +61,7 @@ pub struct MetadataPixel {
     pub faction_name: felt252,
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct Faction {
     pub name: felt252,
     pub leader: starknet::ContractAddress,
@@ -71,7 +71,7 @@ pub struct Faction {
 }
 
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct FactionMetadata {
     pub nostr_id_group: u256,
     pub nostr_event_id: u256,

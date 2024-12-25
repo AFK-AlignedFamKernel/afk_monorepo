@@ -1,23 +1,65 @@
 use starknet::ContractAddress;
 
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, Hash, starknet::Store)]
+pub enum PixelShieldType {
+    BlockedTime,
+    Auction,
+    AuctionReset,
+    // Starkdefi,
+}
+
+
+#[derive(Drop, Copy, Serde, starknet::Store)]
+pub struct AdminsFeesParams {
+    pub is_shield_pixel_activated: bool,
+    pub price_by_time_seconds: u256,
+    //    pub price_by_time_minute: u256,
+    pub shield_type: PixelShieldType,
+    pub token_address: ContractAddress,
+    pub auction_time_reset_price: u64,
+    pub is_auction_time_reset: bool
+}
+
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct Pixel {
+    pub pos: u128,
     // Color index in the palette
     pub color: u8,
     // The person that placed the pixel
     pub owner: starknet::ContractAddress,
 }
 
+#[derive(Drop, Copy, Serde, starknet::Store)]
+pub struct PixelState {
+    pub pos: u128,
+    // Color index in the palette
+    pub color: u8,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+    pub created_at: u64
+}
+
 #[derive(Drop, Serde, starknet::Store)]
 pub struct MetadataPixel {
+    pub pos: u128,
+    // Color index in the palette
+    pub ipfs: ByteArray,
+    pub nostr_event_id: u256,
+    pub owner: starknet::ContractAddress,
+    pub contract: starknet::ContractAddress,
+}
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct PixelShield {
+    pub pos: u128,
     // Color index in the palette
     pub ipfs: ByteArray,
     pub nostr_event_id: u256,
     pub owner: starknet::ContractAddress,
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Serde, starknet::Store, Copy)]
 pub struct Faction {
     pub name: felt252,
     pub leader: starknet::ContractAddress,
@@ -27,14 +69,14 @@ pub struct Faction {
 }
 
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Serde, starknet::Store, Copy)]
 pub struct FactionMetadata {
     pub nostr_id_group: u256,
     pub nostr_event_id: u256,
     pub twitter_id: u256,
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Serde, starknet::Store, Copy)]
 pub struct ChainFaction {
     pub name: felt252,
 }

@@ -7,11 +7,9 @@ use afk_launchpad::launchpad::calcul::linear::{
      get_coin_amount, get_meme_amount
 };
 
-use afk_launchpad::launchpad::errors;
 // use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256};
 use afk_launchpad::types::launchpad_types::{
     TokenLaunch, BondingType, //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-    EkuboLaunchParameters, LaunchCallback
 };
 // use ekubo::types::{i129::i129};
 use starknet::ContractAddress;

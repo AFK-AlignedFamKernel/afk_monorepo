@@ -12,7 +12,7 @@ pub mod ArtPeace {
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
-        PixelState, PixelShieldType
+        PixelState, PixelShieldType, AdminsFeesParams
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -99,7 +99,10 @@ pub mod ArtPeace {
         chain_faction_templates: Map::<u32, FactionTemplateMetadata>,
         // New state
         is_shield_pixel_activated: bool,
-        price_by_time_minute: u256,
+        // price_by_time_minute: u256,
+        price_by_time_seconds: u256,
+        shield_type: PixelShieldType,
+        admins_fees_params: AdminsFeesParams,
         token_address: ContractAddress,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
@@ -445,8 +448,9 @@ pub mod ArtPeace {
 
         // TODO finish check shield by shield type
 
-        fn _check_shield_ok(self: @ContractState, pos: u128, color: u8) {// let last_shield =self.last_placed_pixel_shield.entry(pos).read();
-
+        fn _check_shield_ok(
+            self: @ContractState, pos: u128, color: u8
+        ) { // let last_shield =self.last_placed_pixel_shield.entry(pos).read();
         }
 
         // TODO: Make the function internal
