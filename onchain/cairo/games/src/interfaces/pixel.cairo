@@ -40,7 +40,7 @@ pub struct PixelState {
     pub created_at: u64
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Serde, starknet::Store, Clone)]
 pub struct MetadataPixel {
     pub pos: u128,
     // Color index in the palette
@@ -117,6 +117,9 @@ pub trait IArtPeace<TContractState> {
     fn place_pixel_blocktime(ref self: TContractState, pos: u128, color: u8);
     fn place_extra_pixels(
         ref self: TContractState, positions: Span<u128>, colors: Span<u8>, now: u64
+    );
+    fn place_pixel_with_metadata(
+        ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
     );
 
     // Get placement info

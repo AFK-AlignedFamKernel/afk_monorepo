@@ -23,10 +23,10 @@ pub mod ArtPeace {
     use core::hash::{HashStateTrait, HashStateExTrait};
     use core::poseidon::PoseidonTrait;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use starknet::{get_block_timestamp, ContractAddress};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
+    use starknet::{get_block_timestamp, ContractAddress};
     component!(path: TemplateStoreComponent, storage: templates, event: TemplateEvent);
 
     #[abi(embed_v0)]
@@ -41,7 +41,7 @@ pub mod ArtPeace {
         canvas_height: u128,
         total_pixels: u128,
         last_placed_pixel: Map::<u128, PixelState>,
-        last_placed_pixel_metadata: Map::<u128, PixelMetadataPlaced>,
+        last_placed_pixel_metadata: Map::<u128, MetadataPixel>,
         last_placed_pixel_shield: Map::<u128, PixelShield>,
         // Map: user's address -> last time they placed a pixel
         last_placed_time: Map::<ContractAddress, u64>,
@@ -460,7 +460,7 @@ pub mod ArtPeace {
             // self._check_shield_ok(pos, color);
 
             let caller = starknet::get_caller_address();
-            let pixel = PixelState { color, pos, owner: caller, created_at: get_block_timestamp()};
+            let pixel = PixelState { color, pos, owner: caller, created_at: get_block_timestamp() };
             // self.canvas.write(pos, pixel);
             self.last_placed_pixel.write(pos, pixel);
             let day = self.day_index.read();
@@ -489,10 +489,8 @@ pub mod ArtPeace {
             // place_pixel_inner(ref self, pos, color);
             // self._place_pixel_inner(pos, color);
 
-            // TODO: let pixel = PixelState { color, pos,  owner: caller,
-            // timestamp:get_block_timestamp()};
             // TODO: self.canvas.write(pos, pixel);
-            // TODO: self.last_placed_pixel_metadata.write(pos, pixel);
+            self.last_placed_pixel_metadata.write(pos, metadata.clone());
             let caller = starknet::get_caller_address();
             let day = self.day_index.read();
 
@@ -602,6 +600,13 @@ pub mod ArtPeace {
             // place_basic_pixel_inner(ref self, pos, color, now);
             // self._place_basic_pixel_inner(ref self, pos, color, now);
             self._place_basic_pixel_inner(pos, color, now);
+        }
+
+        fn place_pixel_with_metadata(
+            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
+        ) {
+            self.place_pixel(pos, color, now);
+            self.add_pixel_metadata(pos, color, now, metadata);
         }
 
 
