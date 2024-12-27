@@ -604,3 +604,29 @@ fn test_place_pixel_with_metadata() {
     assert(res_metadata.contract == art_peace.contract_address, 'wrong meta ipfs');
 }
 
+#[test]
+#[should_panic(expected: ('not owner',))]
+fn test_place_pixel_metadata_non_owner() {
+    let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
+
+    let x = 10;
+    let y = 20;
+    let pos = x + y * WIDTH;
+    let color = 0x5;
+    let now = 10;
+
+    let ipfs: ByteArray = "ipfs";
+
+    let pixel_metadata = MetadataPixel {
+        pos, ipfs, nostr_event_id: 1, owner: utils::PLAYER1(), contract: art_peace.contract_address,
+    };
+
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
+    art_peace.place_pixel_metadata(pos, color, now, pixel_metadata.clone());
+    stop_cheat_caller_address(art_peace.contract_address);
+
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER2());
+    art_peace.place_pixel_metadata(pos, color, now, pixel_metadata.clone());
+    stop_cheat_caller_address(art_peace.contract_address);
+}
+

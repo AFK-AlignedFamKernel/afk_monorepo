@@ -615,6 +615,7 @@ pub mod ArtPeace {
             self.check_game_running();
             self.check_timing(now);
             let caller = starknet::get_caller_address();
+            assert(self.last_placed_pixel.read(pos).owner == caller, 'not owner');
             assert(
                 now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
                 'Pixel not available'
