@@ -729,6 +729,15 @@ pub mod ArtPeace {
             self.last_placed_time.read(starknet::get_caller_address())
         }
 
+        fn get_last_placed_pixel_with_metadata(
+        self: @ContractState, pos: u128
+    ) -> (PixelState, MetadataPixel) {
+        let pixel_placed = self.last_placed_pixel.read(pos);
+        let metadata = self.last_placed_pixel_metadata.read(pos);
+
+        (pixel_placed, metadata)
+    }
+
         fn get_user_last_placed_time(self: @ContractState, user: ContractAddress) -> u64 {
             self.last_placed_time.read(user)
         }
