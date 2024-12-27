@@ -23,7 +23,7 @@ pub mod ArtPeace {
     use core::hash::{HashStateTrait, HashStateExTrait};
     use core::poseidon::PoseidonTrait;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use starknet::ContractAddress;
+    use starknet::{get_block_timestamp, ContractAddress};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
@@ -460,10 +460,9 @@ pub mod ArtPeace {
             // self._check_shield_ok(pos, color);
 
             let caller = starknet::get_caller_address();
-            // TODO: let pixel = PixelState { color, pos,  owner: caller,
-            // timestamp:get_block_timestamp()};
-            // TODO: self.canvas.write(pos, pixel);
-            // TODO: self.last_placed_pixel.write(pos, pixel);
+            let pixel = PixelState { color, pos, owner: caller, created_at: get_block_timestamp()};
+            // self.canvas.write(pos, pixel);
+            self.last_placed_pixel.write(pos, pixel);
             let day = self.day_index.read();
             self
                 .user_pixels_placed
