@@ -596,7 +596,6 @@ pub mod ArtPeace {
                 now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
                 'Pixel not available'
             );
-
             // place_basic_pixel_inner(ref self, pos, color, now);
             // self._place_basic_pixel_inner(ref self, pos, color, now);
             self._place_basic_pixel_inner(pos, color, now);
@@ -631,10 +630,11 @@ pub mod ArtPeace {
             self.check_game_running();
             self.check_timing(now);
             let caller = starknet::get_caller_address();
-            assert(
-                now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
-                'Pixel not available'
-            );
+
+            // assert(
+            //     now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
+            //     'Pixel not available'
+            // );
 
             // place_metadata(ref self, pos, color, now, metadata);
             self._place_metadata(pos, color, now, metadata);
@@ -730,13 +730,13 @@ pub mod ArtPeace {
         }
 
         fn get_last_placed_pixel_with_metadata(
-        self: @ContractState, pos: u128
-    ) -> (PixelState, MetadataPixel) {
-        let pixel_placed = self.last_placed_pixel.read(pos);
-        let metadata = self.last_placed_pixel_metadata.read(pos);
+            self: @ContractState, pos: u128
+        ) -> (PixelState, MetadataPixel) {
+            let pixel_placed = self.last_placed_pixel.read(pos);
+            let metadata = self.last_placed_pixel_metadata.read(pos);
 
-        (pixel_placed, metadata)
-    }
+            (pixel_placed, metadata)
+        }
 
         fn get_user_last_placed_time(self: @ContractState, user: ContractAddress) -> u64 {
             self.last_placed_time.read(user)
