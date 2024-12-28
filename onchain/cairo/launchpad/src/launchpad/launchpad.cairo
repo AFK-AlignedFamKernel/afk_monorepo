@@ -387,9 +387,10 @@ pub mod LaunchpadMarketplace {
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
         // EDGE CASE
         // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
-        // self.is_fees_protocol_buy_enabled.write(true);
-        // self.is_fees_protocol_sell_enabled.write(true);
-        // self.is_fees_protocol_enabled.write(true);
+        self.is_fees_protocol_buy_enabled.write(true);
+        self.is_fees_protocol_sell_enabled.write(true);
+        // self.is_fees_protocol_sell_enabled.write(false);
+        self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -1166,7 +1167,11 @@ pub mod LaunchpadMarketplace {
 
             if contract_quote_balance < quote_amount {
                 println!("contract quote above try edge case rounding");
-                quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
+                if is_fees_protocol_enabled_sell {
+                    quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
+                } else {
+                    quote_amount = contract_quote_balance.clone();
+                }
             }
 
             //  TODO fixed rounding before
