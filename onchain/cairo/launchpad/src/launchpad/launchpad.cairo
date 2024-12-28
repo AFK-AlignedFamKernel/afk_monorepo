@@ -99,10 +99,10 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );
     fn set_is_fees_protocol_enabled(ref self: TContractState, is_fees_protocol_enabled: bool);
-    fn set_is_fees_protocol_enabled_buy(
+    fn set_is_fees_protocol_buy_enabled(
         ref self: TContractState, is_fees_protocol_buy_enabled: bool
     );
-    fn set_is_fees_protocol_enabled_sell(
+    fn set_is_fees_protocol_sell_enabled(
         ref self: TContractState, is_fees_protocol_sell_enabled: bool
     );
     fn set_is_paid_launch_enable(ref self: TContractState, is_paid_launch_enable: bool);
@@ -387,9 +387,12 @@ pub mod LaunchpadMarketplace {
         // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
         // EDGE CASE
         // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
-        self.is_fees_protocol_buy_enabled.write(true);
-        self.is_fees_protocol_sell_enabled.write(true);
-        // self.is_fees_protocol_sell_enabled.write(false);
+        // self.is_fees_protocol_buy_enabled.write(true);
+        // self.is_fees_protocol_sell_enabled.write(true);
+
+        self.is_fees_protocol_buy_enabled.write(false);
+        self.is_fees_protocol_sell_enabled.write(false);
+
         self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
@@ -462,7 +465,7 @@ pub mod LaunchpadMarketplace {
             self.is_fees_protocol_enabled.write(is_fees_protocol_enabled);
         }
 
-        fn set_is_fees_protocol_enabled_buy(
+        fn set_is_fees_protocol_buy_enabled(
             ref self: ContractState, is_fees_protocol_buy_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -484,7 +487,7 @@ pub mod LaunchpadMarketplace {
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
-        fn set_is_fees_protocol_enabled_sell(
+        fn set_is_fees_protocol_sell_enabled(
             ref self: ContractState, is_fees_protocol_sell_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -789,18 +792,18 @@ pub mod LaunchpadMarketplace {
             let mut remain_quote_to_liquidity = total_price;
             // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
 
-            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            let mut threshold_liquidity = pool_coin.threshold_liquidity.clone();
             // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
             // let mut threshold = threshold_liquidity;
             let mut threshold = threshold_liquidity - slippage_threshold;
-
+            threshold_liquidity = threshold_liquidity - slippage_threshold;
             // TODO without fees if it's correct
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            let is_fees_protocol_enabled_buy = self.is_fees_protocol_buy_enabled.read();
+            let is_fees_protocol_buy_enabled = self.is_fees_protocol_buy_enabled.read();
 
             // TODO edge cases
-            if is_fees_protocol_enabled && is_fees_protocol_enabled_buy {
+            if is_fees_protocol_enabled && is_fees_protocol_buy_enabled {
                 // if pool_coin.liquidity_raised < quote_amount {
                 //     total_price = pool_coin.liquidity_raised.clone();
                 //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
@@ -839,8 +842,10 @@ pub mod LaunchpadMarketplace {
             //assertion
 
             // Add slippage threshold
-            assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+            // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
+            // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+            
             // Check if liquidity threshold raise
             let threshold_liq = self.threshold_liquidity.read();
             let threshold_mc = self.threshold_market_cap.read();
@@ -1091,7 +1096,7 @@ pub mod LaunchpadMarketplace {
             // TEST issue of Unrug
 
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            let is_fees_protocol_enabled_sell = self.is_fees_protocol_sell_enabled.read();
+            let is_fees_protocol_sell_enabled = self.is_fees_protocol_sell_enabled.read();
             let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             // Edge case calculation rounding
             // TODO
@@ -1106,7 +1111,7 @@ pub mod LaunchpadMarketplace {
             }
             // CAREFULLY CHECK AND TEST
 
-            if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
                 quote_amount = quote_amount_total - quote_amount_protocol_fee;
                 quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
             }
@@ -1167,7 +1172,7 @@ pub mod LaunchpadMarketplace {
 
             if contract_quote_balance < quote_amount {
                 println!("contract quote above try edge case rounding");
-                if is_fees_protocol_enabled_sell {
+                if is_fees_protocol_sell_enabled {
                     quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
                 } else {
                     quote_amount = contract_quote_balance.clone();
@@ -1187,7 +1192,7 @@ pub mod LaunchpadMarketplace {
             // HIGH RISK = BLOCKED SELL
             println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
 
-            if is_fees_protocol_enabled && is_fees_protocol_enabled_sell {
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
                 // TODO edgecase
                 println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
 

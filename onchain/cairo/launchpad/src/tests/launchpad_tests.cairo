@@ -1643,7 +1643,7 @@ mod launchpad_tests {
                 "init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone()
             );
-            println!("i {:?}", i.clone());
+            // println!("i {:?}", i.clone());
 
             let token_address = launchpad
                 .create_and_launch_token(
@@ -1659,12 +1659,12 @@ mod launchpad_tests {
 
             let memecoin = IERC20Dispatcher { contract_address: token_address };
 
-            println!("buy threshold liquidity");
+            // println!("buy threshold liquidity");
             run_buy_by_amount(
                 launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
             );
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-            println!("balance quote in loop {:?}", balance_quote_launch);
+            // println!("balance quote in loop {:?}", balance_quote_launch);
             println!(
                 "latest init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone()
@@ -1725,7 +1725,7 @@ mod launchpad_tests {
                 "init_supply in loop test_buy_coin_exp_with_different_supply {:?}",
                 init_supplies.at(i).clone()
             );
-            println!("i {:?}", i.clone());
+            // println!("i {:?}", i.clone());
 
             let token_address = launchpad
                 .create_and_launch_token(
@@ -1741,15 +1741,15 @@ mod launchpad_tests {
 
             let memecoin = IERC20Dispatcher { contract_address: token_address };
 
-            println!("buy threshold liquidity");
+            // println!("buy threshold liquidity");
             run_buy_by_amount(
                 launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
             );
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-            println!(
-                "balance quote in loop test_buy_coin_exp_with_different_supply {:?}",
-                balance_quote_launch
-            );
+            // println!(
+            //     "balance quote in loop test_buy_coin_exp_with_different_supply {:?}",
+            //     balance_quote_launch
+            // );
             println!(
                 "last init_supply in loop test_buy_coin_exp_with_different_supply {:?}",
                 init_supplies.at(i).clone()
