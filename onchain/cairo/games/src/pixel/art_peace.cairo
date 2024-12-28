@@ -453,6 +453,18 @@ pub mod ArtPeace {
         ) { // let last_shield =self.last_placed_pixel_shield.entry(pos).read();
         }
 
+        fn _has_shield(self: @ContractState, pos: u128) -> bool {
+            // check if it has shield
+            let shield = self.last_placed_pixel_shield.entry(pos).read();
+
+            // check if expired
+            if (get_block_timestamp() - shield.timestamp) <= shield.until {
+                return true;
+            }
+
+            false
+        }
+
         // TODO: Make the function internal
 
         fn _place_pixel_inner(ref self: ContractState, pos: u128, color: u8) {
@@ -511,6 +523,13 @@ pub mod ArtPeace {
         fn _place_shield(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
+            // check if pixel shield is activated
+            // check owner of last placed pixel
+            // check if pos has shield
+            // buy shield BuyTime
+            // set shield
+            // emit event
+
             // self._check_shield_ok(pos, color);
 
             // place_pixel_inner(ref self, pos, color);
@@ -1257,6 +1276,21 @@ pub mod ArtPeace {
             self: @ContractState, user: ContractAddress, day: u32, color: u8
         ) -> u32 {
             self.user_pixels_placed.read((day, user, color))
+        }
+
+        fn set_shield_type(ref self: ContractState, shield_type: PixelShieldType) {
+            //TODO: restrict to admin
+            self.shield_type.write(shield_type)
+        }
+
+        fn activate_pixel_shield(ref self: ContractState) {
+            //TODO: restrict to admin
+            self.is_shield_pixel_activated.write(true);
+        }
+
+        fn disable_pixel_shield(ref self: ContractState) {
+            //TODO: restrict to admin
+            self.is_shield_pixel_activated.write(false);
         }
     }
 

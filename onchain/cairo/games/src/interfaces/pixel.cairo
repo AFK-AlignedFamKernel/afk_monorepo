@@ -1,15 +1,5 @@
 use starknet::ContractAddress;
 
-
-#[derive(Drop, Copy, Serde, Hash, starknet::Store)]
-pub enum PixelShieldType {
-    BlockedTime,
-    Auction,
-    AuctionReset,
-    // Starkdefi,
-}
-
-
 #[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct AdminsFeesParams {
     pub is_shield_pixel_activated: bool,
@@ -19,6 +9,35 @@ pub struct AdminsFeesParams {
     pub token_address: ContractAddress,
     pub auction_time_reset_price: u64,
     pub is_auction_time_reset: bool
+}
+
+#[derive(Drop, Copy, Serde, starknet::Store)]
+pub struct PixelShield {
+    pub pos: u128,
+    pub timestamp: u64,
+    pub until: u64,
+    pub amount_paid: u256,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+}
+
+#[derive(Drop, Copy, Serde, Hash, starknet::Store)]
+pub enum PixelShieldType {
+    BuyTime,
+    AuctionDeadlineDay,
+}
+
+#[derive(Drop, Copy, Serde, starknet::Store)]
+pub struct ShieldAdminParams {
+    pub timestamp: u64,
+    pub shield_type: PixelShieldType,
+    pub until: u64,
+    pub amount_to_paid: u256,
+    pub cost_per_second: u256,
+    pub cost_per_minute: u256,
+    pub contract_address: starknet::ContractAddress,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
 }
 
 #[derive(Drop, Copy, Serde, starknet::Store)]
@@ -48,15 +67,6 @@ pub struct MetadataPixel {
     pub nostr_event_id: u256,
     pub owner: starknet::ContractAddress,
     pub contract: starknet::ContractAddress,
-}
-
-#[derive(Drop, Serde, starknet::Store)]
-pub struct PixelShield {
-    pub pos: u128,
-    // Color index in the palette
-    pub ipfs: ByteArray,
-    pub nostr_event_id: u256,
-    pub owner: starknet::ContractAddress,
 }
 
 #[derive(Drop, Serde, starknet::Store, Copy)]
@@ -231,6 +241,10 @@ pub trait IArtPeace<TContractState> {
     fn get_last_placed_pixel_with_metadata(
         self: @TContractState, pos: u128
     ) -> (PixelState, MetadataPixel);
+
+    fn set_shield_type(ref self: TContractState, shield_type: PixelShieldType);
+    fn activate_pixel_shield(ref self: TContractState);
+    fn disable_pixel_shield(ref self: TContractState);
 }
 
 
