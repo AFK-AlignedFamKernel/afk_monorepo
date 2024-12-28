@@ -1345,6 +1345,13 @@ pub mod ArtPeace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.admin_shield_params.entry(shield_type).write(shield_params);
         }
+
+        fn set_shield_type_with_shield_params(
+            ref self: ContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+        ) {
+            self.set_shield_type(shield_type);
+            self.set_admin_shield_params(shield_type, shield_params);
+        }
     }
 
     #[abi(embed_v0)]

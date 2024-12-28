@@ -247,6 +247,7 @@ pub trait IArtPeace<TContractState> {
     fn set_admin_shield_params(
         ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
     );
+    fn set_shield_type_with_shield_params(ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams);
     fn activate_pixel_shield(ref self: TContractState);
     fn disable_pixel_shield(ref self: TContractState);
 }

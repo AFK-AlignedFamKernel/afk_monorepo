@@ -32,6 +32,10 @@ const TIME_BETWEEN_PIXELS: u64 = 10;
 const LEANIENCE_MARGIN: u64 = 20;
 // const BASE_URI: ByteArray = "https://api.art-peace.net/nft-meta/nft-";
 
+fn ADMIN() -> ContractAddress {
+    'admin'.try_into().unwrap()
+}
+
 pub(crate) fn deploy_contract() -> ContractAddress {
     deploy_nft_contract();
 
@@ -75,6 +79,7 @@ pub(crate) fn deploy_contract() -> ContractAddress {
         devmode: false
     }
         .serialize(ref calldata);
+        ADMIN().serialize(ref calldata);
 
     start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
