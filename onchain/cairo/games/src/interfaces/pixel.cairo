@@ -1,5 +1,7 @@
 use starknet::ContractAddress;
 
+pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+
 #[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct AdminsFeesParams {
     pub is_shield_pixel_activated: bool,

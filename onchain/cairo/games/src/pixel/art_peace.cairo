@@ -12,7 +12,8 @@ pub mod ArtPeace {
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
-        PixelState, PixelShieldType, AdminsFeesParams, ShieldAdminParams, PixelShieldPlaced
+        PixelState, PixelShieldType, AdminsFeesParams, ShieldAdminParams, PixelShieldPlaced,
+        ADMIN_ROLE
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -23,16 +24,33 @@ pub mod ArtPeace {
     use core::hash::{HashStateTrait, HashStateExTrait};
     use core::num::traits::Zero;
     use core::poseidon::PoseidonTrait;
+    use openzeppelin::access::accesscontrol::{AccessControlComponent};
+    use openzeppelin::introspection::src5::SRC5Component;
+
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     use starknet::{get_block_timestamp, ContractAddress, get_caller_address};
+
     component!(path: TemplateStoreComponent, storage: templates, event: TemplateEvent);
+    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
     #[abi(embed_v0)]
     impl TemplateStoreComponentImpl =
         TemplateStoreComponent::TemplateStoreImpl<ContractState>;
+
+    // AccessControl
+    #[abi(embed_v0)]
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+
+    // SRC5
+    #[abi(embed_v0)]
+    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -109,6 +127,10 @@ pub mod ArtPeace {
         token_address: ContractAddress,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
+        #[substorage(v0)]
+        accesscontrol: AccessControlComponent::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage,
     }
 
     #[event]
@@ -141,6 +163,10 @@ pub mod ArtPeace {
         #[flat]
         TemplateEvent: TemplateStoreComponent::Event,
         PixelShieldPlaced: PixelShieldPlaced,
+        #[flat]
+        AccessControlEvent: AccessControlComponent::Event,
+        #[flat]
+        SRC5Event: SRC5Component::Event,
     }
 
 
@@ -213,7 +239,7 @@ pub mod ArtPeace {
     // }
 
     #[constructor]
-    fn constructor(ref self: ContractState, init_params: InitParams) {
+    fn constructor(ref self: ContractState, init_params: InitParams, admin: ContractAddress) {
         self.host.write(init_params.host);
 
         self.canvas_width.write(init_params.canvas_width);
@@ -262,6 +288,9 @@ pub mod ArtPeace {
         self.devmode.write(init_params.devmode);
 
         self.daily_quests_count.write(init_params.daily_quests_count);
+
+        //access control
+        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
     }
 
     #[generate_trait]
@@ -1296,24 +1325,24 @@ pub mod ArtPeace {
         }
 
         fn set_shield_type(ref self: ContractState, shield_type: PixelShieldType) {
-            //TODO: restrict to admin
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.shield_type.write(shield_type)
         }
 
         fn activate_pixel_shield(ref self: ContractState) {
-            //TODO: restrict to admin
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_shield_pixel_activated.write(true);
         }
 
         fn disable_pixel_shield(ref self: ContractState) {
-            //TODO: restrict to admin
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_shield_pixel_activated.write(false);
         }
 
         fn set_admin_shield_params(
             ref self: ContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
         ) {
-            //TODO: restrict to admin
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.admin_shield_params.entry(shield_type).write(shield_params);
         }
     }
