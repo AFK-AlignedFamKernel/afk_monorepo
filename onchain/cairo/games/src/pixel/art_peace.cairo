@@ -524,9 +524,7 @@ pub mod ArtPeace {
         }
 
 
-        fn _place_shield(
-            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
-        ) {
+        fn _place_shield(ref self: ContractState, pos: u128,) {
             let caller = get_caller_address();
 
             // check if pixel shield is activated
@@ -539,12 +537,11 @@ pub mod ArtPeace {
             // check if pos has shield
             assert(!self._has_shield(pos), 'pixel under shield');
 
-            // buy shield BuyTime
+            // buy shield and transfer amount
             let shield_type = self.shield_type.read();
             let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
             let amount_paid = shield_params.amount_to_paid;
-
-            //TODO transfer
+            //TODO
             IERC20Dispatcher { contract_address: 1.try_into().unwrap() }
                 .transfer_from(caller, 1.try_into().unwrap(), amount_paid.clone());
 
@@ -674,6 +671,10 @@ pub mod ArtPeace {
 
             // place_metadata(ref self, pos, color, now, metadata);
             self._place_metadata(pos, color, now, metadata);
+        }
+
+        fn place_pixel_shield(ref self: ContractState, pos: u128,) {
+            self._place_shield(pos);
         }
 
         // TODO: Make the function internal
