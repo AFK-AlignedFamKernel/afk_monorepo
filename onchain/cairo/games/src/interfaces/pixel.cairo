@@ -11,7 +11,7 @@ pub struct AdminsFeesParams {
     pub is_auction_time_reset: bool
 }
 
-#[derive(Drop, Copy, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store, PartialEq)]
 pub struct PixelShield {
     pub pos: u128,
     pub timestamp: u64,
@@ -36,8 +36,6 @@ pub struct ShieldAdminParams {
     pub cost_per_second: u256,
     pub cost_per_minute: u256,
     pub contract_address: starknet::ContractAddress,
-    // The person that placed the pixel
-    pub owner: starknet::ContractAddress,
 }
 
 #[derive(Drop, Copy, Serde, starknet::Store)]
@@ -243,6 +241,9 @@ pub trait IArtPeace<TContractState> {
     ) -> (PixelState, MetadataPixel);
 
     fn set_shield_type(ref self: TContractState, shield_type: PixelShieldType);
+    fn set_admin_shield_params(
+        ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+    );
     fn activate_pixel_shield(ref self: TContractState);
     fn disable_pixel_shield(ref self: TContractState);
 }
@@ -279,6 +280,16 @@ pub struct PixelPlaced {
     #[key]
     pub day: u32,
     pub color: u8,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct PixelShieldPlaced {
+    #[key]
+    pub placed_by: ContractAddress,
+    #[key]
+    pub pos: u128,
+    pub shield_type: PixelShieldType,
+    pub amount_paid: u256,
 }
 
 #[derive(Drop, starknet::Event)]

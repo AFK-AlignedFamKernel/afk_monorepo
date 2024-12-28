@@ -12,7 +12,7 @@ pub mod ArtPeace {
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
-        PixelState, PixelShieldType, AdminsFeesParams
+        PixelState, PixelShieldType, AdminsFeesParams, ShieldAdminParams, PixelShieldPlaced
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -21,12 +21,13 @@ pub mod ArtPeace {
     use afk_games::templates::template::TemplateStoreComponent;
     use core::dict::Felt252DictTrait;
     use core::hash::{HashStateTrait, HashStateExTrait};
+    use core::num::traits::Zero;
     use core::poseidon::PoseidonTrait;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    use starknet::{get_block_timestamp, ContractAddress};
+    use starknet::{get_block_timestamp, ContractAddress, get_caller_address};
     component!(path: TemplateStoreComponent, storage: templates, event: TemplateEvent);
 
     #[abi(embed_v0)]
@@ -42,6 +43,7 @@ pub mod ArtPeace {
         total_pixels: u128,
         last_placed_pixel: Map::<u128, PixelState>,
         last_placed_pixel_metadata: Map::<u128, MetadataPixel>,
+        // last_placed_pixel_shield: Map::<u128, Option<PixelShield>>,
         last_placed_pixel_shield: Map::<u128, PixelShield>,
         // Map: user's address -> last time they placed a pixel
         last_placed_time: Map::<ContractAddress, u64>,
@@ -103,6 +105,7 @@ pub mod ArtPeace {
         price_by_time_seconds: u256,
         shield_type: PixelShieldType,
         admins_fees_params: AdminsFeesParams,
+        admin_shield_params: Map::<PixelShieldType, ShieldAdminParams>,
         token_address: ContractAddress,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
@@ -137,6 +140,7 @@ pub mod ArtPeace {
         // TODO: Integrate template event
         #[flat]
         TemplateEvent: TemplateStoreComponent::Event,
+        PixelShieldPlaced: PixelShieldPlaced,
     }
 
 
@@ -454,16 +458,16 @@ pub mod ArtPeace {
         }
 
         fn _has_shield(self: @ContractState, pos: u128) -> bool {
-            // check if it has shield
+            // Check if the position has a shield
             let shield = self.last_placed_pixel_shield.entry(pos).read();
 
-            // check if expired
-            if (get_block_timestamp() - shield.timestamp) <= shield.until {
-                return true;
+            if shield.owner.is_zero() {
+                return false;
+            } else {
+                return (get_block_timestamp() - shield.timestamp) <= shield.until;
             }
-
-            false
         }
+
 
         // TODO: Make the function internal
 
@@ -523,34 +527,46 @@ pub mod ArtPeace {
         fn _place_shield(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
+            let caller = get_caller_address();
+
             // check if pixel shield is activated
+            assert(self.is_shield_pixel_activated.read(), 'shield not activated');
+
             // check owner of last placed pixel
+            let pixel_placed = self.last_placed_pixel.read(pos);
+            assert(pixel_placed.owner == caller, 'wrong pixel owner');
+
             // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
+
             // buy shield BuyTime
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            let amount_paid = shield_params.amount_to_paid;
+
+            //TODO transfer
+            IERC20Dispatcher { contract_address: 1.try_into().unwrap() }
+                .transfer_from(caller, 1.try_into().unwrap(), amount_paid.clone());
+
             // set shield
+            let shield = PixelShield {
+                pos,
+                timestamp: get_block_timestamp(),
+                until: shield_params.until,
+                amount_paid: amount_paid.clone(),
+                owner: caller,
+            };
+
+            self.last_placed_pixel_shield.entry(pos).write(shield);
+
             // emit event
-
-            // self._check_shield_ok(pos, color);
-
-            // place_pixel_inner(ref self, pos, color);
-            // self._place_pixel_inner(pos, color);
-
-            // TODO: let pixel = PixelState { color, pos,  owner: caller,
-            // timestamp:get_block_timestamp()};
-            // TODO: self.canvas.write(pos, pixel);
-            // TODO: self.last_placed_pixel_shield.write(pos, pixel);
-            let caller = starknet::get_caller_address();
-            let day = self.day_index.read();
-
-            self.last_placed_time.entry(caller).write(now);
-
-            // TODO add map for Metadata
-
-            // Check if ok
             self
                 .emit(
-                    PixelMetadataPlaced {
-                        placed_by: caller, pos: pos, day: day, color: color, metadata: metadata
+                    PixelShieldPlaced {
+                        placed_by: caller,
+                        pos: pos,
+                        shield_type: shield_type,
+                        amount_paid: amount_paid
                     }
                 );
         }
@@ -1291,6 +1307,13 @@ pub mod ArtPeace {
         fn disable_pixel_shield(ref self: ContractState) {
             //TODO: restrict to admin
             self.is_shield_pixel_activated.write(false);
+        }
+
+        fn set_admin_shield_params(
+            ref self: ContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+        ) {
+            //TODO: restrict to admin
+            self.admin_shield_params.entry(shield_type).write(shield_params);
         }
     }
 
