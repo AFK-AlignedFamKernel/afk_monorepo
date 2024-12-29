@@ -245,6 +245,7 @@ pub trait IArtPeace<TContractState> {
     fn get_current_shield_type_and_params(
         self: @TContractState
     ) -> (PixelShieldType, ShieldAdminParams);
+    fn get_last_placed_pixel_shield(self: @TContractState, pos: u128) -> PixelShield;
 
     fn set_shield_type(ref self: TContractState, shield_type: PixelShieldType);
     fn set_admin_shield_params(

@@ -825,4 +825,12 @@ fn test_place_pixel_shield_ok() {
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
     art_peace.place_pixel_shield(pos);
     stop_cheat_caller_address(art_peace.contract_address);
+
+    let shield = art_peace.get_last_placed_pixel_shield(pos);
+
+    assert(shield.pos == pos, 'wrong position');
+    assert(shield.timestamp == get_block_timestamp() + 200, 'wrong timestamp');
+    assert(shield.until == shield_params.until, 'wrong end time');
+    assert(shield.amount_paid == shield_params.amount_to_paid, 'wrong amount paid');
+    assert(shield.owner == utils::PLAYER1(), 'wrong owner');
 }

@@ -804,6 +804,10 @@ pub mod ArtPeace {
             (pixel_placed, metadata)
         }
 
+        fn get_last_placed_pixel_shield(self: @ContractState, pos: u128) -> PixelShield {
+            self.last_placed_pixel_shield.entry(pos).read()
+        }
+
         fn get_user_last_placed_time(self: @ContractState, user: ContractAddress) -> u64 {
             self.last_placed_time.read(user)
         }
