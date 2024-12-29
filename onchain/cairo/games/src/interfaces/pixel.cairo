@@ -37,7 +37,8 @@ pub struct ShieldAdminParams {
     pub amount_to_paid: u256,
     pub cost_per_second: u256,
     pub cost_per_minute: u256,
-    pub contract_address: starknet::ContractAddress,
+    pub to_address: starknet::ContractAddress,
+    pub buy_token_address: starknet::ContractAddress,
 }
 
 #[derive(Drop, Copy, Serde, starknet::Store)]
@@ -131,7 +132,7 @@ pub trait IArtPeace<TContractState> {
     fn place_pixel_with_metadata(
         ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
     );
-    fn place_pixel_shield(ref self: TContractState, pos: u128,);
+    fn place_pixel_shield(ref self: TContractState, pos: u128, time: u64, amount: u256);
 
     // Get placement info
     fn get_last_placed_time(self: @TContractState) -> u64;

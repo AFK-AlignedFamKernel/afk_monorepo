@@ -552,7 +552,7 @@ pub mod ArtPeace {
         }
 
 
-        fn _place_shield(ref self: ContractState, pos: u128,) {
+        fn _place_shield(ref self: ContractState, pos: u128, time: u64, amount: u256) {
             let caller = get_caller_address();
 
             // check if pixel shield is activated
@@ -568,16 +568,26 @@ pub mod ArtPeace {
             // buy shield and transfer amount
             let shield_type = self.shield_type.read();
             let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
-            let amount_paid = shield_params.amount_to_paid;
-            //TODO
-            // IERC20Dispatcher { contract_address: 1.try_into().unwrap() }
-            //     .transfer_from(caller, 1.try_into().unwrap(), amount_paid.clone());
+            // let amount_paid = shield_params.amount_to_paid;
+
+            let (amount_paid, until) = match shield_type {
+                PixelShieldType::BuyTime => {
+                    let amount_paid: u256 = time.into() * shield_params.cost_per_second;
+                    self._buy_pixel_shield(amount_paid.clone());
+                    (amount_paid, time)
+                },
+                PixelShieldType::AuctionDeadlineDay => {
+                    //TODO
+                    self._buy_pixel_shield(amount);
+                    (amount, 0)
+                }
+            };
 
             // set shield
             let shield = PixelShield {
                 pos,
                 timestamp: get_block_timestamp(),
-                until: shield_params.until,
+                until,
                 amount_paid: amount_paid.clone(),
                 owner: caller,
             };
@@ -594,6 +604,14 @@ pub mod ArtPeace {
                         amount_paid: amount_paid
                     }
                 );
+        }
+
+        fn _buy_pixel_shield(ref self: ContractState, amount: u256,) {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+
+            IERC20Dispatcher { contract_address: shield_params.buy_token_address }
+                .transfer_from(get_caller_address(), shield_params.to_address, amount);
         }
     }
 
@@ -701,8 +719,8 @@ pub mod ArtPeace {
             self._place_metadata(pos, color, now, metadata);
         }
 
-        fn place_pixel_shield(ref self: ContractState, pos: u128,) {
-            self._place_shield(pos);
+        fn place_pixel_shield(ref self: ContractState, pos: u128, time: u64, amount: u256) {
+            self._place_shield(pos, time, amount);
         }
 
         // TODO: Make the function internal
