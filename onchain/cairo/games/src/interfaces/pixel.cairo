@@ -132,7 +132,7 @@ pub trait IArtPeace<TContractState> {
     fn place_pixel_with_metadata(
         ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
     );
-    fn place_pixel_shield(ref self: TContractState, pos: u128, time: u64, amount: u256);
+    fn place_pixel_shield(ref self: TContractState, pos: u128, time: u64);
 
     // Get placement info
     fn get_last_placed_time(self: @TContractState) -> u64;

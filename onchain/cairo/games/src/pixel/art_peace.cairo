@@ -552,7 +552,7 @@ pub mod ArtPeace {
         }
 
 
-        fn _place_shield(ref self: ContractState, pos: u128, time: u64, amount: u256) {
+        fn _place_shield(ref self: ContractState, pos: u128, time: u64) {
             let caller = get_caller_address();
 
             // check if pixel shield is activated
@@ -571,15 +571,11 @@ pub mod ArtPeace {
             // let amount_paid = shield_params.amount_to_paid;
 
             let (amount_paid, until) = match shield_type {
-                PixelShieldType::BuyTime => {
-                    let amount_paid: u256 = time.into() * shield_params.cost_per_second;
-                    self._buy_pixel_shield(amount_paid.clone());
-                    (amount_paid, time)
-                },
+                PixelShieldType::BuyTime => self._buy_pixel_shield_time(time),
                 PixelShieldType::AuctionDeadlineDay => {
                     //TODO
-                    self._buy_pixel_shield(amount);
-                    (amount, 0)
+                    self._buy_pixel_shield_auction();
+                    (0, 0)
                 }
             };
 
@@ -606,12 +602,17 @@ pub mod ArtPeace {
                 );
         }
 
-        fn _buy_pixel_shield(ref self: ContractState, amount: u256,) {
+        fn _buy_pixel_shield_time(ref self: ContractState, time: u64,) -> (u256, u64) {
             let shield_type = self.shield_type.read();
             let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            let amount_paid: u256 = time.into() * shield_params.cost_per_second;
 
             IERC20Dispatcher { contract_address: shield_params.buy_token_address }
-                .transfer_from(get_caller_address(), shield_params.to_address, amount);
+                .transfer_from(get_caller_address(), shield_params.to_address, amount_paid);
+            (amount_paid, time)
+        }
+
+        fn _buy_pixel_shield_auction(ref self: ContractState) {//TODO
         }
     }
 
@@ -669,6 +670,8 @@ pub mod ArtPeace {
         fn place_pixel(ref self: ContractState, pos: u128, color: u8, now: u64) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
             assert(
                 now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
@@ -682,6 +685,8 @@ pub mod ArtPeace {
         fn place_pixel_with_metadata(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             self.place_pixel(pos, color, now);
             self.add_pixel_metadata(pos, color, now, metadata);
         }
@@ -692,6 +697,8 @@ pub mod ArtPeace {
         ) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
             assert(self.last_placed_pixel.read(pos).owner == caller, 'not owner');
             assert(
@@ -708,6 +715,8 @@ pub mod ArtPeace {
         ) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
 
             // assert(
@@ -719,8 +728,8 @@ pub mod ArtPeace {
             self._place_metadata(pos, color, now, metadata);
         }
 
-        fn place_pixel_shield(ref self: ContractState, pos: u128, time: u64, amount: u256) {
-            self._place_shield(pos, time, amount);
+        fn place_pixel_shield(ref self: ContractState, pos: u128, time: u64) {
+            self._place_shield(pos, time);
         }
 
         // TODO: Make the function internal
