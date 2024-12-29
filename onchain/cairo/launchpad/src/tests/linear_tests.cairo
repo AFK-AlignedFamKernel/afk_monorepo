@@ -2,7 +2,8 @@
 mod linear_tests {
     use afk_launchpad::launchpad::calcul::linear::{get_coin_amount, get_meme_amount};
     use afk_launchpad::types::launchpad_types::{
-        TokenLaunch, BondingType, TokenQuoteBuyCoin, LiquidityType
+        TokenLaunch, BondingType, TokenQuoteBuyCoin, 
+        // LiquidityType
     };
     use starknet::{ContractAddress};
 

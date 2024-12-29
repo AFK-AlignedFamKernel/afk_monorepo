@@ -29,6 +29,7 @@ pub const COIN_NOT_FOUND: felt252 = 'Coin not found';
 pub const COIN_SHARE_NOT_FOUND: felt252 = 'Coin share not found';
 pub const THRESHOLD_LIQUIDITY_EXCEEDED: felt252 = 'Threshold liquidity exceeded';
 pub const INSUFFICIENT_SUPPLY: felt252 = 'Insufficient supply';
+pub const INSUFFICIENT_TOTAL_SUPPLY: felt252 = 'Insufficient total supply';
 pub const TOKEN_ALREADY_TRADEABLE: felt252 = 'Token already tradeable';
 pub const TOKEN_NOT_TRADEABLE: felt252 = 'Token not tradeable';
 pub const CONTRACT_HAS_INSUFFICIENT_QUOTE_BALANCE: felt252 = 'Contract insufficient balance';

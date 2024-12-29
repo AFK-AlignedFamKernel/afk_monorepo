@@ -15,7 +15,8 @@ mod launchpad_tests {
         CreateToken, TokenQuoteBuyCoin, BondingType,
         CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
          SupportedExchanges, EkuboLP,
-        EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
+        EkuboPoolParameters, TokenLaunch, 
+        EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
         EkuboUnrugLaunchParameters
     };
     use core::num::traits::Zero;
