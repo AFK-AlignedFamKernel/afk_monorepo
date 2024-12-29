@@ -2,8 +2,8 @@ use afk_games::interfaces::nfts::{
     IArtPeaceNFTMinterDispatcher, IArtPeaceNFTMinterDispatcherTrait, ICanvasNFTStoreDispatcher,
     ICanvasNFTStoreDispatcherTrait, NFTMintParams, NFTMetadata
 };
-use afk_games::interfaces::pixel::InitParams;
 use afk_games::interfaces::pixel::{IArtPeaceDispatcher, IArtPeaceDispatcherTrait};
+use afk_games::interfaces::pixel::{InitParams, MetadataPixel};
 use afk_games::interfaces::pixel_template::{
     ITemplateStoreDispatcher, ITemplateStoreDispatcherTrait, ITemplateVerifierDispatcher,
     ITemplateVerifierDispatcherTrait, TemplateMetadata
@@ -563,5 +563,70 @@ fn distribute_rewards_test() {
     assert!(art_token_balance_of_user3 == 1, "User 3 incorrect reward amount");
     assert!(art_token_balance_of_user4 == 1, "User 4 incorrect reward amount");
     assert!(art_token_balance_of_contract == 0, "Contract should not have any remaining balance");
+}
+
+#[test]
+fn test_place_pixel_with_metadata() {
+    let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
+
+    let x = 10;
+    let y = 20;
+    let pos = x + y * WIDTH;
+    let color = 0x5;
+    let now = 10;
+
+    let ipfs: ByteArray = "ipfs";
+
+    let pixel_metadata = MetadataPixel {
+        pos, ipfs, nostr_event_id: 1, owner: utils::PLAYER1(), contract: art_peace.contract_address,
+    };
+
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
+    art_peace.place_pixel_with_metadata(pos, color, now, pixel_metadata.clone());
+    stop_cheat_caller_address(art_peace.contract_address);
+
+    assert!(art_peace.get_user_pixels_placed(utils::PLAYER1()) == 1, "User pixels placed is not 1");
+    assert!(
+        art_peace.get_user_pixels_placed_color(utils::PLAYER1(), color) == 1,
+        "User pixels placed color is not 1"
+    );
+
+    // get last placed pixel with metadata
+    let (pixel_state, res_metadata) = art_peace.get_last_placed_pixel_with_metadata(pos);
+
+    assert(pixel_state.pos == pos, 'wrong position');
+    assert(pixel_state.color == color, 'wrong color');
+    assert(pixel_state.owner == utils::PLAYER1(), 'wrong owner');
+
+    assert(res_metadata.pos == pixel_metadata.pos, 'wrong meta position');
+    assert(res_metadata.ipfs == pixel_metadata.ipfs, 'wrong meta ipfs');
+    assert(res_metadata.owner == utils::PLAYER1(), 'wrong meta ipfs');
+    assert(res_metadata.contract == art_peace.contract_address, 'wrong meta ipfs');
+}
+
+#[test]
+#[should_panic(expected: ('not owner',))]
+fn test_place_pixel_metadata_non_owner() {
+    let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
+
+    let x = 10;
+    let y = 20;
+    let pos = x + y * WIDTH;
+    let color = 0x5;
+    let now = 10;
+
+    let ipfs: ByteArray = "ipfs";
+
+    let pixel_metadata = MetadataPixel {
+        pos, ipfs, nostr_event_id: 1, owner: utils::PLAYER1(), contract: art_peace.contract_address,
+    };
+
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
+    art_peace.place_pixel_metadata(pos, color, now, pixel_metadata.clone());
+    stop_cheat_caller_address(art_peace.contract_address);
+
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER2());
+    art_peace.place_pixel_metadata(pos, color, now, pixel_metadata.clone());
+    stop_cheat_caller_address(art_peace.contract_address);
 }
 
