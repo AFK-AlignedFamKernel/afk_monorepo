@@ -571,8 +571,8 @@ pub mod ArtPeace {
             let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
             let amount_paid = shield_params.amount_to_paid;
             //TODO
-            IERC20Dispatcher { contract_address: 1.try_into().unwrap() }
-                .transfer_from(caller, 1.try_into().unwrap(), amount_paid.clone());
+            // IERC20Dispatcher { contract_address: 1.try_into().unwrap() }
+            //     .transfer_from(caller, 1.try_into().unwrap(), amount_paid.clone());
 
             // set shield
             let shield = PixelShield {
@@ -1351,6 +1351,15 @@ pub mod ArtPeace {
         ) {
             self.set_shield_type(shield_type);
             self.set_admin_shield_params(shield_type, shield_params);
+        }
+
+        fn get_current_shield_type_and_params(
+            self: @ContractState
+        ) -> (PixelShieldType, ShieldAdminParams) {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type).read();
+
+            (shield_type, shield_params)
         }
     }
 

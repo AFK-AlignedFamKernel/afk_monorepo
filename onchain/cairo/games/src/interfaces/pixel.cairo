@@ -23,7 +23,7 @@ pub struct PixelShield {
     pub owner: starknet::ContractAddress,
 }
 
-#[derive(Drop, Copy, Serde, Hash, starknet::Store)]
+#[derive(Drop, Copy, Serde, Hash, starknet::Store, PartialEq)]
 pub enum PixelShieldType {
     BuyTime,
     AuctionDeadlineDay,
@@ -242,12 +242,17 @@ pub trait IArtPeace<TContractState> {
     fn get_last_placed_pixel_with_metadata(
         self: @TContractState, pos: u128
     ) -> (PixelState, MetadataPixel);
+    fn get_current_shield_type_and_params(
+        self: @TContractState
+    ) -> (PixelShieldType, ShieldAdminParams);
 
     fn set_shield_type(ref self: TContractState, shield_type: PixelShieldType);
     fn set_admin_shield_params(
         ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
     );
-    fn set_shield_type_with_shield_params(ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams);
+    fn set_shield_type_with_shield_params(
+        ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+    );
     fn activate_pixel_shield(ref self: TContractState);
     fn disable_pixel_shield(ref self: TContractState);
 }
