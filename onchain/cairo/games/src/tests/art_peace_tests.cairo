@@ -191,8 +191,11 @@ fn deploy_erc20_mock() -> ContractAddress {
     let initial_supply: u256 = 10 * utils::pow_256(10, 18);
     let recipient: ContractAddress = utils::HOST();
     let mut calldata = array![];
+    Serde::serialize(@'name', ref calldata);
+    Serde::serialize(@'symbol', ref calldata);
     Serde::serialize(@initial_supply, ref calldata);
     Serde::serialize(@recipient, ref calldata);
+    Serde::serialize(@18, ref calldata);
 
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::ERC20_MOCK_CONTRACT()).unwrap();
 
@@ -646,7 +649,8 @@ fn test_set_shield_type_with_shield_params() {
         amount_to_paid: 0,
         cost_per_second: 0,
         cost_per_minute: 0,
-        contract_address: art_peace.contract_address,
+        to_address: art_peace.contract_address,
+        buy_token_address: deploy_erc20_mock()
     };
 
     // set shield type and params
@@ -678,7 +682,7 @@ fn test_place_pixel_shield_non_activated() {
     let ipfs: ByteArray = "ipfs";
 
     // place pixel shield
-    art_peace.place_pixel_shield(pos);
+    art_peace.place_pixel_shield(pos, 30);
 }
 
 #[test]
@@ -699,7 +703,8 @@ fn test_place_pixel_shield_wrong_pixel_owner() {
         amount_to_paid: 0,
         cost_per_second: 0,
         cost_per_minute: 0,
-        contract_address: art_peace.contract_address,
+        to_address: art_peace.contract_address,
+        buy_token_address: deploy_erc20_mock()
     };
 
     // set shield type and params
@@ -720,7 +725,7 @@ fn test_place_pixel_shield_wrong_pixel_owner() {
 
     // place pixel shield
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
-    art_peace.place_pixel_shield(pos);
+    art_peace.place_pixel_shield(pos, 30);
     stop_cheat_caller_address(art_peace.contract_address);
 }
 
@@ -742,7 +747,8 @@ fn test_place_pixel_shield_pixel_under_shield() {
         amount_to_paid: 0,
         cost_per_second: 0,
         cost_per_minute: 0,
-        contract_address: art_peace.contract_address,
+        to_address: art_peace.contract_address,
+        buy_token_address: deploy_erc20_mock()
     };
 
     // set shield type and params
@@ -758,29 +764,34 @@ fn test_place_pixel_shield_pixel_under_shield() {
 
     // place pixel shield
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
-    art_peace.place_pixel_shield(pos);
-    art_peace.place_pixel_shield(pos);
+    art_peace.place_pixel_shield(pos, 30);
+    art_peace.place_pixel_shield(pos, 30);
     stop_cheat_caller_address(art_peace.contract_address);
 }
 
 #[test]
 fn test_place_pixel_shield_ok() {
     let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
+    let erc20_mock_addr = deploy_erc20_mock();
+    let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_mock_addr };
 
     let x = 10;
     let y = 20;
     let pos = x + y * WIDTH;
     let color = 0x5;
     let now = 10;
+    let time = 30; // 30 secs
+    let fund_balance = 500000;
 
     let shield_params = ShieldAdminParams {
         timestamp: get_block_timestamp(),
         shield_type: PixelShieldType::BuyTime,
         until: 30,
         amount_to_paid: 0,
-        cost_per_second: 0,
+        cost_per_second: 30,
         cost_per_minute: 0,
-        contract_address: art_peace.contract_address,
+        to_address: art_peace.contract_address,
+        buy_token_address: erc20_mock_addr,
     };
 
     // set shield type and params
@@ -794,9 +805,19 @@ fn test_place_pixel_shield_ok() {
     art_peace.place_pixel(pos, color, now);
     stop_cheat_caller_address(art_peace.contract_address);
 
+    // fund player 1
+    start_cheat_caller_address(erc20_mock_addr, utils::HOST());
+    erc20_dispatcher.transfer(utils::PLAYER1(), fund_balance);
+    stop_cheat_caller_address(erc20_mock_addr);
+
+    // approve allowance
+    start_cheat_caller_address(erc20_mock_addr, utils::PLAYER1());
+    erc20_dispatcher.approve(art_peace.contract_address, fund_balance);
+    stop_cheat_caller_address(erc20_mock_addr);
+
     // place pixel shield
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
-    art_peace.place_pixel_shield(pos);
+    art_peace.place_pixel_shield(pos, time);
     stop_cheat_caller_address(art_peace.contract_address);
 
     // simulate time passage
@@ -804,7 +825,7 @@ fn test_place_pixel_shield_ok() {
 
     // place pixel shield
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
-    art_peace.place_pixel_shield(pos);
+    art_peace.place_pixel_shield(pos, time);
     stop_cheat_caller_address(art_peace.contract_address);
 
     let shield = art_peace.get_last_placed_pixel_shield(pos);
@@ -812,6 +833,16 @@ fn test_place_pixel_shield_ok() {
     assert(shield.pos == pos, 'wrong position');
     assert(shield.timestamp == get_block_timestamp() + 200, 'wrong timestamp');
     assert(shield.until == shield_params.until, 'wrong end time');
-    assert(shield.amount_paid == shield_params.amount_to_paid, 'wrong amount paid');
+    assert(
+        shield.amount_paid == (shield_params.cost_per_second * time.into()), 'wrong amount paid'
+    );
     assert(shield.owner == utils::PLAYER1(), 'wrong owner');
+
+    let player_1_bal = erc20_dispatcher.balance_of(utils::PLAYER1());
+    let art_peace_bal = erc20_dispatcher.balance_of(art_peace.contract_address);
+
+    let amount_paid = (30 * 30) * 2;
+
+    assert(player_1_bal == fund_balance - amount_paid, 'wrong player 1 balance');
+    assert(art_peace_bal == amount_paid, 'wrong artpeace balance');
 }

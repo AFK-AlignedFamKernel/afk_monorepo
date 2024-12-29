@@ -612,7 +612,7 @@ pub mod ArtPeace {
             (amount_paid, time)
         }
 
-        fn _buy_pixel_shield_auction(ref self: ContractState) {//TODO
+        fn _buy_pixel_shield_auction(ref self: ContractState) { //TODO
         }
     }
 
