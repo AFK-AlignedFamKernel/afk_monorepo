@@ -61,7 +61,6 @@ pub mod ArtPeace {
         total_pixels: u128,
         last_placed_pixel: Map::<u128, PixelState>,
         last_placed_pixel_metadata: Map::<u128, MetadataPixel>,
-        // last_placed_pixel_shield: Map::<u128, Option<PixelShield>>,
         last_placed_pixel_shield: Map::<u128, PixelShield>,
         // Map: user's address -> last time they placed a pixel
         last_placed_time: Map::<ContractAddress, u64>,

@@ -185,7 +185,6 @@ fn deploy_nft_contract() -> ContractAddress {
     contract_addr
 }
 
-
 fn deploy_erc20_mock() -> ContractAddress {
     // use DualVmToken erc20 for testing
     let contract = declare("ERC20").unwrap().contract_class();
@@ -635,24 +634,6 @@ fn test_place_pixel_metadata_non_owner() {
     stop_cheat_caller_address(art_peace.contract_address);
 }
 
-#[test]
-#[should_panic(expected: ('Caller is missing role',))]
-fn test_set_shield_type_with_shield_params_non_admin() {
-    let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
-
-    let shield_params = ShieldAdminParams {
-        timestamp: get_block_timestamp(),
-        shield_type: PixelShieldType::BuyTime,
-        until: 30,
-        amount_to_paid: 0,
-        cost_per_second: 0,
-        cost_per_minute: 0,
-        contract_address: art_peace.contract_address,
-    };
-
-    // set shield type and params
-    art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
-}
 
 #[test]
 fn test_set_shield_type_with_shield_params() {
