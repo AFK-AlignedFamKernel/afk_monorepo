@@ -238,7 +238,7 @@ pub mod ArtPeace {
     // }
 
     #[constructor]
-    fn constructor(ref self: ContractState, init_params: InitParams, admin: ContractAddress) {
+    fn constructor(ref self: ContractState, init_params: InitParams) {
         self.host.write(init_params.host);
 
         self.canvas_width.write(init_params.canvas_width);
@@ -289,7 +289,7 @@ pub mod ArtPeace {
         self.daily_quests_count.write(init_params.daily_quests_count);
 
         //access control
-        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        self.accesscontrol._grant_role(ADMIN_ROLE, init_params.host);
     }
 
     #[generate_trait]
@@ -490,6 +490,8 @@ pub mod ArtPeace {
             let shield = self.last_placed_pixel_shield.entry(pos).read();
 
             if shield.owner.is_zero() {
+                return false;
+            } else if shield.owner == get_caller_address() {
                 return false;
             } else {
                 return (get_block_timestamp() - shield.timestamp) <= shield.until;

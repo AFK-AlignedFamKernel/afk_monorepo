@@ -79,7 +79,6 @@ pub(crate) fn deploy_contract() -> ContractAddress {
         devmode: false
     }
         .serialize(ref calldata);
-    ADMIN().serialize(ref calldata);
 
     start_cheat_caller_address(utils::ART_PEACE_CONTRACT(), utils::HOST());
     let (contract_addr, _) = contract.deploy_at(@calldata, utils::ART_PEACE_CONTRACT()).unwrap();
@@ -654,7 +653,7 @@ fn test_set_shield_type_with_shield_params() {
     };
 
     // set shield type and params
-    start_cheat_caller_address(art_peace.contract_address, ADMIN());
+    start_cheat_caller_address(art_peace.contract_address, utils::HOST());
     art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
     stop_cheat_caller_address(art_peace.contract_address);
 
@@ -708,7 +707,7 @@ fn test_place_pixel_shield_wrong_pixel_owner() {
     };
 
     // set shield type and params
-    start_cheat_caller_address(art_peace.contract_address, ADMIN());
+    start_cheat_caller_address(art_peace.contract_address, utils::HOST());
     art_peace.activate_pixel_shield();
     art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
     stop_cheat_caller_address(art_peace.contract_address);
@@ -730,8 +729,8 @@ fn test_place_pixel_shield_wrong_pixel_owner() {
 }
 
 #[test]
-#[should_panic(expected: ('pixel under shield',))]
-fn test_place_pixel_shield_pixel_under_shield() {
+#[should_panic(expected: ('Pixel not available',))]
+fn test_place_pixel_shield_pixel_under_shield_owner() {
     let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
 
     let x = 10;
@@ -752,7 +751,7 @@ fn test_place_pixel_shield_pixel_under_shield() {
     };
 
     // set shield type and params
-    start_cheat_caller_address(art_peace.contract_address, ADMIN());
+    start_cheat_caller_address(art_peace.contract_address, utils::HOST());
     art_peace.activate_pixel_shield();
     art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
     stop_cheat_caller_address(art_peace.contract_address);
@@ -760,12 +759,48 @@ fn test_place_pixel_shield_pixel_under_shield() {
     // place pixel
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
     art_peace.place_pixel(pos, color, now);
+    art_peace.place_pixel_shield(pos, 30);
+    art_peace.place_pixel(pos, color, now);
+    stop_cheat_caller_address(art_peace.contract_address);
+}
+
+#[test]
+#[should_panic(expected: ('pixel under shield',))]
+fn test_place_pixel_shield_pixel_under_shield_non_owner() {
+    let art_peace = IArtPeaceDispatcher { contract_address: deploy_contract() };
+
+    let x = 10;
+    let y = 20;
+    let pos = x + y * WIDTH;
+    let color = 0x5;
+    let now = 10;
+
+    let shield_params = ShieldAdminParams {
+        timestamp: get_block_timestamp(),
+        shield_type: PixelShieldType::BuyTime,
+        until: 30,
+        amount_to_paid: 0,
+        cost_per_second: 0,
+        cost_per_minute: 0,
+        to_address: art_peace.contract_address,
+        buy_token_address: deploy_erc20_mock()
+    };
+
+    // set shield type and params
+    start_cheat_caller_address(art_peace.contract_address, utils::HOST());
+    art_peace.activate_pixel_shield();
+    art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
     stop_cheat_caller_address(art_peace.contract_address);
 
-    // place pixel shield
+    // place pixel & shield
     start_cheat_caller_address(art_peace.contract_address, utils::PLAYER1());
+    art_peace.place_pixel(pos, color, now);
     art_peace.place_pixel_shield(pos, 30);
-    art_peace.place_pixel_shield(pos, 30);
+    stop_cheat_caller_address(art_peace.contract_address);
+
+    // place pixel
+    start_cheat_caller_address(art_peace.contract_address, utils::PLAYER2());
+    art_peace.place_pixel(pos, color, now);
     stop_cheat_caller_address(art_peace.contract_address);
 }
 
@@ -795,7 +830,7 @@ fn test_place_pixel_shield_ok() {
     };
 
     // set shield type and params
-    start_cheat_caller_address(art_peace.contract_address, ADMIN());
+    start_cheat_caller_address(art_peace.contract_address, utils::HOST());
     art_peace.activate_pixel_shield();
     art_peace.set_shield_type_with_shield_params(PixelShieldType::BuyTime, shield_params);
     stop_cheat_caller_address(art_peace.contract_address);
