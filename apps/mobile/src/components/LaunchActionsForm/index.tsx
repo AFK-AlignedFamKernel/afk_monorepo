@@ -107,7 +107,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             onChangeText={onChangeText}
             placeholder="Amount"
             // value={Number(amount?.toString())}
-            value={amount?.toString()}
+            value={typeAction === 'BUY' ? amount?.toString() : userShare?.amount_owned?.toString()}
           />
           <View style={styles.balanceInfo}>
             <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
