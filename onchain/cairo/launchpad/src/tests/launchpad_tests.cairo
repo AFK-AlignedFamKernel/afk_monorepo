@@ -1653,8 +1653,12 @@ mod launchpad_tests {
         let amount_owned_2 = share_user_2.amount_owned.try_into().unwrap();
 
         run_sell_by_amount(
-            launchpad, erc20, memecoin, amount_owned_2, // THRESHOLD_LIQUIDITY - amount_second_buy,
-            token_address, sender_address,
+            launchpad,
+            erc20,
+            memecoin,
+            amount_owned_2, // THRESHOLD_LIQUIDITY - amount_second_buy,
+            token_address,
+            sender_address,
         );
 
         println!("buy end_to_end amount total");
