@@ -1077,10 +1077,10 @@ pub mod LaunchpadMarketplace {
             let mut amount_owned = share_user.amount_owned.clone();
             // println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
 
-            // assert(
-            //     share_user.amount_owned >= old_pool.total_token_holded,
-            //     errors::SUPPLY_ABOVE_TOTAL_OWNED
-            // );
+            assert(
+                share_user.amount_owned <= old_pool.total_token_holded,
+                errors::SUPPLY_ABOVE_TOTAL_OWNED
+            );
 
             // if share_user.amount_owned >= old_pool.total_token_holded {
             //     assert(
@@ -1146,19 +1146,26 @@ pub mod LaunchpadMarketplace {
             // Can drained all fund
 
             if old_pool.liquidity_raised < quote_amount {
+                // TODO due to estimation, approximation or rounding
+                // maybe substract the difference between quote_amount and old_pool.liquidity_raised
+                println!("old_pool.liquidity_raised < quote_amount");
                 quote_amount = old_pool.liquidity_raised.clone();
                 quote_amount_total = old_pool.liquidity_raised.clone();
                 quote_amount_received = old_pool.liquidity_raised.clone();
             }
 
-            // Overwrite protocol fees
-            quote_amount_protocol_fee = quote_amount_total * protocol_fee_percent / BPS;
+            // Overwrite protocol fees and quote amount after check liquidity raised and contract
+            // quote balance
+            quote_amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
 
-            // if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
-            //     quote_amount = quote_amount_total - quote_amount_protocol_fee;
-            //     quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
-            //     quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
-            // }
+            // quote_amount = quote_amount - quote_amount_protocol_fee;
+            // quote_amount_total = quote_amount - quote_amount_protocol_fee;
+            // quote_amount_received = quote_amount - quote_amount_protocol_fee;
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
+                quote_amount = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
+            }
 
             // TODO edge case approximation, rounding
             // CAREFULLY TEST EDGE CASE AND FUZZING
@@ -1924,18 +1931,28 @@ pub mod LaunchpadMarketplace {
             };
 
             // println!("initial_pool_supply : {}", lp_supply.clone());
-            // println!("liquidity raised: {}", lp_quote_supply.clone());
+            println!("liquidity raised: {}", lp_quote_supply.clone());
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
-            // println!("sell contract_quote_balance final {:?}", contract_quote_balance);
+            println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
 
+            // TODO fix this
+            //
             // HIGH SECURITY
             // Can drained funk if edge case approximation issue
+            // Edge case of approximation estimation amount and fees can cause it
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
+                println!(
+                    "contract_quote_balance < lp_quote_supply
+                && contract_quote_balance < launch.threshold_liquidity: {}",
+                    contract_quote_balance < lp_quote_supply
+                        && contract_quote_balance < launch.threshold_liquidity
+                );
+                // println!("launch.threshold_liquidity: {}", launch.threshold_liquidity.clone());
                 lp_quote_supply = contract_quote_balance.clone();
             }
-            // println!("liquidity raised: {}", lp_quote_supply.clone());
+            println!("liquidity raised: {}", lp_quote_supply.clone());
 
             let params = EkuboUnrugLaunchParameters {
                 // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
