@@ -7,6 +7,7 @@
     "dev": "expo start",
     "build:web": "npx expo export --platform web",
     "start": "expo start",
+    "start:unwatch": "WATCHMAN_DISABLE=true expo start",
     "start:web": "expo start --web",
     "start:tunnel": "expo start --tunnel",
     "android": "expo run:android",

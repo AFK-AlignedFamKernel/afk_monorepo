@@ -15,8 +15,7 @@ mod launchpad_tests {
         CreateToken, TokenQuoteBuyCoin, BondingType,
         CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
          SupportedExchanges, EkuboLP,
-        EkuboPoolParameters, TokenLaunch, 
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
+        EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
         EkuboUnrugLaunchParameters
     };
     use core::num::traits::Zero;
@@ -855,7 +854,7 @@ mod launchpad_tests {
         // assert(launched_token.bonding_curve_type == BondingType::Linear, 'wrong type curve');
         // assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
         assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
-      
+
         // TODO add percentage of the fees and slippage
         // Few percent of the total token holded
         // assert(
@@ -864,8 +863,7 @@ mod launchpad_tests {
         //     'wrong token holded'
         // );
         assert(
-            launched_token.token_quote.token_address == erc20.contract_address,
-            'wrong token quote'
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
 
@@ -945,7 +943,6 @@ mod launchpad_tests {
         // assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
         assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
 
-         
         // TODO add percentage of the fees and slippage
         // Few percent of the total token holded
         // assert(
@@ -954,8 +951,7 @@ mod launchpad_tests {
         //     'wrong token holded'
         // );
         assert(
-            launched_token.token_quote.token_address == erc20.contract_address,
-            'wrong token quote'
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
 
@@ -1088,7 +1084,6 @@ mod launchpad_tests {
         start_cheat_caller_address(erc20.contract_address, sender_address);
         let mut spy = spy_events();
 
-
         // Call a view function of the contract
         // Check default token used
         let default_token = launchpad.get_default_token();
@@ -1127,7 +1122,6 @@ mod launchpad_tests {
         let alice_address = ALICE();
         run_buy_by_amount(launchpad, erc20, memecoin, one_quote, token_address, alice_address,);
 
-
         run_sell_by_amount(
             launchpad, erc20, memecoin, amount_owned, token_address, sender_address,
         );
@@ -1160,7 +1154,6 @@ mod launchpad_tests {
         // assert(launched_token.liquidity_raised == THRESHOLD_LIQUIDITY, 'wrong liq raised');
         assert(launched_token.initial_pool_supply == default_supply / 5_u256, 'wrong init pool');
 
-         
         // TODO add percentage of the fees and slippage
         // Few percent of the total token holded
         // assert(
@@ -1169,8 +1162,7 @@ mod launchpad_tests {
         //     'wrong token holded'
         // );
         assert(
-            launched_token.token_quote.token_address == erc20.contract_address,
-            'wrong token quote'
+            launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
 
@@ -1655,32 +1647,21 @@ mod launchpad_tests {
         println!("sell threshold amount owned");
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        
         let share_user_2 = launchpad
             .get_share_of_user_by_contract(sender_address, memecoin.contract_address);
 
         let amount_owned_2 = share_user_2.amount_owned.try_into().unwrap();
 
         run_sell_by_amount(
-            launchpad,
-            erc20,
-            memecoin,
-            amount_owned_2,
-            // THRESHOLD_LIQUIDITY - amount_second_buy,
-            token_address,
-            sender_address,
+            launchpad, erc20, memecoin, amount_owned_2, // THRESHOLD_LIQUIDITY - amount_second_buy,
+            token_address, sender_address,
         );
 
         println!("buy end_to_end amount total");
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
         run_buy_by_amount(
-            launchpad, 
-            erc20, 
-            memecoin, 
-            
-            THRESHOLD_LIQUIDITY, 
-            token_address, sender_address,
+            launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
         println!("finished buy end_to_end amount total");
 
