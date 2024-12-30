@@ -195,11 +195,12 @@ export const NAMESERVICE_ADDRESS = {
 };
 
 export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
-  [constants.StarknetChainId.SN_SEPOLIA]:
-    "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
   [constants.StarknetChainId.SN_MAIN]:
     "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc",
-
+    [constants.StarknetChainId.SN_SEPOLIA]:
+    "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
 

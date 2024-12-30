@@ -1075,7 +1075,7 @@ pub mod LaunchpadMarketplace {
             // Test edge case and calcul
             // CAREFULLY CHECK AND TEST
             let mut amount_owned = share_user.amount_owned.clone();
-            println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
+            // println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
 
             // assert(
             //     share_user.amount_owned >= old_pool.total_token_holded,
@@ -1105,7 +1105,7 @@ pub mod LaunchpadMarketplace {
             let amount_protocol_fee: u256 = remain_coin_amount.clone() * protocol_fee_percent / BPS;
             let amount_creator_fee = remain_coin_amount.clone() * creator_fee_percent / BPS;
             assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
-            println!("sell remain_coin_amount edge {:?}", remain_coin_amount);
+            // println!("sell remain_coin_amount edge {:?}", remain_coin_amount);
 
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
                 old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
@@ -1234,20 +1234,18 @@ pub mod LaunchpadMarketplace {
             // TODO edge case fees threshold
             // CAREFULLY TEST
             // HIGH RISK = BLOCKED SELL
-            println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
+            // println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
 
             if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
                 // TODO edgecase
-                println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
-
+                // println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
                 erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
             }
 
             // println!("sell transfer quote amount");
             // Transfer the remaining quote amount to the user
             if quote_amount > 0 {
-                println!("sell transfer quote amount {:?}", quote_amount);
-
+                // println!("sell transfer quote amount {:?}", quote_amount);
                 erc20.transfer(caller, quote_amount);
             }
 
@@ -1262,7 +1260,7 @@ pub mod LaunchpadMarketplace {
 
             // TODO fix amount owned and sellable.
             // Update share user coin
-            println!("sell update amount owned");
+            // println!("sell update amount owned");
 
             share_user.amount_owned -= remain_coin_amount;
             share_user.amount_sell += remain_coin_amount;
@@ -1282,26 +1280,26 @@ pub mod LaunchpadMarketplace {
             // pool_update.price = total_price;
             //      println!("sell update pool");
 
-            println!("sell pool update liq raised");
-            println!("remain_coin_amount {:?}", remain_coin_amount);
+            // println!("sell pool update liq raised");
+            // println!("remain_coin_amount {:?}", remain_coin_amount);
 
             // TODO check
             // HIGH SECURITY
             if pool_update.liquidity_raised >= quote_amount {
-                println!(
-                    "pool_update.liquidity_raised > quote_amount {:?}",
-                    pool_update.liquidity_raised > quote_amount
-                );
-                println!("pool_update.liquidity_raised {:?}", pool_update.liquidity_raised);
-                println!("quote_amount {:?}", quote_amount);
+                // println!(
+                //     "pool_update.liquidity_raised > quote_amount {:?}",
+                //     pool_update.liquidity_raised > quote_amount
+                // );
+                // println!("pool_update.liquidity_raised {:?}", pool_update.liquidity_raised);
+                // println!("quote_amount {:?}", quote_amount);
                 pool_update.liquidity_raised -= quote_amount;
             } else {
                 pool_update.liquidity_raised = 0_u256;
             }
-            println!("try update total_token_holded {:?}", pool_update.total_token_holded);
+            // println!("try update total_token_holded {:?}", pool_update.total_token_holded);
 
             pool_update.total_token_holded -= remain_coin_amount;
-            println!("try update available supply {:?}", pool_update.available_supply);
+            // println!("try update available supply {:?}", pool_update.available_supply);
 
             pool_update.available_supply += remain_coin_amount;
 
@@ -1924,18 +1922,18 @@ pub mod LaunchpadMarketplace {
                 contract_address: launch.token_quote.token_address.clone()
             };
 
-            println!("initial_pool_supply : {}", lp_supply.clone());
-            println!("liquidity raised: {}", lp_quote_supply.clone());
+            // println!("initial_pool_supply : {}", lp_supply.clone());
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
-            println!("sell contract_quote_balance final {:?}", contract_quote_balance);
+            // println!("sell contract_quote_balance final {:?}", contract_quote_balance);
 
             // HIGH SECURITY
             // Can drained funk if edge case approximation issue 
             if contract_quote_balance < lp_quote_supply && contract_quote_balance < launch.threshold_liquidity  {
                 lp_quote_supply=contract_quote_balance.clone();
             }
-            println!("liquidity raised: {}", lp_quote_supply.clone());
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
 
             let params = EkuboUnrugLaunchParameters {
                 // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
