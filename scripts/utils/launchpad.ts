@@ -126,17 +126,22 @@ export const createLaunchpad = async (
       console.log("Declare deploy", declareResponse);
 
       // TODO wait for transaction
-      console.log("wait declare response")
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+
+      if(declareResponse?.transaction_hash) {
+        console.log("wait declare response")
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+      }
 
       const contractClassHash = declareResponse.class_hash;
       LaunchpadClassHash = contractClassHash;
       console.log("LaunchpadClassHash", LaunchpadClassHash);
 
-      const nonce = await account0?.getNonce();
-      console.log("nonce", nonce);
+      // const nonce = await account0?.getNonce();
+      // console.log("nonce", nonce);
     }
+
+    console.log("Try deploy launchpad");
 
     const { transaction_hash, contract_address } =
     await account0.deployContract({

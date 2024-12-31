@@ -24,6 +24,7 @@ const ARGENT_CONFIG = {
     allowedMethods: [
       {
         contract:
+          process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS ||
           process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS ||
           process.env.EXPO_PUBLIC_STARKNET_CONTRACT_ADDRESS ||
           '0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e',
@@ -39,11 +40,11 @@ const ARGENT_CONFIG = {
 const initArgentTMA = () => {
   if (
     typeof window !== 'undefined' &&
-    window.Telegram &&
+    window?.Telegram &&
     // @ts-ignore
-    window.Telegram.WebApp.isActive &&
+    window?.Telegram?.WebApp?.isActive &&
     // @ts-ignore
-    window.Telegram.WebApp.platform !== 'unknown'
+    window?.Telegram?.WebApp?.platform !== 'unknown'
   ) {
     return ArgentTMA.init(ARGENT_CONFIG as any);
   }
@@ -140,8 +141,9 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
     }
 
     //If in telegram context
-    if (state.isTelegram) {
+    if (state?.isTelegram) {
       const argentTMA = initArgentTMA();
+      console.log("argentTma", argentTMA)
       if (!argentTMA) return;
       try {
         const res = await argentTMA.connect()
@@ -170,12 +172,23 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
         // setAccount(account);
         // setConnected(true);
         // await connectArgent()
-
+        await argentTMA.requestConnection({
+          callbackData: 'custom_callback',
+          approvalRequests: [
+            // {
+            //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+            //   amount: BigInt(1000000000000000000).toString(),
+            //   spender: 'spender_address',
+            // }
+          ],
+        });
 
         // await argentTMA.requestConnection({
         //   callbackData: '',
         //   approvalRequests: [],
         // });
+
+
       } catch (error) {
         console.log(error, 'err');
       }

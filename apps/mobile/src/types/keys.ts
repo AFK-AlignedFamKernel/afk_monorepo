@@ -32,10 +32,14 @@ export interface TokenLaunchInterface {
 }
 
 export interface UserShareInterface {
-  total: number;
-  total_buy: number;
-  total_sell: number;
-  quote_amount: number;
+  owner?: string;
+  token_address?: string;
+  created_at?: string;
+  amount_owned?: string;
+  // total?: number;
+  // total_buy?: number;
+  // total_sell?: number;
+  // quote_amount?: number;
 }
 
 export interface TokenDeployInterface {

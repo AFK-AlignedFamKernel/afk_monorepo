@@ -71,12 +71,13 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
               Amount to claim
             </Text>
             <Text fontSize={14}>
-              {Number(share?.total_buy) - Number(share?.total_sell)}
+              {Number(share?.amount_owned)}
+              {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
               {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
             </Text>
           </View>
 
-          <View style={styles.borderBottom}>
+          {/* <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Total sell
             </Text>
@@ -94,7 +95,7 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
               Quote amount paid
             </Text>
             <Text fontSize={14}>{sharesState?.quote_amount}</Text>
-          </View>
+          </View> */}
         </View>
       ) : (
         sharesState && (
@@ -104,13 +105,16 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
                 Total
               </Text>
               <Text fontSize={14}>
-                {sharesState?.total
+
+              {Number(share?.amount_owned)}
+
+                {/* {sharesState?.total
                   ? Number(sharesState?.total)
-                  : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)}
+                  : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)} */}
               </Text>
             </View>
 
-            <View style={styles.borderBottom}>
+            {/* <View style={styles.borderBottom}>
               <Text fontSize={14} weight="semiBold">
                 Total sell
               </Text>
@@ -128,7 +132,7 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
                 Quote amount paid
               </Text>
               <Text fontSize={14}>{sharesState?.quote_amount}</Text>
-            </View>
+            </View> */}
           </View>
         )
       )}

@@ -55,8 +55,12 @@ export const LAUNCHPAD_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1"
 
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3ed3046bf62bfcfba32e9282d64f432de3f0c383755b1aee8514c3d67109573"
+    
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x3ed3046bf62bfcfba32e9282d64f432de3f0c383755b1aee8514c3d67109573"
+  "0x1488623bcbd76a0d078cc4c4743630c2650800626ce20774b8f3706a42591e9"
+  
     
 
 };
@@ -195,11 +199,12 @@ export const NAMESERVICE_ADDRESS = {
 };
 
 export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
-  [constants.StarknetChainId.SN_SEPOLIA]:
-    "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
   [constants.StarknetChainId.SN_MAIN]:
     "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc",
-
+    [constants.StarknetChainId.SN_SEPOLIA]:
+    "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
 

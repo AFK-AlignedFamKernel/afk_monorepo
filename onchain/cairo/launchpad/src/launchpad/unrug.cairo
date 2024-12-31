@@ -13,17 +13,18 @@ pub mod UnrugLiquidity {
     // use afk_launchpad::launchpad::interfaces::jediswap::IJediswapFactoryDispatcher;
 
     use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, calculate_slope, calculate_pricing,
+        calculate_starting_price_launch, // calculate_slope, calculate_pricing,
     };
     use afk_launchpad::launchpad::errors;
     // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
     // };
     use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::locker::interface::{ILockManagerDispatcher};
-    use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
+    use afk_launchpad::launchpad::math::{PercentageMath, // pow_256
+    };
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag
+        // calculate_aligned_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -749,14 +750,17 @@ pub mod UnrugLiquidity {
             let positions_address = self.positions.read();
             let positions = IPositionsDispatcher { contract_address: positions_address };
 
+            // println!("transfer memecoin");
             ERC20ABIDispatcher { contract_address: token }
                 .transfer_from(owner, recipient: positions.contract_address, amount: lp_supply);
 
+            // println!("transfer quote amount");
             ERC20ABIDispatcher { contract_address: token_quote }
                 .transfer_from(
                     owner, recipient: positions.contract_address, amount: lp_quote_supply
                 );
 
+            // println!("try mint and deposit");
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
 
             id

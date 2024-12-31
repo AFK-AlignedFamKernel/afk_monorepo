@@ -23,6 +23,14 @@ config.resolver.nodeModulesPaths = [
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
 
+// Add this configuration for WSL
+config.watchFolders = [workspaceRoot];
+config.server = {
+  ...config.server,
+  usePolling: true,
+  pollingInterval: 1000,
+};
+
 module.exports = config;
 
 // module.exports = (async () => {

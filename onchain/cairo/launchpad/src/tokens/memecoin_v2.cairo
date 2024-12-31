@@ -300,7 +300,7 @@ pub mod MemecoinV2 {
         let mut executors = ArrayTrait::new();
         proposers.append(caller);
         executors.append(caller);
-        let min_delay = 100_000;
+        // let min_delay = 100_000;
         // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
 
         // Register the contract's support for the ISRC6 interface
