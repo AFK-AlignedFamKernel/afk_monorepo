@@ -172,30 +172,31 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
         // setAccount(account);
         // setConnected(true);
         // await connectArgent()
-        await argentTMA.requestConnection("custom_callback_data", [
-          // {
-          //   token: {
-          //     // Token address that you need approved
-          //     address: "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
-          //     name: "Ethereum",
-          //     symbol: "ETH",
-          //     decimals: 18,
-          //   },
-          //   amount: BigInt(100000).toString(),
-          //   // Your dapp contract
-          //   spender: "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
-          // },
-        ]);
-        // await argentTMA.requestConnection({
-        //   callbackData: 'custom_callback',
-        //   approvalRequests: [
-        //     // {
-        //     //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-        //     //   amount: BigInt(1000000000000000000).toString(),
-        //     //   spender: 'spender_address',
-        //     // }
-        //   ],
-        // });
+        // await argentTMA.requestConnection("custom_callback_data", [
+        // await argentTMA.requestConnection("custom_callback", [
+        //   // {
+        //   //   token: {
+        //   //     // Token address that you need approved
+        //   //     address: "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
+        //   //     name: "Ethereum",
+        //   //     symbol: "ETH",
+        //   //     decimals: 18,
+        //   //   },
+        //   //   amount: BigInt(100000).toString(),
+        //   //   // Your dapp contract
+        //   //   spender: "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+        //   // },
+        // ]);
+        await argentTMA.requestConnection({
+          callbackData: 'custom_callback',
+          approvalRequests: [
+            // {
+            //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+            //   amount: BigInt(1000000000000000000).toString(),
+            //   spender: 'spender_address',
+            // }
+          ],
+        });
 
         // await argentTMA.requestConnection({
         //   callbackData: '',
