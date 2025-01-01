@@ -172,8 +172,6 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
         // setAccount(account);
         // setConnected(true);
         // await connectArgent()
-        // await argentTMA.requestConnection("custom_callback_data", [
-  
         await argentTMA.requestConnection({
           callbackData: 'custom_callback_data',
           approvalRequests: [
