@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@argent/tma-wallet": "^1.19.3",
+    "@argent/tma-wallet": "1.19.3",
     "axios": "^1.7.2",
     "common": "workspace:*",
     "dotenv": "^16.4.5",
