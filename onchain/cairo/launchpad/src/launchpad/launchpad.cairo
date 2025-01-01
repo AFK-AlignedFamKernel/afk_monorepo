@@ -2024,6 +2024,7 @@ pub mod LaunchpadMarketplace {
         }
 
         // TODO finish call Jediswap
+        // Change preparation of state for lp_supply, approve etc for the Unrug V2
         fn _add_liquidity_jediswap(
             ref self: ContractState, coin_address: ContractAddress,
             // params: EkuboLaunchParameters

@@ -163,7 +163,7 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
           return;
         }
 
-        const chainId = await account?.getChainId();
+        // const chainId = await account?.getChainId();
         // setConnectorData({
         //   account: account.address,
         //   chainId: chainId ? BigInt(chainId).toString() : undefined,

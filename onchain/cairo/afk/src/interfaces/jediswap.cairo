@@ -62,3 +62,17 @@ pub trait IJediswapNFTRouterV2<TState> {
     fn factory(self: @TState) -> ContractAddress;
 }
 
+
+
+#[starknet::interface]
+pub trait IJediswapFactoryV1<TState> {
+    // ************************************
+    // * snake_case
+    // ************************************
+
+    // Views
+    fn get_pair(
+        self: @TState, token_a:ContractAddress, token_b: ContractAddress
+    ) -> ContractAddress;
+}
+
