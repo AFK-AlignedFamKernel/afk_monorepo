@@ -405,13 +405,12 @@ mod unrug_tests {
         start_cheat_caller_address(unrug_liq.contract_address, OWNER());
 
         println!("token_address jediswap launch: {:?}", token_address);
-        println!(
-            "Balance of unrug_liq: {:?}",
-            IERC20Dispatcher { contract_address: token_address }
-                .balance_of(unrug_liq.contract_address)
-        );
+        // println!(
+        //     "Balance of unrug_liq: {:?}",
+        //     IERC20Dispatcher { contract_address: token_address }
+        //         .balance_of(unrug_liq.contract_address)
+        // );
 
-        let starting_price = i129 { sign: true, mag: 4600158 };
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
 
@@ -420,6 +419,10 @@ mod unrug_tests {
 
         let lp_meme_supply = total_supply - total_token_holded;
         let lp_quote_supply = 100_u256;
+
+        memecoin.approve(unrug_liq.contract_address, lp_meme_supply);
+        erc20_dispatcher.approve(unrug_liq.contract_address, lp_quote_supply);
+
         println!("lp_meme_supply {:?}", lp_meme_supply);
 
         // println!("set JEDISWAP_FACTORY",);
