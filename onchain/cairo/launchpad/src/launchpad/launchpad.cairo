@@ -612,7 +612,7 @@ pub mod LaunchpadMarketplace {
         // Calculate fees and protocol fees
         // Transfer fees to the protocol fee destination
         // Transfer quote to the user
-        // Update the state of the pool: Liquidity raised, available_supply, 
+        // Update the state of the pool: Liquidity raised, available_supply,
         // Update the share user: update amount_owned
         // Emit the buy event
         fn buy_coin_by_quote_amount(
@@ -913,7 +913,7 @@ pub mod LaunchpadMarketplace {
         // Calculate fees and protocol fees
         // Transfer fees to the protocol fee destination
         // Transfer quote to the user
-        // Update the state of the pool: Liquidity raised, available_supply, 
+        // Update the state of the pool: Liquidity raised, available_supply,
         // Update the share user: update amount_owned
         // Emit the sell event
         fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
