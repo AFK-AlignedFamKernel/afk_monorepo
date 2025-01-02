@@ -270,6 +270,10 @@ pub struct SetJediswapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct SetJediswapRouterV2 {
+    pub address_jediswap_router_v2: ContractAddress,
+}
 
 #[derive(Drop, starknet::Event)]
 pub struct LiquidityCanBeAdded {

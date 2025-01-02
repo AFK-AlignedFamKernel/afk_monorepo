@@ -2044,15 +2044,19 @@ pub mod LaunchpadMarketplace {
             let mut threshold = threshold_liquidity - slippage_threshold;
 
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
-        
+
             let quote_address = launch.token_quote.token_address.clone();
-            let lp_supply= launch.initial_pool_supply.clone();
+            let lp_supply = launch.initial_pool_supply.clone();
             let quote_supply = launch.liquidity_raised.clone();
             let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
-            let id_cast = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
-            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
+            let id_cast = unrug_liquidity
+                .launch_on_jediswap(
+                    coin_address, quote_address, lp_supply, quote_supply, unlock_time
+                );
+            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address,
+            // lp_supply, quote_supply, unlock_time);
             // let id_cast: u256 = id.try_into().unwrap();
 
             self

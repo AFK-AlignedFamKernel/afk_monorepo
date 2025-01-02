@@ -638,6 +638,8 @@ mod unrug_tests {
             .launch_on_jediswap(
                 token_address, erc20.contract_address, lp_meme_supply, lp_quote_supply, unlock_time
             );
+
+        println!("liq jediswap launched");
     }
 }
 

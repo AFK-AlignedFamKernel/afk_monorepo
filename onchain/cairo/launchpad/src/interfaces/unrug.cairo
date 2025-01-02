@@ -97,6 +97,9 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_address_jediswap_nft_router_v2(
         ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
     );
+    fn set_address_jediswap_router_v2(
+        ref self: TContractState, address_jediswap_router_v2: ContractAddress
+    );
     fn set_address_jediswap_router_v1(
         ref self: TContractState, address_jediswap_router_v1: ContractAddress
     );

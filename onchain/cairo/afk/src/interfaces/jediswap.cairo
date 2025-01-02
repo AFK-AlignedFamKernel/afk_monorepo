@@ -17,6 +17,13 @@ pub trait IJediswapFactoryV2<TState> {
     // * snake_case
     // ************************************
 
+    fn get_pair(
+        self: @TState, token0: ContractAddress, token1: ContractAddress
+    ) -> ContractAddress;
+    fn create_pair(
+        ref self: TState, tokenA: ContractAddress, tokenB: ContractAddress
+    ) -> ContractAddress;
+
     // Views
     fn get_pool(
         self: @TState, token_a: ContractAddress, token_b: ContractAddress, fee: u32
@@ -31,9 +38,33 @@ pub trait IJediswapFactoryV2<TState> {
 }
 
 #[starknet::interface]
-pub trait IJediswapRouterV2<TState> { // ************************************
-// * snake_case
-// ************************************
+pub trait IJediswapRouterV2<TState> { 
+    // ************************************
+    // * snake_case
+    // ************************************
+    fn factory(self: @TState) -> ContractAddress;
+    fn sort_tokens(
+        self: @TState, tokenA: ContractAddress, tokenB: ContractAddress
+    ) -> (ContractAddress, ContractAddress);
+    fn add_liquidity(
+        ref self: TState,
+        tokenA: ContractAddress,
+        tokenB: ContractAddress,
+        amountADesired: u256,
+        amountBDesired: u256,
+        amountAMin: u256,
+        amountBMin: u256,
+        to: ContractAddress,
+        deadline: u64
+    ) -> (u256, u256, u256);
+    fn swap_exact_tokens_for_tokens(
+        ref self: TState,
+        amountIn: u256,
+        amountOutMin: u256,
+        path: Array::<ContractAddress>,
+        to: ContractAddress,
+        deadline: u64
+    ) -> Array<u256>;
 
 }
 
@@ -64,6 +95,7 @@ pub trait IJediswapNFTRouterV2<TState> {
 
 
 
+// TODO verify docs
 #[starknet::interface]
 pub trait IJediswapFactoryV1<TState> {
     // ************************************
@@ -73,6 +105,17 @@ pub trait IJediswapFactoryV1<TState> {
     // Views
     fn get_pair(
         self: @TState, token_a:ContractAddress, token_b: ContractAddress
+    ) -> ContractAddress;
+    // Views
+    fn get_pool(
+        self: @TState, token_a: ContractAddress, token_b: ContractAddress, fee: u32
+    ) -> ContractAddress;
+    fn fee_amount_tick_spacing(self: @TState, fee: u32) -> u32;
+    fn get_fee_protocol(self: @TState) -> u8;
+
+    // Write
+    fn create_pool(
+        ref self: TState, token_a: ContractAddress, token_b: ContractAddress, fee: u32
     ) -> ContractAddress;
 }
 
