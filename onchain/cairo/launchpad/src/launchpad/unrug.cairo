@@ -1177,7 +1177,7 @@ pub mod UnrugLiquidity {
 
             let amount_coin_liq = lp_supply.clone();
             let total_supply = lp_supply.clone();
-            let liquidity_raised = quote_amount.clone()
+            let liquidity_raised = quote_amount.clone();
 
             println!("prepare params jediswap pool {}", 7);
             // TODO 

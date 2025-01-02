@@ -225,6 +225,9 @@ pub mod LaunchpadMarketplace {
     /// Once reached, transfers are disabled until the memecoin is is_launched.
     const MAX_HOLDERS_LAUNCH: u8 = 10;
 
+    const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
+
+
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
 
     // fn _validate_transaction_size(amount: u256) {
@@ -2028,7 +2031,7 @@ pub mod LaunchpadMarketplace {
         fn _add_liquidity_jediswap(
             ref self: ContractState, coin_address: ContractAddress,
             // params: EkuboLaunchParameters
-        ) -> (u64, EkuboLP) {
+        ) -> u256 {
             let unrug_liquidity = IUnrugLiquidityDispatcher {
                 contract_address: self.unrug_liquidity_address.read()
             };
@@ -2043,8 +2046,10 @@ pub mod LaunchpadMarketplace {
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
         
             let quote_address = launch.token_quote.token_address.clone();
-            let lp_supply= self.initial_pool_supply.clone();
-            let quote_supply = self.liquidity_raised.clone();
+            let lp_supply= launch.initial_pool_supply.clone();
+            let quote_supply = launch.liquidity_raised.clone();
+            let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
+
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
             let id_cast = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
@@ -2062,7 +2067,8 @@ pub mod LaunchpadMarketplace {
                         is_unruggable: false
                     }
                 );
-            (id, position)
+            // (id, position)
+            id_cast
         }
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
