@@ -144,12 +144,6 @@ pub mod LaunchpadMarketplace {
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
     };
-    // use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher,
-    // IPositionsDispatcherTrait};
-    // use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
-    // use ekubo::interfaces::token_registry::{
-    //     ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
-    // };
     use ekubo::types::bounds::{Bounds};
     use ekubo::types::keys::PoolKey;
     use ekubo::types::{i129::i129};
@@ -226,8 +220,6 @@ pub mod LaunchpadMarketplace {
     const MAX_HOLDERS_LAUNCH: u8 = 10;
 
     const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
-
-
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
 
     // fn _validate_transaction_size(amount: u256) {
@@ -255,23 +247,22 @@ pub mod LaunchpadMarketplace {
         exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
-        address_jediswap_factory_v2: ContractAddress,
-        address_jediswap_nft_router_v2: ContractAddress,
-        address_ekubo_factory: ContractAddress,
-        address_ekubo_router: ContractAddress,
+  
         // User states
         token_created: Map::<ContractAddress, Token>,
         launched_coins: Map::<ContractAddress, TokenLaunch>,
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        // shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        // shares_by_users: Map<ContractAddress, Map<ContractAddress,SharesTokenUser>>,
         shares_by_users: Map::<ContractAddress, Map<ContractAddress, SharesTokenUser>>,
         bonding_type: Map::<ContractAddress, BondingType>,
         array_launched_coins: Map::<u64, TokenLaunch>,
         array_coins: Map::<u64, Token>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
+
+        // Admin params
+        default_init_supply: u256,
+        is_default_init_supply: bool,
         admins_fees_params: AdminsFeesParams,
         // Parameters
         is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
@@ -312,14 +303,12 @@ pub mod LaunchpadMarketplace {
         max_supply_launch: u256,
         min_supply_launch: u256,
         // External contract
-        // factory_address: ContractAddress,
-        // ekubo_registry: ContractAddress,
-        // core: ContractAddress,
-        // positions: ContractAddress,
-        // ekubo_exchange_address: ContractAddress,
+        address_jediswap_factory_v2: ContractAddress,
+        address_jediswap_nft_router_v2: ContractAddress,
+        address_ekubo_factory: ContractAddress,
+        address_ekubo_router: ContractAddress,
         unrug_liquidity_address: ContractAddress,
-        default_init_supply: u256,
-        is_default_init_supply: bool,
+      
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -359,11 +348,6 @@ pub mod LaunchpadMarketplace {
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_market_cap: u256,
-        // factory_address: ContractAddress,
-        // ekubo_registry: ContractAddress,
-        // core: ContractAddress,
-        // positions: ContractAddress,
-        // ekubo_exchange_address: ContractAddress,
         unrug_liquidity_address: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
@@ -474,21 +458,7 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, is_fees_protocol_buy_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            // let old_admins_fees_params = self.admins_fees_params.read();
-            // let admins_fees_params = AdminsFeesParams {
-            //     token_address_to_paid_launch:
-            //     old_admins_fees_params.token_address_to_paid_launch,
-            //     token_address_to_paid_create_token:
-            //     old_admins_fees_params.token_address_to_paid_create_token, amount_to_paid_launch:
-            //     old_admins_fees_params.amount_to_paid_launch, amount_to_paid_create_token:
-            //     old_admins_fees_params.amount_to_paid_create_token, is_fees_protocol_buy_enabled:
-            //     is_fees_protocol_buy_enabled, is_fees_protocol_sell_enabled:
-            //     old_admins_fees_params.is_fees_protocol_sell_enabled, is_fees_protocol_enabled:
-            //     old_admins_fees_params.is_fees_protocol_enabled, is_paid_create_token_enable:
-            //     old_admins_fees_params.is_paid_create_token_enable, is_paid_launch_enable:
-            //     old_admins_fees_params.is_paid_launch_enable,
-            // };
-            // self.admins_fees_params.write(admins_fees_params);
+   
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
@@ -717,7 +687,6 @@ pub mod LaunchpadMarketplace {
                     caller,
                     contract_address,
                 );
-            // self._launch_token(token_address, caller, contract_address, false,);
             self
                 ._launch_token(
                     token_address, caller, contract_address, false, Option::Some(bonding_type)
@@ -734,7 +703,6 @@ pub mod LaunchpadMarketplace {
 
             let token = self.token_created.read(coin_address);
             let is_unruggable = token.is_unruggable;
-            // self._launch_token(coin_address, caller, contract_address, is_unruggable);
             self
                 ._launch_token(
                     coin_address,
