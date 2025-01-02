@@ -15,8 +15,7 @@ pub mod UnrugLiquidity {
         //    Router
         // IJediswapRouterV2,
         IJediswapRouterV2Dispatcher, IJediswapRouterV2DispatcherTrait, // NFT router position
-        IJediswapNFTRouterV2,
-        IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+        IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
         // IJediswapRouterV1Dispatcher,
     // IJediswapRouterV1,
     // IJediswapRouterV1DispatcherTrait,
@@ -806,6 +805,8 @@ pub mod UnrugLiquidity {
             id
         }
 
+        // Jediswap V1 router same as Unrug contract
+        // V1 function
         fn _supply_liquidity_jediswap_router(
             ref self: ContractState,
             pool_key: PoolKey,
@@ -885,6 +886,7 @@ pub mod UnrugLiquidity {
             // TODO
             // Default params to verify
             // Security check
+            // Verify all params pool sqrt etc
             let sqrt_price_X96 = 0; // TODO change sqrt_price_X96
 
             let amount_coin_liq = lp_supply.clone();
@@ -899,6 +901,7 @@ pub mod UnrugLiquidity {
             let deadline: u64 = get_block_timestamp();
 
             let recipient_lp = get_contract_address();
+            println!("create pool");
 
             let mut pool = factory.create_pool(token_address, quote_token_address, fee);
             pool = nft_router
@@ -929,7 +932,7 @@ pub mod UnrugLiquidity {
                 deadline: get_block_timestamp()
             };
 
-            println!("step {}", 9);
+            println!("mint and deposit");
             let (token_id, _, _, _) = nft_router.mint(mint_params);
             let mut id_token_lp = token_id.try_into().unwrap();
             id_token_lp
