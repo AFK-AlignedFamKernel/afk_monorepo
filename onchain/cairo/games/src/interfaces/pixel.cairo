@@ -1,14 +1,6 @@
 use starknet::ContractAddress;
 
-
-#[derive(Drop, Copy, Serde, Hash, starknet::Store)]
-pub enum PixelShieldType {
-    BlockedTime,
-    Auction,
-    AuctionReset,
-    // Starkdefi,
-}
-
+pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
 #[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct AdminsFeesParams {
@@ -19,6 +11,34 @@ pub struct AdminsFeesParams {
     pub token_address: ContractAddress,
     pub auction_time_reset_price: u64,
     pub is_auction_time_reset: bool
+}
+
+#[derive(Drop, Copy, Serde, starknet::Store, PartialEq)]
+pub struct PixelShield {
+    pub pos: u128,
+    pub timestamp: u64,
+    pub until: u64,
+    pub amount_paid: u256,
+    // The person that placed the pixel
+    pub owner: starknet::ContractAddress,
+}
+
+#[derive(Drop, Copy, Serde, Hash, starknet::Store, PartialEq)]
+pub enum PixelShieldType {
+    BuyTime,
+    AuctionDeadlineDay,
+}
+
+#[derive(Drop, Copy, Serde, starknet::Store)]
+pub struct ShieldAdminParams {
+    pub timestamp: u64,
+    pub shield_type: PixelShieldType,
+    pub until: u64,
+    pub amount_to_paid: u256,
+    pub cost_per_second: u256,
+    pub cost_per_minute: u256,
+    pub to_address: starknet::ContractAddress,
+    pub buy_token_address: starknet::ContractAddress,
 }
 
 #[derive(Drop, Copy, Serde, starknet::Store)]
@@ -48,15 +68,6 @@ pub struct MetadataPixel {
     pub nostr_event_id: u256,
     pub owner: starknet::ContractAddress,
     pub contract: starknet::ContractAddress,
-}
-
-#[derive(Drop, Serde, starknet::Store)]
-pub struct PixelShield {
-    pub pos: u128,
-    // Color index in the palette
-    pub ipfs: ByteArray,
-    pub nostr_event_id: u256,
-    pub owner: starknet::ContractAddress,
 }
 
 #[derive(Drop, Serde, starknet::Store, Copy)]
@@ -121,6 +132,7 @@ pub trait IArtPeace<TContractState> {
     fn place_pixel_with_metadata(
         ref self: TContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
     );
+    fn place_pixel_shield(ref self: TContractState, pos: u128, time: u64);
 
     // Get placement info
     fn get_last_placed_time(self: @TContractState) -> u64;
@@ -231,6 +243,20 @@ pub trait IArtPeace<TContractState> {
     fn get_last_placed_pixel_with_metadata(
         self: @TContractState, pos: u128
     ) -> (PixelState, MetadataPixel);
+    fn get_current_shield_type_and_params(
+        self: @TContractState
+    ) -> (PixelShieldType, ShieldAdminParams);
+    fn get_last_placed_pixel_shield(self: @TContractState, pos: u128) -> PixelShield;
+
+    fn set_shield_type(ref self: TContractState, shield_type: PixelShieldType);
+    fn set_admin_shield_params(
+        ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+    );
+    fn set_shield_type_with_shield_params(
+        ref self: TContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+    );
+    fn activate_pixel_shield(ref self: TContractState);
+    fn disable_pixel_shield(ref self: TContractState);
 }
 
 
@@ -265,6 +291,16 @@ pub struct PixelPlaced {
     #[key]
     pub day: u32,
     pub color: u8,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct PixelShieldPlaced {
+    #[key]
+    pub placed_by: ContractAddress,
+    #[key]
+    pub pos: u128,
+    pub shield_type: PixelShieldType,
+    pub amount_paid: u256,
 }
 
 #[derive(Drop, starknet::Event)]
