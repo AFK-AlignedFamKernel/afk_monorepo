@@ -143,6 +143,7 @@ pub struct SharesTokenUser {
     pub amount_sell: u256,
     pub created_at: u64,
     pub total_paid: u256,
+    pub is_claimable: bool,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
