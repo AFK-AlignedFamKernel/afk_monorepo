@@ -609,6 +609,12 @@ pub mod LaunchpadMarketplace {
 
         // Buy coin by quote amount
         // Get amount of coin receive based on token IN
+        // Calculate fees and protocol fees
+        // Transfer fees to the protocol fee destination
+        // Transfer quote to the user
+        // Update the state of the pool: Liquidity raised, available_supply, 
+        // Update the share user: update amount_owned
+        // Emit the buy event
         fn buy_coin_by_quote_amount(
             ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
             // ekubo_pool_params: Option<EkuboPoolParameters>
@@ -901,16 +907,20 @@ pub mod LaunchpadMarketplace {
                 );
         }
 
+        // params @coin_address @coin_amount
+        // Sell coin in the current bonding curve
+        // Calculate amount of quote to receive by a coin_amount to sell
+        // Calculate fees and protocol fees
+        // Transfer fees to the protocol fee destination
+        // Transfer quote to the user
+        // Update the state of the pool: Liquidity raised, available_supply, 
+        // Update the share user: update amount_owned
+        // Emit the sell event
         fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
             let old_pool = self.launched_coins.read(coin_address);
             assert(!old_pool.owner.is_zero(), errors::COIN_SHARE_NOT_FOUND);
-            // assert(old_pool.is_liquidity_launch == false, 'token tradeable');
             assert(old_pool.is_liquidity_launch == false, errors::TOKEN_ALREADY_TRADEABLE);
-
             let caller = get_caller_address();
-            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
-            // let mut old_share = self.shares_by_users.entry((get_caller_address(),
-            // coin_address)).read();
             let mut old_share = self
                 .shares_by_users
                 .entry(get_caller_address())
@@ -918,11 +928,10 @@ pub mod LaunchpadMarketplace {
                 .read();
             // Verify Amount owned
             let mut share_user = old_share.clone();
-
             // assert(share_user.amount_owned >= coin_amount, 'above supply');
 
             // TODO erc20 token transfer
-            let total_supply = old_pool.total_supply;
+            let total_supply = old_pool.total_supply.clone();
             let token_quote = old_pool.token_quote.clone();
             let quote_token_address = token_quote.token_address.clone();
 
@@ -961,7 +970,6 @@ pub mod LaunchpadMarketplace {
             // CAREFULLY CHECK AND TEST
 
             // println!("sell remain_coin_amount {:?}", remain_coin_amount);
-
             if share_user.amount_owned < remain_coin_amount {
                 // Used max amount_owned
                 remain_coin_amount = share_user.amount_owned.clone();
@@ -1132,10 +1140,6 @@ pub mod LaunchpadMarketplace {
             // TODO check reetrancy guard
 
             // Assertion: Ensure pool liquidity remains consistent
-            // assert!(
-            //     old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after
-            //     sale"
-            // );
             assert(
                 old_pool.liquidity_raised >= quote_amount,
                 errors::POOL_LIQUIDITY_INCONSISTENCY_AFTER_SALE
@@ -1159,12 +1163,9 @@ pub mod LaunchpadMarketplace {
                 pool_update.liquidity_raised = 0_u256;
             }
             // println!("try update total_token_holded {:?}", pool_update.total_token_holded);
-
             pool_update.total_token_holded -= remain_coin_amount;
             // println!("try update available supply {:?}", pool_update.available_supply);
-
             pool_update.available_supply += remain_coin_amount;
-
             self
                 .shares_by_users
                 .entry(get_caller_address())
@@ -1265,14 +1266,15 @@ pub mod LaunchpadMarketplace {
                     }
                 );
         }
-
+        // Claim call for a friend
+        // Gonna be used to auto claim the rewards of all users of a pool bonding curve
+        // So we can pay the fees for the customers
         fn claim_coin_all_for_friend(
             ref self: ContractState, coin_address: ContractAddress, friend: ContractAddress
         ) {
             let caller = get_contract_address();
             // Verify if liquidity launch
             let mut launch = self.launched_coins.read(coin_address);
-            // assert(launch.is_liquidity_launch == true, 'not launch yet');
             assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
 
             // Verify share of user
@@ -1289,8 +1291,6 @@ pub mod LaunchpadMarketplace {
             // Update new share and emit event
             share_user.amount_owned -= amount;
             share_user.is_claimable = false;
-
-            // self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
             self.shares_by_users.entry(friend).entry(coin_address).write(share_user);
 
             self
@@ -1310,11 +1310,8 @@ pub mod LaunchpadMarketplace {
             let caller = get_contract_address();
             // Verify if caller is owner
             let mut launch = self.launched_coins.read(coin_address);
-            // assert(launch.owner == caller, 'not owner');
             assert(launch.owner == caller, errors::CALLER_NOT_OWNER);
-
             // Add or update metadata
-
             self.metadata_coins.entry(coin_address).write(metadata.clone());
             self
                 .emit(
@@ -1326,7 +1323,6 @@ pub mod LaunchpadMarketplace {
                     }
                 );
         }
-
 
         // The function calculates the amiunt of quote_token you need to buy a coin in the pool
         fn get_amount_by_type_of_coin_or_quote(
@@ -1340,10 +1336,6 @@ pub mod LaunchpadMarketplace {
             get_amount_by_type_of_coin_or_quote(
                 pool.clone(), coin_address, amount, is_decreased, is_quote_amount
             )
-            // self
-        //     .get_amount_by_type_of_coin_or_quote(
-        //         coin_address, amount, is_decreased, is_quote_amount
-        //     )
         }
 
         fn get_coin_amount_by_quote_amount(
@@ -1353,8 +1345,6 @@ pub mod LaunchpadMarketplace {
             is_decreased: bool
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
-
-            // self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
             get_coin_amount_by_quote_amount(pool.clone(), quote_amount, is_decreased)
         }
 
@@ -1394,15 +1384,10 @@ pub mod LaunchpadMarketplace {
             // TODO finish this
             let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
             if is_paid_create_token_enable {
-                // let admins_fees_params = self.admins_fees_params.read();
-                // let token_address_to_paid_create_token =
-                // admins_fees_params.token_address_to_paid_create_token;
                 let token_address_to_paid_create_token = self
                     .token_address_to_paid_create_token
                     .read();
-                // let amount_to_paid_create_token = admins_fees_params.amount_to_paid_create_token;
                 let amount_to_paid_create_token = self.amount_to_paid_create_token.read();
-
                 let erc20 = IERC20Dispatcher {
                     contract_address: token_address_to_paid_create_token
                 };
@@ -1530,20 +1515,6 @@ pub mod LaunchpadMarketplace {
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
             let liquidity_available = total_supply - liquidity_supply;
-
-            // let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            // let starting_price = calculate_pricing(
-            //     threshold_liquidity.clone(), supply_distribution.clone()
-            // );
-            // let slope = calculate_slope(
-            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
-            // );
-            // let starting_price = calculate_pricing(
-            //     threshold_liquidity.clone(), supply_distribution.clone()
-            // );
-            // let slope = calculate_slope(
-            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
-            // );
 
             // TODO precompute maybe and saved
             // Also start User params after
