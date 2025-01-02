@@ -12,7 +12,8 @@ pub mod ArtPeace {
         FactionCreated, FactionLeaderChanged, ChainFactionCreated, FactionJoined, FactionLeft,
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
-        PixelState, PixelShieldType, AdminsFeesParams
+        PixelState, PixelShieldType, AdminsFeesParams, ShieldAdminParams, PixelShieldPlaced,
+        ADMIN_ROLE
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -21,17 +22,35 @@ pub mod ArtPeace {
     use afk_games::templates::template::TemplateStoreComponent;
     use core::dict::Felt252DictTrait;
     use core::hash::{HashStateTrait, HashStateExTrait};
+    use core::num::traits::Zero;
     use core::poseidon::PoseidonTrait;
+    use openzeppelin::access::accesscontrol::{AccessControlComponent};
+    use openzeppelin::introspection::src5::SRC5Component;
+
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
-    use starknet::{get_block_timestamp, ContractAddress};
+    use starknet::{get_block_timestamp, ContractAddress, get_caller_address};
+
     component!(path: TemplateStoreComponent, storage: templates, event: TemplateEvent);
+    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
     #[abi(embed_v0)]
     impl TemplateStoreComponentImpl =
         TemplateStoreComponent::TemplateStoreImpl<ContractState>;
+
+    // AccessControl
+    #[abi(embed_v0)]
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+
+    // SRC5
+    #[abi(embed_v0)]
+    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -103,9 +122,14 @@ pub mod ArtPeace {
         price_by_time_seconds: u256,
         shield_type: PixelShieldType,
         admins_fees_params: AdminsFeesParams,
+        admin_shield_params: Map::<PixelShieldType, ShieldAdminParams>,
         token_address: ContractAddress,
         #[substorage(v0)]
         templates: TemplateStoreComponent::Storage,
+        #[substorage(v0)]
+        accesscontrol: AccessControlComponent::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage,
     }
 
     #[event]
@@ -137,6 +161,11 @@ pub mod ArtPeace {
         // TODO: Integrate template event
         #[flat]
         TemplateEvent: TemplateStoreComponent::Event,
+        PixelShieldPlaced: PixelShieldPlaced,
+        #[flat]
+        AccessControlEvent: AccessControlComponent::Event,
+        #[flat]
+        SRC5Event: SRC5Component::Event,
     }
 
 
@@ -258,6 +287,9 @@ pub mod ArtPeace {
         self.devmode.write(init_params.devmode);
 
         self.daily_quests_count.write(init_params.daily_quests_count);
+
+        //access control
+        self.accesscontrol._grant_role(ADMIN_ROLE, init_params.host);
     }
 
     #[generate_trait]
@@ -453,6 +485,20 @@ pub mod ArtPeace {
         ) { // let last_shield =self.last_placed_pixel_shield.entry(pos).read();
         }
 
+        fn _has_shield(self: @ContractState, pos: u128) -> bool {
+            // Check if the position has a shield
+            let shield = self.last_placed_pixel_shield.entry(pos).read();
+
+            if shield.owner.is_zero() {
+                return false;
+            } else if shield.owner == get_caller_address() {
+                return false;
+            } else {
+                return (get_block_timestamp() - shield.timestamp) <= shield.until;
+            }
+        }
+
+
         // TODO: Make the function internal
 
         fn _place_pixel_inner(ref self: ContractState, pos: u128, color: u8) {
@@ -508,32 +554,67 @@ pub mod ArtPeace {
         }
 
 
-        fn _place_shield(
-            ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
-        ) {
-            // self._check_shield_ok(pos, color);
+        fn _place_shield(ref self: ContractState, pos: u128, time: u64) {
+            let caller = get_caller_address();
 
-            // place_pixel_inner(ref self, pos, color);
-            // self._place_pixel_inner(pos, color);
+            // check if pixel shield is activated
+            assert(self.is_shield_pixel_activated.read(), 'shield not activated');
 
-            // TODO: let pixel = PixelState { color, pos,  owner: caller,
-            // timestamp:get_block_timestamp()};
-            // TODO: self.canvas.write(pos, pixel);
-            // TODO: self.last_placed_pixel_shield.write(pos, pixel);
-            let caller = starknet::get_caller_address();
-            let day = self.day_index.read();
+            // check owner of last placed pixel
+            let pixel_placed = self.last_placed_pixel.read(pos);
+            assert(pixel_placed.owner == caller, 'wrong pixel owner');
 
-            self.last_placed_time.entry(caller).write(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
 
-            // TODO add map for Metadata
+            // buy shield and transfer amount
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            // let amount_paid = shield_params.amount_to_paid;
 
-            // Check if ok
+            let (amount_paid, until) = match shield_type {
+                PixelShieldType::BuyTime => self._buy_pixel_shield_time(time),
+                PixelShieldType::AuctionDeadlineDay => {
+                    //TODO
+                    self._buy_pixel_shield_auction();
+                    (0, 0)
+                }
+            };
+
+            // set shield
+            let shield = PixelShield {
+                pos,
+                timestamp: get_block_timestamp(),
+                until,
+                amount_paid: amount_paid.clone(),
+                owner: caller,
+            };
+
+            self.last_placed_pixel_shield.entry(pos).write(shield);
+
+            // emit event
             self
                 .emit(
-                    PixelMetadataPlaced {
-                        placed_by: caller, pos: pos, day: day, color: color, metadata: metadata
+                    PixelShieldPlaced {
+                        placed_by: caller,
+                        pos: pos,
+                        shield_type: shield_type,
+                        amount_paid: amount_paid
                     }
                 );
+        }
+
+        fn _buy_pixel_shield_time(ref self: ContractState, time: u64,) -> (u256, u64) {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            let amount_paid: u256 = time.into() * shield_params.cost_per_second;
+
+            IERC20Dispatcher { contract_address: shield_params.buy_token_address }
+                .transfer_from(get_caller_address(), shield_params.to_address, amount_paid);
+            (amount_paid, time)
+        }
+
+        fn _buy_pixel_shield_auction(ref self: ContractState) { //TODO
         }
     }
 
@@ -591,6 +672,8 @@ pub mod ArtPeace {
         fn place_pixel(ref self: ContractState, pos: u128, color: u8, now: u64) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
             assert(
                 now - self.last_placed_time.read(caller) >= self.time_between_pixels.read(),
@@ -604,6 +687,8 @@ pub mod ArtPeace {
         fn place_pixel_with_metadata(
             ref self: ContractState, pos: u128, color: u8, now: u64, metadata: MetadataPixel
         ) {
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             self.place_pixel(pos, color, now);
             self.add_pixel_metadata(pos, color, now, metadata);
         }
@@ -614,6 +699,8 @@ pub mod ArtPeace {
         ) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
             assert(self.last_placed_pixel.read(pos).owner == caller, 'not owner');
             assert(
@@ -630,6 +717,8 @@ pub mod ArtPeace {
         ) {
             self.check_game_running();
             self.check_timing(now);
+            // check if pos has shield
+            assert(!self._has_shield(pos), 'pixel under shield');
             let caller = starknet::get_caller_address();
 
             // assert(
@@ -639,6 +728,10 @@ pub mod ArtPeace {
 
             // place_metadata(ref self, pos, color, now, metadata);
             self._place_metadata(pos, color, now, metadata);
+        }
+
+        fn place_pixel_shield(ref self: ContractState, pos: u128, time: u64) {
+            self._place_shield(pos, time);
         }
 
         // TODO: Make the function internal
@@ -737,6 +830,10 @@ pub mod ArtPeace {
             let metadata = self.last_placed_pixel_metadata.read(pos);
 
             (pixel_placed, metadata)
+        }
+
+        fn get_last_placed_pixel_shield(self: @ContractState, pos: u128) -> PixelShield {
+            self.last_placed_pixel_shield.entry(pos).read()
         }
 
         fn get_user_last_placed_time(self: @ContractState, user: ContractAddress) -> u64 {
@@ -1257,6 +1354,44 @@ pub mod ArtPeace {
             self: @ContractState, user: ContractAddress, day: u32, color: u8
         ) -> u32 {
             self.user_pixels_placed.read((day, user, color))
+        }
+
+        fn set_shield_type(ref self: ContractState, shield_type: PixelShieldType) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.shield_type.write(shield_type)
+        }
+
+        fn activate_pixel_shield(ref self: ContractState) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_shield_pixel_activated.write(true);
+        }
+
+        fn disable_pixel_shield(ref self: ContractState) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_shield_pixel_activated.write(false);
+        }
+
+        fn set_admin_shield_params(
+            ref self: ContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.admin_shield_params.entry(shield_type).write(shield_params);
+        }
+
+        fn set_shield_type_with_shield_params(
+            ref self: ContractState, shield_type: PixelShieldType, shield_params: ShieldAdminParams
+        ) {
+            self.set_shield_type(shield_type);
+            self.set_admin_shield_params(shield_type, shield_params);
+        }
+
+        fn get_current_shield_type_and_params(
+            self: @ContractState
+        ) -> (PixelShieldType, ShieldAdminParams) {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type).read();
+
+            (shield_type, shield_params)
         }
     }
 
