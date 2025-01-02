@@ -44,3 +44,4 @@ pub const NO_THRESHOLD_RAISED: felt252 = 'No threshold raised';
 pub const AMOUNT_ZERO: felt252 = 'Amount zero';
 pub const NO_AVAILABLE_SUPPLY: felt252 = 'No available supply';
 pub const SUPPLY_ABOVE_TOTAL_OWNED: felt252 = 'Supply above total';
+pub const EXTERNAL_CONTRACT_NOT_SETUP: felt252 = 'External address Zero';

@@ -2040,29 +2040,15 @@ pub mod LaunchpadMarketplace {
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
             let mut threshold = threshold_liquidity - slippage_threshold;
 
-            assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
-            let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
-            );
-            let bound = calculate_aligned_bound_mag(starting_price, 2, 5000);
-
-            let pool_params = EkuboPoolParameters {
-                fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
-                tick_spacing: 5000, // TODO tick_spacing optional by user   
-                starting_price: starting_price, // TODO verify if starting_price is correct
-                bound: bound, // TODO verify if bound is correct
-            };
-
-            let params = EkuboUnrugLaunchParameters {
-                owner: launch.owner,
-                token_address: coin_address,
-                quote_address: launch.token_quote.token_address,
-                lp_supply: launch.initial_pool_supply,
-                lp_quote_supply: launch.liquidity_raised,
-                pool_params: pool_params
-            };
-            let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
-            let id_cast: u256 = id.try_into().unwrap();
+            // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
+        
+            let quote_address = launch.token_quote.token_address.clone();
+            let lp_supply= self.initial_pool_supply.clone();
+            let quote_supply = self.liquidity_raised.clone();
+            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
+            let id_cast = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
+            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address, lp_supply, quote_supply, unlock_time);
+            // let id_cast: u256 = id.try_into().unwrap();
 
             self
                 .emit(
@@ -2072,7 +2058,7 @@ pub mod LaunchpadMarketplace {
                         asset: coin_address,
                         quote_token_address: launch.token_quote.token_address,
                         owner: launch.owner,
-                        exchange: SupportedExchanges::Ekubo,
+                        exchange: SupportedExchanges::Jediswap,
                         is_unruggable: false
                     }
                 );

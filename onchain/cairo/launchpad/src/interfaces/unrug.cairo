@@ -46,7 +46,7 @@ pub trait IUnrugLiquidity<TContractState> {
         lp_supply: u256,
         quote_amount: u256,
         unlock_time: u64,
-    );
+    ) -> u256;
 
     fn add_liquidity_unrug(
         ref self: TContractState,
