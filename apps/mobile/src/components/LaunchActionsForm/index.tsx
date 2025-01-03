@@ -114,7 +114,11 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             <Button
               style={styles.maxButton}
               onPress={() => {
-                onSetAmount(toBalance?.formatted);
+                if(typeAction === 'BUY') {
+                  onSetAmount(toBalance?.formatted);
+                } else {
+                  onSetAmount(userShare?.amount_owned?.toString());
+                }
                 /* Set max balance */
               }}
             >

@@ -168,7 +168,7 @@ export const TelegramAccount = () => {
     try {
       if (!argentTMA) return;
       // Trigger a connection request
-      const resp = await argentTMA.requestConnection('custom_callback_data');
+      // const resp = await argentTMA.requestConnection('custom_callback_data');
     } catch (error) {
       console.log(error, 'err');
     }

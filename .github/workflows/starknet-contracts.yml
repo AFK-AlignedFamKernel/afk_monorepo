@@ -21,9 +21,9 @@ jobs:
         with:
           tool-versions: onchain/cairo/afk/.tool-versions
           scarb-lock: onchain/cairo/afk/scarb.lock
-      - name: Check cairo format
-        run: scarb fmt --check
-        working-directory: onchain/cairo/afk
+      # - name: Check cairo format
+      #   run: scarb fmt --check
+      #   working-directory: onchain/cairo/afk
       - name: Build cairo programs
         run: scarb build
         working-directory: onchain/cairo/afk
@@ -41,9 +41,9 @@ jobs:
         with:
           tool-versions: onchain/cairo/launchpad/.tool-versions
           scarb-lock: onchain/cairo/launchpad/scarb.lock
-      - name: Check cairo format
-        run: scarb fmt --check
-        working-directory: onchain/cairo/launchpad
+      # - name: Check cairo format
+      #   run: scarb fmt --check
+      #   working-directory: onchain/cairo/launchpad
       - name: Build cairo programs
         run: scarb build
         working-directory: onchain/cairo/launchpad

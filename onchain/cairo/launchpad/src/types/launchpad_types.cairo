@@ -143,6 +143,7 @@ pub struct SharesTokenUser {
     pub amount_sell: u256,
     pub created_at: u64,
     pub total_paid: u256,
+    pub is_claimable: bool,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
@@ -270,6 +271,10 @@ pub struct SetJediswapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct SetJediswapRouterV2 {
+    pub address_jediswap_router_v2: ContractAddress,
+}
 
 #[derive(Drop, starknet::Event)]
 pub struct LiquidityCanBeAdded {
