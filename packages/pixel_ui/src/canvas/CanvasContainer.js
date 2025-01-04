@@ -245,8 +245,9 @@ const CanvasContainer = (props) => {
 
     // if (devnetMode) return;
     // if (!props.address || !props.artPeaceContract) return;
+    console.log("try placePixelCall")
     if (!props.address || !props.artPeaceContract || !props.account) return;
-
+    console.log("mutatePlacePixel")
     mutatePlacePixel({
       account: props.account,
       wallet: props.wallet,

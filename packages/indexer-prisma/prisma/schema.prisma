@@ -37,6 +37,7 @@ model token_launch {
   quote_token        String?
   exchange_name      String?
   total_supply       String?
+  threshold_liquidity       String?
   current_supply     String?
   liquidity_raised   String?
   is_liquidity_added Boolean?
@@ -171,5 +172,7 @@ model shares_token_user {
   owner         String
   token_address String
   amount_owned  Decimal? @default(0) @db.Decimal
+  is_claimable  Boolean? @default(false)
+  amount_claimed Decimal? @default(0) @db.Decimal
   created_at       DateTime? @default(now()) @db.Timestamp(6)
 }

@@ -14,5 +14,7 @@ export interface TokenLaunch {
   cursor?: number;
   timeStamp?: Date;
   createdAt?: Date;
-  ownerAddress?:string
+  ownerAddress?:string;
+  bondingType?:string;
+  thresholdLiquidity?:string;
 }
