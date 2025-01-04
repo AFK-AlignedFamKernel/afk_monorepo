@@ -732,6 +732,21 @@ pub mod UnrugLiquidity {
 
             let base_token = EKIERC20Dispatcher { contract_address: unrug_params.quote_address };
 
+            let registry_address = self.ekubo_registry.read();
+            println!("registry_address {:?}", registry_address);
+          
+            let registry = ITokenRegistryDispatcher { contract_address: registry_address };
+            // println!("transfer base token {:?}", registry_address);
+          
+            let amount_register= 1000000000000000000;
+            // println!("base token amount",);
+
+            base_token.transfer(registry.contract_address, amount_register);
+            // println!("register token",);
+         
+            registry.register_token(EKIERC20Dispatcher { contract_address: unrug_params.token_address });
+
+
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
 
             // let (team_allocation, pre_holders) = self
