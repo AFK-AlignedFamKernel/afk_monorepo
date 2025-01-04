@@ -233,3 +233,12 @@
   padding: 0;
   margin: 0.5rem 0.5rem 0 0.5rem;
 }
+.Account__username__input{
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: black;
+  background-color: white;
+}

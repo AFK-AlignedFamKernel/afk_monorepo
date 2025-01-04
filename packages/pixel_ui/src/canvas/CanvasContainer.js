@@ -11,6 +11,7 @@ import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction} from "afk_sdk";
 import {ART_PEACE_ADDRESS} from "common"
 import {CallData} from 'starknet';
+import MetadataView from './metadata/Metadata';
 
 const CanvasContainer = (props) => {
 
@@ -33,6 +34,8 @@ const CanvasContainer = (props) => {
   const [dragStartY, setDragStartY] = useState(0);
 
   const [isErasing, setIsErasing] = useState(false);
+
+  const [showMetadataForm, setShowMetaDataForm] = useState(false)
 
   const handlePointerDown = (e) => {
     // TODO: Require over canvas?
@@ -202,6 +205,7 @@ const CanvasContainer = (props) => {
   };
 
   const pixelSelect = async (x, y) => {
+    
     // Clear selection if clicking the same pixel
     if (
       props.selectedColorId === -1 &&
@@ -270,6 +274,12 @@ const CanvasContainer = (props) => {
   const pixelClicked = async (e) => {
     if (props.nftMintingMode || props.templateCreationMode) {
       return;
+    }
+
+    //Show Metadata Form on Pixel Clicked and pixel selectMode
+
+    if(props.selectedColorId !== -1){
+      setShowMetaDataForm(!showMetadataForm);
     }
 
     const canvas = props.canvasRef.current;
@@ -468,6 +478,8 @@ const CanvasContainer = (props) => {
   ]);
 
   return (
+    <>
+    <MetadataView  closeMeta={()=> setShowMetaDataForm(false)} showMeta={showMetadataForm}/>
     <div
       ref={canvasContainerRef}
       className="CanvasContainer"
@@ -572,6 +584,7 @@ const CanvasContainer = (props) => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
