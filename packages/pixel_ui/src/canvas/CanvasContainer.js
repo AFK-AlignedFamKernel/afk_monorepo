@@ -1,3 +1,5 @@
+
+
 import './CanvasContainer.css';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -8,9 +10,8 @@ import ExtraPixelsCanvas from './ExtraPixelsCanvas.js';
 import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
-import { useContractAction} from "afk_sdk";
-import {ART_PEACE_ADDRESS} from "common"
-import {CallData} from 'starknet';
+import { useContractAction } from "afk_sdk";
+import { ART_PEACE_ADDRESS } from "common"
 import MetadataView from './metadata/Metadata';
 
 const CanvasContainer = (props) => {
@@ -205,7 +206,7 @@ const CanvasContainer = (props) => {
   };
 
   const pixelSelect = async (x, y) => {
-    
+
     // Clear selection if clicking the same pixel
     if (
       props.selectedColorId === -1 &&
@@ -237,37 +238,28 @@ const CanvasContainer = (props) => {
   };
 
   //Pixel Call Hook
-  const { mutate: mutatePlacePixel} = useContractAction()
+  const { mutateAsync: mutatePlacePixel } = useContractAction()
+
 
   const placePixelCall = async (position, color, now) => {
-      // if (devnetMode) return;
-      // if (!props.address || !props.artPeaceContract) return;
-      if (!props.address || !props.artPeaceContract || !props.account) return;
-      const timestamp = Math.floor(Date.now() / 1000);
-      mutatePlacePixel({
-        account: props.account,
-        callProps:{
-          calldata: CallData.compile({
-            position,
-            color,
-            now: timestamp,
-          }),
-          contractAddress:ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-          method:"place_pixel"
-        }
-      })
-  
-        // console.log('user connected', props.account?.address);
-        // const pixelCalldata = props.artPeaceContract.populate('place_pixel', {
-        //   pos: position,
-        //   color: color,
-        //   now: now
-        // });
-        
 
-        // console.log(pixelCalldata,"pixel")
-        // const result = await props.account.execute([pixelCalldata]);
-        // console.log(result,"res")
+    // if (devnetMode) return;
+    // if (!props.address || !props.artPeaceContract) return;
+    if (!props.address || !props.artPeaceContract || !props.account) return;
+
+    mutatePlacePixel({
+      account: props.account,
+      wallet: props.wallet,
+      callProps: {
+        calldata: [position, color, now],
+        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        entrypoint: "place_pixel"
+      }
+    }, {
+      onError() {
+        setShowMetaDataForm(false)
+      }
+    })
   };
 
 
@@ -277,9 +269,8 @@ const CanvasContainer = (props) => {
     }
 
     //Show Metadata Form on Pixel Clicked and pixel selectMode
-
-    if(props.selectedColorId !== -1){
-      setShowMetaDataForm(!showMetadataForm);
+    if (props.selectedColorId !== -1) {
+      setShowMetaDataForm(true);
     }
 
     const canvas = props.canvasRef.current;
@@ -330,7 +321,7 @@ const CanvasContainer = (props) => {
     // if (!devnetMode) {
     props.setSelectedColorId(-1);
     props.colorPixel(position, colorId);
-    await placePixelCall(position, colorId, timestamp);
+    await placePixelCall(position,colorId,timestamp);
     props.clearPixelSelection();
     props.setLastPlacedTime(timestamp * 1000);
     // return;
@@ -479,54 +470,42 @@ const CanvasContainer = (props) => {
 
   return (
     <>
-    <MetadataView  closeMeta={()=> setShowMetaDataForm(false)} showMeta={showMetadataForm}/>
-    <div
-      ref={canvasContainerRef}
-      className="CanvasContainer"
-      onPointerMove={handlePointerMove}
-      onPointerDown={handlePointerDown}
-    >
+      <MetadataView closeMeta={() => setShowMetaDataForm(false)} showMeta={showMetadataForm} />
       <div
-        className="CanvasContainer__anchor"
-        style={{
-          top: -height / 2,
-          left: -width / 2,
-          transform: `translate(${canvasX}px, ${canvasY}px)`,
-        }}
+        ref={canvasContainerRef}
+        className="CanvasContainer"
+        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
       >
-        {props.pixelSelectedMode && (
-          <div
-            className="Canvas__selection"
-            style={{
-              top: props.selectedPositionY * canvasScale,
-              left: props.selectedPositionX * canvasScale,
-            }}
-          >
-            <div
-              className="Canvas__selection__pixel"
-              style={{
-                boxShadow: selectedBoxShadow,
-                backgroundColor: selectedBackgroundColor,
-                width: canvasScale,
-                height: canvasScale,
-              }}
-            ></div>
-          </div>
-        )}
-        <Canvas
-          canvasRef={props.canvasRef}
-          width={width}
-          height={height}
+        <div
+          className="CanvasContainer__anchor"
           style={{
-            width: width * canvasScale,
-            height: height * canvasScale,
+            top: -height / 2,
+            left: -width / 2,
+            transform: `translate(${canvasX}px, ${canvasY}px)`,
           }}
-          colors={props.colors}
-          pixelClicked={pixelClicked}
-        />
-        {props.availablePixels > 0 && (
-          <ExtraPixelsCanvas
-            extraPixelsCanvasRef={props.extraPixelsCanvasRef}
+        >
+          {props.pixelSelectedMode && (
+            <div
+              className="Canvas__selection"
+              style={{
+                top: props.selectedPositionY * canvasScale,
+                left: props.selectedPositionX * canvasScale,
+              }}
+            >
+              <div
+                className="Canvas__selection__pixel"
+                style={{
+                  boxShadow: selectedBoxShadow,
+                  backgroundColor: selectedBackgroundColor,
+                  width: canvasScale,
+                  height: canvasScale,
+                }}
+              ></div>
+            </div>
+          )}
+          <Canvas
+            canvasRef={props.canvasRef}
             width={width}
             height={height}
             style={{
@@ -536,54 +515,66 @@ const CanvasContainer = (props) => {
             colors={props.colors}
             pixelClicked={pixelClicked}
           />
-        )}
-        {props.templateOverlayMode && props.overlayTemplate && (
-          <TemplateOverlay
-            canvasRef={props.canvasRef}
-            width={width}
-            height={height}
-            canvasScale={canvasScale}
-            overlayTemplate={props.overlayTemplate}
-            setTemplateOverlayMode={props.setTemplateOverlayMode}
-            setOverlayTemplate={props.setOverlayTemplate}
-            colors={props.colors}
-          />
-        )}
-        {props.templateCreationMode && (
-          <TemplateCreationOverlay
-            canvasRef={props.canvasRef}
-            canvasScale={canvasScale}
-            templateImage={props.templateImage}
-            templateColorIds={props.templateColorIds}
-            templateCreationMode={props.templateCreationMode}
-            setTemplateCreationMode={props.setTemplateCreationMode}
-            templateCreationSelected={props.templateCreationSelected}
-            setTemplateCreationSelected={props.setTemplateCreationSelected}
-            width={width}
-            height={height}
-            templatePosition={props.templatePosition}
-            setTemplatePosition={props.setTemplatePosition}
-          />
-        )}
-        {props.nftMintingMode && (
-          <NFTSelector
-            canvasRef={props.canvasRef}
-            canvasScale={canvasScale}
-            width={width}
-            height={height}
-            nftMintingMode={props.nftMintingMode}
-            nftSelectionStarted={props.nftSelectionStarted}
-            setNftSelectionStarted={props.setNftSelectionStarted}
-            nftSelected={props.nftSelected}
-            setNftSelected={props.setNftSelected}
-            setNftMintingMode={props.setNftMintingMode}
-            setNftPosition={props.setNftPosition}
-            setNftWidth={props.setNftWidth}
-            setNftHeight={props.setNftHeight}
-          />
-        )}
+          {props.availablePixels > 0 && (
+            <ExtraPixelsCanvas
+              extraPixelsCanvasRef={props.extraPixelsCanvasRef}
+              width={width}
+              height={height}
+              style={{
+                width: width * canvasScale,
+                height: height * canvasScale,
+              }}
+              colors={props.colors}
+              pixelClicked={pixelClicked}
+            />
+          )}
+          {props.templateOverlayMode && props.overlayTemplate && (
+            <TemplateOverlay
+              canvasRef={props.canvasRef}
+              width={width}
+              height={height}
+              canvasScale={canvasScale}
+              overlayTemplate={props.overlayTemplate}
+              setTemplateOverlayMode={props.setTemplateOverlayMode}
+              setOverlayTemplate={props.setOverlayTemplate}
+              colors={props.colors}
+            />
+          )}
+          {props.templateCreationMode && (
+            <TemplateCreationOverlay
+              canvasRef={props.canvasRef}
+              canvasScale={canvasScale}
+              templateImage={props.templateImage}
+              templateColorIds={props.templateColorIds}
+              templateCreationMode={props.templateCreationMode}
+              setTemplateCreationMode={props.setTemplateCreationMode}
+              templateCreationSelected={props.templateCreationSelected}
+              setTemplateCreationSelected={props.setTemplateCreationSelected}
+              width={width}
+              height={height}
+              templatePosition={props.templatePosition}
+              setTemplatePosition={props.setTemplatePosition}
+            />
+          )}
+          {props.nftMintingMode && (
+            <NFTSelector
+              canvasRef={props.canvasRef}
+              canvasScale={canvasScale}
+              width={width}
+              height={height}
+              nftMintingMode={props.nftMintingMode}
+              nftSelectionStarted={props.nftSelectionStarted}
+              setNftSelectionStarted={props.setNftSelectionStarted}
+              nftSelected={props.nftSelected}
+              setNftSelected={props.setNftSelected}
+              setNftMintingMode={props.setNftMintingMode}
+              setNftPosition={props.setNftPosition}
+              setNftWidth={props.setNftWidth}
+              setNftHeight={props.setNftHeight}
+            />
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 };

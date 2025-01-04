@@ -73,16 +73,17 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   //--> Connect Argent
   useConnectArgent()
 
-  const { 
-    connectWallet, 
+  const {
+    connectWallet,
     startSession,
     account,
+    wallet,
     address,
     queryAddress,
     setConnected,
     isSessionable,
     disconnectWallet,
-    usingSessionKeys 
+    usingSessionKeys
   } = useWalletStore()
 
 
@@ -159,7 +160,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         }
         setHost(response.data.host);
         setEndTimestamp(response.data.endTime);
-      } catch(e) {
+      } catch (e) {
         console.error(e);
       }
     };
@@ -496,7 +497,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         setFactionPixelsData(factionPixelsResponse.data);
       } catch (e) {
         console.error(e);
-      }}
+      }
+    }
     fetchFactionPixelsEndpoint();
   }, [queryAddress]);
 
@@ -516,9 +518,9 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
 
     try {
       let pixelInfo = await fetchWrapper(
-        `get-pixel-info&position=${x+y*canvasConfig.canvas.width}`
+        `get-pixel-info&position=${x + y * canvasConfig.canvas.width}`
       );
-      console.log("pixelInfo data",pixelInfo)
+      console.log("pixelInfo data", pixelInfo)
     } catch (e) {
       console.error(e);
     }
@@ -603,7 +605,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         setChainFaction(chainFactionResponse.data[0]);
       } catch (e) {
         console.error(e);
-      }}
+      }
+    }
     async function fetchUserFactions() {
       try {
         let userFactionsResponse = await fetchWrapper(
@@ -699,6 +702,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           colorPixel={colorPixel}
           address={address}
           account={account}
+          wallet={wallet}
           artPeaceContract={artPeaceContract}
           colors={colors}
           canvasRef={canvasRef}
@@ -746,10 +750,10 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         />
         {(!isMobile || activeTab === tabs[0]) && (
           <div className='App__logo--mobile_container'>
-          <img src={logoUrl} alt='logo' className='App__logo--mobile' />
-          <a href="/"> 
-            <h5>AFK</h5>
-         </a>
+            <img src={logoUrl} alt='logo' className='App__logo--mobile' />
+            <a href="/">
+              <h5>AFK</h5>
+            </a>
           </div>
         )}
         <div
@@ -765,6 +769,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             address={address}
             queryAddress={queryAddress}
             account={account}
+            wallet={wallet}
             chain={chain}
             clearAll={clearAll}
             setConnected={setConnected}
@@ -858,7 +863,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             isSessionable={isSessionable}
             disconnectWallet={disconnectWallet}
             estimateInvokeFee={estimateInvokeFee}
-        
+
           />
         </div>
         <div className='App__footer'>
@@ -894,7 +899,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 isMobile={isMobile}
                 clearAll={clearAll}
                 account={account}
-                
+                wallet={wallet}
+
               />
             )}
             {isFooterSplit && !footerExpanded && (

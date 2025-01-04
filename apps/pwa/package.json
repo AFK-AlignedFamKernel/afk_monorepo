@@ -52,7 +52,7 @@
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
     "starknet": "6.9.0",
-    "starknetkit-next": "npm:starknetkit@2.3.3",
+    "starknetkit-next": "npm:starknetkit@^2.6.1",
     "viem": "~2.21.2",
     "wagmi": "^2.13.4",
     "zod": "^3.23.8",
