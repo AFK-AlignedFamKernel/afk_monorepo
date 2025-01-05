@@ -21,7 +21,8 @@ export class ClaimUserShareService {
       } else {
 
         await this.prismaService.shares_token_user.update({
-          where: {token_address: data.tokenAddress, owner: data.ownerAddress  },
+          where: {id: tokenShareRecord.id},
+          // where: {token_address: data.tokenAddress, owner: data.ownerAddress  },
           data: {
             // is_liquidity_added: true, // TODO add check if amount claimd == amount owned
             amount_claimed: data?.amount,
