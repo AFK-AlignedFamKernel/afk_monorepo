@@ -22,6 +22,9 @@ export type AuthStackParams = {
   };
   ImportKeys: undefined;
   LoginNostr: undefined;
+  Profile: {
+    publicKey: string;
+  };
 };
 
 export type MainStackParams = {

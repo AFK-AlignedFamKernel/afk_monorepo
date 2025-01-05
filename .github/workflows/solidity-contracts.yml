@@ -2,11 +2,11 @@ name: Solidity Contracts
 
 on:
   push:
-    branches:
-      - main
     paths:
       - "onchain/solidity_contracts/**"
   pull_request:
+    branches:
+      - main
     paths:
       - "onchain/solidity_contracts/**"
 

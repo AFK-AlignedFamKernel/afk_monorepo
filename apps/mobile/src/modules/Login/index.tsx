@@ -1,12 +1,10 @@
-import {deriveSeedFromMnemonic} from '@cashu/cashu-ts';
-import {useAuth, useCashu, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
+import {useAuth, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {useEffect, useMemo, useState} from 'react';
+import {Platform, TextInput, View, Image, Text} from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input, TextButton} from '../../components';
-import {useTheme} from '../../hooks';
+import {Button, Icon} from '../../components';
+import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {useDialog, useToast} from '../../hooks/modals';
 import {Auth} from '../../modules/Auth';
 import {MainStackNavigationProps} from '../../types';
@@ -21,20 +19,28 @@ import {
   storeCashuSeed,
 } from '../../utils/storage';
 import {LoginStarknet} from './StarknetLogin';
+import stylesheet from './styles';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {useCashuContext} from '../../providers/CashuProvider';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
   navigationProps?: MainStackNavigationProps | any;
   handleSuccess?: () => void;
   handleSuccessCreateAccount?: () => void;
+  handleNavigateCreateAccount?: () => void;
+  handleNavigateImportKeys?: () => void;
 }
 export const LoginNostrModule: React.FC<ILoginNostr> = ({
   isNavigationAfterLogin,
   navigationProps,
   handleSuccess,
   handleSuccessCreateAccount,
+  handleNavigateCreateAccount,
+  handleNavigateImportKeys,
 }: ILoginNostr) => {
   const {theme} = useTheme();
+  const styles = useStyles(stylesheet);
   const setAuth = useAuth((state) => state.setAuth);
   const publicKey = useAuth((state) => state.publicKey);
 
@@ -46,9 +52,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   const {showToast} = useToast();
   const {showDialog, hideDialog} = useDialog();
   const {getPublicKey} = useNip07Extension();
-  const {generateMnemonic} = useCashu();
-
-  // const navigationMain = useNavigation<MainStackNavigationProps>();
+  const {generateNewMnemonic, derivedSeedFromMnenomicAndSaved} = useCashuContext()!;
 
   useEffect(() => {
     (async () => {
@@ -81,22 +85,17 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       showToast({type: 'error', title: 'Invalid password'});
       return;
     }
-
-    const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
-    // console.log("mnemonicSaved", mnemonicSaved)
-    setIsSeedCashuStorage(true);
     setAuth(publicKey, privateKeyHex);
 
     try {
+      const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
       if (!mnemonicSaved) {
-        const mnemonic = await generateMnemonic();
+        const mnemonic = generateNewMnemonic();
+
         await storeCashuMnemonic(mnemonic, password);
-        const seed = await deriveSeedFromMnemonic(mnemonic);
-
+        const seed = derivedSeedFromMnenomicAndSaved(mnemonic);
         const seedHex = Buffer.from(seed).toString('hex');
-
         await storeCashuSeed(seedHex, password);
-
         setMnemonic(mnemonic);
         setSeed(seed);
         setIsSeedCashuStorage(true);
@@ -108,7 +107,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
         const mnemonic = Buffer.from(mnemonicSaved).toString('hex');
         console.log('mnemonic', mnemonic);
 
-        const seed = await deriveSeedFromMnemonic(mnemonic);
+        const seed = derivedSeedFromMnenomicAndSaved(mnemonic);
         const seedHex = Buffer.from(seed).toString('hex');
         console.log('seedHex', seedHex);
 
@@ -121,8 +120,8 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     }
     if (handleSuccess) {
       handleSuccess();
-    }
-    if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
+      return;
+    } else if (publicKey && privateKeyHex && isNavigationAfterLogin && navigationProps) {
       navigationProps?.navigate('Feed');
     }
   };
@@ -137,7 +136,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigationProps?.navigate('CreateAccount');
+            if (handleNavigateCreateAccount) {
+              handleNavigateCreateAccount();
+            } else {
+              navigationProps?.navigate('CreateAccount');
+            }
             hideDialog();
           },
         },
@@ -156,7 +159,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           type: 'primary',
           label: 'Continue',
           onPress: () => {
-            navigationProps?.navigate('ImportKeys');
+            if (handleNavigateImportKeys) {
+              handleNavigateImportKeys();
+            } else {
+              navigationProps?.navigate('ImportKeys');
+            }
             hideDialog();
           },
         },
@@ -179,8 +186,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             hideDialog();
             if (handleSuccess) {
               handleSuccess();
-            }
-            if (publicKey && navigationProps) {
+            } else if (publicKey && navigationProps) {
               navigationProps.navigate('Profile', {publicKey});
             }
           },
@@ -189,6 +195,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       ],
     });
   };
+
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
 
   // const handleGoDegenApp = () => {
   //   // Brind dialog
@@ -212,43 +223,66 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   // };
 
   return (
-    <Auth title="Login">
-      <Input
-        left={<LockIcon color={theme.colors.primary} />}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholder="Enter your password"
-      />
+    <Auth title="Log In">
+      <View
+        style={[styles.loginMethodsContainer, isDesktop && styles.loginMethodsContainerDesktop]}
+      >
+        <Button
+          onPress={handleExtensionConnect}
+          style={[styles.loginMethodBtn, isDesktop && styles.loginMethodBtnDesktop]}
+          textStyle={styles.loginMethodBtnText}
+        >
+          <View style={styles.btnInnerContainer}>
+            <Image
+              style={styles.loginMethodBtnImg}
+              source={require('./../../assets/nostr.svg')}
+              tintColor={theme.colors.textPrimary}
+            />
+            <Text>Nostr Extension</Text>
+          </View>
+        </Button>
+        <LoginStarknet
+          handleNavigation={() => navigationProps?.navigate('Feed')}
+          btnText={'Starknet Account'}
+          useCustomBtn
+        />
+      </View>
+      <Text style={styles.passwordLabel}>Password</Text>
+      <View style={styles.passwordInputContainer}>
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder="Enter your password"
+          style={styles.passwordInput}
+        />
+        <Icon name={'EyeIcon'} size={20} color={'grayInput'} style={styles.eyeIcon} />
+      </View>
+      <Text style={styles.passwordInstruction}>
+        It must be a combination of minimum 8 letters, numbers, and symbols.
+      </Text>
+      <View style={styles.importAccountBtnContainer}>
+        <TouchableOpacity onPress={handleImportAccount} style={styles.importAccountBtn}>
+          Forgot Password? Import Account
+        </TouchableOpacity>
+      </View>
 
       <Button
         block
-        style={{width: 'auto', maxWidth: 130}}
-        variant="secondary"
+        style={styles.loginBtn}
+        variant="primary"
         disabled={!password?.length}
         onPress={handleLogin}
       >
-        Login
+        Log In
       </Button>
+      {isDesktop ? <hr style={styles.divider} /> : null}
 
-      <TextButton onPress={handleCreateAccount}>Create Account</TextButton>
-      {/* <ConnectWalletScreen /> */}
-      <View
-        style={
-          {
-            // display: 'flex',
-            // flex: 1,
-            // flexDirection: 'row',
-            // rowGap: 3,
-          }
-        }
-      >
-        <TextButton onPress={handleImportAccount}>Import Account</TextButton>
-        <TextButton onPress={handleExtensionConnect}>Nostr extension</TextButton>
-        <LoginStarknet handleNavigation={() => navigationProps?.navigate('Feed')} />
+      <View style={styles.noAccountBtnContainer}>
+        <TouchableOpacity onPress={handleCreateAccount} style={styles.noAccountBtn}>
+          No account yet? Sign Up
+        </TouchableOpacity>
       </View>
-
-      {/* <TextButton onPress={handleGoDegenApp}>Go degen app</TextButton> */}
     </Auth>
   );
 };

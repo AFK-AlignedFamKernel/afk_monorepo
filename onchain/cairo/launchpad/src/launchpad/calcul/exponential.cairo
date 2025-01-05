@@ -1,9 +1,6 @@
-use afk_launchpad::launchpad::errors;
-use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256, min_u256};
-use afk_launchpad::types::launchpad_types::{
-    TokenLaunch, BondingType, EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType,
-    CallbackData, EkuboLaunchParameters, LaunchCallback
-};
+// use afk_launchpad::launchpad::errors;
+// use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256, min_u256};
+use afk_launchpad::types::launchpad_types::{TokenLaunch,};
 use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
 
@@ -119,7 +116,7 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
     result
 }
 
-pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+pub fn get_meme_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);
@@ -146,7 +143,7 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     amount_out
 }
 
-pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
+pub fn get_coin_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
     let sellable_supply = total_supply - (total_supply / LIQUIDITY_RATIO);

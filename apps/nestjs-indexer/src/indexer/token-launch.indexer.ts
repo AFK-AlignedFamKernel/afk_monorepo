@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash } from 'starknet';
+import { uint256, validateAndParseAddress, hash, shortString } from 'starknet';
 import { TokenLaunchService } from 'src/services/token-launch/token-launch.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -72,6 +72,10 @@ export class TokenLaunchIndexer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, callerFelt, tokenAddressFelt, quoteTokenAddressFelt] = event.keys;
 
+    const ownerAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
+    ) as ContractAddress;
+
     const tokenAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
@@ -91,6 +95,7 @@ export class TokenLaunchIndexer {
       slopeHigh,
       thresholdLiquidityLow,
       thresholdLiquidityHigh,
+      bondingTypeFelt
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -131,6 +136,15 @@ export class TokenLaunchIndexer {
       constants.DECIMALS,
     ).toString();
 
+    // const bondingType = bondingTypeFelt;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const bondingType = bondingTypeFelt
+    ? shortString.decodeShortString(
+        FieldElement.toBigInt(bondingTypeFelt).toString(),
+      )
+    : '';
+
+
     const data = {
       transactionHash,
       network: 'starknet-sepolia',
@@ -142,6 +156,7 @@ export class TokenLaunchIndexer {
       amount: Number(amount),
       totalSupply,
       price,
+      ownerAddress
     };
 
     await this.tokenLaunchService.create(data);

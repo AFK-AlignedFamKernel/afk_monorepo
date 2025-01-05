@@ -30,8 +30,33 @@ pub enum BondingType {
     Limited
 }
 
-
 // Storage
+#[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+pub struct AdminsFeesParams {
+    pub token_address_to_paid_launch: ContractAddress,
+    pub token_address_to_paid_create_token: ContractAddress,
+    pub amount_to_paid_launch: u256,
+    pub amount_to_paid_create_token: u256,
+    pub is_fees_protocol_buy_enabled: bool,
+    pub is_fees_protocol_sell_enabled: bool,
+    pub is_fees_protocol_enabled: bool,
+    pub is_paid_create_token_enable: bool,
+    pub is_paid_launch_enable: bool,
+}
+// #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+// pub struct AdminsFeesParams {
+//     pub protocol_fee_percent: u256,
+//     pub creator_fee_percent: u256,
+//     pub is_fees_protocol_sell_enabled: bool,
+//     pub is_fees_protocol_buy_enabled: bool,
+//     pub is_fees_protocol_enabled: bool,
+//     pub is_fees_enabled: bool,
+//     pub is_custom_launch_enable: bool,
+//     pub is_custom_token_enable: bool,
+//     pub is_paid_create_token_enable: bool,
+//     pub is_paid_launch_enable: bool,
+//     pub is_create_token_paid: bool,
+// }
 
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
@@ -118,6 +143,7 @@ pub struct SharesTokenUser {
     pub amount_sell: u256,
     pub created_at: u64,
     pub total_paid: u256,
+    pub is_claimable: bool,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
@@ -207,6 +233,7 @@ pub struct CreateLaunch {
     pub slope: u256,
     pub threshold_liquidity: u256,
     pub is_unruggable: bool,
+    pub bonding_type: BondingType,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -244,6 +271,10 @@ pub struct SetJediswapNFTRouterV2 {
     pub address_jediswap_nft_router_v2: ContractAddress,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct SetJediswapRouterV2 {
+    pub address_jediswap_router_v2: ContractAddress,
+}
 
 #[derive(Drop, starknet::Event)]
 pub struct LiquidityCanBeAdded {

@@ -26,13 +26,24 @@ const TWO_POW_64: u128 = 0x10000000000000000;
 const TWO_POW_96: u128 = 0x1000000000000000000000000;
 
 const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
+pub impl EcPointDisplay of Display<EcPoint> {
+    fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
+        let non_zero: NonZeroEcPoint = (*self).try_into().unwrap();
+        let (x, y): (felt252, felt252) = ec_point_unwrap(non_zero);
+        writeln!(f, "Point ({x}, {y})")
+    }
+}
+
+impl PartialEqImpl of PartialEq<EcPoint> {
+    fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
+        let (lhs_x, lhs_y): (felt252, felt252) = ec_point_unwrap((*lhs).try_into().unwrap());
+        let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
 
 /// Represents a Schnorr signature
 struct SchnorrSignature {
     s: u256,
     R: u256,
 }
-
 // pub impl EcPointDisplay of Display<Secp256k1Point> {
 //     fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
 //         let non_zero: NonZeroEcPoint = (*self).try_into().unwrap();
@@ -53,6 +64,13 @@ struct SchnorrSignature {
 //         }
 //     }
 // }
+        if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
+            true
+        } else {
+            false
+        }
+    }
+}
 
 /// Computes BIP0340/challenge tagged hash.
 ///
@@ -161,6 +179,70 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
 
     // fail if is_infinite(R) || not has_even_y(R) || x(R) ≠ rx.
     !(Rx == 0 && Ry == 0) && Ry % 2 == 0 && Rx == rx
+}
+/// Represents a Schnorr signature
+struct SchnorrSignature {
+    s: felt252,
+    R: EcPoint,
+}
+
+/// Generates a key pair (private key, public key) for Schnorr signatures
+fn generate_keypair() -> (felt252, EcPoint) {
+    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
+    let private_key: felt252 = 859825214214312162317391210310; // VRF needed
+    let public_key: EcPoint = generator.mul(private_key);
+    
+    (private_key, public_key)
+}
+
+/// Generates a nonce and corresponding R point for signature
+fn generate_nonce_point() -> (felt252, EcPoint) {
+    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
+    let nonce: felt252 = 46952909012476409278523962123414653; // VRF needed
+    let R: EcPoint = generator.mul(nonce);
+    
+    (nonce, R)
+}
+
+/// Computes the challenge hash e using Poseidon
+fn compute_challenge(R: EcPoint, public_key: EcPoint, message: felt252) -> felt252 {
+    let (R_x, R_y): (felt252, felt252) = ec_point_unwrap(R.try_into().unwrap());
+    let (P_x, P_y): (felt252, felt252) = ec_point_unwrap(public_key.try_into().unwrap());
+    
+    PoseidonTrait::new()
+        .update(R_x)
+        .update(R_y)
+        .update(P_x)
+        .update(P_y)
+        .update(message)
+        .finalize()
+}
+
+/// Signs a message using Schnorr signature scheme
+fn sign(private_key: felt252, message: felt252) -> SchnorrSignature {
+    let (nonce, R) = generate_nonce_point();
+    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
+    let public_key = generator.mul(private_key);
+    
+    let e = compute_challenge(R, public_key, message);
+    let s = nonce + mul_mod_p(private_key, e, ORDER);
+    
+    SchnorrSignature { s, R }
+}
+
+/// Verifies a Schnorr signature
+fn verify_sig(public_key: EcPoint, message: felt252, signature: SchnorrSignature) -> bool {
+    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
+    let e = compute_challenge(signature.R, public_key, message);
+    
+    let s_G: EcPoint = generator.mul(signature.s);
+    let P_e: EcPoint = public_key.mul(e);
+    let rhs: EcPoint = P_e + signature.R;
+    
+    let (s_Gx, s_Gy): (felt252, felt252) = ec_point_unwrap(s_G.try_into().unwrap());
+    let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap(rhs.try_into().unwrap());
+    
+    (rhs_x == s_Gx) && (s_Gy == rhs_y)
 }
 
 fn count_digits(mut num: u256) -> (u32, felt252) {

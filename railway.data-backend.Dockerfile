@@ -100,6 +100,10 @@ RUN echo ${ACCOUNT_PRIVATE_KEY}
 ARG JWT_SECRET
 RUN echo ${JWT_SECRET}
 
+# Install open ssl
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat 
 
 # Copy root-level package files
 COPY package.json pnpm-workspace.yaml ./
@@ -110,27 +114,35 @@ RUN npm install -g pnpm
 # Copy the entire repository into the Docker container
 COPY . .
 
-# Install open ssl
-RUN apk add --no-cache openssl
+
+
+# RUN apk add --no-cache openssl
 # Install all dependencies for the workspace, including common and data-backend
 RUN pnpm install --force
 
 # RUN pnpm run build:prisma-db
-RUN pnpm run build:backend:prisma
-RUN pnpm run build:indexer-prisma
+# RUN pnpm run build:backend:prisma
+# RUN pnpm run build:indexer-prisma
 # RUN pnpm run build:backend:all_repo
 # Build the indexer-prisma package
-RUN pnpm --filter indexer-prisma build
+# RUN pnpm --filter indexer-prisma build
 
 # Build the data-backend package
-# Build indexer-prisma and owned prisma
 # RUN pnpm --filter data-backend build:all_repo
-# Build data-backend
 # RUN pnpm --filter data-backend build:all 
-RUN pnpm --filter data-backend build
+# RUN pnpm --filter data-backend build:prisma
+# RUN pnpm --filter data-backend build
+
+RUN pnpm --filter data-backend build:all
 
 # Use a smaller production base image
 FROM node:20-alpine AS production
+
+
+# Install necessary dependencies in production
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat 
 
 # Set the working directory in the production container
 WORKDIR /app
@@ -138,6 +150,7 @@ WORKDIR /app
 # Copy the node_modules and built files from the base stage
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
+COPY --from=base /app/packages/prisma-db ./packages/prisma-db
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 

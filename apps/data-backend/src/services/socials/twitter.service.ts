@@ -1,7 +1,7 @@
 import { type IParsedOAuth2TokenResult, TwitterApi } from 'twitter-api-v2';
 import { addDays } from 'date-fns';
 import { ConnectTwitterParams, SocialPlatform, TwitterUserDetails } from '../../types';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'prisma-db';
 import { FastifyInstance } from 'fastify';
 
 export class TwitterService {

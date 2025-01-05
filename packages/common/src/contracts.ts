@@ -44,20 +44,25 @@ export const NAMESPACE_ADDRESS = {
 
 export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: "",
-  // [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x011edd516083cc4f8f9ea801e5132b08f744c987db6f92e4734460ae4b14e94d",
-  // [constants.StarknetChainId.SN_SEPOLIA]:
-  // "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
 
   // [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x4fd0893672b60a123606ec9e492e54e795a13e969c6c2600195dcea956ada5d",
-    
-  // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1e00d0d7167938c2aa289850c96d7129ff16c1ed02b7542030bc2e39dc41885"
+
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x2eb4dac724b4507becc409667bdea68d697665e182702f294eb5bd8bfb28e26"
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3cb02be4090f94929a7d964266fdb1c74cefdd9066f7be08fb8a6bc33c619cd"
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3b74f8994f11870aa77c3719aa5ef4d432a2a10fe07f93d5ba3bb701fdfffd1"
+
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x3ed3046bf62bfcfba32e9282d64f432de3f0c383755b1aee8514c3d67109573"
     
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x2eb4dac724b4507becc409667bdea68d697665e182702f294eb5bd8bfb28e26"
+  "0x1488623bcbd76a0d078cc4c4743630c2650800626ce20774b8f3706a42591e9"
+  
     
+
 };
 
 export const ESCROW_ADDRESS = {
@@ -84,14 +89,14 @@ export const TOKENS_ADDRESS = {
     BIG_TOKEN:
       "0x00148a15f9fbf4c015b927bf88608fbafb6d149abdd5ef5b3e3b296e6ac999a4",
   },
-  [sepolia.id]:{
+  [sepolia.id]: {
     ETH: "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
     USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   },
-  [kakarotSepolia.id]:{
+  [kakarotSepolia.id]: {
     ETH: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
   },
-  [mainnet.id]:{
+  [mainnet.id]: {
     USDC: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
   },
   [constants.StarknetChainId.SN_MAIN]: {
@@ -121,7 +126,7 @@ export const CLASS_HASH = {
     [constants.StarknetChainId.SN_SEPOLIA]:
       // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
       "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
-      [constants.StarknetChainId.SN_MAIN]:""
+    [constants.StarknetChainId.SN_MAIN]: ""
   },
   MEMECOIN: {
     [constants.StarknetChainId.SN_SEPOLIA]:
@@ -147,8 +152,8 @@ export const ART_PEACE_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
   [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
-    
+    "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+
 };
 
 export const USERNAME_STORE_ADDRESS = {
@@ -184,13 +189,23 @@ export const EKUBO_REGISTRY = {
 };
 
 export const NAMESERVICE_ADDRESS = {
-   [constants.StarknetChainId.SN_MAIN]: "",
+  [constants.StarknetChainId.SN_MAIN]: "",
   //  [constants.StarknetChainId.SN_SEPOLIA]:
   //  "0x4fe0ee38c814e0599a5140c5673a233d227ce0be9e22c3acdbee15ac9aefc10",
 
-   [constants.StarknetChainId.SN_SEPOLIA]:
-   "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
-  
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f",
+
+};
+
+export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
+  [constants.StarknetChainId.SN_MAIN]:
+    "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc",
+    [constants.StarknetChainId.SN_SEPOLIA]:
+    "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
 
 

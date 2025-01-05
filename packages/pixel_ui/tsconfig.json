@@ -22,7 +22,9 @@
       "@/*": [
         "./src/*"
       ],
-      "common": ["../common/src"]
+      "common": ["../common/src"],
+      "afk_sdk": ["../afk_sdk/src"],
+      "afk_react_sdk": ["../afk_react_sdk/src"]
     },
   },
   "include": ["src/**/*"],

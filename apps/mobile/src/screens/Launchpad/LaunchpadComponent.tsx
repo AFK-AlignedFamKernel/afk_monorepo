@@ -1,7 +1,7 @@
 import {useAccount} from '@starknet-react/core';
 import {useAuth} from 'afk_nostr_sdk';
 import {useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, RefreshControl, Text, View} from 'react-native';
+import {FlatList, RefreshControl, ScrollView, Text, View} from 'react-native';
 
 import {Button} from '../../components';
 import Loading from '../../components/Loading';
@@ -15,6 +15,7 @@ import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
 import {FormLaunchToken} from '../../modules/LaunchTokenPump/FormLaunchToken';
 import {useLaunchpadStore} from '../../store/launchpad';
 import stylesheet from './styles';
+import {useMyLaunchCreated} from '../../hooks/api/indexer/useMyLaunchCreated';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -25,56 +26,78 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {tokens: launchesData, isLoading, isFetching} = useCombinedTokenData();
+  const {launches: launchesData, isLoading, isFetching} = useCombinedTokenData();
   const {data: tokens, isLoading: isLoadingTokens, isFetching: isFetchingTokens} = useTokens();
   console.log('tokens data', tokens);
   const {
     data: myTokens,
     isLoading: isLoadingMyTokens,
     isFetching: isFetchingMyTokens,
-  } = useMyTokensCreated();
+  } = useMyTokensCreated(account?.address);
+  const {
+    data: myLaunchs,
+    isLoading: isLoadingMyLaunchs,
+    isFetching: isFetchingMyLaunchs,
+  } = useMyLaunchCreated(account?.address);
+
   const {show: showModal} = useTokenCreatedModal();
-  const [menuOpen, setMenuOpen] = useState(false);
   const {publicKey} = useAuth();
   const {width} = useWindowDimensions();
   const isDesktop = width >= 1024 ? true : false;
-  const {tokens: tokensStore, setTokens, setLaunches, launches} = useLaunchpadStore();
+  const {
+    tokens: tokensStore,
+    setTokens,
+    setLaunches,
+    launches,
+    setMyTokens,
+    setMyLaunches,
+  } = useLaunchpadStore();
 
   const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD'>('LAUNCH');
 
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
-      setLaunches(tokens);
+      setLaunches(launchesData);
     }
 
+    if (myLaunchs) {
+      setMyLaunches(myLaunchs);
+    }
+
+    if (myTokens) {
+      setMyTokens(myTokens);
+    }
     console.log('tokens', tokens);
     console.log('tokensStore', tokensStore);
-  }, [tokens, tokensStore]);
+  }, [tokens, launchesData, tokensStore, account?.address]);
+
   return (
     <View style={styles.container}>
-      {isLoading && <ActivityIndicator></ActivityIndicator>}
-
       {isButtonInstantiateEnable && (
         <Button
           onPress={() => {
             showModal();
           }}
+          variant="primary"
+          style={styles.createTokenButton}
+          textStyle={styles.createTokenButtonText}
         >
-          <Text>Create token</Text>
+          <Text>Create your token</Text>
         </Button>
       )}
-      {menuOpen && <FormLaunchToken />}
 
-      <View style={styles.actionToggle}>
+      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}>
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'LAUNCH' && styles.activeToggle]}
+          textStyle={styles.toggleButtonText}
           onPress={() => setTokenOrLaunch('LAUNCH')}
         >
           Launches
         </Button>
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'TOKEN' && styles.activeToggle]}
+          textStyle={styles.toggleButtonText}
           onPress={() => setTokenOrLaunch('TOKEN')}
         >
           Tokens
@@ -82,11 +105,12 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'MY_DASHBOARD' && styles.activeToggle]}
+          textStyle={styles.toggleButtonText}
           onPress={() => setTokenOrLaunch('MY_DASHBOARD')}
         >
           My Tokens
         </Button>
-      </View>
+      </ScrollView>
 
       {isLoading ? (
         <Loading />
@@ -96,13 +120,11 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
             <FlatList
               contentContainerStyle={styles.flatListContent}
               data={launchesData}
-              // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              keyExtractor={(item, i) => i.toString()}
+              keyExtractor={(item) => item.token_address}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item, index}) => {
-                return <TokenLaunchCard key={index} token={item} />;
+              renderItem={({item}) => {
+                return <TokenLaunchCard key={item.token_address} token={item} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
             />
@@ -113,7 +135,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               contentContainerStyle={styles.flatListContent}
               data={tokens?.data}
               // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
@@ -130,8 +151,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               <FlatList
                 contentContainerStyle={styles.flatListContent}
                 data={myTokens}
-                // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
                 keyExtractor={(item, i) => i.toString()}
                 key={`flatlist-${isDesktop ? 3 : 1}`}
                 numColumns={isDesktop ? 3 : 1}

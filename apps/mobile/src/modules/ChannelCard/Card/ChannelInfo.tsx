@@ -162,7 +162,7 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
         </View>
         <View>
           <View style={styles.infoDetails}>
-            <Text color="textLight" fontSize={11} lineHeight={16}>
+            <Text color="textSecondary" fontSize={11} lineHeight={16}>
               Created {getElapsedTimeStringFull((event?.created_at ?? Date.now()) * 1000)}
             </Text>
             {profile?.image && (
@@ -177,7 +177,7 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
             {(profile?.nip05 || profile?.name) && (
               <>
                 <Text
-                  color="textLight"
+                  color="textSecondary"
                   fontSize={11}
                   lineHeight={16}
                   numberOfLines={1}
@@ -196,15 +196,15 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
           <View style={styles.infoLikes}>
             <Animated.View style={animatedIconStyle}>
               {isLiked ? (
-                <LikeFillIcon height={20} color={theme.colors.red} />
+                <LikeFillIcon height={15} color={theme.colors.greenLike} />
               ) : (
-                <LikeIcon height={20} color={theme.colors.text} />
+                <LikeIcon height={15} color={theme.colors.greenLike} />
               )}
             </Animated.View>
 
             {likes > 0 && (
               <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                {likes} {likes === 1 ? 'like' : 'likes'}
+                {likes}
               </Text>
             )}
           </View>
@@ -213,7 +213,7 @@ export const ChannelInfo: React.FC<PostProps> = ({asComment, event}) => {
 
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
-          <Text color="textStrong" fontSize={13} lineHeight={20}>
+          <Text color="textTertiary" fontSize={13} lineHeight={20} weight='semiBold'>
             {channelInfo?.about ?? event?.content}
           </Text>
         </Pressable>

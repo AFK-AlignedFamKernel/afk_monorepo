@@ -6,20 +6,25 @@ export const useGetShares = (tokenAddress: string, userId?: string) => {
   return useQuery({
     queryKey: ['user_shares', tokenAddress, userId],
     queryFn: async () => {
-      if (!userId) {
-        return {
-          status: 500,
-          message: 'NO_USER_CONNECTED',
-        };
+      try {
+        if (!userId) {
+          return {
+            status: 500,
+            message: 'NO_USER_CONNECTED',
+          };
+        }
+        const endpoint = `/share-user/${tokenAddress}/${userId}`;
+        const res = await ApiIndexerInstance.get(endpoint);
+  
+        if (res.status !== 200) {
+          throw new Error('Failed to fetch token share by owner');
+        }
+  
+        return res.data;        
+      } catch (error) {
+        console.log("error", error);
       }
-      const endpoint = `/my-share/${tokenAddress}/${userId}`;
-      const res = await ApiIndexerInstance.get(endpoint);
 
-      if (res.status !== 200) {
-        throw new Error('Failed to fetch token transactions');
-      }
-
-      return res.data;
     },
   });
 };

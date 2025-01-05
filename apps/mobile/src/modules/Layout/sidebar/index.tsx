@@ -1,6 +1,6 @@
 // import { useAuth } from '../../../store/auth';
 import {useAuth, useNostrContext} from 'afk_nostr_sdk';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Image, Platform, Pressable, ScrollView, Text, View} from 'react-native';
 
 import {Icon} from '../../../components/Icon';
@@ -68,86 +68,195 @@ const Sidebar = ({navigation}: SidebarInterface) => {
   //   return;
   // }
 
+  const [currentRouteKey, setCurrentRouteKey] = useState('');
+  const [hoveredKey, setHoveredKey] = useState('');
+
+  useEffect(() => {
+    const key =
+      navigation?.getState()?.history?.[navigation.getState().history.length - (isDesktop ? 1 : 2)]?.key;
+    setCurrentRouteKey(key);
+  }, [navigation.getState().history]);
+
   return (
-    <ScrollView style={styles.sidebar}>
-      <View style={styles.rowContainer}>
-        {isDesktop && (
-          <Image style={styles.logo} source={require('./../../../assets/pepe-logo.png')} />
-        )}
-        <Text style={styles.sidebarText}>AFK</Text>
+    <ScrollView
+      style={[isDesktop ? styles.sidebarDesktop : styles.sidebarMobile]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={[isDesktop ? styles.colContainer : styles.rowContainer]}>
+        <Image
+          style={[isDesktop ? styles.logoDesktop : styles.logoMobile]}
+          source={require('./../../../assets/afk_logo_circle.svg')}
+        />
+        <Text style={[isDesktop ? styles.sidebarTextDesktop : styles.sidebarTextMobile]}>
+          Aligned Fam
+        </Text>
       </View>
-      {/* 
-            <Text style={[styles.item]}>
+      <View style={styles.sidebarItemsContainer}>
+        {/* 
+            <Text style={[isDesktop ? styles.itemDesktop : styles.itemMobile]}>
                 Launchpad
             </Text>
-            <Text style={[styles.item,]}>
+            <Text style={[isDesktop ? styles.itemDesktop : styles.itemMobile,]}>
                 Notifications
             </Text> */}
-      {/* <Pressable style={[styles.item]}
+        {/* <Pressable style={[isDesktop ? styles.itemDesktop : styles.itemMobile]}
             // onPress={handleNavigateToPostDetails}
             >
             </Pressable> */}
-      {/* <Pressable
+        {/* <Pressable
                 // onPress={handleNavigateHome}
-                style={styles.item}>
+                style={isDesktop ? styles.itemDesktop : styles.itemMobile}>
                 <Text
-                    style={styles.textItem}
+                    style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}
                 >
                     Home
                 </Text>
 
             </Pressable> */}
 
-      <Pressable onPress={handleHomeScreen} style={styles.item}>
-        <Icon name="HomeIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
-        <Text style={styles.textItem}>Feed</Text>
-      </Pressable>
-
-      <Pressable onPress={handleTipsScreen} style={styles.item}>
-        <Icon name="CoinIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
-        <Text style={styles.textItem}>Tips</Text>
-      </Pressable>
-
-      <Pressable onPress={handleGameScreen} style={styles.item}>
-        <Icon name="GameIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
-        <Text style={styles.textItem}>?</Text>
-      </Pressable>
-
-      <Pressable onPress={handleDefiScreen} style={styles.item}>
-        <Icon name="CoinIcon" size={24} style={{backgroundColor: theme.theme.colors.background}} />
-        <Text style={styles.textItem}>DeFi</Text>
-      </Pressable>
-
-      <Pressable onPress={handleWallet} style={styles.item}>
-        <Icon name="WalletIcon" size={24} />
-        <Text style={styles.textItem}>Wallet</Text>
-      </Pressable>
-
-      {Platform.OS === 'web' && (
-        <Pressable onPress={handleStudioScreen} style={styles.item}>
-          <Icon name="VideoIcon" size={24} />
-          <Text style={styles.textItem}>Studio</Text>
+        <Pressable
+          onPress={handleHomeScreen}
+          onHoverIn={() => setHoveredKey('Feed')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Feed') || hoveredKey === 'Feed'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="HomeIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Feed</Text>
         </Pressable>
-      )}
 
-      <Pressable onPress={handleSocialScreen} style={styles.item}>
-        <Icon name="SunIcon" size={24} />
-        <Text style={styles.textItem}>Socials</Text>
-      </Pressable>
-
-      {publicKey && (
-        <Pressable onPress={handleNavigateProfile} style={styles.item}>
-          <Icon name="UserIcon" size={24} />
-          <Text style={styles.textItem}>Profile</Text>
+        <Pressable
+          onPress={handleTipsScreen}
+          onHoverIn={() => setHoveredKey('Tips')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Tips') || hoveredKey === 'Tips'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="CoinIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Tips</Text>
         </Pressable>
-      )}
 
-      {!publicKey && !ndk?.ndk?.signer && (
-        <Pressable onPress={handleAuth} style={styles.item}>
-          <Icon name="UserPlusIcon" size={24} />
-          <Text style={styles.textItem}>Login</Text>
+        <Pressable
+          onPress={handleGameScreen}
+          onHoverIn={() => setHoveredKey('Games')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Games') || hoveredKey === 'Games'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="GameIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>?</Text>
         </Pressable>
-      )}
+
+        <Pressable
+          onPress={handleDefiScreen}
+          onHoverIn={() => setHoveredKey('Defi')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Defi') || hoveredKey === 'Defi'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="CoinIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>DeFi</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={handleWallet}
+          onHoverIn={() => setHoveredKey('Wallet')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Wallet') || hoveredKey === 'Wallet'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="WalletIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Wallet</Text>
+        </Pressable>
+
+        {Platform.OS === 'web' && (
+          <Pressable
+            onPress={handleStudioScreen}
+            onHoverIn={() => setHoveredKey('Studio')}
+            onHoverOut={() => setHoveredKey('')}
+            style={[
+              isDesktop ? styles.itemDesktop : styles.itemMobile,
+              currentRouteKey?.includes('Studio') || hoveredKey === 'Studio'
+                ? styles.activeItem
+                : styles.inactiveItem,
+            ]}
+          >
+            <Icon name="VideoIcon" size={isDesktop ? 30 : 25} />
+            <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Studio</Text>
+          </Pressable>
+        )}
+
+        <Pressable
+          onPress={handleSocialScreen}
+          onHoverIn={() => setHoveredKey('SocialPayment')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('SocialPayment') || hoveredKey === 'SocialPayment'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="SunIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Socials</Text>
+        </Pressable>
+
+        {publicKey && (
+          <Pressable
+            onPress={handleNavigateProfile}
+            onHoverIn={() => setHoveredKey('Profile')}
+            onHoverOut={() => setHoveredKey('')}
+            style={[
+              isDesktop ? styles.itemDesktop : styles.itemMobile,
+              currentRouteKey?.includes('Profile') || hoveredKey === 'Profile'
+                ? styles.activeItem
+                : styles.inactiveItem,
+            ]}
+          >
+            <Icon name="UserIcon" size={isDesktop ? 30 : 25} />
+            <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>
+              Profile
+            </Text>
+          </Pressable>
+        )}
+
+        {!publicKey && !ndk?.ndk?.signer && (
+          <Pressable
+            onPress={handleAuth}
+            onHoverIn={() => setHoveredKey('Login')}
+            onHoverOut={() => setHoveredKey('')}
+            style={[
+              isDesktop ? styles.itemDesktop : styles.itemMobile,
+              currentRouteKey?.includes('Login') || hoveredKey === 'Login'
+                ? styles.activeItem
+                : styles.inactiveItem,
+            ]}
+          >
+            <Icon name="UserPlusIcon" size={isDesktop ? 30 : 25} />
+            <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Login</Text>
+          </Pressable>
+        )}
+      </View>
     </ScrollView>
   );
 };

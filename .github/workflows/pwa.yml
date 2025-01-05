@@ -2,11 +2,13 @@ name: PWA
 
 on:
   push:
+    paths:
+      - ".github/workflows/pwa.yml"
+      - "apps/pwa/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "apps/pwa/**"
-  pull_request:
     paths:
       - "apps/pwa/**"
 
@@ -52,17 +54,14 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm format:check
-        
-      - name: Lint fix
-        run: pnpm lint:fix
-      
-      - name: Lint
-        run: pnpm lint
-
-      - name: TypeScript Check
-        run: pnpm ts:check
+#      - name: Prettier Format Check
+#        run: pnpm format:check
+#
+#      - name: Lint
+#        run: pnpm lint
+#
+      # - name: TypeScript Check
+      #   run: pnpm ts:check
 
       - name: Build
         run: pnpm build

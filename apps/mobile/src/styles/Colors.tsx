@@ -16,6 +16,24 @@ export const LightTheme = {
   dark: false,
   colors: {
     ...CommonColors,
+
+    // new branding - todo delete or replace all the other colors
+    // below once everything is refactored with the new ui/ux
+
+    primary: '#00AA9D',
+    bg: '#FFFFFF',
+    textPrimary: '#000000',
+    textSecondary: '#0B0B0B',
+    textTertiary: '#0B0B0B',
+    overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
+    cardBorder: '#C4C3D3',
+    greenLike: '#ADCF00',
+    grayBg: '#242C2E',
+    cardBg: '#FFFFFF',
+
+    // here ends the new branding colors
+
     red: '#EC796B',
 
     badge: '#F2F2F2',
@@ -66,7 +84,7 @@ export const LightTheme = {
     swap_divider: '#e4e4e7',
 
     // primary: '#EC796B',
-    primary: '#4FA89B',
+    // primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
 
     secondary: '#0C0C4F',
@@ -79,7 +97,7 @@ export const LightTheme = {
     shadow: 'rgba(13, 13, 29, 0.2)',
 
     text: '#14142C',
-    textSecondary: '#6B6B8C',
+    // textSecondary: '#6B6B8C',
     textLight: '#8F979E',
     textStrong: '#121212',
     onPrimary: '#FFFFFF',
@@ -118,6 +136,25 @@ export const DarkTheme = {
   dark: true,
   colors: {
     ...CommonColors,
+
+    // new branding - todo delete or replace all the other colors
+    // below once everything is refactored with the new ui/ux
+
+    primary: '#00AA9D',
+    bg: '#0B0B0B',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#E9F2EA',
+    textTertiary: '#FBFBFB',
+    overlay70: 'rgba(0, 0, 0, 0.7)',
+    grayInput: '#697077',
+    cardBorder: '#C4C3D3',
+    greenLike: '#ADCF00',
+    grayBg: '#242C2E',
+    cardBg: 'rgba(36, 44, 46, 0.4)',
+
+
+    // here ends the new branding colors
+
     red: '#EC796B',
 
     badge: '#2C2C2C',
@@ -168,20 +205,20 @@ export const DarkTheme = {
     swap_divider: '#3A3A3A',
 
     // primary: '#EC796B',
-    primary: '#4FA89B',
+    // primary: '#4FA89B',
     primaryLight: 'rgba(236,185,107, 0.1)',
 
     secondary: '#0C0C4F',
     secondaryLight: 'rgba(12,12,79, 0.1)',
 
-    background: '#272727',
-    surface: '#242424',
+    background: '#000000',
+    surface: '#000000',
     elevated: '#FFFFFF',
     overlay: 'rgba(0, 0, 0, 0.5)',
     shadow: 'rgba(13, 13, 29, 0.2)',
 
     text: '#FFFFFF',
-    textSecondary: '#FFFFFF',
+    // textSecondary: '#FFFFFF',
     textLight: '#FFFFFF',
     textStrong: '#FFFFFF',
     onPrimary: '#FFFFFF',

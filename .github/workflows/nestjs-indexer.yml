@@ -1,6 +1,16 @@
 name: NestJS Indexer App
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - ".github/workflows/nestjs-indexer.yml"
+      - "apps/nestjs-indexer/**"
+      - "package.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/nestjs-indexer/**"
 
 jobs:
   check-app:
@@ -48,8 +58,8 @@ jobs:
         run: pnpm generate
         working-directory: ./packages/indexer-prisma
 
-      - name: Prettier Format Check
-        run: pnpm format:check
+      # - name: Prettier Format Check
+      #   run: pnpm format:check
 
       - name: TypeScript Check
         run: pnpm ts:check

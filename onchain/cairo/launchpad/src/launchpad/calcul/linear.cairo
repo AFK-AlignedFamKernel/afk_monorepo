@@ -1,7 +1,7 @@
 use afk_launchpad::launchpad::math::{
     pow_256, dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256
 };
-use afk_launchpad::launchpad::math::{max_u256, min_u256};
+// use afk_launchpad::launchpad::math::{max_u256, min_u256};
 use afk_launchpad::types::launchpad_types::{TokenLaunch,};
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
@@ -76,11 +76,20 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     amount_out
 }
 
+// const SAFE_SCALE: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
+// Use more conservative scaling to avoid extreme prices
+const PRICE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
+const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
-    let launch_price = threshold_liquidity.clone() / threshold_liquidity.clone();
+    // TODO check algo
+    // quote ETH/MEME
+    let launch_price = threshold_liquidity.clone() / initial_pool_supply.clone();
+    // let launch_price = initial_pool_supply.clone() / threshold_liquidity.clone();
+
+    // let launch_price =  threshold_liquidity.clone() / initial_pool_supply.clone();
     let price_u128: u128 = launch_price.try_into().unwrap();
     let starting_price = i129 { sign: true, mag: price_u128 };
 

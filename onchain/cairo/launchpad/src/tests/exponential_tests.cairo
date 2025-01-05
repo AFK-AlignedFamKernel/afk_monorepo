@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod exponential_tests {
-    use afk_launchpad::launchpad::calcul::exponential::{get_coin_amount, get_meme_amount};
+    use afk_launchpad::launchpad::calcul::exponential::{
+        get_coin_amount_exponential, get_meme_amount_exponential
+    };
     use afk_launchpad::types::launchpad_types::{
         TokenLaunch, BondingType, TokenQuoteBuyCoin, LiquidityType
     };
@@ -82,7 +84,7 @@ mod exponential_tests {
         let amount_in_4 = 4_862_874_164_551_676_884_u256;
 
         let amount_in = 10_000_000_000_000_000_000_u256;
-        let amount_out = get_meme_amount(token_launch, amount_in);
+        let amount_out = get_meme_amount_exponential(token_launch, amount_in);
         token_launch.available_supply -= amount_out;
 
         assert!(
@@ -94,7 +96,7 @@ mod exponential_tests {
             DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
         );
 
-        let amount_out_1 = get_meme_amount(token_launch, amount_in_1);
+        let amount_out_1 = get_meme_amount_exponential(token_launch, amount_in_1);
         token_launch.available_supply -= amount_out_1;
 
         assert!(
@@ -106,7 +108,7 @@ mod exponential_tests {
             "Amount_out_1 should be around 20_000_000 tokens"
         );
 
-        let amount_out_2 = get_meme_amount(token_launch, amount_in_2);
+        let amount_out_2 = get_meme_amount_exponential(token_launch, amount_in_2);
         token_launch.available_supply -= amount_out_2;
 
         assert!(
@@ -118,7 +120,7 @@ mod exponential_tests {
             "Amount_out_2 should be around 20_000_000 tokens"
         );
 
-        let amount_out_3 = get_meme_amount(token_launch, amount_in_3);
+        let amount_out_3 = get_meme_amount_exponential(token_launch, amount_in_3);
         token_launch.available_supply -= amount_out_3;
 
         assert!(
@@ -130,7 +132,7 @@ mod exponential_tests {
             "Amount_out_3 should be around 20_000_000 tokens"
         );
 
-        let amount_out_4 = get_meme_amount(token_launch, amount_in_4);
+        let amount_out_4 = get_meme_amount_exponential(token_launch, amount_in_4);
         token_launch.available_supply -= amount_out_4;
 
         assert!(
@@ -144,14 +146,14 @@ mod exponential_tests {
     }
 
     #[test]
-    fn test_get_coin_amount_on_curve() {
+    fn test_get_coin_amount_exponential_on_curve() {
         let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
         let mut token_launch = get_token_launch(
             DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,
         );
         token_launch.liquidity_raised = 864_754_900_043_247_556_u256;
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
         );
@@ -165,7 +167,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 2_402_530_733_520_421_479_u256;
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             1_537_775_000_000_000_000 <= amount_out, "Amount_out should be around 1.5377 coins"
         );
@@ -179,7 +181,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 5_137_125_835_448_323_115_u256;
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             2_734_595_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.7345 coins"
         );
@@ -193,7 +195,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 10_000_000_000_000_000_000_u256;
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             4_862_874_000_000_000_000_u256 <= amount_out, "Amount_out should be around 4.8628 coins"
         );
@@ -207,7 +209,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 864_754_900_043_247_556_u256;
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
         );
@@ -221,7 +223,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 2_402_530_733_520_421_479_u256;
         let mut amount_in = 40_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             2_402_530_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.4025 coins"
         );
@@ -235,7 +237,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 5_137_125_835_448_323_115_u256;
         let mut amount_in = 60_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             5_137_125_000_000_000_000_u256 <= amount_out, "Amount_out should be around 5.1371 coins"
         );
@@ -249,7 +251,7 @@ mod exponential_tests {
         );
         token_launch.liquidity_raised = 10_000_000_000_000_000_000_u256;
         let mut amount_in = 80_000_000_000_000_000_000_000_000_u256;
-        let mut amount_out = get_coin_amount(token_launch, amount_in);
+        let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             9_999_999_000_000_000_000_u256 <= amount_out,
             "Amount_out should be around 10.0000 coins"
@@ -271,7 +273,7 @@ mod exponential_tests {
 //         println!("amount_in {:?}", amount_in);
 
     //         // Calculate the memecoin amount out
-//         let amount_out = get_meme_amount(token_launch.clone(), amount_in);
+//         let amount_out = get_meme_amount_exponential(token_launch.clone(), amount_in);
 //         println!("amount_out {:?}", amount_out);
 
     //         // Assert amount_out does not exceed available supply
@@ -313,7 +315,7 @@ mod exponential_tests {
 //     for amount_in in amounts {
 //         println!("amount_in {:?}", amount_in);
 
-    //         let amount_out = get_coin_amount_by_quote_amount_exponential(
+    //         let amount_out = get_coin_amount_exponential_by_quote_amount_exponential(
 //             token_launch, amount_in, false, dynamic_scale_factor
 //         );
 //         println!("amount_out {:?}", amount_out);
@@ -356,7 +358,7 @@ mod exponential_tests {
     //     for amount_in in amounts {
 //         println!("amount_in {:?}", amount_in);
 
-    //         let amount_out = get_coin_amount_by_quote_amount_exponential(
+    //         let amount_out = get_coin_amount_exponential_by_quote_amount_exponential(
 //             token_launch, amount_in, false, dynamic_scale_factor
 //         );
 //         println!("amount_out {:?}", amount_out);
@@ -397,7 +399,7 @@ mod exponential_tests {
     //     for amount_in in amounts {
 //         println!("amount_in {:?}", amount_in);
 
-    //         let amount_out = get_coin_amount_by_quote_amount_exponential(
+    //         let amount_out = get_coin_amount_exponential_by_quote_amount_exponential(
 //             token_launch, amount_in, false, dynamic_scale_factor
 //         );
 //         println!("amount_out {:?}", amount_out);
@@ -460,7 +462,7 @@ mod exponential_tests {
     //     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-//         let amount_out = get_meme_amount(token_launch, amount_in);
+//         let amount_out = get_meme_amount_exponential(token_launch, amount_in);
 
     //         token_launch.available_supply -= 20_000_000;
 //         println!("token_launch.available_supply: {}",  token_launch.available_supply);
@@ -484,7 +486,7 @@ mod exponential_tests {
     //     let mut amount_outs = array![];
 
     //     for amount_in in amounts {
-//         let amount_out = get_meme_amount(token_launch, amount_in);
+//         let amount_out = get_meme_amount_exponential(token_launch, amount_in);
 //         amount_outs.append(amount_out);
 
     //         println!("looping ------------------------------------------",);

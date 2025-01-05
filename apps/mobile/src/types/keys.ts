@@ -32,10 +32,14 @@ export interface TokenLaunchInterface {
 }
 
 export interface UserShareInterface {
-  total: number;
-  total_buy: number;
-  total_sell: number;
-  quote_amount: number;
+  owner?: string;
+  token_address?: string;
+  created_at?: string;
+  amount_owned?: string;
+  // total?: number;
+  // total_buy?: number;
+  // total_sell?: number;
+  // quote_amount?: number;
 }
 
 export interface TokenDeployInterface {
@@ -135,8 +139,8 @@ export interface SharesKeys {
 }
 
 export enum BondingType {
-  Linear,
-  Scoring, // Nostr data with Appchain connected to a Relayer
-  Exponential,
-  Limited,
+  Linear=0,
+  Exponential=1,
+  // Scoring, // Nostr data with Appchain connected to a Relayer
+  // Limited,
 }

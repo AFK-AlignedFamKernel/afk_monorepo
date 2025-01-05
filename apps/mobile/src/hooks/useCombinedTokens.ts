@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import {LaunchDataMerged} from '../types/keys';
 import {useGetDeployToken} from './api/indexer/useDeployToken';
@@ -21,28 +21,27 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
   const [tokens, setTokens] = useState<LaunchDataMerged[]>([]);
   const [launches, setLaunches] = useState<LaunchDataMerged[]>([]);
 
-  const combinedData = useMemo(() => {
-    return [
-      ...(deployData?.data || []),
-      //  ...(launchData?.data || [])
-    ];
-  }, [deployData, launchData]);
-
-  const launchDataCombined = useMemo(() => {
-    return [
-      ...(launchData?.data || []),
-      //  ...(launchData?.data || [])
-    ];
-  }, [deployData, launchData]);
-
   useEffect(() => {
-    setTokens(combinedData);
-    setLaunches(launchDataCombined);
-  }, [combinedData]);
+    if (deployData) {
+      setTokens(deployData.data || []);
+    }
+
+    if (deployData && launchData) {
+      setLaunches(
+        launchData.data.map((launchToken: any) => ({
+          ...(deployData.data.find(
+            (deployedToken: LaunchDataMerged) =>
+              deployedToken.memecoin_address === launchToken.memecoin_address,
+          ) || {}),
+          ...launchToken,
+        })),
+      );
+    }
+  }, [deployData, launchData]);
 
   return {
     tokens,
-    launches: launchDataCombined,
+    launches,
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
     isFetching: launchIsFetching || tokenIsFetching,

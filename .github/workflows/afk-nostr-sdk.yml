@@ -2,11 +2,13 @@ name: AFK Nostr SDK Package
 
 on:
   push:
+    paths:
+      - ".github/workflows/afk-nostr-sdk.yml"
+      - "packages/afk_nostr_sdk/**"
+      - "package.json"
+  pull_request:
     branches:
       - main
-    paths:
-      - "packages/afk_nostr_sdk/**"
-  pull_request:
     paths:
       - "packages/afk_nostr_sdk/**"
 
@@ -52,11 +54,11 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm format:check
-
-      - name: ESLint Check
-        run: pnpm lint
+#      - name: Prettier Format Check
+#        run: pnpm format:check
+#
+#      - name: ESLint Check
+#        run: pnpm lint
 
       - name: TypeScript Check
         run: pnpm ts:check

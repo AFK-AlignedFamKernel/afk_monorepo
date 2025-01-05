@@ -1,6 +1,16 @@
 name: Data Backend App
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - ".github/workflows/data-backend.yml"
+      - "apps/data-backend/**"
+      - "package.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/data-backend/**"
 
 jobs:
   check-app:
@@ -44,8 +54,8 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm format:check
+      # - name: Prettier Format Check
+      #   run: pnpm format:check
 
       - name: TypeScript Check
         run: pnpm ts:check

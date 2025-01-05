@@ -17,7 +17,7 @@
     "safe-build": "pnpm run build || echo 'Build failed but continuing...'"
   },
   "dependencies": {
-    "@argent/tma-wallet": "^1.17.0",
+    "@argent/tma-wallet": "1.19.3",
     "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@chakra-ui/icons": "^2.2.4",
@@ -52,11 +52,13 @@
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
     "starknet": "6.9.0",
-    "starknetkit-next": "npm:starknetkit@2.3.3",
+    "starknetkit-next": "npm:starknetkit@^2.6.1",
     "viem": "~2.21.2",
-    "wagmi": "^2.12.8",
+    "wagmi": "^2.13.4",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "afk_react_sdk": "workspace:*",
+    "afk_sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20",

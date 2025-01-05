@@ -15,7 +15,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 
-import {CommentIcon} from '../../../assets/icons';
+import {CommentIcon, GiftIcon} from '../../../assets/icons';
 import {IconButton, Menu, Text} from '../../../components';
 import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
 import {useTipModal} from '../../../hooks/modals';
@@ -137,33 +137,22 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
         <View style={styles.footer}>
           <Pressable onPress={handleNavigateToPostDetails}>
             <View style={styles.footerComments}>
-              <CommentIcon height={20} color={theme.colors.textSecondary} />
+              <CommentIcon height={15} color={theme.colors.textPrimary} />
 
               <Text color="textSecondary" fontSize={11} lineHeight={16}>
-                {comments.data?.pages.flat().length} messages
+                {comments.data?.pages.flat().length}
               </Text>
             </View>
           </Pressable>
 
-          <Menu
-            open={menuOpen}
-            onClose={() => setMenuOpen(false)}
-            handle={
-              <IconButton icon="MoreHorizontalIcon" size={20} onPress={() => setMenuOpen(true)} />
-            }
+          <Pressable
+            onPress={() => {
+              if (!event) return;
+              showTipModal(event);
+            }}
           >
-            {/* <Menu.Item label="Share" icon="ShareIcon" /> */}
-            <Menu.Item
-              label={profile?.username ? `Tip @${profile.username}` : 'Tip'}
-              icon="CoinIcon"
-              onPress={() => {
-                if (!event) return;
-
-                showTipModal(event);
-                setMenuOpen(false);
-              }}
-            />
-          </Menu>
+            <GiftIcon height={15} color={theme.colors.textPrimary} />
+          </Pressable>
         </View>
       )}
     </View>

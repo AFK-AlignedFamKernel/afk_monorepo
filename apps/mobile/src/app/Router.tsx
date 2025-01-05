@@ -261,16 +261,16 @@ const MainNavigator: React.FC = () => {
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({navigation}) => ({
         header: () =>
-          !isDesktop ? <Navbar navigation={navigation} title="AFK" showLogo={true} /> : null,
+          !isDesktop ? <Navbar navigation={navigation} showLogo={true} /> : null,
         headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
         },
         drawerType: isDesktop ? 'permanent' : 'front',
         headerTintColor: theme.theme.colors.text,
-        overlayColor: isDesktop ? 'transparent' : theme.theme.colors.background, // Make sure overlay settings are correct
+        overlayColor: theme.theme.colors.overlay70,
         drawerStyle: {
-          width: 250,
+          width: isDesktop ? 350 : 300,
         },
       })}
     >
@@ -418,6 +418,7 @@ const linking = {
           ImportKeys: 'import-keys',
           DappBrowser: 'browser',
           Oauth: 'oauth',
+          Profile: 'profile'
         },
       },
       MainStack: {

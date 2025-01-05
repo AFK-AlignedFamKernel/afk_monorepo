@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Account, num, RPC } from 'starknet';
+import { Account, AccountInterface, num, RPC } from 'starknet';
 
 // Detect Telegram context
 const isTelegramContext = () =>
@@ -41,10 +41,12 @@ interface ExecuteContractActionResult {
 export const executeContractAction = async ({
   account,
   callProps,
+  wallet,
   options = {},
 }: {
-  account: any;
-  callProps: ContractCallProps;
+  account: AccountInterface;
+  callProps: any;
+  wallet: any;
   options: ExecuteContractActionOptions;
 }): Promise<ExecuteContractActionResult> => {
   const { version = 3, argentTMA } = options;
@@ -54,16 +56,9 @@ export const executeContractAction = async ({
     ? ContractActionContextType.Telegram
     : ContractActionContextType.Expo;
 
-  // Prepare the call for execution
-  const myCall = {
-    contractAddress: callProps.contractAddress,
-    entrypoint: callProps.method,
-    calldata: callProps.calldata,
-  };
-
   try {
     // Estimate fees (same for both contexts)
-    const estimatedFee = await account.estimateInvokeFee([myCall], { version });
+    const estimatedFee = await account.estimateInvokeFee([callProps], { version });
 
     // Apply fee multiplier (default to 1.5x if not specified)
     const feeMultiplier = callProps.feeMultiplier || 1.5;
@@ -91,10 +86,21 @@ export const executeContractAction = async ({
             version,
             maxFee,
           };
-
-    // Execute the transaction using account.execute()
-    const { transaction_hash } = await account.execute(myCall, transactionOptions);
-
+    // Execute the transaction using account.execute() or invoke with wallet since we using sessions
+    const { transaction_hash } = wallet
+      ? await wallet.request({
+          type: 'wallet_addInvokeTransaction',
+          params: {
+            calls: [
+              {
+                calldata: callProps.calldata,
+                contract_address: callProps.contractAddress,
+                entry_point: callProps.entrypoint,
+              },
+            ],
+          },
+        })
+      : await account.execute([callProps], transactionOptions);
     // Wait for transaction receipt
     let receipt;
     if (contextType === ContractActionContextType.Telegram) {
@@ -111,6 +117,7 @@ export const executeContractAction = async ({
       receipt,
     };
   } catch (error) {
+    console.log(error, 'err');
     return Promise.reject(error);
   }
 };

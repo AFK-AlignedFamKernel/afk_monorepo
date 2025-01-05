@@ -17,9 +17,10 @@ import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
 import {PasskeyManager} from '../../utils/storage/passkey-manager';
 import {WalletManager} from '../../utils/storage/wallet-manager';
 import {useDialog, useToast} from '../modals';
+import {useCashuContext} from '../../providers/CashuProvider';
 
 export const useInternalAccount = () => {
-  const {meltTokens, wallet, generateMnemonic} = useCashu();
+  const {meltTokens, wallet, generateNewMnemonic} = useCashuContext()!;
   const {showDialog, hideDialog} = useDialog();
   const {ndk} = useNostrContext();
 
@@ -62,6 +63,7 @@ export const useInternalAccount = () => {
         if (!result) {
           showToast({title: 'Passkey issue.', type: 'error'});
           // return router.push("/onboarding")
+          return undefined;
         } else {
           showToast({title: 'Passkey generated', type: 'success'});
 
@@ -72,6 +74,7 @@ export const useInternalAccount = () => {
       return undefined;
     } catch (error) {
       console.log('handleGeneratePasskey error', error);
+      return undefined;
     }
   };
 
@@ -190,7 +193,7 @@ export const useInternalAccount = () => {
         const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
         if (!mnemonicSaved) {
-          const mnemonic = await generateMnemonic();
+          const mnemonic = await generateNewMnemonic();
           await storeCashuMnemonic(mnemonic, password);
           setIsSeedCashuStorage(true);
         }
@@ -253,7 +256,7 @@ export const useInternalAccount = () => {
         const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
         if (!mnemonicSaved) {
-          const mnemonic = await generateMnemonic();
+          const mnemonic = await generateNewMnemonic();
           await storeCashuMnemonic(mnemonic, password);
           setIsSeedCashuStorage(true);
         }

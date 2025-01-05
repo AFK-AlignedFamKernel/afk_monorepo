@@ -6,11 +6,24 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
+    padding: 40,
+  },
+  createTokenButton: {
+    width: 200,
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+  createTokenButtonText: {
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 
+
+
   flatListContent: {
-    // paddingHorizontal: Spacing.pagePadding,
-    paddingVertical: Spacing.medium,
+    paddingVertical: Spacing.large,
   },
   actionToggle: {
     flexDirection: 'row',
@@ -18,16 +31,21 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: Spacing.small,
   },
   activeToggle: {
-    backgroundColor: theme.colors.primary,
-    color: theme.colors.badge,
-    border: theme.colors.badgeBorder,
+    borderBottomWidth: 3,
+    padding: 2,
+    borderBottomColor: theme.colors.primary,
   },
   toggleButton: {
-    flex: 1,
-    borderRadius: 8,
+    width: 'auto',
+    backgroundColor: theme.colors.background,
+    padding: 2,
+    borderRadius: 0,
+    height: 'auto'
   },
-  separator: {
-    height: Spacing.xsmall,
+  toggleButtonText: {
+    color: theme.colors.textPrimary,
+    fontSize: 18,
+    fontWeight: 'semibold',
   },
 
   tip: {

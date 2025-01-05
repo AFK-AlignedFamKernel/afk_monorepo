@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useBookmark, useSearch} from 'afk_nostr_sdk';
+import {useBookmark, useMyNotes, useSearch} from 'afk_nostr_sdk';
 import {useMemo, useState} from 'react';
 import {
   ActivityIndicator,
@@ -27,7 +27,9 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
   }, [ndkKinds]);
 
   // const notesSearch = useRootNotes({ authors: [publicKey] });
-  const search = useSearch({authors: [publicKey], kinds: kindFilter});
+  // const search = useSearch({authors: [publicKey], kinds: kindFilter});
+  const search = useMyNotes({authors: [publicKey], kinds: kindFilter});
+
   // const reposts = useReposts({ authors: [publicKey] });
   const {bookmarksWithNotes} = useBookmark(publicKey);
 

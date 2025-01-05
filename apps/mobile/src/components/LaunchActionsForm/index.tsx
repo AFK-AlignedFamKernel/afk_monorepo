@@ -106,15 +106,19 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             style={styles.input}
             onChangeText={onChangeText}
             placeholder="Amount"
-            // value={Number(amount?.toString())}
-            value={amount?.toString()}
+            value={Number(amount?.toString())}
+            // value={typeAction === 'BUY' ? amount?.toString() : userShare?.amount_owned?.toString()}
           />
           <View style={styles.balanceInfo}>
             <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
             <Button
               style={styles.maxButton}
               onPress={() => {
-                onSetAmount(toBalance?.formatted);
+                if(typeAction === 'BUY') {
+                  onSetAmount(toBalance?.formatted);
+                } else {
+                  onSetAmount(userShare?.amount_owned?.toString());
+                }
                 /* Set max balance */
               }}
             >

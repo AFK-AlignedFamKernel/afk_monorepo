@@ -1,3 +1,4 @@
+use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
 use afk_launchpad::types::jediswap_types::{MintParams};
 use afk_launchpad::types::launchpad_types::{
     MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
@@ -5,169 +6,26 @@ use afk_launchpad::types::launchpad_types::{
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
     LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters,
+    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
 
-#[starknet::interface]
-pub trait ILaunchpadMarketplace<TContractState> {
-    // User call
-    fn create_token(
-        ref self: TContractState,
-        recipient: ContractAddress,
-        symbol: felt252,
-        name: felt252,
-        initial_supply: u256,
-        contract_address_salt: felt252,
-        is_unruggable: bool
-    ) -> ContractAddress;
-
-    fn create_and_launch_token(
-        ref self: TContractState,
-        symbol: felt252,
-        name: felt252,
-        initial_supply: u256,
-        contract_address_salt: felt252,
-        is_unruggable: bool
-    ) -> ContractAddress;
-    fn launch_token(ref self: TContractState, coin_address: ContractAddress);
-    fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
-    // fn buy_coin(ref self: TContractState, coin_address: ContractAddress, amount: u256);
-    fn buy_coin_by_quote_amount(
-        ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
-        // ekubo_pool_params: Option<EkuboPoolParameters>,
-    );
-    fn sell_coin(ref self: TContractState, coin_address: ContractAddress, coin_amount: u256);
-
-    fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
-    fn add_metadata(
-        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
-    );
-
-    // Views
-    fn get_threshold_liquidity(self: @TContractState) -> u256;
-    fn get_default_token(self: @TContractState,) -> TokenQuoteBuyCoin;
-
-    // Main function to calculate amount
-    fn get_amount_by_type_of_coin_or_quote(
-        self: @TContractState,
-        coin_address: ContractAddress,
-        amount: u256,
-        is_decreased: bool,
-        is_quote_amount: bool
-    ) -> u256;
-    fn get_coin_amount_by_quote_amount(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
-    ) -> u256;
-
-    // fn get_quote_paid_by_amount_coin(
-    //     self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased:
-    //     bool
-    // ) -> u256;
-
-    fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
-    fn get_share_of_user_by_contract(
-        self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
-    ) -> SharesTokenUser;
-    fn get_all_launch(self: @TContractState) -> Span<TokenLaunch>;
-
-    fn get_all_coins(self: @TContractState) -> Span<Token>;
-
-    // Admins
-    fn set_token(ref self: TContractState, token_quote: TokenQuoteBuyCoin);
-    fn set_protocol_fee_percent(ref self: TContractState, protocol_fee_percent: u256);
-    fn set_creator_fee_percent(ref self: TContractState, creator_fee_percent: u256);
-    fn set_dollar_paid_coin_creation(ref self: TContractState, dollar_price: u256);
-    fn set_dollar_paid_launch_creation(ref self: TContractState, dollar_price: u256);
-    fn set_dollar_paid_finish_percentage(ref self: TContractState, bps: u256);
-    fn set_class_hash(ref self: TContractState, class_hash: ClassHash);
-    fn set_protocol_fee_destination(
-        ref self: TContractState, protocol_fee_destination: ContractAddress
-    );
-    fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
-    fn set_address_jediswap_factory_v2(
-        ref self: TContractState, address_jediswap_factory_v2: ContractAddress
-    );
-    fn set_address_jediswap_nft_router_v2(
-        ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
-    );
-    fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory: ContractAddress);
-    fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
-    fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
-    );
-
-    //TODO
-    fn add_liquidity_jediswap(ref self: TContractState, coin_address: ContractAddress,);
-    fn add_liquidity_unrug(
-        ref self: TContractState,
-        coin_address: ContractAddress,
-        launch_params: LaunchParameters,
-        ekubo_pool_params: EkuboPoolParameters
-    ) -> (u64, EkuboLP);
-
-    fn add_liquidity_unrug_lp(
-        ref self: TContractState,
-        coin_address: ContractAddress,
-        quote_address: ContractAddress,
-        lp_supply: u256,
-        launch_params: LaunchParameters,
-        ekubo_pool_params: EkuboPoolParameters
-    ) -> (u64, EkuboLP);
-
-    fn add_liquidity_ekubo(
-        ref self: TContractState, coin_address: ContractAddress,
-        //  params: EkuboLaunchParameters
-    ) -> (u64, EkuboLP);
-    // ) -> Span<felt252>;
-
-    fn create_unrug_token(
-        ref self: TContractState,
-        owner: ContractAddress,
-        name: felt252,
-        symbol: felt252,
-        initial_supply: u256,
-        contract_address_salt: felt252,
-        is_launch_bonding_now: bool
-    ) -> ContractAddress;
-}
-
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
-    // use afk_launchpad::calcul::launch::{get_initial_price, get_amount_by_type_of_coin_or_quote};
-    // use afk_launchpad::calcul::linear::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_coin_amount_by_quote_amount
-    // };
-    // use afk_launchpad::launchpad::launch::{get_initial_price,
-    // get_amount_by_type_of_coin_or_quote};
-    // use afk_launchpad::launchpad::linear::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_coin_amount_by_quote_amount
-    // };
-    use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
-    use afk_launchpad::interfaces::jediswap::{
-        IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
-        IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
+    use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
+    use afk_launchpad::interfaces::unrug::{
+        IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
+        // Event as LaunchpadEvent
     };
     use afk_launchpad::launchpad::calcul::launch::{
         get_initial_price, get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, calculate_slope, calculate_pricing,
-        get_coin_amount_by_quote_amount
+        calculate_starting_price_launch, get_coin_amount_by_quote_amount
     };
-    // use afk_launchpad::launchpad::calcul::{
-    //     calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    //     get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
-    // };
-
     use afk_launchpad::launchpad::errors;
-    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
-    // };
-    use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
@@ -179,15 +37,9 @@ pub mod LaunchpadMarketplace {
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
 
-    use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
-    };
-    use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
-    use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
-    use ekubo::interfaces::token_registry::{
-        ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
     use ekubo::types::bounds::{Bounds};
     use ekubo::types::keys::PoolKey;
@@ -219,13 +71,15 @@ pub mod LaunchpadMarketplace {
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
         EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
         EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
+        EkuboUnrugLaunchParameters, AdminsFeesParams
         // MemecoinCreated, MemecoinLaunched
     };
-
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
     const MAX_STEPS_LOOP: u256 = 100;
+
+    // TODO add optional parameters to be select LIQ percent to be lock to Unrug at some point
     // Total supply / LIQUIDITY_RATIO
     // Get the 20% of Bonding curve going to Liquidity
     // Liquidity can be lock to Unrug
@@ -236,6 +90,7 @@ pub mod LaunchpadMarketplace {
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
+    const SLIPPAGE_THRESHOLD: u256 = 100; //1%
 
     const MIN_FEE_CREATOR: u256 = 100; //1%
     const MID_FEE_CREATOR: u256 = 1000; //10%
@@ -244,6 +99,10 @@ pub mod LaunchpadMarketplace {
     const BPS: u256 = 10_000; // 100% = 10_000 bps
     const SCALE_FACTOR: u256 =
         100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
+
+    // MVP
+    // FIXED SUPPLY because edge cases not finish testing hard between threshold/supply
+    const FIXED_SUPPLY: u256 = 1_000_000_000_000_000_000_000_000_000_u256; // 1_000_000_000
 
     // Unrug params
 
@@ -257,6 +116,7 @@ pub mod LaunchpadMarketplace {
     /// Once reached, transfers are disabled until the memecoin is is_launched.
     const MAX_HOLDERS_LAUNCH: u8 = 10;
 
+    const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
 
     // fn _validate_transaction_size(amount: u256) {
@@ -284,23 +144,21 @@ pub mod LaunchpadMarketplace {
         exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
-        address_jediswap_factory_v2: ContractAddress,
-        address_jediswap_nft_router_v2: ContractAddress,
-        address_ekubo_factory: ContractAddress,
-        address_ekubo_router: ContractAddress,
         // User states
         token_created: Map::<ContractAddress, Token>,
         launched_coins: Map::<ContractAddress, TokenLaunch>,
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        // shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        // shares_by_users: Map<ContractAddress, Map<ContractAddress,SharesTokenUser>>,
         shares_by_users: Map::<ContractAddress, Map<ContractAddress, SharesTokenUser>>,
         bonding_type: Map::<ContractAddress, BondingType>,
         array_launched_coins: Map::<u64, TokenLaunch>,
         array_coins: Map::<u64, Token>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
+        // Admin params
+        default_init_supply: u256,
+        is_default_init_supply: bool,
+        admins_fees_params: AdminsFeesParams,
         // Parameters
         is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
@@ -315,25 +173,36 @@ pub mod LaunchpadMarketplace {
         creator_fee_percent: u256,
         is_fees_protocol: bool,
         step_increase_linear: u256,
+        // Admins params fees
         is_fees_protocol_sell_enabled: bool,
         is_fees_protocol_buy_enabled: bool,
         is_fees_protocol_enabled: bool,
         is_fees_enabled: bool,
         is_custom_launch_enable: bool,
+        // For create token
+        token_address_to_paid_create_token: ContractAddress,
+        token_address_to_paid_launch: ContractAddress,
+        amount_to_paid_create_token: u256,
+        is_paid_create_token_enable: bool,
         is_custom_token_enable: bool,
+        // For launch token
+        amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
         // Stats
-        total_keys: u64,
         total_token: u64,
         total_launch: u64,
         total_shares_keys: u64,
+        // HIGH SECURITY RISK
+        // EDGE CASE SUPPLY AND THRESHOLD
+        max_supply_launch: u256,
+        min_supply_launch: u256,
         // External contract
-        factory_address: ContractAddress,
-        ekubo_registry: ContractAddress,
-        core: ContractAddress,
-        positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress,
+        address_jediswap_factory_v2: ContractAddress,
+        address_jediswap_nft_router_v2: ContractAddress,
+        address_ekubo_factory: ContractAddress,
+        address_ekubo_router: ContractAddress,
+        unrug_liquidity_address: ContractAddress,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -373,17 +242,54 @@ pub mod LaunchpadMarketplace {
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_market_cap: u256,
-        factory_address: ContractAddress,
-        ekubo_registry: ContractAddress,
-        core: ContractAddress,
-        positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress
+        unrug_liquidity_address: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(MINTER_ROLE, admin);
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+
+        // TODO
+        // Launch and Create fees to false by default
+        // Still not test
+        self.is_paid_create_token_enable.write(false);
+        self.is_paid_launch_enable.write(false);
+        self.amount_to_paid_launch.write(1_u256);
+        self.amount_to_paid_create_token.write(1_u256);
+
+        // TODO
+        // Fees protocol to true by default
+        // Still not test wisely
+
+        self.is_fees_protocol_buy_enabled.write(false);
+        self.is_fees_protocol_sell_enabled.write(false);
+        self.is_fees_protocol_enabled.write(false);
+
+        // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
+        // EDGE CASE
+        // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
+
+        // self.is_fees_protocol_buy_enabled.write(false);
+        // self.is_fees_protocol_sell_enabled.write(false);
+
+        self.is_fees_protocol_buy_enabled.write(true);
+        self.is_fees_protocol_sell_enabled.write(true);
+
+        self.is_fees_protocol_enabled.write(true);
+
+        let admins_fees_params = AdminsFeesParams {
+            token_address_to_paid_launch: token_address,
+            token_address_to_paid_create_token: token_address,
+            amount_to_paid_launch: 1_u256,
+            amount_to_paid_create_token: 1_u256,
+            is_fees_protocol_buy_enabled: true,
+            is_fees_protocol_sell_enabled: true,
+            is_fees_protocol_enabled: true,
+            is_paid_create_token_enable: false,
+            is_paid_launch_enable: false,
+        };
+        self.admins_fees_params.write(admins_fees_params);
 
         let init_token = TokenQuoteBuyCoin {
             token_address: token_address,
@@ -401,32 +307,74 @@ pub mod LaunchpadMarketplace {
         self.threshold_market_cap.write(threshold_market_cap);
         self.protocol_fee_destination.write(admin);
         self.step_increase_linear.write(step_increase_linear);
-        self.total_keys.write(0);
         self.total_token.write(0);
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
-        self.factory_address.write(factory_address);
-        self.ekubo_registry.write(ekubo_registry);
-        self.core.write(core);
-        self.positions.write(positions);
-        self.ekubo_exchange_address.write(ekubo_exchange_address);
+        // self.factory_address.write(factory_address);
+        // self.ekubo_registry.write(ekubo_registry);
+        // self.core.write(core);
+        // self.positions.write(positions);
+        // self.ekubo_exchange_address.write(ekubo_exchange_address);
+        self.unrug_liquidity_address.write(unrug_liquidity_address);
     }
 
     // Public functions inside an impl block
     #[abi(embed_v0)]
-    impl LaunchpadMarketplace of super::ILaunchpadMarketplace<ContractState> {
+    impl LaunchpadMarketplace of ILaunchpadMarketplace<ContractState> {
         // ADMIN
-
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
         }
 
-        fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
-            assert(protocol_fee_percent < MAX_FEE_PROTOCOL, 'protocol_fee_too_high');
-            assert(protocol_fee_percent > MIN_FEE_PROTOCOL, 'protocol_fee_too_low');
+        fn set_default_token(ref self: ContractState, default_token: TokenQuoteBuyCoin) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.default_token.write(default_token);
+        }
 
+        fn set_default_init_supply(ref self: ContractState, default_init_supply: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.default_init_supply.write(default_init_supply);
+        }
+
+        fn set_force_default_init_supply(ref self: ContractState, is_default_init_supply: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_default_init_supply.write(is_default_init_supply);
+        }
+
+        fn set_is_fees_protocol_enabled(ref self: ContractState, is_fees_protocol_enabled: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_protocol_enabled.write(is_fees_protocol_enabled);
+        }
+
+        fn set_is_fees_protocol_buy_enabled(
+            ref self: ContractState, is_fees_protocol_buy_enabled: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
+            self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
+        }
+
+        fn set_is_fees_protocol_sell_enabled(
+            ref self: ContractState, is_fees_protocol_sell_enabled: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_protocol_sell_enabled.write(is_fees_protocol_sell_enabled);
+        }
+
+        fn set_is_fees(ref self: ContractState, is_fees_protocol_enabled: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_protocol_buy_enabled.write(is_fees_protocol_enabled);
+            self.is_fees_protocol_sell_enabled.write(is_fees_protocol_enabled);
+            self.is_fees_protocol_enabled.write(is_fees_protocol_enabled);
+        }
+
+        fn set_protocol_fee_percent(ref self: ContractState, protocol_fee_percent: u256) {
+            // assert(protocol_fee_percent < MAX_FEE_PROTOCOL, 'protocol_fee_too_high');
+            // assert(protocol_fee_percent > MIN_FEE_PROTOCOL, 'protocol_fee_too_low');
+            assert(protocol_fee_percent < MAX_FEE_PROTOCOL, errors::PROTOCOL_FEE_TOO_HIGH);
+            assert(protocol_fee_percent > MIN_FEE_PROTOCOL, errors::PROTOCOL_FEE_TOO_LOW);
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_percent.write(protocol_fee_percent);
         }
@@ -438,10 +386,17 @@ pub mod LaunchpadMarketplace {
             self.protocol_fee_destination.write(protocol_fee_destination);
         }
 
+        fn set_unrug_liquidity_address(
+            ref self: ContractState, unrug_liquidity_address: ContractAddress
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.unrug_liquidity_address.write(unrug_liquidity_address);
+        }
+
         fn set_creator_fee_percent(ref self: ContractState, creator_fee_percent: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            assert(creator_fee_percent < MAX_FEE_CREATOR, 'creator_fee_too_high');
-            assert(creator_fee_percent > MIN_FEE_CREATOR, 'creator_fee_too_low');
+            assert(creator_fee_percent < MAX_FEE_CREATOR, errors::CREATOR_FEE_TOO_HIGH);
+            assert(creator_fee_percent > MIN_FEE_CREATOR, errors::CREATOR_FEE_TOO_LOW);
             self.creator_fee_percent.write(creator_fee_percent);
         }
 
@@ -466,50 +421,6 @@ pub mod LaunchpadMarketplace {
             self.threshold_liquidity.write(threshold_liquidity);
         }
 
-        // Jediwswap factory address
-        fn set_address_jediswap_factory_v2(
-            ref self: ContractState, address_jediswap_factory_v2: ContractAddress
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            // self.ownable.assert_only_owner();
-            self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
-            self
-                .emit(
-                    SetJediswapV2Factory {
-                        address_jediswap_factory_v2: address_jediswap_factory_v2
-                    }
-                );
-        }
-
-        fn set_address_jediswap_nft_router_v2(
-            ref self: ContractState, address_jediswap_nft_router_v2: ContractAddress
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
-            self
-                .emit(
-                    SetJediswapNFTRouterV2 {
-                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
-                    }
-                );
-        }
-
-        fn set_address_ekubo_factory(
-            ref self: ContractState, address_ekubo_factory: ContractAddress
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.address_ekubo_factory.write(address_ekubo_factory);
-            // Optionally emit an event
-        }
-
-        fn set_address_ekubo_router(
-            ref self: ContractState, address_ekubo_router: ContractAddress
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.address_ekubo_router.write(address_ekubo_router);
-            // Optionally emit an event
-        }
-
         fn set_exchanges_address(
             ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
         ) {
@@ -527,585 +438,43 @@ pub mod LaunchpadMarketplace {
             };
         }
 
-
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.coin_class_hash.write(class_hash);
         }
-        // User call
 
-        // Create keys for an user
-        fn create_token(
-            ref self: ContractState,
-            recipient: ContractAddress,
-            symbol: felt252,
-            name: felt252,
-            initial_supply: u256,
-            contract_address_salt: felt252,
-            is_unruggable: bool
-        ) -> ContractAddress {
-            let caller = get_caller_address();
-            let contract_address = get_contract_address();
-            let token_address = self
-                ._create_token(
-                    symbol,
-                    name,
-                    initial_supply,
-                    contract_address_salt,
-                    is_unruggable,
-                    recipient,
-                    caller,
-                    contract_address,
-                );
 
-            token_address
-        }
-
-        // Creat coin and launch
-        // recipient, caller, symbol, name, initial_supply, contract_address_salt
-        fn create_and_launch_token(
-            ref self: ContractState,
-            symbol: felt252,
-            name: felt252,
-            initial_supply: u256,
-            contract_address_salt: felt252,
-            is_unruggable: bool
-        ) -> ContractAddress {
-            let contract_address = get_contract_address();
-            let caller = get_caller_address();
-            let token_address = self
-                ._create_token(
-                    symbol,
-                    name,
-                    initial_supply,
-                    contract_address_salt,
-                    is_unruggable,
-                    contract_address,
-                    caller,
-                    contract_address,
-                );
-            // self._launch_token(token_address, caller, contract_address, false,);
-            self._launch_token(token_address, caller, contract_address, false, Option::None);
-            token_address
-        }
-
-        // Launch coin to pool bonding curve
-        fn launch_token(ref self: ContractState, coin_address: ContractAddress) {
-            let caller = get_caller_address();
-            let contract_address = get_contract_address();
-
-            let token = self.token_created.read(coin_address);
-            let is_unruggable = token.is_unruggable;
-            // self._launch_token(coin_address, caller, contract_address, is_unruggable);
-            self._launch_token(coin_address, caller, contract_address, is_unruggable, Option::None);
-        }
-
-        // Buy coin by quote amount
-        // Get amount of coin receive based on token IN
-        fn buy_coin_by_quote_amount(
-            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
-            // ekubo_pool_params: Option<EkuboPoolParameters>
+        fn set_is_paid_create_token_enable(
+            ref self: ContractState, is_paid_create_token_enable: bool
         ) {
-            // assert!(quote_amount > 0, "amount == 0");
-            let caller = get_caller_address();
-            let old_launch = self.launched_coins.read(coin_address);
-            assert!(!old_launch.owner.is_zero(), "coin not found");
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            let mut pool_coin = old_launch.clone();
-            let total_supply_memecoin = memecoin.total_supply();
-            // let threshold_liquidity = self.threshold_liquidity.read();
-            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
-
-            // TODO erc20 token transfer
-            let token_quote = old_launch.token_quote.clone();
-            let quote_token_address = token_quote.token_address.clone();
-            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
-            let protocol_fee_percent = self.protocol_fee_percent.read();
-
-            // IF AMOUNT COIN TO HAVE => GET AMOUNT QUOTE TO PAID
-            let mut total_price = quote_amount.clone();
-            let old_price = pool_coin.price.clone();
-            let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let mut remain_liquidity = total_price - amount_protocol_fee;
-            let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
-
-            println!("amount quote to send {:?}", quote_amount);
-            println!("remain_quote_to_liquidity {:?}", remain_quote_to_liquidity);
-
-            //new liquidity after purchase
-            let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
-
-            // Verify pool has sufficient available supply
-
-            //assertion
-            assert(new_liquidity <= threshold_liquidity, 'threshold liquidity exceeded');
-            // let mut amount = 0;
-            // Pay with quote token
-            // Transfer quote & coin
-            // TOdo fix issue price
-            let mut amount = get_amount_by_type_of_coin_or_quote(
-                pool_coin.clone(),
-                coin_address.clone(),
-                remain_quote_to_liquidity.clone(),
-                false,
-                true
-            );
-
-            assert(pool_coin.available_supply >= amount, 'insufficient supply');
-
-            // remain_liquidity = total_price - amount_protocol_fee;
-            // TODO check available to buy
-
-            println!("amount memecoin to receive {:?}", amount);
-
-            // TODO readd this check and check why it's broken
-            // assert(amount <= pool_coin.available_supply, 'no available supply');
-            println!("transfer protocol fees {:?}", amount_protocol_fee);
-
-            erc20
-                .transfer_from(
-                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
-                );
-            println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
-
-            erc20
-                .transfer_from(
-                    get_caller_address(), get_contract_address(), remain_quote_to_liquidity
-                );
-            // In case the user want to buy more than the threshold
-            // Give the available supply
-            // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
-            //     total_price = threshold_liquidity - old_launch.liquidity_raised.clone();
-            //     amount = pool_coin.available_supply;
-
-            //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
-            //     // remain_liquidity = total_price - amount_protocol_fee;
-            //     remain_liquidity = total_price;
-            //     erc20
-            //         .transfer_from(
-            //             get_caller_address(),
-            //             self.protocol_fee_destination.read(),
-            //             amount_protocol_fee
-            //         );
-            //     // println!("remain_liquidity {:?}", remain_liquidity);
-            //     erc20.transfer_from(get_caller_address(), get_contract_address(),
-            //     remain_liquidity);
-            // } else {
-            //     amount = self
-            //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false,
-            //         true);
-            //     // remain_liquidity = total_price - amount_protocol_fee;
-
-            //     erc20
-            //         .transfer_from(
-            //             get_caller_address(),
-            //             self.protocol_fee_destination.read(),
-            //             amount_protocol_fee
-            //         );
-            //     // println!("remain_liquidity {:?}", remain_liquidity);
-            //     erc20.transfer_from(get_caller_address(), get_contract_address(),
-            //     remain_liquidity);
-            // }
-
-            // Assertion: Amount Received Validation
-            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
-            // println!("total_price {:?}", total_price);
-            // Change the Stats of pool:
-            // Liquidity raised
-            // Available supply
-            // Token holded
-
-            println!("update pool");
-
-            pool_coin.liquidity_raised += remain_liquidity;
-            pool_coin.total_token_holded += amount;
-            pool_coin.price = total_price;
-            println!("subtract amount and available supply");
-            println!("available supply {:?}", pool_coin.available_supply);
-            println!("amount {:?}", amount);
-            if amount >= pool_coin.available_supply {
-                pool_coin.available_supply = 0;
-            } else {
-                println!("subtract amount");
-
-                pool_coin.available_supply -= amount;
-            }
-
-            // Update share and coin stats for an user
-            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
-            // let mut old_share = self.shares_by_users.entry((get_caller_address(),
-            // coin_address)).read();
-            let mut old_share = self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .read();
-
-            let mut share_user = old_share.clone();
-            println!("update share");
-
-            if share_user.owner.is_zero() {
-                share_user =
-                    SharesTokenUser {
-                        owner: get_caller_address(),
-                        token_address: coin_address,
-                        amount_owned: amount,
-                        amount_buy: amount,
-                        amount_sell: 0,
-                        created_at: get_block_timestamp(),
-                        total_paid: total_price,
-                    };
-            } else {
-                share_user.total_paid += total_price;
-                share_user.amount_owned += amount;
-                share_user.amount_buy += amount;
-            }
-            // pool_coin.price = total_price / amount;
-
-            // Check if liquidity threshold raise
-            // let threshold = self.threshold_liquidity.read();
-            let threshold = pool_coin.threshold_liquidity.clone();
-            let threshold_liq = self.threshold_liquidity.read();
-            let threshold_mc = self.threshold_market_cap.read();
-            // println!("threshold {:?}", threshold);
-            // println!("pool_coin.liquidity_raised {:?}", pool_coin.liquidity_raised);
-
-            // let mc = (pool_coin.price * total_supply_memecoin);
-            // TODO add liquidity launch
-            // TOTAL_SUPPLY / 5
-            // 20% go the liquidity
-            // 80% bought by others
-
-            // TODO check reetrancy guard
-            // Update state
-            // self
-            //     .shares_by_users
-            //     .entry((get_caller_address(), coin_address))
-            //     .write(share_user.clone());
-
-            self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .write(share_user.clone());
-
-            self.launched_coins.entry(coin_address).write(pool_coin.clone());
-
-            println!("check threshold");
-            // TODO finish test and fix
-            // Fix price of the last
-            if pool_coin.liquidity_raised >= threshold {
-                println!("emit liquidity can be added");
-                self
-                    .emit(
-                        LiquidityCanBeAdded {
-                            pool: pool_coin.token_address.clone(),
-                            asset: pool_coin.token_address.clone(),
-                            quote_token_address: pool_coin.token_quote.token_address.clone(),
-                        }
-                    );
-                // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
-                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
-                // TODO fix add liquidity ekubo
-                self._add_liquidity_ekubo(coin_address);
-            }
-
-            println!("emit buy token");
-
-            self
-                .emit(
-                    BuyToken {
-                        caller: get_caller_address(),
-                        token_address: coin_address,
-                        amount: amount,
-                        price: total_price,
-                        protocol_fee: amount_protocol_fee,
-                        // creator_fee: 0,
-                        last_price: old_price,
-                        timestamp: get_block_timestamp(),
-                        quote_amount: quote_amount
-                    }
-                );
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_paid_create_token_enable.write(is_paid_create_token_enable);
         }
 
-        fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
-            let old_pool = self.launched_coins.read(coin_address);
-            assert(!old_pool.owner.is_zero(), 'coin not found');
-            assert(old_pool.is_liquidity_launch == false, 'token tradeable');
-
-            let caller = get_caller_address();
-            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
-            // let mut old_share = self.shares_by_users.entry((get_caller_address(),
-            // coin_address)).read();
-            let mut old_share = self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .read();
-            // Verify Amount owned
-            let mut share_user = old_share.clone();
-
-            assert(share_user.amount_owned >= coin_amount, 'above supply');
-
-            // TODO erc20 token transfer
-            let total_supply = old_pool.total_supply;
-            let token_quote = old_pool.token_quote.clone();
-            let quote_token_address = token_quote.token_address.clone();
-
-            // Todo check user amount fee creator if needed
-            let creator_fee_percent = self.creator_fee_percent.read();
-            let protocol_fee_percent = self.protocol_fee_percent.read();
-
-            let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
-            let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
-            let remain_coin_amount = coin_amount - amount_protocol_fee;
-
-            let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
-                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
-            );
-            println!("sell amount memecoin {:?}", coin_amount);
-            println!("sell amount quote to receive {:?}", quote_amount_total);
-
-            let quote_amount_protocol_fee: u256 = quote_amount_total * protocol_fee_percent / BPS;
-
-            let quote_amount = quote_amount_total - quote_amount_protocol_fee;
-            println!("quote_amount {:?}", quote_amount);
-
-            assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
-
-            // TODO fix this function
-            // let mut amount = self
-            //     ._get_coin_amount_by_quote_amount(coin_address, quote_amount, true);
-
-            // let amount_to_user: u256 = coin_amount - amount_protocol_fee - amount_creator_fee;
-
-            // let mut total_price = amount;
-            // println!("amount {:?}", amount);
-            // println!("coin_amount {:?}", coin_amount);
-            // println!("total_price {:?}", total_price);
-            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
-
-            // Ensure fee percentages are within valid bounds
-            assert(
-                protocol_fee_percent <= MAX_FEE_PROTOCOL
-                    && protocol_fee_percent >= MIN_FEE_PROTOCOL,
-                'protocol fee out'
-            );
-            // assert(
-            //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
-            //     'creator_fee out'
-            // );
-
-            // assert!(old_share.amount_owned >= amount, "share to sell > supply");
-            // println!("amount{:?}", amount);
-            // assert!(total_supply >= quote_amount, "share to sell > supply");
-            // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
-
-            // let old_price = old_pool.price.clone();
-            let total_price = old_pool.price.clone();
-            // Update keys with new values
-            let mut pool_update = old_pool.clone();
-
-            // let remain_coin_amount = total_price ;
-
-            // Ensure fee calculations are correct
-            // assert(
-            //     amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
-            //     'fee calculation mismatch'
-            // );
-
-            // Assertion: Check if the contract has enough quote tokens to transfer
-            let contract_quote_balance = erc20.balance_of(get_contract_address());
-            assert!(
-                contract_quote_balance >= quote_amount_total,
-                "contract has insufficient quote token balance"
-            );
-
-            // Transfer protocol fee to the designated destination
-            println!("sell transfer fees protocol");
-            if quote_amount_protocol_fee > 0 {
-                erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
-            }
-            println!("sell transfer quote amount");
-            // Transfer the remaining quote amount to the user
-            if quote_amount > 0 {
-                erc20.transfer(caller, quote_amount);
-            }
-
-            // Assertion: Ensure the user receives the correct amount
-            // let user_received = erc20.balance_of(caller);
-            // assert(user_received >= , 'user not receive amount');
-
-            // TODO sell coin if it's already sendable and transferable
-            // ENABLE if direct launch coin
-            // let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount);
-
-            // TODO fix amount owned and sellable.
-            // Update share user coin
-
-            share_user.amount_owned -= remain_coin_amount;
-            share_user.amount_sell += remain_coin_amount;
-
-            // TODO check reetrancy guard
-
-            // Assertion: Ensure pool liquidity remains consistent
-            assert!(
-                old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after sale"
-            );
-
-            // TODO finish update state
-            // pool_update.price = total_price;
-            println!("sell update pool");
-            pool_update.liquidity_raised -= quote_amount;
-            pool_update.total_token_holded -= remain_coin_amount;
-            pool_update.available_supply += remain_coin_amount;
-
-            // Assertion: Ensure the pool's liquidity and token holded are updated correctly
-            // assert!(
-            //     pool_update.liquidity_raised + quote_amount == old_pool.liquidity_raised,
-            //     "liquidity_raised mismatch after update"
-            // );
-            // assert!(
-            //     pool_update.total_token_holded
-            //         + self
-            //             ._get_coin_amount_by_quote_amount(
-            //                 coin_address, quote_amount, true
-            //             ) == old_pool
-            //             .total_token_holded,
-            //     "total_token_holded mismatch after update"
-            // );
-
-            // Old map version with tuple
-            // self
-            //     .shares_by_users
-            //     .entry((get_caller_address(), coin_address.clone()))
-            //     .write(share_user.clone());
-
-            self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address.clone())
-                .write(share_user.clone());
-
-            self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
-            self
-                .emit(
-                    SellToken {
-                        caller: caller,
-                        key_user: coin_address,
-                        amount: quote_amount,
-                        price: total_price, // Adjust if necessary
-                        protocol_fee: amount_protocol_fee,
-                        creator_fee: amount_creator_fee,
-                        timestamp: get_block_timestamp(),
-                        last_price: old_pool.price,
-                    }
-                );
+        fn set_is_paid_launch_enable(ref self: ContractState, is_paid_launch_enable: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_paid_launch_enable.write(is_paid_launch_enable);
         }
 
-        // TODO finish check
-        //  Launch liquidity if threshold ok
-        // Add more exchanges. Start with EKUBO by default
-        fn launch_liquidity(
-            ref self: ContractState, coin_address: ContractAddress, // exchange:SupportedExchanges
+        fn set_token_address_for_action(ref self: ContractState, token_address: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.token_address_to_paid_create_token.write(token_address);
+            self.token_address_to_paid_launch.write(token_address);
+        }
+
+        fn set_amount_to_paid_launch(ref self: ContractState, amount_to_paid_launch: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.amount_to_paid_launch.write(amount_to_paid_launch);
+        }
+
+        fn set_amount_to_paid_create_token(
+            ref self: ContractState, amount_to_paid_create_token: u256
         ) {
-            // TODO auto distrib and claim?
-
-            // let caller = get_caller_address();
-
-            // let pool = self.launched_coins.read(coin_address);
-
-            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-
-            self._add_liquidity_ekubo(coin_address);
-            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
-        }
-        fn add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
-            // TODO auto distrib and claim?
-            let caller = get_caller_address();
-
-            let pool = self.launched_coins.read(coin_address);
-
-            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-
-            self._add_liquidity_jediswap(coin_address);
-            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.amount_to_paid_create_token.write(amount_to_paid_create_token);
         }
 
-
-        // TODO Finish this function
-        // Claim coin if liquidity is sent
-        // Check and modify the share of user
-        fn claim_coin_buy(ref self: ContractState, coin_address: ContractAddress, amount: u256) {
-            let caller = get_contract_address();
-            // Verify if liquidity launch
-            let mut launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch == true, 'not launch yet');
-
-            // Verify share of user
-            // let mut share_user = self.shares_by_users.read((get_caller_address(), coin_address));
-
-            // OLD MAP used with tuple
-            // let mut share_user = self.shares_by_users.entry((get_caller_address(),
-            // coin_address)).read();
-            let mut share_user = self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .read();
-
-            let max_amount_claimable = share_user.amount_owned;
-            assert(max_amount_claimable >= amount, 'share below');
-
-            // Transfer memecoin
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            memecoin.transfer(caller, amount);
-
-            // Update new share and emit event
-            share_user.amount_owned -= amount;
-
-            // OLD MAP used with Tuple
-            // self.shares_by_users.entry((get_caller_address(), coin_address)).write(share_user);
-            self.shares_by_users.entry(get_caller_address()).entry(coin_address).write(share_user);
-
-            self
-                .emit(
-                    TokenClaimed {
-                        token_address: coin_address,
-                        owner: caller,
-                        timestamp: get_block_timestamp(),
-                        amount,
-                    }
-                );
-        }
-
-        // TODO finish add Metadata
-        fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
-        ) {
-            let caller = get_contract_address();
-            // Verify if caller is owner
-            let mut launch = self.launched_coins.read(coin_address);
-            assert(launch.owner == caller, 'not owner');
-
-            // Add or update metadata
-
-            self.metadata_coins.entry(coin_address).write(metadata.clone());
-            self
-                .emit(
-                    MetadataCoinAdded {
-                        token_address: coin_address,
-                        url: metadata.url,
-                        timestamp: get_block_timestamp(),
-                        nostr_event_id: metadata.nostr_event_id,
-                    }
-                );
-        }
-
+        // Views functions public
 
         fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
             self.default_token.read()
@@ -1159,6 +528,801 @@ pub mod LaunchpadMarketplace {
                 i += 1;
             }
         }
+        // User call
+
+        // Create token for an user
+        fn create_token(
+            ref self: ContractState,
+            recipient: ContractAddress,
+            symbol: felt252,
+            name: felt252,
+            initial_supply: u256,
+            contract_address_salt: felt252,
+            is_unruggable: bool
+        ) -> ContractAddress {
+            let caller = get_caller_address();
+            let contract_address = get_contract_address();
+
+            let token_address = self
+                ._create_token(
+                    symbol,
+                    name,
+                    initial_supply,
+                    contract_address_salt,
+                    is_unruggable,
+                    recipient,
+                    caller,
+                    contract_address,
+                );
+
+            token_address
+        }
+
+        // Create coin and launch in bonding curve
+        fn create_and_launch_token(
+            ref self: ContractState,
+            symbol: felt252,
+            name: felt252,
+            initial_supply: u256,
+            contract_address_salt: felt252,
+            is_unruggable: bool,
+            bonding_type: BondingType
+        ) -> ContractAddress {
+            let contract_address = get_contract_address();
+            let caller = get_caller_address();
+            let token_address = self
+                ._create_token(
+                    symbol,
+                    name,
+                    initial_supply,
+                    contract_address_salt,
+                    is_unruggable,
+                    contract_address,
+                    caller,
+                    contract_address,
+                );
+            self
+                ._launch_token(
+                    token_address, caller, contract_address, false, Option::Some(bonding_type)
+                );
+            token_address
+        }
+
+        // Launch coin to pool bonding curve
+        fn launch_token(
+            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType
+        ) {
+            let caller = get_caller_address();
+            let contract_address = get_contract_address();
+
+            let token = self.token_created.read(coin_address);
+            let is_unruggable = token.is_unruggable;
+            self
+                ._launch_token(
+                    coin_address,
+                    caller,
+                    contract_address,
+                    is_unruggable,
+                    Option::Some(bonding_type)
+                );
+        }
+
+        // Buy coin by quote amount
+        // Get amount of coin receive based on token IN
+        // Calculate fees and protocol fees
+        // Transfer fees to the protocol fee destination
+        // Transfer quote to the user
+        // Update the state of the pool: Liquidity raised, available_supply,
+        // Update the share user: update amount_owned
+        // Emit the buy event
+        fn buy_coin_by_quote_amount(
+            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
+            // ekubo_pool_params: Option<EkuboPoolParameters>
+        ) {
+            assert(quote_amount > 0, errors::AMOUNT_ZERO);
+            let caller = get_caller_address();
+            let old_launch = self.launched_coins.read(coin_address);
+            assert(!old_launch.owner.is_zero(), errors::COIN_NOT_FOUND);
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            let mut pool_coin = old_launch.clone();
+            // let total_supply_memecoin = memecoin.total_supply();
+            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
+
+            // TODO erc20 token transfer
+            let token_quote = old_launch.token_quote.clone();
+            let quote_token_address = token_quote.token_address.clone();
+            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+            let protocol_fee_percent = self.protocol_fee_percent.read();
+
+            // IF AMOUNT COIN TO HAVE => GET AMOUNT QUOTE TO PAID
+            let mut total_price = quote_amount.clone();
+            let old_price = pool_coin.price.clone();
+
+            // TODO edge case remaining supply to buy easily
+            // In case the user want to buy more than the threshold
+            // Give the available supply
+            // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
+            //     total_price = threshold_liquidity - old_launch.liquidity_raised.clone();
+            //     amount = pool_coin.available_supply;
+
+            //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
+            //     // remain_liquidity = total_price - amount_protocol_fee;
+            //     remain_liquidity = total_price;
+            // } else {
+            //     amount = self
+            //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false,
+            //         true);
+            //     // remain_liquidity = total_price - amount_protocol_fee;
+
+            //     erc20
+            //         .transfer_from(
+            //             get_caller_address(),
+            //             self.protocol_fee_destination.read(),
+            //             amount_protocol_fee
+            //         );
+            //     // println!("remain_liquidity {:?}", remain_liquidity);
+            //     erc20.transfer_from(get_caller_address(), get_contract_address(),
+            //     remain_liquidity);
+            // }
+
+            // TODO check if fees is enabled
+            let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            let mut remain_liquidity = total_price - amount_protocol_fee;
+            let mut remain_quote_to_liquidity = total_price;
+            // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
+
+            let mut threshold_liquidity = pool_coin.threshold_liquidity.clone();
+            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let mut threshold = threshold_liquidity;
+            let mut threshold = threshold_liquidity - slippage_threshold;
+            threshold_liquidity = threshold_liquidity - slippage_threshold;
+            // TODO without fees if it's correct
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            let is_fees_protocol_buy_enabled = self.is_fees_protocol_buy_enabled.read();
+
+            // TODO edge cases
+            if is_fees_protocol_enabled && is_fees_protocol_buy_enabled {
+                // if pool_coin.liquidity_raised < quote_amount {
+                //     total_price = pool_coin.liquidity_raised.clone();
+                //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
+                //     remain_quote_to_liquidity = pool_coin.liquidity_raised.clone() -
+                //     amount_protocol_fee;
+                // } else {
+                //     remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
+                // }
+                remain_liquidity = total_price - amount_protocol_fee;
+
+                remain_quote_to_liquidity = total_price - amount_protocol_fee;
+                // remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
+                // TODO check slippage and fees
+
+                // TODO check threshold min and Supply threshold
+                // threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and
+                // fees
+                threshold = threshold_liquidity
+                    - (slippage_threshold + amount_protocol_fee); // add slippage and fees
+
+                erc20
+                    .transfer_from(
+                        get_caller_address(),
+                        self.protocol_fee_destination.read(),
+                        amount_protocol_fee
+                    );
+            }
+
+            // println!("amount quote to send {:?}", quote_amount);
+            // println!("remain_quote_to_liquidity {:?}", remain_quote_to_liquidity);
+
+            //new liquidity after purchase
+            let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
+
+            // Verify pool has sufficient available supply
+
+            //assertion
+
+            // Add slippage threshold
+            // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+
+            // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+
+            // Check if liquidity threshold raise
+            let threshold_liq = self.threshold_liquidity.read();
+            let threshold_mc = self.threshold_market_cap.read();
+
+            // let mut amount = 0;
+            // Pay with quote token
+            // Transfer quote & coin
+            // TOdo fix issue price
+            let mut amount = get_amount_by_type_of_coin_or_quote(
+                pool_coin.clone(),
+                coin_address.clone(),
+                remain_quote_to_liquidity.clone(),
+                false,
+                true
+            );
+
+            let mut amount_coin_received = amount.clone();
+            // TODO check available to buy
+            // TODO EDGES CASES
+            // Approximation amount
+            // TEST
+            // Can cause draining
+
+            // Todo check all memecoin amount possible to buy
+            // if pool_coin.total_token_holded < pool_coin.available_supply + amount {
+
+            //     let amount = pool_coin.total_token_holded - pool_coin.available_supply;
+            //     let amount_coin_received = pool_coin.total_token_holded -
+            //     pool_coin.available_supply;
+            //     // assert(amount  <  pool_coin.available_supply,
+            //     errors::INSUFFICIENT_TOTAL_SUPPLY);
+            //     // assert(pool_coin.total_token_holded < pool_coin.available_supply + amount,
+            //     errors::INSUFFICIENT_TOTAL_SUPPLY);
+
+            // }
+            // if pool_coin.available_supply < amount {
+            //     amount = pool_coin.available_supply;
+            // }
+            assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
+
+            // println!("amount memecoin to receive {:?}", amount);
+            // TODO readd this check and check why it's broken
+            // println!("transfer protocol fees {:?}", amount_protocol_fee);
+
+            // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
+
+            erc20
+                .transfer_from(
+                    get_caller_address(), get_contract_address(), remain_quote_to_liquidity
+                );
+
+            // Assertion: Amount Received Validation
+            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
+            // println!("total_price {:?}", total_price);
+
+            // Update the Stats of pool:
+            // Liquidity raised
+            // Available supply
+            // Token holded
+            // println!("update pool");
+            // pool_coin.liquidity_raised += remain_liquidity;
+            // Amount quote buy with fees deducted if enabled
+            pool_coin.liquidity_raised += remain_quote_to_liquidity;
+            pool_coin.total_token_holded += amount;
+            pool_coin.price = total_price;
+            // println!("subtract amount and available supply");
+            // println!("available supply {:?}", pool_coin.available_supply);
+            // println!("amount {:?}", amount);
+
+            // TODO TEST
+            // EDGE CASE
+            // HIGH RISK = CAN DRAINED ALL POOL VALUE
+            // TODO check approximation, rounding and edges cases
+            if amount >= pool_coin.available_supply {
+                pool_coin.available_supply = 0;
+            } else {
+                // println!("subtract amount");
+                pool_coin.available_supply -= amount;
+            }
+
+            // Update share and coin stats for an user
+            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
+            // let mut old_share = self.shares_by_users.entry((get_caller_address(),
+            // coin_address)).read();
+            let mut old_share = self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address)
+                .read();
+
+            let mut share_user = old_share.clone();
+            //  println!("update share");
+
+            if share_user.owner.is_zero() {
+                share_user =
+                    SharesTokenUser {
+                        owner: get_caller_address(),
+                        token_address: coin_address,
+                        amount_owned: amount,
+                        amount_buy: amount,
+                        amount_sell: 0,
+                        created_at: get_block_timestamp(),
+                        total_paid: total_price,
+                        is_claimable: true,
+                    };
+            } else {
+                share_user.total_paid += total_price;
+                share_user.amount_owned += amount;
+                share_user.amount_buy += amount;
+            }
+            // pool_coin.price = total_price / amount;
+
+            // println!("threshold {:?}", threshold);
+            // println!("pool_coin.liquidity_raised {:?}", pool_coin.liquidity_raised);
+
+            // let mc = (pool_coin.price * total_supply_memecoin);
+            // TODO add liquidity launch
+            // TOTAL_SUPPLY / 5
+            // 20% go the liquidity
+            // 80% bought by others
+
+            // TODO check reetrancy guard
+            // Update state
+            // self
+            //     .shares_by_users
+            //     .entry((get_caller_address(), coin_address))
+            //     .write(share_user.clone());
+
+            self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address)
+                .write(share_user.clone());
+
+            // println!("check threshold");
+            // TODO finish test and fix
+            // Add slipage threshold
+            // Fix price of the last
+
+            self.launched_coins.entry(coin_address).write(pool_coin.clone());
+
+            if pool_coin.liquidity_raised >= threshold {
+                // println!("emit liquidity can be added");
+                self
+                    .emit(
+                        LiquidityCanBeAdded {
+                            pool: pool_coin.token_address.clone(),
+                            asset: pool_coin.token_address.clone(),
+                            quote_token_address: pool_coin.token_quote.token_address.clone(),
+                        }
+                    );
+                // TODO fix add liquidity ekubo or other DEX
+                // let launch_dex= lauch.dex_launch
+                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+
+                // println!("try add liquidity");
+                self._add_liquidity_ekubo(coin_address);
+                pool_coin.is_liquidity_launch = true;
+            }
+
+            // Update the state of the pool
+            self.launched_coins.entry(coin_address).write(pool_coin.clone());
+
+            // println!("emit buy token");
+
+            self
+                .emit(
+                    BuyToken {
+                        caller: get_caller_address(),
+                        token_address: coin_address,
+                        amount: amount,
+                        price: total_price,
+                        protocol_fee: amount_protocol_fee,
+                        // creator_fee: 0,
+                        last_price: old_price,
+                        timestamp: get_block_timestamp(),
+                        quote_amount: quote_amount
+                    }
+                );
+        }
+
+        // params @coin_address @coin_amount
+        // Sell coin in the current bonding curve
+        // Calculate amount of quote to receive by a coin_amount to sell
+        // Calculate fees and protocol fees
+        // Transfer fees to the protocol fee destination
+        // Transfer quote to the user
+        // Update the state of the pool: Liquidity raised, available_supply,
+        // Update the share user: update amount_owned
+        // Emit the sell event
+        fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
+            let old_pool = self.launched_coins.read(coin_address);
+            assert(!old_pool.owner.is_zero(), errors::COIN_SHARE_NOT_FOUND);
+            assert(old_pool.is_liquidity_launch == false, errors::TOKEN_ALREADY_TRADEABLE);
+            let caller = get_caller_address();
+            let mut old_share = self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address)
+                .read();
+            // Verify Amount owned
+            let mut share_user = old_share.clone();
+            // assert(share_user.amount_owned >= coin_amount, 'above supply');
+
+            // TODO erc20 token transfer
+            let total_supply = old_pool.total_supply.clone();
+            let token_quote = old_pool.token_quote.clone();
+            let quote_token_address = token_quote.token_address.clone();
+
+            // Todo check user amount fee creator if needed
+            let creator_fee_percent = self.creator_fee_percent.read();
+            let protocol_fee_percent = self.protocol_fee_percent.read();
+
+            // let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
+            // let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
+
+            let mut remain_coin_amount = coin_amount.clone();
+            // let mut remain_coin_amount = coin_amount;
+            // let remain_coin_amount = coin_amount - amount_protocol_fee;
+
+            // TODO check
+            // Test edge case and calcul
+            // CAREFULLY CHECK AND TEST
+            let mut amount_owned = share_user.amount_owned.clone();
+            // println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
+
+            assert(
+                share_user.amount_owned <= old_pool.total_token_holded,
+                errors::SUPPLY_ABOVE_TOTAL_OWNED
+            );
+
+            // if share_user.amount_owned >= old_pool.total_token_holded {
+            //     assert(
+            //         share_user.amount_owned >= old_pool.total_token_holded,
+            //         errors::SUPPLY_ABOVE_TOTAL_OWNED
+            //     );
+            // }
+
+            // TODO CHECK error even if used amount_owned as an input in test
+            // Edge case calculation rounding
+            // Use max owned
+            // CAREFULLY CHECK AND TEST
+
+            // println!("sell remain_coin_amount {:?}", remain_coin_amount);
+            if share_user.amount_owned < remain_coin_amount {
+                // Used max amount_owned
+                remain_coin_amount = share_user.amount_owned.clone();
+                // remain_coin_amount = share_user.amount_owned;
+            }
+
+            let amount_protocol_fee: u256 = remain_coin_amount.clone() * protocol_fee_percent / BPS;
+            let amount_creator_fee = remain_coin_amount.clone() * creator_fee_percent / BPS;
+            assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
+            // println!("sell remain_coin_amount edge {:?}", remain_coin_amount);
+
+            let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
+                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
+            );
+            // println!("sell quote_amount_total received {:?}", quote_amount_total);
+            // println!("sell amount quote to receive {:?}", quote_amount_total);
+
+            // println!("sell check quote_amount {:?}", quote_amount);
+            // println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
+
+            // TODO check fees
+            // TEST issue of Unrug
+
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            let is_fees_protocol_sell_enabled = self.is_fees_protocol_sell_enabled.read();
+            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+
+            let mut quote_amount_protocol_fee: u256 = quote_amount_total
+                * protocol_fee_percent
+                / BPS;
+            // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
+            let mut quote_amount = quote_amount_total.clone();
+            let mut total_quote_amount = quote_amount_total.clone();
+            let mut quote_amount_received = quote_amount_total.clone();
+            // CAREFULLY CHECK AND TEST
+
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
+                quote_amount = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
+            }
+            // println!("sell quote_amount received final {:?}", quote_amount);
+            // Edge case calculation rounding
+            // TODO
+            //  GET the approximation slippage tolerance too not drained liq if big error
+            // CAREFULLY CHECK AND TEST
+            // HIGH SECURITY
+            // Can drained all fund
+
+            if old_pool.liquidity_raised < quote_amount {
+                // TODO due to estimation, approximation or rounding
+                // maybe substract the difference between quote_amount and old_pool.liquidity_raised
+                println!("old_pool.liquidity_raised < quote_amount");
+                quote_amount = old_pool.liquidity_raised.clone();
+                quote_amount_total = old_pool.liquidity_raised.clone();
+                quote_amount_received = old_pool.liquidity_raised.clone();
+            }
+
+            // Overwrite protocol fees and quote amount after check liquidity raised and contract
+            // quote balance
+            quote_amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
+
+            // quote_amount = quote_amount - quote_amount_protocol_fee;
+            // quote_amount_total = quote_amount - quote_amount_protocol_fee;
+            // quote_amount_received = quote_amount - quote_amount_protocol_fee;
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
+                quote_amount = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
+                quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
+            }
+
+            // TODO edge case approximation, rounding
+            // CAREFULLY TEST EDGE CASE AND FUZZING
+            // HIGH RISK = MONEY DRAINING
+            // CAN DRAINED ALL MONEY
+            // TODO fixed rounding and approximation
+            // HIGH RISK SECURITY
+            // // Assertion: Check if the contract has enough quote tokens to transfer
+            let contract_quote_balance = erc20.balance_of(get_contract_address());
+            // println!("sell contract_quote_balance final {:?}", contract_quote_balance);
+
+            //  // if contract_quote_balance < quote_amount {
+            // if contract_quote_balance < quote_amount && contract_quote_balance <
+            // old_pool.threshold_liquidity.clone() {
+            //     println!("contract quote above try edge case rounding");
+            //     if is_fees_protocol_sell_enabled {
+            //         quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
+            //     } else {
+            //         quote_amount = contract_quote_balance.clone();
+            //     }
+            // }
+            // println!("sell quote_amount received final after check balance {:?}", quote_amount);
+
+            // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
+            assert(old_pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
+
+            // TODO fix this function
+            // let mut total_price = amount;
+            // println!("amount {:?}", amount);
+            // println!("coin_amount {:?}", coin_amount);
+            // println!("total_price {:?}", total_price);
+
+            // Ensure fee percentages are within valid bounds
+            assert(
+                protocol_fee_percent <= MAX_FEE_PROTOCOL
+                    && protocol_fee_percent >= MIN_FEE_PROTOCOL,
+                errors::PROTOCOL_FEE_OUT_OF_BOUNDS
+                // 'protocol fee out'
+            );
+            // assert(
+            //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
+            //     'creator_fee out'
+            // );
+
+            // assert!(old_share.amount_owned >= amount, "share to sell > supply");
+            // println!("amount{:?}", amount);
+            // assert!(total_supply >= quote_amount, "share to sell > supply");
+            // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
+
+            // let old_price = old_pool.price.clone();
+            let total_price = old_pool.price.clone();
+            // Update keys with new values
+            let mut pool_update = old_pool.clone();
+
+            // let remain_coin_amount = total_price ;
+
+            // Ensure fee calculations are correct
+            // assert(
+            //     amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
+            //     'fee calculation mismatch'
+            // );
+
+            // Transfer protocol fee to the designated destination
+            // println!("sell transfer fees protocol");
+
+            // TODO edge case fees threshold
+            // CAREFULLY TEST
+            // HIGH RISK = BLOCKED SELL
+            // println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
+            // //  TODO fixed rounding before
+
+            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
+                // TODO edgecase
+                // println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
+                erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
+            }
+
+            // println!("sell transfer quote amount");
+            // Transfer the remaining quote amount to the user
+            if quote_amount > 0 {
+                // println!("sell transfer quote amount {:?}", quote_amount);
+                erc20.transfer(caller, quote_amount);
+            }
+
+            // Assertion: Ensure the user receives the correct amount
+            // let user_received = erc20.balance_of(caller);
+            // assert(user_received >= , 'user not receive amount');
+            // TODO sell coin if it's already sendable and transferable
+            // ENABLE if direct launch coin
+
+            // TODO fix amount owned and sellable.
+            // Update share user coin
+            // println!("sell update amount owned");
+
+            share_user.amount_owned -= remain_coin_amount;
+            share_user.amount_sell += remain_coin_amount;
+
+            // TODO check reetrancy guard
+
+            // Assertion: Ensure pool liquidity remains consistent
+            assert(
+                old_pool.liquidity_raised >= quote_amount,
+                errors::POOL_LIQUIDITY_INCONSISTENCY_AFTER_SALE
+            );
+            // TODO finish update state
+            // pool_update.price = total_price;
+            //      println!("sell update pool");
+
+            // println!("sell pool update liq raised");
+            // println!("remain_coin_amount {:?}", remain_coin_amount);
+
+            // TODO check
+            // HIGH SECURITY
+            if pool_update.liquidity_raised >= quote_amount {
+                // println!(
+                //     "pool_update.liquidity_raised > quote_amount {:?}",
+                //     pool_update.liquidity_raised > quote_amount
+                // );
+                pool_update.liquidity_raised -= quote_amount;
+            } else {
+                pool_update.liquidity_raised = 0_u256;
+            }
+            // println!("try update total_token_holded {:?}", pool_update.total_token_holded);
+            pool_update.total_token_holded -= remain_coin_amount;
+            // println!("try update available supply {:?}", pool_update.available_supply);
+            pool_update.available_supply += remain_coin_amount;
+            self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address.clone())
+                .write(share_user.clone());
+
+            self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
+            self
+                .emit(
+                    SellToken {
+                        caller: caller,
+                        key_user: coin_address,
+                        amount: quote_amount,
+                        price: total_price, // Adjust if necessary
+                        protocol_fee: amount_protocol_fee,
+                        creator_fee: amount_creator_fee,
+                        timestamp: get_block_timestamp(),
+                        last_price: old_pool.price,
+                    }
+                );
+        }
+
+        // TODO Finish this function
+        // Claim coin if liquidity is sent
+        // Check and modify the share of user
+        fn claim_coin_buy(ref self: ContractState, coin_address: ContractAddress, amount: u256) {
+            let caller = get_contract_address();
+            // Verify if liquidity launch
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+
+            let mut share_user = self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address)
+                .read();
+            assert(share_user.is_claimable, errors::NOT_CLAIMABLE);
+
+            let max_amount_claimable = share_user.amount_owned;
+            // assert(max_amount_claimable >= amount, 'share below');
+            assert(max_amount_claimable >= amount, errors::SHARE_BELOW);
+
+            // Transfer memecoin
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            memecoin.transfer(caller, amount);
+
+            // Update new share and emit event
+            share_user.amount_owned -= amount;
+            if share_user.amount_owned == 0 {
+                share_user.is_claimable = false;
+            }
+
+            self.shares_by_users.entry(get_caller_address()).entry(coin_address).write(share_user);
+
+            self
+                .emit(
+                    TokenClaimed {
+                        token_address: coin_address,
+                        owner: caller,
+                        timestamp: get_block_timestamp(),
+                        amount,
+                    }
+                );
+        }
+        fn claim_coin_all(ref self: ContractState, coin_address: ContractAddress) {
+            let caller = get_contract_address();
+            // Verify if liquidity launch
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+
+            // Verify share of user
+            let mut share_user = self
+                .shares_by_users
+                .entry(get_caller_address())
+                .entry(coin_address)
+                .read();
+
+            assert(share_user.is_claimable, errors::NOT_CLAIMABLE);
+
+            let max_amount_claimable = share_user.amount_owned;
+            let amount = max_amount_claimable;
+            // Transfer memecoin
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            memecoin.transfer(caller, amount);
+
+            // Update new share and emit event
+            share_user.amount_owned -= amount;
+            share_user.is_claimable = false;
+            self.shares_by_users.entry(get_caller_address()).entry(coin_address).write(share_user);
+
+            self
+                .emit(
+                    TokenClaimed {
+                        token_address: coin_address,
+                        owner: caller,
+                        timestamp: get_block_timestamp(),
+                        amount,
+                    }
+                );
+        }
+        // Claim call for a friend
+        // Gonna be used to auto claim the rewards of all users of a pool bonding curve
+        // So we can pay the fees for the customers
+        fn claim_coin_all_for_friend(
+            ref self: ContractState, coin_address: ContractAddress, friend: ContractAddress
+        ) {
+            let caller = get_contract_address();
+            // Verify if liquidity launch
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+
+            // Verify share of user
+            let mut share_user = self.shares_by_users.entry(friend).entry(coin_address).read();
+
+            assert(share_user.is_claimable, errors::NOT_CLAIMABLE);
+
+            let max_amount_claimable = share_user.amount_owned;
+            let amount = max_amount_claimable;
+            // Transfer memecoin
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            memecoin.transfer(friend, amount);
+
+            // Update new share and emit event
+            share_user.amount_owned -= amount;
+            share_user.is_claimable = false;
+            self.shares_by_users.entry(friend).entry(coin_address).write(share_user);
+
+            self
+                .emit(
+                    TokenClaimed {
+                        token_address: coin_address,
+                        owner: friend,
+                        timestamp: get_block_timestamp(),
+                        amount,
+                    }
+                );
+        }
+        // TODO finish add Metadata
+        fn add_metadata(
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+        ) {
+            let caller = get_contract_address();
+            // Verify if caller is owner
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.owner == caller, errors::CALLER_NOT_OWNER);
+            // Add or update metadata
+            self.metadata_coins.entry(coin_address).write(metadata.clone());
+            self
+                .emit(
+                    MetadataCoinAdded {
+                        token_address: coin_address,
+                        url: metadata.url,
+                        timestamp: get_block_timestamp(),
+                        nostr_event_id: metadata.nostr_event_id,
+                    }
+                );
+        }
 
         // The function calculates the amiunt of quote_token you need to buy a coin in the pool
         fn get_amount_by_type_of_coin_or_quote(
@@ -1172,10 +1336,6 @@ pub mod LaunchpadMarketplace {
             get_amount_by_type_of_coin_or_quote(
                 pool.clone(), coin_address, amount, is_decreased, is_quote_amount
             )
-            // self
-        //     .get_amount_by_type_of_coin_or_quote(
-        //         coin_address, amount, is_decreased, is_quote_amount
-        //     )
         }
 
         fn get_coin_amount_by_quote_amount(
@@ -1185,311 +1345,23 @@ pub mod LaunchpadMarketplace {
             is_decreased: bool
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
-
-            // self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
             get_coin_amount_by_quote_amount(pool.clone(), quote_amount, is_decreased)
         }
 
-        // fn get_quote_paid_by_amount_coin(
-        //     self: @ContractState,
-        //     coin_address: ContractAddress,
-        //     quote_amount: u256,
-        //     is_decreased: bool
-        // ) -> u256 {
-        //     self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
-        // }
-
-        //TODO refac
-        // Used for Add liquidity in Unruggable mode
-        fn add_liquidity_unrug(
-            ref self: ContractState,
-            coin_address: ContractAddress,
-            launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
-        ) -> (u64, EkuboLP) {
-            //TODO restrict fn?
-
-            self._add_internal_liquidity_unrug(coin_address, launch_params, ekubo_pool_params)
-            // INTEGRATION not working
-        // self._add_liquidity_unrug(launch_params, ekubo_pool_params)
+        fn get_is_paid_launch_enable(self: @ContractState) -> bool {
+            self.is_paid_launch_enable.read()
         }
 
-        //TODO refac
-        fn add_liquidity_unrug_lp(
-            ref self: ContractState,
-            coin_address: ContractAddress,
-            quote_address: ContractAddress,
-            lp_supply: u256,
-            launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
-        ) -> (u64, EkuboLP) {
-            //TODO restrict fn?
-
-            let caller = get_caller_address();
-            self
-                ._add_internal_liquidity_unrug_lp(
-                    caller, coin_address, quote_address, lp_supply, launch_params, ekubo_pool_params
-                )
-            // INTEGRATION not working
-        // self._add_liquidity_unrug(launch_params, ekubo_pool_params)
+        fn get_is_paid_create_token_enable(self: @ContractState) -> bool {
+            self.is_paid_create_token_enable.read()
         }
 
-        fn create_unrug_token(
-            ref self: ContractState,
-            owner: ContractAddress,
-            name: felt252,
-            symbol: felt252,
-            initial_supply: u256,
-            contract_address_salt: felt252,
-            is_launch_bonding_now: bool,
-        ) -> ContractAddress {
-            let caller = get_caller_address();
-            let creator = get_caller_address();
-            let contract_address = get_contract_address();
-            let owner = get_caller_address();
-            if is_launch_bonding_now == true {
-                let token_address = self
-                    ._create_token(
-                        symbol,
-                        name,
-                        initial_supply,
-                        contract_address_salt,
-                        true,
-                        contract_address,
-                        caller,
-                        contract_address,
-                    );
-                // self._launch_token(token_address, caller, contract_address, true);
-                self._launch_token(token_address, caller, contract_address, true, Option::None);
-
-                token_address
-            } else {
-                let token_address = self
-                    ._create_token(
-                        symbol,
-                        name,
-                        initial_supply,
-                        contract_address_salt,
-                        true,
-                        caller,
-                        caller,
-                        contract_address,
-                    );
-
-                let mut token = Token {
-                    token_address: token_address,
-                    owner: owner,
-                    creator: creator,
-                    name,
-                    symbol,
-                    total_supply: initial_supply,
-                    initial_supply: initial_supply,
-                    created_at: get_block_timestamp(),
-                    token_type: Option::None,
-                    is_unruggable: true
-                };
-                self.token_created.entry(token_address).write(token);
-                token_address
-            }
+        fn get_amount_to_paid_launch(self: @ContractState) -> u256 {
+            self.amount_to_paid_launch.read()
         }
 
-        fn add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress,
-            // params: EkuboLaunchParameters
-        // ) ->  Span<felt252>  {
-        ) -> (u64, EkuboLP) {
-            let caller = get_caller_address();
-            let pool = self.launched_coins.read(coin_address);
-            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-
-            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-            self._add_liquidity_ekubo(coin_address)
-        }
-    }
-
-    #[external(v0)]
-    impl LockerImpl of ILocker<ContractState> {
-        /// Callback function called by the core contract.
-        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-            let core_address = self.core.read();
-            let core = ICoreDispatcher { contract_address: core_address };
-            // Register the token in Ekubo Registry
-            let registry_address = self.ekubo_registry.read();
-            // println!("registry_address : {:?}", registry_address);
-            // let dex_address = self.core.read();
-            let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let positions_address = self.positions.read();
-
-            // println!("locked caller address: {:?}", get_caller_address());
-            // println!("core address in locked: {:?}", core_address);
-
-            match consume_callback_data::<CallbackData>(core, data) {
-                CallbackData::LaunchCallback(params) => {
-                    // println!("step: {}", 1);
-                    let launch_params: EkuboLaunchParameters = params.params;
-                    let (token0, token1) = sort_tokens(
-                        launch_params.token_address, launch_params.quote_address
-                    );
-                    // println!("step: {}", 2);
-                    let memecoin = EKIERC20Dispatcher {
-                        contract_address: launch_params.token_address
-                    };
-                    // println!("step: {}", 3);
-                    let base_token = EKIERC20Dispatcher {
-                        contract_address: launch_params.quote_address
-                    };
-                    // println!("step: {}", 4);
-                    let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-                    // println!("step: {}", 5);
-                    // println!("IN HERE: {}", 2);
-
-                    let pool_key = PoolKey {
-                        token0: token0,
-                        token1: token1,
-                        fee: launch_params.pool_params.fee,
-                        tick_spacing: launch_params.pool_params.tick_spacing,
-                        extension: 0.try_into().unwrap(),
-                    };
-                    // println!("step: {}", 6);
-
-                    let lp_supply = launch_params.lp_supply.clone();
-                    // println!("step: {}", 7);
-                    // println!("IN HERE: {}", 3);
-
-                    // The initial_tick must correspond to the wanted initial price in quote/MEME
-                    // The ekubo prices are always in TOKEN1/TOKEN0.
-                    // The initial_tick is the lower bound if the quote is token1, the upper bound
-                    // otherwise.
-                    let is_token1_quote = launch_params.quote_address == token1;
-                    // println!("step: {}", 8);
-                    let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
-                        launch_params.pool_params.starting_price,
-                        launch_params.pool_params.bound,
-                        is_token1_quote
-                    );
-                    // println!("step: {}", 9);
-
-                    let pool = self.launched_coins.read(launch_params.token_address);
-                    // println!("step: {}", 10);
-
-                    // println!("IN HERE: {}", 4);
-
-                    // base_token.approve(registry.contract_address, pool.liquidity_raised);
-                    base_token.approve(ekubo_core_address, pool.liquidity_raised);
-                    base_token.approve(positions_address, pool.liquidity_raised);
-                    base_token.transfer(positions_address, pool.liquidity_raised);
-                    // println!("step: {}", 11);
-
-                    let memecoin_balance = IERC20Dispatcher {
-                        contract_address: launch_params.token_address
-                    }
-                        .balance_of(launch_params.token_address);
-                    // println!("memecoin_balance of token: {}", memecoin_balance);
-                    // println!("step: {}", 12);
-
-                    // memecoin.approve(registry.contract_address, lp_supply);
-                    memecoin.approve(positions_address, lp_supply);
-                    // memecoin.approve(dex_address, lp_supply);
-                    // println!("registry contract address: {:?}", registry.contract_address);
-                    memecoin.approve(ekubo_core_address, lp_supply);
-                    // memecoin.transfer(registry.contract_address, 1);
-                    // memecoin.transfer(registry.contract_address, 10);
-                    // println!("step: {}", 13);
-                    // memecoin.transfer(registry.contract_address, pool.available_supply);
-                    // memecoin.transfer(registry.contract_address, pool.available_supply);
-                    // println!("transfer before register");
-                    // registry
-                    //     .register_token(
-                    //         EKIERC20Dispatcher { contract_address: launch_params.token_address }
-                    //     );
-                    // println!("step: {}", 14);
-
-                    // println!("initial tick {:?}", initial_tick);
-                    // Initialize the pool at the initial tick.
-                    // println!("init pool");
-
-                    // println!("step: {}", 15);
-                    core.maybe_initialize_pool(:pool_key, :initial_tick);
-                    // println!("init pool");
-
-                    // println!("IN HERE: {}", 5);
-                    // println!("supply liq");
-
-                    // 2. Provide the liquidity to actually initialize the public pool with
-                    // The pool bounds must be set according to the tick spacing.
-                    // The bounds were previously computed to provide yield covering the entire
-                    // interval [lower_bound, starting_price]  or [starting_price, upper_bound]
-                    // depending on the quote.
-
-                    // println!("step: {}", 16);
-                    let balance = IERC20Dispatcher { contract_address: launch_params.token_address }
-                        .balance_of(launch_params.token_address);
-
-                    // println!("balance of token: {}", balance);
-
-                    // println!("step: {}", 17);
-                    let id = self
-                        ._supply_liquidity_ekubo(
-                            pool_key,
-                            launch_params.token_address,
-                            launch_params.lp_supply,
-                            full_range_bounds
-                        );
-
-                    // println!("IN HERE: {}", 6);
-
-                    // println!("step: {}", 18);
-                    let position = EkuboLP {
-                        // let position = @EkuboLP {
-                        owner: launch_params.owner,
-                        quote_address: launch_params.quote_address,
-                        pool_key,
-                        bounds: full_range_bounds
-                    };
-                    // println!("position owner {:?}", owner);
-                    // println!("position quote_address {:?}", quote_address);
-
-                    // At this point, the pool is composed by:
-                    // n% of liquidity at precise starting tick, reserved for the team to buy
-                    // the rest of the liquidity, in bounds [starting_price, +inf];
-                    // println!("step: {}", 19);
-
-                    let mut return_data: Array<felt252> = Default::default();
-                    Serde::serialize(@id, ref return_data);
-                    Serde::serialize(
-                        @EkuboLP {
-                            owner: launch_params.owner,
-                            quote_address: launch_params.quote_address,
-                            pool_key,
-                            bounds: full_range_bounds
-                        },
-                        ref return_data
-                    );
-                    // println!("step: {}", 20);
-                    return_data.span()
-                }
-                // CallbackData::WithdrawFeesCallback(params) => {
-            //     let WithdrawFeesCallback{id, liquidity_type, recipient } = params;
-            //     let positions = self.positions.read();
-            //     let EkuboLP{owner, quote_address: _, pool_key, bounds } = liquidity_type;
-            //     let pool_key = PoolKey {
-            //         token0: pool_key.token0,
-            //         token1: pool_key.token1,
-            //         fee: pool_key.fee,
-            //         tick_spacing: pool_key.tick_spacing,
-            //         extension: pool_key.extension,
-            //     };
-            //     let bounds = Bounds { lower: bounds.lower, upper: bounds.upper, };
-            //     positions.collect_fees(id, pool_key, bounds);
-
-                //     // Transfer to recipient is done after the callback
-            //     let mut return_data = Default::default();
-            //     Serde::serialize(@pool_key.token0, ref return_data);
-            //     Serde::serialize(@pool_key.token1, ref return_data);
-            //     return_data
-            // },
-            }
+        fn get_amount_to_paid_create_token(self: @ContractState) -> u256 {
+            self.amount_to_paid_create_token.read()
         }
     }
 
@@ -1507,6 +1379,24 @@ pub mod LaunchpadMarketplace {
             owner: ContractAddress,
             factory: ContractAddress,
         ) -> ContractAddress {
+            let caller = get_caller_address();
+
+            // TODO finish this
+            let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
+            if is_paid_create_token_enable {
+                let token_address_to_paid_create_token = self
+                    .token_address_to_paid_create_token
+                    .read();
+                let amount_to_paid_create_token = self.amount_to_paid_create_token.read();
+                let erc20 = IERC20Dispatcher {
+                    contract_address: token_address_to_paid_create_token
+                };
+                erc20
+                    .transfer_from(
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_create_token
+                    );
+            }
+
             let mut calldata = array![name.into(), symbol.into()];
             Serde::serialize(@initial_supply, ref calldata);
             Serde::serialize(@18, ref calldata);
@@ -1569,8 +1459,27 @@ pub mod LaunchpadMarketplace {
             is_unruggable: bool,
             bonding_type: Option<BondingType>
         ) {
-            // let caller = get_caller_address();
+            let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
+
+            // TODO
+            // TEST edges cases
+            // Supply
+            // Threshold and supply correlation
+
+            // TODO finish this and add tests
+            let is_paid_launch_enable = self.is_paid_launch_enable.read();
+            if is_paid_launch_enable {
+                let admins_fees_params = self.admins_fees_params.read();
+                let token_address_to_paid_launch = admins_fees_params.token_address_to_paid_launch;
+                let amount_to_paid_launch = admins_fees_params.amount_to_paid_launch;
+
+                let erc20 = IERC20Dispatcher { contract_address: token_address_to_paid_launch };
+                erc20
+                    .transfer_from(
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_launch
+                    );
+            }
 
             // TODO
             // Maybe not needed because you can also create the coin everyhwhere (Unrug) and launch
@@ -1579,39 +1488,15 @@ pub mod LaunchpadMarketplace {
             // let mut bond_type = BondingType::Exponential;
             // TODO fix unwrap match
 
-            // if bonding_type.is_some() {
-            //     bond_type = bonding_type.clone();
-            // }
-            // let type_bond = if Option::Some(v) == bonding_type {
-            //     // bond_type = v.clone();
-            //     return v;
-            // };
-
             let mut bond_type = BondingType::Linear;
             // let mut bond_type = Option::Some(BondingType::Linear);
             if let Option::Some(v) =
                 bonding_type { // println!("The maximum is configured to be {}", v);
-            // bond_type=Option::Some(v.clone());
-            // bond_type = v.clone();
             } else {
-                bond_type = BondingType::Linear;
+                // Default Exponential because gas optimization
+                bond_type = BondingType::Exponential;
             }
-            // let bond_type = match bonding_type {
-            //     Option::Some(v) => { return Option::Some(v)},
-            //     Option::None => { return BondingType::Linear; },
-            // };
 
-            // if let Option::Some(value) = arr.pop_front() {
-            //     sum += value;
-            // };
-
-            // match bonding_type.try_into().unwrap() {
-            //     Option::Some(val) => { bond_type = val.clone(); },
-            //     Option::None => {},
-            // }
-            // if Option::Some(value) = bonding_type {
-            //     bond_type = value.clone();
-            // };
             // let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
@@ -1631,20 +1516,6 @@ pub mod LaunchpadMarketplace {
             let supply_distribution = total_supply - liquidity_supply;
             let liquidity_available = total_supply - liquidity_supply;
 
-            // let (slope, init_price) = self._calculate_pricing(total_supply - liquidity_supply);
-            // let starting_price = calculate_pricing(
-            //     threshold_liquidity.clone(), supply_distribution.clone()
-            // );
-            // let slope = calculate_slope(
-            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
-            // );
-            // let starting_price = calculate_pricing(
-            //     threshold_liquidity.clone(), supply_distribution.clone()
-            // );
-            // let slope = calculate_slope(
-            //     threshold_liquidity.clone(), starting_price.clone(), supply_distribution.clone()
-            // );
-
             // TODO precompute maybe and saved
             // Also start User params after
             let starting_price = 1_u256;
@@ -1663,16 +1534,11 @@ pub mod LaunchpadMarketplace {
                 initial_pool_supply: liquidity_supply,
                 // available_supply:liquidity_supply,
                 // Todo price by pricetype after fix Enum instantiate
-                // bonding_curve_type: Option::Some(bond_type),
-                // bonding_curve_type: Option::Some(bond_type),
                 bonding_curve_type: bond_type,
-                // bonding_curve_type: BondingType,
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
                 starting_price: starting_price.clone(),
-                // starting_price: token_to_use.starting_price,
                 price: starting_price.clone(),
-                // price:init_price,
                 liquidity_raised: 0_u256,
                 total_token_holded: 0_u256,
                 is_liquidity_launch: false,
@@ -1694,7 +1560,10 @@ pub mod LaunchpadMarketplace {
             // if balance_contract < total_supply && !is_memecoin {
             if balance_contract < total_supply {
                 // && !is_memecoin
-                assert(allowance >= amount_needed, 'no supply provided');
+                // assert(allowance >= amount_needed, 'no supply provided');
+                // assert(allowance >= amount_needed, errors::NO_SUPPLY_PROVIDED);
+                assert(allowance >= amount_needed, errors::INSUFFICIENT_ALLOWANCE);
+
                 if allowance >= amount_needed {
                     // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
@@ -1726,9 +1595,241 @@ pub mod LaunchpadMarketplace {
                         slope: slope,
                         threshold_liquidity: threshold_liquidity,
                         quote_token_address: quote_token_address,
-                        is_unruggable: is_unruggable
+                        is_unruggable: is_unruggable,
+                        bonding_type: bond_type
                     }
                 );
+        }
+
+        // Call the Unrug V2 to deposit Liquidity and locked it
+        fn _add_liquidity_ekubo(
+            ref self: ContractState, coin_address: ContractAddress,
+            // params: EkuboLaunchParameters
+        ) -> (u64, EkuboLP) {
+            let unrug_liquidity_address = self.unrug_liquidity_address.read();
+            let unrug_liquidity = IUnrugLiquidityDispatcher {
+                contract_address: unrug_liquidity_address
+            };
+
+            let launch = self.launched_coins.read(coin_address);
+
+            // assert(launch.is_liquidity_launch == false, 'liquidity already launch');
+            // assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
+
+            assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
+            let threshold_liquidity = launch.threshold_liquidity.clone();
+            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            let mut threshold = threshold_liquidity - slippage_threshold;
+            // WEIRD error to fix
+            // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
+
+            // TODO fix starting price
+            // Fix tick spacing
+            // Fix bounds
+            let starting_price: i129 = calculate_starting_price_launch(
+                launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
+            );
+            // Uncomment this to used calculated starting price
+            let init_starting_price = i129 { sign: true, mag: 4600158 };
+
+            // TODO default tick space
+            // Add default for main coin like others
+            let mut tick_spacing = 5928;
+            // let mut tick_spacing = 1000;
+
+            // Edge case to check and fix if fees enabled
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            if is_fees_protocol_enabled { // tick_spacing = 2000;
+            // tick_spacing = 3000;
+            // tick_spacing=5928;
+            }
+            // let tick_spacing =  2000;
+            // 88712960
+            // let tick_spacing = 5000;
+            // let tick_spacing = 5982;
+            // println!("tick_spacing {:?}", tick_spacing);
+
+            // let tick_spacing = 5000;
+            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // Verify conditions
+
+            // Add these debug prints
+            // println!("Starting Price: {}", starting_price.mag);
+            // println!("Calculated Bound: {}", bound);
+            // println!("Tick Spacing: {}", tick_spacing);
+
+            // assert(bound % tick_spacing == 0, 'Bound not aligned');
+            // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
+
+            // println!("starting_price {:?}", starting_price);
+            // println!("bounds {:?}", bound);
+            let bound_spacing = tick_spacing * 2;
+            let pool_params = EkuboPoolParameters {
+                fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
+                tick_spacing: tick_spacing, // TODO tick_spacing optional by user   
+                // tick_spacing: 5000, // TODO tick_spacing optional by user
+                starting_price: starting_price, // TODO verify if starting_price is correct
+                // starting_price: init_starting_price, // TODO verify if starting_price is correct
+                // bound: tick_spacing,
+                bound: bound_spacing,
+                // bound: bound,
+            // bound: 88719042,
+            // bound:bound
+            // bound:88712960
+            // bound: 88719042
+            // bound: bound, // TODO verify if bound is correct
+            };
+
+            // TODO fix issue when fees are enabled
+            let lp_supply = launch.initial_pool_supply.clone();
+            let mut lp_quote_supply = launch.liquidity_raised.clone();
+
+            // Approve Quote
+            let quote_token = IERC20Dispatcher {
+                contract_address: launch.token_quote.token_address.clone()
+            };
+
+            // println!("initial_pool_supply : {}", lp_supply.clone());
+            println!("liquidity raised: {}", lp_quote_supply.clone());
+            // Assertion: Check if the contract has enough quote tokens to transfer
+            let contract_quote_balance = quote_token.balance_of(get_contract_address());
+            println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
+
+            // TODO fix this
+            //
+            // HIGH SECURITY
+            // Can drained funk if edge case approximation issue
+            // Edge case of approximation estimation amount and fees can cause it
+            if contract_quote_balance < lp_quote_supply
+                && contract_quote_balance < launch.threshold_liquidity {
+                println!(
+                    "contract_quote_balance < lp_quote_supply
+                && contract_quote_balance < launch.threshold_liquidity: {}",
+                    contract_quote_balance < lp_quote_supply
+                        && contract_quote_balance < launch.threshold_liquidity
+                );
+                // println!("launch.threshold_liquidity: {}", launch.threshold_liquidity.clone());
+                lp_quote_supply = contract_quote_balance.clone();
+            }
+            println!("liquidity raised: {}", lp_quote_supply.clone());
+
+            let params = EkuboUnrugLaunchParameters {
+                // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
+                // be lock to Unrug at some point
+                owner: get_contract_address(), // TODO add optional parameters to be select LIQ percent to be lock to Unrug at some point
+                token_address: coin_address,
+                quote_address: launch.token_quote.token_address.clone(),
+                lp_supply: lp_supply.clone(),
+                lp_quote_supply: lp_quote_supply.clone(),
+                pool_params: pool_params
+            };
+
+            let position_ekubo_address = unrug_liquidity.get_position_ekubo_address();
+            // quote_token.approve(position_ekubo_address, lp_quote_supply);
+            quote_token.approve(unrug_liquidity_address, lp_quote_supply);
+
+            // Approve Memecoin
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            // memecoin.approve(position_ekubo_address, lp_supply);
+            memecoin.approve(unrug_liquidity_address, lp_supply);
+
+            let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
+            let id_cast: u256 = id.try_into().unwrap();
+
+            // Set token launched
+            let mut launch_to_update = self.launched_coins.read(coin_address);
+            launch_to_update.is_liquidity_launch = true;
+            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+
+            self
+                .emit(
+                    LiquidityCreated {
+                        id: id_cast,
+                        pool: coin_address,
+                        asset: coin_address,
+                        quote_token_address: launch.token_quote.token_address,
+                        owner: launch.owner,
+                        exchange: SupportedExchanges::Ekubo,
+                        is_unruggable: false
+                    }
+                );
+
+            let token_state = self.token_created.read(coin_address);
+            // TODO set_launched
+            // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
+            // let factory_address = memecoin.get_factory_address();
+            // if token_state.creator == get_contract_address() || factory_address ==
+            // get_contract_address() {
+            //     memecoin
+            //         .set_launched(
+            //             LiquidityType::EkuboNFT(id),
+            //             LiquidityParameters::Ekubo(
+            //                 EkuboLiquidityParameters {
+            //                     quote_address, ekubo_pool_parameters: ekubo_pool_params
+            //                 }
+            //             ),
+            //             :transfer_restriction_delay,
+            //             :max_percentage_buy_launch,
+            //             :team_allocation,
+            //         );
+            //     self
+            //         .emit(
+            //             MemecoinLaunched {
+            //                 memecoin_address, quote_token: quote_address, exchange_name: 'Ekubo'
+            //             }
+            //         );
+            // }
+            (id, position)
+        }
+
+        // TODO finish call Jediswap
+        // Change preparation of state for lp_supply, approve etc for the Unrug V2
+        fn _add_liquidity_jediswap(
+            ref self: ContractState, coin_address: ContractAddress,
+            // params: EkuboLaunchParameters
+        ) -> u256 {
+            let unrug_liquidity = IUnrugLiquidityDispatcher {
+                contract_address: self.unrug_liquidity_address.read()
+            };
+
+            let launch = self.launched_coins.read(coin_address);
+
+            assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
+            let threshold_liquidity = launch.threshold_liquidity.clone();
+            let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            let mut threshold = threshold_liquidity - slippage_threshold;
+
+            // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
+
+            let quote_address = launch.token_quote.token_address.clone();
+            let lp_supply = launch.initial_pool_supply.clone();
+            let quote_supply = launch.liquidity_raised.clone();
+            let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
+
+            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
+            let id_cast = unrug_liquidity
+                .launch_on_jediswap(
+                    coin_address, quote_address, lp_supply, quote_supply, unlock_time
+                );
+            // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address,
+            // lp_supply, quote_supply, unlock_time);
+            // let id_cast: u256 = id.try_into().unwrap();
+
+            self
+                .emit(
+                    LiquidityCreated {
+                        id: id_cast,
+                        pool: coin_address,
+                        asset: coin_address,
+                        quote_token_address: launch.token_quote.token_address,
+                        owner: launch.owner,
+                        exchange: SupportedExchanges::Jediswap,
+                        is_unruggable: false
+                    }
+                );
+            // (id, position)
+            id_cast
         }
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
@@ -1737,598 +1838,13 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges
         ) {
             match exchange {
-                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
+                // TODO changed when finished
+                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address); },
                 SupportedExchanges::Ekubo => { self._add_liquidity_ekubo(coin_address); },
             }
             let mut launch_to_update = self.launched_coins.read(coin_address);
             launch_to_update.is_liquidity_launch = true;
             self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-        }
-
-
-        fn _supply_liquidity_ekubo(
-            ref self: ContractState,
-            pool_key: PoolKey,
-            token: ContractAddress,
-            amount: u256,
-            bounds: Bounds
-        ) -> u64 {
-            // println!("mint deposit NOW HERE: {}", 1);
-
-            let positions_address = self.positions.read();
-            let positions = IPositionsDispatcher { contract_address: positions_address };
-            // println!("mint deposit NOW HERE: {}", 2);
-
-            // // The token must be transferred to the positions contract before calling mint.
-            // IERC20Dispatcher { contract_address: token }
-            //     .transfer(recipient: positions.contract_address, :amount);
-            // println!("mint deposit NOW HERE: {}", 3);
-
-            let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
-            // let (id, liquidity, _, _) = positions
-            // .mint_and_deposit_and_clear_both(pool_key, bounds, min_liquidity: 0);
-            // println!("mint deposit NOW HERE: {}", 4);
-            id
-        }
-
-
-        // fn _calculate_fees(ref self: ContractState, amount: u256, is_buy: bool,) -> (u256, u256)
-        // {
-        //     // Add bounds checking
-        //     assert(self.protocol_fee_percent <= MAX_FEE_PROTOCOL, 'protocol fee too high');
-        //     assert(self.creator_fee_percent <= MAX_FEE_CREATOR, 'creator fee too high');
-
-        //     // Check for potential overflow before multiplication
-        //     assert(amount <= BPS * BPS, 'amount too large for fee calc');
-
-        //     let protocol_fee = amount * self.protocol_fee_percent / BPS;
-        //     let creator_fee = amount * self.creator_fee_percent / BPS;
-
-        //     // Verify fees don't exceed amount
-        //     assert(protocol_fee + creator_fee <= amount, 'fees exceed amount');
-
-        //     (protocol_fee, creator_fee)
-        // }
-
-        // fn _update_user_shares(
-        //     ref self: ContractState,
-        //     user: ContractAddress,
-        //     token: ContractAddress,
-        //     amount: u256,
-        //     is_increase: bool
-        // ) {
-        //     let mut share = self.shares_by_users.read(user).read(token);
-
-        //     if is_increase {
-        //         // Check for overflow on increase
-        //         let new_amount = share.amount_owned + amount;
-        //         assert(new_amount >= share.amount_owned, 'share overflow');
-        //         share.amount_owned = new_amount;
-        //     } else {
-        //         // Check for underflow on decrease
-        //         assert(share.amount_owned >= amount, 'insufficient shares');
-        //         share.amount_owned -= amount;
-        //     }
-
-        //     self.shares_by_users.write(user, token, share);
-        // }
-
-        // fn _update_pool_liquidity(
-        //     ref self: ContractState, pool_address: ContractAddress, amount: u256, is_add: bool
-        // ) {
-        //     let mut pool = self.launched_coins.read(pool_address);
-
-        //     if is_add {
-        //         // Check for overflow when adding liquidity
-        //         let new_liquidity = pool.liquidity_raised + amount;
-        //         assert(new_liquidity >= pool.liquidity_raised, 'liquidity overflow');
-        //         pool.liquidity_raised = new_liquidity;
-        //     } else {
-        //         // Check for underflow when removing liquidity
-        //         assert(pool.liquidity_raised >= amount, 'insufficient liquidity');
-        //         pool.liquidity_raised -= amount;
-        //     }
-
-        //     self.launched_coins.write(pool_address, pool);
-        // }
-
-        // fn _check_price_impact(old_price: u256, new_price: u256, max_impact_bps: u256) {
-        //     let impact = if new_price > old_price {
-        //         (new_price - old_price) * BPS / old_price
-        //     } else {
-        //         (old_price - new_price) * BPS / old_price
-        //     };
-        //     assert(impact <= max_impact_bps, 'price impact too high');
-        // }
-
-        fn _add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress,
-            // params: EkuboLaunchParameters
-        ) -> (u64, EkuboLP) {
-            // TODO params of Ekubo launch
-            // Init price and params of liquidity
-
-            // TODO assert of threshold and MC reached
-            let launch = self.launched_coins.read(coin_address);
-            assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
-            assert(launch.is_liquidity_launch == false, 'liquidity already launch');
-
-            // TODO calculate price
-
-            // let launch_price = launch.initial_pool_supply / launch.threshold_liquidity;
-            // println!("launch_price {:?}", launch_price);
-
-            // let price_u128:u128=launch_price.try_into().unwrap();
-            // println!("price_u128 {:?}", price_u128);
-
-            // let starting_price = i129 { sign: true, mag: 100_u128 };
-            // let starting_price = i129 { sign: true, mag: 100_u128 };
-            // let starting_price = i129 { sign: true, mag: price_u128 };
-            let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
-            );
-            let lp_meme_supply = launch.initial_pool_supply;
-
-            // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-
-            let params: EkuboLaunchParameters = EkuboLaunchParameters {
-                owner: launch.owner,
-                token_address: launch.token_address,
-                quote_address: launch.token_quote.token_address,
-                lp_supply: lp_meme_supply,
-                // lp_supply: launch.liquidity_raised,
-                pool_params: EkuboPoolParameters {
-                    fee: 0xc49ba5e353f7d00000000000000000,
-                    tick_spacing: 5000,
-                    starting_price,
-                    bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-                }
-            };
-
-            // println!("Bound computed: {}", params.pool_params.bound);
-
-            // Register the token in Ekubo Registry
-            // let registry_address = self.ekubo_registry.read();
-            // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-
-            let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
-            //TODO token decimal, amount of 1 token?
-
-            // println!("RIGHT HERE: {}", 1);
-
-            let pool = self.launched_coins.read(coin_address);
-            // let dex_address = self.core.read();
-            let positions_ekubo = self.positions.read();
-            memecoin.approve(ekubo_exchange_address, lp_meme_supply);
-            memecoin.approve(ekubo_core_address, lp_meme_supply);
-            memecoin.approve(positions_ekubo, lp_meme_supply);
-            assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
-            let base_token = EKIERC20Dispatcher { contract_address: params.quote_address.clone() };
-            //TODO token decimal, amount of 1 token?
-            // let pool = self.launched_coins.read(coin_address);
-            base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-            base_token.approve(ekubo_core_address, pool.liquidity_raised);
-            let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            // Call the core with a callback to deposit and mint the LP tokens.
-
-            // println!("HERE launch callback: {}", 2);
-
-            let (id, position) = call_core_with_callback::<
-                // let span = call_core_with_callbac00k::<
-                CallbackData, (u64, EkuboLP)
-            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-            // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
-            //TODO emit event
-            let id_cast: u256 = id.try_into().unwrap();
-
-            // println!("RIGHT HERE: {}", 3);
-
-            let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch = true;
-            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-            // println!("RIGHT HERE: {}", 4);
-
-            self
-                .emit(
-                    LiquidityCreated {
-                        id: id_cast,
-                        pool: coin_address,
-                        asset: coin_address,
-                        quote_token_address: base_token.contract_address,
-                        owner: launch.owner,
-                        exchange: SupportedExchanges::Ekubo,
-                        is_unruggable: false
-                    }
-                );
-
-            (id, position)
-        }
-
-        /// TODO fix change
-        fn _check_common_launch_parameters(
-            ref self: ContractState, launch_parameters: LaunchParameters
-        ) -> (u256, u8) {
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_parameters;
-            let memecoin = IMemecoinDispatcher { contract_address: memecoin_address };
-            let erc20 = IERC20Dispatcher { contract_address: memecoin_address };
-
-            // TODO fix assert
-            // assert(self.is_memecoin(memecoin_address), errors::NOT_UNRUGGABLE);
-            // assert(!self.is_memecoin(quote_address), errors::QUOTE_TOKEN_IS_MEMECOIN);
-            assert(!memecoin.is_launched(), errors::ALREADY_LAUNCHED);
-            // assert(get_caller_address() == memecoin.owner(), errors::CALLER_NOT_OWNER);
-            assert(initial_holders.len() == initial_holders_amounts.len(), errors::ARRAYS_LEN_DIF);
-            assert(initial_holders.len() <= MAX_HOLDERS_LAUNCH.into(), errors::MAX_HOLDERS_REACHED);
-
-            let initial_supply = erc20.total_supply();
-
-            // Check that the sum of the amounts of initial holders does not exceed the max
-            // allocatable supply for a team.
-
-            // Needs to be an adjustable parameters described by the team
-            let max_team_allocation = initial_supply
-                .percent_mul(MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION.into());
-            let mut team_allocation: u256 = 0;
-            let mut i: usize = 0;
-            loop {
-                if i == initial_holders.len() {
-                    break;
-                }
-
-                let address = *initial_holders.at(i);
-                let amount = *initial_holders_amounts.at(i);
-
-                team_allocation += amount;
-                assert(team_allocation <= max_team_allocation, errors::MAX_TEAM_ALLOCATION_REACHED);
-                i += 1;
-            };
-
-            (team_allocation, unique_count(initial_holders).try_into().unwrap())
-        }
-
-
-        // Launch token Unrug with a Launch bonding curve already created
-        // Add liquidity with params:
-        // Team allocation
-        // Token lock
-        fn _add_internal_liquidity_unrug(
-            ref self: ContractState,
-            coin_address: ContractAddress,
-            launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
-        ) -> (u64, EkuboLP) {
-            let launch = self.launched_coins.read(coin_address);
-            // let starting_price = i129 { sign: true, mag: 100_u128 };
-
-            // let starting_price: i129 = self._calculate_starting_price_launch(
-            //     launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
-            // );
-            let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
-            );
-
-            let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-
-            let lp_meme_supply = launch.initial_pool_supply;
-            let lp_supply = launch.initial_pool_supply;
-
-            let params: EkuboLaunchParameters = EkuboLaunchParameters {
-                owner: launch.owner,
-                token_address: launch.token_address,
-                quote_address: launch.token_quote.token_address,
-                lp_supply: lp_meme_supply,
-                // lp_supply: launch.liquidity_raised,
-                pool_params: EkuboPoolParameters {
-                    fee: 0xc49ba5e353f7d00000000000000000,
-                    tick_spacing: 5000,
-                    starting_price,
-                    bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-                }
-            };
-            // let params: EkuboLaunchParameters = EkuboLaunchParameters {
-            //     owner: launch.owner,
-            //     token_address: launch.token_address,
-            //     quote_address: launch.token_quote.token_address,
-            //     lp_supply: lp_meme_supply,
-            //     // lp_supply: launch.liquidity_raised,
-            //     pool_params: EkuboPoolParameters {
-            //         fee: 0xc49ba5e353f7d00000000000000000,
-            //         tick_spacing: 5982,
-            //         starting_price,
-            //         bound: 88719042,
-            //     }
-            // };
-
-            let (team_allocation, pre_holders) = self
-                ._check_common_launch_parameters(launch_params);
-
-            assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
-            assert(launch.is_liquidity_launch == false, 'liquidity already launch');
-
-            assert(
-                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH
-            );
-            assert(ekubo_pool_params.tick_spacing >= 5982, errors::TICK_SPACING_TOO_LOW);
-            assert(ekubo_pool_params.tick_spacing <= 19802, errors::TICK_SPACING_TOO_HIGH);
-            assert(ekubo_pool_params.bound >= 88712960, errors::BOUND_TOO_LOW);
-
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_params;
-
-            // let launchpad_address = self.exchange_address(SupportedExchanges::Ekubo);
-            let launchpad_address = self.ekubo_exchange_address.read();
-
-            // let launchpad_address = self.exchange_address(SupportedExchanges::Ekubo);
-            assert(launchpad_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
-            assert(ekubo_pool_params.starting_price.mag.is_non_zero(), errors::PRICE_ZERO);
-
-            // let erc20 = IERC20Dispatcher { contract_address: coin_address };
-            let ekubo_core_address = self.core.read();
-
-            let pool = self.launched_coins.read(coin_address);
-            let base_token = EKIERC20Dispatcher { contract_address: params.quote_address.clone() };
-            //TODO token decimal, amount of 1 token?
-            // let pool = self.launched_coins.read(coin_address);
-            let positions_ekubo = self.positions.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-            base_token.approve(ekubo_core_address, pool.liquidity_raised);
-            base_token.approve(positions_ekubo, pool.liquidity_raised);
-
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            memecoin.approve(ekubo_core_address, lp_supply);
-            memecoin.approve(positions_ekubo, lp_meme_supply);
-
-            let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            // println!("ekubo add liq");
-
-            let (id, position) = call_core_with_callback::<
-                CallbackData, (u64, EkuboLP)
-            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-
-            // println!("distribute_team_alloc");
-            // // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
-
-            // TODO fix
-            // Distribute
-            //  set launched
-            // let memecoin = IMemecoinDispatcher { contract_address: coin_address };
-            // println!("try set_launched");
-
-            // memecoin
-            //     .set_launched(
-            //         LiquidityType::EkuboNFT(id),
-            //         LiquidityParameters::Ekubo(
-            //             EkuboLiquidityParameters {
-            //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
-            //             }
-            //         ),
-            //         :transfer_restriction_delay,
-            //         :max_percentage_buy_launch,
-            //         :team_allocation,
-            //     );
-            // self
-            //     .emit(
-            //         MemecoinLaunched {
-            //             memecoin_address, quote_token: quote_address, exchange_name: 'Ekubo'
-            //         }
-            //     );
-            (id, position)
-        }
-
-
-        // Direct add and lock liquidity without launch in bonding curve
-        // Needs to be more modular:WIP
-        // Readd different exchanges: Ekubo, Jediswap, StarkDefi
-        fn _add_internal_liquidity_unrug_lp(
-            ref self: ContractState,
-            caller: ContractAddress,
-            coin_address: ContractAddress,
-            quote_address: ContractAddress,
-            lp_supply: u256,
-            launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
-        ) -> (u64, EkuboLP) {
-            let starting_price = i129 { sign: true, mag: 10_u128 };
-
-            let params: EkuboLaunchParameters = EkuboLaunchParameters {
-                owner: caller,
-                token_address: coin_address,
-                quote_address: quote_address,
-                lp_supply: lp_supply,
-                // lp_supply: launch.liquidity_raised,
-                pool_params: ekubo_pool_params
-            };
-            let (team_allocation, pre_holders) = self
-                ._check_common_launch_parameters(launch_params);
-
-            assert(
-                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH
-            );
-            assert(ekubo_pool_params.tick_spacing >= 5982, errors::TICK_SPACING_TOO_LOW);
-            assert(ekubo_pool_params.tick_spacing <= 19802, errors::TICK_SPACING_TOO_HIGH);
-            assert(ekubo_pool_params.bound >= 88712960, errors::BOUND_TOO_LOW);
-
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_params;
-
-            let launchpad_address = self.ekubo_exchange_address.read();
-            assert(launchpad_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
-            assert(ekubo_pool_params.starting_price.mag.is_non_zero(), errors::PRICE_ZERO);
-            let pool = self.launched_coins.read(coin_address);
-
-            let base_token = IERC20Dispatcher { contract_address: params.quote_address.clone() };
-            let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-
-            base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-            base_token.approve(ekubo_core_address, pool.liquidity_raised);
-
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            memecoin.approve(ekubo_core_address, lp_supply);
-
-            let core = ICoreDispatcher { contract_address: ekubo_core_address };
-            // println!("ekubo add liq");
-
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            memecoin.approve(ekubo_core_address, lp_supply);
-
-            let core = ICoreDispatcher { contract_address: ekubo_core_address };
-
-            let (id, position) = call_core_with_callback::<
-                CallbackData, (u64, EkuboLP)
-            >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-
-            // TODO comment and test claim
-
-            // distribute_team_alloc(memecoin, initial_holders, initial_holders_amounts);
-
-            // let memecoin_dispatcher = IMemecoinDispatcher { contract_address: coin_address };
-
-            // memecoin_dispatcher
-            //     .set_launched(
-            //         LiquidityType::EkuboNFT(id),
-            //         LiquidityParameters::Ekubo(
-            //             EkuboLiquidityParameters {
-            //                 quote_address, ekubo_pool_parameters: ekubo_pool_params
-            //             }
-            //         ),
-            //         :transfer_restriction_delay,
-            //         :max_percentage_buy_launch,
-            //         :team_allocation,
-            //     );
-            // self
-            //     .emit(
-            //         MemecoinLaunched {
-            //             memecoin_address, quote_token: quote_address, exchange_name: 'Ekubo'
-            //         }
-            //     );
-            (id, position)
-        }
-
-        // TODO add liquidity or increase
-        // Better params of Mint
-        fn _add_liquidity_jediswap(ref self: ContractState, coin_address: ContractAddress) {
-            let mut factory_address = self.address_jediswap_factory_v2.read();
-            let nft_router_address = self.address_jediswap_nft_router_v2.read();
-
-            if nft_router_address.is_zero() {
-                return;
-            }
-            let nft_router = IJediswapNFTRouterV2Dispatcher {
-                contract_address: nft_router_address
-            };
-
-            let facto_address = nft_router.factory();
-
-            if !facto_address.is_zero() {
-                factory_address = facto_address.clone();
-            }
-
-            if factory_address.is_zero() {
-                return;
-            }
-            // let jediswap_address = self.exchange_configs.read(SupportedExchanges::Jediswap);
-            //
-            let fee: u32 = 10_000;
-            let factory = IJediswapFactoryV2Dispatcher { contract_address: factory_address };
-            let launch = self.launched_coins.read(coin_address);
-            let token_a = launch.token_address.clone();
-            let asset_token_address = launch.token_address.clone();
-            let quote_token_address = launch.token_quote.token_address.clone();
-            let token_b = launch.token_quote.token_address.clone();
-            // TODO tokens check
-            // assert!(token_a != token_b, "same token");
-            // Look if pool already exist
-            // Init and Create pool if not exist
-            let mut pool: ContractAddress = factory.get_pool(token_a, token_b, fee);
-            let sqrt_price_X96 = 0; // TODO change sqrt_price_X96
-
-            // TODO check if pool exist
-            // Pool need to be create
-            // Better params for Liquidity launching
-            // let token_asset = IERC20Dispatcher { contract_address: token_a };
-
-            // TODO
-            // Used total supply if coin is minted
-            // let total_supply_now = token_asset.total_supply().clone();
-            let total_supply = launch.total_supply.clone();
-            let liquidity_raised = launch.liquidity_raised.clone();
-            // let total_supply = launch.total_supply.clone();
-
-            let amount_coin_liq = total_supply / LIQUIDITY_RATIO;
-            let amount0_desired = 0;
-            let amount1_desired = 0;
-            let amount0_min = amount_coin_liq;
-            let amount1_min = liquidity_raised;
-            let tick_lower: i32 = 0;
-            let tick_upper: i32 = 0;
-            let deadline: u64 = get_block_timestamp();
-
-            // @TODO check mint params
-
-            if pool.into() == 0_felt252 {
-                pool = factory.create_pool(token_a, token_b, fee);
-                pool = nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
-                // TODO Increase liquidity with router if exist
-                // Approve token asset and quote to be transferred
-                let token_asset = IERC20Dispatcher { contract_address: token_a };
-                let token_quote = IERC20Dispatcher { contract_address: token_b };
-                token_asset.approve(nft_router_address, amount_coin_liq);
-                token_quote.approve(nft_router_address, launch.liquidity_raised);
-                // TODO verify Mint params
-                // Test snforge in Sepolia
-                let mint_params = MintParams {
-                    token0: token_a,
-                    token1: token_b,
-                    fee: fee,
-                    tick_lower: tick_lower,
-                    tick_upper: tick_upper,
-                    amount0_desired: amount0_desired,
-                    amount1_desired: amount1_desired,
-                    amount0_min: amount0_min,
-                    amount1_min: amount1_min,
-                    recipient: launch.owner, // TODO add 
-                    deadline: deadline,
-                };
-
-                let (token_id, _, _, _) = nft_router.mint(mint_params);
-                // TODO Locked LP token
-                self
-                    .emit(
-                        LiquidityCreated {
-                            id: token_id,
-                            pool: pool,
-                            quote_token_address: quote_token_address,
-                            // token_id:token_id,
-                            owner: launch.owner,
-                            asset: asset_token_address,
-                            exchange: SupportedExchanges::Jediswap,
-                            is_unruggable: false
-                        }
-                    );
-            } else { // TODO 
-            // Increase liquidity of this pool.
-            }
         }
     }
 }

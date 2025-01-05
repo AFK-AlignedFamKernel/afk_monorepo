@@ -112,8 +112,43 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
     }
   });
 
-  // @TODO fix
 
+
+  // // @TODO fix
+  // fastify.get<{
+  //   Params: DeployLaunchParams;
+  // }>('/deploy-launch/by/:owner_address/', async (request, reply) => {
+  //   try {
+  //     const { owner_address } = request.params;
+  //     if (owner_address && !isValidStarknetAddress(owner_address)) {
+  //       reply.status(HTTPStatus.BadRequest).send({
+  //         code: HTTPStatus.BadRequest,
+  //         message: 'Invalid user address',
+  //       });
+  //       return;
+  //     }
+
+  //     const deploys = await prisma.token_launch.findMany({
+  //       where: { owner_address: owner_address },
+  //       select: {
+  //         memecoin_address: true,
+  //         quote_token: true,
+  //         price: true,
+  //         total_supply: true,
+  //         liquidity_raised: true,
+  //         network: true,
+  //         created_at: true,
+  //       },
+  //     });
+
+  //     reply.status(HTTPStatus.OK).send({
+  //       data: deploys,
+  //     });
+  //   } catch (error) {
+  //     console.error('Error deploying launch by user:', error);
+  //     reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+  //   }
+  // });
   // fastify.get<{
   //   Params: DeployLaunchByUserParams;
   // }>("/deploy-launch/from/:user/", async (request, reply) => {

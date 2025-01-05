@@ -5,21 +5,17 @@ import {useProfile} from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
 import {Formik, FormikProps} from 'formik';
-import {useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {useMemo, useRef, useState} from 'react';
+import {ScrollView, TextInput, View} from 'react-native';
 
 import {Button, SquareInput, Text} from '../../components';
-import {useStyles, useWaitConnection} from '../../hooks';
+import {useStyles, useWaitConnection, useWindowDimensions} from '../../hooks';
 import {DeployTokenFormValues, useCreateToken} from '../../hooks/launchpad/useCreateToken';
 import {useToast, useWalletModal} from '../../hooks/modals';
 import stylesheet from '../../screens/CreateChannel/styles';
 import {TipSuccessModalProps} from '../TipSuccessModal';
-
-const UsernameInputLeft = (
-  <Text weight="bold" color="inputPlaceholder">
-    @
-  </Text>
-);
+import {Picker} from '@react-native-picker/picker';
+import {BondingType} from '../../types/keys';
 
 enum TypeCreate {
   LAUNCH,
@@ -49,10 +45,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
 
   const [type, setType] = useState(TypeCreate.CREATE);
   const initialFormValues: FormValues = {
-    name: 'My Man',
-    symbol: 'MY_MAN',
+    name: '',
+    symbol: '',
+    bonding_type: BondingType.Linear,
     // ticker: '',
-    initialSupply: 100_000_000,
+    initialSupply: undefined,
     contract_address_salt: undefined,
     recipient: account?.address,
   };
@@ -78,21 +75,39 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         if (!result) return;
       }
 
-      const data: DeployTokenFormValues = {
-        recipient: account?.address,
-        name: values.name,
-        symbol: values.symbol,
-        initialSupply: values?.initialSupply,
-        contract_address_salt: values.contract_address_salt,
-        is_unruggable: values.is_unruggable,
-      };
       if (!account || !account?.account) return;
       console.log('test deploy');
 
+      if(!values?.symbol) {
+        return showToast({type: 'info', title: 'Add symbol'});
+      } else    if(!values?.name) {
+        return showToast({type: 'info', title: 'Add name'});
+      }
+      else    if(!values?.initialSupply) {
+        return showToast({type: 'info', title: 'Initial supply required'});
+      }
+
       let tx;
       if (type == TypeCreate.CREATE) {
+        const data: DeployTokenFormValues = {
+          recipient: account?.address,
+          name: values.name,
+          symbol: values.symbol,
+          initialSupply: values?.initialSupply,
+          contract_address_salt: values.contract_address_salt,
+          is_unruggable: values.is_unruggable,
+        };
         tx = await deployToken(account?.account, data);
       } else {
+        const data: DeployTokenFormValues = {
+          recipient: account?.address,
+          name: values.name,
+          symbol: values.symbol,
+          initialSupply: values?.initialSupply,
+          contract_address_salt: values.contract_address_salt,
+          is_unruggable: values.is_unruggable,
+          bonding_type: values.bonding_type,
+        };
         tx = await deployTokenAndLaunch(account?.account, data);
       }
 
@@ -106,10 +121,19 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
 
   if (profile.isLoading) return null;
 
-  return (
-    <ScrollView automaticallyAdjustKeyboardInsets style={styles.container}>
-      <Text>Launch your Token</Text>
+  const dimensions = useWindowDimensions();
+  const isDesktop = useMemo(() => {
+    return dimensions.width >= 1024;
+  }, [dimensions]);
 
+  return (
+    <ScrollView
+      automaticallyAdjustKeyboardInsets
+      style={styles.container}
+      contentContainerStyle={
+        isDesktop ? styles.contentContainerDesktop : styles.contentContainerMobile
+      }
+    >
       <Formik
         innerRef={formikRef}
         initialValues={initialFormValues}
@@ -118,35 +142,69 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       >
         {({handleChange, handleBlur, values, errors}) => (
           <View style={styles.form}>
-            <SquareInput
-              placeholder="Token name"
-              left={UsernameInputLeft}
-              onChangeText={handleChange('name')}
-              onBlur={handleBlur('name')}
-              value={values.name}
-              error={errors.name}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Name</Text>
+              <TextInput
+                value={values.name}
+                onChangeText={handleChange('name')}
+                onBlur={handleBlur('name')}
+                placeholder="AFK Token"
+                style={styles.input}
+              />
+            </View>
 
-            <SquareInput
-              placeholder="Symbol: AFK"
-              onChangeText={handleChange('symbol')}
-              onBlur={handleBlur('symbol')}
-              value={values.symbol}
-              error={errors.symbol}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Symbol</Text>
+              <TextInput
+                value={values.symbol}
+                onChangeText={handleChange('symbol')}
+                onBlur={handleBlur('symbol')}
+                placeholder="AFK"
+                style={styles.input}
+              />
+            </View>
 
-            <SquareInput
-              placeholder="Total supply: 100000"
-              onChangeText={handleChange('initialSupply')}
-              onBlur={handleBlur('initialSupply')}
-              value={values.initialSupply?.toString()}
-              error={errors.initialSupply?.toString()}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Total Supply</Text>
+              <TextInput
+              // type="number"
+                value={values.initialSupply?.toString()}
+                onChangeText={handleChange('initialSupply')}
+                onBlur={handleBlur('initialSupply')}
+                placeholder="100000"
+                inputMode="numeric"
+                keyboardType="numeric"
+                style={styles.input}
+              />
+            </View>
 
-            <Button onPress={() => onSubmitPress(TypeCreate.CREATE)}>Create coin</Button>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Bonding Type</Text>
+              <Picker
+                selectedValue={values.bonding_type}
+                onValueChange={(itemValue) => {
+                  formikRef.current?.setFieldValue('bonding_type', Number(itemValue));
+                }}
+                style={styles.input}
+              >
+                {Object.keys(BondingType)
+                  .filter((key) => isNaN(Number(key)))
+                  .map((bonding) => (
+                    <Picker.Item
+                      key={bonding}
+                      label={bonding}
+                      value={BondingType[bonding as keyof typeof BondingType]}
+                    />
+                  ))}
+              </Picker>
+            </View>
 
-            <Button onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
-              Create & Launch coin
+            <Button variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
+              Create
+            </Button>
+
+            <Button variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
+              Create & Launch
             </Button>
 
             <View style={styles.gap} />

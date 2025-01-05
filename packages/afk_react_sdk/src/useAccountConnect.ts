@@ -24,6 +24,7 @@ const ARGENT_CONFIG = {
     allowedMethods: [
       {
         contract:
+          process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS ||
           process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS ||
           process.env.EXPO_PUBLIC_STARKNET_CONTRACT_ADDRESS ||
           '0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e',
@@ -39,11 +40,11 @@ const ARGENT_CONFIG = {
 const initArgentTMA = () => {
   if (
     typeof window !== 'undefined' &&
-    window.Telegram &&
+    window?.Telegram &&
     // @ts-ignore
-    window.Telegram.WebApp.isActive &&
+    window?.Telegram?.WebApp?.isActive &&
     // @ts-ignore
-    window.Telegram.WebApp.platform !== 'unknown'
+    window?.Telegram?.WebApp?.platform !== 'unknown'
   ) {
     return ArgentTMA.init(ARGENT_CONFIG as any);
   }
@@ -140,11 +141,69 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
     }
 
     //If in telegram context
-    if (state.isTelegram) {
+    if (state?.isTelegram) {
       const argentTMA = initArgentTMA();
+      console.log("argentTma", argentTMA)
       if (!argentTMA) return;
       try {
-        await argentTMA.requestConnection('custom_callback_data');
+        const res = await argentTMA.connect()
+
+        if (!res) {
+          // Not connected
+          // setConnected(false);
+          return;
+        }
+
+        const { account, callbackData } = res;
+
+        if (account.getSessionStatus() !== 'VALID') {
+          // Session has expired or scope (allowed methods) has changed
+          // setAccount(account);
+          // setConnected(false);
+          return;
+        }
+
+        // const chainId = await account?.getChainId();
+        // setConnectorData({
+        //   account: account.address,
+        //   chainId: chainId ? BigInt(chainId).toString() : undefined,
+        // });
+
+        // setAccount(account);
+        // setConnected(true);
+        // await connectArgent()
+        await argentTMA.requestConnection({
+          callbackData: 'custom_callback_data',
+          approvalRequests: [
+            // {
+            //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+            //   amount: BigInt(1000000000000000000).toString(),
+            //   spender: 'spender_address',
+            // }
+          ],
+        });
+
+              // await argentTMA.requestConnection("custom_callback", [
+        //   // {
+        //   //   token: {
+        //   //     // Token address that you need approved
+        //   //     address: "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
+        //   //     name: "Ethereum",
+        //   //     symbol: "ETH",
+        //   //     decimals: 18,
+        //   //   },
+        //   //   amount: BigInt(100000).toString(),
+        //   //   // Your dapp contract
+        //   //   spender: "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+        //   // },
+        // ]);
+
+        // await argentTMA.requestConnection({
+        //   callbackData: '',
+        //   approvalRequests: [],
+        // });
+
+
       } catch (error) {
         console.log(error, 'err');
       }
@@ -373,46 +432,51 @@ export const useQueryAddressEffect = () => {
 export const useConnectArgent = () => {
   const argentTMA = useMemo(() => initArgentTMA(), []);
   const { setAccount, setConnected, setConnectorData, setIsTelegram } = useWalletStore();
-  useEffect(() => {
-    async function connectArgent() {
-      try {
-        if (!argentTMA) return;
+  async function connectArgent() {
+    try {
+      if (!argentTMA) return;
 
-        setIsTelegram(true);
-        const res = await argentTMA.connect();
+      setIsTelegram(true);
+      const res = await argentTMA.connect();
 
-        if (!res) {
-          // Not connected
-          setConnected(false);
-          return;
-        }
-
-        const { account, callbackData } = res;
-
-        if (account.getSessionStatus() !== 'VALID') {
-          // Session has expired or scope (allowed methods) has changed
-          setAccount(account);
-          setConnected(false);
-          return;
-        }
-
-        const chainId = await account?.getChainId();
-        setConnectorData({
-          account: account.address,
-          chainId: chainId ? BigInt(chainId).toString() : undefined,
-        });
-
-        setAccount(account);
-        setConnected(true);
-
-        // Custom data passed to the requestConnection() method is available here
-        console.log('callback data:', callbackData);
-      } catch (error) {
-        console.error('Failed to connect:', error);
-        // localStorage.removeItem('telegramAccountAddress');
+      if (!res) {
+        // Not connected
+        setConnected(false);
+        return;
       }
+
+      const { account, callbackData } = res;
+
+      if (account.getSessionStatus() !== 'VALID') {
+        // Session has expired or scope (allowed methods) has changed
+        setAccount(account);
+        setConnected(false);
+        return;
+      }
+
+      const chainId = await account?.getChainId();
+      setConnectorData({
+        account: account.address,
+        chainId: chainId ? BigInt(chainId).toString() : undefined,
+      });
+
+      setAccount(account);
+      setConnected(true);
+
+      // Custom data passed to the requestConnection() method is available here
+      console.log('callback data:', callbackData);
+    } catch (error) {
+      console.error('Failed to connect:', error);
+      // localStorage.removeItem('telegramAccountAddress');
     }
+  }
+  useEffect(() => {
+
 
     connectArgent();
   }, []);
+
+  return {
+    connectArgent
+  }
 };

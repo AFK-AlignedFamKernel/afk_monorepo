@@ -181,6 +181,8 @@ pub mod MemecoinV2 {
         description: ByteArray,
         total_supply_minted: u256,
         creator: ContractAddress,
+        owner: ContractAddress,
+        factory_contract: ContractAddress,
         balances: Map::<ContractAddress, u256>,
         allowances: Map::<(ContractAddress, ContractAddress), u256>,
         //memecoin
@@ -191,7 +193,6 @@ pub mod MemecoinV2 {
         launch_time: u64,
         launch_block_number: u64,
         launch_liquidity_parameters: Option<LiquidityParameters>,
-        factory_contract: ContractAddress,
         liquidity_type: Option<LiquidityType>,
         max_percentage_buy_launch: u16,
         capped_total_supply: u256,
@@ -285,6 +286,13 @@ pub mod MemecoinV2 {
         // Initialize the token / internal logic
         self.initializer(factory_address: factory, :initial_supply,);
 
+        self.creator.write(caller.clone());
+        self.owner.write(owner.clone());
+        self.factory_contract.write(factory.clone());
+        let caller = get_caller_address();
+        // self.creator.write(caller);
+        self.ownable.initializer(caller);
+
         // Init Timelock Gov
         // proposers
         // Add params
@@ -292,12 +300,8 @@ pub mod MemecoinV2 {
         let mut executors = ArrayTrait::new();
         proposers.append(caller);
         executors.append(caller);
-        let min_delay = 100_000;
+        // let min_delay = 100_000;
         // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
-
-        let caller = get_caller_address();
-        self.creator.write(caller);
-        self.ownable.initializer(caller);
 
         // Register the contract's support for the ISRC6 interface
         self.src5.register_interface(interface::ISRC6_ID);

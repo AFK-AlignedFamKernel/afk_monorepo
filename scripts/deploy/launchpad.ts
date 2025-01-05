@@ -4,7 +4,7 @@ import { Account, cairo, constants, uint256 } from "starknet";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createLaunchpad } from "../utils/launchpad";
-import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS, EKUBO_REGISTRY } from "common";
+import { formatFloatToUint256, LAUNCHPAD_ADDRESS, EKUBO_CORE, EKUBO_POSITION, UNRUGGABLE_FACTORY_ADDRESS, EKUBO_REGISTRY, UNRUGGABLE_LIQUIDITY_ADDRESSES } from "common";
 import {
   CLASS_HASH,
   ESCROW_ADDRESS,
@@ -39,6 +39,8 @@ export const deployLaunchpad = async () => {
     let UNRUG_FACTORY_ADDRESS =
     UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
 
+    let UNRUG_LIQUIDITY_ADDRESS =
+    UNRUGGABLE_LIQUIDITY_ADDRESSES[constants.StarknetChainId.SN_SEPOLIA];
   let EKUBO_CORE_ADDRESS =
   EKUBO_CORE[constants.StarknetChainId.SN_SEPOLIA];
   let EKUBO_POSITION_ADDRESS =
@@ -88,7 +90,8 @@ export const deployLaunchpad = async () => {
       EKUBO_REGISTRY_ADDRESS,
       EKUBO_CORE_ADDRESS,
       EKUBO_POSITION_ADDRESS,
-      EKUBO_DEX_ADDRESS
+      EKUBO_DEX_ADDRESS,
+      UNRUG_LIQUIDITY_ADDRESS
       
     );
     console.log(
@@ -103,10 +106,10 @@ export const deployLaunchpad = async () => {
       );
 
       // Setup params
-      launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY_ADDRESS);
+      // launchpad.set_address_jediswap_factory_v2(JEDISWAP_FACTORY_ADDRESS);
 
       // NFT position address to add liquidity
-      launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_ADDRESS_NFT);
+      // launchpad.set_address_jediswap_nft_router_v2(JEDISWAP_ADDRESS_NFT);
     }
   } else {
   }

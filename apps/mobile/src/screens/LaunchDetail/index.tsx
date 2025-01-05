@@ -144,7 +144,17 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     const dataShare = sharesData;
     setShares(data);
     setShare(dataShare);
+
+    // if(typeAction === 'SELL') {
+    //   setAmount(dataShare?.amount_owned);
+    // }
   }, [sharesData]);
+
+  useEffect(() => {
+    if(typeAction === 'SELL') {
+      // setAmount(share?.amount_owned);
+    }
+  }, [share, typeAction]);
 
   // useEffect(() => {
   //   const latestToken = tokens?.sort((a, b) => Number(b.created_at) - Number(a.created_at))[0];
@@ -254,8 +264,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
           <LaunchActionsForm
             amount={amount}
             // amount={Number(amount)}
-            // onChangeText={(e) => setAmount(Number(e))}
-            onChangeText={(e) => setAmount(e)}
+            onChangeText={(e) => setAmount(Number(e))}
+            // onChangeText={(e) => setAmount(e)}
             onBuyPress={buyCoin}
             onSellPress={sellCoin}
             launch={launch}

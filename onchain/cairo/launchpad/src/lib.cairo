@@ -38,6 +38,8 @@ pub mod interfaces {
     pub mod erc20_mintable;
     pub mod factory;
     pub mod jediswap;
+    pub mod launchpad;
+    pub mod unrug;
 }
 
 pub mod types {
