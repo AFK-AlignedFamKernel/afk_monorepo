@@ -1,15 +1,16 @@
-import {useAccount} from '@starknet-react/core';
-import {useState} from 'react';
-import {View} from 'react-native';
+import { useAccount } from '@starknet-react/core';
+import { useState } from 'react';
+import { View } from 'react-native';
 
-import {useStyles} from '../../hooks';
-import {useWalletModal} from '../../hooks/modals';
-import {useBalanceUtil} from '../../starknet/evm/utilHook';
-import {LaunchDataMerged, UserShareInterface} from '../../types/keys';
-import {Button} from '../Button';
-import {Input} from '../Input';
-import {Text} from '../Text';
+import { useStyles } from '../../hooks';
+import { useWalletModal } from '../../hooks/modals';
+import { useBalanceUtil } from '../../starknet/evm/utilHook';
+import { LaunchDataMerged, UserShareInterface } from '../../types/keys';
+import { Button } from '../Button';
+import { Input } from '../Input';
+import { Text } from '../Text';
 import stylesheet from './styles';
+import { formatNumber, numericValue } from '../../utils/format';
 
 export type LaunchActionsFormProps = {
   onBuyPress: () => void;
@@ -22,7 +23,7 @@ export type LaunchActionsFormProps = {
   setTypeAction?: (type: 'BUY' | 'SELL') => void;
   launch?: LaunchDataMerged;
   amount?: string;
-  userShare?: UserShareInterface;
+  userShare?: { data: UserShareInterface };
 };
 
 enum AmountType {
@@ -44,6 +45,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   const styles = useStyles(stylesheet);
   const walletModal = useWalletModal();
 
+
   const onConnect = async () => {
     if (!account.address) {
       walletModal.show();
@@ -57,13 +59,14 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
   const [typeAmount, setTypeAmount] = useState<AmountType>(AmountType.QUOTE_AMOUNT);
 
-  const {data: toBalance} = useBalanceUtil({
+  const { data: toBalance } = useBalanceUtil({
     address: account?.address,
     token: launch?.quote_token,
   });
 
-  console.log('toBalance', toBalance);
-  console.log('userShare', userShare);
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.tradingCard}>
@@ -98,33 +101,46 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         </View>
 
         {/* Amount Input */}
+
         <View style={styles.inputContainer}>
           <Input
             // keyboardType="decimal-pad"
             keyboardType="numeric"
             // keyboardType=""
             style={styles.input}
-            onChangeText={onChangeText}
+            onChangeText={(e) => onChangeText(numericValue(e))}
             placeholder="Amount"
             value={Number(amount?.toString())}
-            // value={typeAction === 'BUY' ? amount?.toString() : userShare?.amount_owned?.toString()}
+          // value={typeAction === 'BUY' ? amount?.toString() : userShare?.amount_owned?.toString()}
           />
-          <View style={styles.balanceInfo}>
-            <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
-            <Button
-              style={styles.maxButton}
-              onPress={() => {
-                if(typeAction === 'BUY') {
-                  onSetAmount(toBalance?.formatted);
-                } else {
-                  onSetAmount(userShare?.amount_owned?.toString());
-                }
-                /* Set max balance */
-              }}
-            >
-              MAX
-            </Button>
-          </View>
+
+          {account && account?.address &&
+            <View>
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
+                <Button
+                  style={styles.maxButton}
+                  onPress={() => {
+                    if (typeAction === 'BUY') {
+                      onSetAmount(toBalance?.formatted);
+                    } else {
+                      onSetAmount(userShare?.data?.amount_owned?.toString());
+                    }
+                    /* Set max balance */
+                  }}
+                >
+                  MAX
+                </Button>
+              </View>
+
+              <View style={[styles.balanceInfo, { marginTop: 5 }]}>
+                <Text style={styles.balanceLabel}>Coin Balance: {formatNumber(userShare?.data?.amount_owned as any)}</Text>
+              </View>
+            </View>
+
+
+          }
+
         </View>
 
         {/* Action Button */}

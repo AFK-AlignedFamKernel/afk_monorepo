@@ -1,28 +1,25 @@
-import {useState} from 'react';
-import {Pressable, View} from 'react-native';
-import {useAccount} from 'wagmi';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { useAccount } from 'wagmi';
 
-import {useStyles, useWaitConnection} from '../../../hooks';
-import {useGetShares} from '../../../hooks/api/indexer/useUserShare';
-import {useWalletModal} from '../../../hooks/modals';
-import {TokenStatsInterface, UserShareInterface} from '../../../types/keys';
+import { useStyles, useWaitConnection } from '../../../hooks';
+import { useGetShares } from '../../../hooks/api/indexer/useUserShare';
+import { useWalletModal } from '../../../hooks/modals';
+import { TokenStatsInterface, UserShareInterface } from '../../../types/keys';
 import Loading from '../../Loading';
-import {Text} from '../../Text';
+import { Text } from '../../Text';
 import stylesheet from './styles';
 
 export type UserShareProps = {
   loading: boolean;
   coinAddress: string;
   shares?: UserShareInterface[];
-  share?: UserShareInterface;
+  share?: { data: UserShareInterface };
 };
 
-export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coinAddress}) => {
+export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, coinAddress }) => {
   const styles = useStyles(stylesheet);
   const [stats, setStats] = useState<TokenStatsInterface | undefined>();
-  const [sharesState, setShares] = useState<UserShareInterface | undefined>(share);
-  console.log('share', share);
-  console.log('sharesState', sharesState);
 
   const account = useAccount();
   const {
@@ -53,25 +50,14 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
     <>
       {sharesLoading && <Loading></Loading>}
 
-      {account && !account?.address && (
-        <View>
-          <Pressable
-            onPress={() => {
-              onConnect();
-            }}
-          >
-            <Text>Connect</Text>
-          </Pressable>
-        </View>
-      )}
-      {share ? (
+      {share?.data ? (
         <View style={[styles.container, styles.borderBottom]}>
           <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Amount to claim
             </Text>
             <Text fontSize={14}>
-              {Number(share?.amount_owned)}
+              {Number(share?.data?.amount_owned)}
               {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
               {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
             </Text>
@@ -98,23 +84,21 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
           </View> */}
         </View>
       ) : (
-        sharesState && (
-          <View style={[styles.container, styles.borderBottom]}>
-            <View style={styles.borderBottom}>
-              <Text fontSize={14} weight="semiBold">
-                Total
-              </Text>
-              <Text fontSize={14}>
 
-              {Number(share?.amount_owned)}
-
-                {/* {sharesState?.total
+        <View style={[styles.container, styles.borderBottom]}>
+          <View style={styles.borderBottom}>
+            <Text fontSize={14} weight="semiBold">
+              Total
+            </Text>
+            <Text fontSize={14}>
+              0.00
+              {/* {sharesState?.total
                   ? Number(sharesState?.total)
                   : Number(sharesState?.total_buy) - Number(sharesState?.total_sell)} */}
-              </Text>
-            </View>
+            </Text>
+          </View>
 
-            {/* <View style={styles.borderBottom}>
+          {/* <View style={styles.borderBottom}>
               <Text fontSize={14} weight="semiBold">
                 Total sell
               </Text>
@@ -133,8 +117,8 @@ export const UserShare: React.FC<UserShareProps> = ({shares, share, loading, coi
               </Text>
               <Text fontSize={14}>{sharesState?.quote_amount}</Text>
             </View> */}
-          </View>
-        )
+        </View>
+
       )}
       {/* {sharesState && (
         <View style={[styles.container, styles.borderBottom]}>

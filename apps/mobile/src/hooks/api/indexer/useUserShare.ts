@@ -13,7 +13,7 @@ export const useGetShares = (tokenAddress: string, userId?: string) => {
             message: 'NO_USER_CONNECTED',
           };
         }
-        const endpoint = `/share-user/${tokenAddress}/${userId}`;
+        const endpoint = `/share-user/${userId}/${tokenAddress}`;
         const res = await ApiIndexerInstance.get(endpoint);
   
         if (res.status !== 200) {

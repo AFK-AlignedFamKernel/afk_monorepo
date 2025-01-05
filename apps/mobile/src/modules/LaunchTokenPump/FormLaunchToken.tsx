@@ -1,21 +1,24 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useAccount} from '@starknet-react/core';
-import {useQueryClient} from '@tanstack/react-query';
-import {useProfile} from 'afk_nostr_sdk';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useAccount } from '@starknet-react/core';
+import { useQueryClient } from '@tanstack/react-query';
+import { useProfile } from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {Formik, FormikProps} from 'formik';
-import {useMemo, useRef, useState} from 'react';
-import {ScrollView, TextInput, View} from 'react-native';
+import { useAuth } from 'afk_nostr_sdk';
+import { Formik, FormikProps } from 'formik';
+import { useMemo, useRef, useState } from 'react';
+import { ScrollView, TextInput, View } from 'react-native';
 
-import {Button, SquareInput, Text} from '../../components';
-import {useStyles, useWaitConnection, useWindowDimensions} from '../../hooks';
-import {DeployTokenFormValues, useCreateToken} from '../../hooks/launchpad/useCreateToken';
-import {useToast, useWalletModal} from '../../hooks/modals';
+import { Button, SquareInput, Text } from '../../components';
+import { useStyles, useWaitConnection, useWindowDimensions } from '../../hooks';
+import { DeployTokenFormValues, useCreateToken } from '../../hooks/launchpad/useCreateToken';
+import { useToast, useWalletModal } from '../../hooks/modals';
 import stylesheet from '../../screens/CreateChannel/styles';
-import {TipSuccessModalProps} from '../TipSuccessModal';
-import {Picker} from '@react-native-picker/picker';
-import {BondingType} from '../../types/keys';
+import { TipSuccessModalProps } from '../TipSuccessModal';
+import { Picker } from '@react-native-picker/picker';
+import { BondingType } from '../../types/keys';
+import { numericValue } from '../../utils/format';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
+import { LoadingSpinner } from '../../components/Loading';
 
 enum TypeCreate {
   LAUNCH,
@@ -32,16 +35,18 @@ export type FormTokenCreatedProps = {
 
 type FormValues = DeployTokenFormValues;
 export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
+  const [loading, setLoading] = useState(false)
   const formikRef = useRef<FormikProps<FormValues>>(null);
+  const { hide: hideTokenCreateModal } = useTokenCreatedModal();
   const walletModal = useWalletModal();
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
-  const profile = useProfile({publicKey});
+  const profile = useProfile({ publicKey });
   const queryClient = useQueryClient();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const account = useAccount();
   const waitConnection = useWaitConnection();
-  const {deployToken, deployTokenAndLaunch} = useCreateToken();
+  const { deployToken, deployTokenAndLaunch } = useCreateToken();
 
   const [type, setType] = useState(TypeCreate.CREATE);
   const initialFormValues: FormValues = {
@@ -78,16 +83,17 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       if (!account || !account?.account) return;
       console.log('test deploy');
 
-      if(!values?.symbol) {
-        return showToast({type: 'info', title: 'Add symbol'});
-      } else    if(!values?.name) {
-        return showToast({type: 'info', title: 'Add name'});
+      if (!values?.symbol) {
+        return showToast({ type: 'info', title: 'Add symbol' });
+      } else if (!values?.name) {
+        return showToast({ type: 'info', title: 'Add name' });
       }
-      else    if(!values?.initialSupply) {
-        return showToast({type: 'info', title: 'Initial supply required'});
+      else if (!values?.initialSupply) {
+        return showToast({ type: 'info', title: 'Initial supply required' });
       }
 
       let tx;
+      setLoading(true)
       if (type == TypeCreate.CREATE) {
         const data: DeployTokenFormValues = {
           recipient: account?.address,
@@ -97,7 +103,10 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           contract_address_salt: values.contract_address_salt,
           is_unruggable: values.is_unruggable,
         };
+
         tx = await deployToken(account?.account, data);
+
+
       } else {
         const data: DeployTokenFormValues = {
           recipient: account?.address,
@@ -112,10 +121,13 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       }
 
       if (tx) {
-        showToast({type: 'success', title: 'Token launch created successfully'});
+        showToast({ type: 'success', title: 'Token launch created successfully' });
+        hideTokenCreateModal?.()
+        setLoading(false)
       }
     } catch (error) {
-      showToast({type: 'error', title: 'Failed to create token and launch'});
+      showToast({ type: 'error', title: 'Failed to create token and launch' });
+      setLoading(false)
     }
   };
 
@@ -140,7 +152,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         onSubmit={onFormSubmit}
         validate={validateForm}
       >
-        {({handleChange, handleBlur, values, errors}) => (
+        {({ handleChange, handleBlur, values, errors }) => (
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Name</Text>
@@ -167,14 +179,19 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Total Supply</Text>
               <TextInput
-              // type="number"
+                // type="number"
                 value={values.initialSupply?.toString()}
-                onChangeText={handleChange('initialSupply')}
+
+                onChangeText={(text) => {
+                  handleChange('initialSupply')(numericValue(text));
+                }}
                 onBlur={handleBlur('initialSupply')}
                 placeholder="100000"
                 inputMode="numeric"
                 keyboardType="numeric"
                 style={styles.input}
+
+
               />
             </View>
 
@@ -199,12 +216,18 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
               </Picker>
             </View>
 
-            <Button variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
+            <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
               Create
+              {loading && type == TypeCreate.CREATE &&
+                <LoadingSpinner size={14} />
+              }
             </Button>
 
-            <Button variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
+            <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
               Create & Launch
+              {loading && type !== TypeCreate.CREATE &&
+                <LoadingSpinner size={14} />
+              }
             </Button>
 
             <View style={styles.gap} />
