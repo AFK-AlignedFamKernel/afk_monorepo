@@ -87,6 +87,8 @@ pub mod UnrugLiquidity {
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
+    // use core::integer::{u32_wrapping_add, BoundedInt};
+
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
     const MAX_STEPS_LOOP: u256 = 100;
@@ -718,34 +720,51 @@ pub mod UnrugLiquidity {
         fn _add_liquidity_ekubo(
             ref self: ContractState,
             coin_address: ContractAddress,
-            unrug_params: EkuboUnrugLaunchParameters
+            unrug_params_inputs: EkuboUnrugLaunchParameters
+            // unrug_params: EkuboUnrugLaunchParameters
         ) -> (u64, EkuboLP) {
             let caller = get_caller_address();
+            // let mut unrug_params = unrug_params_inputs.clone();
+            let mut unrug_params = unrug_params_inputs;
 
             let lp_meme_supply = unrug_params.lp_supply.clone();
 
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let memecoin = EKIERC20Dispatcher { contract_address: unrug_params.token_address };
+            let memecoin = EKIERC20Dispatcher {
+                contract_address: unrug_params.token_address.clone()
+            };
 
-            let positions_ekubo = self.positions.read();
+            // let positions_ekubo = self.positions.read();
 
-            let base_token = EKIERC20Dispatcher { contract_address: unrug_params.quote_address };
+            let base_token = EKIERC20Dispatcher {
+                contract_address: unrug_params.quote_address.clone()
+            };
 
             let registry_address = self.ekubo_registry.read();
-            println!("registry_address {:?}", registry_address);
-          
-            let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-            // println!("transfer base token {:?}", registry_address);
-          
-            let amount_register= 1000000000000000000;
-            // println!("base token amount",);
+            // println!("registry_address {:?}", registry_address);
 
-            base_token.transfer(registry.contract_address, amount_register);
+            let registry = ITokenRegistryDispatcher { contract_address: registry_address.clone() };
+
+            // let amount_register: u256 = 1000000000000000000;
+            // let amount_register = 1_u256;
+            let amount_register = 1000000000000000000;
+            // println!("register token amount {:?}", amount_register.clone());
+            // println!("transfer base token {:?}", registry_address.clone());
+
+            // memecoin.transfer(registry.contract_address, amount_register.clone());
+            // memecoin.transfer_from(caller, registry.contract_address, amount_register.clone());
+            ERC20ABIDispatcher { contract_address: unrug_params.token_address.clone() }
+            .transfer_from(unrug_params.owner, recipient: registry.contract_address, amount: amount_register);
             // println!("register token",);
-         
-            registry.register_token(EKIERC20Dispatcher { contract_address: unrug_params.token_address });
 
+            // // TODO substract amount register and check if amount_register is correct
+            registry
+                .register_token(
+                    EKIERC20Dispatcher { contract_address: unrug_params.token_address.clone() }
+                );
+            unrug_params.lp_supply -= amount_register;
+            // println!("register ok add liquidity");
 
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
 
