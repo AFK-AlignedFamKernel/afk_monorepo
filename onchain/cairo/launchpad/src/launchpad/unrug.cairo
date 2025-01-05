@@ -755,7 +755,11 @@ pub mod UnrugLiquidity {
             // memecoin.transfer(registry.contract_address, amount_register.clone());
             // memecoin.transfer_from(caller, registry.contract_address, amount_register.clone());
             ERC20ABIDispatcher { contract_address: unrug_params.token_address.clone() }
-            .transfer_from(unrug_params.owner, recipient: registry.contract_address, amount: amount_register);
+                .transfer_from(
+                    unrug_params.owner,
+                    recipient: registry.contract_address,
+                    amount: amount_register
+                );
             // println!("register token",);
 
             // // TODO substract amount register and check if amount_register is correct
