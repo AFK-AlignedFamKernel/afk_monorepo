@@ -30,7 +30,7 @@ const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC
 /// Represents a Schnorr signature
 struct SchnorrSignature {
     s: u256,
-    R: Secp256k1Point,
+    R: u256,
 }
 
 // pub impl EcPointDisplay of Display<Secp256k1Point> {
@@ -243,18 +243,19 @@ fn compute_challenge(R: EcPoint, public_key: EcPoint, message: ByteArray) -> fel
     let (nonce, R) = generate_nonce_point();
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
-    
+    let (s_G_x, s_G_y) = public_key.get_coordinates().unwrap_syscall();
+    let s_G_x = r;
     let e = compute_challenge(R, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
-    
+ 
     // s = nonce + private_key * e mod n
     let s = (nonce + (private_key * e)) % n;
     
-    SchnorrSignature { s, R }
+    SchnorrSignature { s, r }
 }
 
 /// Verifies a Schnorr signature
-fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: SchnorrSignature) -> bool {
+fn verify_sig(public_key: Secp256k1Point, message: u256, signature: SchnorrSignature) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.R, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
