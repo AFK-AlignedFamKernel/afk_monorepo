@@ -104,7 +104,10 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           is_unruggable: values.is_unruggable,
         };
 
-        tx = await deployToken(account?.account, data);
+        tx = await deployToken(account?.account, data).catch(err => {
+          showToast({ type: 'error', title: err?.message || "Something went wrong" });
+          setLoading(false)
+        });
 
 
       } else {
@@ -117,7 +120,10 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           is_unruggable: values.is_unruggable,
           bonding_type: values.bonding_type,
         };
-        tx = await deployTokenAndLaunch(account?.account, data);
+        tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
+          showToast({ type: 'error', title: err?.message || "Something went wrong" });
+          setLoading(false)
+        });
       }
 
       if (tx) {
@@ -126,9 +132,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         setLoading(false)
       }
     } catch (error) {
+
       showToast({ type: 'error', title: 'Failed to create token and launch' });
       setLoading(false)
     }
+
   };
 
   if (profile.isLoading) return null;
@@ -152,7 +160,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
         onSubmit={onFormSubmit}
         validate={validateForm}
       >
-        {({ handleChange, handleBlur, values, errors }) => (
+        {({ handleChange, handleBlur, values, errors, setFieldValue }) => (
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Name</Text>
@@ -181,11 +189,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
               <TextInput
                 // type="number"
                 value={values.initialSupply?.toString()}
-                onChangeText={handleChange('initialSupply')}
-                // onChangeText={(text) => {
-                //   handleChange('initialSupply');
-                //   // handleChange('initialSupply')(numericValue(text));
-                // }}
+                onChangeText={(text) => setFieldValue("initialSupply", numericValue(text))}
                 onBlur={handleBlur('initialSupply')}
                 placeholder="100000"
                 inputMode="numeric"

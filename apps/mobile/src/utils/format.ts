@@ -32,19 +32,12 @@ export const formatExpiry = (hexExpiry: string): Date => {
   return new Date(timestamp * 1000);
 };
 
-export const numericValue = (text: string): number | any => {
+export const numericValue = (text: string) => {
   // Allow numbers and a single decimal point
   const parts = text.split('.');
-  const cleanedText =
-    parts.length > 2
-      ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '')
-      : text.replace(/[^0-9.]/g, '');
-
-  // Convert to number and handle edge cases
-  const number = parseFloat(cleanedText);
-
-  // Return 0 if the input is empty or not a valid number
-  return isNaN(number) ? 0 : number;
+  return parts.length > 2
+    ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '')
+    : text.replace(/[^0-9.]/g, '');
 };
 
 export const formatNumber = (value: string | number, decimals = 4): string => {

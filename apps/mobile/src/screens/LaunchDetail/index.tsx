@@ -85,7 +85,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
 
   // const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
-  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, account?.address);
+  const { data: sharesData, isLoading: sharesLoading, refetch: refetchShare, isPending: sharesPending, } = useGetShares(coinAddress, account?.address);
 
   const { data: launchData, isLoading: launchLoading } = useGetTokenLaunch(coinAddress);
 
@@ -114,6 +114,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
       navigation.navigate(screen as any);
     }
   };
+
+  console.log(sharesData, "reload")
 
   useEffect(() => {
     console.log('launchData', launchData);
@@ -296,6 +298,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             onHandleAction={onHandleAction}
             userShare={share}
             onSetAmount={handleSetAmount}
+            refetchCoinBalance={() => refetchShare()}
+            coinBalanceLoading={sharesLoading || sharesPending}
           />
           <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
@@ -376,6 +380,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               typeAction={typeAction}
               onHandleAction={onHandleAction}
               userShare={share}
+              refetchCoinBalance={() => refetchShare()}
+              coinBalanceLoading={sharesLoading || sharesPending}
               onSetAmount={handleSetAmount}
             />
           </View>
