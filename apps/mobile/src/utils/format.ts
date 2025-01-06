@@ -31,3 +31,29 @@ export const formatExpiry = (hexExpiry: string): Date => {
   const timestamp = parseInt(hexExpiry, 16);
   return new Date(timestamp * 1000);
 };
+
+export const numericValue = (text: string): number | any => {
+  // Allow numbers and a single decimal point
+  const parts = text.split('.');
+  const cleanedText =
+    parts.length > 2
+      ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '')
+      : text.replace(/[^0-9.]/g, '');
+
+  // Convert to number and handle edge cases
+  const number = parseFloat(cleanedText);
+
+  // Return 0 if the input is empty or not a valid number
+  return isNaN(number) ? 0 : number;
+};
+
+export const formatNumber = (value: string | number, decimals = 4): string => {
+  if (!value) return '0';
+
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(num);
+};

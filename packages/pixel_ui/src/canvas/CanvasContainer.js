@@ -238,7 +238,7 @@ const CanvasContainer = (props) => {
   };
 
   //Pixel Call Hook
-  const { mutateAsync: mutatePlacePixel } = useContractAction()
+  const { mutate: mutatePlacePixel } = useContractAction()
 
 
   const placePixelCall = async (position, color, now) => {
@@ -257,8 +257,12 @@ const CanvasContainer = (props) => {
         entrypoint: "place_pixel"
       }
     }, {
-      onError() {
+      onError(err) {
+        console.log(err)
         setShowMetaDataForm(false)
+      },
+      onSuccess(data){
+        console.log(data, "Success")
       }
     })
   };
