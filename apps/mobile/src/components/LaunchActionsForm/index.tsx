@@ -1,6 +1,7 @@
 import { useAccount } from '@starknet-react/core';
 import { useState } from 'react';
-import { View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Pressable, View, Animated } from 'react-native';
 
 import { useStyles } from '../../hooks';
 import { useWalletModal } from '../../hooks/modals';
@@ -11,6 +12,8 @@ import { Input } from '../Input';
 import { Text } from '../Text';
 import stylesheet from './styles';
 import { formatNumber, numericValue } from '../../utils/format';
+import { IconButton } from '../IconButton';
+import { LoadingSpinner } from '../Loading';
 
 export type LaunchActionsFormProps = {
   onBuyPress: () => void;
@@ -24,6 +27,8 @@ export type LaunchActionsFormProps = {
   launch?: LaunchDataMerged;
   amount?: string;
   userShare?: { data: UserShareInterface };
+  refetchCoinBalance?: () => void;
+  coinBalanceLoading?: boolean
 };
 
 enum AmountType {
@@ -41,6 +46,8 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   onHandleAction,
   onChangeText,
   onSetAmount,
+  refetchCoinBalance,
+  coinBalanceLoading
 }) => {
   const styles = useStyles(stylesheet);
   const walletModal = useWalletModal();
@@ -105,9 +112,9 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         <View style={styles.inputContainer}>
           <Input
             // keyboardType="decimal-pad"
-            keyboardType="numeric"
-            inputMode="numeric"
-                // keyboardType="numeric"
+            keyboardType="decimal-pad"
+            inputMode="decimal"
+            // keyboardType="numeric"
             // keyboardType=""
             style={styles.input}
             onChangeText={(e) => onChangeText(numericValue(e))}
@@ -138,6 +145,17 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
               <View style={[styles.balanceInfo, { marginTop: 5 }]}>
                 <Text style={styles.balanceLabel}>Coin Balance: {formatNumber(userShare?.data?.amount_owned as any)}</Text>
+
+
+                <Pressable onPress={() => {
+                  return refetchCoinBalance?.()
+                }}>
+                  {coinBalanceLoading ?
+                    <LoadingSpinner size={16} color='white' />
+                    :
+                    <Ionicons name="refresh" size={16} color="white" />
+                  }
+                </Pressable>
               </View>
             </View>
 
