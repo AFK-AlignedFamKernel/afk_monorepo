@@ -1,25 +1,25 @@
-import {useAccount} from '@starknet-react/core';
-import {feltToAddress} from 'common';
-import {useEffect, useState} from 'react';
-import {StyleProp, useWindowDimensions, View, ViewStyle} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useAccount } from '@starknet-react/core';
+import { feltToAddress } from 'common';
+import { useEffect, useMemo, useState } from 'react';
+import { StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {Button, TextButton} from '../../components';
-import {Text} from '../../components';
-import {LaunchActionsForm} from '../../components/LaunchActionsForm';
-import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
+import { Button, TextButton } from '../../components';
+import { Text } from '../../components';
+import { LaunchActionsForm } from '../../components/LaunchActionsForm';
+import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
-import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
-import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
-import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
-import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
-import {useGetShares} from '../../hooks/api/indexer/useUserShare';
-import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
-import {useToast, useWalletModal} from '../../hooks/modals';
-import {LaunchDetailScreenProps} from '../../types';
+import { useStyles, useTheme } from '../../hooks';
+import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
+import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
+import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
+import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
+import { useGetShares } from '../../hooks/api/indexer/useUserShare';
+import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
+import { useToast, useWalletModal } from '../../hooks/modals';
+import { LaunchDetailScreenProps } from '../../types';
 import {
   LaunchDataMerged,
   TokenDeployInterface,
@@ -28,13 +28,14 @@ import {
   TokenTxInterface,
   UserShareInterface,
 } from '../../types/keys';
-import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
+import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
 import stylesheet from './styles';
-import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
-import {TokenTx} from '../../components/LaunchPad/TokenTx';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
 // import { TokenStats } from '../../components/LaunchPad/TokenStats';
-import {UserShare} from '../../components/LaunchPad/UserShare';
-import {useGetToken} from '../../hooks/api/indexer/useToken';
+import { UserShare } from '../../components/LaunchPad/UserShare';
+import { useGetToken } from '../../hooks/api/indexer/useToken';
+import { numericValue } from '../../utils/format';
 
 interface LaunchDetailStyles {
   holdersTotal: ViewStyle;
@@ -49,9 +50,9 @@ interface LaunchDetailStyles {
   mobileTabBar: ViewStyle;
 }
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
+export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
   const [loading, setLoading] = useState(false);
   const account = useAccount();
@@ -59,14 +60,12 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   console.log(account, 'account');
 
-  const {coinAddress} = route.params;
+  const { coinAddress } = route.params;
 
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
   const [token, setToken] = useState<TokenDeployInterface | undefined>();
   const [launch, setLaunch] = useState<LaunchDataMerged | undefined>();
-
-  const [holdings, setHoldings] = useState<TokenHoldersInterface | undefined>();
 
   const [totalHoldersAddress, setTotalHoldersAddress] = useState<number>(0);
 
@@ -80,34 +79,33 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const {data: holdingsData, isLoading: holdingsLoading} = useGetHoldings(coinAddress);
+  const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
 
-  const {data: transactionData, isLoading: txLoading} = useGetTransactions(coinAddress);
+  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
 
   // const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
-  const {data: sharesData, isLoading: sharesLoading} = useGetShares(coinAddress, account?.address);
+  const { data: sharesData, isLoading: sharesLoading } = useGetShares(coinAddress, account?.address);
 
-  const {data: launchData, isLoading: launchLoading} = useGetTokenLaunch(coinAddress);
+  const { data: launchData, isLoading: launchLoading } = useGetTokenLaunch(coinAddress);
 
-  const {data: tokenData, isLoading: tokenLoading} = useGetToken(coinAddress);
+  const { data: tokenData, isLoading: tokenLoading } = useGetToken(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
-  const {handleSellCoins} = useSellCoin();
-  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
+  const { handleSellCoins } = useSellCoin();
+  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const walletModal = useWalletModal();
 
   const [amount, setAmount] = useState<string | undefined>('0');
 
   const handleSetAmount = (_amount?: string) => {
+
     let nb_amount = Number(_amount);
-    if (_amount && isNaN(Number(_amount))) {
-      setAmount(nb_amount?.toFixed(2).toString());
-    }
+    setAmount(nb_amount?.toFixed(2).toString());
   };
 
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -126,9 +124,33 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   }, [launchData]);
 
-  useEffect(() => {
-    setHoldings(holdingsData);
+  //Filter the data for holding to only show buys.
+  const holdings = useMemo(() => {
+    if (!holdingsData?.data) return [];
+
+    return holdingsData.data
+      .reduce((acc: any, tx: any) => {
+        const { owner_address, _count, _sum, transaction_type } = tx;
+        const existingHolder = acc.find((h: any) => h.owner_address === owner_address);
+
+        const amount = transaction_type === 'buy' ? parseFloat(_sum.amount) : -parseFloat(_sum.amount);
+
+        if (existingHolder) {
+          existingHolder._sum.amount = (parseFloat(existingHolder._sum.amount) + amount).toString();
+        } else {
+          acc.push({
+            owner_address,
+            _count: { owner_address: _count.owner_address },
+            _sum: { amount: amount.toString() },
+          });
+        }
+
+        return acc;
+      }, [])
+      .filter((holder: any) => parseFloat(holder._sum.amount) > 0);
   }, [holdingsData]);
+
+
 
   useEffect(() => {
     const data = transactionData || [];
@@ -151,7 +173,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   }, [sharesData]);
 
   useEffect(() => {
-    if(typeAction === 'SELL') {
+    if (typeAction === 'SELL') {
       // setAmount(share?.amount_owned);
     }
   }, [share, typeAction]);
@@ -172,7 +194,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const sellCoin = async (amountSellProps?: number) => {
     if (!amount && !amountSellProps) {
-      return showToast({title: 'Select an amount to sell', type: 'info'});
+      return showToast({ title: 'Select an amount to sell', type: 'info' });
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -191,14 +213,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     );
 
     if (sellResult && sellResult?.value) {
-      return showToast({title: 'Sell done', type: 'success'});
+      return showToast({ title: 'Sell done', type: 'success' });
     }
   };
 
   const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
-      return showToast({title: 'Select an amount to buy', type: 'info'});
+      return showToast({ title: 'Select an amount to buy', type: 'info' });
     }
 
     if (!account || !account?.account) return;
@@ -206,7 +228,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     console.log('token', token);
 
     if (!token?.memecoin_address) {
-      return showToast({title: "Token can't be find", type: 'info'});
+      return showToast({ title: "Token can't be find", type: 'info' });
     }
     // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
@@ -219,7 +241,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     );
 
     if (buyResult) {
-      return showToast({title: 'Buy successful', type: 'success'});
+      return showToast({ title: 'Buy successful', type: 'success' });
     }
   };
 
@@ -237,7 +259,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   };
 
-  const {width} = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const isMobile = width < 768; // Common breakpoint for mobile
 
   if (!coinAddress) {
@@ -264,7 +286,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
           <LaunchActionsForm
             amount={amount}
             // amount={Number(amount)}
-            onChangeText={(e) => setAmount(Number(e))}
+            onChangeText={(e) => setAmount(e)}
             // onChangeText={(e) => setAmount(e)}
             onBuyPress={buyCoin}
             onSellPress={sellCoin}
@@ -289,10 +311,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               <>
                 <View style={styles.holdersTotal}>
                   <Text weight="medium" fontSize={14}>
-                    Total Owner Address: {holdings?.data?.length}
+                    Total Owner Address: {holdings?.length}
                   </Text>
                 </View>
-                <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+                <TokenHolderDetail holders={{ data: holdings }} loading={holdingsLoading} />
               </>
             )}
 
@@ -305,8 +327,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
             )} */}
 
             {selectedTab == SelectedTab.USER_SHARE &&
-            launch?.memecoin_address &&
-            account?.address ? (
+              launch?.memecoin_address &&
+              account?.address ? (
               <UserShare
                 loading={sharesLoading}
                 shares={shares}
@@ -345,8 +367,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
           <View style={styles.leftColumn}>
             <LaunchActionsForm
               amount={amount}
+              // onChangeText={(e) => setAmount(e)}
               onChangeText={(e) => setAmount(e)}
-              // onChangeText={(e) => setAmount(Number(e))}
               onBuyPress={buyCoin}
               onSellPress={sellCoin}
               launch={launch}
@@ -378,10 +400,10 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 <>
                   <View style={styles.holdersTotal}>
                     <Text weight="medium" fontSize={14}>
-                      Total Owner Address: {holdings?.data?.length}
+                      Total Owner Address: {holdings?.length}
                     </Text>
                   </View>
-                  <TokenHolderDetail holders={holdings} loading={holdingsLoading} />
+                  <TokenHolderDetail holders={{ data: holdings }} loading={holdingsLoading} />
                 </>
               )}
 
@@ -394,8 +416,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
               )} */}
 
               {selectedTab == SelectedTab.USER_SHARE &&
-              launch?.memecoin_address &&
-              account?.address ? (
+                launch?.memecoin_address &&
+                account?.address ? (
                 <UserShare
                   loading={sharesLoading}
                   shares={shares}

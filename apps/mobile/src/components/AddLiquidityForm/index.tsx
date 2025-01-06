@@ -1,14 +1,15 @@
-import {View, ActivityIndicator} from 'react-native';
-import {useAccount} from '@starknet-react/core';
-import {Formik} from 'formik';
-import {Button, SquareInput, Text} from '../../components';
-import {useStyles} from '../../hooks';
-import {useToast, useWalletModal} from '../../hooks/modals';
+import { View, ActivityIndicator } from 'react-native';
+import { useAccount } from '@starknet-react/core';
+import { Formik } from 'formik';
+import { Button, SquareInput, Text } from '../../components';
+import { useStyles } from '../../hooks';
+import { useToast, useWalletModal } from '../../hooks/modals';
 
-import {AddLiquidityValidationSchema} from './validation';
+import { AddLiquidityValidationSchema } from './validation';
 import stylesheet from './styles';
-import {useState} from 'react';
-import {useAddLiquidity} from '../../hooks/launchpad/useAddLiquidity';
+import { useState } from 'react';
+import { useAddLiquidity } from '../../hooks/launchpad/useAddLiquidity';
+import { numericValue } from '../../utils/format';
 
 type FormValues = {
   amount: string;
@@ -27,12 +28,12 @@ type FormValues = {
 
 export const AddLiquidityForm: React.FC<{
   tokenAddress: string;
-}> = ({tokenAddress}) => {
+}> = ({ tokenAddress }) => {
   const styles = useStyles((theme) => stylesheet);
   const account = useAccount();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const walletModal = useWalletModal();
-  const {addLiquidityUnrug, addLiquidityEkubo, addLiquidityJediswap} = useAddLiquidity();
+  const { addLiquidityUnrug, addLiquidityEkubo, addLiquidityJediswap } = useAddLiquidity();
   const [isLoading, setIsLoading] = useState(false);
 
   const initialValues: FormValues = {
@@ -59,7 +60,7 @@ export const AddLiquidityForm: React.FC<{
       }
 
       if (!account.account) {
-        showToast({type: 'error', title: 'Account not connected'});
+        showToast({ type: 'error', title: 'Account not connected' });
         return;
       }
 
@@ -86,7 +87,7 @@ export const AddLiquidityForm: React.FC<{
           break;
       }
 
-      showToast({type: 'success', title: 'Liquidity added successfully'});
+      showToast({ type: 'success', title: 'Liquidity added successfully' });
     } catch (error) {
       console.error('Add liquidity error:', error);
       showToast({
@@ -113,7 +114,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Starting Price</Text>
               <SquareInput
                 placeholder="Enter starting price"
-                onChangeText={handleChange('startingPrice')}
+                onChangeText={(text) => {
+                  handleChange('startingPrice')(numericValue(text));
+                }}
                 onBlur={handleBlur('startingPrice')}
                 value={values.startingPrice}
                 keyboardType="decimal-pad"
@@ -127,7 +130,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Team Allocation (%)</Text>
               <SquareInput
                 placeholder="Enter team allocation percentage"
-                onChangeText={handleChange('teamAllocation')}
+                onChangeText={(text) => {
+                  handleChange('teamAllocation')(numericValue(text));
+                }}
                 onBlur={handleBlur('teamAllocation')}
                 value={values.teamAllocation}
                 keyboardType="decimal-pad"
@@ -141,7 +146,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Team Vesting Period (days)</Text>
               <SquareInput
                 placeholder="Enter vesting period"
-                onChangeText={handleChange('teamVestingPeriod')}
+                onChangeText={(text) => {
+                  handleChange('teamVestingPeriod')(numericValue(text));
+                }}
                 onBlur={handleBlur('teamVestingPeriod')}
                 value={values.teamVestingPeriod}
                 keyboardType="number-pad"
@@ -155,7 +162,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Hodl Limit</Text>
               <SquareInput
                 placeholder="Enter hodl limit"
-                onChangeText={handleChange('hodlLimit')}
+                onChangeText={(text) => {
+                  handleChange('hodlLimit')(numericValue(text));
+                }}
                 onBlur={handleBlur('hodlLimit')}
                 value={values.hodlLimit}
                 keyboardType="decimal-pad"
@@ -169,7 +178,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Lock Time (days)</Text>
               <SquareInput
                 placeholder="Enter lock time in days"
-                onChangeText={handleChange('liquidityLockTime')}
+                onChangeText={(text) => {
+                  handleChange('liquidityLockTime')(numericValue(text));
+                }}
                 onBlur={handleBlur('liquidityLockTime')}
                 value={values.liquidityLockTime}
                 keyboardType="number-pad"
@@ -188,7 +199,9 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Price</Text>
               <SquareInput
                 placeholder="Enter price"
-                onChangeText={handleChange('ekuboPrice')}
+                onChangeText={(text) => {
+                  handleChange('ekuboPrice')(numericValue(text));
+                }}
                 onBlur={handleBlur('ekuboPrice')}
                 value={values.ekuboPrice}
                 keyboardType="decimal-pad"
@@ -220,7 +233,10 @@ export const AddLiquidityForm: React.FC<{
               <Text style={styles.label}>Minimum Liquidity</Text>
               <SquareInput
                 placeholder="Enter minimum liquidity"
-                onChangeText={handleChange('minLiquidity')}
+                onChangeText={(text) => {
+                  handleChange('minLiquidity')(numericValue(text));
+                }}
+
                 onBlur={handleBlur('minLiquidity')}
                 value={values.minLiquidity}
                 keyboardType="decimal-pad"
@@ -253,7 +269,7 @@ export const AddLiquidityForm: React.FC<{
       validationSchema={AddLiquidityValidationSchema}
       onSubmit={onSubmit}
     >
-      {({handleChange, handleBlur, handleSubmit, values, errors, touched}) => (
+      {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
         <View style={styles.container}>
           {isLoading && (
             <View style={styles.loadingContainer}>
@@ -284,7 +300,9 @@ export const AddLiquidityForm: React.FC<{
             <Text style={styles.label}>Amount</Text>
             <SquareInput
               placeholder="Enter amount"
-              onChangeText={handleChange('amount')}
+              onChangeText={(text) => {
+                handleChange('amount')(numericValue(text));
+              }}
               onBlur={handleBlur('amount')}
               value={values.amount}
               keyboardType="decimal-pad"
