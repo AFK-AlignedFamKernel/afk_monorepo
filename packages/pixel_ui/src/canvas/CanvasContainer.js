@@ -225,7 +225,7 @@ const CanvasContainer = (props) => {
     // TODO: Dont query if hover select ( until 1s after hover? )
     if (props.selectedColorId !== -1 || props.isEraserMode || props.isExtraDeleteMode) {
       props.setPixelPlacedBy(null);
-      return;
+      // return;
     }
     const getPixelInfoEndpoint = await fetchWrapper(
       `get-pixel-info?position=${position.toString()}`,
@@ -245,8 +245,9 @@ const CanvasContainer = (props) => {
 
     // if (devnetMode) return;
     // if (!props.address || !props.artPeaceContract) return;
+    console.log("try placePixelCall")
     if (!props.address || !props.artPeaceContract || !props.account) return;
-
+    console.log("mutatePlacePixel")
     mutatePlacePixel({
       account: props.account,
       wallet: props.wallet,

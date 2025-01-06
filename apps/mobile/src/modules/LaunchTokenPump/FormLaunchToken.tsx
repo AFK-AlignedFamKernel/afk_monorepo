@@ -181,10 +181,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
               <TextInput
                 // type="number"
                 value={values.initialSupply?.toString()}
-
-                onChangeText={(text) => {
-                  handleChange('initialSupply')(numericValue(text));
-                }}
+                onChangeText={handleChange('initialSupply')}
+                // onChangeText={(text) => {
+                //   handleChange('initialSupply');
+                //   // handleChange('initialSupply')(numericValue(text));
+                // }}
                 onBlur={handleBlur('initialSupply')}
                 placeholder="100000"
                 inputMode="numeric"

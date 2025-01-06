@@ -32,6 +32,9 @@ export class TokenLaunchService {
           quote_token: data.quoteToken,
           price: data.price,
           total_supply: data.totalSupply,
+          threshold_liquidity: data.thresholdLiquidity,
+          bonding_type: data.bondingType,
+          owner_address: data.ownerAddress,
         },
       });
     } catch (error) {

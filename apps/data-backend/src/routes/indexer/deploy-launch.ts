@@ -22,6 +22,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
+          threshold_liquidity:true,
+          bonding_type:true,
+          total_token_holded:true,
         },
       });
 
@@ -59,6 +62,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
+          threshold_liquidity:true,
+          bonding_type:true,
+          total_token_holded:true,
         },
       });
 
@@ -96,6 +102,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
+          threshold_liquidity:true,
+          bonding_type:true,
+          total_token_holded:true,
         },
       });
 

@@ -112,7 +112,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   // Contracts
   // TODO: Pull addrs from api?
   const { contract: artPeaceContract } = useContract({
-    address: contractAddress ?? process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS,
+    address: contractAddress ?? process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS,
+    // address: contractAddress ?? process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS ?? process.env.NEXT_PUBLIC_STARKNET_CONTRACT_ADDRESS,
     abi: art_peace_abi
   });
   const { contract: usernameContract } = useContract({

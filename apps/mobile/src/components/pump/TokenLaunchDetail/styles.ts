@@ -61,4 +61,27 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     marginBottom: Spacing.small,
   },
+  progressBarContainer: {
+    width: '100%',
+    height: 8,
+    // backgroundColor: '#E5E7EB', // Light gray background
+    backgroundColor: theme?.colors?.primary, // Light gray background
+    borderRadius: 4,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: theme?.colors?.primary, // Light gray background
+    // backgroundColor: '#10B981', // Green color for the fill
+    borderRadius: 4,
+  },
+  
+  progressText: {
+    fontSize: 12,
+    color: theme?.colors?.text, // Light gray background
+    textAlign: 'center',
+    marginTop: 4,
+  },
 }));

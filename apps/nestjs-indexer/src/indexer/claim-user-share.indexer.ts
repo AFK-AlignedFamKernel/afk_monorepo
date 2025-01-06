@@ -2,25 +2,25 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash, shortString } from 'starknet';
-import { TokenLaunchService } from 'src/services/token-launch/token-launch.service';
+import { uint256, validateAndParseAddress, hash } from 'starknet';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
+import { ClaimUserShareService } from 'src/services/claim-user-share/claim-share.service';
 
 @Injectable()
-export class TokenLaunchIndexer {
-  private readonly logger = new Logger(TokenLaunchIndexer.name);
+export class ClaimUserShareIndexer {
+  private readonly logger = new Logger(ClaimUserShareIndexer.name);
   private readonly eventKeys: string[];
 
   constructor(
-    @Inject(TokenLaunchService)
-    private readonly tokenLaunchService: TokenLaunchService,
+    @Inject(ClaimUserShareService)
+    private readonly claimUserShareService: ClaimUserShareService,
 
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
     this.eventKeys = [
-      validateAndParseAddress(hash.getSelectorFromName('CreateLaunch')),
+      validateAndParseAddress(hash.getSelectorFromName('TokenClaimed')),
     ];
   }
 
@@ -36,20 +36,23 @@ export class TokenLaunchIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    this.logger.log('Received event TokenLaunch');
+    this.logger.log('Received event claim user share');
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
-      case validateAndParseAddress(hash.getSelectorFromName('CreateLaunch')):
-        this.logger.log('Event name: CreateLaunch');
-        this.handleTokenLaunchEvent(header, event, transaction);
+      case validateAndParseAddress(hash.getSelectorFromName('TokenClaimed')):
+        this.logger.log('Event name: TokenClaimed');
+        this.handleClaimUserShareEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
     }
   }
 
-  private async handleTokenLaunchEvent(
+
+  // TODO 
+  // finish handle claim event
+  private async handleClaimUserShareEvent(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
@@ -69,8 +72,10 @@ export class TokenLaunchIndexer {
       `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
     ) as ContractAddress;
 
+    const transferId = `${transactionHash}_${event.index}`;
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, callerFelt, tokenAddressFelt, quoteTokenAddressFelt] = event.keys;
+    const [_, callerFelt, tokenAddressFelt] = event.keys;
 
     const ownerAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
@@ -80,22 +85,18 @@ export class TokenLaunchIndexer {
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
-    const quoteTokenAddress = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(quoteTokenAddressFelt).toString(16)}`,
-    ) as ContractAddress;
-
     const [
       amountLow,
       amountHigh,
       priceLow,
       priceHigh,
-      totalSupplyLow,
-      totalSupplyHigh,
-      slopeLow,
-      slopeHigh,
-      thresholdLiquidityLow,
-      thresholdLiquidityHigh,
-      bondingTypeFelt
+      protocolFeeLow,
+      protocolFeeHigh,
+      lastPriceLow,
+      lastPriceHigh,
+      timestampFelt,
+      quoteAmountLow,
+      quoteAmountHigh,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -110,57 +111,53 @@ export class TokenLaunchIndexer {
     });
     const price = formatUnits(priceRaw, constants.DECIMALS);
 
-    const totalSupplyRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(totalSupplyLow),
-      high: FieldElement.toBigInt(totalSupplyHigh),
+    const protocolFeeRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(protocolFeeLow),
+      high: FieldElement.toBigInt(protocolFeeHigh),
     });
-    const totalSupply = formatUnits(
-      totalSupplyRaw,
+    const protocolFee = formatUnits(
+      protocolFeeRaw,
       constants.DECIMALS,
     ).toString();
 
-    const slopeRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(slopeLow),
-      high: FieldElement.toBigInt(slopeHigh),
+    const lastPriceRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(lastPriceLow),
+      high: FieldElement.toBigInt(lastPriceHigh),
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const slope = formatUnits(slopeRaw, constants.DECIMALS).toString();
+    const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
-    const thresholdLiquidityRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(thresholdLiquidityLow),
-      high: FieldElement.toBigInt(thresholdLiquidityHigh),
+    const quoteAmountRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(quoteAmountLow),
+      high: FieldElement.toBigInt(quoteAmountHigh),
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const thresholdLiquidity = formatUnits(
-      thresholdLiquidityRaw,
+    const quoteAmount = formatUnits(
+      quoteAmountRaw,
       constants.DECIMALS,
     ).toString();
 
-    // const bondingType = bondingTypeFelt;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const bondingType = bondingTypeFelt
-    ? shortString.decodeShortString(
-        FieldElement.toBigInt(bondingTypeFelt).toString(),
-      )
-    : '';
-
+    const timestamp = new Date(
+      Number(FieldElement.toBigInt(timestampFelt)) * 1000,
+    );
 
     const data = {
-      transactionHash,
+      transferId,
       network: 'starknet-sepolia',
+      transactionHash,
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      memecoinAddress: tokenAddress,
-      quoteToken: quoteTokenAddress,
-      amount: Number(amount),
-      totalSupply,
-      price,
       ownerAddress,
-      bondingType,
-      thresholdLiquidity
+      memecoinAddress: tokenAddress,
+      amount: Number(amount),
+      price,
+      protocolFee,
+      lastPrice,
+      quoteAmount,
+      timestamp,
+      transactionType: 'buy',
+      tokenAddress
     };
 
-    await this.tokenLaunchService.create(data);
+    await this.claimUserShareService.create(data);
   }
 }
