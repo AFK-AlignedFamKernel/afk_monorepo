@@ -151,8 +151,14 @@ export const ART_PEACE_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+  
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  // "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+    "0x1d3c8e4dcc100eb88e418d89a012326bd904fe5de061aee5df505a30d0ff5e9",
+    
 
 };
 

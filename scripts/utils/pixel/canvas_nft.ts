@@ -12,11 +12,11 @@ import path from "path";
 dotenv.config();
 const PATH_ART_CANVAS_NFT = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_CanvasNFT.contract_class.json"
+  "../../../onchain/cairo/games/target/dev/afk_games_CanvasNFT.contract_class.json"
 );
 const PATH_ART_CANVAS_NFT_COMPILED = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_CanvasNFT.compiled_contract_class.json"
+  "../../../onchain/cairo/games/target/dev/afk_games_CanvasNFT.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
