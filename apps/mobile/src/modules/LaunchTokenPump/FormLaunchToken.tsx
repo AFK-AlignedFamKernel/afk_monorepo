@@ -183,7 +183,8 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
                 value={values.initialSupply?.toString()}
 
                 onChangeText={(text) => {
-                  handleChange('initialSupply')(numericValue(text));
+                  handleChange('initialSupply');
+                  // handleChange('initialSupply')(numericValue(text));
                 }}
                 onBlur={handleBlur('initialSupply')}
                 placeholder="100000"

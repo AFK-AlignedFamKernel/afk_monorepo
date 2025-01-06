@@ -106,11 +106,14 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           <Input
             // keyboardType="decimal-pad"
             keyboardType="numeric"
+            inputMode="numeric"
+                // keyboardType="numeric"
             // keyboardType=""
             style={styles.input}
             onChangeText={(e) => onChangeText(numericValue(e))}
             placeholder="Amount"
-            value={Number(amount?.toString())}
+            // value={Number(amount?.toString())}
+            value={amount?.toString()}
           // value={typeAction === 'BUY' ? amount?.toString() : userShare?.amount_owned?.toString()}
           />
 
