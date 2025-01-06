@@ -105,6 +105,7 @@ export const AddLiquidityForm: React.FC<{
     handleBlur: any,
     errors: any,
     touched: any,
+    setFieldValue: any
   ) => {
     switch (values.dexType) {
       case 'UNRUGGABLE':
@@ -115,7 +116,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter starting price"
                 onChangeText={(text) => {
-                  handleChange('startingPrice')(numericValue(text));
+                  setFieldValue('startingPrice', numericValue(text));
                 }}
                 onBlur={handleBlur('startingPrice')}
                 value={values.startingPrice}
@@ -131,7 +132,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter team allocation percentage"
                 onChangeText={(text) => {
-                  handleChange('teamAllocation')(numericValue(text));
+                  setFieldValue('teamAllocation', numericValue(text));
                 }}
                 onBlur={handleBlur('teamAllocation')}
                 value={values.teamAllocation}
@@ -147,7 +148,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter vesting period"
                 onChangeText={(text) => {
-                  handleChange('teamVestingPeriod')(numericValue(text));
+                  setFieldValue('teamVestingPeriod', numericValue(text));
                 }}
                 onBlur={handleBlur('teamVestingPeriod')}
                 value={values.teamVestingPeriod}
@@ -163,7 +164,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter hodl limit"
                 onChangeText={(text) => {
-                  handleChange('hodlLimit')(numericValue(text));
+                  setFieldValue('hodlLimit', numericValue(text));
                 }}
                 onBlur={handleBlur('hodlLimit')}
                 value={values.hodlLimit}
@@ -179,7 +180,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter lock time in days"
                 onChangeText={(text) => {
-                  handleChange('liquidityLockTime')(numericValue(text));
+                  setFieldValue('liquidityLockTime', numericValue(text));
                 }}
                 onBlur={handleBlur('liquidityLockTime')}
                 value={values.liquidityLockTime}
@@ -200,7 +201,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter price"
                 onChangeText={(text) => {
-                  handleChange('ekuboPrice')(numericValue(text));
+                  setFieldValue('ekuboPrice', numericValue(text));
                 }}
                 onBlur={handleBlur('ekuboPrice')}
                 value={values.ekuboPrice}
@@ -234,7 +235,7 @@ export const AddLiquidityForm: React.FC<{
               <SquareInput
                 placeholder="Enter minimum liquidity"
                 onChangeText={(text) => {
-                  handleChange('minLiquidity')(numericValue(text));
+                  setFieldValue('minLiquidity', numericValue(text));
                 }}
 
                 onBlur={handleBlur('minLiquidity')}
@@ -269,7 +270,7 @@ export const AddLiquidityForm: React.FC<{
       validationSchema={AddLiquidityValidationSchema}
       onSubmit={onSubmit}
     >
-      {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+      {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
         <View style={styles.container}>
           {isLoading && (
             <View style={styles.loadingContainer}>
@@ -301,7 +302,7 @@ export const AddLiquidityForm: React.FC<{
             <SquareInput
               placeholder="Enter amount"
               onChangeText={(text) => {
-                handleChange('amount')(numericValue(text));
+                setFieldValue('amount', numericValue(text));
               }}
               onBlur={handleBlur('amount')}
               value={values.amount}
@@ -310,7 +311,7 @@ export const AddLiquidityForm: React.FC<{
             {touched.amount && errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
           </View>
 
-          {renderDexFields(values, handleChange, handleBlur, errors, touched)}
+          {renderDexFields(values, handleChange, handleBlur, errors, touched, setFieldValue)}
 
           <Button onPress={() => handleSubmit()} disabled={isLoading}>
             {isLoading ? 'Adding Liquidity...' : 'Add Liquidity'}

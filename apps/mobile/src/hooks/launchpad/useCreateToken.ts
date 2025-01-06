@@ -56,6 +56,7 @@ export const useCreateToken = () => {
       return wait_tx;
     } catch (error) {
       console.log('Error deploy token', error);
+      return Promise.reject(error);
     }
   };
 
@@ -68,7 +69,7 @@ export const useCreateToken = () => {
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
-      
+
       // let bondingEnum = new CairoCustomEnum({Exponential: 1});
       let bondingEnum = new CairoCustomEnum({Linear: {}});
       // let bondingEnum = new CairoCustomEnum({Exponential: {}});
@@ -86,7 +87,7 @@ export const useCreateToken = () => {
           bondingEnum = new CairoCustomEnum({Exponential: {}});
         }
       }
-      console.log('[DEBUG] bondingEnum updt',bondingEnum);
+      console.log('[DEBUG] bondingEnum updt', bondingEnum);
 
       console.log('initial supply', initial_supply);
       const deployCall = {
@@ -109,6 +110,8 @@ export const useCreateToken = () => {
       return wait_tx;
     } catch (error) {
       console.log('Error deploy token and launch', error);
+      console.log('Error deploy token', error);
+      return Promise.reject(error);
     }
   };
 
@@ -128,6 +131,8 @@ export const useCreateToken = () => {
       return wait_tx;
     } catch (error) {
       console.log('Error launch token', error);
+      console.log('Error deploy token', error);
+      return Promise.reject(error);
     }
   };
 

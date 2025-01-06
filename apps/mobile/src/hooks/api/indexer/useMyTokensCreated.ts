@@ -6,7 +6,7 @@ export const useMyTokensCreated = (userAddress?: string) => {
   return useQuery({
     queryKey: userAddress ? ['userAddress', userAddress] : ['deploy_token_by_user'],
     queryFn: async () => {
-      const endpoint = `/deploy/by/${userAddress}`;
+      const endpoint = `/deploy/by/${userAddress}/`;
       const res = await ApiIndexerInstance.get(endpoint);
       if (res.status !== 200) {
         throw new Error('Failed to fetch token launch');
@@ -14,5 +14,6 @@ export const useMyTokensCreated = (userAddress?: string) => {
 
       return res.data;
     },
+    enabled: !!userAddress,
   });
 };
