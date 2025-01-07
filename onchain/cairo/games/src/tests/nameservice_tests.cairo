@@ -236,7 +236,9 @@ mod nameservice_tests {
         stop_cheat_caller_address(nameservice_dispatcher.contract_address);
 
         let admin_balance = payment_token_dispatcher.balance_of(ADMIN());
-        assert(admin_balance == 60_u256, 'Admin did not receive fees'); // 50 initial + 10 withdrawn
+        assert(
+            admin_balance == 60_u256, 'Admin did not receive fees'
+        ); // 50 initial + 10 withdrawn
 
         let contract_balance = payment_token_dispatcher
             .balance_of(nameservice_dispatcher.contract_address);

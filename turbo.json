@@ -89,7 +89,8 @@
         "TELEGRAM_MOBILE_APP",
         "EXPO_PUBLIC_PIXEL_URL",
         "NEXT_PUBLIC_BACKEND_URL",
-        "NEXT_PUBLIC_NODE_ENV"
+        "NEXT_PUBLIC_NODE_ENV",
+        "EXPO_PUBLIC_WC_ID"
       ]
     },
     "run": {
@@ -105,7 +106,8 @@
         "NEXT_PUBLIC_WALLET_CONNECT_ID",
         "EXPO_PUBLIC_PIXEL_URL",
         "NEXT_PUBLIC_BACKEND_URL",
-        "NEXT_PUBLIC_NODE_ENV"
+        "NEXT_PUBLIC_NODE_ENV",
+        "EXPO_PUBLIC_WC_ID"
       ]
     },
     "deploy": {

@@ -17,11 +17,11 @@ import { CanvasConfig } from "common";
 dotenv.config();
 const PATH_ART_PEACE = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_ArtPeace.contract_class.json"
+  "../../../onchain/cairo/games/target/dev/afk_games_ArtPeace.contract_class.json"
 );
 const PATH_ART_PEACE_COMPILED = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_ArtPeace.compiled_contract_class.json"
+  "../../../onchain/cairo/games/target/dev/afk_games_ArtPeace.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
@@ -82,17 +82,20 @@ export const createArtPeace = async (
 
     if (process.env.REDECLARE_CONTRACT == "true") {
       console.log("try declare account");
-      const declareResponse = await account0.declare({
+      const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
       console.log("Declare deploy", declareResponse?.transaction_hash);
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      const contractClassHash = declareResponse.class_hash;
-      ArtPeaceClassHash = contractClassHash;
+      if(declareResponse?.transaction_hash){
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        const contractClassHash = declareResponse.class_hash;
+        ArtPeaceClassHash = contractClassHash;
+      }
 
-      const nonce = await account0?.getNonce();
-      console.log("nonce", nonce);
+
+      // const nonce = await account0?.getNonce();
+      // console.log("nonce", nonce);
     }
 
     console.log("host", host);
@@ -108,7 +111,7 @@ export const createArtPeace = async (
     console.log("devmode", devmode);
     console.log("account0 address", account0?.address);
     const initParams = {
-      // host: account0?.address,
+      host: account0?.address,
       canvas_width: cairo.uint256(canvas_width),
       canvas_height: cairo.uint256(canvas_height),
       time_between_pixels,
@@ -121,6 +124,8 @@ export const createArtPeace = async (
       devmode,
     };
     console.log("initParams", initParams);
+
+    let addressHost = account0?.address;
     const ArtPeaceCalldata = CallData.compile({
       host: account0?.address,
       canvas_width: cairo.uint256(canvas_width),
@@ -139,19 +144,23 @@ export const createArtPeace = async (
         classHash: ArtPeaceClassHash,
         // constructorCalldata:ArtPeaceCalldata
         constructorCalldata: [
+          {
+            addressHost,
+            canvas_width,
+            canvas_height,
+            time_between_pixels,
+            color_palette,
+            votable_colors,
+            daily_new_colors_count,
+            start_time,
+            end_time,
+            daily_quests_count,
+            devmode,
+          }
           // host ?? account0?.address,
           // cairo.uint256(canvas_width),
           // cairo.uint256(canvas_height),
-          canvas_width,
-          canvas_height,
-          time_between_pixels,
-          color_palette,
-          votable_colors,
-          daily_new_colors_count,
-          start_time,
-          end_time,
-          daily_quests_count,
-          devmode,
+      
         ],
         // constructorCalldata: [
         //   initParams

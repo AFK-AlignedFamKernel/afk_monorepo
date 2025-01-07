@@ -899,12 +899,12 @@ pub mod UnrugLiquidity {
             unlock_time: u64
         ) -> u256 {
             // ) -> (u64, EkuboLP)  {
-            println!("In _add_liquidity_jediswap",);
+            // println!("In _add_liquidity_jediswap",);
 
             let mut factory_address = self.address_jediswap_factory_v2.read();
             let nft_router_address = self.address_jediswap_nft_router_v2.read();
 
-            println!("check address");
+            // println!("check address");
 
             if nft_router_address.is_zero() {
                 return 0_u256;
@@ -922,7 +922,7 @@ pub mod UnrugLiquidity {
             // TODO check if pool exist
             // Pool need to be create
 
-            println!("step setup params",);
+            // println!("step setup params",);
             let fee: u32 = 10_000;
             let factory = IJediswapFactoryV2Dispatcher { contract_address: factory_address };
             let token_a = coin_address.clone();
@@ -941,7 +941,7 @@ pub mod UnrugLiquidity {
             let total_supply = lp_supply.clone();
             let liquidity_raised = quote_amount.clone();
 
-            println!("prepare params jediswap pool",);
+            // println!("prepare params jediswap pool",);
             // TODO
             // Better params default
             // let amount_coin_liq = total_supply / LIQUIDITY_RATIO;
@@ -959,12 +959,12 @@ pub mod UnrugLiquidity {
 
             let mut id_token_lp: u256 = 0;
 
-            println!("check if pool exist");
+            // println!("check if pool exist");
 
             // TODO
             // Check if using Router or NFTRouter to add liquidity
             if pool.into() == 0_felt252 {
-                println!("pool still not created");
+                // println!("pool still not created");
 
                 pool = factory.create_pool(token_a, token_b, fee);
                 pool = nft_router.create_and_initialize_pool(token_a, token_b, fee, sqrt_price_X96);
@@ -991,7 +991,7 @@ pub mod UnrugLiquidity {
                     deadline: deadline,
                 };
 
-                println!("step {}", 9);
+                // println!("step {}", 9);
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
                 id_token_lp = token_id.try_into().unwrap();
 

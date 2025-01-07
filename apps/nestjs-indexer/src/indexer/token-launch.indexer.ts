@@ -135,6 +135,7 @@ export class TokenLaunchIndexer {
       thresholdLiquidityRaw,
       constants.DECIMALS,
     ).toString();
+    console.log("thresholdLiquidity", thresholdLiquidity)
 
     // const bondingType = bondingTypeFelt;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -144,6 +145,7 @@ export class TokenLaunchIndexer {
       )
     : '';
 
+    console.log("bondingType", bondingType)
 
     const data = {
       transactionHash,

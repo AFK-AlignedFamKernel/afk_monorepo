@@ -25,7 +25,7 @@ export const deployLaunchpad = async () => {
   const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
   const account = new Account(provider, accountAddress0, privateKey0, "1");
 
-  const chainId = await provider.getChainId();
+  // const chainId = await provider.getChainId();
   // const TOKEN_QUOTE_ADDRESS= TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
   const TOKEN_QUOTE_ADDRESS =
     TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
@@ -51,20 +51,20 @@ export const deployLaunchpad = async () => {
   let EKUBO_REGISTRY_ADDRESS =
   EKUBO_REGISTRY[constants.StarknetChainId.SN_SEPOLIA];
 
-  if (chainId == constants.StarknetChainId.SN_MAIN) {
-    JEDISWAP_ADDRESS_NFT =
-      JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_MAIN];
-    JEDISWAP_FACTORY_ADDRESS =
-      JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_MAIN];
+  // if (chainId == constants.StarknetChainId.SN_MAIN) {
+  //   JEDISWAP_ADDRESS_NFT =
+  //     JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_MAIN];
+  //   JEDISWAP_FACTORY_ADDRESS =
+  //     JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_MAIN];
 
-      EKUBO_POSITION_ADDRESS =
-      EKUBO_POSITION[constants.StarknetChainId.SN_MAIN];
-     EKUBO_CORE_ADDRESS =
-      EKUBO_CORE[constants.StarknetChainId.SN_MAIN];
+  //     EKUBO_POSITION_ADDRESS =
+  //     EKUBO_POSITION[constants.StarknetChainId.SN_MAIN];
+  //    EKUBO_CORE_ADDRESS =
+  //     EKUBO_CORE[constants.StarknetChainId.SN_MAIN];
 
-      UNRUG_FACTORY_ADDRESS= UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_MAIN]
-      EKUBO_REGISTRY_ADDRESS= EKUBO_REGISTRY[constants.StarknetChainId.SN_MAIN]
-  }
+  //     UNRUG_FACTORY_ADDRESS= UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_MAIN]
+  //     EKUBO_REGISTRY_ADDRESS= EKUBO_REGISTRY[constants.StarknetChainId.SN_MAIN]
+  // }
   const initial_key_price = cairo.uint256(1);
   const step_increase_linear = cairo.uint256(1);
 

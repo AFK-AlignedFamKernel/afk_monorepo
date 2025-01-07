@@ -8,11 +8,11 @@ import { provider } from "./starknet";
 import path from "path";
 
 dotenv.config();
-const PATH_ART_PEACE = path.resolve(
+const PATH_QUEST = path.resolve(
   __dirname,
   "../../onchain/cairo/target/dev/afk_UsernameStore.contract_class.json"
 );
-const PATH_ART_PEACE_COMPILED = path.resolve(
+const PATH_QUEST_COMPILED = path.resolve(
   __dirname,
   "../../onchain/cairo/target/dev/afk_UsernameStore.compiled_contract_class.json"
 );
@@ -31,10 +31,10 @@ export const createQuest = async (
     let UsernameStoreClassHash = process.env.USERNAME_STORE_CLASS_HASH as string;
 
     const compiledSierraAAaccount = json.parse(
-      fs.readFileSync(PATH_ART_PEACE).toString("ascii")
+      fs.readFileSync(PATH_QUEST).toString("ascii")
     );
     const compiledAACasm = json.parse(
-      fs.readFileSync(PATH_ART_PEACE_COMPILED).toString("ascii")
+      fs.readFileSync(PATH_QUEST_COMPILED).toString("ascii")
     );
 
     /** Get class hash account */
