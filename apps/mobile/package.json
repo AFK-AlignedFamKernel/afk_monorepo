@@ -59,6 +59,7 @@
     "@reown/appkit-auth-wagmi-react-native": "~1.0.1",
     "@reown/appkit-siwe-react-native": "~1.0.1",
     "@reown/appkit-wagmi-react-native": "~1.0.1",
+    "@scure/bip39": "^1.5.0",
     "@starknet-react/chains": "^3.1.0",
     "@starknet-react/core": "^3.5.0",
     "@starknet-react/kakarot": "^3.0.9",
@@ -129,12 +130,11 @@
     "react-native-webview": "~13.6.4",
     "react-native-webview-crypto": "^0.0.25",
     "starknet": "6.11.0",
-    "starknetkit-next": "npm:starknetkit@^2.6.1",
+    "starknetkit": "^2.6.1",
     "text-encoding": "^0.7.0",
     "viem": "2.x",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2",
-    "@scure/bip39": "^1.5.0"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

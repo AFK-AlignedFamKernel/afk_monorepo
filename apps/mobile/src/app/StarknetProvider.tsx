@@ -10,7 +10,7 @@ import {
 import {kakarotConnectors} from '@starknet-react/kakarot';
 // import {ConnectorProvider as StarknetWCProvider} from '@starknet-wc/react';
 import {Platform} from 'react-native';
-// import { ArgentMobileConnector, isInArgentMobileAppBrowser } from "starknetkit/argentMobile" 
+// import { ArgentMobileConnector, isInArgentMobileAppBrowser } from "starknetkit/argentMobile"
 // import { InjectedConnector } from "starknetkit/injected"
 // import { WebWalletConnector } from "starknetkit/webwallet"
 
@@ -19,10 +19,9 @@ import {RpcProviderProvider} from '../context/RpcProvider';
 // import {WalletQRModal} from '../modules/WalletQRModal';
 import {providers} from '../services/provider';
 
-import { ArgentMobileConnector, isInArgentMobileAppBrowser } from "starknetkit-next/argentMobile" 
-import { InjectedConnector } from "starknetkit-next/injected"
-import { WebWalletConnector } from "starknetkit-next/webwallet"
-
+import {ArgentMobileConnector, isInArgentMobileAppBrowser} from 'starknetkit/argentMobile';
+import {InjectedConnector} from 'starknetkit/injected';
+import {WebWalletConnector} from 'starknetkit/webwallet';
 
 export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const chain = {
@@ -39,36 +38,35 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
       ? [argent(), braavos(), ...kakarotConnectors(providerRpc)]
       : [argent(), braavos()];
 
+  const chains = [mainnet, sepolia];
+  // const connectors = [
+  //   new InjectedConnector({ options: { id: "braavos", name: "Braavos" }}),
+  //   new InjectedConnector({ options: { id: "argentX", name: "Argent X" }}),
+  //   new WebWalletConnector({ url: "https://web.argent.xyz" }),
+  //   new ArgentMobileConnector(),
+  // ]
 
-      const chains = [mainnet, sepolia]
-    // const connectors = [
-    //   new InjectedConnector({ options: { id: "braavos", name: "Braavos" }}),
-    //   new InjectedConnector({ options: { id: "argentX", name: "Argent X" }}),
-    //   new WebWalletConnector({ url: "https://web.argent.xyz" }),
-    //   new ArgentMobileConnector(),
-    // ]
-
-    
-  const connectors = isInArgentMobileAppBrowser() ? [
-    ArgentMobileConnector.init({
-      options: {
-        dappName: "AFK Dapp",
-        projectId: process.env.EXPO_PUBLIC_WC_ID ??"example-project-id",
-      },
-      inAppBrowserOptions: {},
-    })
-  ] : [
-    new InjectedConnector({ options: { id: "braavos", name: "Braavos" }}),
-    new InjectedConnector({ options: { id: "argentX", name: "Argent X" }}),
-    new WebWalletConnector({ url: "https://web.argent.xyz" }),
-    ArgentMobileConnector.init({
-      options: {
-        dappName: "AFK Dapp",
-        projectId: process.env.EXPO_PUBLIC_WC_ID ?? "example-project-id",
-      }
-    })
-  ]
- 
+  const connectors = isInArgentMobileAppBrowser()
+    ? [
+        ArgentMobileConnector.init({
+          options: {
+            dappName: 'AFK Dapp',
+            projectId: process.env.EXPO_PUBLIC_WC_ID ?? 'example-project-id',
+          },
+          inAppBrowserOptions: {},
+        }),
+      ]
+    : [
+        new InjectedConnector({options: {id: 'braavos', name: 'Braavos'}}),
+        new InjectedConnector({options: {id: 'argentX', name: 'Argent X'}}),
+        new WebWalletConnector({url: 'https://web.argent.xyz'}),
+        ArgentMobileConnector.init({
+          options: {
+            dappName: 'AFK Dapp',
+            projectId: process.env.EXPO_PUBLIC_WC_ID ?? 'example-project-id',
+          },
+        }),
+      ];
 
   const {connectors: injected} = useInjectedConnectors({
     recommended,
@@ -97,7 +95,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
 export const StarknetProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   return (
     // <StarknetWCProvider modal={WalletQRModal}>
-      <StarknetReactProvider>{children}</StarknetReactProvider>
+    <StarknetReactProvider>{children}</StarknetReactProvider>
     // </StarknetWCProvider>
   );
 };
