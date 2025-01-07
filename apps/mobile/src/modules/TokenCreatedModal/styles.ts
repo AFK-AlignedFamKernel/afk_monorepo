@@ -22,7 +22,6 @@ export default ThemedStyleSheet((theme) => ({
   icon: {
     color: theme.colors.primary,
   },
-
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
