@@ -78,9 +78,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
         })}
       </View>
 
-      <View style={styles.connectors}>
+      {/* <View style={styles.connectors}>
         <Text>EVM</Text>
-        {/* <ConnectWalletScreen /> */}
         <Pressable
           style={styles.connector}
           onPress={() => {
@@ -90,7 +89,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
         >
           <Text>Connect EVM</Text>
         </Pressable>
-      </View>
+      </View> */}
 
       <Button variant="default" onPress={hide}>
         Cancel
