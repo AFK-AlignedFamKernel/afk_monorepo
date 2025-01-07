@@ -10,9 +10,9 @@ import {
 import {kakarotConnectors} from '@starknet-react/kakarot';
 // import {ConnectorProvider as StarknetWCProvider} from '@starknet-wc/react';
 import {Platform} from 'react-native';
-import { ArgentMobileConnector, isInArgentMobileAppBrowser } from "starknetkit/argentMobile" 
-import { InjectedConnector } from "starknetkit/injected"
-import { WebWalletConnector } from "starknetkit/webwallet"
+import { ArgentMobileConnector, isInArgentMobileAppBrowser } from "starknetkit-next/argentMobile" 
+import { InjectedConnector } from "starknetkit-next/injected"
+import { WebWalletConnector } from "starknetkit-next/webwallet"
 
 import {NETWORK_NAME} from '../constants/env';
 import {RpcProviderProvider} from '../context/RpcProvider';
