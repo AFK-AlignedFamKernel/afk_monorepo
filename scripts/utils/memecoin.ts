@@ -22,11 +22,11 @@ dotenv.config();
 const STARKNET_URL = process.env.RPC_ENDPOINT || "http://127.0.0.1:5050";
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Memecoin.compiled_contract_class.json"
+  "../../onchain/cairo/launchpad/target/dev/afk_launchpad_Memecoin.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
@@ -71,8 +71,10 @@ export const createMemecoin = async (
       // symbol: byteArray.byteArrayFromString(symbol ?? "AFK BRO"),
       // name: byteArray.byteArrayFromString(name ?? "AFK FAM"),
       total_supply: cairo.uint256(total_supply ?? 10000),
-      recipient: account0?.address,
       decimals: 18,
+      recipient: account0?.address,
+      owner: account0?.address,
+      factory: account0?.address,
     });
 
     let ERC20_HASH =
