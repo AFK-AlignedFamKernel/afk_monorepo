@@ -39,8 +39,10 @@ export const useCreateToken = () => {
           name: data.name ?? 'LFG',
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
-          contract_address_salt: cairo.felt(new Date().getTime()),
-          is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          contract_address_salt: cairo.felt(new Date().getTime()?.toString()),
+          // is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          // is_unruggable: false,
+          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           // bonding_type:bondingEnum
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
           // contract_address_salt:cairo.felt(Math.random())
@@ -71,7 +73,8 @@ export const useCreateToken = () => {
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
       // let bondingEnum = new CairoCustomEnum({Exponential: 1});
-      let bondingEnum = new CairoCustomEnum({Linear: {}});
+      // let bondingEnum = new CairoCustomEnum({Linear: {}});
+      let bondingEnum = new CairoCustomEnum({Linear: 0});
       // let bondingEnum = new CairoCustomEnum({Exponential: {}});
       console.log('[DEBUG] bondingEnum', bondingEnum);
 
@@ -102,7 +105,7 @@ export const useCreateToken = () => {
           // contract_address_salt: new Date().getTime(),
           contract_address_salt: cairo.felt(String(new Date().getTime())),
           // is_unruggable: data?.is_unruggable
-          is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
         }),
       };

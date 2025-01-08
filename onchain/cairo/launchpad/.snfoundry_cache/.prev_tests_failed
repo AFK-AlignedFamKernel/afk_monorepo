@@ -1,5 +1,5 @@
-afk_launchpad::tests::launchpad_tests::launchpad_tests::test_set_protocol_fee_percent_non_admin
 afk_launchpad::tests::launchpad_tests::launchpad_tests::test_launch_token
-afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_all_launch_tokens_and_coins
-afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_coin_amount_by_quote_amount_for_buy_steps
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_set_protocol_fee_percent_non_admin
 afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_coin_amount_by_quote_amount_for_buy_steps_exp
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_coin_amount_by_quote_amount_for_buy_steps
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_all_launch_tokens_and_coins

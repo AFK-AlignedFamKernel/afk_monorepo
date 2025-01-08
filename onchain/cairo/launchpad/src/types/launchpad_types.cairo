@@ -20,14 +20,14 @@ pub enum SupportedExchanges {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq//  PartialEq
 )]
 pub enum BondingType {
     Linear,
-    Trapezoidal,
-    Scoring, // Nostr data with Appchain connected to a Relayer
     Exponential,
-    Limited
+    // Trapezoidal,
+    // Scoring, // Nostr data with Appchain connected to a Relayer
+    // Limited
 }
 
 // #[derive(Serde, Copy, // Clone,
