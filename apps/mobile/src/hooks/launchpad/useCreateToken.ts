@@ -40,8 +40,8 @@ export const useCreateToken = () => {
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
           // contract_address_salt: cairo.felt(new Date().getTime()?.toString()),
-          contract_address_salt: new Date().getTime()?.toString(),
-          // is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          // contract_address_salt: new Date().getTime()?.toString(),
+          contract_address_salt: new Date().getTime(),
           // is_unruggable: false,
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           // bonding_type:bondingEnum
@@ -104,7 +104,8 @@ export const useCreateToken = () => {
           initialSupply: initial_supply,
           // contract_address_salt: new Date().getTime() / 1000,
           // contract_address_salt: new Date().getTime(),
-          contract_address_salt: cairo.felt(String(new Date().getTime())),
+          contract_address_salt: new Date().getTime(),
+          // contract_address_salt: cairo.felt(String(new Date().getTime())),
           // is_unruggable: data?.is_unruggable
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
