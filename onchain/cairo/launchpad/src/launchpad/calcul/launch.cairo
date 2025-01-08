@@ -38,7 +38,7 @@ pub fn get_initial_price(
     match bonding_curve_type {
         BondingType::Linear => { 0 },
         BondingType::Exponential => { 0 },
-        BondingType::Trapezoidal => { 0 },
+        // BondingType::Trapezoidal => { 0 },
         _ => { 0 },
         // BondingType::Linear => { 0_u256 },
     // BondingType::Exponential => { 0_u256 },
@@ -77,7 +77,7 @@ pub fn get_amount_by_type_of_coin_or_quote(
         //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
         // }
         },
-        BondingType::Trapezoidal => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
+        // BondingType::Trapezoidal => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
         _ => {
             // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
 

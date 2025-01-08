@@ -47,6 +47,10 @@ pub mod LaunchpadMarketplace {
 
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin_upgrades::UpgradeableComponent;
+    use openzeppelin_upgrades::interface::IUpgradeable;
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
          StoragePointerReadAccess,
@@ -126,11 +130,15 @@ pub mod LaunchpadMarketplace {
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
+  
     // AccessControl
     #[abi(embed_v0)]
     impl AccessControlImpl =
         AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+
+    // Upgradeable
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     // SRC5
     #[abi(embed_v0)]
@@ -207,6 +215,8 @@ pub mod LaunchpadMarketplace {
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage
     }
 
     #[event]
@@ -230,6 +240,8 @@ pub mod LaunchpadMarketplace {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event
     }
 
     #[constructor]
@@ -317,6 +329,16 @@ pub mod LaunchpadMarketplace {
         // self.positions.write(positions);
         // self.ekubo_exchange_address.write(ekubo_exchange_address);
         self.unrug_liquidity_address.write(unrug_liquidity_address);
+    }
+
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            // This function can only be called by the ADMIN
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // Replace the class hash upgrading the contract
+            self.upgradeable.upgrade(new_class_hash);
+        }
     }
 
     // Public functions inside an impl block

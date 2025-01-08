@@ -39,8 +39,11 @@ export const useCreateToken = () => {
           name: data.name ?? 'LFG',
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
+          // contract_address_salt: cairo.felt(new Date().getTime()?.toString()),
+          // contract_address_salt: new Date().getTime()?.toString(),
           contract_address_salt: new Date().getTime(),
-          is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          // is_unruggable: false,
+          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           // bonding_type:bondingEnum
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
           // contract_address_salt:cairo.felt(Math.random())
@@ -72,6 +75,7 @@ export const useCreateToken = () => {
 
       // let bondingEnum = new CairoCustomEnum({Exponential: 1});
       let bondingEnum = new CairoCustomEnum({Linear: {}});
+      // let bondingEnum = new CairoCustomEnum({Linear: 0});
       // let bondingEnum = new CairoCustomEnum({Exponential: {}});
       console.log('[DEBUG] bondingEnum', bondingEnum);
 
@@ -84,6 +88,7 @@ export const useCreateToken = () => {
         } else if (data.bonding_type === BondingType.Exponential) {
           console.log('[DEBUG] bondingEnum exp', data.bonding_type);
           // bondingEnum = new CairoCustomEnum({Exponential: 1});
+          // bondingEnum = new CairoCustomEnum({Exponential: 3});
           bondingEnum = new CairoCustomEnum({Exponential: {}});
         }
       }
@@ -97,9 +102,12 @@ export const useCreateToken = () => {
           name: data.name ?? 'LFG',
           symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,
+          // contract_address_salt: new Date().getTime() / 1000,
+          // contract_address_salt: new Date().getTime(),
           contract_address_salt: new Date().getTime(),
+          // contract_address_salt: cairo.felt(String(new Date().getTime())),
           // is_unruggable: data?.is_unruggable
-          is_unruggable: cairo.felt(String(data?.is_unruggable)),
+          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
         }),
       };
