@@ -121,7 +121,9 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           bonding_type: values.bonding_type,
         };
         tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
-          showToast({ type: 'error', title: err?.message || "Something went wrong" });
+          // showToast({ type: 'error', title: err?.message || "Something went wrong" });
+          showToast({ type: 'error', title: "Something went wrong", description: err?.message || "Something went wrong" });
+
           setLoading(false)
         });
       }
