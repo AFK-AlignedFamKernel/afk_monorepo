@@ -10,11 +10,11 @@ import path from "path";
 dotenv.config();
 const PATH_ART_PEACE = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_UsernameStore.contract_class.json"
+  "../../onchain/cairo/games/target/dev/afk_games_UsernameStore.contract_class.json"
 );
 const PATH_ART_PEACE_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_UsernameStore.compiled_contract_class.json"
+  "../../onchain/cairo/games/target/dev/afk_games_UsernameStore.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */

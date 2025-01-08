@@ -58,10 +58,10 @@ export const LAUNCHPAD_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x3ed3046bf62bfcfba32e9282d64f432de3f0c383755b1aee8514c3d67109573"
     
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  // "0x1488623bcbd76a0d078cc4c4743630c2650800626ce20774b8f3706a42591e9"
   [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x1488623bcbd76a0d078cc4c4743630c2650800626ce20774b8f3706a42591e9"
-  
-    
+  "0x58b6601ce6010306e47fbc44d5489ede3f841414f2440329e841982e0d5e911"
 
 };
 
@@ -151,8 +151,14 @@ export const ART_PEACE_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+  
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  // "0x1c3e2cae24f0f167fb389a7e4c797002c4f0465db29ecf1753ed944c6ae746e",
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x4a115963fd4ea03a0c187d87574924852184a6d6997f199ad050679af6c9653",
+    "0x1d3c8e4dcc100eb88e418d89a012326bd904fe5de061aee5df505a30d0ff5e9",
+    
 
 };
 
@@ -203,8 +209,11 @@ export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
   //   "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
   [constants.StarknetChainId.SN_MAIN]:
     "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc",
+    // [constants.StarknetChainId.SN_SEPOLIA]:
+    // "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
     [constants.StarknetChainId.SN_SEPOLIA]:
-    "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
+    "0x4f9a2d7613dbe428b7b8508acce666febd5a656dbb4387f6c6de7e5c52787f6",
+    
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
 

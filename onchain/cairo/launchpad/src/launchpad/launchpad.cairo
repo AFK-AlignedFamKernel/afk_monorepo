@@ -1022,7 +1022,7 @@ pub mod LaunchpadMarketplace {
             if old_pool.liquidity_raised < quote_amount {
                 // TODO due to estimation, approximation or rounding
                 // maybe substract the difference between quote_amount and old_pool.liquidity_raised
-                println!("old_pool.liquidity_raised < quote_amount");
+                // println!("old_pool.liquidity_raised < quote_amount");
                 quote_amount = old_pool.liquidity_raised.clone();
                 quote_amount_total = old_pool.liquidity_raised.clone();
                 quote_amount_received = old_pool.liquidity_raised.clone();
@@ -1691,10 +1691,10 @@ pub mod LaunchpadMarketplace {
             };
 
             // println!("initial_pool_supply : {}", lp_supply.clone());
-            println!("liquidity raised: {}", lp_quote_supply.clone());
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
             // Assertion: Check if the contract has enough quote tokens to transfer
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
-            println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
+            // println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
 
             // TODO fix this
             //
@@ -1703,16 +1703,16 @@ pub mod LaunchpadMarketplace {
             // Edge case of approximation estimation amount and fees can cause it
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
-                println!(
-                    "contract_quote_balance < lp_quote_supply
-                && contract_quote_balance < launch.threshold_liquidity: {}",
-                    contract_quote_balance < lp_quote_supply
-                        && contract_quote_balance < launch.threshold_liquidity
-                );
+                // println!(
+                //     "contract_quote_balance < lp_quote_supply
+                // && contract_quote_balance < launch.threshold_liquidity: {}",
+                //     contract_quote_balance < lp_quote_supply
+                //         && contract_quote_balance < launch.threshold_liquidity
+                // );
                 // println!("launch.threshold_liquidity: {}", launch.threshold_liquidity.clone());
                 lp_quote_supply = contract_quote_balance.clone();
             }
-            println!("liquidity raised: {}", lp_quote_supply.clone());
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
 
             let params = EkuboUnrugLaunchParameters {
                 // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
