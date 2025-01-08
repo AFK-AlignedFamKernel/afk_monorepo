@@ -55,8 +55,9 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
     bonding_type: BondingType.Linear,
     // ticker: '',
     initialSupply: undefined,
-    contract_address_salt: undefined,
+    contract_address_salt: new Date().getTime()?.toString(),
     recipient: account?.address,
+    is_unruggable:false
   };
 
   const onSubmitPress = (type: TypeCreate) => {
@@ -101,7 +102,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           symbol: values.symbol,
           initialSupply: values?.initialSupply,
           contract_address_salt: values.contract_address_salt,
-          is_unruggable: values.is_unruggable,
+          is_unruggable: values.is_unruggable ?? false,
         };
 
         tx = await deployToken(account?.account, data).catch(err => {
@@ -117,12 +118,12 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           symbol: values.symbol,
           initialSupply: values?.initialSupply,
           contract_address_salt: values.contract_address_salt,
-          is_unruggable: values.is_unruggable,
+          is_unruggable: values.is_unruggable ?? false,
           bonding_type: values.bonding_type,
         };
         tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
           // showToast({ type: 'error', title: err?.message || "Something went wrong" });
-          showToast({ type: 'error', title: "Something went wrong", description: err?.message || "Something went wrong" });
+          showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
 
           setLoading(false)
         });

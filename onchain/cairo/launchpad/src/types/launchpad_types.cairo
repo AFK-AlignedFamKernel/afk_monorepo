@@ -30,6 +30,17 @@ pub enum BondingType {
     Limited
 }
 
+// #[derive(Serde, Copy, // Clone,
+//     Drop, starknet::Store, PartialEq //  PartialEq
+// )]
+// pub enum BondingType {
+//     Linear,
+//     Exponential,
+//     // Limited,
+//     // Trapezoidal,
+//     // Scoring, // Nostr data with Appchain connected to a Relayer
+// }
+
 // Storage
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct AdminsFeesParams {

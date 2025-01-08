@@ -79,12 +79,13 @@ export const useCreateToken = () => {
         // Compare against the enum values
         if (data.bonding_type === BondingType.Linear) {
           console.log('[DEBUG] bondingEnum linear', data.bonding_type);
-          // bondingEnum = new CairoCustomEnum({Linear: 0});
-          bondingEnum = new CairoCustomEnum({Linear: {}});
+          bondingEnum = new CairoCustomEnum({Linear: 0});
+          // bondingEnum = new CairoCustomEnum({Linear: {}});
         } else if (data.bonding_type === BondingType.Exponential) {
           console.log('[DEBUG] bondingEnum exp', data.bonding_type);
           // bondingEnum = new CairoCustomEnum({Exponential: 1});
-          bondingEnum = new CairoCustomEnum({Exponential: {}});
+          bondingEnum = new CairoCustomEnum({Exponential: 3});
+          // bondingEnum = new CairoCustomEnum({Exponential: {}});
         }
       }
       console.log('[DEBUG] bondingEnum updt', bondingEnum);
@@ -97,8 +98,9 @@ export const useCreateToken = () => {
           name: data.name ?? 'LFG',
           symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,
+          // contract_address_salt: new Date().getTime() / 1000,
           // contract_address_salt: new Date().getTime(),
-          contract_address_salt: cairo.felt(new Date().getTime()),
+          contract_address_salt: cairo.felt(String(new Date().getTime())),
           // is_unruggable: data?.is_unruggable
           is_unruggable: cairo.felt(String(data?.is_unruggable)),
           bonding_type: bondingEnum,
