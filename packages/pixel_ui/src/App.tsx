@@ -281,6 +281,25 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
   };
 
+
+  // Shield-related state
+  const [isShieldMode, setIsShieldMode] = useState(false);
+  const [shieldSelectionStart, setShieldSelectionStart] = useState({ x: null, y: null });
+  const [shieldSelectionEnd, setShieldSelectionEnd] = useState({ x: null, y: null });
+  const [isShieldSelecting, setIsShieldSelecting] = useState(false);
+  const [shieldedAreas, setShieldedAreas] = useState([]);
+
+  // Shield Fn
+  const toggleShieldMode = () => {
+    setIsShieldMode(!isShieldMode);
+    if (isShieldMode) {
+      // Reset selection when exiting shield mode
+      setShieldSelectionStart({ x: null, y: null });
+      setShieldSelectionEnd({ x: null, y: null });
+    }
+  };
+
+
   // Pixel selection data
   const [selectedColorId, setSelectedColorId] = useState(-1);
   const [pixelSelectedMode, setPixelSelectedMode] = useState(false);
@@ -748,6 +767,17 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setIsEraserMode={setIsEraserMode}
           clearExtraPixel={clearExtraPixel}
           setLastPlacedTime={setLastPlacedTime}
+
+          shieldSelectionStart={shieldSelectionStart}
+          setShieldSelectionStart={setShieldSelectionStart}
+          shieldSelectionEnd={shieldSelectionEnd}
+          setShieldSelectionEnd={setShieldSelectionEnd}
+          isShieldMode={isShieldMode}
+          setIsShieldMode={setIsShieldMode}
+          isShieldSelecting={isShieldSelecting}
+          setIsShieldSelecting={setIsShieldSelecting}
+          shieldedAreas={shieldedAreas}
+          setShieldedAreas={setShieldedAreas}
         />
         {(!isMobile || activeTab === tabs[0]) && (
           <div className='App__logo--mobile_container'>
@@ -901,7 +931,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 clearAll={clearAll}
                 account={account}
                 wallet={wallet}
-
+                toggleShieldMode={toggleShieldMode}
+                isShieldMode={isShieldMode}
               />
             )}
             {isFooterSplit && !footerExpanded && (
