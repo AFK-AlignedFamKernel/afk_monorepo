@@ -95,7 +95,7 @@ export class TokenLaunchIndexer {
       slopeHigh,
       thresholdLiquidityLow,
       thresholdLiquidityHigh,
-      bondingTypeFelt
+      bondingTypeFelt,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -130,22 +130,21 @@ export class TokenLaunchIndexer {
       low: FieldElement.toBigInt(thresholdLiquidityLow),
       high: FieldElement.toBigInt(thresholdLiquidityHigh),
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const thresholdLiquidity = formatUnits(
       thresholdLiquidityRaw,
       constants.DECIMALS,
     ).toString();
-    console.log("thresholdLiquidity", thresholdLiquidity)
 
     // const bondingType = bondingTypeFelt;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const bondingType = bondingTypeFelt
-    ? shortString.decodeShortString(
-        FieldElement.toBigInt(bondingTypeFelt).toString(),
-      )
-    : '';
+      ? shortString.decodeShortString(
+          FieldElement.toBigInt(bondingTypeFelt).toString(),
+        )
+      : '';
 
-    console.log("bondingType", bondingType)
+    console.log('bondingType', bondingType);
 
     const data = {
       transactionHash,
@@ -160,7 +159,7 @@ export class TokenLaunchIndexer {
       price,
       ownerAddress,
       bondingType,
-      thresholdLiquidity
+      thresholdLiquidity,
     };
 
     await this.tokenLaunchService.create(data);

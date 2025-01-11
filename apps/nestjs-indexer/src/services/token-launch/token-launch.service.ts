@@ -21,6 +21,13 @@ export class TokenLaunchService {
         return;
       }
 
+      const boundingType =
+        data.bondingType === '0'
+          ? 'Linear'
+          : data.bondingType === '1'
+            ? 'Exponential'
+            : null;
+
       await this.prismaService.token_launch.create({
         data: {
           network: data.network,
@@ -35,7 +42,7 @@ export class TokenLaunchService {
           current_supply: data.totalSupply,
           is_liquidity_added: false,
           threshold_liquidity: data.thresholdLiquidity,
-          bonding_type: data.bondingType,
+          bonding_type: boundingType,
           owner_address: data.ownerAddress,
         },
       });
