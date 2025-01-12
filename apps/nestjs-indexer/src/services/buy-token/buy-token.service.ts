@@ -72,7 +72,7 @@ export class BuyTokenService {
         { where: { memecoin_address: data.memecoinAddress } },
       );
 
-      if (deploytokenRecord) {
+      if (!deploytokenRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
         );
