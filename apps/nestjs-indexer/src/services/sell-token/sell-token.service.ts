@@ -68,6 +68,17 @@ export class SellTokenService {
         },
       });
 
+      const deploytokenRecord = await this.prismaService.token_deploy.findFirst(
+        { where: { memecoin_address: data.memecoinAddress } },
+      );
+
+      if (deploytokenRecord) {
+        this.logger.warn(
+          `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
+        );
+        return;
+      }
+
       await this.prismaService.token_transactions.create({
         data: {
           transfer_id: data.transferId,
@@ -80,6 +91,7 @@ export class SellTokenService {
           owner_address: data.ownerAddress,
           last_price: data.lastPrice,
           quote_amount: data.quoteAmount,
+          initial_supply: deploytokenRecord.initial_supply,
           price: data.price,
           amount: data.amount,
           protocol_fee: data.protocolFee,
