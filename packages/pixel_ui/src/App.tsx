@@ -288,6 +288,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [shieldSelectionEnd, setShieldSelectionEnd] = useState({ x: null, y: null });
   const [isShieldSelecting, setIsShieldSelecting] = useState(false);
   const [shieldedAreas, setShieldedAreas] = useState([]);
+  const [selectedShieldPixels, setSelectedShieldPixels] = useState([]);
 
   // Shield Fn
   const toggleShieldMode = () => {
@@ -299,6 +300,38 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
   };
 
+  const updateSelectedShieldPixels = (start, end) => {
+    const startX = Math.min(start.x, end.x);
+    const startY = Math.min(start.y, end.y);
+    const endX = Math.max(start.x, end.x);
+    const endY = Math.max(start.y, end.y);
+
+    const newSelectedPixels = [];
+    for (let y = startY; y <= endY; y++) {
+      for (let x = startX; x <= endX; x++) {
+        const position = y * width + x;
+        newSelectedPixels.push(position);
+      }
+    }
+    setSelectedShieldPixels(newSelectedPixels);
+  };
+
+  const registerShieldArea = () => {
+      if (shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null) {
+        const newShieldedArea = {
+          x: Math.min(shieldSelectionStart.x, shieldSelectionEnd.x),
+          y: Math.min(shieldSelectionStart.y, shieldSelectionEnd.y),
+          width: Math.abs(shieldSelectionEnd.x - shieldSelectionStart.x) + 1,
+          height: Math.abs(shieldSelectionEnd.y - shieldSelectionStart.y) + 1,
+        };
+        setShieldedAreas(prev => [...prev, newShieldedArea]);
+        console.log("Registered shield area:", newShieldedArea);
+        // Reset selection after registering
+        setShieldSelectionStart({ x: null, y: null });
+        setShieldSelectionEnd({ x: null, y: null });
+      }
+  };
+  
 
   // Pixel selection data
   const [selectedColorId, setSelectedColorId] = useState(-1);
@@ -767,6 +800,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setIsEraserMode={setIsEraserMode}
           clearExtraPixel={clearExtraPixel}
           setLastPlacedTime={setLastPlacedTime}
+          selectorMode={selectorMode}
 
           shieldSelectionStart={shieldSelectionStart}
           setShieldSelectionStart={setShieldSelectionStart}
@@ -778,6 +812,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setIsShieldSelecting={setIsShieldSelecting}
           shieldedAreas={shieldedAreas}
           setShieldedAreas={setShieldedAreas}
+          updateSelectedShieldPixels={updateSelectedShieldPixels}
+          selectedShieldPixels={selectedShieldPixels}
         />
         {(!isMobile || activeTab === tabs[0]) && (
           <div className='App__logo--mobile_container'>
@@ -923,6 +959,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 lastPlacedTime={lastPlacedTime}
                 basePixelTimer={basePixelTimer}
                 queryAddress={queryAddress}
+                address={address}
                 setActiveTab={setActiveTab}
                 isEraserMode={isEraserMode}
                 setIsEraseMode={setIsEraserMode}
@@ -933,6 +970,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 wallet={wallet}
                 toggleShieldMode={toggleShieldMode}
                 isShieldMode={isShieldMode}
+                registerShieldArea={registerShieldArea}
+                selectedShieldPixels={selectedShieldPixels}
               />
             )}
             {isFooterSplit && !footerExpanded && (

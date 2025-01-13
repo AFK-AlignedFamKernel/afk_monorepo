@@ -2,11 +2,52 @@ import './PixelSelector.css';
 import '../utils/Styles.css';
 
 import React, { useEffect, useState } from 'react';
+import { useContractAction } from "afk_sdk";
+import { ART_PEACE_ADDRESS } from "common"
 
 import EraserIcon from '../resources/icons/Eraser.png';
 
 const PixelSelector = (props) => {
+  //Pixel Call Hook
+  const { mutate: mutatePlaceShield } = useContractAction()
 
+  const shieldPixelFn = async () => {
+
+    //Add a default 3MIN Shield time.
+    const timestamp = props.shieldTime || Math.floor(Date.now() / 1000) + (3 * 60);
+    if (!props.address || !props.account) return;
+    //Check for wallet or account
+    const callProps = (entry) => props.wallet ?
+      props.selectedShieldPixels.map((item) => {
+        return {
+          calldata: [item, timestamp],
+          contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+          entry_point: entry
+        }
+      })
+      :
+      props.selectedShieldPixels.map((item) => {
+        return {
+          calldata: [item, timestamp],
+          contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+          entrypoint: entry
+
+        }
+      })
+
+    mutatePlaceShield({
+      account: props.account,
+      wallet: props.wallet,
+      callProps: callProps("place_pixel_shield")
+    }, {
+      onError(err) {
+        console.log(err)
+      },
+      onSuccess(data) {
+        console.log(data, "Success")
+      }
+    })
+  };
 
   // Track when a placement is available
 
@@ -102,13 +143,13 @@ const PixelSelector = (props) => {
               x
             </div>
           </div>
-        <div>
-          <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
+          <div>
+            <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
               <p className='PixelSelector__text'>{props.isShieldMode ? "Exit Shield Mode" : "Enter Shield Mode"}</p>
-          </div>
-          <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
+            </div>
+            <div onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
               <p className='PixelSelector__text'>Register Shield</p>
-          </div>
+            </div>
           </div>
         </div>
       )}
