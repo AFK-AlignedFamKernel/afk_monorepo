@@ -15,7 +15,7 @@ const PixelSelector = (props) => {
 
     //Add a default 3MIN Shield time.
     const timestamp = props.shieldTime || Math.floor(Date.now() / 1000) + (3 * 60);
-    if (!props.address || !props.account) return;
+    if (!props.address || !props.account ||  props.selectedShieldPixels.length === 0 ) return;
     //Check for wallet or account
     const callProps = (entry) => props.wallet ?
       props.selectedShieldPixels.map((item) => {
@@ -147,8 +147,8 @@ const PixelSelector = (props) => {
             <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
               <p className='PixelSelector__text'>{props.isShieldMode ? "Exit Shield Mode" : "Enter Shield Mode"}</p>
             </div>
-            <div onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
-              <p className='PixelSelector__text'>Register Shield</p>
+            <div  onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
+              <p className='PixelSelector__text'>Shield Pixel for (3) minutes</p>
             </div>
           </div>
         </div>
