@@ -127,8 +127,9 @@ export const TOKENS_ADDRESS = {
 export const CLASS_HASH = {
   TOKEN: {
     [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x06a2684722b20b66e140dbd6cf8b7fb3d7736a46af3efebb467dc5279608d6fe",
       // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
-      "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
+      // "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
     [constants.StarknetChainId.SN_MAIN]: ""
   },
   MEMECOIN: {

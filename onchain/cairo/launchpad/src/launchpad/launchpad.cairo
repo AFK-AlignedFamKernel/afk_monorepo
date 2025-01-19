@@ -1192,7 +1192,7 @@ pub mod LaunchpadMarketplace {
                 .shares_by_users
                 .entry(get_caller_address())
                 .entry(coin_address.clone())
-                .write(share_user.clone());
+                    .write(share_user.clone());
 
             self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self
