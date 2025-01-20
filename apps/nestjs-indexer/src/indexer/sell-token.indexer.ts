@@ -126,8 +126,8 @@ export class SellTokenIndexer {
     const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
     const quoteAmountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amount),
-      high: FieldElement.toBigInt(amount),
+      low: FieldElement.toBigInt(amountLow),
+      high: FieldElement.toBigInt(amountHigh),
     });
     const quoteAmount = formatUnits(
       quoteAmountRaw,
