@@ -49,19 +49,14 @@ pub mod LaunchpadMarketplace {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin_upgrades::UpgradeableComponent;
     use openzeppelin_upgrades::interface::IUpgradeable;
-    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
          StoragePointerReadAccess,
         StoragePointerWriteAccess, StoragePathEntry,
-        // MutableEntryStoragePathEntry,
-    // StorableEntryReadAccess,
-    // StorageAsPathReadForward,
-    // MutableStorableEntryReadAccess,
-    // MutableStorableEntryWriteAccess,
-    // StorageAsPathWriteForward,
-    // PathableStorageEntryImpl
+        // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
+    // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
+    // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
     use starknet::syscalls::deploy_syscall;
     use starknet::{
@@ -78,6 +73,7 @@ pub mod LaunchpadMarketplace {
         EkuboUnrugLaunchParameters, AdminsFeesParams
         // MemecoinCreated, MemecoinLaunched
     };
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
@@ -130,7 +126,7 @@ pub mod LaunchpadMarketplace {
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
-  
+
     // AccessControl
     #[abi(embed_v0)]
     impl AccessControlImpl =
@@ -200,7 +196,7 @@ pub mod LaunchpadMarketplace {
         // Stats
         total_token: u64,
         total_launch: u64,
-        total_shares_keys: u64,
+        // TODO check edge case supply for Bonding curve
         // HIGH SECURITY RISK
         // EDGE CASE SUPPLY AND THRESHOLD
         max_supply_launch: u256,
@@ -279,16 +275,17 @@ pub mod LaunchpadMarketplace {
         self.is_fees_protocol_sell_enabled.write(false);
         self.is_fees_protocol_enabled.write(false);
 
-        // TODO fix BOUNDS_TICK_SPACINGS issue if fees are enabled
-        // EDGE CASE
-        // HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
+        // TODO
+        // Fees neabled by default
+        // Audit for fees calculation, rounding and edges cases
+        // fix BOUNDS_TICK_SPACINGS issue if fees are enabled
+        // EDGE CASE HIGH RISK = DRAIN VALUES, BLOCKING FUNCTIONS, ERRORS
 
         // self.is_fees_protocol_buy_enabled.write(false);
         // self.is_fees_protocol_sell_enabled.write(false);
 
         self.is_fees_protocol_buy_enabled.write(true);
         self.is_fees_protocol_sell_enabled.write(true);
-
         self.is_fees_protocol_enabled.write(true);
 
         let admins_fees_params = AdminsFeesParams {
@@ -343,6 +340,10 @@ pub mod LaunchpadMarketplace {
     }
 
     // Public functions inside an impl block
+    // Create token
+    // Launch token with Bonding curve type: Linear, Exponential, more to come
+    // Buy and Sell a token in the pool
+    // Claim your tokens
     #[abi(embed_v0)]
     impl LaunchpadMarketplace of ILaunchpadMarketplace<ContractState> {
         // ADMIN
@@ -507,7 +508,6 @@ pub mod LaunchpadMarketplace {
             self.threshold_liquidity.read()
         }
 
-
         fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
             self.launched_coins.read(key_user)
         }
@@ -515,10 +515,6 @@ pub mod LaunchpadMarketplace {
         fn get_share_of_user_by_contract(
             self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
         ) -> SharesTokenUser {
-            // self.shares_by_users.read((owner, key_user))
-            // self.shares_by_users.entry((owner, key_user)).read()
-            // self.shares_by_users.entry((owner, key_user)).read()
-
             self.shares_by_users.entry(owner).entry(key_user).read()
         }
 
@@ -667,7 +663,6 @@ pub mod LaunchpadMarketplace {
             // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
             //     total_price = threshold_liquidity - old_launch.liquidity_raised.clone();
             //     amount = pool_coin.available_supply;
-
             //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
             //     // remain_liquidity = total_price - amount_protocol_fee;
             //     remain_liquidity = total_price;
@@ -676,7 +671,6 @@ pub mod LaunchpadMarketplace {
             //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false,
             //         true);
             //     // remain_liquidity = total_price - amount_protocol_fee;
-
             //     erc20
             //         .transfer_from(
             //             get_caller_address(),
@@ -719,7 +713,6 @@ pub mod LaunchpadMarketplace {
                 remain_quote_to_liquidity = total_price - amount_protocol_fee;
                 // remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
                 // TODO check slippage and fees
-
                 // TODO check threshold min and Supply threshold
                 // threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and
                 // fees
@@ -741,12 +734,9 @@ pub mod LaunchpadMarketplace {
             let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
 
             // Verify pool has sufficient available supply
-
             //assertion
-
             // Add slippage threshold
             // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
-
             // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
             // Check if liquidity threshold raise
@@ -771,10 +761,8 @@ pub mod LaunchpadMarketplace {
             // Approximation amount
             // TEST
             // Can cause draining
-
             // Todo check all memecoin amount possible to buy
             // if pool_coin.total_token_holded < pool_coin.available_supply + amount {
-
             //     let amount = pool_coin.total_token_holded - pool_coin.available_supply;
             //     let amount_coin_received = pool_coin.total_token_holded -
             //     pool_coin.available_supply;
@@ -788,29 +776,26 @@ pub mod LaunchpadMarketplace {
             //     amount = pool_coin.available_supply;
             // }
             assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
-
             // println!("amount memecoin to receive {:?}", amount);
             // TODO readd this check and check why it's broken
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
-
             // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
-
             erc20
                 .transfer_from(
                     get_caller_address(), get_contract_address(), remain_quote_to_liquidity
                 );
 
             // Assertion: Amount Received Validation
-            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
-            // println!("total_price {:?}", total_price);
-
             // Update the Stats of pool:
             // Liquidity raised
             // Available supply
             // Token holded
-            // println!("update pool");
             // pool_coin.liquidity_raised += remain_liquidity;
             // Amount quote buy with fees deducted if enabled
+            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
+            // println!("total_price {:?}", total_price);
+            // println!("update pool");
+
             pool_coin.liquidity_raised += remain_quote_to_liquidity;
             pool_coin.total_token_holded += amount;
             pool_coin.price = total_price;
@@ -1193,7 +1178,7 @@ pub mod LaunchpadMarketplace {
                 .shares_by_users
                 .entry(get_caller_address())
                 .entry(coin_address.clone())
-                    .write(share_user.clone());
+                .write(share_user.clone());
 
             self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self
@@ -1389,7 +1374,7 @@ pub mod LaunchpadMarketplace {
         }
     }
 
-    // // Could be a group of functions about a same topic
+    // // Internal functions for create token, launch, add liquidity in DEX 
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait {
         fn _create_token(
@@ -1637,9 +1622,7 @@ pub mod LaunchpadMarketplace {
 
             let launch = self.launched_coins.read(coin_address);
 
-            // assert(launch.is_liquidity_launch == false, 'liquidity already launch');
             // assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
-
             assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
             let threshold_liquidity = launch.threshold_liquidity.clone();
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
@@ -1659,35 +1642,20 @@ pub mod LaunchpadMarketplace {
             // TODO default tick space
             // Add default for main coin like others
             let mut tick_spacing = 5928;
-            // let mut tick_spacing = 1000;
 
             // Edge case to check and fix if fees enabled
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            if is_fees_protocol_enabled { // tick_spacing = 2000;
-            // tick_spacing = 3000;
-            // tick_spacing=5928;
-            }
-            // let tick_spacing =  2000;
-            // 88712960
-            // let tick_spacing = 5000;
-            // let tick_spacing = 5982;
             // println!("tick_spacing {:?}", tick_spacing);
-
-            // let tick_spacing = 5000;
             // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
-            // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
+            // TODO verify condition EKUBO
             // Verify conditions
-
             // Add these debug prints
-            // println!("Starting Price: {}", starting_price.mag);
-            // println!("Calculated Bound: {}", bound);
-            // println!("Tick Spacing: {}", tick_spacing);
 
             // assert(bound % tick_spacing == 0, 'Bound not aligned');
             // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
-
-            // println!("starting_price {:?}", starting_price);
-            // println!("bounds {:?}", bound);
+            // println!("Starting Price: {}", starting_price.mag);
+            // println!("Calculated Bound: {}", bound);
+            // println!("Tick Spacing: {}", tick_spacing);
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
@@ -1695,14 +1663,8 @@ pub mod LaunchpadMarketplace {
                 // tick_spacing: 5000, // TODO tick_spacing optional by user
                 starting_price: starting_price, // TODO verify if starting_price is correct
                 // starting_price: init_starting_price, // TODO verify if starting_price is correct
-                // bound: tick_spacing,
                 bound: bound_spacing,
                 // bound: bound,
-            // bound: 88719042,
-            // bound:bound
-            // bound:88712960
-            // bound: 88719042
-            // bound: bound, // TODO verify if bound is correct
             };
 
             // TODO fix issue when fees are enabled
@@ -1714,17 +1676,15 @@ pub mod LaunchpadMarketplace {
                 contract_address: launch.token_quote.token_address.clone()
             };
 
-            // println!("initial_pool_supply : {}", lp_supply.clone());
-            // println!("liquidity raised: {}", lp_quote_supply.clone());
             // Assertion: Check if the contract has enough quote tokens to transfer to liquidity
-            
             // TODO fix this
-            //
             // HIGH SECURITY
             // Can drained funk if edge case approximation issue
             // Edge case of approximation estimation amount and fees can cause it
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
             // println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
+            // println!("initial_pool_supply : {}", lp_supply.clone());
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
 
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
@@ -1753,7 +1713,7 @@ pub mod LaunchpadMarketplace {
                 lp_supply: lp_supply.clone(),
                 lp_quote_supply: lp_quote_supply.clone(),
                 pool_params: pool_params,
-                caller:get_caller_address()
+                caller: get_caller_address()
             };
 
             let position_ekubo_address = unrug_liquidity.get_position_ekubo_address();
@@ -1817,9 +1777,7 @@ pub mod LaunchpadMarketplace {
         // TODO finish call Jediswap
         // Change preparation of state for lp_supply, approve etc for the Unrug V2
         fn _add_liquidity_jediswap(
-            ref self: ContractState, 
-            coin_address: ContractAddress,
-            owner:ContractAddress
+            ref self: ContractState, coin_address: ContractAddress, owner: ContractAddress
             // params: EkuboLaunchParameters
         ) -> u256 {
             let unrug_liquidity = IUnrugLiquidityDispatcher {
@@ -1846,8 +1804,7 @@ pub mod LaunchpadMarketplace {
                     coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner
                 );
 
-
-            // TODO 
+            // TODO
             // Add Locked position
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address,
             // lp_supply, quote_supply, unlock_time);
@@ -1868,6 +1825,5 @@ pub mod LaunchpadMarketplace {
             // (id, position)
             id_cast
         }
-
     }
 }

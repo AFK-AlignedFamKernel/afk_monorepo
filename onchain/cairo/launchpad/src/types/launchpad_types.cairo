@@ -21,14 +21,14 @@ pub enum SupportedExchanges {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq//  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum BondingType {
     Linear,
     Exponential,
     // Trapezoidal,
-    // Scoring, // Nostr data with Appchain connected to a Relayer
-    // Limited
+// Scoring, // Nostr data with Appchain connected to a Relayer
+// Limited
 }
 
 // #[derive(Serde, Copy, // Clone,
@@ -361,7 +361,7 @@ pub struct EkuboUnrugLaunchParameters {
     pub lp_supply: u256,
     pub lp_quote_supply: u256,
     pub pool_params: EkuboPoolParameters,
-    pub caller:ContractAddress
+    pub caller: ContractAddress
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -445,7 +445,7 @@ pub enum UnrugCallbackData {
 
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct LockPosition {
-    pub id_position:u256,
+    pub id_position: u256,
     pub asset_address: ContractAddress,
     pub quote_address: ContractAddress,
     pub exchange: SupportedExchanges,

@@ -50,8 +50,8 @@ pub mod UnrugLiquidity {
         LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
         LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback,
         LiquidityType, EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters,
-        UnrugCallbackData, UnrugLaunchCallback, SetJediswapRouterV2,
-        LockPosition, DEFAULT_MIN_LOCKTIME
+        UnrugCallbackData, UnrugLaunchCallback, SetJediswapRouterV2, LockPosition,
+        DEFAULT_MIN_LOCKTIME
         // MemecoinCreated, MemecoinLaunched
     };
     use afk_launchpad::utils::{sqrt};
@@ -157,7 +157,7 @@ pub mod UnrugLiquidity {
         array_coins: Map::<u64, Token>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
-        locked_positions:Map::<ContractAddress, LockPosition>,
+        locked_positions: Map::<ContractAddress, LockPosition>,
         // Parameters admin
         // Setup
         is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
@@ -471,7 +471,7 @@ pub mod UnrugLiquidity {
             lp_supply: u256,
             quote_amount: u256,
             unlock_time: u64,
-            owner:ContractAddress
+            owner: ContractAddress
         ) -> u256 { // TODO auto distrib and claim?
             // let caller = get_caller_address();
             // self._add_liquidity_jediswap_v1(coin_address, quote_address, lp_supply, quote_amount,
@@ -800,15 +800,14 @@ pub mod UnrugLiquidity {
             let min_unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
             let lock_position = LockPosition {
-                id_position:id_cast.clone(),
-                asset_address:unrug_params.token_address.clone(),
-                quote_address:unrug_params.quote_address.clone(),
-                created_at:get_block_timestamp(),
-                exchange:SupportedExchanges::Ekubo,
-                owner:unrug_params.owner.clone(),
-                caller:unrug_params.caller.clone(),
-                unlock_time:min_unlock_time,
-
+                id_position: id_cast.clone(),
+                asset_address: unrug_params.token_address.clone(),
+                quote_address: unrug_params.quote_address.clone(),
+                created_at: get_block_timestamp(),
+                exchange: SupportedExchanges::Ekubo,
+                owner: unrug_params.owner.clone(),
+                caller: unrug_params.caller.clone(),
+                unlock_time: min_unlock_time,
             };
             self.locked_positions.entry(coin_address).write(lock_position);
 
@@ -916,7 +915,7 @@ pub mod UnrugLiquidity {
             lp_supply: u256,
             quote_amount: u256,
             unlock_time: u64,
-            owner:ContractAddress
+            owner: ContractAddress
         ) -> u256 {
             // ) -> (u64, EkuboLP)  {
             // println!("In _add_liquidity_jediswap",);
@@ -1016,18 +1015,17 @@ pub mod UnrugLiquidity {
                 id_token_lp = token_id.try_into().unwrap();
 
                 let lock_position = LockPosition {
-                    id_position:id_token_lp.clone(),
-                    asset_address:coin_address.clone(),
-                    quote_address:quote_address.clone(),
-                    created_at:get_block_timestamp(),
-                    exchange:SupportedExchanges::Jediswap,
-                    owner:owner.clone(), // TODO 
-                    caller:owner.clone(), // TODO change caller
-                    unlock_time:unlock_time,
-    
+                    id_position: id_token_lp.clone(),
+                    asset_address: coin_address.clone(),
+                    quote_address: quote_address.clone(),
+                    created_at: get_block_timestamp(),
+                    exchange: SupportedExchanges::Jediswap,
+                    owner: owner.clone(), // TODO 
+                    caller: owner.clone(), // TODO change caller
+                    unlock_time: unlock_time,
                 };
                 self.locked_positions.entry(coin_address).write(lock_position);
-    
+
                 // TODO Locked LP token
                 self
                     .emit(

@@ -49,7 +49,6 @@ pub mod LaunchpadMarketplace {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin_upgrades::UpgradeableComponent;
     use openzeppelin_upgrades::interface::IUpgradeable;
-    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
@@ -78,6 +77,7 @@ pub mod LaunchpadMarketplace {
         EkuboUnrugLaunchParameters, AdminsFeesParams
         // MemecoinCreated, MemecoinLaunched
     };
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
@@ -130,7 +130,7 @@ pub mod LaunchpadMarketplace {
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
-  
+
     // AccessControl
     #[abi(embed_v0)]
     impl AccessControlImpl =
@@ -1192,7 +1192,7 @@ pub mod LaunchpadMarketplace {
                 .shares_by_users
                 .entry(get_caller_address())
                 .entry(coin_address.clone())
-                    .write(share_user.clone());
+                .write(share_user.clone());
 
             self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
             self
