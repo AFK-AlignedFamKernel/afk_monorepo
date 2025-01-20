@@ -273,6 +273,7 @@ pub mod LaunchpadMarketplace {
         // TODO
         // Fees protocol to true by default
         // Still not test wisely
+        // Rounding issues after fees can happens.
 
         self.is_fees_protocol_buy_enabled.write(false);
         self.is_fees_protocol_sell_enabled.write(false);
@@ -1206,6 +1207,7 @@ pub mod LaunchpadMarketplace {
                         creator_fee: amount_creator_fee,
                         timestamp: get_block_timestamp(),
                         last_price: old_pool.price,
+                        coin_amount: remain_coin_amount,
                     }
                 );
         }
@@ -1714,15 +1716,16 @@ pub mod LaunchpadMarketplace {
 
             // println!("initial_pool_supply : {}", lp_supply.clone());
             // println!("liquidity raised: {}", lp_quote_supply.clone());
-            // Assertion: Check if the contract has enough quote tokens to transfer
-            let contract_quote_balance = quote_token.balance_of(get_contract_address());
-            // println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
-
+            // Assertion: Check if the contract has enough quote tokens to transfer to liquidity
+            
             // TODO fix this
             //
             // HIGH SECURITY
             // Can drained funk if edge case approximation issue
             // Edge case of approximation estimation amount and fees can cause it
+            let contract_quote_balance = quote_token.balance_of(get_contract_address());
+            // println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
+
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
                 // println!(
@@ -1732,6 +1735,11 @@ pub mod LaunchpadMarketplace {
                 //         && contract_quote_balance < launch.threshold_liquidity
                 // );
                 // println!("launch.threshold_liquidity: {}", launch.threshold_liquidity.clone());
+                // TODO just calculate the difference of round and substract it
+
+                // let new_lp_quote_rounded= lp_quote_supply - contract_quote_balance;
+                // lp_quote_supply = new_lp_quote_rounded.clone();
+
                 lp_quote_supply = contract_quote_balance.clone();
             }
             // println!("liquidity raised: {}", lp_quote_supply.clone());
@@ -1744,7 +1752,8 @@ pub mod LaunchpadMarketplace {
                 quote_address: launch.token_quote.token_address.clone(),
                 lp_supply: lp_supply.clone(),
                 lp_quote_supply: lp_quote_supply.clone(),
-                pool_params: pool_params
+                pool_params: pool_params,
+                caller:get_caller_address()
             };
 
             let position_ekubo_address = unrug_liquidity.get_position_ekubo_address();
@@ -1808,7 +1817,9 @@ pub mod LaunchpadMarketplace {
         // TODO finish call Jediswap
         // Change preparation of state for lp_supply, approve etc for the Unrug V2
         fn _add_liquidity_jediswap(
-            ref self: ContractState, coin_address: ContractAddress,
+            ref self: ContractState, 
+            coin_address: ContractAddress,
+            owner:ContractAddress
             // params: EkuboLaunchParameters
         ) -> u256 {
             let unrug_liquidity = IUnrugLiquidityDispatcher {
@@ -1832,8 +1843,12 @@ pub mod LaunchpadMarketplace {
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
             let id_cast = unrug_liquidity
                 .launch_on_jediswap(
-                    coin_address, quote_address, lp_supply, quote_supply, unlock_time
+                    coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner
                 );
+
+
+            // TODO 
+            // Add Locked position
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address,
             // lp_supply, quote_supply, unlock_time);
             // let id_cast: u256 = id.try_into().unwrap();
@@ -1854,19 +1869,5 @@ pub mod LaunchpadMarketplace {
             id_cast
         }
 
-        // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
-        // TODO Increased liquidity if pool already exist
-        fn _add_liquidity(
-            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges
-        ) {
-            match exchange {
-                // TODO changed when finished
-                SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address); },
-                SupportedExchanges::Ekubo => { self._add_liquidity_ekubo(coin_address); },
-            }
-            let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch = true;
-            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-        }
     }
 }

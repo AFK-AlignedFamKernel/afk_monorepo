@@ -14,4 +14,5 @@ export interface SellToken {
   protocolFee: string;
   timestamp: Date;
   transactionType: string;
+  coinAmount?:number;
 }

@@ -89,11 +89,13 @@ export class SellTokenIndexer {
       priceHigh,
       protocolFeeLow,
       protocolFeeHigh,
+      creatorFeeLow,
+      creatorFeeHigh,
+      timestampFelt,
       lastPriceLow,
       lastPriceHigh,
-      timestampFelt,
-      quoteAmountLow,
-      quoteAmountHigh,
+      coinAmountLow,
+      coinAmountHigh,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -124,13 +126,30 @@ export class SellTokenIndexer {
     const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
     const quoteAmountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(quoteAmountLow),
-      high: FieldElement.toBigInt(quoteAmountHigh),
+      low: FieldElement.toBigInt(amount),
+      high: FieldElement.toBigInt(amount),
     });
     const quoteAmount = formatUnits(
       quoteAmountRaw,
       constants.DECIMALS,
     ).toString();
+
+    let coinAmountRaw = quoteAmountRaw;
+    let coinAmount = quoteAmount;
+
+    // TODO fix
+    // New version upgrade with coin amount sell
+    if(coinAmountLow && coinAmountHigh) {
+      coinAmountRaw = uint256.uint256ToBN({
+        low: FieldElement.toBigInt(coinAmountLow),
+        high: FieldElement.toBigInt(coinAmountHigh),
+      });
+      coinAmount = formatUnits(
+        coinAmountRaw ?? quoteAmountRaw,
+        constants.DECIMALS,
+      ).toString();
+ 
+    }
 
     const timestamp = new Date(
       Number(FieldElement.toBigInt(timestampFelt)) * 1000,
@@ -152,6 +171,7 @@ export class SellTokenIndexer {
       quoteAmount,
       timestamp,
       transactionType: 'sell',
+      coinAmount
     };
 
     await this.sellTokenService.create(data);

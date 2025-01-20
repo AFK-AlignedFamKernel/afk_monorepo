@@ -369,6 +369,7 @@ mod unrug_tests {
             quote_address: erc20.contract_address,
             lp_supply: lp_meme_supply,
             lp_quote_supply: lp_quote_supply,
+            caller:OWNER(),
             pool_params: EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: 5982,
@@ -437,7 +438,7 @@ mod unrug_tests {
         println!("launch on jedi",);
         unrug_liq
             .launch_on_jediswap(
-                token_address, erc20.contract_address, lp_meme_supply, lp_quote_supply, unlock_time
+                token_address, erc20.contract_address, lp_meme_supply, lp_quote_supply, unlock_time, OWNER()
             );
 
         println!("liq jediswap launched");

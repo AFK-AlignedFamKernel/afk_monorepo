@@ -46,6 +46,7 @@ pub trait IUnrugLiquidity<TContractState> {
         lp_supply: u256,
         quote_amount: u256,
         unlock_time: u64,
+        owner:ContractAddress
     ) -> u256;
 
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);

@@ -64,13 +64,13 @@ struct SchnorrSignature {
 //         }
 //     }
 // }
-        if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
-            true
-        } else {
-            false
-        }
-    }
-}
+//         if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
+//             true
+//         } else {
+//             false
+//         }
+//     }
+// }
 
 /// Computes BIP0340/challenge tagged hash.
 ///
@@ -321,7 +321,7 @@ fn compute_challenge(R: EcPoint, public_key: EcPoint, message: ByteArray) -> fel
 
 }
 
-/fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
+fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point();
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
@@ -598,6 +598,22 @@ mod tests {
     }
     #[test]
     fn test_20() {
+        let (private_key, public_key) = generate_keypair();
+    
+        // Message to sign
+        let message: felt252 = 'I love Cairo';
+        
+        // Sign message
+        let signature = sign(private_key, message);
+        
+        // Verify signature
+        let is_valid = verify_sig(public_key, message, signature);
+        
+        assert!(is_valid);
+    }
+
+    #[test]
+    fn test_generate_sign_and_verify() {
         let (private_key, public_key) = generate_keypair();
     
         // Message to sign
