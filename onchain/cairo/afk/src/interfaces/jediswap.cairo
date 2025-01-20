@@ -17,9 +17,7 @@ pub trait IJediswapFactoryV2<TState> {
     // * snake_case
     // ************************************
 
-    fn get_pair(
-        self: @TState, token0: ContractAddress, token1: ContractAddress
-    ) -> ContractAddress;
+    fn get_pair(self: @TState, token0: ContractAddress, token1: ContractAddress) -> ContractAddress;
     fn create_pair(
         ref self: TState, tokenA: ContractAddress, tokenB: ContractAddress
     ) -> ContractAddress;
@@ -38,7 +36,7 @@ pub trait IJediswapFactoryV2<TState> {
 }
 
 #[starknet::interface]
-pub trait IJediswapRouterV2<TState> { 
+pub trait IJediswapRouterV2<TState> {
     // ************************************
     // * snake_case
     // ************************************
@@ -65,7 +63,6 @@ pub trait IJediswapRouterV2<TState> {
         to: ContractAddress,
         deadline: u64
     ) -> Array<u256>;
-
 }
 
 #[starknet::interface]
@@ -94,7 +91,6 @@ pub trait IJediswapNFTRouterV2<TState> {
 }
 
 
-
 // TODO verify docs
 #[starknet::interface]
 pub trait IJediswapFactoryV1<TState> {
@@ -104,7 +100,7 @@ pub trait IJediswapFactoryV1<TState> {
 
     // Views
     fn get_pair(
-        self: @TState, token_a:ContractAddress, token_b: ContractAddress
+        self: @TState, token_a: ContractAddress, token_b: ContractAddress
     ) -> ContractAddress;
     // Views
     fn get_pool(
