@@ -120,7 +120,7 @@ export const createLaunchpad = async (
         coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
         console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
       }
-      coin_class_hash_memecoin_last = declareIfNotToken?.class_hash
+      // coin_class_hash_memecoin_last = declareIfNotToken?.class_hash
 
       console.log("try declare launchpad");
       const declareResponse = await account0.declareIfNot({
