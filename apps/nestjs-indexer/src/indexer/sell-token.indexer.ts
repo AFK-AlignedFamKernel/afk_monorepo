@@ -171,7 +171,7 @@ export class SellTokenIndexer {
       quoteAmount,
       timestamp,
       transactionType: 'sell',
-      coinAmount
+      coinAmount:Number(coinAmount)
     };
 
     await this.sellTokenService.create(data);
