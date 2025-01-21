@@ -5,7 +5,7 @@ import { SellToken } from './interfaces';
 @Injectable()
 export class SellTokenService {
   private readonly logger = new Logger(SellTokenService.name);
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   async create(data: SellToken) {
     try {
@@ -35,9 +35,13 @@ export class SellTokenService {
         const newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           Number(data.quoteAmount);
+        // const newTotalTokenHolded =
+        //   Number(tokenLaunchRecord.total_token_holded ?? 0) -
+        //   Number(data.amount);
+
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
-          Number(data.amount);
+          Number(data.coinAmount ?? data?.amount);
 
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
@@ -57,7 +61,8 @@ export class SellTokenService {
         },
         update: {
           amount_owned: {
-            decrement: data.amount,
+            // decrement: data.amount,
+            decrement: data.coinAmount ?? data?.amount,
           },
         },
         create: {

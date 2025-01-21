@@ -6,7 +6,6 @@ use afk_launchpad::types::launchpad_types::{TokenLaunch,};
 use alexandria_math::fast_root::{fast_sqrt};
 use ekubo::types::{i129::i129};
 
-
 const BPS: u256 = 10_000;
 
 const SCALE_FACTOR: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
@@ -15,6 +14,11 @@ const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 const MIN_PRICE: u256 = 1_u256;
 const LIQUIDITY_RATIO: u256 = 5;
 const SQRT_ITER: u256 = 1_000_u256;
+
+// const SAFE_SCALE: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
+// Use more conservative scaling to avoid extreme prices
+const PRICE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
+const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 
 pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
@@ -76,10 +80,6 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     amount_out
 }
 
-// const SAFE_SCALE: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
-// Use more conservative scaling to avoid extreme prices
-const PRICE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
-const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,

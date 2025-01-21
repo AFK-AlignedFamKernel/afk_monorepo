@@ -2,7 +2,6 @@ pub mod bip340;
 
 pub mod errors;
 // pub mod interfaces;
-pub mod keys;
 
 pub mod math;
 pub mod sha256;
@@ -18,10 +17,6 @@ pub mod interfaces {
     pub mod erc20_mintable;
     pub mod nameservice;
     pub mod nfts;
-    pub mod pixel;
-    pub mod pixel_template;
-    pub mod quest;
-    pub mod quests;
     pub mod username_store;
     pub mod vault;
 }
@@ -44,14 +39,12 @@ pub mod types {
     pub mod jediswap_types;
     pub mod keys_types;
     pub mod pump_types;
-    pub mod quest;
     pub mod tap_types;
 }
 
 pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;
-    pub mod quest_nft;
     pub mod token;
     pub mod dn404 {
         pub mod dn404;
@@ -61,10 +54,6 @@ pub mod tokens {
         pub mod dn404_mirror_preset;
         pub mod dn404_preset;
     }
-}
-
-pub mod templates {
-    pub mod template;
 }
 
 #[cfg(test)]

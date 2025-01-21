@@ -18,6 +18,7 @@
     "deploy:art_peace": "ts-node ./deploy/pixel/art_peace.ts",
     "deploy:canvas_nft": "ts-node ./deploy/pixel/canvas_nft.ts",
     "deploy:chain_faction": "ts-node ./run/pixel/create_all_chain_faction.ts",
+    "deploy:shield_setup": "ts-node ./run/pixel/shield_setup.ts",
     "get_hash": "ts-node ./run/utils/get_hash.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",

@@ -1,25 +1,25 @@
-use stark_vrf::{Error, generate_public_key, Proof, ScalarValue, StarkVRF};
-use core::ec::stark_curve::GEN_X;
-use core::ec::stark_curve::GEN_Y;
-use core::ec::stark_curve::ORDER;
-use core::fmt::{Display, Formatter, Error};
-use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint, EcState, EcStateTrait};
-use core::poseidon::PoseidonTrait;
-use core::hash::{HashStateTrait, HashStateExTrait};
-use core::math::u256_mul_mod_n;
-use super::request::SocialRequest;
 use afk::utils::{shl, shr, compute_sha256_byte_array};
 //! bip340 implementation
 
 use core::byte_array::ByteArrayTrait;
+use core::ec::stark_curve::GEN_X;
+use core::ec::stark_curve::GEN_Y;
+use core::ec::stark_curve::ORDER;
+use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint, EcState, EcStateTrait};
+use core::fmt::{Display, Formatter, Error};
+use core::hash::{HashStateTrait, HashStateExTrait};
+use core::math::u256_mul_mod_n;
 use core::option::OptionTrait;
+use core::poseidon::PoseidonTrait;
 use core::result::ResultTrait;
 // TODO: uncomment once Cairo 2.7 is available
 // use core::sha256::compute_sha256_byte_array;
 use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
+use stark_vrf::{Error, generate_public_key, Proof, ScalarValue, StarkVRF};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
+use super::request::SocialRequest;
 
 const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;
@@ -34,16 +34,19 @@ pub impl EcPointDisplay of Display<EcPoint> {
     }
 }
 
-impl PartialEqImpl of PartialEq<EcPoint> {
-    fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
-        let (lhs_x, lhs_y): (felt252, felt252) = ec_point_unwrap((*lhs).try_into().unwrap());
-        let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
-
 /// Represents a Schnorr signature
 struct SchnorrSignature {
     s: u256,
     R: u256,
 }
+
+// impl PartialEqImpl of PartialEq<EcPoint> {
+//     fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
+//         let (lhs_x, lhs_y): (felt252, felt252) = ec_point_unwrap((*lhs).try_into().unwrap());
+//         let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
+
+//     }
+
 // pub impl EcPointDisplay of Display<Secp256k1Point> {
 //     fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
 //         let non_zero: NonZeroEcPoint = (*self).try_into().unwrap();
@@ -52,18 +55,11 @@ struct SchnorrSignature {
 //     }
 // }
 
-// impl PartialEqImpl of PartialEq<EcPoint> {
-//     fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
-//         let (lhs_x, lhs_y): (u256, u256) = ec_point_unwrap((*lhs).try_into().unwrap());
-//         let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
+impl PartialEqImpl of PartialEq<EcPoint> {
+    fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
+        let (lhs_x, lhs_y): (u256, u256) = ec_point_unwrap((*lhs).try_into().unwrap());
+        let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
 
-//         if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
-//             true
-//         } else {
-//             false
-//         }
-//     }
-// }
         if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
             true
         } else {
@@ -191,7 +187,7 @@ fn generate_keypair() -> (felt252, EcPoint) {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let private_key: felt252 = 859825214214312162317391210310; // VRF needed
     let public_key: EcPoint = generator.mul(private_key);
-    
+
     (private_key, public_key)
 }
 
@@ -200,7 +196,7 @@ fn generate_nonce_point() -> (felt252, EcPoint) {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let nonce: felt252 = 46952909012476409278523962123414653; // VRF needed
     let R: EcPoint = generator.mul(nonce);
-    
+
     (nonce, R)
 }
 
@@ -208,14 +204,8 @@ fn generate_nonce_point() -> (felt252, EcPoint) {
 fn compute_challenge(R: EcPoint, public_key: EcPoint, message: felt252) -> felt252 {
     let (R_x, R_y): (felt252, felt252) = ec_point_unwrap(R.try_into().unwrap());
     let (P_x, P_y): (felt252, felt252) = ec_point_unwrap(public_key.try_into().unwrap());
-    
-    PoseidonTrait::new()
-        .update(R_x)
-        .update(R_y)
-        .update(P_x)
-        .update(P_y)
-        .update(message)
-        .finalize()
+
+    PoseidonTrait::new().update(R_x).update(R_y).update(P_x).update(P_y).update(message).finalize()
 }
 
 /// Signs a message using Schnorr signature scheme
@@ -223,10 +213,10 @@ fn sign(private_key: felt252, message: felt252) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point();
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let public_key = generator.mul(private_key);
-    
+
     let e = compute_challenge(R, public_key, message);
     let s = nonce + mul_mod_p(private_key, e, ORDER);
-    
+
     SchnorrSignature { s, R }
 }
 
@@ -234,14 +224,14 @@ fn sign(private_key: felt252, message: felt252) -> SchnorrSignature {
 fn verify_sig(public_key: EcPoint, message: felt252, signature: SchnorrSignature) -> bool {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let e = compute_challenge(signature.R, public_key, message);
-    
+
     let s_G: EcPoint = generator.mul(signature.s);
     let P_e: EcPoint = public_key.mul(e);
     let rhs: EcPoint = P_e + signature.R;
-    
+
     let (s_Gx, s_Gy): (felt252, felt252) = ec_point_unwrap(s_G.try_into().unwrap());
     let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap(rhs.try_into().unwrap());
-    
+
     (rhs_x == s_Gx) && (s_Gy == rhs_y)
 }
 
@@ -257,49 +247,49 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
 
 fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
     let mut ba: ByteArray = "";
-    
+
     // Encode public_key
     let (pk_count, pk_count_felt252) = count_digits(request.public_key);
     let pk_felt252: felt252 = request.public_key.try_into().unwrap();
     ba.append_word(pk_count_felt252, 1_u32);
     ba.append_word(pk_felt252, pk_count);
-    
+
     // Encode created_at
     let created_at_u256: u256 = request.created_at.into();
     let (created_count, created_count_felt252) = count_digits(created_at_u256);
     let created_felt252: felt252 = created_at_u256.try_into().unwrap();
     ba.append_word(created_count_felt252, 1_u32);
     ba.append_word(created_felt252, created_count);
-    
+
     // Encode kind
     let kind_u256: u256 = request.kind.into();
     let (kind_count, kind_count_felt252) = count_digits(kind_u256);
     let kind_felt252: felt252 = kind_u256.try_into().unwrap();
     ba.append_word(kind_count_felt252, 1_u32);
     ba.append_word(kind_felt252, kind_count);
-    
+
     // Encode tags directly
     ba.append(request.tags);
-    
+
     // Encode content (assuming it can be converted to ByteArray) check needed
     let content_bytes = ByteArray::from(request.content);
     ba.append(content_bytes);
-    
+
     let (rx, _) = request.sig.R.get_coordinates().unwrap_syscall();
     ba.append_word(rx.high.into(), 16);
     ba.append_word(rx.low.into(), 16);
     ba.append_word(request.sig.s.high.into(), 16);
     ba.append_word(request.sig.s.low.into(), 16);
-    
+
     ba
-}   
+}
 
 /// Generates a key pair (private key, public key) for Schnorr signatures
 fn generate_keypair() -> (u256, Secp256k1Point) {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let private_key: u256 = 0x859825214214312162317391210310_u256; // VRF needed
     let public_key = G.mul(private_key).unwrap_syscall();
-    
+
     (private_key, public_key)
 }
 
@@ -308,7 +298,7 @@ fn generate_nonce_point() -> (u256, Secp256k1Point) {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let nonce: u256 = 0x46952909012476409278523962123414653_u256; // VRF needed
     let R = G.mul(nonce).unwrap_syscall();
-    
+
     (nonce, R)
 }
 
@@ -316,12 +306,11 @@ fn generate_nonce_point() -> (u256, Secp256k1Point) {
 fn compute_challenge(R: EcPoint, public_key: EcPoint, message: ByteArray) -> felt252 {
     let (rx, _) = R.get_coordinates().unwrap_syscall();
     let (px, _) = public_key.get_coordinates().unwrap_syscall();
-    
-    hash_challenge(rx, px, message)
 
+    hash_challenge(rx, px, message)
 }
 
-/fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
+fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point();
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
@@ -329,10 +318,10 @@ fn compute_challenge(R: EcPoint, public_key: EcPoint, message: ByteArray) -> fel
     let s_G_x = r;
     let e = compute_challenge(R, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
- 
+
     // s = nonce + private_key * e mod n
     let s = (nonce + (private_key * e)) % n;
-    
+
     SchnorrSignature { s, r }
 }
 
@@ -341,7 +330,7 @@ fn verify_sig(public_key: Secp256k1Point, message: u256, signature: SchnorrSigna
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.R, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
-    
+
     // Check that s is within valid range
     if signature.s >= n {
         return false;
@@ -350,11 +339,11 @@ fn verify_sig(public_key: Secp256k1Point, message: u256, signature: SchnorrSigna
     let s_G = G.mul(signature.s).unwrap_syscall();
     let e_P = public_key.mul(e).unwrap_syscall();
     let R_plus_eP = signature.R.add(e_P).unwrap_syscall();
-    
+
     // Compare the points
     let (s_G_x, s_G_y) = s_G.get_coordinates().unwrap_syscall();
     let (rhs_x, rhs_y) = R_plus_eP.get_coordinates().unwrap_syscall();
-    
+
     s_G_x == rhs_x && s_G_y == rhs_y
 }
 
@@ -365,7 +354,8 @@ mod tests {
     use core::clone::Clone;
     use core::option::OptionTrait;
     use core::traits::Into;
-    use super::*;
+    // use super::*;
+    use super::{verify, verify_sig, sign, generate_keypair};
 
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
@@ -599,16 +589,32 @@ mod tests {
     #[test]
     fn test_20() {
         let (private_key, public_key) = generate_keypair();
-    
+
         // Message to sign
         let message: felt252 = 'I love Cairo';
-        
+
         // Sign message
         let signature = sign(private_key, message);
-        
+
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
-        
+
+        assert!(is_valid);
+    }
+
+    #[test]
+    fn test_generate_sign_and_verify() {
+        let (private_key, public_key) = generate_keypair();
+
+        // Message to sign
+        let message: felt252 = 'I love Cairo';
+
+        // Sign message
+        let signature = sign(private_key, message);
+
+        // Verify signature
+        let is_valid = verify_sig(public_key, message, signature);
+
         assert!(is_valid);
     }
 }
