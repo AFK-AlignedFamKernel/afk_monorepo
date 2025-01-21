@@ -77,7 +77,8 @@ pub fn get_amount_by_type_of_coin_or_quote(
         //     get_coin_amount_by_quote_amount_exponential(pool, amount, is_decreased)
         // }
         },
-        // BondingType::Trapezoidal => { get_coin_amount_by_quote_amount(pool, amount, is_decreased) },
+        // BondingType::Trapezoidal => { get_coin_amount_by_quote_amount(pool, amount, is_decreased)
+        // },
         _ => {
             // get_coin_amount_by_quote_amount(pool, amount, is_decreased)
 

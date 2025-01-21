@@ -7,12 +7,13 @@ use starknet::{ContractAddress, // get_caller_address,
 // get_contract_address,
 };
 
+pub const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200; // 6 months
 pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 pub const BURNER_ROLE: felt252 = selector!("BURNER_ROLE");
 pub const OPERATOR: felt252 = selector!("OPERATOR");
 
-#[derive(Drop, Copy, Serde, Hash)]
+#[derive(Drop, Copy, Serde, Hash, PartialEq, starknet::Store)]
 pub enum SupportedExchanges {
     Jediswap,
     Ekubo,
@@ -20,14 +21,14 @@ pub enum SupportedExchanges {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq//  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum BondingType {
     Linear,
     Exponential,
     // Trapezoidal,
-    // Scoring, // Nostr data with Appchain connected to a Relayer
-    // Limited
+// Scoring, // Nostr data with Appchain connected to a Relayer
+// Limited
 }
 
 // #[derive(Serde, Copy, // Clone,
@@ -215,6 +216,7 @@ pub struct SellToken {
     pub creator_fee: u256,
     pub timestamp: u64,
     pub last_price: u256,
+    pub coin_amount: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -358,7 +360,8 @@ pub struct EkuboUnrugLaunchParameters {
     pub quote_address: ContractAddress,
     pub lp_supply: u256,
     pub lp_quote_supply: u256,
-    pub pool_params: EkuboPoolParameters
+    pub pool_params: EkuboPoolParameters,
+    pub caller: ContractAddress
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -439,3 +442,16 @@ pub enum CallbackData {
 pub enum UnrugCallbackData {
     UnrugLaunchCallback: UnrugLaunchCallback,
 }
+
+#[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+pub struct LockPosition {
+    pub id_position: u256,
+    pub asset_address: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub exchange: SupportedExchanges,
+    pub created_at: u64,
+    pub unlock_time: u64,
+    pub owner: ContractAddress,
+    pub caller: ContractAddress,
+}
+

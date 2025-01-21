@@ -1,4 +1,4 @@
-import { cairo, Uint256, uint256 } from "starknet";
+import { cairo, Uint256, uint256, shortString} from "starknet";
 
 export const feltToAddress = (felt: bigint) => {
   const newStrB = Buffer.from(felt.toString(16), "ascii");
@@ -19,4 +19,37 @@ export const formatFloatToUint256 = (
   }
 
   return total_amount;
+};
+
+export const decodeUsername = (hexUsername: string): string => {
+  try {
+    return shortString.decodeShortString(hexUsername.replace(/0x0+/, '0x'));
+  } catch (error) {
+    console.error('Error decoding username:', error);
+    return hexUsername;
+  }
+};
+
+export const formatExpiry = (hexExpiry: string): Date => {
+  const timestamp = parseInt(hexExpiry, 16);
+  return new Date(timestamp * 1000);
+};
+
+export const numericValue = (text: string) => {
+  // Allow numbers and a single decimal point
+  const parts = text.split('.');
+  return parts.length > 2
+    ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '')
+    : text.replace(/[^0-9.]/g, '');
+};
+
+export const formatNumber = (value: string | number, decimals = 4): string => {
+  if (!value) return '0';
+
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(num);
 };
