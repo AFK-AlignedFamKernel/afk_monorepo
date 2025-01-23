@@ -123,8 +123,8 @@ export const createLaunchpad = async (
       // coin_class_hash_memecoin_last = declareIfNotToken?.class_hash
 
       console.log("try declare launchpad");
-      const declareResponse = await account0.declare({
-        // const declareResponse = await account0.declareIfNot({
+      // const declareResponse = await account0.declare({
+        const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
