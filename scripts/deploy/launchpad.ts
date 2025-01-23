@@ -66,6 +66,7 @@ export const deployLaunchpad = async () => {
   //     EKUBO_REGISTRY_ADDRESS= EKUBO_REGISTRY[constants.StarknetChainId.SN_MAIN]
   // }
   const initial_key_price = cairo.uint256(1);
+  // const initial_key_price =1;
   const step_increase_linear = cairo.uint256(1);
 
   /** TODO check correct format for uint256 */

@@ -50,10 +50,13 @@ export const LAUNCHPAD_ADDRESS = {
   // "0x1488623bcbd76a0d078cc4c4743630c2650800626ce20774b8f3706a42591e9"
   // [constants.StarknetChainId.SN_SEPOLIA]:
   // "0x58b6601ce6010306e47fbc44d5489ede3f841414f2440329e841982e0d5e911"
+//  [constants.StarknetChainId.SN_SEPOLIA]:
+//   "0x525d47343caa4c56cd28eeeff7d503f1b80872c5a7f4a9f8ac8130de3513f70",
+//  [constants.StarknetChainId.SN_SEPOLIA]:
+//   "0x6fbcf2a0df5716d83d9653985f9c9bde6fb73130f0804e18bb18ef6f6ae7ad2"
  [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x525d47343caa4c56cd28eeeff7d503f1b80872c5a7f4a9f8ac8130de3513f70",
- [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x6fbcf2a0df5716d83d9653985f9c9bde6fb73130f0804e18bb18ef6f6ae7ad2"
+  "0x6579503122e7564117f2192d6a66ec81b51dfd551b39a4fa26046044cd39a35"
+  
 };
 
 export const ESCROW_ADDRESS = {
@@ -203,9 +206,10 @@ export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
     "0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc",
     // [constants.StarknetChainId.SN_SEPOLIA]:
     // "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
+    // [constants.StarknetChainId.SN_SEPOLIA]:
+    // "0x4f9a2d7613dbe428b7b8508acce666febd5a656dbb4387f6c6de7e5c52787f6",
     [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x4f9a2d7613dbe428b7b8508acce666febd5a656dbb4387f6c6de7e5c52787f6",
-    
+    "0x3ea02b0aee81e72c4b79cd4205dccc0b0d497ca23162bd0e8f7174d449d7980",
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x5e89dc74f1a40d7814966b028a9b1853d39006a954b27828a9de7e333ec8119",
 };
 

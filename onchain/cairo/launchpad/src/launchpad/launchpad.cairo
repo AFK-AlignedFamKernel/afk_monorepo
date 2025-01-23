@@ -726,17 +726,12 @@ pub mod LaunchpadMarketplace {
                         amount_protocol_fee
                     );
             }
-
-            // println!("amount quote to send {:?}", quote_amount);
-            // println!("remain_quote_to_liquidity {:?}", remain_quote_to_liquidity);
-
             //new liquidity after purchase
             let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
 
             // Verify pool has sufficient available supply
             //assertion
             // Add slippage threshold
-            // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
             // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
             // Check if liquidity threshold raise
@@ -747,7 +742,7 @@ pub mod LaunchpadMarketplace {
             // Pay with quote token
             // Transfer quote & coin
             // TOdo fix issue price
-            let mut amount = get_amount_by_type_of_coin_or_quote(
+            let mut coin_amount = get_amount_by_type_of_coin_or_quote(
                 pool_coin.clone(),
                 coin_address.clone(),
                 remain_quote_to_liquidity.clone(),
@@ -755,7 +750,7 @@ pub mod LaunchpadMarketplace {
                 true
             );
 
-            let mut amount_coin_received = amount.clone();
+            let mut amount_coin_received = coin_amount.clone();
             // TODO check available to buy
             // TODO EDGES CASES
             // Approximation amount
@@ -775,7 +770,7 @@ pub mod LaunchpadMarketplace {
             // if pool_coin.available_supply < amount {
             //     amount = pool_coin.available_supply;
             // }
-            assert(pool_coin.available_supply >= amount, errors::INSUFFICIENT_SUPPLY);
+            assert(pool_coin.available_supply >= coin_amount, errors::INSUFFICIENT_SUPPLY);
             // println!("amount memecoin to receive {:?}", amount);
             // TODO readd this check and check why it's broken
             // println!("transfer protocol fees {:?}", amount_protocol_fee);
@@ -796,22 +791,24 @@ pub mod LaunchpadMarketplace {
             // println!("total_price {:?}", total_price);
             // println!("update pool");
 
-            pool_coin.liquidity_raised += remain_quote_to_liquidity;
-            pool_coin.total_token_holded += amount;
-            pool_coin.price = total_price;
+  
             // println!("subtract amount and available supply");
             // println!("available supply {:?}", pool_coin.available_supply);
             // println!("amount {:?}", amount);
-
+            pool_coin.liquidity_raised += remain_quote_to_liquidity;
+            pool_coin.total_token_holded += coin_amount;
+            pool_coin.price = total_price;
             // TODO TEST
             // EDGE CASE
             // HIGH RISK = CAN DRAINED ALL POOL VALUE
             // TODO check approximation, rounding and edges cases
-            if amount >= pool_coin.available_supply {
+            if coin_amount >= pool_coin.available_supply {
                 pool_coin.available_supply = 0;
+                pool_coin.total_token_holded += coin_amount;
             } else {
                 // println!("subtract amount");
-                pool_coin.available_supply -= amount;
+                pool_coin.total_token_holded += coin_amount;
+                pool_coin.available_supply -= coin_amount;
             }
 
             // Update share and coin stats for an user
@@ -832,8 +829,8 @@ pub mod LaunchpadMarketplace {
                     SharesTokenUser {
                         owner: get_caller_address(),
                         token_address: coin_address,
-                        amount_owned: amount,
-                        amount_buy: amount,
+                        amount_owned: coin_amount,
+                        amount_buy: coin_amount,
                         amount_sell: 0,
                         created_at: get_block_timestamp(),
                         total_paid: total_price,
@@ -841,8 +838,8 @@ pub mod LaunchpadMarketplace {
                     };
             } else {
                 share_user.total_paid += total_price;
-                share_user.amount_owned += amount;
-                share_user.amount_buy += amount;
+                share_user.amount_owned += coin_amount;
+                share_user.amount_buy += coin_amount;
             }
             // pool_coin.price = total_price / amount;
 
@@ -904,7 +901,7 @@ pub mod LaunchpadMarketplace {
                     BuyToken {
                         caller: get_caller_address(),
                         token_address: coin_address,
-                        amount: amount,
+                        amount: coin_amount,
                         price: total_price,
                         protocol_fee: amount_protocol_fee,
                         // creator_fee: 0,
@@ -916,10 +913,9 @@ pub mod LaunchpadMarketplace {
         }
 
         // params @coin_address @coin_amount
-        // Sell coin in the current bonding curve
+        // Sell coin in the current bonding curve for Linear or Exponential atm
         // Calculate amount of quote to receive by a coin_amount to sell
-        // Calculate fees and protocol fees
-        // Transfer fees to the protocol fee destination
+        // Calculate fees and protocol fees & Transfer fees to the protocol fee destination
         // Transfer quote to the user
         // Update the state of the pool: Liquidity raised, available_supply,
         // Update the share user: update amount_owned
@@ -1020,11 +1016,12 @@ pub mod LaunchpadMarketplace {
                 quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
             }
             // println!("sell quote_amount received final {:?}", quote_amount);
-            // Edge case calculation rounding
             // TODO
+            // Edge case calculation rounding
+            // HIGH SECURITY
+            // TODO due to estimation, approximation or rounding
             //  GET the approximation slippage tolerance too not drained liq if big error
             // CAREFULLY CHECK AND TEST
-            // HIGH SECURITY
             // Can drained all fund
 
             if old_pool.liquidity_raised < quote_amount {
