@@ -21,6 +21,7 @@ import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
 import {  useQueryAddressEffect, useWalletStore, useConnectArgent, useAutoConnect,  } from 'afk_react_sdk';
+import { defiPositionSchema } from '@argent/x-shared';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -305,21 +306,42 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
   };
 
-  const updateSelectedShieldPixels = (start, end) => {
-    const startX = Math.min(start.x, end.x);
-    const startY = Math.min(start.y, end.y);
-    const endX = Math.max(start.x, end.x);
-    const endY = Math.max(start.y, end.y);
+  // const updateSelectedShieldPixels = (start, end) => {
+  //   const startX = Math.min(start.x, end.x);
+  //   const startY = Math.min(start.y, end.y);
+  //   const endX = Math.max(start.x, end.x);
+  //   const endY = Math.max(start.y, end.y);
 
-    const newSelectedPixels = [];
-    for (let y = startY; y <= endY; y++) {
-      for (let x = startX; x <= endX; x++) {
-        const position = y * width + x;
-        newSelectedPixels.push(position);
+  //   const newSelectedPixels = [];
+  //   for (let y = startY; y <= endY; y++) {
+  //     for (let x = startX; x <= endX; x++) {
+  //       const position = y * width + x;
+  //       newSelectedPixels.push(position);
+  //     }
+  //   }
+  //   setSelectedShieldPixels(newSelectedPixels);
+  // };
+ 
+  const updateSelectedShieldPixels = (position, maxPixels) => {
+    setSelectedShieldPixels((prevPixels) => {
+      // Check if the position already exists in the array
+      if (prevPixels.includes(position)) {
+        return prevPixels // Position already selected, no change
       }
-    }
-    setSelectedShieldPixels(newSelectedPixels);
-  };
+
+      // Check if adding this pixel would exceed the maximum
+      if (prevPixels.length >= maxPixels) {
+        console.log(`Maximum number of pixels (${maxPixels}) reached. Cannot add more.`)
+        return prevPixels // Return unchanged array
+      }
+
+      // If the position doesn't exist and we're under the limit, add it
+      return [...prevPixels, position]
+    })
+  }
+
+
+
 
   const registerShieldArea = () => {
       if (shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null) {
@@ -776,6 +798,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setPixelSelection={setPixelSelection}
           clearPixelSelection={clearPixelSelection}
           setPixelPlacedBy={setPixelPlacedBy}
+          pixelPlacedBy={pixelPlacedBy}
           basePixelUp={basePixelUp}
           availablePixelsUsed={availablePixelsUsed}
           addExtraPixel={addExtraPixel}

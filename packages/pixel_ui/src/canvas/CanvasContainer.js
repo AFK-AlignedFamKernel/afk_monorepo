@@ -13,7 +13,7 @@ import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS} from "common"
 import MetadataView from './metadata/Metadata';
-import { byteArray, cairo, CallData } from 'starknet';
+import { byteArray,CallData } from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -54,9 +54,28 @@ const CanvasContainer = (props) => {
 
 
 
-  const handleSelectionStart = useCallback((e) => {
+  // const handleSelectionStarts = useCallback( async (e) => {
+  //   if (props.nftMintingMode || props.templateCreationMode || !props.isShieldMode) return;
+
+  //   const canvas = props.canvasRef.current
+  //   if (!canvas) return
+
+  //   const rect = canvas.getBoundingClientRect()
+  //   const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * props.width)
+  //   const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * props.height)
+
+  //   const clampedPosition = clampToCanvas(x, y);
+  //   props.setShieldSelectionStart(clampedPosition)
+  //   props.setShieldSelectionEnd(clampedPosition)
+  //   props.setIsShieldSelecting(true)
+  // }, [props.nftMintingMode, props.templateCreationMode, width, height, clampToCanvas, props.isShieldMode]);
+
+
+  const handleSelectionStart = async (e) => {
     if (props.nftMintingMode || props.templateCreationMode || !props.isShieldMode) return;
 
+    //Only one pixel can be shield for now.
+    const maxPixels = 1;
     const canvas = props.canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
@@ -67,20 +86,38 @@ const CanvasContainer = (props) => {
     props.setShieldSelectionStart(clampedPosition);
     props.setShieldSelectionEnd(clampedPosition);
     props.setIsShieldSelecting(true);
-  }, [props.nftMintingMode, props.templateCreationMode, width, height, clampToCanvas, props.isShieldMode]);
 
-  const handleSelectionMove = useCallback((e) => {
-    if (!props.isShieldSelecting) return;
+    const position = clampedPosition.y  * width + clampedPosition.x;
 
-    const canvas = props.canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
-    const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * height);
+    const getPixelInfoEndpoint = await fetchWrapper(
+      `get-pixel-info?position=${position.toString()}`,
+    );
 
-    const clampedPosition = clampToCanvas(x, y);
-    props.setShieldSelectionEnd(clampedPosition);
-    props.updateSelectedShieldPixels(props.shieldSelectionStart, clampedPosition);
-  }, [props.isShieldSelecting, width, height, clampToCanvas]);
+    if (!getPixelInfoEndpoint.data) {
+      return;
+    }
+    const paddedAddress = '0x0' + props.address.slice(2);
+        // Check if the pixel address matches the logged-in user's address
+    if (getPixelInfoEndpoint.data === paddedAddress ) {
+      props.updateSelectedShieldPixels(position, maxPixels);
+    } else {
+      console.log("This pixel doesn't belong to the logged-in user")
+    }
+  };
+
+
+  // const handleSelectionMove = useCallback((e) => {
+  //   if (!props.isShieldSelecting) return;
+
+  //   const canvas = props.canvasRef.current;
+  //   const rect = canvas.getBoundingClientRect();
+  //   const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
+  //   const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * height);
+
+  //   const clampedPosition = clampToCanvas(x, y);
+  //   props.setShieldSelectionEnd(clampedPosition);
+  //   props.updateSelectedShieldPixels(props.shieldSelectionStart, clampedPosition);
+  // }, [props.isShieldSelecting, width, height, clampToCanvas]);
 
   const handleSelectionEnd = useCallback(() => {
     props.setIsShieldSelecting(false);
@@ -114,7 +151,7 @@ const CanvasContainer = (props) => {
 
   const handlePointerMove = (e) => {
     if (props.isShieldMode) {
-      handleSelectionMove(e);
+      // handleSelectionMove(e);
     } else if ((props.nftMintingMode && !props.nftSelected) || (props.templateCreationMode && !props.templateCreationSelected)) {
       return;
     } else if (isDragging) {

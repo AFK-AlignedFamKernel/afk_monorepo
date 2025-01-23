@@ -4,7 +4,7 @@ import '../utils/Styles.css';
 import React, { useEffect, useState } from 'react';
 import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS } from "common"
-import { CallData, uint256,constants } from 'starknet';
+import { CallData, uint256, constants } from 'starknet';
 import {
   useContract,
   useNetwork,
@@ -16,12 +16,12 @@ import ercAbi from "../contracts/erc20.json"
 import EraserIcon from '../resources/icons/Eraser.png';
 
 const PixelSelector = (props) => {
-const {chain} = useNetwork()
-const {contract} = useContract({
-  abi: ercAbi,
-  // address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-  address:chain.nativeCurrency.address
-})
+  const { chain } = useNetwork()
+  const { contract } = useContract({
+    abi: ercAbi,
+    // address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+    address: chain.nativeCurrency.address
+  })
   //Pixel Call Hook
   const { mutate: mutatePlaceShield } = useContractAction();
   const shieldPixelFn = async () => {
@@ -32,18 +32,18 @@ const {contract} = useContract({
     amountUint256 = uint256.bnToUint256(BigInt('0x' + defaultAmount));
 
     const approveCall = props.wallet ? {
-      contract_address:  contract.address,
+      contract_address: contract.address,
       entry_point: 'approve',
       calldata: CallData.compile({
-        address:   ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         amount: amountUint256
       }),
     } :
       {
-        contract_address:  contract.address,
+        contract_address: contract.address,
         entrypoint: 'approve',
         calldata: CallData.compile({
-          address:   ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+          address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
           amount: amountUint256,
         }),
       }
@@ -55,8 +55,8 @@ const {contract} = useContract({
     const callProps = (entry) => props.wallet ?
       props.selectedShieldPixels.map((item) => {
         return {
-          calldata: CallData.compile({item, timestamp}),
-          contract_address:  ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+          calldata: CallData.compile({ item, timestamp }),
+          contract_address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
           entry_point: entry
         }
       })
@@ -65,15 +65,15 @@ const {contract} = useContract({
         return {
           calldata: CallData.compile(item, timestamp),
           // calldata: [item, timestamp],
-          contractAddress:  ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+          contractAddress: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
           entrypoint: entry
         }
       })
 
     // Combine the calls with approve first
-    const allCalls = [ approveCall, ...callProps("place_pixel_shield")];
+    const allCalls = [approveCall, ...callProps("place_pixel_shield")];
     // const allCalls = [approveCall];
-    
+
     mutatePlaceShield({
       account: props.account,
       wallet: props.wallet,
@@ -186,9 +186,24 @@ const {contract} = useContract({
             <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
               <p className='PixelSelector__text'>{props.isShieldMode ? "Exit Shield Mode" : "Enter Shield Mode"}</p>
             </div>
-            <div onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
-              <p className='PixelSelector__text'>Shield Pixel for (1) seconds</p>
-            </div>
+
+            {
+              props.isShieldMode ?
+
+                props.selectedShieldPixels.length !== 0 ?
+
+                  <div onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
+                    <p className='PixelSelector__text'>Shield Pixel for (1) seconds</p>
+                  </div>
+                  :
+                  <div className='Button__primary Text__large'>
+                    <p className='PixelSelector__text'>No Pixel Selected</p>
+                  </div>
+
+                : ""
+
+            }
+
           </div>
         </div>
       )}
@@ -289,42 +304,3 @@ const {contract} = useContract({
 
 export default PixelSelector;
 
-
-export const parseUnits = (value, decimals)=> {
-  let [integer, fraction = ""] = value.split(".")
-
-  const negative = integer.startsWith("-")
-  if (negative) {
-    integer = integer.slice(1)
-  }
-
-  // If the fraction is longer than allowed, round it off
-  if (fraction.length > decimals) {
-    const unitIndex = decimals
-    const unit = Number(fraction[unitIndex])
-
-    if (unit >= 5) {
-      const fractionBigInt = BigInt(fraction.slice(0, decimals)) + BigInt(1)
-      fraction = fractionBigInt.toString().padStart(decimals, "0")
-    } else {
-      fraction = fraction.slice(0, decimals)
-    }
-  } else {
-    fraction = fraction.padEnd(decimals, "0")
-  }
-
-  const parsedValue = BigInt(`${negative ? "-" : ""}${integer}${fraction}`)
-
-  return {
-    value: parsedValue,
-    decimals,
-  }
-}
-
-export const getUint256CalldataFromBN = (bn) =>
-  uint256.bnToUint256(bn)
-
-export const parseInputAmountToUint256 = (
-  input,
-  decimals
-) => getUint256CalldataFromBN(parseUnits(input, decimals).value)
