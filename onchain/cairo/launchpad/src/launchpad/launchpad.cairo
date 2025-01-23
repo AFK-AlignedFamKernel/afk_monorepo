@@ -796,7 +796,6 @@ pub mod LaunchpadMarketplace {
             // println!("available supply {:?}", pool_coin.available_supply);
             // println!("amount {:?}", amount);
             pool_coin.liquidity_raised += remain_quote_to_liquidity;
-            pool_coin.total_token_holded += coin_amount;
             pool_coin.price = total_price;
             // TODO TEST
             // EDGE CASE
@@ -907,7 +906,8 @@ pub mod LaunchpadMarketplace {
                         // creator_fee: 0,
                         last_price: old_price,
                         timestamp: get_block_timestamp(),
-                        quote_amount: quote_amount
+                        quote_amount:remain_quote_to_liquidity
+                        // quote_amount: quote_amount
                     }
                 );
         }
