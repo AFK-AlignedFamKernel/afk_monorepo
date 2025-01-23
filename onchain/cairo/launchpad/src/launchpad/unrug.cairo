@@ -770,6 +770,7 @@ pub mod UnrugLiquidity {
                 .register_token(
                     EKIERC20Dispatcher { contract_address: unrug_params.token_address.clone() }
                 );
+            
             unrug_params.lp_supply -= amount_register;
             // println!("register ok add liquidity");
 
@@ -797,19 +798,19 @@ pub mod UnrugLiquidity {
             >(core, @UnrugCallbackData::UnrugLaunchCallback(UnrugLaunchCallback { unrug_params }));
 
             let id_cast: u256 = id.try_into().unwrap();
-            let min_unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
+            // let min_unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
-            let lock_position = LockPosition {
-                id_position: id_cast.clone(),
-                asset_address: unrug_params.token_address.clone(),
-                quote_address: unrug_params.quote_address.clone(),
-                created_at: get_block_timestamp(),
-                exchange: SupportedExchanges::Ekubo,
-                owner: unrug_params.owner.clone(),
-                caller: unrug_params.caller.clone(),
-                unlock_time: min_unlock_time,
-            };
-            self.locked_positions.entry(coin_address).write(lock_position);
+            // let lock_position = LockPosition {
+            //     id_position: id_cast.clone(),
+            //     asset_address: unrug_params.token_address.clone(),
+            //     quote_address: unrug_params.quote_address.clone(),
+            //     created_at: get_block_timestamp(),
+            //     exchange: SupportedExchanges::Ekubo,
+            //     owner: unrug_params.owner.clone(),
+            //     caller: unrug_params.caller.clone(),
+            //     unlock_time: min_unlock_time,
+            // };
+            // self.locked_positions.entry(coin_address).write(lock_position);
 
             self
                 .emit(
@@ -1014,17 +1015,17 @@ pub mod UnrugLiquidity {
                 let (token_id, _, _, _) = nft_router.mint(mint_params);
                 id_token_lp = token_id.try_into().unwrap();
 
-                let lock_position = LockPosition {
-                    id_position: id_token_lp.clone(),
-                    asset_address: coin_address.clone(),
-                    quote_address: quote_address.clone(),
-                    created_at: get_block_timestamp(),
-                    exchange: SupportedExchanges::Jediswap,
-                    owner: owner.clone(), // TODO 
-                    caller: owner.clone(), // TODO change caller
-                    unlock_time: unlock_time,
-                };
-                self.locked_positions.entry(coin_address).write(lock_position);
+                // let lock_position = LockPosition {
+                //     id_position: id_token_lp.clone(),
+                //     asset_address: coin_address.clone(),
+                //     quote_address: quote_address.clone(),
+                //     created_at: get_block_timestamp(),
+                //     exchange: SupportedExchanges::Jediswap,
+                //     owner: owner.clone(), // TODO 
+                //     caller: owner.clone(), // TODO change caller
+                //     unlock_time: unlock_time,
+                // };
+                // self.locked_positions.entry(coin_address).write(lock_position);
 
                 // TODO Locked LP token
                 self

@@ -106,39 +106,40 @@ export const createLaunchpad = async (
       );
 
 
-      console.log('check memecoin class hash')
+      // console.log('check memecoin class hash')
 
-      const declareIfNotToken = await account0.declareIfNot({
-        contract: compiledContract,
-        casm: compiledCasm,
-      });
+      // const declareIfNotToken = await account0.declareIfNot({
+      //   contract: compiledContract,
+      //   casm: compiledCasm,
+      // });
 
-      if(declareIfNotToken?.transaction_hash) {
-        console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
+      // if(declareIfNotToken?.transaction_hash) {
+      //   console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
           
-        console.log("declareIfNotToken", declareIfNotToken);
-        coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
-        console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
-      }
+      //   console.log("declareIfNotToken", declareIfNotToken);
+      //   coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
+      //   console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
+      // }
       // coin_class_hash_memecoin_last = declareIfNotToken?.class_hash
 
       console.log("try declare launchpad");
-      const declareResponse = await account0.declareIfNot({
-        contract: compiledSierraAAaccount,
-        casm: compiledAACasm,
-      });
-      console.log("Declare deploy", declareResponse);
+      // const declareResponse = await account0.declareIfNot({
+      //   // const declareResponse = await account0.declareIfNot({
+      //   contract: compiledSierraAAaccount,
+      //   casm: compiledAACasm,
+      // });
+      // console.log("Declare deploy", declareResponse);
 
-      // TODO wait for transaction
+      // // TODO wait for transaction
 
-      if(declareResponse?.transaction_hash) {
-        console.log("wait declare response")
-        await provider.waitForTransaction(declareResponse?.transaction_hash);
-        console.log("DeclareResponse.class_hash", declareResponse.class_hash);
-      }
+      // if(declareResponse?.transaction_hash) {
+      //   console.log("wait declare response")
+      //   await provider.waitForTransaction(declareResponse?.transaction_hash);
+      //   console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+      // }
 
-      const contractClassHash = declareResponse.class_hash;
-      LaunchpadClassHash = contractClassHash;
+      // const contractClassHash = declareResponse.class_hash;
+      // LaunchpadClassHash = contractClassHash;
       console.log("LaunchpadClassHash", LaunchpadClassHash);
 
       // const nonce = await account0?.getNonce();
