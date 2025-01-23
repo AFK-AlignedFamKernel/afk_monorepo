@@ -21,7 +21,6 @@ import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
 import {  useQueryAddressEffect, useWalletStore, useConnectArgent, useAutoConnect,  } from 'afk_react_sdk';
-import { defiPositionSchema } from '@argent/x-shared';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
