@@ -72,36 +72,39 @@ export const executeContractAction = async ({
     : ContractActionContextType.Expo;
 
   try {
-    // Estimate fees (same for both contexts)
-    const estimatedFee = await account.estimateInvokeFee(transformKeys(callProps, keyMap), {
-      version,
-    });
-    // Apply fee multiplier (default to 1.5x if not specified)
-    const feeMultiplier = callProps[0]?.feeMultiplier || 1.5;
-    const maxFee =
-      (estimatedFee.suggestedMaxFee * BigInt(Math.round(feeMultiplier * 10))) / BigInt(10);
+    console.log('CallData', callProps);
+    // // Estimate fees (same for both contexts)
+    // const estimatedFee = await account.estimateInvokeFee(transformKeys(callProps, keyMap), {
+    //   version,
+    // });
+    // console.log(estimatedFee, 'estimated fee');
+    // // Apply fee multiplier (default to 1.5x if not specified)
+    // const feeMultiplier = callProps[0]?.feeMultiplier || 1.5;
+    // const maxFee =
+    //   (estimatedFee.suggestedMaxFee * BigInt(Math.round(feeMultiplier * 10))) / BigInt(10);
 
-    // Prepare transaction options based on context
-    const transactionOptions =
-      contextType === ContractActionContextType.Telegram
-        ? {
-            version,
-            maxFee,
-            feeDataAvailabilityMode: RPC.EDataAvailabilityMode.L1,
-            resourceBounds: {
-              ...estimatedFee.resourceBounds,
-              l1_gas: {
-                ...estimatedFee.resourceBounds.l1_gas,
-                max_amount: num.toHex(
-                  BigInt(parseInt(estimatedFee.resourceBounds.l1_gas.max_amount, 16) * 2),
-                ),
-              },
-            },
-          }
-        : {
-            version,
-            maxFee,
-          };
+    // // Prepare transaction options based on context
+    // const transactionOptions =
+    //   contextType === ContractActionContextType.Telegram
+    //     ? {
+    //         version,
+    //         maxFee,
+    //         feeDataAvailabilityMode: RPC.EDataAvailabilityMode.L1,
+    //         resourceBounds: {
+    //           ...estimatedFee.resourceBounds,
+    //           l1_gas: {
+    //             ...estimatedFee.resourceBounds.l1_gas,
+    //             max_amount: num.toHex(
+    //               BigInt(parseInt(estimatedFee.resourceBounds.l1_gas.max_amount, 16) * 2),
+    //             ),
+    //           },
+    //         },
+    //       }
+    //     : {
+    //         version,
+    //         maxFee,
+    //       };
+
     // Execute the transaction using account.execute() or invoke with wallet since we using sessions
     const { transaction_hash } = wallet
       ? await wallet.request({
@@ -110,7 +113,7 @@ export const executeContractAction = async ({
             calls: callProps,
           },
         })
-      : await account.execute(callProps, transactionOptions);
+      : await account.execute(callProps);
     // Wait for transaction receipt
     let receipt;
     if (contextType === ContractActionContextType.Telegram) {

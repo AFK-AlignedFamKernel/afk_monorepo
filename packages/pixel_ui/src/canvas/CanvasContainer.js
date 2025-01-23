@@ -11,8 +11,9 @@ import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction } from "afk_sdk";
-import { ART_PEACE_ADDRESS } from "common"
+import { ART_PEACE_ADDRESS} from "common"
 import MetadataView from './metadata/Metadata';
+import { byteArray, cairo, CallData } from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -316,7 +317,8 @@ const CanvasContainer = (props) => {
     const callProps = (data, entry) =>  props.wallet ?
 
     [{
-      calldata:data,
+      // calldata:data,
+      calldata: data,
       contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
       entry_point: entry
     }]
@@ -327,12 +329,24 @@ const CanvasContainer = (props) => {
       entrypoint: entry
     }]
 
+   
+
+
     //Check if the user adds a metadata.
     if (metaData.twitter || metaData.nostr || metaData.ips) {
+
+      const metadata = {
+        pos: position, 
+        ipfs: byteArray.byteArrayFromString(metaData.ips), 
+        nostr_event_id: metaData.nostr,
+        owner: props.account.address,
+        contract: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'] || "" // Contract address
+      };
+
       return mutatePlacePixel({
         account: props.account,
         wallet: props.wallet,
-        callProps: callProps([position, color, now, position, metaData.ips || "", metaData.nostr || "", props.account?.address, ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941']],"place_pixel_metadata")
+        callProps: callProps(CallData.compile({position, color, now, metaPos:metadata.pos, ipfs:metadata.ipfs,  nostr:metadata.nostr_event_id,  owner: metadata.owner, contract: metadata.contract}), "place_pixel_with_metadata")
       }, {
         onError(err) {
           console.log(err);
@@ -410,7 +424,8 @@ const CanvasContainer = (props) => {
     // if (!devnetMode) {
     props.setSelectedColorId(-1);
     props.colorPixel(position, colorId);
-    await placePixelCall(position, colorId, timestamp);
+   await placePixelCall(position, colorId, timestamp);
+
     props.clearPixelSelection();
     props.setLastPlacedTime(timestamp * 1000);
     // return;
@@ -429,10 +444,10 @@ const CanvasContainer = (props) => {
           mode: 'cors',
           method: 'POST',
           body: JSON.stringify({
-            position: position.toString(),
-            color: colorId.toString(),
-            timestamp: timestamp.toString(),
-          }),
+            position: Number(position),
+            color: Number(colorId),
+            timestamp: Number(timestamp)
+          })
         });
         if (response.result) {
           console.log(response.result);

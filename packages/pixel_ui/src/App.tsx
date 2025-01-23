@@ -20,7 +20,7 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
-import { useAutoConnect, useQueryAddressEffect, useWalletStore, useConnectArgent } from 'afk_react_sdk';
+import {  useQueryAddressEffect, useWalletStore, useConnectArgent, useAutoConnect,  } from 'afk_react_sdk';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -85,6 +85,9 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     disconnectWallet,
     usingSessionKeys
   } = useWalletStore()
+
+
+ 
 
 
 
@@ -297,6 +300,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
       // Reset selection when exiting shield mode
       setShieldSelectionStart({ x: null, y: null });
       setShieldSelectionEnd({ x: null, y: null });
+      setSelectedShieldPixels([]);
+      setShieldedAreas([]);
     }
   };
 

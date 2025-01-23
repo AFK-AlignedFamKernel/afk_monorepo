@@ -4,41 +4,80 @@ import '../utils/Styles.css';
 import React, { useEffect, useState } from 'react';
 import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS } from "common"
+import { CallData, uint256,constants } from 'starknet';
+import {
+  useContract,
+  useNetwork,
+} from "@starknet-react/core";
+import { formatFloatToUint256 } from "common"
+import ercAbi from "../contracts/erc20.json"
+
 
 import EraserIcon from '../resources/icons/Eraser.png';
 
 const PixelSelector = (props) => {
+const {chain} = useNetwork()
+const {contract} = useContract({
+  abi: ercAbi,
+  // address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+  address:chain.nativeCurrency.address
+})
   //Pixel Call Hook
-  const { mutate: mutatePlaceShield } = useContractAction()
-
+  const { mutate: mutatePlaceShield } = useContractAction();
   const shieldPixelFn = async () => {
+    //Add a default 1Sec Shield time.
+    const timestamp = props.shieldTime || Math.floor(Date.now() / 1000);
+    const defaultAmount = 1;
+    let amountUint256 = formatFloatToUint256(defaultAmount);
+    amountUint256 = uint256.bnToUint256(BigInt('0x' + defaultAmount));
 
-    //Add a default 3MIN Shield time.
-    const timestamp = props.shieldTime || Math.floor(Date.now() / 1000) + (3 * 60);
-    if (!props.address || !props.account ||  props.selectedShieldPixels.length === 0 ) return;
+    const approveCall = props.wallet ? {
+      contract_address:  contract.address,
+      entry_point: 'approve',
+      calldata: CallData.compile({
+        address:   ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        amount: amountUint256
+      }),
+    } :
+      {
+        contract_address:  contract.address,
+        entrypoint: 'approve',
+        calldata: CallData.compile({
+          address:   ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+          amount: amountUint256,
+        }),
+      }
+
+
+
+    if (!props.address || !props.account || props.selectedShieldPixels.length === 0) return;
     //Check for wallet or account
     const callProps = (entry) => props.wallet ?
       props.selectedShieldPixels.map((item) => {
         return {
-          calldata: [item, timestamp],
-          contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+          calldata: CallData.compile({item, timestamp}),
+          contract_address:  ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
           entry_point: entry
         }
       })
       :
       props.selectedShieldPixels.map((item) => {
         return {
-          calldata: [item, timestamp],
-          contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+          calldata: CallData.compile(item, timestamp),
+          // calldata: [item, timestamp],
+          contractAddress:  ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
           entrypoint: entry
-
         }
       })
 
+    // Combine the calls with approve first
+    const allCalls = [ approveCall, ...callProps("place_pixel_shield")];
+    // const allCalls = [approveCall];
+    
     mutatePlaceShield({
       account: props.account,
       wallet: props.wallet,
-      callProps: callProps("place_pixel_shield")
+      callProps: allCalls
     }, {
       onError(err) {
         console.log(err)
@@ -147,8 +186,8 @@ const PixelSelector = (props) => {
             <div onClick={props.toggleShieldMode} className='Button__primary Text__large'>
               <p className='PixelSelector__text'>{props.isShieldMode ? "Exit Shield Mode" : "Enter Shield Mode"}</p>
             </div>
-            <div  onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
-              <p className='PixelSelector__text'>Shield Pixel for (3) minutes</p>
+            <div onClick={() => [props.registerShieldArea(), shieldPixelFn()]} className='Button__primary Text__large'>
+              <p className='PixelSelector__text'>Shield Pixel for (1) seconds</p>
             </div>
           </div>
         </div>
@@ -249,3 +288,43 @@ const PixelSelector = (props) => {
 };
 
 export default PixelSelector;
+
+
+export const parseUnits = (value, decimals)=> {
+  let [integer, fraction = ""] = value.split(".")
+
+  const negative = integer.startsWith("-")
+  if (negative) {
+    integer = integer.slice(1)
+  }
+
+  // If the fraction is longer than allowed, round it off
+  if (fraction.length > decimals) {
+    const unitIndex = decimals
+    const unit = Number(fraction[unitIndex])
+
+    if (unit >= 5) {
+      const fractionBigInt = BigInt(fraction.slice(0, decimals)) + BigInt(1)
+      fraction = fractionBigInt.toString().padStart(decimals, "0")
+    } else {
+      fraction = fraction.slice(0, decimals)
+    }
+  } else {
+    fraction = fraction.padEnd(decimals, "0")
+  }
+
+  const parsedValue = BigInt(`${negative ? "-" : ""}${integer}${fraction}`)
+
+  return {
+    value: parsedValue,
+    decimals,
+  }
+}
+
+export const getUint256CalldataFromBN = (bn) =>
+  uint256.bnToUint256(bn)
+
+export const parseInputAmountToUint256 = (
+  input,
+  decimals
+) => getUint256CalldataFromBN(parseUnits(input, decimals).value)
