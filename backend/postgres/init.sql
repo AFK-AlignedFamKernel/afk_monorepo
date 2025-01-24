@@ -5,7 +5,8 @@ CREATE TABLE Pixels (
   position integer NOT NULL,
   day integer NOT NULL,
   color integer NOT NULL,
-  time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  metadata JSONB DEFAULT NULL
 );
 CREATE INDEX pixels_address_index ON Pixels (address);
 CREATE INDEX pixels_position_index ON Pixels (position);
