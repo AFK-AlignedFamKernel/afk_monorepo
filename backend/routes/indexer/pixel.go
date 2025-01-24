@@ -2,6 +2,8 @@ package indexer
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
@@ -52,6 +54,7 @@ func processPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
+	fmt.Printf(address, position, dayIdx, color, "print")
 	// Set pixel in postgres
 	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Pixels (address, position, day, color) VALUES ($1, $2, $3, $4)", address, position, dayIdx, color)
 	if err != nil {
@@ -116,7 +119,6 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 func processBasicPixelPlacedEvent(event IndexerEvent) {
 	address := event.Event.Keys[1][2:] // Remove 0x prefix
 	timestampHex := event.Event.Data[0]
-
 	timestamp, err := strconv.ParseInt(timestampHex, 0, 64)
 	if err != nil {
 		PrintIndexerError("processBasicPixelPlacedEvent", "Error converting timestamp hex to int", address, timestampHex)
@@ -233,4 +235,118 @@ func revertExtraPixelsPlacedEvent(event IndexerEvent) {
 		PrintIndexerError("revertExtraPixelsPlacedEvent", "Error updating extra pixels in postgres", address, extraPixelsHex)
 		return
 	}
+}
+
+func processBasicPixelPlacedEventWithMetadata(event IndexerEvent) {
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	timestampHex := event.Event.Data[0]
+	timestamp, err := strconv.ParseInt(timestampHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error converting timestamp hex to int", address, timestampHex)
+		return
+	}
+
+	// Extract position and color from the event (position is Keys[2], color is in Data[1])
+	positionHex := event.Event.Keys[2]
+	position, err := strconv.Atoi(positionHex)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error converting position hex to int", address, positionHex)
+		return
+	}
+
+	colorHex := event.Event.Data[1]
+	color, err := strconv.Atoi(colorHex)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error converting color hex to int", address, colorHex)
+		return
+	}
+
+	// Extract metadata from the last index in Data (metadata is in Data[n])
+	metadata := event.Event.Data[len(event.Event.Data)-1]
+
+	// Unmarshal metadata (if it exists)
+	var metadataMap map[string]interface{}
+	if len(metadata) > 0 {
+		err = json.Unmarshal([]byte(metadata), &metadataMap)
+		if err != nil {
+			PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error parsing metadata", address, string(metadata))
+			return
+		}
+	}
+
+	// Prepare SQL statement for inserting pixel info and metadata together
+	metadataJson, err := json.Marshal(metadataMap)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error serializing metadata", address, string(metadata))
+		return
+	}
+
+	// Use a single query to insert the pixel information and metadata into the database
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(),
+		`INSERT INTO Pixels (address, position, color, time)
+		 VALUES ($1, $2, $3, TO_TIMESTAMP($4))
+		 ON CONFLICT (address, position)
+		 DO UPDATE SET color = $3, time = TO_TIMESTAMP($4),
+		 metadata = COALESCE(metadata, $5)`,
+		address, position, color, timestamp, metadataJson)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error inserting/updating pixel and metadata", address, string(metadataJson))
+		return
+	}
+
+	// Insert or update the last placed time in the LastPlacedTime table
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(),
+		"INSERT INTO LastPlacedTime (address, time) VALUES ($1, TO_TIMESTAMP($2)) ON CONFLICT (address) DO UPDATE SET time = TO_TIMESTAMP($2)",
+		address, timestamp)
+	if err != nil {
+		PrintIndexerError("processBasicPixelPlacedEventWithMetadata", "Error inserting last placed time into postgres", address, timestampHex)
+		return
+	}
+}
+
+func revertBasicPixelPlacedEventWithMetadata(event IndexerEvent) {
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+
+	// Convert hex to int for position
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	// We can also retrieve the metadata from the event if needed
+	metadata := event.Event.Data[len(event.Event.Data)-1]
+	var metadataMap map[string]interface{}
+	if len(metadata) > 0 {
+		err = json.Unmarshal([]byte(metadata), &metadataMap) // Unmarshal from metadata (which is a string) to map
+		if err != nil {
+			PrintIndexerError("revertPixelPlacedEvent", "Error parsing metadata", address, string(metadata))
+			return
+		}
+	}
+
+	// Delete the pixel entry (including metadata) from the PostgreSQL database
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), `
+		DELETE FROM Pixels
+		WHERE address = $1 AND position = $2
+		ORDER BY time LIMIT 1`, address, position)
+	if err != nil {
+		PrintIndexerError("revertPixelPlacedEvent", "Error deleting pixel from postgres", address, posHex)
+		return
+	}
+
+	// Optionally, you can also delete the metadata from the database,
+	// but usually deleting the pixel entry will automatically take care of it since metadata is part of the same row.
+
+	// Delete the pixel's associated last placed time entry from the LastPlacedTime table
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(),
+		"DELETE FROM LastPlacedTime WHERE address = $1", address)
+	if err != nil {
+		PrintIndexerError("revertPixelPlacedEvent", "Error deleting last placed time from postgres", address, posHex)
+		return
+	}
+
+	// Optionally log the event if needed
+	fmt.Printf("Pixel at position %d for address %s has been reverted.\n", position, address)
 }

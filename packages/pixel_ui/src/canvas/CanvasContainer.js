@@ -2,7 +2,7 @@
 
 import './CanvasContainer.css';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import canvasConfig from '../configs/canvas.config.json';
 import { fetchWrapper } from '../services/apiService.js';
 import Canvas from './Canvas';
@@ -11,8 +11,9 @@ import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction } from "afk_sdk";
-import { ART_PEACE_ADDRESS } from "common"
+import { ART_PEACE_ADDRESS} from "common"
 import MetadataView from './metadata/Metadata';
+import { byteArray,CallData } from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -36,11 +37,97 @@ const CanvasContainer = (props) => {
 
   const [isErasing, setIsErasing] = useState(false);
 
-  const [showMetadataForm, setShowMetaDataForm] = useState(false)
+  // Metadata states
+  const [showMetadataForm, setShowMetaDataForm] = useState(false);
+  const [metaData, setMetadata] = useState({
+    twitter: '',
+    nostr: '',
+    ips: ''
+  })
+
+  const clampToCanvas = useCallback((x, y) => {
+    return {
+      x: Math.max(0, Math.min(width - 1, x)),
+      y: Math.max(0, Math.min(height - 1, y))
+    };
+  }, [width, height]);
+
+
+
+  // const handleSelectionStarts = useCallback( async (e) => {
+  //   if (props.nftMintingMode || props.templateCreationMode || !props.isShieldMode) return;
+
+  //   const canvas = props.canvasRef.current
+  //   if (!canvas) return
+
+  //   const rect = canvas.getBoundingClientRect()
+  //   const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * props.width)
+  //   const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * props.height)
+
+  //   const clampedPosition = clampToCanvas(x, y);
+  //   props.setShieldSelectionStart(clampedPosition)
+  //   props.setShieldSelectionEnd(clampedPosition)
+  //   props.setIsShieldSelecting(true)
+  // }, [props.nftMintingMode, props.templateCreationMode, width, height, clampToCanvas, props.isShieldMode]);
+
+
+  const handleSelectionStart = async (e) => {
+    if (props.nftMintingMode || props.templateCreationMode || !props.isShieldMode) return;
+
+    //Only one pixel can be shield for now.
+    const maxPixels = 1;
+    const canvas = props.canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
+    const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * height);
+
+
+    const clampedPosition = clampToCanvas(x, y);
+    props.setShieldSelectionStart(clampedPosition);
+    props.setShieldSelectionEnd(clampedPosition);
+    props.setIsShieldSelecting(true);
+
+    const position = clampedPosition.y  * width + clampedPosition.x;
+
+    const getPixelInfoEndpoint = await fetchWrapper(
+      `get-pixel-info?position=${position.toString()}`,
+    );
+
+    if (!getPixelInfoEndpoint.data) {
+      return;
+    }
+    const paddedAddress = '0x0' + props.address.slice(2);
+        // Check if the pixel address matches the logged-in user's address
+    if (getPixelInfoEndpoint.data === paddedAddress ) {
+      props.updateSelectedShieldPixels(position, maxPixels);
+    } else {
+      console.log("This pixel doesn't belong to the logged-in user")
+    }
+  };
+
+
+  // const handleSelectionMove = useCallback((e) => {
+  //   if (!props.isShieldSelecting) return;
+
+  //   const canvas = props.canvasRef.current;
+  //   const rect = canvas.getBoundingClientRect();
+  //   const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
+  //   const y = Math.floor(((e.clientY - rect.top) / (rect.bottom - rect.top)) * height);
+
+  //   const clampedPosition = clampToCanvas(x, y);
+  //   props.setShieldSelectionEnd(clampedPosition);
+  //   props.updateSelectedShieldPixels(props.shieldSelectionStart, clampedPosition);
+  // }, [props.isShieldSelecting, width, height, clampToCanvas]);
+
+  const handleSelectionEnd = useCallback(() => {
+    props.setIsShieldSelecting(false);
+  }, []);
 
   const handlePointerDown = (e) => {
     // TODO: Require over canvas?
-    if (!props.isEraserMode) {
+    if (props.isShieldMode) {
+      handleSelectionStart(e);
+    } else if (!props.isEraserMode) {
       setIsDragging(true);
       setDragStartX(e.clientX);
       setDragStartY(e.clientY);
@@ -49,26 +136,34 @@ const CanvasContainer = (props) => {
     }
   };
 
-  const handlePointerUp = () => {
-    setIsErasing(false);
-    setIsDragging(false);
-    setDragStartX(0);
-    setDragStartY(0);
-  };
+
+
+  const handlePointerUp = useCallback(() => {
+    if (props.isShieldMode) {
+      handleSelectionEnd();
+    } else {
+      setIsErasing(false);
+      setIsDragging(false);
+      setDragStartX(0);
+      setDragStartY(0);
+    }
+  }, [props.isShieldMode, handleSelectionEnd]);
 
   const handlePointerMove = (e) => {
-    if (props.nftMintingMode && !props.nftSelected) return;
-    if (props.templateCreationMode && !props.templateCreationSelected) return;
-    if (isDragging) {
+    if (props.isShieldMode) {
+      // handleSelectionMove(e);
+    } else if ((props.nftMintingMode && !props.nftSelected) || (props.templateCreationMode && !props.templateCreationSelected)) {
+      return;
+    } else if (isDragging) {
       setCanvasX(canvasX + e.clientX - dragStartX);
       setCanvasY(canvasY + e.clientY - dragStartY);
       setDragStartX(e.clientX);
       setDragStartY(e.clientY);
-    }
-    if (props.isEraserMode && isErasing) {
+    } else if (props.isEraserMode && isErasing) {
       pixelClicked(e);
     }
   };
+
 
   useEffect(() => {
     window?.addEventListener('pointerup', handlePointerUp);
@@ -177,6 +272,14 @@ const CanvasContainer = (props) => {
     }
   };
 
+
+  useEffect(() => {
+    window.addEventListener('mouseup', handleSelectionEnd);
+    return () => {
+      window.removeEventListener('mouseup', handleSelectionEnd);
+    };
+  }, [handleSelectionEnd]);
+
   useEffect(() => {
     canvasContainerRef?.current.addEventListener('wheel', zoom);
     canvasContainerRef?.current.addEventListener('touchstart', handleTouchStart);
@@ -245,23 +348,62 @@ const CanvasContainer = (props) => {
 
     // if (devnetMode) return;
     // if (!props.address || !props.artPeaceContract) return;
-    console.log("try placePixelCall")
     if (!props.address || !props.artPeaceContract || !props.account) return;
-    console.log("mutatePlacePixel")
+
+    //Check for wallet or account
+    const callProps = (data, entry) =>  props.wallet ?
+
+    [{
+      // calldata:data,
+      calldata: data,
+      contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+      entry_point: entry
+    }]
+    :
+    [{
+      calldata:data,
+      contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+      entrypoint: entry
+    }]
+
+   
+
+
+    //Check if the user adds a metadata.
+    if (metaData.twitter || metaData.nostr || metaData.ips) {
+
+      const metadata = {
+        pos: position, 
+        ipfs: byteArray.byteArrayFromString(metaData.ips), 
+        nostr_event_id: metaData.nostr,
+        owner: props.account.address,
+        contract: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'] || "" // Contract address
+      };
+
+      return mutatePlacePixel({
+        account: props.account,
+        wallet: props.wallet,
+        callProps: callProps(CallData.compile({position, color, now, metaPos:metadata.pos, ipfs:metadata.ipfs,  nostr:metadata.nostr_event_id,  owner: metadata.owner, contract: metadata.contract}), "place_pixel_with_metadata")
+      }, {
+        onError(err) {
+          console.log(err);
+          setShowMetaDataForm(false);
+        },
+        onSuccess(data) {
+          console.log(data, "Success")
+        }
+      })
+    }
     mutatePlacePixel({
       account: props.account,
       wallet: props.wallet,
-      callProps: {
-        calldata: [position, color, now],
-        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        entrypoint: "place_pixel"
-      }
+      callProps: callProps([position, color, now],"place_pixel")
     }, {
       onError(err) {
         console.log(err)
         setShowMetaDataForm(false)
       },
-      onSuccess(data){
+      onSuccess(data) {
         console.log(data, "Success")
       }
     })
@@ -272,12 +414,6 @@ const CanvasContainer = (props) => {
     if (props.nftMintingMode || props.templateCreationMode) {
       return;
     }
-
-    //Show Metadata Form on Pixel Clicked and pixel selectMode
-    if (props.selectedColorId !== -1) {
-      setShowMetaDataForm(true);
-    }
-
     const canvas = props.canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor(((e.clientX - rect.left) / (rect.right - rect.left)) * width);
@@ -287,7 +423,6 @@ const CanvasContainer = (props) => {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return;
     }
-
     // Erase Extra Pixel
     if (props.isEraserMode) {
       const pixelIndex = props.extraPixelsData.findIndex((pixelData) => {
@@ -326,7 +461,8 @@ const CanvasContainer = (props) => {
     // if (!devnetMode) {
     props.setSelectedColorId(-1);
     props.colorPixel(position, colorId);
-    await placePixelCall(position,colorId,timestamp);
+   await placePixelCall(position, colorId, timestamp);
+
     props.clearPixelSelection();
     props.setLastPlacedTime(timestamp * 1000);
     // return;
@@ -345,10 +481,10 @@ const CanvasContainer = (props) => {
           mode: 'cors',
           method: 'POST',
           body: JSON.stringify({
-            position: position.toString(),
-            color: colorId.toString(),
-            timestamp: timestamp.toString(),
-          }),
+            position: Number(position),
+            color: Number(colorId),
+            timestamp: Number(timestamp)
+          })
         });
         if (response.result) {
           console.log(response.result);
@@ -473,9 +609,45 @@ const CanvasContainer = (props) => {
     props.isExtraDeleteMode,
   ]);
 
+  const renderSelectionBox = () => {
+    if (props.shieldSelectionStart.x === null || props.shieldSelectionEnd.x === null) return null;
+
+    const left = Math.min(props.shieldSelectionStart.x, props.shieldSelectionEnd.x) * canvasScale;
+    const top = Math.min(props.shieldSelectionStart.y, props.shieldSelectionEnd.y) * canvasScale;
+    const width = (Math.abs(props.shieldSelectionEnd.x - props.shieldSelectionStart.x) + 1) * canvasScale;
+    const height = (Math.abs(props.shieldSelectionEnd.y - props.shieldSelectionStart.y) + 1) * canvasScale;
+
+    return (
+      <div
+        className="shield-selection-box"
+        style={{
+          left,
+          top,
+          width,
+          height,
+        }}
+      />
+    );
+  };
+
+  const renderShieldedAreas = () => {
+    return props.shieldedAreas.map((area, index) => (
+      <div
+        key={index}
+        className="shielded-area"
+        style={{
+          left: area.x * canvasScale,
+          top: area.y * canvasScale,
+          width: area.width * canvasScale,
+          height: area.height * canvasScale,
+        }}
+      />
+    ));
+  };
+
   return (
     <>
-      <MetadataView closeMeta={() => setShowMetaDataForm(false)} showMeta={showMetadataForm} />
+      <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips:"", nostr:"", twitter:""})]} showMeta={showMetadataForm} />
       <div
         ref={canvasContainerRef}
         className="CanvasContainer"
@@ -490,6 +662,8 @@ const CanvasContainer = (props) => {
             transform: `translate(${canvasX}px, ${canvasY}px)`,
           }}
         >
+          {props.isShieldMode && renderSelectionBox()}
+          {renderShieldedAreas()}
           {props.pixelSelectedMode && (
             <div
               className="Canvas__selection"
@@ -509,6 +683,7 @@ const CanvasContainer = (props) => {
               ></div>
             </div>
           )}
+
           <Canvas
             canvasRef={props.canvasRef}
             width={width}

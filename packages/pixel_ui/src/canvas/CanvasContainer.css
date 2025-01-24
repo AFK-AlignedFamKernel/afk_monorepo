@@ -48,3 +48,18 @@
   background-color: rgba(0, 0, 0, 0);
   outline: 0.1px solid rgba(255, 0, 0, 0.5);
 }
+
+
+
+.shield-selection-box {
+  position: absolute;
+  border: 2px solid #3b82f6;
+  background-color: rgba(59, 130, 246, 0.2);
+  pointer-events: none;
+}
+
+.shielded-area {
+  position: absolute;
+  background-color: rgba(196, 196, 196, 0.2);
+  pointer-events: none;
+}

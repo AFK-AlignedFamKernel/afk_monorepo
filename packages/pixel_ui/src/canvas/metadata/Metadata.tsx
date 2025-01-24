@@ -1,21 +1,14 @@
-import { useState } from 'react';
 import './metadataForm.css'
 type IProps = {
     showMeta: boolean;
     closeMeta: () => void;
-}
-type FormData = {
-    twitter: string;
-    nostr: string;
-    ips: string;
+    handleOpen:()=>void;
+    selectorMode:boolean;
+    setFormData:any;
+    formData
 }
 
-export default function MetadataForm({ showMeta, closeMeta }: IProps) {
-    const [formData, setFormData] = useState<FormData>({
-        twitter: '',
-        nostr: '',
-        ips: ''
-    })
+export default function MetadataForm({ showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -25,17 +18,25 @@ export default function MetadataForm({ showMeta, closeMeta }: IProps) {
         }))
     }
 
-
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        // Handle form submission logic here
-        console.log('Form submitted');
-        setFormData({ twitter: '', nostr: '', ips: '' })
+        console.log('Form submitted', formData);
         closeMeta()
     }
 
     return (
         <div className="metadata-form-container">
+            {selectorMode &&
+            <div className="open">
+                <button
+                    onClick={handleOpen}
+                    type="button"
+                    className="metadata-form-submit"
+                >
+                    Add Metadata
+                </button>
+            </div>
+            }
             <div className={`metadata-form ${showMeta ? 'open' : ''}`}>
                 <form onSubmit={handleSubmit} className="metadata-form-content">
                     <button
@@ -83,7 +84,7 @@ export default function MetadataForm({ showMeta, closeMeta }: IProps) {
                         type="submit"
                         className="metadata-form-submit"
                     >
-                        Save Metadata
+                     Clear Metadata
                     </button>
                 </form>
             </div>

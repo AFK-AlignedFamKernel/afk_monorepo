@@ -1,6 +1,22 @@
 import { useMutation } from '@tanstack/react-query';
 import { Account, AccountInterface, num, RPC } from 'starknet';
 
+const transformKeys = (array: any, keyMap: any) => {
+  return array.map((obj: any) => {
+    return Object.entries(obj).reduce((newObj, [key, value]) => {
+      const newKey = keyMap[key] || key;
+      // @ts-ignore
+      newObj[newKey] = value;
+      return newObj;
+    }, {});
+  });
+};
+
+const keyMap = {
+  contract_address: 'contractAddress',
+  entry_point: 'entrypoint',
+};
+
 // Detect Telegram context
 const isTelegramContext = () =>
   typeof window !== 'undefined' &&
@@ -50,57 +66,54 @@ export const executeContractAction = async ({
   options: ExecuteContractActionOptions;
 }): Promise<ExecuteContractActionResult> => {
   const { version = 3, argentTMA } = options;
-
   // Automatically determine the context type
   const contextType = isTelegramContext()
     ? ContractActionContextType.Telegram
     : ContractActionContextType.Expo;
 
   try {
-    // Estimate fees (same for both contexts)
-    const estimatedFee = await account.estimateInvokeFee([callProps], { version });
+    console.log('CallData', callProps);
+    // // Estimate fees (same for both contexts)
+    // const estimatedFee = await account.estimateInvokeFee(transformKeys(callProps, keyMap), {
+    //   version,
+    // });
+    // console.log(estimatedFee, 'estimated fee');
+    // // Apply fee multiplier (default to 1.5x if not specified)
+    // const feeMultiplier = callProps[0]?.feeMultiplier || 1.5;
+    // const maxFee =
+    //   (estimatedFee.suggestedMaxFee * BigInt(Math.round(feeMultiplier * 10))) / BigInt(10);
 
-    // Apply fee multiplier (default to 1.5x if not specified)
-    const feeMultiplier = callProps.feeMultiplier || 1.5;
-    const maxFee =
-      (estimatedFee.suggestedMaxFee * BigInt(Math.round(feeMultiplier * 10))) / BigInt(10);
+    // // Prepare transaction options based on context
+    // const transactionOptions =
+    //   contextType === ContractActionContextType.Telegram
+    //     ? {
+    //         version,
+    //         maxFee,
+    //         feeDataAvailabilityMode: RPC.EDataAvailabilityMode.L1,
+    //         resourceBounds: {
+    //           ...estimatedFee.resourceBounds,
+    //           l1_gas: {
+    //             ...estimatedFee.resourceBounds.l1_gas,
+    //             max_amount: num.toHex(
+    //               BigInt(parseInt(estimatedFee.resourceBounds.l1_gas.max_amount, 16) * 2),
+    //             ),
+    //           },
+    //         },
+    //       }
+    //     : {
+    //         version,
+    //         maxFee,
+    //       };
 
-    // Prepare transaction options based on context
-    const transactionOptions =
-      contextType === ContractActionContextType.Telegram
-        ? {
-            version,
-            maxFee,
-            feeDataAvailabilityMode: RPC.EDataAvailabilityMode.L1,
-            resourceBounds: {
-              ...estimatedFee.resourceBounds,
-              l1_gas: {
-                ...estimatedFee.resourceBounds.l1_gas,
-                max_amount: num.toHex(
-                  BigInt(parseInt(estimatedFee.resourceBounds.l1_gas.max_amount, 16) * 2),
-                ),
-              },
-            },
-          }
-        : {
-            version,
-            maxFee,
-          };
     // Execute the transaction using account.execute() or invoke with wallet since we using sessions
     const { transaction_hash } = wallet
       ? await wallet.request({
           type: 'wallet_addInvokeTransaction',
           params: {
-            calls: [
-              {
-                calldata: callProps.calldata,
-                contract_address: callProps.contractAddress,
-                entry_point: callProps.entrypoint,
-              },
-            ],
+            calls: callProps,
           },
         })
-      : await account.execute([callProps], transactionOptions);
+      : await account.execute(callProps);
     // Wait for transaction receipt
     let receipt;
     if (contextType === ContractActionContextType.Telegram) {

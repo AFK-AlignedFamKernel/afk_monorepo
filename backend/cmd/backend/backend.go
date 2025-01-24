@@ -78,6 +78,7 @@ func main() {
 	indexer.InitIndexerRoutes()
 	routes.InitWebsocketRoutes()
 	routes.InitNFTStaticRoutes()
+	indexer.StartMessageProcessor()
 
 	core.AFKBackend.Start(core.AFKBackend.BackendConfig.Port)
 }

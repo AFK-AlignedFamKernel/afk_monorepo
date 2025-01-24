@@ -2,15 +2,26 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/AFK-AlignedFamKernel/afk_monorepo/backend/core"
 	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
+
+// Define a struct to represent a Pixel record
+type Pixel struct {
+	Address  string    `json:"address"`
+	Position int       `json:"position"`
+	Day      int       `json:"day"`
+	Color    int       `json:"color"`
+	Time     time.Time `json:"time"`
+}
 
 func InitPixelRoutes() {
 	http.HandleFunc("/get-pixel", getPixel)
@@ -53,10 +64,35 @@ func getPixel(w http.ResponseWriter, r *http.Request) {
 }
 
 type PixelInfo struct {
-	Address string `json:"address"`
-	Name    string `json:"username"`
+	Address  string          `json:"address"`
+	Name     string          `json:"username"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
 }
 
+// func getPixelInfo(w http.ResponseWriter, r *http.Request) {
+// 	position, err := strconv.Atoi(r.URL.Query().Get("position"))
+// 	if err != nil {
+// 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid query position")
+// 		return
+// 	}
+
+// 	queryRes, err := core.PostgresQueryOne[PixelInfo](`
+//     SELECT p.address, COALESCE(u.name, '') as name FROM Pixels p
+//     LEFT JOIN Users u ON p.address = u.address WHERE p.position = $1
+//     ORDER BY p.time DESC LIMIT 1`, position)
+// 	if err != nil {
+// 		routeutils.WriteDataJson(w, "\"0x0000000000000000000000000000000000000000000000000000000000000000\"")
+// 		return
+// 	}
+
+// 	if queryRes.Name == "" {
+// 		routeutils.WriteDataJson(w, "\"0x"+queryRes.Address+"\"")
+// 	} else {
+// 		routeutils.WriteDataJson(w, "\""+queryRes.Name+"\"")
+// 	}
+// }
+
+// New implmentation with metadata
 func getPixelInfo(w http.ResponseWriter, r *http.Request) {
 	position, err := strconv.Atoi(r.URL.Query().Get("position"))
 	if err != nil {
@@ -64,21 +100,42 @@ func getPixelInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Update the query to include metadata
 	queryRes, err := core.PostgresQueryOne[PixelInfo](`
-    SELECT p.address, COALESCE(u.name, '') as name FROM Pixels p
-    LEFT JOIN Users u ON p.address = u.address WHERE p.position = $1
-    ORDER BY p.time DESC LIMIT 1`, position)
+        SELECT
+            p.address,
+            COALESCE(u.name, '') as name,
+            p.metadata  -- Fetch the metadata column as well
+        FROM Pixels p
+        LEFT JOIN Users u ON p.address = u.address
+        WHERE p.position = $1
+        ORDER BY p.time DESC
+        LIMIT 1`, position)
 	if err != nil {
 		routeutils.WriteDataJson(w, "\"0x0000000000000000000000000000000000000000000000000000000000000000\"")
 		return
 	}
 
+	// If queryRes.Name is empty, return the address, else return the name
 	if queryRes.Name == "" {
-		routeutils.WriteDataJson(w, "\"0x"+queryRes.Address+"\"")
+		response := "\"0x" + queryRes.Address + "\""
+		if queryRes.Metadata != nil {
+			// If metadata exists, include it in the response
+			metadataJson, _ := json.Marshal(queryRes.Metadata)
+			response = fmt.Sprintf("{\"address\": \"%s\", \"metadata\": %s}", queryRes.Address, string(metadataJson))
+		}
+		routeutils.WriteDataJson(w, response)
 	} else {
-		routeutils.WriteDataJson(w, "\""+queryRes.Name+"\"")
+		response := "\"" + queryRes.Name + "\""
+		if queryRes.Metadata != nil {
+			// If metadata exists, include it in the response
+			metadataJson, _ := json.Marshal(queryRes.Metadata)
+			response = fmt.Sprintf("{\"name\": \"%s\", \"metadata\": %s}", queryRes.Name, string(metadataJson))
+		}
+		routeutils.WriteDataJson(w, response)
 	}
 }
+
 func getPixelMetadata(w http.ResponseWriter, r *http.Request) {
 	position, err := strconv.Atoi(r.URL.Query().Get("position"))
 	if err != nil {
@@ -101,7 +158,6 @@ func getPixelMetadata(w http.ResponseWriter, r *http.Request) {
 		routeutils.WriteDataJson(w, "\""+queryRes.Name+"\"")
 	}
 }
-
 
 func placePixelDevnet(w http.ResponseWriter, r *http.Request) {
 	// Disable this in production
@@ -208,7 +264,7 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBody, err := routeutils.ReadJsonBody[map[string]uint](r)
-	fmt.Println("jsonBody", jsonBody)
+	fmt.Println("jsonBody", r.Body)
 
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid JSON request body")
@@ -217,6 +273,8 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 
 	position := (*jsonBody)["position"]
 	color := (*jsonBody)["color"]
+
+	fmt.Println("jsonBody", position)
 
 	canvasWidth := core.AFKBackend.CanvasConfig.Canvas.Width
 	canvasHeight := core.AFKBackend.CanvasConfig.Canvas.Height
@@ -249,8 +307,6 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error setting pixel on redis")
 		return
 	}
-
-	fmt.Println("Error redis insert pixel", err.Error())
 
 	routeutils.WriteResultJson(w, "Pixel placed on redis")
 }
