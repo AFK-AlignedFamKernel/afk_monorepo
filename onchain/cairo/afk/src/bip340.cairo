@@ -18,7 +18,8 @@ use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
-use super::social::request::SocialRequest;
+use super::social::{request::SocialRequest,transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress};
+
 
 const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;
@@ -27,6 +28,7 @@ const TWO_POW_96: u128 = 0x1000000000000000000000000;
 const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
 
 /// Represents a Schnorr signature
+#[derive(Drop)]
 struct SchnorrSignature {
     s: u256,
     r: u256,
@@ -164,6 +166,59 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
+fn linkedStarknetAddress_to_bytes(linkedStarknetAddress: LinkedStarknetAddress) -> ByteArray {
+    let mut ba: ByteArray = "";
+    ba.append_word(linkedStarknetAddress.starknet_address.into(), 1_u32);
+    ba
+}
+fn claim_to_bytes(claim: Claim) -> ByteArray{
+    let mut ba: ByteArray = "";
+    ba.append_word(claim.deposit_id.into(), 1_u32);
+    ba.append_word(claim.starknet_recipient.into(), 1_u32);
+    ba.append_word(claim.gas_token_address.into(), 1_u32);
+    let (gas_count, gas_count_felt252) = count_digits(claim.gas_amount);
+    let gas_felt252: felt252 = claim.gas_amount.try_into().unwrap();
+    ba.append_word(gas_count_felt252, 1_u32);
+    ba.append_word(gas_felt252, gas_count);
+    ba
+}
+fn transfer_to_bytes(transfer :Transfer) -> ByteArray {
+    let mut ba: ByteArray = "";
+     // Encode amount (u256 to felt252 conversion)
+     let (amount_count, amount_count_felt252) = count_digits(transfer.amount);
+     let amount_felt252: felt252 = transfer.amount.try_into().unwrap();
+     ba.append_word(amount_count_felt252, 1_u32);
+     ba.append_word(amount_felt252, amount_count);
+ 
+     // Encode token
+     ba.append_word(transfer.token, 1_u32);
+ 
+     // Encode token_address
+     ba.append_word(transfer.token_address.into(), 1_u32);
+ 
+     // Encode joyboy (NostrProfile encoding)
+     let (joyboy_count, joyboy_count_felt252) = count_digits(transfer.joyboy.public_key);
+     let joyboy_felt252: felt252 = transfer.joyboy.public_key.try_into().unwrap();
+     ba.append_word(joyboy_count_felt252, 1_u32);
+     ba.append_word(joyboy_felt252, joyboy_count);
+     for relay in transfer.joyboy.relays {
+         ba.append(@relay);
+     };
+ 
+     // Encode recipient (NostrProfile encoding)
+     let (recipient_count, recipient_count_felt252) = count_digits(transfer.recipient.public_key);
+     let recipient_felt252: felt252 = transfer.recipient.public_key.try_into().unwrap();
+     ba.append_word(recipient_count_felt252, 1_u32);
+     ba.append_word(recipient_felt252, recipient_count);
+     for relay in transfer.recipient.relays{
+         ba.append(@relay);
+    };
+ 
+     // Encode recipient_address
+     ba.append_word(transfer.recipient_address.into(), 1_u32);
+ 
+     ba
+}
 
 fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
     let mut ba: ByteArray = "";
@@ -191,10 +246,36 @@ fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
     // Encode tags directly
     ba.append(@request.tags);
 
-    // Encode content (assuming it can be converted to ByteArray) check needed
-    let content_bytes = ByteArray::from(request.content);
-    ba.append(content_bytes);
-
+    match request.content {
+        Transfer{ amount,
+            token,
+            token_address,
+            joyboy,
+            recipient,
+            recipient_address,
+        } => {
+            let transfer_bytes = transfer_to_bytes(request.content);
+            ba.append(@transfer_bytes);
+        },
+        Claim {
+            deposit_id,
+            starknet_recipient,
+            gas_token_address,
+            gas_amount
+        } => {
+            let claim_bytes = claim_to_bytes(Claim {
+                deposit_id,
+                starknet_recipient,
+                gas_token_address,
+                gas_amount
+            });
+            ba.append(@claim_bytes);
+        },
+        LinkedStarknetAddress { starknet_address } => {
+            let addr_bytes = linkedStarknetAddress_to_bytes(LinkedStarknetAddress { starknet_address });
+            ba.append(@addr_bytes);
+        },
+    };
     let rx = request.sig.r;
     ba.append_word(rx.high.into(), 16);
     ba.append_word(rx.low.into(), 16);
@@ -234,7 +315,7 @@ fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point();
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
-    let (s_G_x, s_G_y) = public_key.get_coordinates().unwrap_syscall();
+    let (s_G_x, _s_G_y) = public_key.get_coordinates().unwrap_syscall();
     let r = s_G_x;
     let (x,_y) = R.get_coordinates().unwrap_syscall();
     let e = compute_challenge(x, public_key, message);
@@ -251,7 +332,7 @@ fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: Schnorr
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.r, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
-    let (nonce, R) = generate_nonce_point();
+    let (_nonce, R) = generate_nonce_point();
     // Check that s is within valid range
     if (signature.s).into() >= n {
         return false;
@@ -260,8 +341,11 @@ fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: Schnorr
     let s_G = G.mul(signature.s).unwrap_syscall();
     let e_P = public_key.mul(e).unwrap_syscall();
     // let R_plus_eP = e_P.add(R);
-    let R_plus_eP = e_P.clone(); /// Need to figure out add R
+    let R_plus_eP =  e_P.add(R).unwrap_syscall(); 
+    /// Need to figure out add R
+ 
     // Compare the points
+
     let (s_G_x, s_G_y) = s_G.get_coordinates().unwrap_syscall();
     let (rhs_x, rhs_y) = R_plus_eP.get_coordinates().unwrap_syscall();
 
