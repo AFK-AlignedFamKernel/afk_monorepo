@@ -27,7 +27,9 @@ pub struct SocialRequest<C> {
 pub trait Encode<T> {
     fn encode(self: @T) -> @ByteArray;
 }
-
+pub trait ConvertToBytes<T> {
+    fn convert_to_bytes(self: @T) -> ByteArray;
+}
 #[generate_trait]
 pub impl SocialRequestImpl<C, +Encode<C>> of SocialRequestTrait<C> {
     fn verify(self: @SocialRequest<C>) -> Option<u256> {

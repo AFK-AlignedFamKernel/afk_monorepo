@@ -17,47 +17,26 @@ use core::result::ResultTrait;
 use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
-use stark_vrf::{Error, generate_public_key, Proof, ScalarValue, StarkVRF};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
-use super::request::SocialRequest;
+use super::social::{request::{SocialRequest,ConvertToBytes },transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress};
+
 
 const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;
 const TWO_POW_96: u128 = 0x1000000000000000000000000;
 
 const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
-pub impl EcPointDisplay of Display<EcPoint> {
-    fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
-        let non_zero: NonZeroEcPoint = (*self).try_into().unwrap();
-        let (x, y): (felt252, felt252) = ec_point_unwrap(non_zero);
-        writeln!(f, "Point ({x}, {y})")
-    }
-}
 
 /// Represents a Schnorr signature
+#[derive(Drop)]
 struct SchnorrSignature {
     s: u256,
-    R: u256,
+    r: u256,
 }
-
-// impl PartialEqImpl of PartialEq<EcPoint> {
-//     fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
-//         let (lhs_x, lhs_y): (felt252, felt252) = ec_point_unwrap((*lhs).try_into().unwrap());
-//         let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
-
-//     }
-
-// pub impl EcPointDisplay of Display<Secp256k1Point> {
-//     fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
-//         let non_zero: NonZeroEcPoint = (*self).try_into().unwrap();
-//         let (x, y): (u256, u256) = ec_point_unwrap(non_zero);
-//         writeln!(f, "Point ({x}, {y})")
-//     }
-// }
 
 impl PartialEqImpl of PartialEq<EcPoint> {
     fn eq(lhs: @EcPoint, rhs: @EcPoint) -> bool {
-        let (lhs_x, lhs_y): (u256, u256) = ec_point_unwrap((*lhs).try_into().unwrap());
+        let (lhs_x, lhs_y): (felt252, felt252) = ec_point_unwrap((*lhs).try_into().unwrap());
         let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap((*rhs).try_into().unwrap());
 
         if ((rhs_x == lhs_x) && (rhs_y == lhs_y)) {
@@ -176,66 +155,9 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
     // fail if is_infinite(R) || not has_even_y(R) || x(R) ≠ rx.
     !(Rx == 0 && Ry == 0) && Ry % 2 == 0 && Rx == rx
 }
-/// Represents a Schnorr signature
-struct SchnorrSignature {
-    s: felt252,
-    R: EcPoint,
-}
-
-/// Generates a key pair (private key, public key) for Schnorr signatures
-fn generate_keypair() -> (felt252, EcPoint) {
-    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
-    let private_key: felt252 = 859825214214312162317391210310; // VRF needed
-    let public_key: EcPoint = generator.mul(private_key);
-
-    (private_key, public_key)
-}
-
-/// Generates a nonce and corresponding R point for signature
-fn generate_nonce_point() -> (felt252, EcPoint) {
-    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
-    let nonce: felt252 = 46952909012476409278523962123414653; // VRF needed
-    let R: EcPoint = generator.mul(nonce);
-
-    (nonce, R)
-}
-
-/// Computes the challenge hash e using Poseidon
-fn compute_challenge(R: EcPoint, public_key: EcPoint, message: felt252) -> felt252 {
-    let (R_x, R_y): (felt252, felt252) = ec_point_unwrap(R.try_into().unwrap());
-    let (P_x, P_y): (felt252, felt252) = ec_point_unwrap(public_key.try_into().unwrap());
-
-    PoseidonTrait::new().update(R_x).update(R_y).update(P_x).update(P_y).update(message).finalize()
-}
-
-/// Signs a message using Schnorr signature scheme
-fn sign(private_key: felt252, message: felt252) -> SchnorrSignature {
-    let (nonce, R) = generate_nonce_point();
-    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
-    let public_key = generator.mul(private_key);
-
-    let e = compute_challenge(R, public_key, message);
-    let s = nonce + mul_mod_p(private_key, e, ORDER);
-
-    SchnorrSignature { s, R }
-}
-
-/// Verifies a Schnorr signature
-fn verify_sig(public_key: EcPoint, message: felt252, signature: SchnorrSignature) -> bool {
-    let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
-    let e = compute_challenge(signature.R, public_key, message);
-
-    let s_G: EcPoint = generator.mul(signature.s);
-    let P_e: EcPoint = public_key.mul(e);
-    let rhs: EcPoint = P_e + signature.R;
-
-    let (s_Gx, s_Gy): (felt252, felt252) = ec_point_unwrap(s_G.try_into().unwrap());
-    let (rhs_x, rhs_y): (felt252, felt252) = ec_point_unwrap(rhs.try_into().unwrap());
-
-    (rhs_x == s_Gx) && (s_Gy == rhs_y)
-}
 
 fn count_digits(mut num: u256) -> (u32, felt252) {
+    let BASE: u256 = 16_u256;
     let mut count: u32 = 0;
     while num > 0 {
         num = num / BASE;
@@ -244,8 +166,65 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
+fn linkedStarknetAddress_to_bytes(linkedStarknetAddress: LinkedStarknetAddress) -> ByteArray {
+    let mut ba: ByteArray = "";
+    ba.append_word(linkedStarknetAddress.starknet_address.into(), 1_u32);
+    ba
+}
+fn claim_to_bytes(claim: Claim) -> ByteArray{
+    let mut ba: ByteArray = "";
+    ba.append_word(claim.deposit_id.into(), 1_u32);
+    ba.append_word(claim.starknet_recipient.into(), 1_u32);
+    ba.append_word(claim.gas_token_address.into(), 1_u32);
+    let (gas_count, gas_count_felt252) = count_digits(claim.gas_amount);
+    let gas_felt252: felt252 = claim.gas_amount.try_into().unwrap();
+    ba.append_word(gas_count_felt252, 1_u32);
+    ba.append_word(gas_felt252, gas_count);
+    ba
+}
+fn transfer_to_bytes(transfer :Transfer) -> ByteArray {
+    let mut ba: ByteArray = "";
+     // Encode amount (u256 to felt252 conversion)
+     let (amount_count, amount_count_felt252) = count_digits(transfer.amount);
+     let amount_felt252: felt252 = transfer.amount.try_into().unwrap();
+     ba.append_word(amount_count_felt252, 1_u32);
+     ba.append_word(amount_felt252, amount_count);
+ 
+     // Encode token
+     ba.append_word(transfer.token, 1_u32);
+ 
+     // Encode token_address
+     ba.append_word(transfer.token_address.into(), 1_u32);
+ 
+     // Encode joyboy (NostrProfile encoding)
+     let (joyboy_count, joyboy_count_felt252) = count_digits(transfer.joyboy.public_key);
+     let joyboy_felt252: felt252 = transfer.joyboy.public_key.try_into().unwrap();
+     ba.append_word(joyboy_count_felt252, 1_u32);
+     ba.append_word(joyboy_felt252, joyboy_count);
+     for relay in transfer.joyboy.relays {
+         ba.append(@relay);
+     };
+ 
+     // Encode recipient (NostrProfile encoding)
+     let (recipient_count, recipient_count_felt252) = count_digits(transfer.recipient.public_key);
+     let recipient_felt252: felt252 = transfer.recipient.public_key.try_into().unwrap();
+     ba.append_word(recipient_count_felt252, 1_u32);
+     ba.append_word(recipient_felt252, recipient_count);
+     for relay in transfer.recipient.relays{
+         ba.append(@relay);
+    };
+ 
+     // Encode recipient_address
+     ba.append_word(transfer.recipient_address.into(), 1_u32);
+ 
+     ba
+}
 
-fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
+fn encodeSocialRequest<
+    C,
+    impl CImpl: ConvertToBytes<C>,
+    impl CDrop: Drop<C>
+>(request: SocialRequest<C>) -> ByteArray {
     let mut ba: ByteArray = "";
 
     // Encode public_key
@@ -269,13 +248,9 @@ fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
     ba.append_word(kind_felt252, kind_count);
 
     // Encode tags directly
-    ba.append(request.tags);
-
-    // Encode content (assuming it can be converted to ByteArray) check needed
-    let content_bytes = ByteArray::from(request.content);
-    ba.append(content_bytes);
-
-    let (rx, _) = request.sig.R.get_coordinates().unwrap_syscall();
+    ba.append(@request.tags);
+    ba.append(@request.content.convert_to_bytes());
+    let rx = request.sig.r;
     ba.append_word(rx.high.into(), 16);
     ba.append_word(rx.low.into(), 16);
     ba.append_word(request.sig.s.high.into(), 16);
@@ -303,9 +278,9 @@ fn generate_nonce_point() -> (u256, Secp256k1Point) {
 }
 
 /// Computes the challenge hash e using Poseidon
-fn compute_challenge(R: EcPoint, public_key: EcPoint, message: ByteArray) -> felt252 {
-    let (rx, _) = R.get_coordinates().unwrap_syscall();
-    let (px, _) = public_key.get_coordinates().unwrap_syscall();
+fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) -> u256 {
+    let rx= R;
+    let (px,_tpx)= public_key.get_coordinates().unwrap_syscall() ;
 
     hash_challenge(rx, px, message)
 }
@@ -314,9 +289,10 @@ fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point();
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
-    let (s_G_x, s_G_y) = public_key.get_coordinates().unwrap_syscall();
-    let s_G_x = r;
-    let e = compute_challenge(R, public_key, message);
+    let (s_G_x, _s_G_y) = public_key.get_coordinates().unwrap_syscall();
+    let r = s_G_x;
+    let (x,_y) = R.get_coordinates().unwrap_syscall();
+    let e = compute_challenge(x, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
 
     // s = nonce + private_key * e mod n
@@ -326,21 +302,24 @@ fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
 }
 
 /// Verifies a Schnorr signature
-fn verify_sig(public_key: Secp256k1Point, message: u256, signature: SchnorrSignature) -> bool {
+fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: SchnorrSignature) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
-    let e = compute_challenge(signature.R, public_key, message);
+    let e = compute_challenge(signature.r, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
-
+    let (_nonce, R) = generate_nonce_point();
     // Check that s is within valid range
-    if signature.s >= n {
+    if (signature.s).into() >= n {
         return false;
     }
     // Verify s⋅G = R + e⋅P
     let s_G = G.mul(signature.s).unwrap_syscall();
     let e_P = public_key.mul(e).unwrap_syscall();
-    let R_plus_eP = signature.R.add(e_P).unwrap_syscall();
-
+    // let R_plus_eP = e_P.add(R);
+    let R_plus_eP =  e_P.add(R).unwrap_syscall(); 
+    /// Need to figure out add R
+ 
     // Compare the points
+
     let (s_G_x, s_G_y) = s_G.get_coordinates().unwrap_syscall();
     let (rhs_x, rhs_y) = R_plus_eP.get_coordinates().unwrap_syscall();
 
@@ -591,10 +570,10 @@ mod tests {
         let (private_key, public_key) = generate_keypair();
 
         // Message to sign
-        let message: felt252 = 'I love Cairo';
+        let message: ByteArray = "I love Cairo";
 
         // Sign message
-        let signature = sign(private_key, message);
+        let signature = sign(private_key, message.clone());
 
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
@@ -607,10 +586,10 @@ mod tests {
         let (private_key, public_key) = generate_keypair();
 
         // Message to sign
-        let message: felt252 = 'I love Cairo';
+        let message: ByteArray = "I love Cairo";
 
         // Sign message
-        let signature = sign(private_key, message);
+        let signature = sign(private_key, message.clone()); 
 
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
