@@ -573,7 +573,7 @@ mod tests {
         let message: ByteArray = "I love Cairo";
 
         // Sign message
-        let signature = sign(private_key, message);
+        let signature = sign(private_key, message.clone());
 
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
@@ -589,7 +589,7 @@ mod tests {
         let message: ByteArray = "I love Cairo";
 
         // Sign message
-        let signature = sign(private_key, message);
+        let signature = sign(private_key, message.clone()); 
 
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
