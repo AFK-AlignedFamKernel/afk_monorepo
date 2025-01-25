@@ -1,7 +1,7 @@
 use starknet::ContractAddress;
 use super::profile::{NostrProfile, NostrProfileTrait};
 use super::request::Encode;
-
+use super::request::ConvertToBytes;
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct Transfer {
     pub amount: u256,
@@ -32,7 +32,69 @@ impl TransferEncodeImpl of Encode<Transfer> {
         )
     }
 }
-
+fn count_digits(mut num: u256) -> (u32, felt252) {
+    let BASE: u256 = 16_u256;
+    let mut count: u32 = 0;
+    while num > 0 {
+        num = num / BASE;
+        count = count + 1;
+    };
+    let res: felt252 = count.try_into().unwrap();
+    (count, res)
+}
+impl TransferImpl of ConvertToBytes<Transfer> {
+    fn convert_to_bytes(self: @Transfer) -> ByteArray {
+        let mut ba: ByteArray = "";
+         // Encode amount (u256 to felt252 conversion)
+         let (amount_count, amount_count_felt252) = count_digits(*self.amount);
+         let amount_u256 = *self.amount;
+         let amount_felt252: felt252 = amount_u256.try_into().unwrap();
+         ba.append_word(amount_count_felt252, 1_u32);
+         ba.append_word(amount_felt252, amount_count);
+     
+         // Encode token
+         ba.append_word(*self.token, 1_u32);
+     
+         // Encode token_address
+        //  let addr:felt252 = self.token_address.into();
+        //  ba.append_word(addr, 1_u32);
+        let token_add = *self.token_address;
+        let token_addr = token_add.try_into().unwrap();
+         ba.append_word(token_addr, 1_u32);
+         // Encode joyboy (NostrProfile encoding)
+         let (joyboy_count, joyboy_count_felt252) = count_digits((*self.joyboy.public_key).into());
+         let joyboy_u256 = *self.joyboy.public_key;
+         let joyboy_felt252: felt252 = joyboy_u256.try_into().unwrap();
+         ba.append_word(joyboy_count_felt252, 1_u32);
+         ba.append_word(joyboy_felt252, joyboy_count);
+        
+         // Encode joyboy relays
+         let joyboy_relays = self.joyboy.relays.span();
+         for relay in joyboy_relays {
+             ba.append(relay);
+         };
+     
+         // Encode recipient (NostrProfile encoding)
+         let (recipient_count, recipient_count_felt252) = count_digits(*self.recipient.public_key);
+         let receipient_u256 = *self.recipient.public_key;
+         let recipient_felt252: felt252 = receipient_u256.try_into().unwrap();
+         ba.append_word(recipient_count_felt252, 1_u32);
+         ba.append_word(recipient_felt252, recipient_count);
+        
+         // Encode recipient relays
+         let recipient_relays = self.recipient.relays.span();
+         for relay in recipient_relays {
+             ba.append(relay);
+         };
+     
+         // Encode recipient_address
+         let receipient_add = *self.recipient_address;
+         let receipient_addr = receipient_add.try_into().unwrap();
+          ba.append_word(receipient_addr, 1_u32);
+     
+         ba
+    }
+}
 #[cfg(test)]
 mod tests {
     use core::option::OptionTrait;

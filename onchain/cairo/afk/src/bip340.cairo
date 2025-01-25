@@ -18,7 +18,7 @@ use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
-use super::social::{request::SocialRequest,transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress};
+use super::social::{request::{SocialRequest,ConvertToBytes },transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress};
 
 
 const TWO_POW_32: u128 = 0x100000000;
@@ -220,7 +220,11 @@ fn transfer_to_bytes(transfer :Transfer) -> ByteArray {
      ba
 }
 
-fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
+fn encodeSocialRequest<
+    C,
+    impl CImpl: ConvertToBytes<C>,
+    impl CDrop: Drop<C>
+>(request: SocialRequest<C>) -> ByteArray {
     let mut ba: ByteArray = "";
 
     // Encode public_key
@@ -245,37 +249,7 @@ fn encodeSocialRequest<C>(request: SocialRequest<C>) -> ByteArray {
 
     // Encode tags directly
     ba.append(@request.tags);
-
-    match request.content {
-        Transfer{ amount,
-            token,
-            token_address,
-            joyboy,
-            recipient,
-            recipient_address,
-        } => {
-            let transfer_bytes = transfer_to_bytes(request.content);
-            ba.append(@transfer_bytes);
-        },
-        Claim {
-            deposit_id,
-            starknet_recipient,
-            gas_token_address,
-            gas_amount
-        } => {
-            let claim_bytes = claim_to_bytes(Claim {
-                deposit_id,
-                starknet_recipient,
-                gas_token_address,
-                gas_amount
-            });
-            ba.append(@claim_bytes);
-        },
-        LinkedStarknetAddress { starknet_address } => {
-            let addr_bytes = linkedStarknetAddress_to_bytes(LinkedStarknetAddress { starknet_address });
-            ba.append(@addr_bytes);
-        },
-    };
+    ba.append(@request.content.convert_to_bytes());
     let rx = request.sig.r;
     ba.append_word(rx.high.into(), 16);
     ba.append_word(rx.low.into(), 16);
@@ -596,7 +570,7 @@ mod tests {
         let (private_key, public_key) = generate_keypair();
 
         // Message to sign
-        let message: ByteArray = 'I love Cairo';
+        let message: ByteArray = "I love Cairo";
 
         // Sign message
         let signature = sign(private_key, message);
@@ -612,7 +586,7 @@ mod tests {
         let (private_key, public_key) = generate_keypair();
 
         // Message to sign
-        let message: ByteArray = 'I love Cairo';
+        let message: ByteArray = "I love Cairo";
 
         // Sign message
         let signature = sign(private_key, message);

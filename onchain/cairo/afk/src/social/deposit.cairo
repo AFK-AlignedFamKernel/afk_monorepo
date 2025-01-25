@@ -3,7 +3,7 @@ use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
 use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
 use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
-
+use super::request::ConvertToBytes;
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -27,7 +27,32 @@ impl ClaimEncodeImpl of Encode<Claim> {
         )
     }
 }
-
+fn count_digits(mut num: u256) -> (u32, felt252) {
+    let BASE: u256 = 16_u256;
+    let mut count: u32 = 0;
+    while num > 0 {
+        num = num / BASE;
+        count = count + 1;
+    };
+    let res: felt252 = count.try_into().unwrap();
+    (count, res)
+}
+impl ClaimImpl of ConvertToBytes<Claim> {
+    fn convert_to_bytes(self: @Claim) -> ByteArray {
+        let mut ba: ByteArray = "";
+        let deposit_id: felt252 = *self.deposit_id;
+        ba.append_word(deposit_id, 1_u32);
+        let starknet_recipient: felt252 = (*self.starknet_recipient).into();
+        ba.append_word(starknet_recipient, 1_u32);
+        ba.append_word((*self.gas_token_address).into(), 1_u32);
+        let gas_u256 = *self.gas_amount;
+        let (gas_count, gas_count_felt252) = count_digits(gas_u256);
+        let gas_felt252: felt252 = gas_u256.try_into().unwrap();
+        ba.append_word(gas_count_felt252, 1_u32);
+        ba.append_word(gas_felt252, gas_count);
+        ba
+    }
+}
 type NostrPublicKey = u256;
 
 #[derive(Copy, Debug, Drop, Serde)]

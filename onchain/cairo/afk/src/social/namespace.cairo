@@ -2,6 +2,7 @@ use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;
 use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
 use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use super::request::ConvertToBytes;
 
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
@@ -34,7 +35,14 @@ impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
         @format!("link to {:?}", recipient_address_user_felt)
     }
 }
-
+impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
+    fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {
+        let mut ba: ByteArray = "";
+        let starknet_address_felt: felt252 = (*self.starknet_address).into();
+        ba.append_word(starknet_address_felt, 1_u32);
+        ba
+    }
+}
 #[derive(Copy, Debug, Drop, Serde)]
 pub enum LinkedResult {
     Transfer: ContractAddress,
