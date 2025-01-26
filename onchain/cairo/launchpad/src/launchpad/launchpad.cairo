@@ -518,35 +518,35 @@ pub mod LaunchpadMarketplace {
             self.shares_by_users.entry(owner).entry(key_user).read()
         }
 
-        fn get_all_coins(self: @ContractState) -> Span<Token> {
-            let max_coin_id = self.total_token.read() + 1;
-            let mut coins: Array<Token> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_coin_id {}
-                let coin = self.array_coins.read(i);
-                if coin.owner.is_zero() {
-                    break coins.span();
-                }
-                coins.append(coin);
-                i += 1;
-            }
-        }
+        // fn get_all_coins(self: @ContractState) -> Span<Token> {
+        //     let max_coin_id = self.total_token.read() + 1;
+        //     let mut coins: Array<Token> = ArrayTrait::new();
+        //     let mut i = 0; //Since the stream id starts from 0
+        //     loop {
+        //         if i >= max_coin_id {}
+        //         let coin = self.array_coins.read(i);
+        //         if coin.owner.is_zero() {
+        //             break coins.span();
+        //         }
+        //         coins.append(coin);
+        //         i += 1;
+        //     }
+        // }
 
-        fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
-            let max_key_id = self.total_launch.read() + 1;
-            let mut launches: Array<TokenLaunch> = ArrayTrait::new();
-            let mut i = 0; //Since the stream id starts from 0
-            loop {
-                if i >= max_key_id {}
-                let pool = self.array_launched_coins.read(i);
-                if pool.owner.is_zero() {
-                    break launches.span();
-                }
-                launches.append(pool);
-                i += 1;
-            }
-        }
+        // fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
+        //     let max_key_id = self.total_launch.read() + 1;
+        //     let mut launches: Array<TokenLaunch> = ArrayTrait::new();
+        //     let mut i = 0; //Since the stream id starts from 0
+        //     loop {
+        //         if i >= max_key_id {}
+        //         let pool = self.array_launched_coins.read(i);
+        //         if pool.owner.is_zero() {
+        //             break launches.span();
+        //         }
+        //         launches.append(pool);
+        //         i += 1;
+        //     }
+        // }
         // User call
 
         // Create token for an user
@@ -780,7 +780,6 @@ pub mod LaunchpadMarketplace {
                     get_caller_address(), get_contract_address(), remain_quote_to_liquidity
                 );
 
-            // Assertion: Amount Received Validation
             // Update the Stats of pool:
             // Liquidity raised
             // Available supply
@@ -790,13 +789,10 @@ pub mod LaunchpadMarketplace {
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
             // println!("total_price {:?}", total_price);
             // println!("update pool");
-
-  
             // println!("subtract amount and available supply");
             // println!("available supply {:?}", pool_coin.available_supply);
             // println!("amount {:?}", amount);
             pool_coin.liquidity_raised += remain_quote_to_liquidity;
-            pool_coin.total_token_holded += coin_amount;
             pool_coin.price = total_price;
             // TODO TEST
             // EDGE CASE
@@ -812,9 +808,6 @@ pub mod LaunchpadMarketplace {
             }
 
             // Update share and coin stats for an user
-            // let mut old_share = self.shares_by_users.read((get_caller_address(), coin_address));
-            // let mut old_share = self.shares_by_users.entry((get_caller_address(),
-            // coin_address)).read();
             let mut old_share = self
                 .shares_by_users
                 .entry(get_caller_address())
@@ -823,7 +816,6 @@ pub mod LaunchpadMarketplace {
 
             let mut share_user = old_share.clone();
             //  println!("update share");
-
             if share_user.owner.is_zero() {
                 share_user =
                     SharesTokenUser {
@@ -907,7 +899,8 @@ pub mod LaunchpadMarketplace {
                         // creator_fee: 0,
                         last_price: old_price,
                         timestamp: get_block_timestamp(),
-                        quote_amount: quote_amount
+                        quote_amount:remain_quote_to_liquidity
+                        // quote_amount: quote_amount
                     }
                 );
         }

@@ -126,8 +126,8 @@ export const createUnrugLiquidity = async (
       UnrugClassHash = contractClassHash;
       console.log("UnrugClass", UnrugClassHash);
 
-      const nonce = await account0?.getNonce();
-      console.log("nonce", nonce);
+      // const nonce = await account0?.getNonce();
+      // console.log("nonce", nonce);
     }
 
     // const contractConstructor: Calldata = Calldata.compile({

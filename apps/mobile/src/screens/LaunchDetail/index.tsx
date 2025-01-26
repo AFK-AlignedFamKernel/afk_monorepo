@@ -127,32 +127,37 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
   }, [launchData]);
 
   //Filter the data for holding to only show buys.
+  // OLD Holdings by tx grooup by
+  // const holdings = useMemo(() => {
+  //   if (!holdingsData?.data) return [];
+
+  //   return holdingsData.data
+  //     .reduce((acc: any, tx: any) => {
+  //       const { owner_address, _count, _sum, transaction_type } = tx;
+  //       const existingHolder = acc.find((h: any) => h.owner_address === owner_address);
+
+  //       const amount = transaction_type === 'buy' ? parseFloat(_sum.amount) : -parseFloat(_sum.amount);
+
+  //       if (existingHolder) {
+  //         existingHolder._sum.amount = (parseFloat(existingHolder._sum.amount) + amount).toString();
+  //       } else {
+  //         acc.push({
+  //           owner_address,
+  //           _count: { owner_address: _count.owner_address },
+  //           _sum: { amount: amount.toString() },
+  //         });
+  //       }
+
+  //       return acc;
+  //     }, [])
+  //     .filter((holder: any) => parseFloat(holder._sum.amount) > 0);
+  // }, [holdingsData]);
+
   const holdings = useMemo(() => {
     if (!holdingsData?.data) return [];
 
     return holdingsData.data
-      .reduce((acc: any, tx: any) => {
-        const { owner_address, _count, _sum, transaction_type } = tx;
-        const existingHolder = acc.find((h: any) => h.owner_address === owner_address);
-
-        const amount = transaction_type === 'buy' ? parseFloat(_sum.amount) : -parseFloat(_sum.amount);
-
-        if (existingHolder) {
-          existingHolder._sum.amount = (parseFloat(existingHolder._sum.amount) + amount).toString();
-        } else {
-          acc.push({
-            owner_address,
-            _count: { owner_address: _count.owner_address },
-            _sum: { amount: amount.toString() },
-          });
-        }
-
-        return acc;
-      }, [])
-      .filter((holder: any) => parseFloat(holder._sum.amount) > 0);
   }, [holdingsData]);
-
-
 
   useEffect(() => {
     const data = transactionData || [];
