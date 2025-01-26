@@ -20,7 +20,7 @@ export class LiquidityAddedIndexer {
     private readonly indexerService: IndexerService,
   ) {
     this.eventKeys = [
-      validateAndParseAddress(hash.getSelectorFromName('LiquidityAdded')),
+      validateAndParseAddress(hash.getSelectorFromName('LiquidityCreated')),
     ];
   }
 
@@ -40,8 +40,8 @@ export class LiquidityAddedIndexer {
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
-      case validateAndParseAddress(hash.getSelectorFromName('LiquidityAdded')):
-        this.logger.log('Event name: LiquidityAdded');
+      case validateAndParseAddress(hash.getSelectorFromName('LiquidityCreated')):
+        this.logger.log('Event name: LiquidityCreated');
         this.handleLiquidityAddedEvent(header, event, transaction);
         break;
       default:
