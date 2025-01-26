@@ -32,17 +32,24 @@ export class SellTokenService {
       } else {
         const newSupply =
           Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.amount);
-        const newLiquidityRaised =
+        let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           Number(data.quoteAmount);
-        // const newTotalTokenHolded =
-        //   Number(tokenLaunchRecord.total_token_holded ?? 0) -
-        //   Number(data.amount);
 
-        const newTotalTokenHolded =
+        // TODO fix issue negative number
+        // Check event fees etc
+        if (newLiquidityRaised < 0) {
+          newLiquidityRaised = 0;
+        }
+        // TODO fix issue negative number
+        // Check event fees etc
+        let newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
           Number(data.coinAmount ?? data?.amount);
 
+        if (newTotalTokenHolded < 0) {
+          newTotalTokenHolded = 0;
+        }
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {

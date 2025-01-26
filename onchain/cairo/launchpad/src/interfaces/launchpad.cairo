@@ -76,9 +76,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn get_share_of_user_by_contract(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesTokenUser;
-    fn get_all_launch(self: @TContractState) -> Span<TokenLaunch>;
-
-    fn get_all_coins(self: @TContractState) -> Span<Token>;
+    // fn get_all_launch(self: @TContractState) -> Span<TokenLaunch>;
+    // fn get_all_coins(self: @TContractState) -> Span<Token>;
 
     // Admins functions
     fn set_token(ref self: TContractState, token_quote: TokenQuoteBuyCoin);
