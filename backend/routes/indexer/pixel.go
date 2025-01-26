@@ -116,6 +116,77 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 	routeutils.SendWebSocketMessage(message)
 }
 
+func processPixelShieldPlacesEvent(event IndexerEvent){
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+	shieldTypeHex := event.Event.Data[0]
+	amountPaidHex := event.Event.Data[1]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	shieldType, err := strconv.ParseInt(shieldTypeHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error converting shield type hex to int", address, shieldTypeHex)
+		return
+	}
+
+	amountPaid, err := strconv.ParseInt(amountPaidHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error converting amount paid hex to int", address, amountPaidHex)
+		return
+	}
+
+	// Insert pixel shield information into Postgres
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), 
+		"INSERT INTO PixelShields (address, position, shield_type, amount_paid) VALUES ($1, $2, $3, $4)",
+		address, position, shieldType, amountPaid)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error inserting pixel shield into postgres", address, posHex, shieldTypeHex, amountPaidHex)
+		return
+	}
+
+	// Send message to all connected clients
+	var message = map[string]interface{}{
+		"position":    position,
+		"shieldType":  shieldType,
+		"amountPaid":  amountPaid,
+		"messageType": "pixelShieldPlaced",
+	}
+	routeutils.SendWebSocketMessage(message)
+
+}
+
+func revertPixelShieldPlacedEvent(event IndexerEvent) {
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelShieldPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	// Delete the pixel shield entry from Postgres
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), 
+		"DELETE FROM PixelShields WHERE address = $1 AND position = $2",
+		address, position)
+	if err != nil {
+		PrintIndexerError("revertPixelShieldPlacedEvent", "Error deleting pixel shield from postgres", address, posHex)
+		return
+	}
+
+	// Send message to all connected clients about the shield removal
+	var message = map[string]interface{}{
+		"position":    position,
+		"messageType": "pixelShieldRemoved",
+	}
+	routeutils.SendWebSocketMessage(message)
+}
+
 func processBasicPixelPlacedEvent(event IndexerEvent) {
 	address := event.Event.Keys[1][2:] // Remove 0x prefix
 	timestampHex := event.Event.Data[0]

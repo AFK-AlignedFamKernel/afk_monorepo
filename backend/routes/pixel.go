@@ -32,6 +32,44 @@ func InitPixelRoutes() {
 		http.HandleFunc("/place-extra-pixels-devnet", placeExtraPixelsDevnet)
 	}
 	http.HandleFunc("/place-pixel-redis", placePixelRedis)
+	http.HandleFunc("/get-pixel-shield", getPixelShield)
+}
+
+type PixelShieldInfo struct {
+    Address     string `json:"address"`
+    Position    int    `json:"position"`
+    ShieldType  int    `json:"shieldType"`
+    AmountPaid  string `json:"amountPaid"`
+    PlacedAt    time.Time `json:"placedAt"`
+}
+
+func getPixelShield(w http.ResponseWriter, r *http.Request) {
+    positionStr := r.URL.Query().Get("position")
+    position, err := strconv.Atoi(positionStr)
+    if err != nil {
+        routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid query position")
+        return
+    }
+
+    // Query pixel shield information from database
+    queryRes, err := core.PostgresQueryOne[PixelShieldInfo](`
+        SELECT address, position, shield_type, amount_paid, placed_at 
+        FROM PixelShields 
+        WHERE position = $1 
+        ORDER BY placed_at DESC 
+        LIMIT 1`, position)
+    
+    if err != nil {
+        routeutils.WriteDataJson(w, "null")
+        return
+    }
+
+	jsonRes, err := json.Marshal(queryRes)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error marshaling pixel shield info")
+		return
+	}
+	routeutils.WriteDataJson(w, string(jsonRes))
 }
 
 func getPixel(w http.ResponseWriter, r *http.Request) {
