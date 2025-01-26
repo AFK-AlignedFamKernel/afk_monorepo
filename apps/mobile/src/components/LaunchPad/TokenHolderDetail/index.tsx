@@ -29,13 +29,16 @@ export const TokenHolderDetail: React.FC<HoldersProps> = ({holders, loading}) =>
           <View style={styles.holderRow}>
             <Text style={styles.label}>Owner Address</Text>
             <View style={styles.addressContainer}>
-              <AddressComponent address={feltToAddress(BigInt(item.owner_address))} />
+              {/* <AddressComponent address={feltToAddress(BigInt(item?.owner_address))} /> */}
+              <AddressComponent address={feltToAddress(BigInt(item?.owner))} />
             </View>
           </View>
 
           <View style={styles.holderRow}>
             <Text style={styles.label}>Amount</Text>
-            <Text style={styles.value}>{item._sum.amount}</Text>
+            <Text style={styles.value}>{item?.amount_owned}</Text>
+
+            {/* <Text style={styles.value}>{item._sum.amount}</Text> */}
           </View>
         </View>
       )}
