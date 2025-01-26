@@ -718,6 +718,10 @@ pub mod LaunchpadMarketplace {
                 // fees
                 threshold = threshold_liquidity
                     - (slippage_threshold + amount_protocol_fee); // add slippage and fees
+                // threshold = threshold_liquidity
+                // - (slippage_threshold); // add slippage and fees
+                // threshold = threshold_liquidity
+                // - (amount_protocol_fee); // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -1178,7 +1182,7 @@ pub mod LaunchpadMarketplace {
                         key_user: coin_address,
                         amount: quote_amount,
                         price: total_price, // Adjust if necessary
-                        protocol_fee: amount_protocol_fee,
+                        protocol_fee: quote_amount_protocol_fee,
                         creator_fee: amount_creator_fee,
                         timestamp: get_block_timestamp(),
                         last_price: old_pool.price,
