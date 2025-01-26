@@ -381,6 +381,14 @@ pub mod UnrugLiquidity {
             // Optionally emit an event
         }
 
+        fn set_address_ekubo_registry(
+            ref self: ContractState, new_ekubo_registry_address: ContractAddress
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.ekubo_registry.write(new_ekubo_registry_address);
+            // Optionally emit an event
+        }
+
         fn set_address_ekubo_router(
             ref self: ContractState, address_ekubo_router: ContractAddress
         ) {
@@ -412,7 +420,6 @@ pub mod UnrugLiquidity {
                 }
             };
         }
-
 
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);

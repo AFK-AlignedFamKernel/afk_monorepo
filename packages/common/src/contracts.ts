@@ -186,10 +186,17 @@ export const EKUBO_DEX_ADDRESS = {
 
 
 export const EKUBO_REGISTRY = {
+  // V2
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x050d3df81b920d3e608c4f7aeb67945a830413f618a1cf486bdcce66a395109c",
-  [constants.StarknetChainId.SN_MAIN]: "",
+    "0x0293c0d738eff5aa65619069d437eba2bcb320fb8003f37c9708afcdbe8739c8",
+  [constants.StarknetChainId.SN_MAIN]: "0x0013e25867b6eef62703735aa4cfa7754e72f4e94a56c9d3d9ad8ebe86cee4aa",
+
+  // V3 support bytearray
+  [constants.StarknetChainId.SN_SEPOLIA]:
+  "0x04484f91f0d2482bad844471ca8dc8e846d3a0211792322e72f21f0f44be63e5",
+  [constants.StarknetChainId.SN_MAIN]: "0x064bdb4094881140bc39340146c5fcc5a187a98aec5a53f448ac702e5de5067e",
 };
+
 
 export const NAMESERVICE_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: "",
