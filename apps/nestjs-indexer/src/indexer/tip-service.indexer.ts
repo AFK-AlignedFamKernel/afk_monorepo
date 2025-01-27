@@ -43,16 +43,16 @@ export class TipServiceIndexer {
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
-      case validateAndParseAddress(hash.getSelectorFromName('TipDeposit')):
-        this.logger.log('Event name: TipDeposit');
+      case validateAndParseAddress(hash.getSelectorFromName('DepositEvent')):
+        this.logger.log('Event name: DepositEvent');
         await this.handleTipDepositEvent(header, event, transaction);
         break;
-      case validateAndParseAddress(hash.getSelectorFromName('TipClaim')):
-        this.logger.log('Event name: TipClaim');
+      case validateAndParseAddress(hash.getSelectorFromName('ClaimEvent')):
+        this.logger.log('Event name: ClaimEvent');
         await this.handleTipClaimEvent(header, event, transaction);
         break;
-      case validateAndParseAddress(hash.getSelectorFromName('TipCancel')):
-        this.logger.log('Event name: TipCancel');
+      case validateAndParseAddress(hash.getSelectorFromName('CancelEvent')):
+        this.logger.log('Event name: CancelEvent');
         await this.handleTipCancelEvent(header, event, transaction);
         break;
       default:
@@ -81,7 +81,7 @@ export class TipServiceIndexer {
     ) as ContractAddress;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
+    const [_, depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
 
     const depositId = depositIdFelt
       ? shortString.decodeShortString(
@@ -149,6 +149,7 @@ export class TipServiceIndexer {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const [
+      _,
       depositIdFelt,
       senderFelt,
       nostrRecipientFelt,
@@ -245,7 +246,8 @@ export class TipServiceIndexer {
       `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
     ) as ContractAddress;
 
-    const [depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const [_, depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
 
     const depositId = depositIdFelt
       ? shortString.decodeShortString(
