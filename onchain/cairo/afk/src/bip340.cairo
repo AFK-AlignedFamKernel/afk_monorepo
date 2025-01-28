@@ -1,6 +1,7 @@
 use afk::utils::{shl, shr, compute_sha256_byte_array};
 //! bip340 implementation
 
+use starknet::{ContractAddress,get_caller_address,contract_address_const};
 use core::byte_array::ByteArrayTrait;
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
@@ -26,6 +27,18 @@ const TWO_POW_64: u128 = 0x10000000000000000;
 const TWO_POW_96: u128 = 0x1000000000000000000000000;
 
 const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
+
+#[starknet::interface]
+pub trait IVrfProvider<TContractState> {
+    fn request_random(self: @TContractState, caller: ContractAddress, source: Source);
+    fn consume_random(ref self: TContractState, source: Source) -> felt252;
+}
+
+#[derive(Drop, Copy, Clone, Serde)]
+pub enum Source {
+    Nonce: ContractAddress,
+    Salt: felt252,
+}
 
 /// Represents a Schnorr signature
 #[derive(Drop)]
@@ -260,13 +273,27 @@ fn encodeSocialRequest<
 }
 
 /// Generates a key pair (private key, public key) for Schnorr signatures
-fn generate_keypair() -> (u256, Secp256k1Point) {
+fn generate_keypair() -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
+    // vrf address
+    let vrf_provider = IVrfProviderDispatcher { 
+        contract_address: starknet::contract_address_const::<0x123>()
+    };
+
+    // Generate source for randomness
+    let caller = get_caller_address();
+    let source = Source::Nonce(caller);
+
+    // Get random key from vrf
+    let private_key = vrf_provider.consume_random(source);
+
+    // Generate public key
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
-    let private_key: u256 = 0x859825214214312162317391210310_u256; // VRF needed
-    let public_key = G.mul(private_key).unwrap_syscall();
+    let private_key_u256: u256 = private_key.into();
+    let public_key = G.mul(private_key_u256).unwrap_syscall();
 
     (private_key, public_key)
 }
+
 
 /// Generates a nonce and corresponding R point for signature
 fn generate_nonce_point() -> (u256, Secp256k1Point) {
