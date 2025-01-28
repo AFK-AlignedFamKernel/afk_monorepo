@@ -14,9 +14,12 @@ export default {
 
       // LAUNCHPAD_ADDRESS:"0x6fbcf2a0df5716d83d9653985f9c9bde6fb73130f0804e18bb18ef6f6ae7ad2",
       // LAUNCHPAD_ADDRESS:"0x6579503122e7564117f2192d6a66ec81b51dfd551b39a4fa26046044cd39a35",
-      LAUNCHPAD_ADDRESS:"0x4cefb7ab4c3fda72df52f288e141ff1dc6956a497949bf7b0031f012f3d3afc",
+      LAUNCHPAD_ADDRESS:
+        '0x4cefb7ab4c3fda72df52f288e141ff1dc6956a497949bf7b0031f012f3d3afc',
       NAMESERVICE_ADDRESS:
         '0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f',
+      ESCROW_DEPOSIT_ADDRESS:
+        '0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee',
     },
   },
   apibara: {
