@@ -1,8 +1,6 @@
-use core::fmt::{Display, Formatter, Error};
-use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
-use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use starknet::{ContractAddress};
+use super::request::{SocialRequest, SocialRequestImpl, Encode};
 use super::request::ConvertToBytes;
 pub type DepositId = felt252;
 
@@ -91,11 +89,9 @@ pub trait IDepositEscrow<TContractState> {
 
 #[starknet::contract]
 pub mod DepositEscrow {
-    use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use starknet::storage::Map;
     use core::num::traits::Zero;
-    use starknet::account::Call;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
     };
@@ -142,15 +138,15 @@ pub mod DepositEscrow {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct DepositEvent {
+    pub struct DepositEvent {
         #[key]
-        deposit_id: DepositId,
+        pub deposit_id: DepositId,
         #[key]
-        sender: ContractAddress,
+        pub sender: ContractAddress,
         #[key]
-        nostr_recipient: NostrPublicKey,
-        amount: u256,
-        token_address: ContractAddress,
+        pub nostr_recipient: NostrPublicKey,
+        pub amount: u256,
+        pub token_address: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -166,20 +162,20 @@ pub mod DepositEscrow {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct TransferEvent {
+    pub struct TransferEvent {
         #[key]
-        sender: ContractAddress,
+        pub sender: ContractAddress,
         #[key]
-        nostr_recipient: NostrPublicKey,
+        pub nostr_recipient: NostrPublicKey,
         #[key]
-        starknet_recipient: ContractAddress,
-        amount: u256,
-        token_address: ContractAddress,
+        pub starknet_recipient: ContractAddress,
+        pub amount: u256,
+        pub token_address: ContractAddress,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         ClaimEvent: ClaimEvent,
         DepositEvent: DepositEvent,
         CancelEvent: CancelEvent,
@@ -367,6 +363,7 @@ mod tests {
         start_cheat_caller_address_global, stop_cheat_caller_address_global,
         start_cheat_block_timestamp, DeclareResultTrait, spy_events, EventSpyAssertionsTrait,
     };
+
     use starknet::{ContractAddress, get_block_timestamp};
 
     use super::super::request::{SocialRequest, Signature};
@@ -465,6 +462,143 @@ mod tests {
         let erc20_class = declare_erc20();
         let escrow_class = declare_escrow();
         request_fixture_custom_classes(*erc20_class, *escrow_class)
+    }
+
+    #[test]
+    fn first_deposit_with_unassigned_starknet_recipient() {
+        let (_, recipient_nostr_key, sender_address, erc20, escrow) = request_fixture();
+        let recipient_address: ContractAddress = 678.try_into().unwrap();
+        let amount = 100_u256;
+
+        start_cheat_caller_address_global(sender_address);
+        erc20.approve(escrow.contract_address, amount);
+        stop_cheat_caller_address_global();
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+        let sender_balance_before_deposit = erc20.balance_of(sender_address);
+
+        let mut spy = spy_events();
+        // Deposit by sender to recipient
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+
+        let sender_balance_after_deposit = erc20.balance_of(sender_address);
+
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
+
+        // Sender check
+        assert!(
+            sender_balance_before_deposit - amount == sender_balance_after_deposit,
+            "sender amount to deposit not send",
+        );
+        assert!(escrow_balance_before_claim == amount, "escrow before claim != amount");
+
+        // check event
+        spy
+            .assert_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::DepositEvent(
+                            DepositEscrow::DepositEvent {
+                                deposit_id: 1,
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+        spy
+            .assert_not_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::TransferEvent(
+                            DepositEscrow::TransferEvent {
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                starknet_recipient: recipient_address,
+                                amount: amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+    }
+
+    #[test]
+    fn deposit_with_known_starknet_recipient() {
+        let (request, recipient_nostr_key, sender_address, erc20, escrow) = request_fixture();
+        let recipient_address: ContractAddress = 678.try_into().unwrap();
+        let amount = 100_u256;
+
+        start_cheat_caller_address_global(sender_address);
+        erc20.approve(escrow.contract_address, amount);
+        stop_cheat_caller_address_global();
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+        // let sender_balance_before_deposit = erc20.balance_of(sender_address);
+
+        let mut spy = spy_events();
+        // Deposit by sender to recipient
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+        
+        // Recipient user claim deposit
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        escrow.claim_with_gas(request, 0_u256);
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        // let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+
+        // Sender check
+        // assert!(
+        //     sender_balance_before_deposit - amount == sender_balance_after_deposit,
+        //     "sender amount to deposit not send",
+        // );
+        // assert!(escrow_balance_before_claim == amount, "escrow before claim != amount");
+
+        // check event
+        spy
+            .assert_not_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::DepositEvent(
+                            DepositEscrow::DepositEvent {
+                                deposit_id: 2,
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+        spy
+            .assert_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::TransferEvent(
+                            DepositEscrow::TransferEvent {
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                starknet_recipient: recipient_address,
+                                amount: amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
     }
 
     #[test]
