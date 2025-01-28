@@ -2,8 +2,8 @@ use core::fmt::{Display, Formatter, Error};
 use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
 use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 use super::request::ConvertToBytes;
+use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]

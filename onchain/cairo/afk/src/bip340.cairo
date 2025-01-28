@@ -1,7 +1,4 @@
 use afk::utils::{shl, shr, compute_sha256_byte_array};
-//! bip340 implementation
-
-use starknet::{ContractAddress,get_caller_address,contract_address_const};
 use core::byte_array::ByteArrayTrait;
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
@@ -18,8 +15,14 @@ use core::result::ResultTrait;
 use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
+//! bip340 implementation
+
+use starknet::{ContractAddress, get_caller_address, contract_address_const};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
-use super::social::{request::{SocialRequest,ConvertToBytes },transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress};
+use super::social::{
+    request::{SocialRequest, ConvertToBytes}, transfer::Transfer, deposit::Claim,
+    namespace::LinkedStarknetAddress
+};
 
 
 const TWO_POW_32: u128 = 0x100000000;
@@ -184,7 +187,7 @@ fn linkedStarknetAddress_to_bytes(linkedStarknetAddress: LinkedStarknetAddress) 
     ba.append_word(linkedStarknetAddress.starknet_address.into(), 1_u32);
     ba
 }
-fn claim_to_bytes(claim: Claim) -> ByteArray{
+fn claim_to_bytes(claim: Claim) -> ByteArray {
     let mut ba: ByteArray = "";
     ba.append_word(claim.deposit_id.into(), 1_u32);
     ba.append_word(claim.starknet_recipient.into(), 1_u32);
@@ -195,49 +198,47 @@ fn claim_to_bytes(claim: Claim) -> ByteArray{
     ba.append_word(gas_felt252, gas_count);
     ba
 }
-fn transfer_to_bytes(transfer :Transfer) -> ByteArray {
+fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     let mut ba: ByteArray = "";
-     // Encode amount (u256 to felt252 conversion)
-     let (amount_count, amount_count_felt252) = count_digits(transfer.amount);
-     let amount_felt252: felt252 = transfer.amount.try_into().unwrap();
-     ba.append_word(amount_count_felt252, 1_u32);
-     ba.append_word(amount_felt252, amount_count);
- 
-     // Encode token
-     ba.append_word(transfer.token, 1_u32);
- 
-     // Encode token_address
-     ba.append_word(transfer.token_address.into(), 1_u32);
- 
-     // Encode joyboy (NostrProfile encoding)
-     let (joyboy_count, joyboy_count_felt252) = count_digits(transfer.joyboy.public_key);
-     let joyboy_felt252: felt252 = transfer.joyboy.public_key.try_into().unwrap();
-     ba.append_word(joyboy_count_felt252, 1_u32);
-     ba.append_word(joyboy_felt252, joyboy_count);
-     for relay in transfer.joyboy.relays {
-         ba.append(@relay);
-     };
- 
-     // Encode recipient (NostrProfile encoding)
-     let (recipient_count, recipient_count_felt252) = count_digits(transfer.recipient.public_key);
-     let recipient_felt252: felt252 = transfer.recipient.public_key.try_into().unwrap();
-     ba.append_word(recipient_count_felt252, 1_u32);
-     ba.append_word(recipient_felt252, recipient_count);
-     for relay in transfer.recipient.relays{
-         ba.append(@relay);
+    // Encode amount (u256 to felt252 conversion)
+    let (amount_count, amount_count_felt252) = count_digits(transfer.amount);
+    let amount_felt252: felt252 = transfer.amount.try_into().unwrap();
+    ba.append_word(amount_count_felt252, 1_u32);
+    ba.append_word(amount_felt252, amount_count);
+
+    // Encode token
+    ba.append_word(transfer.token, 1_u32);
+
+    // Encode token_address
+    ba.append_word(transfer.token_address.into(), 1_u32);
+
+    // Encode joyboy (NostrProfile encoding)
+    let (joyboy_count, joyboy_count_felt252) = count_digits(transfer.joyboy.public_key);
+    let joyboy_felt252: felt252 = transfer.joyboy.public_key.try_into().unwrap();
+    ba.append_word(joyboy_count_felt252, 1_u32);
+    ba.append_word(joyboy_felt252, joyboy_count);
+    for relay in transfer.joyboy.relays {
+        ba.append(@relay);
     };
- 
-     // Encode recipient_address
-     ba.append_word(transfer.recipient_address.into(), 1_u32);
- 
-     ba
+
+    // Encode recipient (NostrProfile encoding)
+    let (recipient_count, recipient_count_felt252) = count_digits(transfer.recipient.public_key);
+    let recipient_felt252: felt252 = transfer.recipient.public_key.try_into().unwrap();
+    ba.append_word(recipient_count_felt252, 1_u32);
+    ba.append_word(recipient_felt252, recipient_count);
+    for relay in transfer.recipient.relays {
+        ba.append(@relay);
+    };
+
+    // Encode recipient_address
+    ba.append_word(transfer.recipient_address.into(), 1_u32);
+
+    ba
 }
 
-fn encodeSocialRequest<
-    C,
-    impl CImpl: ConvertToBytes<C>,
-    impl CDrop: Drop<C>
->(request: SocialRequest<C>) -> ByteArray {
+fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
+    request: SocialRequest<C>
+) -> ByteArray {
     let mut ba: ByteArray = "";
 
     // Encode public_key
@@ -275,7 +276,7 @@ fn encodeSocialRequest<
 /// Generates a key pair (private key, public key) for Schnorr signatures
 fn generate_keypair() -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
     // vrf address
-    let vrf_provider = IVrfProviderDispatcher { 
+    let vrf_provider = IVrfProviderDispatcher {
         contract_address: starknet::contract_address_const::<0x123>()
     };
 
@@ -306,8 +307,8 @@ fn generate_nonce_point() -> (u256, Secp256k1Point) {
 
 /// Computes the challenge hash e using Poseidon
 fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) -> u256 {
-    let rx= R;
-    let (px,_tpx)= public_key.get_coordinates().unwrap_syscall() ;
+    let rx = R;
+    let (px, _tpx) = public_key.get_coordinates().unwrap_syscall();
 
     hash_challenge(rx, px, message)
 }
@@ -318,7 +319,7 @@ fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
     let public_key = G.mul(private_key).unwrap_syscall();
     let (s_G_x, _s_G_y) = public_key.get_coordinates().unwrap_syscall();
     let r = s_G_x;
-    let (x,_y) = R.get_coordinates().unwrap_syscall();
+    let (x, _y) = R.get_coordinates().unwrap_syscall();
     let e = compute_challenge(x, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
 
@@ -342,9 +343,9 @@ fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: Schnorr
     let s_G = G.mul(signature.s).unwrap_syscall();
     let e_P = public_key.mul(e).unwrap_syscall();
     // let R_plus_eP = e_P.add(R);
-    let R_plus_eP =  e_P.add(R).unwrap_syscall(); 
+    let R_plus_eP = e_P.add(R).unwrap_syscall();
     /// Need to figure out add R
- 
+
     // Compare the points
 
     let (s_G_x, s_G_y) = s_G.get_coordinates().unwrap_syscall();
@@ -360,6 +361,8 @@ mod tests {
     use core::clone::Clone;
     use core::option::OptionTrait;
     use core::traits::Into;
+    use starknet::SyscallResultTrait;
+    use super::Secp256PointTrait;
     // use super::*;
     use super::{verify, verify_sig, sign, generate_keypair};
 
@@ -370,6 +373,13 @@ mod tests {
             ba.append_word(self.low.into(), 16);
             ba
         }
+    }
+
+    #[test]
+    fn test_generate_keypair() {
+        let (_private_key, public_key) = generate_keypair();
+        let (px, _tpx) = public_key.get_coordinates().unwrap_syscall();
+        assert!(px != 0);
     }
 
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
@@ -616,7 +626,7 @@ mod tests {
         let message: ByteArray = "I love Cairo";
 
         // Sign message
-        let signature = sign(private_key, message.clone()); 
+        let signature = sign(private_key, message.clone());
 
         // Verify signature
         let is_valid = verify_sig(public_key, message, signature);
