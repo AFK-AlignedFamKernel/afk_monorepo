@@ -1,5 +1,4 @@
 import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
-import Slider from '@react-native-community/slider';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
@@ -212,17 +211,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         {launch?.threshold_liquidity && (
           <View style={styles.detailRow}>
             <Text style={styles.label}>Threshold liquidity</Text>
-            <Text style={styles.value}>{thresholdLiquidity}</Text>
-            <Slider
-              style={{width: 200, height: 40}}
-              value={thresholdLiquidity}
-              onValueChange={setThresholdLiquidity}
-              step={0.1}
-              minimumValue={0}
-              maximumValue={Number(launch.threshold_liquidity)}
-              minimumTrackTintColor="#FFFFFF"
-              maximumTrackTintColor="#000000"
-            />
+            <Text style={styles.value}>{Number(launch?.threshold_liquidity).toLocaleString()}</Text>
           </View>
         )}
 
