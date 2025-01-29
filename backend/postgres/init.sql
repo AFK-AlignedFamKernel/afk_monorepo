@@ -8,11 +8,17 @@ CREATE TABLE Pixels (
   time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   metadata JSONB DEFAULT NULL
 );
+
+ALTER TABLE Pixels
+ADD COLUMN shield JSONB DEFAULT NULL;
+
 CREATE INDEX pixels_address_index ON Pixels (address);
 CREATE INDEX pixels_position_index ON Pixels (position);
 CREATE INDEX pixels_day_index ON Pixels (day);
 CREATE INDEX pixels_color_index ON Pixels (color);
 CREATE INDEX pixels_time_index ON Pixels (time);
+CREATE INDEX pixels_shield_index ON Pixels (shield);
+
 
 CREATE TABLE PixelShields (
   address char(64) NOT NULL,
