@@ -2,11 +2,11 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    // position: 'relative',
+    position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
-    // padding: 40,
+    padding: 40,
   },
   createTokenButton: {
     width: 200,
@@ -19,9 +19,6 @@ export default ThemedStyleSheet((theme) => ({
     fontWeight: 'bold',
     fontSize: 16,
   },
-
-
-
   flatListContent: {
     paddingVertical: Spacing.large,
   },
@@ -40,7 +37,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     padding: 2,
     borderRadius: 0,
-    height: 'auto'
+    height: 'auto',
   },
   toggleButtonText: {
     color: theme.colors.textPrimary,
