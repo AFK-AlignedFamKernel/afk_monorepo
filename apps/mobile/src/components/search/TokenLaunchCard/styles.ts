@@ -64,6 +64,11 @@ export default (theme: any) =>
       backgroundColor: theme?.colors?.primary,
       borderRadius: 4,
     },
+    progressBarFillWarn: {
+      height: '100%',
+      backgroundColor: theme?.colors?.errorDark,
+      borderRadius: 4,
+    },
     stats: {
       display: 'flex',
       flexDirection: 'row',

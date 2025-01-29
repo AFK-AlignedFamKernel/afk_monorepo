@@ -2,7 +2,7 @@ import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {ImageSourcePropType, View} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../../hooks';
@@ -42,10 +42,15 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
   const [amount, setAmount] = useState<number | undefined>();
-  const [thresholdLiquidity, setThresholdLiquidity] = useState(
-    Number(launch?.threshold_liquidity) ?? 0,
-  );
-  console.log('launch', launch);
+  const [thresholdLiquidityProgress, setThresholdLiquidityProgress] = useState(0);
+
+  useEffect(() => {
+    const progress = Math.min(
+      (Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) * 100,
+      100,
+    );
+    setThresholdLiquidityProgress(progress);
+  }, [launch]);
 
   const [isDisabledInfoState, setIsDisabledInfoState] = useState<boolean | undefined>(
     isDisabledInfo,
@@ -234,9 +239,11 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             <View style={styles.progressBarContainer}>
               <View
                 style={[
-                  styles.progressBarFill,
+                  Number(launch.liquidity_raised) <= Number(launch.threshold_liquidity) - 0.2
+                    ? styles.progressBarFillWarn
+                    : styles.progressBarFill,
                   {
-                    width: `${Math.min((Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) * 100, 100)}%`,
+                    width: `${thresholdLiquidityProgress}%`,
                   },
                 ]}
               />
