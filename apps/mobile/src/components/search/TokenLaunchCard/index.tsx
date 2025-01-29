@@ -10,6 +10,8 @@ import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
+import {getElapsedTimeStringFull} from '../../../utils/timestamp';
+import {Icon} from '../../Icon';
 import {Text} from '../../Text';
 import stylesheet from './styles';
 
@@ -61,31 +63,49 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   return (
     <View style={[styles.container, isDesktop && styles.containerDesktop]}>
       <View style={styles.header}>
+        {token?.created_at ? (
+          <Text style={styles.creationTime}>
+            {getElapsedTimeStringFull(new Date(token.created_at).getTime())}
+          </Text>
+        ) : null}
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
         {token?.symbol ? <Text style={styles.tokenSymbol}>{token.symbol}</Text> : null}
         <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text>
       </View>
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Supply</Text>
+      <View style={styles.divider} />
+      {token?.threshold_liquidity && (
+        <View>
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Raised Progress</Text>
+            <Text style={styles.value}>
+              {Number(token?.liquidity_raised || 0).toLocaleString()} /{' '}
+              {Number(token?.threshold_liquidity).toLocaleString()}
+            </Text>
+          </View>
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBarFill,
+                {
+                  width: `${Math.min(
+                    (Number(token?.liquidity_raised || 0) / Number(token?.threshold_liquidity)) *
+                      100,
+                    100,
+                  )}%`,
+                },
+              ]}
+            />
+          </View>
+        </View>
+      )}
+      <View style={styles.stats}>
+        <View style={styles.statContainer}>
+          <Icon name="MaxSupplyIcon" size={22} fill="black" />
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Raised</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.liquidity_raised || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Threshold</Text>
-          <Text style={styles.statValue}>
-            {Number(token?.threshold_liquidity || 0).toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Network</Text>
-          <Text style={styles.statValue}>{token?.network || '-'}</Text>
+        <View style={styles.statContainer}>
+          <Icon name="TokenHolderIcon" size={22} fill="black" />
+          <Text style={styles.statValue}>{Number(token?.token_holded || 0).toLocaleString()}</Text>
         </View>
       </View>
 
