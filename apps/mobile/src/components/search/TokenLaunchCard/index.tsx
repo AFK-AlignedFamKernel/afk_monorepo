@@ -3,18 +3,15 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {ImageSourcePropType, TouchableOpacity, View, Button} from 'react-native';
+import {useEffect, useMemo} from 'react';
+import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
 
-import {CopyIconStack} from '../../../assets/icons';
 import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {MainStackNavigationProps} from '../../../types';
 import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
-import {feltToAddress} from '../../../utils/format';
-// import {Button} from '../..';
 import {Text} from '../../Text';
 import stylesheet from './styles';
-import { useMemo } from 'react';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -67,6 +64,29 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
         {token?.symbol ? <Text style={styles.tokenSymbol}>{token.symbol}</Text> : null}
         <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text>
+      </View>
+
+      <View style={styles.statsGrid}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Supply</Text>
+          <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Raised</Text>
+          <Text style={styles.statValue}>
+            {Number(token?.liquidity_raised || 0).toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Threshold</Text>
+          <Text style={styles.statValue}>
+            {Number(token?.threshold_liquidity || 0).toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Network</Text>
+          <Text style={styles.statValue}>{token?.network || '-'}</Text>
+        </View>
       </View>
 
       {!isViewDetailDisabled && (
