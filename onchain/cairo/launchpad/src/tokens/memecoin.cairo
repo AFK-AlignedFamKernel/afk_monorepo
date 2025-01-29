@@ -1,33 +1,34 @@
 // use afk_launchpad::tokens::erc20::{IERC20};
-use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+// use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 use afk_launchpad::types::launchpad_types::{
     LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
     EkuboLiquidityParameters, EkuboPoolParameters
 };
 use starknet::ContractAddress;
 
-// #[starknet::interface]
-// pub trait IERC20<TContractState> {
-//     fn name(self: @TContractState) -> felt252;
-//     fn symbol(self: @TContractState) -> felt252;
-//     fn decimals(self: @TContractState) -> u8;
-//     fn total_supply(self: @TContractState) -> u256;
-//     fn totalSupply(self: @TContractState) -> u256;
-//     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
-//     fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
-//     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) ->
-//     u256;
-//     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
-//     fn transfer_from(
-//         ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount:
-//         u256
-//     ) -> bool;
-//     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
-//     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
-//     fn decrease_allowance(
-//         ref self: TContractState, spender: ContractAddress, subtracted_value: u256
-//     );
-// }
+#[starknet::interface]
+pub trait IERC20<TContractState> {
+    fn name(self: @TContractState) -> ByteArray;
+    fn symbol(self: @TContractState) -> ByteArray;
+    fn decimals(self: @TContractState) -> u8;
+    fn total_supply(self: @TContractState) -> u256;
+    fn totalSupply(self: @TContractState) -> u256;
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
+    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
+    ) -> bool;
+    fn transferFrom(
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
+    ) -> bool;
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
+    fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
+    fn decrease_allowance(
+        ref self: TContractState, spender: ContractAddress, subtracted_value: u256
+    );
+}
 
 #[starknet::interface]
 pub trait IMemecoin<TContractState> {
@@ -100,7 +101,7 @@ pub mod Memecoin {
     use afk_launchpad::errors;
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::math::PercentageMath;
-    use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
     use core::num::traits::Zero;
 
     use openzeppelin_access::accesscontrol::AccessControlComponent;
@@ -172,8 +173,8 @@ pub mod Memecoin {
 
     #[storage]
     struct Storage {
-        name: felt252,
-        symbol: felt252,
+        name: ByteArray,
+        symbol: ByteArray,
         decimals: u8,
         total_supply: u256,
         creator: ContractAddress,
@@ -276,8 +277,8 @@ pub mod Memecoin {
     #[constructor]
     fn constructor(
         ref self: ContractState,
-        name: felt252,
-        symbol: felt252,
+        name: ByteArray,
+        symbol: ByteArray,
         initial_supply: u256,
         decimals: u8,
         recipient: ContractAddress,
@@ -330,11 +331,11 @@ pub mod Memecoin {
 
     #[abi(embed_v0)]
     impl IERC20Impl of super::IERC20<ContractState> {
-        fn name(self: @ContractState) -> felt252 {
+        fn name(self: @ContractState) -> ByteArray {
             self.name.read()
         }
 
-        fn symbol(self: @ContractState) -> felt252 {
+        fn symbol(self: @ContractState) -> ByteArray {
             self.symbol.read()
         }
 
