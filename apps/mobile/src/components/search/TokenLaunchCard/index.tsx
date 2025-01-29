@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {useEffect, useMemo} from 'react';
+import {useMemo} from 'react';
 import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
 
 import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
