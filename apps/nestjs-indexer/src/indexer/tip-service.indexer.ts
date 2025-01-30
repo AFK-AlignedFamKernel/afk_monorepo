@@ -21,9 +21,10 @@ export class TipServiceIndexer {
     private readonly indexerService: IndexerService,
   ) {
     this.eventKeys = [
-      validateAndParseAddress(hash.getSelectorFromName('TipDeposit')),
-      validateAndParseAddress(hash.getSelectorFromName('TipClaim')),
-      validateAndParseAddress(hash.getSelectorFromName('TipCancel')),
+      validateAndParseAddress(hash.getSelectorFromName('DepositEvent')),
+      validateAndParseAddress(hash.getSelectorFromName('TransferEvent')),
+      validateAndParseAddress(hash.getSelectorFromName('ClaimEvent')),
+      validateAndParseAddress(hash.getSelectorFromName('CancelEvent')),
     ];
   }
 
@@ -46,6 +47,10 @@ export class TipServiceIndexer {
       case validateAndParseAddress(hash.getSelectorFromName('DepositEvent')):
         this.logger.log('Event name: DepositEvent');
         await this.handleTipDepositEvent(header, event, transaction);
+        break;
+      case validateAndParseAddress(hash.getSelectorFromName('TransferEvent')):
+        this.logger.log('Event name: TransferEvent');
+        await this.handleTipTransferEvent(header, event, transaction);
         break;
       case validateAndParseAddress(hash.getSelectorFromName('ClaimEvent')):
         this.logger.log('Event name: ClaimEvent');
@@ -125,6 +130,72 @@ export class TipServiceIndexer {
     };
 
     await this.tipService.createDeposit(data);
+  }
+
+  private async handleTipTransferEvent(
+    header: starknet.IBlockHeader,
+    event: starknet.IEvent,
+    transaction: starknet.ITransaction,
+  ) {
+    const {
+      blockNumber,
+      blockHash: blockHashFelt,
+      timestamp: blockTimestamp,
+    } = header;
+
+    const blockHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transactionHashFelt = transaction.meta.hash;
+    const transactionHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, senderFelt, nostrRecipientFelt, starknetRecipientFelt] =
+      event.keys;
+
+    const senderAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(senderFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const nostrRecipient = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(nostrRecipientFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const starknetRecipient = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(starknetRecipientFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const [amountLow, amountHigh, contractAddressFelt] = event.data;
+
+    const amountRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(amountLow),
+      high: FieldElement.toBigInt(amountHigh),
+    });
+    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+
+    const tokenAddress = contractAddressFelt
+      ? shortString.decodeShortString(
+          FieldElement.toBigInt(contractAddressFelt).toString(),
+        )
+      : '';
+
+    const data = {
+      network: 'starknet-sepolia',
+      transactionHash,
+      blockNumber: Number(blockNumber),
+      blockHash,
+      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      sender: senderAddress,
+      nostrRecipient,
+      starknetRecipient,
+      tokenAddress,
+      amount: Number(amount),
+    };
+
+    await this.tipService.createTransfer(data);
   }
 
   private async handleTipClaimEvent(
