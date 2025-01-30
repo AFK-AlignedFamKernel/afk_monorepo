@@ -88,13 +88,13 @@ pub enum TokenType {
     ERC404,
 }
 
-#[derive(Drop, Serde, Copy, starknet::Store)]
+#[derive(Drop, Serde, Clone, starknet::Store)]
 pub struct Token {
     pub owner: ContractAddress,
     pub creator: ContractAddress,
     pub token_address: ContractAddress,
-    pub symbol: felt252,
-    pub name: felt252,
+    pub symbol: ByteArray,
+    pub name: ByteArray,
     pub total_supply: u256,
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
@@ -225,8 +225,8 @@ pub struct CreateToken {
     pub caller: ContractAddress,
     #[key]
     pub token_address: ContractAddress,
-    pub symbol: felt252,
-    pub name: felt252,
+    pub symbol: ByteArray,
+    pub name: ByteArray,
     pub initial_supply: u256,
     pub total_supply: u256,
     pub is_unruggable: bool
