@@ -759,6 +759,11 @@ pub mod LaunchpadMarketplace {
             // pool_coin.liquidity_raised += remain_liquidity;
             // Amount quote buy with fees deducted if enabled
             // Optionally, re-calculate the quote amount based on the amount to ensure consistency
+            // println!("total_price {:?}", total_price);
+            // println!("update pool");
+            // println!("subtract amount and available supply");
+            // println!("available supply {:?}", pool_coin.available_supply);
+            // println!("amount {:?}", amount);
             pool_coin.liquidity_raised += remain_quote_to_liquidity;
             pool_coin.price = total_price;
             // TODO TEST
@@ -769,6 +774,7 @@ pub mod LaunchpadMarketplace {
                 pool_coin.available_supply = 0;
                 pool_coin.total_token_holded += coin_amount;
             } else {
+                // println!("subtract amount");
                 pool_coin.total_token_holded += coin_amount;
                 pool_coin.available_supply -= coin_amount;
             }
@@ -781,6 +787,7 @@ pub mod LaunchpadMarketplace {
                 .read();
 
             let mut share_user = old_share.clone();
+            //  println!("update share");
             if share_user.owner.is_zero() {
                 share_user =
                     SharesTokenUser {
@@ -799,6 +806,10 @@ pub mod LaunchpadMarketplace {
                 share_user.amount_buy += coin_amount;
             }
             // pool_coin.price = total_price / amount;
+
+            // println!("threshold {:?}", threshold);
+            // println!("pool_coin.liquidity_raised {:?}", pool_coin.liquidity_raised);
+
             // let mc = (pool_coin.price * total_supply_memecoin);
             // TODO add liquidity launch
             // TOTAL_SUPPLY / 5
@@ -818,11 +829,15 @@ pub mod LaunchpadMarketplace {
                 .entry(coin_address)
                 .write(share_user.clone());
 
+            // println!("check threshold");
             // TODO finish test and fix
             // Add slipage threshold
             // Fix price of the last
+
             self.launched_coins.entry(coin_address).write(pool_coin.clone());
+
             if pool_coin.liquidity_raised >= threshold {
+                // println!("emit liquidity can be added");
                 self
                     .emit(
                         LiquidityCanBeAdded {
@@ -831,15 +846,19 @@ pub mod LaunchpadMarketplace {
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
                         }
                     );
-                // TODO V2 Add Liquidity DEX selected by USER
-                // let launch_dex= pool_coin.dex_launch;
+                // TODO fix add liquidity ekubo or other DEX
+                // let launch_dex= lauch.dex_launch
                 // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
+
+                // println!("try add liquidity");
                 self._add_liquidity_ekubo(coin_address);
                 pool_coin.is_liquidity_launch = true;
             }
 
             // Update the state of the pool
             self.launched_coins.entry(coin_address).write(pool_coin.clone());
+
+            // println!("emit buy token");
 
             self
                 .emit(
@@ -1519,15 +1538,15 @@ pub mod LaunchpadMarketplace {
                 assert(allowance >= amount_needed, errors::INSUFFICIENT_ALLOWANCE);
 
                 if allowance >= amount_needed {
+                    // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
                         .transfer_from(
                             caller, get_contract_address(), total_supply - balance_contract
                         );
-                   // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount_needed);
-
                 }
             }
 
+            // memecoin.transfer_from(get_caller_address(), get_contract_address(), amount_needed);
             self.launched_coins.entry(coin_address).write(launch_token_pump.clone());
 
             let total_launch = self.total_launch.read();
@@ -1566,6 +1585,7 @@ pub mod LaunchpadMarketplace {
             };
 
             let launch = self.launched_coins.read(coin_address);
+
             // assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
             assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
             let threshold_liquidity = launch.threshold_liquidity.clone();
@@ -1589,12 +1609,17 @@ pub mod LaunchpadMarketplace {
 
             // Edge case to check and fix if fees enabled
             let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
+            // println!("tick_spacing {:?}", tick_spacing);
             // let bound = calculate_aligned_bound_mag(starting_price, 2, tick_spacing);
             // TODO verify condition EKUBO
             // Verify conditions
             // Add these debug prints
+
             // assert(bound % tick_spacing == 0, 'Bound not aligned');
             // assert(bound <= MAX_TICK.try_into().unwrap(), 'Tick magnitude too high');
+            // println!("Starting Price: {}", starting_price.mag);
+            // println!("Calculated Bound: {}", bound);
+            // println!("Tick Spacing: {}", tick_spacing);
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000, // TODO fee optional by user
@@ -1615,10 +1640,10 @@ pub mod LaunchpadMarketplace {
                 contract_address: launch.token_quote.token_address.clone()
             };
 
+            // Assertion: Check if the contract has enough quote tokens to transfer to liquidity
             // TODO fix this
             // HIGH SECURITY
             // Can drained funk if edge case approximation issue
-            // Assertion: Check if the contract has enough quote tokens to transfer to liquidity
             // Edge case of approximation estimation amount and fees can cause it
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
             // println!("add liquidity contract_quote_balance final {:?}", contract_quote_balance);
@@ -1627,11 +1652,22 @@ pub mod LaunchpadMarketplace {
 
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
+                // println!(
+                //     "contract_quote_balance < lp_quote_supply
+                // && contract_quote_balance < launch.threshold_liquidity: {}",
+                //     contract_quote_balance < lp_quote_supply
+                //         && contract_quote_balance < launch.threshold_liquidity
+                // );
+                // println!("launch.threshold_liquidity: {}", launch.threshold_liquidity.clone());
                 // TODO just calculate the difference of round and substract it
+
                 // let new_lp_quote_rounded= lp_quote_supply - contract_quote_balance;
                 // lp_quote_supply = new_lp_quote_rounded.clone();
+
                 lp_quote_supply = contract_quote_balance.clone();
             }
+            // println!("liquidity raised: {}", lp_quote_supply.clone());
+
             let params = EkuboUnrugLaunchParameters {
                 // owner: launch.owner, // TODO add optional parameters to be select LIQ percent to
                 // be lock to Unrug at some point
@@ -1645,12 +1681,17 @@ pub mod LaunchpadMarketplace {
             };
 
             let position_ekubo_address = unrug_liquidity.get_position_ekubo_address();
+            // quote_token.approve(position_ekubo_address, lp_quote_supply);
             quote_token.approve(unrug_liquidity_address, lp_quote_supply);
+
             // Approve Memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            // memecoin.approve(position_ekubo_address, lp_supply);
             memecoin.approve(unrug_liquidity_address, lp_supply);
+
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
             let id_cast: u256 = id.try_into().unwrap();
+
             // Set token launched
             let mut launch_to_update = self.launched_coins.read(coin_address);
             launch_to_update.is_liquidity_launch = true;
@@ -1713,16 +1754,20 @@ pub mod LaunchpadMarketplace {
             let threshold_liquidity = launch.threshold_liquidity.clone();
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
             let mut threshold = threshold_liquidity - slippage_threshold;
+
             // assert(launch.liquidity_raised >= threshold, errors::NO_THRESHOLD_RAISED);
+
             let quote_address = launch.token_quote.token_address.clone();
             let lp_supply = launch.initial_pool_supply.clone();
             let quote_supply = launch.liquidity_raised.clone();
             let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
+
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, params);
             let id_cast = unrug_liquidity
                 .launch_on_jediswap(
                     coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner
                 );
+
             // TODO
             // Add Locked position
             // let (id, position) = unrug_liquidity.launch_on_jediswap(coin_address, quote_address,

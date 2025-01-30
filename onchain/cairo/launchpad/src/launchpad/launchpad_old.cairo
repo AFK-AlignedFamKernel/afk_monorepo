@@ -718,6 +718,10 @@ pub mod LaunchpadMarketplace {
                 // fees
                 threshold = threshold_liquidity
                     - (slippage_threshold + amount_protocol_fee); // add slippage and fees
+                // threshold = threshold_liquidity
+                // - (slippage_threshold); // add slippage and fees
+                // threshold = threshold_liquidity
+                // - (amount_protocol_fee); // add slippage and fees
 
                 erc20
                     .transfer_from(
@@ -1178,7 +1182,7 @@ pub mod LaunchpadMarketplace {
                         key_user: coin_address,
                         amount: quote_amount,
                         price: total_price, // Adjust if necessary
-                        protocol_fee: amount_protocol_fee,
+                        protocol_fee: quote_amount_protocol_fee,
                         creator_fee: amount_creator_fee,
                         timestamp: get_block_timestamp(),
                         last_price: old_pool.price,
@@ -1397,8 +1401,8 @@ pub mod LaunchpadMarketplace {
             }
 
             let mut calldata = array![];
-            Serde::serialize(@name, ref calldata);
-            Serde::serialize(@symbol, ref calldata);
+            Serde::serialize(@name.clone(), ref calldata);
+            Serde::serialize(@symbol.clone(), ref calldata);
             Serde::serialize(@initial_supply, ref calldata);
             Serde::serialize(@18, ref calldata);
             Serde::serialize(@recipient, ref calldata);
@@ -1416,8 +1420,8 @@ pub mod LaunchpadMarketplace {
                 token_address: token_address,
                 owner: recipient,
                 creator: owner,
-                name,
-                symbol,
+                name: name.clone(),
+                symbol: symbol.clone(),
                 total_supply: initial_supply,
                 initial_supply: initial_supply,
                 created_at: get_block_timestamp(),

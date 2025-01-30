@@ -2,21 +2,13 @@
 pub mod UnrugLiquidity {
     use afk_launchpad::interfaces::jediswap::{
         // V1
-        // IJediswapRouter, IJediswapRouterDispatcher, IJediswapFactoryDispatcher,
-        // IJediswapFactoryV1Dispatcher,
-        // IJediswapFactoryV1DispatcherTrait,
-
+        // IJediswapRouter, IJediswapRouterDispatcher, IJediswapFactoryDispatcher, // IJediswapFactoryV1Dispatcher,  // IJediswapFactoryV1DispatcherTrait,
         // V2 Jediswap
         IJediswapFactoryV2, IJediswapFactoryV2Dispatcher, IJediswapFactoryV2DispatcherTrait,
         //    Router
         // IJediswapRouterV2,
         IJediswapRouterV2Dispatcher, IJediswapRouterV2DispatcherTrait, // NFT router position
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
-        // IJediswapRouterV1Dispatcher,
-    // IJediswapRouterV1,
-    // IJediswapRouterV1DispatcherTrait,
-    // IJediswapFactoryV1Dispatcher,
-    // IJediswapFactoryV1DispatcherTrait
     };
     use afk_launchpad::interfaces::unrug::{IUnrugLiquidity};
 
@@ -24,8 +16,6 @@ pub mod UnrugLiquidity {
         calculate_starting_price_launch, // calculate_slope, calculate_pricing,
     };
     use afk_launchpad::launchpad::errors;
-    // use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters
-    // };
     use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
     use afk_launchpad::launchpad::locker::interface::{
         ILockManagerDispatcher, ILockManagerDispatcherTrait
@@ -34,7 +24,6 @@ pub mod UnrugLiquidity {
     };
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        // calculate_aligned_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -51,10 +40,8 @@ pub mod UnrugLiquidity {
         // MemecoinCreated, MemecoinLaunched
     };
     use afk_launchpad::utils::{sqrt};
-
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
-
     use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
@@ -611,8 +598,6 @@ pub mod UnrugLiquidity {
 
                     // TODO check errors possible
                     // BOUNDS_TICK_SPACING
-                    // T
-
                     // TODO used it or full_bounds
                     // Verify bound to use based on user params
                     // Add single tick bound
