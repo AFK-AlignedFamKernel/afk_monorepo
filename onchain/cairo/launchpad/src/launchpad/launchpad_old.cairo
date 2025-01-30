@@ -553,8 +553,8 @@ pub mod LaunchpadMarketplace {
         fn create_token(
             ref self: ContractState,
             recipient: ContractAddress,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool
@@ -580,8 +580,8 @@ pub mod LaunchpadMarketplace {
         // Create coin and launch in bonding curve
         fn create_and_launch_token(
             ref self: ContractState,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool,
@@ -1369,8 +1369,8 @@ pub mod LaunchpadMarketplace {
     impl InternalFunctions of InternalFunctionsTrait {
         fn _create_token(
             ref self: ContractState,
-            symbol: felt252,
-            name: felt252,
+            symbol: ByteArray,
+            name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool,
@@ -1396,7 +1396,9 @@ pub mod LaunchpadMarketplace {
                     );
             }
 
-            let mut calldata = array![name.into(), symbol.into()];
+            let mut calldata = array![];
+            Serde::serialize(@name, ref calldata);
+            Serde::serialize(@symbol, ref calldata);
             Serde::serialize(@initial_supply, ref calldata);
             Serde::serialize(@18, ref calldata);
             Serde::serialize(@recipient, ref calldata);
@@ -1423,15 +1425,15 @@ pub mod LaunchpadMarketplace {
                 is_unruggable: is_unruggable
             };
 
-            self.token_created.entry(token_address).write(token);
+            self.token_created.entry(token_address).write(token.clone());
 
             let total_token = self.total_token.read();
             if total_token == 0 {
                 self.total_token.write(1);
-                self.array_coins.entry(0).write(token);
+                self.array_coins.entry(0).write(token.clone());
             } else {
                 self.total_token.write(total_token + 1);
-                self.array_coins.entry(total_token).write(token);
+                self.array_coins.entry(total_token).write(token.clone());
             }
 
             self

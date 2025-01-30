@@ -17,8 +17,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn create_token(
         ref self: TContractState,
         recipient: ContractAddress,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool
@@ -26,8 +26,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn create_and_launch_token(
         ref self: TContractState,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool,

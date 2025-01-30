@@ -173,12 +173,14 @@ mod unrug_tests {
         'bob'.try_into().unwrap()
     }
 
-    fn NAME() -> felt252 {
-        'name'.try_into().unwrap()
+    fn NAME() -> ByteArray {
+       let name: ByteArray = "name";
+       name
     }
 
-    fn SYMBOL() -> felt252 {
-        'symbol'.try_into().unwrap()
+    fn SYMBOL() -> ByteArray {
+       let symbol: ByteArray = "symbol";
+       symbol
     }
 
     // Math
