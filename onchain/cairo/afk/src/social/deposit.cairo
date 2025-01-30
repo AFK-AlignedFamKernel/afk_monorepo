@@ -2,7 +2,6 @@ use core::traits::Into;
 use starknet::{ContractAddress};
 use super::request::{SocialRequest, SocialRequestImpl, Encode};
 use super::request::ConvertToBytes;
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]

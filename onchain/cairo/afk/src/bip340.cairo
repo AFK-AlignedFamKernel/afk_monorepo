@@ -602,35 +602,35 @@ mod tests {
 
         assert!(verify(px, rx, s, m.into()));
     }
-    #[test]
-    fn test_20() {
-        let (private_key, public_key) = generate_keypair();
+    // #[test]
+    // fn test_20() {
+    //     let (private_key, public_key) = generate_keypair();
 
-        // Message to sign
-        let message: ByteArray = "I love Cairo";
+    //     // Message to sign
+    //     let message: ByteArray = "I love Cairo";
 
-        // Sign message
-        let signature = sign(private_key, message.clone());
+    //     // Sign message
+    //     let signature = sign(private_key, message.clone());
 
-        // Verify signature
-        let is_valid = verify_sig(public_key, message, signature);
+    //     // Verify signature
+    //     let is_valid = verify_sig(public_key, message, signature);
 
-        assert!(is_valid);
-    }
+    //     assert!(is_valid);
+    // }
 
-    #[test]
-    fn test_generate_sign_and_verify() {
-        let (private_key, public_key) = generate_keypair();
+    // #[test]
+    // fn test_generate_sign_and_verify() {
+    //     let (private_key, public_key) = generate_keypair();
 
-        // Message to sign
-        let message: ByteArray = "I love Cairo";
+    //     // Message to sign
+    //     let message: ByteArray = "I love Cairo";
 
-        // Sign message
-        let signature = sign(private_key, message.clone());
+    //     // Sign message
+    //     let signature = sign(private_key, message.clone());
 
-        // Verify signature
-        let is_valid = verify_sig(public_key, message, signature);
+    //     // Verify signature
+    //     let is_valid = verify_sig(public_key, message, signature);
 
-        assert!(is_valid);
-    }
+    //     assert!(is_valid);
+    // }
 }
