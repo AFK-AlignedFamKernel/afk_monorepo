@@ -5,8 +5,9 @@ import {useState} from 'react';
 import {Text, View} from 'react-native';
 
 // import {useNostrContext} from '../../context/NostrContext';
-import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
+import {useStyles, useTheme, useWaitConnection} from '../../hooks';
 import {useClaim, useEstimateClaim} from '../../hooks/api';
+import {useTips} from '../../hooks/api/indexer/useTips';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
 import {KeysMarketplaceSreenProps, MainStackNavigationProps} from '../../types';
 import {SelectedTab} from '../../types/tab';

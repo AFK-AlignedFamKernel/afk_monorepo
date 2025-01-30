@@ -12,9 +12,9 @@ import {Button, Divider, Text} from '../../components';
 import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {Entrypoint} from '../../constants/misc';
-import {ETH, STRK} from '../../constants/tokens';
-import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
+import {useStyles, useTheme, useWaitConnection} from '../../hooks';
 import {useClaim, useEstimateClaim} from '../../hooks/api';
+import {useTips} from '../../hooks/api/indexer/useTips';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
 import {decimalsScale} from '../../utils/helpers';
@@ -32,11 +32,11 @@ export const TipsComponent: React.FC = () => {
   const {provider} = useProvider();
   const account = useAccount();
   const {sendTransaction} = useTransaction({});
+  const {hide: hideTransactionModal} = useTransactionModal();
   const claim = useClaim();
   const estimateClaim = useEstimateClaim();
   const walletModal = useWalletModal();
   const waitConnection = useWaitConnection();
-  const {show: showTransactionModal} = useTransactionModal();
   const {showToast} = useToast();
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -79,99 +79,53 @@ export const TipsComponent: React.FC = () => {
       return event.rawEvent();
     };
 
-    const event = await getNostrEvent(BigInt(1));
-    const feeResult = await estimateClaim.mutateAsync(event);
-    const gasFee = BigInt(feeResult.data.gasFee);
-    const tokenFee = BigInt(feeResult.data.tokenFee);
+    // Send the claim through the wallet
+    const event = await getNostrEvent(BigInt(0));
 
-    const [balanceLow, balanceHigh] = await provider.callContract({
-      contractAddress:
-        tokenAddress === STRK[CHAIN_ID].address ? STRK[CHAIN_ID].address : ETH[CHAIN_ID].address,
-      entrypoint: Entrypoint.BALANCE_OF,
-      calldata: [connectedAccount.address],
-    });
-    const balance = uint256.uint256ToBN({low: balanceLow, high: balanceHigh});
+    const signature = event.sig ?? '';
+    const signatureR = signature.slice(0, signature.length / 2);
+    const signatureS = signature.slice(signature.length / 2);
 
-    if (balance < gasFee) {
-      // Send the claim through backend
+    const claimCalldata = CallData.compile([
+      uint256.bnToUint256(`0x${event.pubkey}`),
+      event.created_at,
+      event.kind ?? 1,
+      byteArray.byteArrayFromString(JSON.stringify(event.tags)),
+      {
+        deposit_id: cairo.felt(depositId),
+        starknet_recipient: connectedAccount.address,
+        gas_token_address: tokenAddress,
+        gas_amount: uint256.bnToUint256(0),
+      },
+      {
+        r: uint256.bnToUint256(`0x${signatureR}`),
+        s: uint256.bnToUint256(`0x${signatureS}`),
+      },
+      uint256.bnToUint256(0),
+    ]);
 
-      const claimResult = await claim.mutateAsync(await getNostrEvent(tokenFee));
-      const txHash = claimResult.data.transaction_hash;
+    const receipt = await sendTransaction([
+      {
+        contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
+        entrypoint: Entrypoint.CLAIM,
+        calldata: claimCalldata,
+      },
+    ]);
 
-      showTransactionModal(txHash, async (receipt) => {
-        if (receipt.isSuccess()) {
-          tips.refetch();
-          showToast({type: 'success', title: 'Tip claimed successfully'});
-        } else {
-          let description = 'Please Try Again Later.';
-          if (receipt.isRejected()) {
-            description = receipt.transaction_failure_reason.error_message;
-          }
-
-          showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
-        }
-
-        setLoading(false);
-      });
+    if (receipt?.transaction_hash) {
+      hideTransactionModal();
+      tips.refetch();
+      showToast({type: 'success', title: 'Tip claimed successfully'});
     } else {
-      // Send the claim through the wallet
+      const description = 'Please Try Again Later.';
+      // if (receipt) {
+      //   description = receipt.transaction_failure_reason.error_message;
+      // }
 
-      const event = await getNostrEvent(BigInt(0));
-
-      const signature = event.sig ?? '';
-      const signatureR = signature.slice(0, signature.length / 2);
-      const signatureS = signature.slice(signature.length / 2);
-
-      const claimCalldata = CallData.compile([
-        uint256.bnToUint256(`0x${event.pubkey}`),
-        event.created_at,
-        event.kind ?? 1,
-        byteArray.byteArrayFromString(JSON.stringify(event.tags)),
-        {
-          deposit_id: cairo.felt(depositId),
-          starknet_recipient: connectedAccount.address,
-          gas_token_address: tokenAddress,
-          gas_amount: uint256.bnToUint256(0),
-        },
-        {
-          r: uint256.bnToUint256(`0x${signatureR}`),
-          s: uint256.bnToUint256(`0x${signatureS}`),
-        },
-        uint256.bnToUint256(0),
-      ]);
-
-      // const receipt = await sendTransaction({
-      //   calls: [
-      //     {
-      //       contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-      //       entrypoint: Entrypoint.CLAIM,
-      //       calldata: claimCalldata,
-      //     },
-      //   ],
-      // });
-
-      const receipt = await sendTransaction([
-        {
-          contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
-          entrypoint: Entrypoint.CLAIM,
-          calldata: claimCalldata,
-        },
-      ]);
-
-      if (receipt?.transaction_hash) {
-        tips.refetch();
-        showToast({type: 'success', title: 'Tip claimed successfully'});
-      } else {
-        let description = 'Please Try Again Later.';
-        // if (receipt) {
-        //   description = receipt.transaction_failure_reason.error_message;
-        // }
-
-        showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
-      }
-
-      setLoading(false);
+      showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
     }
+
+    setLoading(false);
   };
 
   return (
@@ -186,7 +140,7 @@ export const TipsComponent: React.FC = () => {
         contentContainerStyle={styles.flatListContent}
         data={tips.data ?? []}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyExtractor={(item) => item.event.transaction_hash}
+        keyExtractor={(item) => item.transactionHash}
         renderItem={({item}) => {
           const amount = new Fraction(item.amount, decimalsScale(item.token.decimals)).toFixed(6);
 
@@ -205,7 +159,7 @@ export const TipsComponent: React.FC = () => {
                 <View>
                   {item.depositId ? (
                     <>
-                      {item.claimed ? (
+                      {item.isClaimed ? (
                         <Button small variant="default" disabled>
                           Claimed
                         </Button>
