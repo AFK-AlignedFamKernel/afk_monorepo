@@ -26,7 +26,13 @@ export const useTransaction = ({callsProps = []}: UseTransactionInterface) => {
   } else {
     walletType = 1;
   }
-  const {send: sendTransactionTx, data, isPending, isError, error} = useSendTransaction({calls});
+  const {
+    sendAsync: sendTransactionTx,
+    data,
+    isPending,
+    isError,
+    error,
+  } = useSendTransaction({calls});
 
   useEffect(() => {
     if (!data) return;
@@ -58,7 +64,7 @@ export const useTransaction = ({callsProps = []}: UseTransactionInterface) => {
 
     try {
       // const {transaction_hash} = await writeAsync(args)
-      const transaction_hash = await sendTransactionTx();
+      const {transaction_hash} = await sendTransactionTx();
 
       setTxHash(transaction_hash);
       return {
