@@ -174,13 +174,13 @@ mod unrug_tests {
     }
 
     fn NAME() -> ByteArray {
-       let name: ByteArray = "name";
-       name
+        let name: ByteArray = "name";
+        name
     }
 
     fn SYMBOL() -> ByteArray {
-       let symbol: ByteArray = "symbol";
-       symbol
+        let symbol: ByteArray = "symbol";
+        symbol
     }
 
     // Math

@@ -775,7 +775,7 @@ pub mod UnrugLiquidity {
                 .register_token(
                     EKIERC20Dispatcher { contract_address: unrug_params.token_address.clone() }
                 );
-            
+
             unrug_params.lp_supply -= amount_register;
             // println!("register ok add liquidity");
 
@@ -1026,7 +1026,7 @@ pub mod UnrugLiquidity {
                 //     quote_address: quote_address.clone(),
                 //     created_at: get_block_timestamp(),
                 //     exchange: SupportedExchanges::Jediswap,
-                //     owner: owner.clone(), // TODO 
+                //     owner: owner.clone(), // TODO
                 //     caller: owner.clone(), // TODO change caller
                 //     unlock_time: unlock_time,
                 // };

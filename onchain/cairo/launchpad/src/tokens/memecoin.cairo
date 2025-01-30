@@ -101,7 +101,6 @@ pub mod Memecoin {
     use afk_launchpad::errors;
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::math::PercentageMath;
-    use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
     use core::num::traits::Zero;
 
     use openzeppelin_access::accesscontrol::AccessControlComponent;
@@ -127,6 +126,7 @@ pub mod Memecoin {
         LiquidityType, LiquidityParameters, // SupportedExchanges, JediswapLiquidityParameters,
         // EkuboLiquidityParameters, EkuboPoolParameters
     };
+    use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);

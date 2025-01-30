@@ -165,13 +165,13 @@ mod launchpad_tests {
     }
 
     fn NAME() -> ByteArray {
-       let name: ByteArray = "name";
-       name
+        let name: ByteArray = "name";
+        name
     }
 
     fn SYMBOL() -> ByteArray {
-       let symbol: ByteArray = "symbol";
-       symbol
+        let symbol: ByteArray = "symbol";
+        symbol
     }
 
     // Math
@@ -1358,7 +1358,6 @@ mod launchpad_tests {
     }
 
 
-
     #[test]
     #[should_panic()]
     fn test_sell_coin_when_share_too_low() {
@@ -2264,61 +2263,61 @@ mod launchpad_tests {
         let result = launchpad
             .get_amount_by_type_of_coin_or_quote(token_address, quote_amount_2, false, true);
     }
-
-    
     // #[test]
-    // // #[fork("Mainnet")]
-    // fn test_get_all_launch_tokens_and_coins() {
-    //     let (sender_address, erc20, launchpad) = request_fixture();
-    //     let first_token: felt252 = 'token_1';
-    //     let second_token: felt252 = 'token_2';
-    //     let third_token: felt252 = 'token_3';
+// // #[fork("Mainnet")]
+// fn test_get_all_launch_tokens_and_coins() {
+//     let (sender_address, erc20, launchpad) = request_fixture();
+//     let first_token: felt252 = 'token_1';
+//     let second_token: felt252 = 'token_2';
+//     let third_token: felt252 = 'token_3';
 
     //     let first_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'FRST',
-    //             name: first_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'FRST',
+//             name: first_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let second_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'SCND',
-    //             name: second_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'SCND',
+//             name: second_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let third_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'THRD',
-    //             name: third_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'THRD',
+//             name: third_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let all_launched_coins = launchpad.get_all_coins();
-    //     let all_launched_tokens = launchpad.get_all_launch();
+//     let all_launched_tokens = launchpad.get_all_launch();
 
     //     assert(all_launched_coins.len() == 3, 'wrong number of coins');
-    //     assert(all_launched_tokens.len() == 3, 'wrong number of tokens');
-    //     assert(*all_launched_coins.at(0).name == first_token, 'wrong coin name');
-    //     assert(*all_launched_coins.at(1).name == second_token, 'wrong coin name');
-    //     assert(*all_launched_coins.at(2).name == third_token, 'wrong coin name');
-    //     assert(*all_launched_tokens.at(0).token_address == first_token_addr, 'wrong token address');
-    //     assert(
-    //         *all_launched_tokens.at(1).token_address == second_token_addr, 'wrong token address'
-    //     );
-    //     assert(*all_launched_tokens.at(2).token_address == third_token_addr, 'wrong token address');
-    // }
-    // #[test]
+//     assert(all_launched_tokens.len() == 3, 'wrong number of tokens');
+//     assert(*all_launched_coins.at(0).name == first_token, 'wrong coin name');
+//     assert(*all_launched_coins.at(1).name == second_token, 'wrong coin name');
+//     assert(*all_launched_coins.at(2).name == third_token, 'wrong coin name');
+//     assert(*all_launched_tokens.at(0).token_address == first_token_addr, 'wrong token
+//     address');
+//     assert(
+//         *all_launched_tokens.at(1).token_address == second_token_addr, 'wrong token address'
+//     );
+//     assert(*all_launched_tokens.at(2).token_address == third_token_addr, 'wrong token
+//     address');
+// }
+// #[test]
 // #[fork("Mainnet")]
 // fn launchpad_buy_all_few_steps() {
 //     println!("launchpad_buy_all_few_steps");

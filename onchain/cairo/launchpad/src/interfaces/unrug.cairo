@@ -86,7 +86,9 @@ pub trait IUnrugLiquidity<TContractState> {
     );
     fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory: ContractAddress);
     fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
-    fn set_address_ekubo_registry(ref self: TContractState, new_ekubo_registry_address: ContractAddress);
+    fn set_address_ekubo_registry(
+        ref self: TContractState, new_ekubo_registry_address: ContractAddress
+    );
     fn set_exchanges_address(
         ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
     );

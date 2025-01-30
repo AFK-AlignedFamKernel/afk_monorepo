@@ -899,7 +899,7 @@ pub mod LaunchpadMarketplace {
                         // creator_fee: 0,
                         last_price: old_price,
                         timestamp: get_block_timestamp(),
-                        quote_amount:remain_quote_to_liquidity
+                        quote_amount: remain_quote_to_liquidity
                         // quote_amount: quote_amount
                     }
                 );
@@ -1364,7 +1364,7 @@ pub mod LaunchpadMarketplace {
         }
     }
 
-    // // Internal functions for create token, launch, add liquidity in DEX 
+    // // Internal functions for create token, launch, add liquidity in DEX
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait {
         fn _create_token(
