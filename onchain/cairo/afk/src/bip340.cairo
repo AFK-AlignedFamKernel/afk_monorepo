@@ -3,21 +3,15 @@ use core::byte_array::ByteArrayTrait;
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
 use core::ec::stark_curve::ORDER;
-use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint, EcState, EcStateTrait};
-use core::fmt::{Display, Formatter, Error};
-use core::hash::{HashStateTrait, HashStateExTrait};
-use core::math::u256_mul_mod_n;
+use core::ec::{EcPoint, ec_point_unwrap};
 use core::option::OptionTrait;
-use core::poseidon::PoseidonTrait;
-use core::result::ResultTrait;
 // TODO: uncomment once Cairo 2.7 is available
 // use core::sha256::compute_sha256_byte_array;
 use core::starknet::SyscallResultTrait;
-use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
 //! bip340 implementation
 
-use starknet::{ContractAddress, get_caller_address, contract_address_const};
+use starknet::{ContractAddress, get_caller_address};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
 use super::social::{
     request::{SocialRequest, ConvertToBytes}, transfer::Transfer, deposit::Claim,
@@ -365,7 +359,8 @@ mod tests {
     use super::Secp256PointTrait;
     // use super::*;
     use super::{verify, verify_sig, sign, generate_keypair};
-
+    use fork_testing::{ IvrfProvider,IVrfProviderDispatcher};
+    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}};
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
             let mut ba = Default::default();
@@ -374,12 +369,26 @@ mod tests {
             ba
         }
     }
+    const CONTRACT_ADDRESS: felt252 =
+    0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+
 
     #[test]
+    #[fork("SEPOLIA_LATEST")]
     fn test_generate_keypair() {
-        let (_private_key, public_key) = generate_keypair();
+
+        let vrf_provider = IVrfProviderDispatcher {
+            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+        };
+        let (private_key, public_key) = generate_keypair();
+        assert!(private_key != 0, "Private key should not be zero");
+
         let (px, _tpx) = public_key.get_coordinates().unwrap_syscall();
-        assert!(px != 0);
+        assert!(px != 0, "Public key's x-coordinate should not be zero");
+
+        let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
+        let derived_public_key = G.mul(private_key.into()).unwrap_syscall();
+        assert_eq!(public_key, derived_public_key, "Derived public key should match the generated public key");
     }
 
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
