@@ -592,269 +592,136 @@ pub mod LaunchpadMarketplace {
         }
 
         // Buy coin by quote amount
-        // Get amount of coin receive based on token IN
-        // Calculate fees and protocol fees
-        // Transfer fees to the protocol fee destination
-        // Transfer quote to the user
-        // Update the state of the pool: Liquidity raised, available_supply,
-        // Update the share user: update amount_owned
-        // Emit the buy event
+        // Calculates amount of coin to receive based on quote token input
+        // Handles fees, updates pool state and user shares
         fn buy_coin_by_quote_amount(
-            ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
-            // ekubo_pool_params: Option<EkuboPoolParameters>
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            quote_amount: u256,
         ) {
+            // Input validation
             assert(quote_amount > 0, errors::AMOUNT_ZERO);
             let caller = get_caller_address();
-            let old_launch = self.launched_coins.read(coin_address);
-            assert(!old_launch.owner.is_zero(), errors::COIN_NOT_FOUND);
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            let mut pool_coin = old_launch.clone();
-            // let total_supply_memecoin = memecoin.total_supply();
-            let threshold_liquidity = pool_coin.threshold_liquidity.clone();
 
-            // TODO erc20 token transfer
-            let token_quote = old_launch.token_quote.clone();
-            let quote_token_address = token_quote.token_address.clone();
-            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
+            // Get pool info
+            let mut pool = self.launched_coins.read(coin_address);
+            assert(!pool.owner.is_zero(), errors::COIN_NOT_FOUND);
+
+            // Calculate fees and remaining quote amount
             let protocol_fee_percent = self.protocol_fee_percent.read();
-
-            // IF AMOUNT COIN TO HAVE => GET AMOUNT QUOTE TO PAID
-            let mut total_price = quote_amount.clone();
-            let old_price = pool_coin.price.clone();
-
-            // TODO edge case remaining supply to buy easily
-            // In case the user want to buy more than the threshold
-            // Give the available supply
-            // if total_price + old_launch.liquidity_raised.clone() > threshold_liquidity {
-            //     total_price = threshold_liquidity - old_launch.liquidity_raised.clone();
-            //     amount = pool_coin.available_supply;
-            //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
-            //     // remain_liquidity = total_price - amount_protocol_fee;
-            //     remain_liquidity = total_price;
-            // } else {
-            //     amount = self
-            //         ._get_amount_by_type_of_coin_or_quote(coin_address, total_price, false,
-            //         true);
-            //     // remain_liquidity = total_price - amount_protocol_fee;
-            //     erc20
-            //         .transfer_from(
-            //             get_caller_address(),
-            //             self.protocol_fee_destination.read(),
-            //             amount_protocol_fee
-            //         );
-            //     // println!("remain_liquidity {:?}", remain_liquidity);
-            //     erc20.transfer_from(get_caller_address(), get_contract_address(),
-            //     remain_liquidity);
-            // }
-
-            // TODO check if fees is enabled
-            let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
-            let mut remain_liquidity = total_price - amount_protocol_fee;
-            let mut remain_quote_to_liquidity = total_price;
-            // let mut remain_quote_to_liquidity = total_price - amount_protocol_fee;
-
-            let mut threshold_liquidity = pool_coin.threshold_liquidity.clone();
-            // let mut amount_protocol_fee: u256 = total_price * protocol_fee_percent / BPS;
+            let mut amount_protocol_fee = 0;
+            let mut remain_quote_to_liquidity = quote_amount;
+            let mut threshold_liquidity = pool.threshold_liquidity.clone();
+         
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            // let mut threshold = threshold_liquidity;
+          
             let mut threshold = threshold_liquidity - slippage_threshold;
-            threshold_liquidity = threshold_liquidity - slippage_threshold;
-            // TODO without fees if it's correct
-            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            let is_fees_protocol_buy_enabled = self.is_fees_protocol_buy_enabled.read();
 
-            // TODO edge cases
-            // Verify rounding of Fees
-            // Check fees send to protocol and liquidity and carefully verify
-            if is_fees_protocol_enabled && is_fees_protocol_buy_enabled {
-                // if pool_coin.liquidity_raised < quote_amount {
-                //     total_price = pool_coin.liquidity_raised.clone();
-                //     amount_protocol_fee = total_price * protocol_fee_percent / BPS;
-                //     remain_quote_to_liquidity = pool_coin.liquidity_raised.clone() -
-                //     amount_protocol_fee;
-                // } else {
-                //     remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
-                // }
-                remain_liquidity = total_price - amount_protocol_fee;
-
-                remain_quote_to_liquidity = total_price - amount_protocol_fee;
-                // remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
-                // TODO check slippage and fees
-                // TODO check threshold min and Supply threshold
-                // threshold = threshold_liquidity - (slippage_threshold * 2); // add slippage and
-                // fees
-                threshold = threshold_liquidity
-                    - (slippage_threshold + amount_protocol_fee); // add slippage and fees
-                // threshold = threshold_liquidity
-                // - (slippage_threshold); // add slippage and fees
-                // threshold = threshold_liquidity
-                // - (amount_protocol_fee); // add slippage and fees
-
-                erc20
-                    .transfer_from(
-                        get_caller_address(),
-                        self.protocol_fee_destination.read(),
-                        amount_protocol_fee
-                    );
+            // Handle protocol fees if enabled
+            if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
+                amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
+                remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
+                threshold -= amount_protocol_fee;
+                // Transfer protocol fee
+                let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
+                quote_token.transfer_from(
+                    caller,
+                    self.protocol_fee_destination.read(),
+                    amount_protocol_fee
+                );
             }
-            //new liquidity after purchase
-            let new_liquidity = pool_coin.liquidity_raised + remain_quote_to_liquidity;
-
-            // Verify pool has sufficient available supply
-            //assertion
-            // Add slippage threshold
+            let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
             // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
-            // Check if liquidity threshold raise
-            let threshold_liq = self.threshold_liquidity.read();
-            let threshold_mc = self.threshold_market_cap.read();
-
-            // let mut amount = 0;
-            // Pay with quote token
-            // Transfer quote & coin
-            // TOdo fix issue price
-            let mut coin_amount = get_amount_by_type_of_coin_or_quote(
-                pool_coin.clone(),
-                coin_address.clone(),
-                remain_quote_to_liquidity.clone(),
+            // Calculate coin amount to receive
+            let coin_amount = get_amount_by_type_of_coin_or_quote(
+                pool.clone(),
+                coin_address,
+                remain_quote_to_liquidity,
                 false,
                 true
             );
 
-            let mut amount_coin_received = coin_amount.clone();
-            // TODO check available to buy
-            // TODO EDGES CASES
-            // Approximation amount
-            // TEST
-            // Can cause draining
-            // Todo check all memecoin amount possible to buy
-            // if pool_coin.total_token_holded < pool_coin.available_supply + amount {
-            //     let amount = pool_coin.total_token_holded - pool_coin.available_supply;
-            //     let amount_coin_received = pool_coin.total_token_holded -
-            //     pool_coin.available_supply;
-            //     // assert(amount  <  pool_coin.available_supply,
-            //     errors::INSUFFICIENT_TOTAL_SUPPLY);
-            //     // assert(pool_coin.total_token_holded < pool_coin.available_supply + amount,
-            //     errors::INSUFFICIENT_TOTAL_SUPPLY);
+            // Verify sufficient supply
+            assert(pool.available_supply >= coin_amount, errors::INSUFFICIENT_SUPPLY);
 
-            // }
-            // if pool_coin.available_supply < amount {
-            //     amount = pool_coin.available_supply;
-            // }
-            assert(pool_coin.available_supply >= coin_amount, errors::INSUFFICIENT_SUPPLY);
-            // println!("amount memecoin to receive {:?}", amount);
-            // TODO readd this check and check why it's broken
-            // println!("transfer protocol fees {:?}", amount_protocol_fee);
-            // println!("transfer remain_liquidity {:?}", remain_quote_to_liquidity);
-            erc20
-                .transfer_from(
-                    get_caller_address(), get_contract_address(), remain_quote_to_liquidity
-                );
+            // Transfer quote tokens to contract
+            let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
+            quote_token.transfer_from(
+                caller,
+                get_contract_address(),
+                remain_quote_to_liquidity
+            );
 
-            // Update the Stats of pool:
-            // Liquidity raised
-            // Available supply
-            // Token holded
-            // pool_coin.liquidity_raised += remain_liquidity;
-            // Amount quote buy with fees deducted if enabled
-            // Optionally, re-calculate the quote amount based on the amount to ensure consistency
-            pool_coin.liquidity_raised += remain_quote_to_liquidity;
-            pool_coin.price = total_price;
-            // TODO TEST
-            // EDGE CASE
-            // HIGH RISK = CAN DRAINED ALL POOL VALUE
-            // TODO check approximation, rounding and edges cases
-            if coin_amount >= pool_coin.available_supply {
-                pool_coin.available_supply = 0;
-                pool_coin.total_token_holded += coin_amount;
+            // Update pool state
+            let old_price = pool.price;
+            pool.liquidity_raised += remain_quote_to_liquidity;
+            pool.price = quote_amount;
+            pool.total_token_holded += coin_amount;
+
+            // pool.available_supply -= coin_amount;
+            if coin_amount >= pool.available_supply {
+                pool.available_supply = 0;
+                pool.total_token_holded += coin_amount;
             } else {
-                pool_coin.total_token_holded += coin_amount;
-                pool_coin.available_supply -= coin_amount;
+                pool.total_token_holded += coin_amount;
+                pool.available_supply -= coin_amount;
             }
 
-            // Update share and coin stats for an user
-            let mut old_share = self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .read();
-
-            let mut share_user = old_share.clone();
-            if share_user.owner.is_zero() {
-                share_user =
-                    SharesTokenUser {
-                        owner: get_caller_address(),
-                        token_address: coin_address,
-                        amount_owned: coin_amount,
-                        amount_buy: coin_amount,
-                        amount_sell: 0,
-                        created_at: get_block_timestamp(),
-                        total_paid: total_price,
-                        is_claimable: true,
-                    };
+            // Update user shares
+            let mut share = self.shares_by_users.entry(caller).entry(coin_address).read();
+            if share.owner.is_zero() {
+                share = SharesTokenUser {
+                    owner: caller,
+                    token_address: coin_address,
+                    amount_owned: coin_amount,
+                    amount_buy: coin_amount,
+                    amount_sell: 0,
+                    created_at: get_block_timestamp(),
+                    total_paid: quote_amount,
+                    is_claimable: true,
+                };
             } else {
-                share_user.total_paid += total_price;
-                share_user.amount_owned += coin_amount;
-                share_user.amount_buy += coin_amount;
+                share.total_paid += quote_amount;
+                share.amount_owned += coin_amount;
+                share.amount_buy += coin_amount;
             }
-            // pool_coin.price = total_price / amount;
-            // let mc = (pool_coin.price * total_supply_memecoin);
-            // TODO add liquidity launch
-            // TOTAL_SUPPLY / 5
-            // 20% go the liquidity
-            // 80% bought by others
+            self.shares_by_users.entry(caller).entry(coin_address).write(share);
 
-            // TODO check reetrancy guard
-            // Update state
-            // self
-            //     .shares_by_users
-            //     .entry((get_caller_address(), coin_address))
-            //     .write(share_user.clone());
+            // Check if liquidity threshold reached
+            // let threshold = pool.threshold_liquidity - (pool.threshold_liquidity * SLIPPAGE_THRESHOLD / BPS);
+            self.launched_coins.entry(coin_address).write(pool);
 
-            self
-                .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address)
-                .write(share_user.clone());
-
-            // TODO finish test and fix
-            // Add slipage threshold
-            // Fix price of the last
-            self.launched_coins.entry(coin_address).write(pool_coin.clone());
-            if pool_coin.liquidity_raised >= threshold {
-                self
-                    .emit(
-                        LiquidityCanBeAdded {
-                            pool: pool_coin.token_address.clone(),
-                            asset: pool_coin.token_address.clone(),
-                            quote_token_address: pool_coin.token_quote.token_address.clone(),
-                        }
-                    );
-                // TODO V2 Add Liquidity DEX selected by USER
-                // let launch_dex= pool_coin.dex_launch;
-                // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
-                self._add_liquidity_ekubo(coin_address);
-                pool_coin.is_liquidity_launch = true;
-            }
-
-            // Update the state of the pool
-            self.launched_coins.entry(coin_address).write(pool_coin.clone());
-
-            self
-                .emit(
-                    BuyToken {
-                        caller: get_caller_address(),
-                        token_address: coin_address,
-                        amount: coin_amount,
-                        price: total_price,
-                        protocol_fee: amount_protocol_fee,
-                        // creator_fee: 0,
-                        last_price: old_price,
-                        timestamp: get_block_timestamp(),
-                        quote_amount: remain_quote_to_liquidity
-                        // quote_amount: quote_amount
+            if pool.liquidity_raised >= threshold {
+                self.emit(
+                    LiquidityCanBeAdded {
+                        pool: pool.token_address,
+                        asset: pool.token_address,
+                        quote_token_address: pool.token_quote.token_address,
                     }
                 );
+
+                // Add liquidity to DEX
+                self._add_liquidity_ekubo(coin_address);
+                pool.is_liquidity_launch = true;
+            }
+
+            // Update pool state
+            self.launched_coins.entry(coin_address).write(pool);
+
+            // Emit buy event
+            self.emit(
+                BuyToken {
+                    caller,
+                    token_address: coin_address,
+                    amount: coin_amount,
+                    price: quote_amount,
+                    protocol_fee: amount_protocol_fee,
+                    last_price: old_price,
+                    timestamp: get_block_timestamp(),
+                    quote_amount: remain_quote_to_liquidity
+                }
+            );
         }
 
         // params @coin_address @coin_amount
@@ -866,275 +733,149 @@ pub mod LaunchpadMarketplace {
         // Update the share user: update amount_owned
         // Emit the sell event
         fn sell_coin(ref self: ContractState, coin_address: ContractAddress, coin_amount: u256) {
-            let old_pool = self.launched_coins.read(coin_address);
-            assert(!old_pool.owner.is_zero(), errors::COIN_SHARE_NOT_FOUND);
-            assert(old_pool.is_liquidity_launch == false, errors::TOKEN_ALREADY_TRADEABLE);
+            // Validate pool exists and is not yet launched
+            let pool = self.launched_coins.read(coin_address);
+            assert(!pool.owner.is_zero(), errors::COIN_SHARE_NOT_FOUND);
+            assert(!pool.is_liquidity_launch, errors::TOKEN_ALREADY_TRADEABLE);
+
             let caller = get_caller_address();
-            let mut old_share = self
+
+            // Get user's share and validate amount
+            let mut share = self
                 .shares_by_users
-                .entry(get_caller_address())
+                .entry(caller)
                 .entry(coin_address)
                 .read();
-            // Verify Amount owned
-            let mut share_user = old_share.clone();
-            // assert(share_user.amount_owned >= coin_amount, 'above supply');
 
-            // TODO erc20 token transfer
-            let total_supply = old_pool.total_supply.clone();
-            let token_quote = old_pool.token_quote.clone();
-            let quote_token_address = token_quote.token_address.clone();
+            // Adjust sell amount if needed
+            let mut sell_amount = if share.amount_owned < coin_amount {
+                share.amount_owned
+            } else {
+                coin_amount
+            };
 
-            // Todo check user amount fee creator if needed
-            let creator_fee_percent = self.creator_fee_percent.read();
+            assert(share.amount_owned >= sell_amount, errors::ABOVE_SUPPLY);
+
+            // Calculate fees
             let protocol_fee_percent = self.protocol_fee_percent.read();
-
-            // let amount_protocol_fee: u256 = coin_amount * protocol_fee_percent / BPS;
-            // let amount_creator_fee = coin_amount * creator_fee_percent / BPS;
-
-            let mut remain_coin_amount = coin_amount.clone();
-            // let mut remain_coin_amount = coin_amount;
-            // let remain_coin_amount = coin_amount - amount_protocol_fee;
-
-            // TODO check
-            // Test edge case and calcul
-            // CAREFULLY CHECK AND TEST
-            let mut amount_owned = share_user.amount_owned.clone();
-            // println!("sell share_user.amount_owned {:?}", share_user.amount_owned);
-
+            let creator_fee_percent = self.creator_fee_percent.read();
             assert(
-                share_user.amount_owned <= old_pool.total_token_holded,
+                protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL,
+                errors::PROTOCOL_FEE_OUT_OF_BOUNDS
+            );
+            assert(
+                share.amount_owned <= pool.total_token_holded,
                 errors::SUPPLY_ABOVE_TOTAL_OWNED
             );
 
-            // if share_user.amount_owned >= old_pool.total_token_holded {
-            //     assert(
-            //         share_user.amount_owned >= old_pool.total_token_holded,
-            //         errors::SUPPLY_ABOVE_TOTAL_OWNED
-            //     );
-            // }
+       
 
-            // TODO CHECK error even if used amount_owned as an input in test
-            // Edge case calculation rounding
-            // Use max owned
-            // CAREFULLY CHECK AND TEST
-
-            // println!("sell remain_coin_amount {:?}", remain_coin_amount);
-            if share_user.amount_owned < remain_coin_amount {
-                // Used max amount_owned
-                remain_coin_amount = share_user.amount_owned.clone();
-                // remain_coin_amount = share_user.amount_owned;
-            }
-
-            let amount_protocol_fee: u256 = remain_coin_amount.clone() * protocol_fee_percent / BPS;
-            let amount_creator_fee = remain_coin_amount.clone() * creator_fee_percent / BPS;
-            assert(share_user.amount_owned >= remain_coin_amount, errors::ABOVE_SUPPLY);
-            // println!("sell remain_coin_amount edge {:?}", remain_coin_amount);
-
+            // Calculate quote token amounts
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
-                old_pool.clone(), coin_address.clone(), remain_coin_amount.clone(), true, false
+                pool.clone(), coin_address, sell_amount, true, false
             );
-            // println!("sell quote_amount_total received {:?}", quote_amount_total);
-            // println!("sell amount quote to receive {:?}", quote_amount_total);
-
-            // println!("sell check quote_amount {:?}", quote_amount);
-            // println!("sell check liquidity_raised {:?}", old_pool.liquidity_raised);
-
-            // TODO check fees
-            // TEST issue of Unrug
-
-            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read();
-            let is_fees_protocol_sell_enabled = self.is_fees_protocol_sell_enabled.read();
-            let erc20 = IERC20Dispatcher { contract_address: quote_token_address };
-
-            let mut quote_amount_protocol_fee: u256 = quote_amount_total
-                * protocol_fee_percent
-                / BPS;
-            // let quote_amount = quote_amount_total - quote_amount_protocol_fee;
             let mut quote_amount = quote_amount_total.clone();
-            let mut total_quote_amount = quote_amount_total.clone();
-            let mut quote_amount_received = quote_amount_total.clone();
-            // CAREFULLY CHECK AND TEST
 
-            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
-                quote_amount = quote_amount_total - quote_amount_protocol_fee;
-                quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
-                quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
-            }
-            // println!("sell quote_amount received final {:?}", quote_amount);
-            // TODO
-            // Edge case calculation rounding
-            // HIGH SECURITY
-            // TODO due to estimation, approximation or rounding
-            //  GET the approximation slippage tolerance too not drained liq if big error
-            // CAREFULLY CHECK AND TEST
-            // Can drained all fund
+            let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
+            let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
+            
+            // let protocol_fee_amount = sell_amount * protocol_fee_percent / BPS;
+            // let creator_fee_amount = sell_amount * creator_fee_percent / BPS;
 
-            if old_pool.liquidity_raised < quote_amount {
-                // TODO due to estimation, approximation or rounding
-                // maybe substract the difference between quote_amount and old_pool.liquidity_raised
-                // println!("old_pool.liquidity_raised < quote_amount");
-                quote_amount = old_pool.liquidity_raised.clone();
-                quote_amount_total = old_pool.liquidity_raised.clone();
-                quote_amount_received = old_pool.liquidity_raised.clone();
+            // Handle protocol fees if enabled
+            let is_fees_enabled = self.is_fees_protocol_enabled.read() 
+                && self.is_fees_protocol_sell_enabled.read();
+
+            let mut quote_fee_amount = 0_u256;
+            println!("check fees");
+
+            if is_fees_enabled {
+                quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
+                quote_amount -= quote_fee_amount;
             }
 
-            // Overwrite protocol fees and quote amount after check liquidity raised and contract
-            // quote balance
-            quote_amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
+            // Validate against liquidity and balance constraints
+            println!("check liq raised and quote amount");
 
-            // quote_amount = quote_amount - quote_amount_protocol_fee;
-            // quote_amount_total = quote_amount - quote_amount_protocol_fee;
-            // quote_amount_received = quote_amount - quote_amount_protocol_fee;
-            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
-                quote_amount = quote_amount_total - quote_amount_protocol_fee;
-                quote_amount_total = quote_amount_total - quote_amount_protocol_fee;
-                quote_amount_received = quote_amount_total - quote_amount_protocol_fee;
+            if pool.liquidity_raised < quote_amount {
+                println!("pool.liquidity_raised < quote_amount");
+                quote_amount = pool.liquidity_raised;
+                if is_fees_enabled {
+                    quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
+                    quote_amount -= quote_fee_amount;
+                }
             }
 
-            // TODO edge case approximation, rounding
-            // CAREFULLY TEST EDGE CASE AND FUZZING
-            // HIGH RISK = MONEY DRAINING
-            // CAN DRAINED ALL MONEY
-            // TODO fixed rounding and approximation
-            // HIGH RISK SECURITY
-            // // Assertion: Check if the contract has enough quote tokens to transfer
-            let contract_quote_balance = erc20.balance_of(get_contract_address());
-            // println!("sell contract_quote_balance final {:?}", contract_quote_balance);
+            println!("quote_amount: {}", quote_amount.clone());
+            assert(pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
-            //  // if contract_quote_balance < quote_amount {
-            // if contract_quote_balance < quote_amount && contract_quote_balance <
-            // old_pool.threshold_liquidity.clone() {
-            //     println!("contract quote above try edge case rounding");
-            //     if is_fees_protocol_sell_enabled {
-            //         quote_amount = contract_quote_balance.clone() - quote_amount_protocol_fee;
-            //     } else {
-            //         quote_amount = contract_quote_balance.clone();
-            //     }
-            // }
-            // println!("sell quote_amount received final after check balance {:?}", quote_amount);
+            // Process transfers
+            let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
+            println!("transfer fees: {}", quote_fee_amount.clone());
 
-            // assert(old_pool.liquidity_raised >= quote_amount, 'liquidity <= amount');
-            assert(old_pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
-
-            // TODO fix this function
-            // let mut total_price = amount;
-            // println!("amount {:?}", amount);
-            // println!("coin_amount {:?}", coin_amount);
-            // println!("total_price {:?}", total_price);
-
-            // Ensure fee percentages are within valid bounds
-            assert(
-                protocol_fee_percent <= MAX_FEE_PROTOCOL
-                    && protocol_fee_percent >= MIN_FEE_PROTOCOL,
-                errors::PROTOCOL_FEE_OUT_OF_BOUNDS
-                // 'protocol fee out'
-            );
-            // assert(
-            //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
-            //     'creator_fee out'
-            // );
-
-            // assert!(old_share.amount_owned >= amount, "share to sell > supply");
-            // println!("amount{:?}", amount);
-            // assert!(total_supply >= quote_amount, "share to sell > supply");
-            // assert( old_pool.liquidity_raised >= quote_amount, 'liquidity_raised <= amount');
-
-            // let old_price = old_pool.price.clone();
-            let total_price = old_pool.price.clone();
-            // Update keys with new values
-            let mut pool_update = old_pool.clone();
-
-            // let remain_coin_amount = total_price ;
-
-            // Ensure fee calculations are correct
-            // assert(
-            //     amount_to_user + amount_protocol_fee + amount_creator_fee == quote_amount,
-            //     'fee calculation mismatch'
-            // );
-
-            // Transfer protocol fee to the designated destination
-            // println!("sell transfer fees protocol");
-
-            // TODO edge case fees threshold
-            // CAREFULLY TEST
-            // HIGH RISK = BLOCKED SELL
-            // println!("sell quote_amount_protocol_fee {:?}", quote_amount_protocol_fee);
-            // //  TODO fixed rounding before
-
-            if is_fees_protocol_enabled && is_fees_protocol_sell_enabled {
-                // TODO edgecase
-                // println!("sell transfer FEES {:?}", quote_amount_protocol_fee);
-                erc20.transfer(self.protocol_fee_destination.read(), quote_amount_protocol_fee);
+            if is_fees_enabled && quote_fee_amount > 0 {
+                quote_token.transfer(self.protocol_fee_destination.read(), quote_fee_amount);
             }
+            println!("transfer quote amount: {}", quote_amount.clone());
+            let balance_contract = quote_token.balance_of(get_contract_address());
+            println!("balance_contract: {}", balance_contract.clone());
 
-            // println!("sell transfer quote amount");
-            // Transfer the remaining quote amount to the user
-            if quote_amount > 0 {
-                // println!("sell transfer quote amount {:?}", quote_amount);
-                erc20.transfer(caller, quote_amount);
-            }
+            // assert(balance_contract >= quote_amount, errors::BALANCE_CONTRACT_BELOW_AMOUNT);
 
-            // Assertion: Ensure the user receives the correct amount
-            // let user_received = erc20.balance_of(caller);
-            // assert(user_received >= , 'user not receive amount');
-            // TODO sell coin if it's already sendable and transferable
-            // ENABLE if direct launch coin
-
-            // TODO fix amount owned and sellable.
-            // Update share user coin
-            // println!("sell update amount owned");
-
-            share_user.amount_owned -= remain_coin_amount;
-            share_user.amount_sell += remain_coin_amount;
-
-            // TODO check reetrancy guard
-
-            // Assertion: Ensure pool liquidity remains consistent
-            assert(
-                old_pool.liquidity_raised >= quote_amount,
-                errors::POOL_LIQUIDITY_INCONSISTENCY_AFTER_SALE
-            );
-            // TODO finish update state
-            // pool_update.price = total_price;
-            //      println!("sell update pool");
-
-            // println!("sell pool update liq raised");
-            // println!("remain_coin_amount {:?}", remain_coin_amount);
-
-            // TODO check
-            // HIGH SECURITY
-            if pool_update.liquidity_raised >= quote_amount {
-                // println!(
-                //     "pool_update.liquidity_raised > quote_amount {:?}",
-                //     pool_update.liquidity_raised > quote_amount
-                // );
-                pool_update.liquidity_raised -= quote_amount;
+            // TODO audit
+            // Security check to do.
+            // Rounding issue and approximation of the quote amount caused overflow
+            if balance_contract > quote_amount {
+                quote_token.transfer(caller, quote_amount);
             } else {
-                pool_update.liquidity_raised = 0_u256;
+                let amount_paid= quote_amount - balance_contract;
+                println!("amount_paid: {}", amount_paid.clone());
+                quote_token.transfer(caller, amount_paid);
             }
-            // println!("try update total_token_holded {:?}", pool_update.total_token_holded);
-            pool_update.total_token_holded -= remain_coin_amount;
-            // println!("try update available supply {:?}", pool_update.available_supply);
-            pool_update.available_supply += remain_coin_amount;
+
+            // if quote_amount > 0 {
+            //     quote_token.transfer(caller, quote_amount);
+            // }
+
+            // Update state
+            println!("update share");
+            
+            share.amount_owned -= sell_amount;
+            share.amount_sell += sell_amount;
+
+            let mut updated_pool = pool.clone();
+            println!("update pool");
+
+            updated_pool.liquidity_raised = if updated_pool.liquidity_raised >= quote_amount {
+                updated_pool.liquidity_raised - quote_amount
+            } else {
+                0_u256
+            };
+            updated_pool.total_token_holded -= sell_amount;
+            updated_pool.available_supply += sell_amount;
+
+            // Save updated state
             self
                 .shares_by_users
-                .entry(get_caller_address())
-                .entry(coin_address.clone())
-                .write(share_user.clone());
+                .entry(caller)
+                .entry(coin_address)
+                .write(share);
 
-            self.launched_coins.entry(coin_address.clone()).write(pool_update.clone());
+            self.launched_coins.entry(coin_address).write(updated_pool.clone());
+
+            // Emit event
             self
                 .emit(
                     SellToken {
-                        caller: caller,
+                        caller,
                         key_user: coin_address,
                         amount: quote_amount,
-                        price: total_price, // Adjust if necessary
-                        protocol_fee: quote_amount_protocol_fee,
-                        creator_fee: amount_creator_fee,
+                        price: updated_pool.price,
+                        protocol_fee: quote_fee_amount,
+                        creator_fee: creator_fee_amount,
                         timestamp: get_block_timestamp(),
-                        last_price: old_pool.price,
-                        coin_amount: remain_coin_amount,
+                        last_price: pool.price,
+                        coin_amount: sell_amount,
                     }
                 );
         }
