@@ -239,7 +239,8 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
             <View style={styles.progressBarContainer}>
               <View
                 style={[
-                  Number(launch.liquidity_raised) <= Number(launch.threshold_liquidity) - 0.2
+                  Number(launch.liquidity_raised) <=
+                  Number(launch.threshold_liquidity) - Number(launch.threshold_liquidity) * 0.02
                     ? styles.progressBarFillWarn
                     : styles.progressBarFill,
                   {
