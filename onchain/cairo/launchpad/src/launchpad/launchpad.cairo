@@ -841,7 +841,8 @@ pub mod LaunchpadMarketplace {
                 quote_token.transfer(caller, quote_amount_paid);
             } else {
                 // let quote_amount_paid = quote_amount - quote_fee_amount;
-                let amount_paid= quote_amount_paid - balance_contract;
+                let difference_amount= quote_amount_paid - balance_contract;
+                let amount_paid= quote_amount_paid - difference_amount;
                 println!("amount_paid: {}", amount_paid.clone());
                 quote_token.transfer(caller, amount_paid);
             }

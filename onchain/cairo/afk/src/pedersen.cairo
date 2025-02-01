@@ -12,7 +12,6 @@ pub impl EcPointDisplay of Display<EcPoint> {
         writeln!(f, "Point ({x}, {y})")
     }
 }
-
 pub fn pedersen_commit(value: felt252, salt: felt252, H: EcPoint) -> EcPoint {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let c_1 = generator.mul(value);
@@ -56,7 +55,7 @@ pub fn hash_to_curve() -> Option<EcPoint> {
 #[cfg(test)]
 mod tests {
     // use super::*;
-    use afk::pedersen::{pedersen_commit, verify_commitment, hash_to_curve};
+    use super::{pedersen_commit, verify_commitment, hash_to_curve};
 
     #[test]
     fn test_pedersen_commit() {

@@ -1,16 +1,12 @@
 pub mod bip340;
+pub mod pedersen;
 
 pub mod errors;
-// pub mod interfaces;
-
 pub mod math;
 pub mod sha256;
 pub mod social;
-
 pub mod staking;
-
 pub mod utils;
-
 
 pub mod interfaces {
     pub mod erc20;
