@@ -56,6 +56,12 @@ pub fn hash_to_curve() -> Option<EcPoint> {
 mod tests {
     // use super::*;
     use super::{pedersen_commit, verify_commitment, hash_to_curve};
+    use core::ec::stark_curve::GEN_X;
+    use core::ec::stark_curve::GEN_Y;
+    use core::fmt::{Display, Formatter, Error};
+    use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
+    use core::poseidon::PoseidonTrait;
+    use core::hash::{HashStateTrait, HashStateExTrait,};
 
     #[test]
     fn test_pedersen_commit() {
