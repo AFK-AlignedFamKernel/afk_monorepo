@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TipCancel, TipClaim, TipDeposit } from './interfaces';
+import { TipCancel, TipClaim, TipDeposit, TipTransfer } from './interfaces';
 
 @Injectable()
 export class TipService {
@@ -9,7 +9,7 @@ export class TipService {
 
   async createDeposit(data: TipDeposit) {
     try {
-      const tipDepositRecord = await this.prismaService.tip_deposit.findUnique({
+      const tipDepositRecord = await this.prismaService.tip_deposit.findFirst({
         where: { deposit_id: data.depositId },
       });
 
@@ -42,9 +42,45 @@ export class TipService {
     }
   }
 
+  async createTransfer(data: TipTransfer) {
+    try {
+      const tipTransferRecord =
+        await this.prismaService.tip_transfer.findUnique({
+          where: { transaction_hash: data.transactionHash },
+        });
+
+      if (tipTransferRecord) {
+        this.logger.warn(
+          `Record with transaction hash ${data.transactionHash} already exists`,
+        );
+        return;
+      }
+
+      await this.prismaService.tip_transfer.create({
+        data: {
+          network: data.network,
+          block_hash: data.blockHash,
+          block_number: data.blockNumber,
+          block_timestamp: data.blockTimestamp,
+          transaction_hash: data.transactionHash,
+          sender: data.sender,
+          nostr_recipient: data.nostrRecipient,
+          starknet_recipient: data.starknetRecipient,
+          token_address: data.tokenAddress,
+          amount: data.amount,
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error creating deposit record: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+
   async updateClaim(data: TipClaim) {
     try {
-      const tipClaimRecord = await this.prismaService.tip_deposit.findUnique({
+      const tipClaimRecord = await this.prismaService.tip_deposit.findFirst({
         where: { deposit_id: data.depositId },
       });
 
@@ -85,7 +121,7 @@ export class TipService {
 
   async updateCancel(data: TipCancel) {
     try {
-      const tipCancelRecord = await this.prismaService.tip_deposit.findUnique({
+      const tipCancelRecord = await this.prismaService.tip_deposit.findFirst({
         where: { deposit_id: data.depositId },
       });
 
