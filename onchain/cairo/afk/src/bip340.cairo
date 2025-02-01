@@ -268,10 +268,10 @@ fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
 }
 
 /// Generates a key pair (private key, public key) for Schnorr signatures
-fn generate_keypair() -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
+fn generate_keypair(vrf_contract_address:ContractAddress) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
     // vrf address
     let vrf_provider = IVrfProviderDispatcher {
-        contract_address: starknet::contract_address_const::<0x123>()
+        contract_address: vrf_contract_address
     };
 
     // Generate source for randomness
@@ -376,21 +376,24 @@ mod tests {
     #[test]
     #[fork("SEPOLIA_LATEST")]
     fn test_generate_keypair() {
-
+        // Initialize VRF provider with contract address
         let vrf_provider = IVrfProviderDispatcher {
             contract_address: CONTRACT_ADDRESS.try_into().unwrap()
         };
-        let (private_key, public_key) = generate_keypair();
+        
+        // Pass VRF contract address to generate_keypair
+        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
+        
         assert!(private_key != 0, "Private key should not be zero");
-
+    
         let (px, _tpx) = public_key.get_coordinates().unwrap_syscall();
         assert!(px != 0, "Public key's x-coordinate should not be zero");
-
+    
         let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
         let derived_public_key = G.mul(private_key.into()).unwrap_syscall();
         assert_eq!(public_key, derived_public_key, "Derived public key should match the generated public key");
     }
-
+    
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -611,35 +614,47 @@ mod tests {
 
         assert!(verify(px, rx, s, m.into()));
     }
-    // #[test]
-    // fn test_20() {
-    //     let (private_key, public_key) = generate_keypair();
+    #[test]
+    fn test_20() {
 
-    //     // Message to sign
-    //     let message: ByteArray = "I love Cairo";
+        let vrf_provider = IVrfProviderDispatcher {
+            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+        };
+    
+        let (private_key, public_key) = generate_keypair(vrf_provider.contract_addess);
 
-    //     // Sign message
-    //     let signature = sign(private_key, message.clone());
+        // Message to sign
+        let message: ByteArray = "I love Cairo";
 
-    //     // Verify signature
-    //     let is_valid = verify_sig(public_key, message, signature);
+        // Sign message
+        let private_key_u256: u256 = private_key.into();
+        let signature = sign(private_key_u256, message.clone());
 
-    //     assert!(is_valid);
-    // }
+        // Verify signature
+        let is_valid = verify_sig(public_key, message, signature);
 
-    // #[test]
-    // fn test_generate_sign_and_verify() {
-    //     let (private_key, public_key) = generate_keypair();
+        assert!(is_valid);
+    }
 
-    //     // Message to sign
-    //     let message: ByteArray = "I love Cairo";
+    #[test]
+    fn test_generate_sign_and_verify() {
 
-    //     // Sign message
-    //     let signature = sign(private_key, message.clone());
+        let vrf_provider = IVrfProviderDispatcher {
+            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+        };
 
-    //     // Verify signature
-    //     let is_valid = verify_sig(public_key, message, signature);
+        let (private_key, public_key) = generate_keypair(vrf_provider.contract_addess);
 
-    //     assert!(is_valid);
-    // }
+        // Message to sign
+        let message: ByteArray = "I love Cairo";
+
+        // Sign message
+        let private_key_u256: u256 = private_key.into();
+        let signature = sign(private_key_u256, message.clone());
+
+        // Verify signature
+        let is_valid = verify_sig(public_key, message, signature);
+
+        assert!(is_valid);
+    }
 }
