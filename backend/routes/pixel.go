@@ -36,12 +36,11 @@ func InitPixelRoutes() {
 	http.HandleFunc("/get-pixel-shield", getPixelShield)
 }
 
-type PixelShieldResponse struct {
-    Address    string          `json:"address"`
-    Position   int            `json:"position"`
-    Shield     json.RawMessage `json:"shield,omitempty"`
-    Name       string         `json:"name,omitempty"`
-    PlacedAt   time.Time      `json:"placedAt"`
+type PixelInfo struct {
+	Address  string          `json:"address"`
+	Name     string          `json:"username"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Shield   json.RawMessage `json:"shield,omitempty"`
 }
 
 func getPixelShield(w http.ResponseWriter, r *http.Request) {
@@ -52,17 +51,15 @@ func getPixelShield(w http.ResponseWriter, r *http.Request) {
     }
 
     // Query pixel shield information from database including user name
-    queryRes, err := core.PostgresQueryOne[PixelShieldResponse](`
-        SELECT 
+    queryRes, err := core.PostgresQueryOne[PixelInfo](`
+        SELECT
             p.address,
-            p.position,
-            p.shield,
             COALESCE(u.name, '') as name,
-            p.time as placedAt
+            p.shield 
         FROM Pixels p
-        LEFT JOIN Users u ON p.address = u.address 
-        WHERE p.position = $1 AND p.shield IS NOT NULL
-        ORDER BY p.time DESC 
+        LEFT JOIN Users u ON p.address = u.address
+        WHERE p.position = $1
+        ORDER BY p.time DESC
         LIMIT 1`, position)
 
     if err != nil {
@@ -78,8 +75,6 @@ func getPixelShield(w http.ResponseWriter, r *http.Request) {
         response["address"] = "0x" + queryRes.Address
     }
     
-    response["position"] = queryRes.Position
-    response["placedAt"] = queryRes.PlacedAt
     if queryRes.Shield != nil {
         var shieldData map[string]interface{}
         if err := json.Unmarshal(queryRes.Shield, &shieldData); err != nil {
@@ -126,11 +121,6 @@ func getPixel(w http.ResponseWriter, r *http.Request) {
 	routeutils.WriteDataJson(w, pixel)
 }
 
-type PixelInfo struct {
-	Address  string          `json:"address"`
-	Name     string          `json:"username"`
-	Metadata json.RawMessage `json:"metadata,omitempty"`
-}
 
 // func getPixelInfo(w http.ResponseWriter, r *http.Request) {
 // 	position, err := strconv.Atoi(r.URL.Query().Get("position"))

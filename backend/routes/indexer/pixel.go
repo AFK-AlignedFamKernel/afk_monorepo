@@ -67,14 +67,16 @@ func processPixelPlacedEvent(event IndexerEvent) {
 	fmt.Printf(address, position, dayIdx, color, "print")
 	// Set pixel in postgres
 	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), `
-        INSERT INTO Pixels (address, position, day, color, shield) 
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (address, position)
-        DO UPDATE SET color = $4, shield = COALESCE($5, shield)
+    INSERT INTO Pixels (address, position, day, color, shield)
+	VALUES ($1, $2, $3, $4, $5)
+	ON CONFLICT (address, position)
+	DO UPDATE SET 
+    color = $4, 
+    shield = COALESCE($5, Pixels.shield)
     `, address, position, dayIdx, color, shieldData)
     if err != nil {
         // TODO: Reverse redis operation?
-        PrintIndexerError("processPixelPlacedEvent", "Error inserting pixel into postgres", address, posHex, dayIdxHex, colorHex)
+        PrintIndexerError("processPixelPlacedEvent", "Error inserting pixel into postgres", err,address, posHex, dayIdxHex, colorHex)
         return
     }
 
@@ -99,7 +101,7 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 	}
 
 	// Delete pixel from postgres ( last one )
-	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2 ORDER BY time limit 1", address, position)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2", address, position)
 	if err != nil {
 		PrintIndexerError("revertPixelPlacedEvent", "Error deleting pixel from postgres", address, posHex)
 		return

@@ -6,12 +6,10 @@ CREATE TABLE Pixels (
   day integer NOT NULL,
   color integer NOT NULL,
   time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  metadata JSONB DEFAULT NULL
+  metadata JSONB DEFAULT NULL,
+  shield JSONB DEFAULT NULL
 );
-
-ALTER TABLE Pixels
-ADD COLUMN shield JSONB DEFAULT NULL;
-
+ALTER TABLE Pixels ADD CONSTRAINT unique_pixel_address_position UNIQUE (address, position);
 CREATE INDEX pixels_address_index ON Pixels (address);
 CREATE INDEX pixels_position_index ON Pixels (position);
 CREATE INDEX pixels_day_index ON Pixels (day);
