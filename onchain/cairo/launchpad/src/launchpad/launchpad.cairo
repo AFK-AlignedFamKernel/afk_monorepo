@@ -616,8 +616,9 @@ pub mod LaunchpadMarketplace {
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
           
             let mut threshold = threshold_liquidity - slippage_threshold;
-
             // Handle protocol fees if enabled
+            // HIGH SECURITY ISSUE
+            // Security check to do
             if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
                 amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
                 remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
@@ -634,6 +635,9 @@ pub mod LaunchpadMarketplace {
             // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
             // Calculate coin amount to receive
+            // AUDIT
+            // High security check to do.
+            // Verify rounding issue and approximation of the quote amount caused overflow
             let coin_amount = get_amount_by_type_of_coin_or_quote(
                 pool.clone(),
                 coin_address,
@@ -763,18 +767,16 @@ pub mod LaunchpadMarketplace {
                 protocol_fee_percent <= MAX_FEE_PROTOCOL && protocol_fee_percent >= MIN_FEE_PROTOCOL,
                 errors::PROTOCOL_FEE_OUT_OF_BOUNDS
             );
-            assert(
-                share.amount_owned <= pool.total_token_holded,
-                errors::SUPPLY_ABOVE_TOTAL_OWNED
-            );
-
-       
-
+            // assert(
+            //     share.amount_owned <= pool.total_token_holded,
+            //     errors::SUPPLY_ABOVE_TOTAL_OWNED
+            // );
             // Calculate quote token amounts
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
                 pool.clone(), coin_address, sell_amount, true, false
             );
             let mut quote_amount = quote_amount_total.clone();
+            println!("quote_amount_total first: {}", quote_amount_total.clone());
 
             let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
             let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
@@ -789,12 +791,17 @@ pub mod LaunchpadMarketplace {
             let mut quote_fee_amount = 0_u256;
             println!("check fees");
 
+            // Substract fees protocol from quote amount
+            // AUDIT 
+            // High security check to do: rounding, approximation, balance of contract
             if is_fees_enabled {
                 quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
                 quote_amount -= quote_fee_amount;
             }
 
             // Validate against liquidity and balance constraints
+            // AUDIT
+            // High security check to do.
             println!("check liq raised and quote amount");
 
             if pool.liquidity_raised < quote_amount {
@@ -822,16 +829,29 @@ pub mod LaunchpadMarketplace {
 
             // assert(balance_contract >= quote_amount, errors::BALANCE_CONTRACT_BELOW_AMOUNT);
 
+            let quote_amount_paid = quote_amount.clone();
+            // let quote_amount_paid = quote_amount - quote_fee_amount;
+            println!("quote_amount_paid: {}", quote_amount_paid.clone());
+
             // TODO audit
+            // HIGH SECURITY ISSUE
             // Security check to do.
             // Rounding issue and approximation of the quote amount caused overflow
-            if balance_contract > quote_amount {
-                quote_token.transfer(caller, quote_amount);
+            if balance_contract > quote_amount_paid {
+                quote_token.transfer(caller, quote_amount_paid);
             } else {
-                let amount_paid= quote_amount - balance_contract;
+                // let quote_amount_paid = quote_amount - quote_fee_amount;
+                let amount_paid= quote_amount_paid - balance_contract;
                 println!("amount_paid: {}", amount_paid.clone());
                 quote_token.transfer(caller, amount_paid);
             }
+            // if balance_contract > quote_amount {
+            //     quote_token.transfer(caller, quote_amount);
+            // } else {
+            //     let amount_paid= quote_amount - balance_contract;
+            //     println!("amount_paid: {}", amount_paid.clone());
+            //     quote_token.transfer(caller, amount_paid);
+            // }
 
             // if quote_amount > 0 {
             //     quote_token.transfer(caller, quote_amount);
