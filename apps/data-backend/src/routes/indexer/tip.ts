@@ -125,9 +125,10 @@ async function tipServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const tips = await prisma.tip_deposit.findMany({
+      const tipsDeposit = await prisma.tip_deposit.findMany({
         where: { nostr_recipient },
         select: {
+          transaction_hash: true,
           deposit_id: true,
           sender: true,
           nostr_recipient: true,
@@ -143,8 +144,25 @@ async function tipServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
         },
       });
 
+      const tipsTransfer = (await prisma.tip_transfer.findMany({
+        where: { nostr_recipient },
+        select: {
+          transaction_hash: true,
+          sender: true,
+          nostr_recipient: true,
+          starknet_recipient: true,
+          token_address: true,
+          amount: true,
+          created_at: true,
+          updated_at: true,
+        },
+      })).map(transfer => ({
+        ...transfer,
+        is_claimed: true,
+      }));
+
       reply.status(HTTPStatus.OK).send({
-        data: tips,
+        data: [ ...tipsDeposit, ...tipsTransfer ],
       });
     } catch (error) {
       console.error('Error fetching tips by recipient:', error);

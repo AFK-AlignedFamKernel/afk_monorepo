@@ -11,8 +11,9 @@ import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {Entrypoint} from '../../constants/misc';
 import {ETH, STRK} from '../../constants/tokens';
-import {useStyles, useTheme, useTips, useWaitConnection} from '../../hooks';
+import {useStyles, useTheme, useWaitConnection} from '../../hooks';
 import {useClaim, useEstimateClaim} from '../../hooks/api';
+import {useTips} from '../../hooks/api/indexer/useTips';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
 import {ChannelComponent} from '../../modules/ChannelCard';
 import {MainStackNavigationProps} from '../../types';
@@ -155,7 +156,7 @@ export const Whatever: React.FC = () => {
         tips.refetch();
         showToast({type: 'success', title: 'Tip claimed successfully'});
       } else {
-        let description = 'Please Try Again Later.';
+        const description = 'Please Try Again Later.';
 
         showToast({type: 'error', title: `Failed to claim the tip. ${description}`});
       }
