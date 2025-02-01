@@ -7,6 +7,8 @@ import { FieldElement } from '@apibara/starknet';
 import { ContractAddress } from '../common/types';
 import { formatUnits } from 'viem';
 import constants from '../common/constants';
+import { apibara } from '@apibara/starknet/dist/proto/generated';
+import IFieldElement = apibara.starknet.v1alpha2.IFieldElement;
 
 @Injectable()
 export class TipServiceIndexer {
@@ -16,7 +18,6 @@ export class TipServiceIndexer {
   constructor(
     @Inject(TipService)
     private readonly tipService: TipService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -65,9 +66,8 @@ export class TipServiceIndexer {
     }
   }
 
-  private async handleTipDepositEvent(
+  private getTxData(
     header: starknet.IBlockHeader,
-    event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
     const {
@@ -85,48 +85,72 @@ export class TipServiceIndexer {
       `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
     ) as ContractAddress;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
-
-    const depositId = depositIdFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(depositIdFelt).toString(),
-        )
-      : '';
-
-    const senderAddress = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(senderFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const nostrRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(nostrRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const [amountLow, amountHigh, contractAddressFelt] = event.data;
-
-    const amountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amountLow),
-      high: FieldElement.toBigInt(amountHigh),
-    });
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-
-    const tokenAddress = contractAddressFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(contractAddressFelt).toString(),
-        )
-      : '';
-
-    const data = {
+    return {
       network: 'starknet-sepolia',
       transactionHash,
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+    };
+  }
+
+  private getAddress(addressFelt: IFieldElement) {
+    return validateAndParseAddress(
+      `0x${FieldElement.toBigInt(addressFelt).toString(16)}`,
+    ) as ContractAddress;
+  }
+
+  private getU256ToHex(lowFelt: IFieldElement, highFelt: IFieldElement) {
+    return uint256
+      .uint256ToBN({
+        low: FieldElement.toBigInt(lowFelt),
+        high: FieldElement.toBigInt(highFelt),
+      })
+      .toString(16);
+  }
+
+  private uint256ToAmount(lowFelt: IFieldElement, highFelt: IFieldElement) {
+    const rawData = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(lowFelt),
+      high: FieldElement.toBigInt(highFelt),
+    });
+    return Number(formatUnits(rawData, constants.DECIMALS));
+  }
+
+  private async handleTipDepositEvent(
+    header: starknet.IBlockHeader,
+    event: starknet.IEvent,
+    transaction: starknet.ITransaction,
+  ) {
+    const commonTxData = this.getTxData(header, transaction);
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const [
+      _,
+      depositIdFelt,
+      senderFelt,
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    ] = event.keys;
+
+    const depositId = FieldElement.toBigInt(depositIdFelt).toString();
+    const sender = this.getAddress(senderFelt);
+    const nostrRecipient = this.getU256ToHex(
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    );
+
+    const [amountLow, amountHigh, contractAddressFelt] = event.data;
+    const amount = this.uint256ToAmount(amountLow, amountHigh);
+    const tokenAddress = this.getAddress(contractAddressFelt);
+
+    const data = {
+      ...commonTxData,
       depositId,
-      sender: senderAddress,
+      sender,
       nostrRecipient,
       tokenAddress,
-      amount: Number(amount),
+      amount,
     };
 
     await this.tipService.createDeposit(data);
@@ -137,62 +161,36 @@ export class TipServiceIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    const {
-      blockNumber,
-      blockHash: blockHashFelt,
-      timestamp: blockTimestamp,
-    } = header;
-
-    const blockHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const transactionHashFelt = transaction.meta.hash;
-    const transactionHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
-    ) as ContractAddress;
+    const commonTxData = this.getTxData(header, transaction);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, senderFelt, nostrRecipientFelt, starknetRecipientFelt] =
-      event.keys;
+    const [
+      _,
+      senderFelt,
+      nostrRecipientLow,
+      nostrRecipientHigh,
+      starknetRecipientFelt,
+    ] = event.keys;
 
-    const senderAddress = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(senderFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const nostrRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(nostrRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const starknetRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(starknetRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
+    const sender = this.getAddress(senderFelt);
+    const nostrRecipient = this.getU256ToHex(
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    );
+    const starknetRecipient = this.getAddress(starknetRecipientFelt);
 
     const [amountLow, amountHigh, contractAddressFelt] = event.data;
 
-    const amountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amountLow),
-      high: FieldElement.toBigInt(amountHigh),
-    });
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-
-    const tokenAddress = contractAddressFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(contractAddressFelt).toString(),
-        )
-      : '';
+    const amount = this.uint256ToAmount(amountLow, amountHigh);
+    const tokenAddress = this.getAddress(contractAddressFelt);
 
     const data = {
-      network: 'starknet-sepolia',
-      transactionHash,
-      blockNumber: Number(blockNumber),
-      blockHash,
-      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      sender: senderAddress,
+      ...commonTxData,
+      sender,
       nostrRecipient,
       starknetRecipient,
       tokenAddress,
-      amount: Number(amount),
+      amount,
     };
 
     await this.tipService.createTransfer(data);
@@ -203,47 +201,25 @@ export class TipServiceIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    const {
-      blockNumber,
-      blockHash: blockHashFelt,
-      timestamp: blockTimestamp,
-    } = header;
-
-    const blockHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const transactionHashFelt = transaction.meta.hash;
-    const transactionHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
-    ) as ContractAddress;
+    const commonTxData = this.getTxData(header, transaction);
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const [
       _,
       depositIdFelt,
       senderFelt,
-      nostrRecipientFelt,
+      nostrRecipientLow,
+      nostrRecipientHigh,
       starknetRecipientFelt,
     ] = event.keys;
 
-    const depositId = depositIdFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(depositIdFelt).toString(),
-        )
-      : '';
-
-    const sender = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(senderFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const nostrRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(nostrRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const starknetRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(starknetRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
+    const depositId = FieldElement.toBigInt(depositIdFelt).toString();
+    const sender = this.getAddress(senderFelt);
+    const nostrRecipient = this.getU256ToHex(
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    );
+    const starknetRecipient = this.getAddress(starknetRecipientFelt);
 
     const [
       amountLow,
@@ -254,44 +230,21 @@ export class TipServiceIndexer {
       gasTokenAddressFelt,
     ] = event.data;
 
-    const amountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amountLow),
-      high: FieldElement.toBigInt(amountHigh),
-    });
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-
-    const tokenAddress = contractAddressFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(contractAddressFelt).toString(),
-        )
-      : '';
-
-    const gasAmountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(gasAmountLow),
-      high: FieldElement.toBigInt(gasAmountHigh),
-    });
-    const gasAmount = formatUnits(gasAmountRaw, constants.DECIMALS).toString();
-
-    const gasTokenAddress = gasTokenAddressFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(gasTokenAddressFelt).toString(),
-        )
-      : '';
+    const amount = this.uint256ToAmount(amountLow, amountHigh);
+    const tokenAddress = this.getAddress(contractAddressFelt);
+    const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
+    const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
 
     const data = {
-      network: 'starknet-sepolia',
-      transactionHash,
-      blockNumber: Number(blockNumber),
-      blockHash,
-      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      ...commonTxData,
       depositId,
       sender,
       nostrRecipient,
       starknetRecipient,
-      amount: Number(amount),
+      amount,
       tokenAddress,
       gasTokenAddress,
-      gasAmount: Number(gasAmount),
+      gasAmount,
     };
 
     await this.tipService.updateClaim(data);
@@ -302,58 +255,30 @@ export class TipServiceIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    const {
-      blockNumber,
-      blockHash: blockHashFelt,
-      timestamp: blockTimestamp,
-    } = header;
-
-    const blockHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const transactionHashFelt = transaction.meta.hash;
-    const transactionHash = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
-    ) as ContractAddress;
+    const commonTxData = this.getTxData(header, transaction);
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [_, depositIdFelt, senderFelt, nostrRecipientFelt] = event.keys;
+    const [
+      _,
+      depositIdFelt,
+      senderFelt,
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    ] = event.keys;
 
-    const depositId = depositIdFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(depositIdFelt).toString(),
-        )
-      : '';
-
-    const sender = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(senderFelt).toString(16)}`,
-    ) as ContractAddress;
-
-    const nostrRecipient = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(nostrRecipientFelt).toString(16)}`,
-    ) as ContractAddress;
+    const depositId = FieldElement.toBigInt(depositIdFelt).toString();
+    const sender = this.getAddress(senderFelt);
+    const nostrRecipient = this.getU256ToHex(
+      nostrRecipientLow,
+      nostrRecipientHigh,
+    );
 
     const [amountLow, amountHigh, contractAddressFelt] = event.data;
-
-    const amountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amountLow),
-      high: FieldElement.toBigInt(amountHigh),
-    });
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-
-    const tokenAddress = contractAddressFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(contractAddressFelt).toString(),
-        )
-      : '';
+    const amount = this.uint256ToAmount(amountLow, amountHigh);
+    const tokenAddress = this.getAddress(contractAddressFelt);
 
     const data = {
-      network: 'starknet-sepolia',
-      transactionHash,
-      blockNumber: Number(blockNumber),
-      blockHash,
-      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      ...commonTxData,
       depositId,
       sender,
       nostrRecipient,
