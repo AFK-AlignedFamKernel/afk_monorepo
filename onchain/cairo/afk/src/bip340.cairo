@@ -359,7 +359,7 @@ mod tests {
     use super::Secp256PointTrait;
     // use super::*;
     use super::{verify, verify_sig, sign, generate_keypair};
-    use fork_testing::{ IvrfProvider,IVrfProviderDispatcher};
+    use super::{ IVrfProvider,IVrfProviderDispatcher};
     use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}};
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
@@ -371,28 +371,6 @@ mod tests {
     }
     const CONTRACT_ADDRESS: felt252 =
     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
-
-
-    #[test]
-    #[fork("Sepolia")]
-    fn test_generate_keypair() {
-        // Initialize VRF provider with contract address
-        let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
-        };
-        
-        // Pass VRF contract address to generate_keypair
-        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
-        
-        assert!(private_key != 0, "Private key should not be zero");
-    
-        let (px, _tpx) = public_key.get_coordinates().unwrap_syscall();
-        assert!(px != 0, "Public key's x-coordinate should not be zero");
-    
-        let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
-        let derived_public_key = G.mul(private_key.into()).unwrap_syscall();
-        assert_eq!(public_key, derived_public_key, "Derived public key should match the generated public key");
-    }
     
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
@@ -621,7 +599,7 @@ mod tests {
             contract_address: CONTRACT_ADDRESS.try_into().unwrap()
         };
     
-        let (private_key, public_key) = generate_keypair(vrf_provider.contract_addess);
+        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
 
         // Message to sign
         let message: ByteArray = "I love Cairo";
@@ -637,13 +615,13 @@ mod tests {
     }
 
     #[test]
+    #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
-
         let vrf_provider = IVrfProviderDispatcher {
             contract_address: CONTRACT_ADDRESS.try_into().unwrap()
         };
 
-        let (private_key, public_key) = generate_keypair(vrf_provider.contract_addess);
+        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
 
         // Message to sign
         let message: ByteArray = "I love Cairo";
