@@ -26,7 +26,7 @@ export type Tip = {
 const convertToCamelCase = (tip: any): Tip => {
   return {
     transactionHash: tip.transaction_hash,
-    depositId: tip.deposit_id,
+    depositId: Number(tip.deposit_id),
     sender: tip.sender,
     nostrRecipient: tip.nostr_recipient,
     starknetRecipient: tip.starknet_recipient,
