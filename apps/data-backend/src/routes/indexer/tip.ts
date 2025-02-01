@@ -2,6 +2,7 @@ import type {FastifyInstance, RouteOptions} from 'fastify';
 import prisma from 'indexer-prisma';
 import {HTTPStatus} from '../../utils/http';
 import {isValidStarknetAddress} from '../../utils/starknet';
+import {isValidNostrAddress} from "../../utils/nostr";
 
 interface TipParams {
   deposit_id?: string;
@@ -117,7 +118,7 @@ async function tipServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
   }>('/tips/recipient/:nostr_recipient', async (request, reply) => {
     try {
       const { nostr_recipient } = request.params;
-      if (!isValidStarknetAddress(nostr_recipient)) {
+      if (!isValidNostrAddress(nostr_recipient)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
           message: 'Invalid recipient address',
