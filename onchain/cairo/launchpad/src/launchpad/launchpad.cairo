@@ -776,7 +776,7 @@ pub mod LaunchpadMarketplace {
                 pool.clone(), coin_address, sell_amount, true, false
             );
             let mut quote_amount = quote_amount_total.clone();
-            println!("quote_amount_total first: {}", quote_amount_total.clone());
+            // println!("quote_amount_total first: {}", quote_amount_total.clone());
 
             let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
             let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
@@ -789,7 +789,7 @@ pub mod LaunchpadMarketplace {
                 && self.is_fees_protocol_sell_enabled.read();
 
             let mut quote_fee_amount = 0_u256;
-            println!("check fees");
+            // println!("check fees");
 
             // Substract fees protocol from quote amount
             // AUDIT 
@@ -802,10 +802,10 @@ pub mod LaunchpadMarketplace {
             // Validate against liquidity and balance constraints
             // AUDIT
             // High security check to do.
-            println!("check liq raised and quote amount");
+            // println!("check liq raised and quote amount");
 
             if pool.liquidity_raised < quote_amount {
-                println!("pool.liquidity_raised < quote_amount");
+                // println!("pool.liquidity_raised < quote_amount");
                 quote_amount = pool.liquidity_raised;
                 if is_fees_enabled {
                     quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
@@ -813,25 +813,25 @@ pub mod LaunchpadMarketplace {
                 }
             }
 
-            println!("quote_amount: {}", quote_amount.clone());
+            // println!("quote_amount: {}", quote_amount.clone());
             assert(pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
             // Process transfers
             let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
-            println!("transfer fees: {}", quote_fee_amount.clone());
+            // println!("transfer fees: {}", quote_fee_amount.clone());
 
             if is_fees_enabled && quote_fee_amount > 0 {
                 quote_token.transfer(self.protocol_fee_destination.read(), quote_fee_amount);
             }
-            println!("transfer quote amount: {}", quote_amount.clone());
+            // println!("transfer quote amount: {}", quote_amount.clone());
             let balance_contract = quote_token.balance_of(get_contract_address());
-            println!("balance_contract: {}", balance_contract.clone());
+            // println!("balance_contract: {}", balance_contract.clone());
 
             // assert(balance_contract >= quote_amount, errors::BALANCE_CONTRACT_BELOW_AMOUNT);
 
             let quote_amount_paid = quote_amount.clone();
             // let quote_amount_paid = quote_amount - quote_fee_amount;
-            println!("quote_amount_paid: {}", quote_amount_paid.clone());
+            // println!("quote_amount_paid: {}", quote_amount_paid.clone());
 
             // TODO audit
             // HIGH SECURITY ISSUE
@@ -843,7 +843,7 @@ pub mod LaunchpadMarketplace {
                 // let quote_amount_paid = quote_amount - quote_fee_amount;
                 let difference_amount= quote_amount_paid - balance_contract;
                 let amount_paid= quote_amount_paid - difference_amount;
-                println!("amount_paid: {}", amount_paid.clone());
+                // println!("amount_paid: {}", amount_paid.clone());
                 quote_token.transfer(caller, amount_paid);
             }
             // if balance_contract > quote_amount {
@@ -859,13 +859,13 @@ pub mod LaunchpadMarketplace {
             // }
 
             // Update state
-            println!("update share");
+            // println!("update share");
             
             share.amount_owned -= sell_amount;
             share.amount_sell += sell_amount;
 
             let mut updated_pool = pool.clone();
-            println!("update pool");
+            // println!("update pool");
 
             updated_pool.liquidity_raised = if updated_pool.liquidity_raised >= quote_amount {
                 updated_pool.liquidity_raised - quote_amount
