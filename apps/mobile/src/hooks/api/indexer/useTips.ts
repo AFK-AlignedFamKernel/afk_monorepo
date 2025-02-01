@@ -48,7 +48,7 @@ export const useTips = () => {
     queryKey: ['recipient', publicKey],
     queryFn: async () => {
       if (!publicKey) return [];
-      const endpoint = `/tips`;
+      const endpoint = `/tips/recipient/${publicKey}`;
       const res = await ApiIndexerInstance.get(endpoint);
 
       if (res.status !== 200) {
