@@ -128,6 +128,10 @@ mod launchpad_tests {
     fn EKUBO_REGISTRY() -> ContractAddress {
         0x0013e25867b6eef62703735aa4cfa7754e72f4e94a56c9d3d9ad8ebe86cee4aa.try_into().unwrap()
     }
+    // v3
+    // fn EKUBO_REGISTRY() -> ContractAddress {
+    //     0x064bdb4094881140bc39340146c5fcc5a187a98aec5a53f448ac702e5de5067e.try_into().unwrap()
+    // }
 
     fn JEDISWAP_FACTORY() -> ContractAddress {
         0x01aa950c9b974294787de8df8880ecf668840a6ab8fa8290bf2952212b375148.try_into().unwrap()

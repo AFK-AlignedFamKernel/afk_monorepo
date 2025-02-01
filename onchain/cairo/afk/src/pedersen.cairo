@@ -12,7 +12,6 @@ pub impl EcPointDisplay of Display<EcPoint> {
         writeln!(f, "Point ({x}, {y})")
     }
 }
-
 pub fn pedersen_commit(value: felt252, salt: felt252, H: EcPoint) -> EcPoint {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let c_1 = generator.mul(value);
@@ -63,7 +62,6 @@ mod tests {
     use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
     use core::poseidon::PoseidonTrait;
     use core::hash::{HashStateTrait, HashStateExTrait,};
-
 
     #[test]
     fn test_pedersen_commit() {

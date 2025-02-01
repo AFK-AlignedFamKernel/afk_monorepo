@@ -8,11 +8,11 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_SOCIAL_ACCOUNT = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_DepositEscrow.contract_class.json"
+  "../../onchain/cairo/afk/target/dev/afk_DepositEscrow.contract_class.json"
 );
 const PATH_SOCIAL_ACCOUNT_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_DepositEscrow.compiled_contract_class.json"
+  "../../onchain/cairo/afk/target/dev/afk_DepositEscrow.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */

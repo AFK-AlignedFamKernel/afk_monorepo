@@ -1,7 +1,7 @@
 use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
 use afk_launchpad::types::jediswap_types::{MintParams};
 use afk_launchpad::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
+    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken,
     TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
     SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
     LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
@@ -64,7 +64,7 @@ pub mod LaunchpadMarketplace {
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
+        StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE,
         ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
         SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
         LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
@@ -222,7 +222,6 @@ pub mod LaunchpadMarketplace {
         BuyToken: BuyToken,
         SellToken: SellToken,
         CreateToken: CreateToken,
-        LaunchUpdated: LaunchUpdated,
         CreateLaunch: CreateLaunch,
         SetJediswapV2Factory: SetJediswapV2Factory,
         SetJediswapNFTRouterV2: SetJediswapNFTRouterV2,
@@ -321,11 +320,6 @@ pub mod LaunchpadMarketplace {
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
-        // self.factory_address.write(factory_address);
-        // self.ekubo_registry.write(ekubo_registry);
-        // self.core.write(core);
-        // self.positions.write(positions);
-        // self.ekubo_exchange_address.write(ekubo_exchange_address);
         self.unrug_liquidity_address.write(unrug_liquidity_address);
     }
 
@@ -346,7 +340,27 @@ pub mod LaunchpadMarketplace {
     // Claim your tokens
     #[abi(embed_v0)]
     impl LaunchpadMarketplace of ILaunchpadMarketplace<ContractState> {
-        // ADMIN
+        // Views functions public
+
+        fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
+            self.default_token.read()
+        }
+
+        fn get_threshold_liquidity(self: @ContractState) -> u256 {
+            self.threshold_liquidity.read()
+        }
+
+        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
+            self.launched_coins.read(key_user)
+        }
+
+        fn get_share_of_user_by_contract(
+            self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
+        ) -> SharesTokenUser {
+            self.shares_by_users.entry(owner).entry(key_user).read()
+        }
+
+        // ADMINS function with Access control
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
@@ -498,58 +512,10 @@ pub mod LaunchpadMarketplace {
             self.amount_to_paid_create_token.write(amount_to_paid_create_token);
         }
 
-        // Views functions public
-
-        fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
-            self.default_token.read()
-        }
-
-        fn get_threshold_liquidity(self: @ContractState) -> u256 {
-            self.threshold_liquidity.read()
-        }
-
-        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
-            self.launched_coins.read(key_user)
-        }
-
-        fn get_share_of_user_by_contract(
-            self: @ContractState, owner: ContractAddress, key_user: ContractAddress,
-        ) -> SharesTokenUser {
-            self.shares_by_users.entry(owner).entry(key_user).read()
-        }
-
-        // fn get_all_coins(self: @ContractState) -> Span<Token> {
-        //     let max_coin_id = self.total_token.read() + 1;
-        //     let mut coins: Array<Token> = ArrayTrait::new();
-        //     let mut i = 0; //Since the stream id starts from 0
-        //     loop {
-        //         if i >= max_coin_id {}
-        //         let coin = self.array_coins.read(i);
-        //         if coin.owner.is_zero() {
-        //             break coins.span();
-        //         }
-        //         coins.append(coin);
-        //         i += 1;
-        //     }
-        // }
-
-        // fn get_all_launch(self: @ContractState) -> Span<TokenLaunch> {
-        //     let max_key_id = self.total_launch.read() + 1;
-        //     let mut launches: Array<TokenLaunch> = ArrayTrait::new();
-        //     let mut i = 0; //Since the stream id starts from 0
-        //     loop {
-        //         if i >= max_key_id {}
-        //         let pool = self.array_launched_coins.read(i);
-        //         if pool.owner.is_zero() {
-        //             break launches.span();
-        //         }
-        //         launches.append(pool);
-        //         i += 1;
-        //     }
-        // }
         // User call
 
         // Create token for an user
+        // Send the supply to the caller
         fn create_token(
             ref self: ContractState,
             recipient: ContractAddress,
@@ -569,9 +535,9 @@ pub mod LaunchpadMarketplace {
                     initial_supply,
                     contract_address_salt,
                     is_unruggable,
-                    recipient,
-                    caller,
-                    contract_address,
+                    recipient, // Send supply to this address
+                    caller,  // Owner of the address, Ownable access
+                    contract_address, // Factory address to set_launched and others stuff
                 );
 
             token_address
@@ -596,9 +562,9 @@ pub mod LaunchpadMarketplace {
                     initial_supply,
                     contract_address_salt,
                     is_unruggable,
-                    contract_address,
-                    caller,
-                    contract_address,
+                    contract_address, // Send supply to this address
+                    caller,  // Owner of the address, Ownable access
+                    contract_address, // Factory address to set_launched and others stuff
                 );
             self
                 ._launch_token(
@@ -699,6 +665,8 @@ pub mod LaunchpadMarketplace {
             let is_fees_protocol_buy_enabled = self.is_fees_protocol_buy_enabled.read();
 
             // TODO edge cases
+            // Verify rounding of Fees
+            // Check fees send to protocol and liquidity and carefully verify
             if is_fees_protocol_enabled && is_fees_protocol_buy_enabled {
                 // if pool_coin.liquidity_raised < quote_amount {
                 //     total_price = pool_coin.liquidity_raised.clone();
