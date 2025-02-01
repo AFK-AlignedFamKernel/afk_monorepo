@@ -55,7 +55,7 @@ export const useTips = () => {
         throw new Error('Failed to fetch recipient tips');
       }
 
-      return res.data.map(convertToCamelCase);
+      return res.data.data.map(convertToCamelCase);
     },
   });
 };
