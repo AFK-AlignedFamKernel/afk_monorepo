@@ -374,7 +374,7 @@ mod tests {
 
 
     #[test]
-    #[fork("SEPOLIA_LATEST")]
+    #[fork("Sepolia")]
     fn test_generate_keypair() {
         // Initialize VRF provider with contract address
         let vrf_provider = IVrfProviderDispatcher {
