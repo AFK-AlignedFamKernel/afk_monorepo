@@ -27,11 +27,69 @@ func InitPixelRoutes() {
 	http.HandleFunc("/get-pixel", getPixel)
 	http.HandleFunc("/get-pixel-info", getPixelInfo)
 	http.HandleFunc("/get-pixel-metadata", getPixelMetadata)
+
 	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/place-pixel-devnet", placePixelDevnet)
 		http.HandleFunc("/place-extra-pixels-devnet", placeExtraPixelsDevnet)
 	}
 	http.HandleFunc("/place-pixel-redis", placePixelRedis)
+	http.HandleFunc("/get-pixel-shield", getPixelShield)
+}
+
+type PixelInfo struct {
+	Address  string          `json:"address"`
+	Name     string          `json:"username"`
+	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Shield   json.RawMessage `json:"shield,omitempty"`
+}
+
+func getPixelShield(w http.ResponseWriter, r *http.Request) {
+    position, err := strconv.Atoi(r.URL.Query().Get("position"))
+    if err != nil {
+        routeutils.WriteErrorJson(w, http.StatusBadRequest, "Invalid query position")
+        return
+    }
+
+    // Query pixel shield information from database including user name
+    queryRes, err := core.PostgresQueryOne[PixelInfo](`
+        SELECT
+            p.address,
+            COALESCE(u.name, '') as name,
+            p.shield 
+        FROM Pixels p
+        LEFT JOIN Users u ON p.address = u.address
+        WHERE p.position = $1
+        ORDER BY p.time DESC
+        LIMIT 1`, position)
+
+    if err != nil {
+        routeutils.WriteDataJson(w, "null")
+        return
+    }
+
+    response := make(map[string]interface{})
+
+    if queryRes.Name != "" {
+        response["name"] = queryRes.Name
+    } else {
+        response["address"] = "0x" + queryRes.Address
+    }
+    
+    if queryRes.Shield != nil {
+        var shieldData map[string]interface{}
+        if err := json.Unmarshal(queryRes.Shield, &shieldData); err != nil {
+            routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error parsing shield data")
+            return
+        }
+        response["shield"] = shieldData
+    }
+
+    jsonResponse, err := json.Marshal(response)
+    if err != nil {
+        routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error marshaling response")
+        return
+    }
+    routeutils.WriteDataJson(w, string(jsonResponse))
 }
 
 func getPixel(w http.ResponseWriter, r *http.Request) {
@@ -63,11 +121,6 @@ func getPixel(w http.ResponseWriter, r *http.Request) {
 	routeutils.WriteDataJson(w, pixel)
 }
 
-type PixelInfo struct {
-	Address  string          `json:"address"`
-	Name     string          `json:"username"`
-	Metadata json.RawMessage `json:"metadata,omitempty"`
-}
 
 // func getPixelInfo(w http.ResponseWriter, r *http.Request) {
 // 	position, err := strconv.Atoi(r.URL.Query().Get("position"))
@@ -144,12 +197,23 @@ func getPixelMetadata(w http.ResponseWriter, r *http.Request) {
 	}
 
 	queryRes, err := core.PostgresQueryOne[PixelInfo](`
-    SELECT p.address, COALESCE(u.name, '') as name FROM Pixels p
-    LEFT JOIN Users u ON p.address = u.address WHERE p.position = $1
-    ORDER BY p.time DESC LIMIT 1`, position)
+		SELECT p.address, COALESCE(u.name, '') as name, p.metadata, p.day, p.color, p.time 
+		FROM Pixels p
+		LEFT JOIN Users u ON p.address = u.address 
+		WHERE p.position = $1
+		ORDER BY p.time DESC LIMIT 1`, position)
+
 	if err != nil {
-		routeutils.WriteDataJson(w, "\"0x0000000000000000000000000000000000000000000000000000000000000000\"")
+		routeutils.WriteDataJson(w, "null")
 		return
+	}
+
+	var metadataMap map[string]interface{}
+	if queryRes.Metadata != nil {
+		if err := json.Unmarshal(queryRes.Metadata, &metadataMap); err != nil {
+			routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Error parsing metadata")
+			return
+		}
 	}
 
 	if queryRes.Name == "" {
@@ -310,3 +374,5 @@ func placePixelRedis(w http.ResponseWriter, r *http.Request) {
 
 	routeutils.WriteResultJson(w, "Pixel placed on redis")
 }
+
+

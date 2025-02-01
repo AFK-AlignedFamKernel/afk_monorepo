@@ -6,13 +6,30 @@ CREATE TABLE Pixels (
   day integer NOT NULL,
   color integer NOT NULL,
   time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  metadata JSONB DEFAULT NULL
+  metadata JSONB DEFAULT NULL,
+  shield JSONB DEFAULT NULL
 );
+ALTER TABLE Pixels ADD CONSTRAINT unique_pixel_address_position UNIQUE (address, position);
 CREATE INDEX pixels_address_index ON Pixels (address);
 CREATE INDEX pixels_position_index ON Pixels (position);
 CREATE INDEX pixels_day_index ON Pixels (day);
 CREATE INDEX pixels_color_index ON Pixels (color);
 CREATE INDEX pixels_time_index ON Pixels (time);
+CREATE INDEX pixels_shield_index ON Pixels (shield);
+
+
+CREATE TABLE PixelShields (
+  address char(64) NOT NULL,
+  position bigint NOT NULL,
+  shield_type int NOT NULL,
+  amount_paid numeric NOT NULL,
+  placed_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (address, position, shield_type)
+);
+CREATE INDEX pixelShields_address_index ON PixelShields (address);
+CREATE INDEX pixelShields_position_index ON PixelShields (position);
+CREATE INDEX pixelShields_shield_type_index ON PixelShields (shield_type);
+CREATE INDEX pixelShields_placed_at_index ON PixelShields (placed_at);
 
 CREATE TABLE LastPlacedTime (
   address char(64) NOT NULL,
@@ -300,3 +317,4 @@ CREATE TABLE AwardWinners (
 );
 CREATE INDEX address ON AwardWinners (address);
 CREATE INDEX type ON AwardWinners (type);
+

@@ -43,6 +43,8 @@ func processPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
+	shieldType, amountPaid := getShieldDetailsForPixel(position, address)
+
 	// Set pixel in redis
 	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
 	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
@@ -54,14 +56,29 @@ func processPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
+	var shieldData interface{}
+    if shieldType != 0 {
+        shieldData = map[string]interface{}{
+            "shield_type": shieldType,
+            "amount_paid": amountPaid,
+        }
+    }
+
 	fmt.Printf(address, position, dayIdx, color, "print")
 	// Set pixel in postgres
-	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Pixels (address, position, day, color) VALUES ($1, $2, $3, $4)", address, position, dayIdx, color)
-	if err != nil {
-		// TODO: Reverse redis operation?
-		PrintIndexerError("processPixelPlacedEvent", "Error inserting pixel into postgres", address, posHex, dayIdxHex, colorHex)
-		return
-	}
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), `
+    INSERT INTO Pixels (address, position, day, color, shield)
+	VALUES ($1, $2, $3, $4, $5)
+	ON CONFLICT (address, position)
+	DO UPDATE SET 
+    color = $4, 
+    shield = COALESCE($5, Pixels.shield)
+    `, address, position, dayIdx, color, shieldData)
+    if err != nil {
+        // TODO: Reverse redis operation?
+        PrintIndexerError("processPixelPlacedEvent", "Error inserting pixel into postgres", err,address, posHex, dayIdxHex, colorHex)
+        return
+    }
 
 	// Send message to all connected clients
 	var message = map[string]interface{}{
@@ -84,7 +101,7 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 	}
 
 	// Delete pixel from postgres ( last one )
-	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2 ORDER BY time limit 1", address, position)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Pixels WHERE address = $1 AND position = $2", address, position)
 	if err != nil {
 		PrintIndexerError("revertPixelPlacedEvent", "Error deleting pixel from postgres", address, posHex)
 		return
@@ -112,6 +129,94 @@ func revertPixelPlacedEvent(event IndexerEvent) {
 		"position":    position,
 		"color":       oldColor,
 		"messageType": "colorPixel",
+	}
+	routeutils.SendWebSocketMessage(message)
+}
+
+func getShieldDetailsForPixel(position int64, address string) (int, float64) {
+
+    var shieldType int
+    var amountPaid float64
+
+    err := core.AFKBackend.Databases.Postgres.QueryRow(context.Background(), `
+        SELECT shield_type, amount_paid 
+        FROM PixelShields 
+        WHERE address = $1 AND position = $2
+    `, address, position).Scan(&shieldType, &amountPaid)
+    if err != nil {
+        return 0, 0.0
+    }
+
+    return shieldType, amountPaid
+}
+
+func processPixelShieldPlacesEvent(event IndexerEvent){
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+	shieldTypeHex := event.Event.Data[0]
+	amountPaidHex := event.Event.Data[1]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	shieldType, err := strconv.ParseInt(shieldTypeHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error converting shield type hex to int", address, shieldTypeHex)
+		return
+	}
+
+	amountPaid, err := strconv.ParseInt(amountPaidHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error converting amount paid hex to int", address, amountPaidHex)
+		return
+	}
+
+	// Insert pixel shield information into Postgres
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), 
+		"INSERT INTO PixelShields (address, position, shield_type, amount_paid) VALUES ($1, $2, $3, $4)",
+		address, position, shieldType, amountPaid)
+	if err != nil {
+		PrintIndexerError("processPixelShieldPlacedEvent", "Error inserting pixel shield into postgres", address, posHex, shieldTypeHex, amountPaidHex)
+		return
+	}
+
+	// Send message to all connected clients
+	var message = map[string]interface{}{
+		"position":    position,
+		"shieldType":  shieldType,
+		"amountPaid":  amountPaid,
+		"messageType": "pixelShieldPlaced",
+	}
+	routeutils.SendWebSocketMessage(message)
+
+}
+
+func revertPixelShieldPlacedEvent(event IndexerEvent) {
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelShieldPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	// Delete the pixel shield entry from Postgres
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), 
+		"DELETE FROM PixelShields WHERE address = $1 AND position = $2",
+		address, position)
+	if err != nil {
+		PrintIndexerError("revertPixelShieldPlacedEvent", "Error deleting pixel shield from postgres", address, posHex)
+		return
+	}
+
+	// Send message to all connected clients about the shield removal
+	var message = map[string]interface{}{
+		"position":    position,
+		"messageType": "pixelShieldRemoved",
 	}
 	routeutils.SendWebSocketMessage(message)
 }
@@ -349,4 +454,148 @@ func revertBasicPixelPlacedEventWithMetadata(event IndexerEvent) {
 
 	// Optionally log the event if needed
 	fmt.Printf("Pixel at position %d for address %s has been reverted.\n", position, address)
+}
+
+func processPixelMetadataPlacedEvent(event IndexerEvent){
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+	dayIdxHex := event.Event.Keys[3]
+	colorHex := event.Event.Data[0]
+	ipfsHex := event.Event.Data[1]
+	nostrEventIdHex := event.Event.Data[2]
+	ownerAddressHex := event.Event.Data[3]
+	contractAddressHex := event.Event.Data[4]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelPlacedEvent", "Error converting position hex to int", address, posHex, dayIdxHex, colorHex)
+		return
+	}
+
+	//validate position
+	maxPosition := int64(core.AFKBackend.CanvasConfig.Canvas.Width) * int64(core.AFKBackend.CanvasConfig.Canvas.Height)
+
+	// Perform comparison with maxPosition
+	if position < 0 || position >= maxPosition {
+		PrintIndexerError("processPixelPlacedEvent", "Position value exceeds canvas dimensions", address, posHex, dayIdxHex, colorHex)
+		return
+	}
+
+	dayIdx, err := strconv.ParseInt(dayIdxHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelPlacedEvent", "Error converting day index hex to int", address, posHex, dayIdxHex, colorHex)
+		return
+	}
+	color, err := strconv.ParseInt(colorHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("processPixelPlacedEvent", "Error converting color hex to int", address, posHex, dayIdxHex, colorHex)
+		return
+	}
+
+	metadata := map[string]interface{}{
+		"ipfs":          ipfsHex,
+		"nostrEventId": nostrEventIdHex,
+		"owner":         ownerAddressHex,
+		"contract":      contractAddressHex,
+	}
+
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		PrintIndexerError("processPixelMetadataPlacedEvent", "Error converting metadata to JSON", address)
+		return
+	}
+
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
+
+	ctx := context.Background()
+	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, color).Err()
+	if err != nil {
+		PrintIndexerError("processPixelPlacedEvent", "Error setting pixel in redis", address, posHex, dayIdxHex, colorHex)
+		return
+	}
+
+	fmt.Printf(address, position, dayIdx, color, "print")
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(),
+		`INSERT INTO Pixels (address, position, day, color, metadata)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (address, position) 
+		DO UPDATE SET color = $4, day = $3, metadata = $5`,
+		address, position, dayIdx, color, metadataJSON)
+	if err != nil {
+		PrintIndexerError("processPixelMetadataPlacedEvent", "Error inserting pixel metadata into postgres", address, posHex)
+		return
+	}
+
+	var message = map[string]interface{}{
+		"position":    position,
+		"color":      color,
+		"metadata":   metadata,
+		"messageType": "pixelMetadataPlaced",
+	}
+	routeutils.SendWebSocketMessage(message)
+}
+
+func revertPixelMetadataPlacedEvent(event IndexerEvent) {
+	address := event.Event.Keys[1][2:] // Remove 0x prefix
+	posHex := event.Event.Keys[2]
+
+	position, err := strconv.ParseInt(posHex, 0, 64)
+	if err != nil {
+		PrintIndexerError("revertPixelMetadataPlacedEvent", "Error converting position hex to int", address, posHex)
+		return
+	}
+
+	var prevColor int
+	var prevMetadata []byte
+	err = core.AFKBackend.Databases.Postgres.QueryRow(context.Background(),
+		`SELECT color, metadata FROM Pixels 
+		WHERE address = $1 AND position = $2 
+		ORDER BY time DESC OFFSET 1 LIMIT 1`,
+		address, position).Scan(&prevColor, &prevMetadata)
+	if err != nil {
+		PrintIndexerError("revertPixelMetadataPlacedEvent", "Error retrieving previous pixel state", address, posHex)
+		return
+	}
+
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	pos := uint(position) * core.AFKBackend.CanvasConfig.ColorsBitWidth
+
+	ctx := context.Background()
+	err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas", "SET", bitfieldType, pos, prevColor).Err()
+	if err != nil {
+		PrintIndexerError("revertPixelMetadataPlacedEvent", "Error resetting pixel in redis", address, posHex)
+		return
+	}
+
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(),
+		`DELETE FROM Pixels 
+		WHERE address = $1 AND position = $2 
+		AND time = (
+			SELECT MAX(time) 
+			FROM Pixels 
+			WHERE address = $1 AND position = $2
+		)`,
+		address, position)
+	if err != nil {
+		PrintIndexerError("revertPixelMetadataPlacedEvent", "Error deleting pixel metadata from postgres", address, posHex)
+		return
+	}
+
+	var prevMetadataMap map[string]interface{}
+	if len(prevMetadata) > 0 {
+		err = json.Unmarshal(prevMetadata, &prevMetadataMap)
+		if err != nil {
+			PrintIndexerError("revertPixelMetadataPlacedEvent", "Error parsing previous metadata", address, string(prevMetadata))
+			return
+		}
+	}
+
+	var message = map[string]interface{}{
+		"position":    position,
+		"color":      prevColor,
+		"metadata":   prevMetadataMap,
+		"messageType": "pixelMetadataReverted",
+	}
+	routeutils.SendWebSocketMessage(message)
 }
