@@ -26,7 +26,7 @@ export type Tip = {
 const convertToCamelCase = (tip: any): Tip => {
   return {
     transactionHash: tip.transaction_hash,
-    depositId: tip.deposit_id,
+    depositId: Number(tip.deposit_id),
     sender: tip.sender,
     nostrRecipient: tip.nostr_recipient,
     starknetRecipient: tip.starknet_recipient,
@@ -48,14 +48,14 @@ export const useTips = () => {
     queryKey: ['recipient', publicKey],
     queryFn: async () => {
       if (!publicKey) return [];
-      const endpoint = `/tips`;
+      const endpoint = `/tips/recipient/${publicKey}`;
       const res = await ApiIndexerInstance.get(endpoint);
 
       if (res.status !== 200) {
         throw new Error('Failed to fetch recipient tips');
       }
 
-      return res.data.map(convertToCamelCase);
+      return res.data.data.map(convertToCamelCase);
     },
   });
 };
