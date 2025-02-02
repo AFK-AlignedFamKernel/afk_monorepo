@@ -1,12 +1,12 @@
 use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
 use afk_launchpad::types::jediswap_types::{MintParams};
 use afk_launchpad::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken,
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
-    LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
+    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, TokenQuoteBuyCoin,
+    TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch, SetJediswapNFTRouterV2,
+    SetJediswapV2Factory, SupportedExchanges, LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch,
+    TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters, EkuboLP, CallbackData,
+    EkuboLaunchParameters, LaunchCallback, LiquidityType, EkuboLiquidityParameters,
+    LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::ClassHash;
@@ -64,13 +64,12 @@ pub mod LaunchpadMarketplace {
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE,
-        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
-        SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
-        EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters,
-        EkuboUnrugLaunchParameters, AdminsFeesParams
+        StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE, ADMIN_ROLE,
+        BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch, SetJediswapNFTRouterV2,
+        SetJediswapV2Factory, SupportedExchanges, MintParams, LiquidityCreated, LiquidityCanBeAdded,
+        MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters,
+        EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback,
+        EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
         // MemecoinCreated, MemecoinLaunched
     };
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -536,7 +535,7 @@ pub mod LaunchpadMarketplace {
                     contract_address_salt,
                     is_unruggable,
                     recipient, // Send supply to this address
-                    caller,  // Owner of the address, Ownable access
+                    caller, // Owner of the address, Ownable access
                     contract_address, // Factory address to set_launched and others stuff
                 );
 
@@ -563,7 +562,7 @@ pub mod LaunchpadMarketplace {
                     contract_address_salt,
                     is_unruggable,
                     contract_address, // Send supply to this address
-                    caller,  // Owner of the address, Ownable access
+                    caller, // Owner of the address, Ownable access
                     contract_address, // Factory address to set_launched and others stuff
                 );
             self

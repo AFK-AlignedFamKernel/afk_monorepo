@@ -323,7 +323,6 @@ pub struct MemecoinCreated {
 }
 
 
-
 #[derive(Drop, starknet::Event)]
 pub struct SetJediswapV2Factory {
     pub address_jediswap_factory_v2: ContractAddress,
@@ -391,7 +390,7 @@ pub struct JediswapLiquidityParameters {
     pub quote_amount: u256,
 }
 
-// 
+//
 
 #[derive(Drop, starknet::Event)]
 pub struct MemecoinLaunched {
@@ -410,13 +409,13 @@ pub struct LaunchUpdated {
 
 
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, //  PartialEq
-   )]
-   pub enum TokenType {
-       ERC20,
-       ERC404,
+ Drop, starknet::Store, //  PartialEq
+)]
+pub enum TokenType {
+    ERC20,
+    ERC404,
 }
-   
+
 #[derive(Drop, Serde, Copy, starknet::Store)]
 pub struct TokenLaunchFair {
     // pub struct Keys<C> {
