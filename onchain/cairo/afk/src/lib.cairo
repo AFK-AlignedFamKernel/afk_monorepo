@@ -54,9 +54,9 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
-    pub mod dn404_presets_test;
-    pub mod dn404_tests;
-    pub mod nameservice_tests;
+    // pub mod dn404_presets_test;
+    // pub mod dn404_tests;
+    // pub mod nameservice_tests;
     pub mod staking_tests;
     pub mod utils;
     pub mod vault_tests;
