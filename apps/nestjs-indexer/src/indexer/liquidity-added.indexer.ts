@@ -73,12 +73,23 @@ export class LiquidityAddedIndexer {
       const transferId = `${transactionHash}_${event.index}`;
   
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, id, pool, assetFelt, tokenAddressFelt] = event.keys;
-  
+      const [_, idFeltLow, idFeltHigh, poolFelt, assetFelt, tokenAddressFelt] = event.keys;
+      // const id = validateAndParseAddress(
+      //   `0x${FieldElement.toBigInt(idFelt).toString(16)}`,
+      // ) as ContractAddress;
+      const idRaw = uint256.uint256ToBN({
+        low: FieldElement.toBigInt(idFeltLow),
+        high: FieldElement.toBigInt(idFeltHigh),
+      });
+      const id = formatUnits(idRaw, constants.DECIMALS).toString();
+
+      const pool = validateAndParseAddress(
+        `0x${FieldElement.toBigInt(poolFelt).toString(16)}`,
+      ) as ContractAddress;
+
       const assetAddress = validateAndParseAddress(
         `0x${FieldElement.toBigInt(assetFelt).toString(16)}`,
       ) as ContractAddress;
-;
   
       const tokenAddress = validateAndParseAddress(
         `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
