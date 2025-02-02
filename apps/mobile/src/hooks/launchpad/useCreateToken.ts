@@ -27,8 +27,11 @@ export const useCreateToken = () => {
 
       console.log('deployCall');
 
-      const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
+      let initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
+      if(Number.isNaN(initial_supply) && Number.isInteger(data?.initialSupply)){
+        initial_supply = cairo.uint256(data?.initialSupply)
+      }
       console.log('initial supply', initial_supply);
 
       const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
