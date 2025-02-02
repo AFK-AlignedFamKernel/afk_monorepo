@@ -3,8 +3,8 @@ import { StreamClient, v1alpha2 } from '@apibara/protocol';
 import {
   FieldElement,
   Filter,
-  v1alpha2 as starknet,
   StarkNetCursor,
+  v1alpha2 as starknet,
 } from '@apibara/starknet';
 import { validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
@@ -67,6 +67,9 @@ export class IndexerService {
     const contractAddressFieldElements = [
       validateAndParseAddress(constants.contracts.sepolia.LAUNCHPAD_ADDRESS),
       validateAndParseAddress(constants.contracts.sepolia.NAMESERVICE_ADDRESS),
+      validateAndParseAddress(
+        constants.contracts.sepolia.ESCROW_DEPOSIT_ADDRESS,
+      ),
     ].map((address) => FieldElement.fromBigInt(BigInt(address)));
 
     contractAddressFieldElements.forEach((contractAddressFieldElement) => {

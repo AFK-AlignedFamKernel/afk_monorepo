@@ -1,21 +1,21 @@
-import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@starknet-react/core';
-import { useProfile } from 'afk_nostr_sdk';
-import { useState } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
+import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
+import {useNavigation} from '@react-navigation/native';
+import {useAccount} from '@starknet-react/core';
+import {useProfile} from 'afk_nostr_sdk';
+import {useEffect, useState} from 'react';
+import {ImageSourcePropType, View} from 'react-native';
 
-import { useStyles, useWaitConnection } from '../../../hooks';
-import { useBuyCoinByQuoteAmount } from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import { useSellCoin } from '../../../hooks/launchpad/useSellCoin';
-import { useToast, useWalletModal } from '../../../hooks/modals';
-import { MainStackNavigationProps } from '../../../types';
-import { TokenDeployInterface } from '../../../types/keys';
-import { feltToAddress } from '../../../utils/format';
-import { AddressComponent } from '../../AddressComponent';
-import { Button } from '../../Button';
-import { LaunchActionsForm } from '../../LaunchActionsForm';
-import { Text } from '../../Text';
+import {useStyles, useWaitConnection} from '../../../hooks';
+import {useBuyCoinByQuoteAmount} from '../../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import {useSellCoin} from '../../../hooks/launchpad/useSellCoin';
+import {useToast, useWalletModal} from '../../../hooks/modals';
+import {MainStackNavigationProps} from '../../../types';
+import {TokenDeployInterface} from '../../../types/keys';
+import {feltToAddress} from '../../../utils/format';
+import {AddressComponent} from '../../AddressComponent';
+import {Button} from '../../Button';
+import {LaunchActionsForm} from '../../LaunchActionsForm';
+import {Text} from '../../Text';
 import stylesheet from './styles';
 
 export type LaunchCoinProps = {
@@ -39,20 +39,28 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
   isDisabledInfo,
   isDisabledForm,
 }) => {
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const {data: profile} = useProfile({publicKey: event?.pubkey});
   const account = useAccount();
   const [amount, setAmount] = useState<number | undefined>();
-  console.log('launch', launch);
+  const [thresholdLiquidityProgress, setThresholdLiquidityProgress] = useState(0);
+
+  useEffect(() => {
+    const progress = Math.min(
+      (Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) * 100,
+      100,
+    );
+    setThresholdLiquidityProgress(progress);
+  }, [launch]);
 
   const [isDisabledInfoState, setIsDisabledInfoState] = useState<boolean | undefined>(
     isDisabledInfo,
   );
   const styles = useStyles(stylesheet);
 
-  const { showToast } = useToast();
-  const { handleSellCoins } = useSellCoin();
+  const {showToast} = useToast();
+  const {handleSellCoins} = useSellCoin();
   // const { handleBuyKeys } = useBuyKeys()
-  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
+  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
   const onConnect = async () => {
@@ -117,7 +125,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
 
   const sellKeys = async () => {
     if (!amount) {
-      return showToast({ title: 'Select an amount to buy', type: 'info' });
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -137,14 +145,14 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
     );
 
     if (sellResult) {
-      return showToast({ title: 'Buy done', type: 'success' });
+      return showToast({title: 'Buy done', type: 'success'});
     }
   };
 
   const buyCoin = async () => {
     await onConnect();
     if (!amount) {
-      return showToast({ title: 'Select an amount to buy', type: 'info' });
+      return showToast({title: 'Select an amount to buy', type: 'info'});
     }
 
     if (!account || !account?.account) return;
@@ -162,7 +170,7 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
       launch?.quote_token,
     );
 
-    return showToast({ title: 'Buy done', type: 'success' });
+    return showToast({title: 'Buy done', type: 'success'});
   };
 
   return (
@@ -201,20 +209,14 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         {launch?.is_liquidity_launch && (
           <View style={styles.detailRow}>
             <Text style={styles.label}>Is launched in DEX</Text>
-            <Text style={styles.value}>
-              {Number(launch?.is_liquidity_launch).toLocaleString()}
-            </Text>
+            <Text style={styles.value}>{Number(launch?.is_liquidity_launch).toLocaleString()}</Text>
           </View>
         )}
-
-
 
         {launch?.threshold_liquidity && (
           <View style={styles.detailRow}>
             <Text style={styles.label}>Threshold liquidity</Text>
-            <Text style={styles.value}>
-              {Number(launch?.threshold_liquidity).toLocaleString()}
-            </Text>
+            <Text style={styles.value}>{Number(launch?.threshold_liquidity).toLocaleString()}</Text>
           </View>
         )}
 
@@ -225,29 +227,37 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
           </View>
         )}
 
-        {launch?.liquidity_raised && launch?.threshold_liquidity &&
+        {launch?.liquidity_raised && launch?.threshold_liquidity && (
           <View>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Raised Progress</Text>
               <Text style={styles.value}>
-                {Number(launch?.liquidity_raised).toLocaleString()} / {Number(launch?.threshold_liquidity).toLocaleString()}
+                {Number(launch?.liquidity_raised).toLocaleString()} /{' '}
+                {Number(launch?.threshold_liquidity).toLocaleString()}
               </Text>
             </View>
             <View style={styles.progressBarContainer}>
               <View
                 style={[
-                  styles.progressBarFill,
+                  Number(launch.liquidity_raised) <=
+                  Number(launch.threshold_liquidity) - Number(launch.threshold_liquidity) * 0.02
+                    ? styles.progressBarFillWarn
+                    : styles.progressBarFill,
                   {
-                    width: `${Math.min((Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) * 100, 100)}%`,
-                  }
+                    width: `${thresholdLiquidityProgress}%`,
+                  },
                 ]}
               />
             </View>
             <Text style={styles.progressText}>
-              {((Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) * 100).toFixed(1)}% Complete
+              {(
+                (Number(launch?.liquidity_raised) / Number(launch?.threshold_liquidity)) *
+                100
+              ).toFixed(1)}
+              % Complete
             </Text>
           </View>
-        }
+        )}
 
         {launch?.bonding_type && (
           <View style={styles.detailRow}>
@@ -271,13 +281,9 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
         {launch?.quote_token && (
           <View style={styles.detailRow}>
             <Text style={styles.label}>Quote token</Text>
-            <AddressComponent
-              address={launch?.quote_token || ''}
-              textStyle={styles.addressValue}
-            />
+            <AddressComponent address={launch?.quote_token || ''} textStyle={styles.addressValue} />
           </View>
         )}
-
       </View>
 
       {/* <Button

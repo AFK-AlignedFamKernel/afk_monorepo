@@ -20,6 +20,7 @@ export const useTips = () => {
 
       const {low, high} = uint256.bnToUint256(`0x${publicKey}`);
 
+      // get all tips for the user
       const getTipEvents = async (
         continuationToken?: string,
       ): Promise<Awaited<ReturnType<typeof provider.getEvents>>['events']> => {
@@ -44,10 +45,12 @@ export const useTips = () => {
         return tips.events;
       };
 
+      // map events
       const tipEvents = (await getTipEvents())
         .map((event) => parseDepositEvent(event))
         .filter((event): event is NonNullable<ReturnType<typeof parseDepositEvent>> => !!event);
 
+      // get claim events for the user
       const getClaimEvents = async (
         continuationToken?: string,
       ): Promise<Awaited<ReturnType<typeof provider.getEvents>>['events']> => {
@@ -67,6 +70,7 @@ export const useTips = () => {
         return tips.events;
       };
 
+      // map claim events
       const claimEvents = (await getClaimEvents())
         .map((event) => parseClaimEvent(event))
         .filter((event): event is NonNullable<ReturnType<typeof parseClaimEvent>> => !!event);

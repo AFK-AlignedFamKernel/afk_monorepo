@@ -32,9 +32,12 @@ export class BuyTokenService {
       } else {
         const newSupply =
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
-        const newLiquidityRaised =
+        let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
           Number(data.quoteAmount);
+
+        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
+
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
           Number(data.amount);

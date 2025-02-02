@@ -1,9 +1,7 @@
-use core::fmt::{Display, Formatter, Error};
-use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
-use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use starknet::{ContractAddress};
 use super::request::ConvertToBytes;
+use super::request::{SocialRequest, SocialRequestImpl, Encode};
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -23,7 +21,7 @@ impl ClaimEncodeImpl of Encode<Claim> {
             self.deposit_id,
             recipient_address,
             gas_token_address,
-            *self.gas_amount
+            *self.gas_amount,
         )
     }
 }
@@ -58,7 +56,7 @@ type NostrPublicKey = u256;
 #[derive(Copy, Debug, Drop, Serde)]
 pub enum DepositResult {
     Transfer: ContractAddress,
-    Deposit: DepositId
+    Deposit: DepositId,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -78,28 +76,27 @@ pub trait IDepositEscrow<TContractState> {
         amount: u256,
         token_address: ContractAddress,
         nostr_recipient: NostrPublicKey,
-        timelock: u64
+        timelock: u64,
     ) -> DepositResult;
     fn cancel(ref self: TContractState, deposit_id: DepositId);
-    fn claim(ref self: TContractState, request: SocialRequest<Claim>, gas_amount: u256);
+    fn claim(ref self: TContractState, request: SocialRequest<Claim>);
+    fn claim_with_gas(ref self: TContractState, request: SocialRequest<Claim>, gas_amount: u256);
     fn get_starknet_address(self: @TContractState, nostr_pubkey: NostrPublicKey) -> ContractAddress;
     fn get_nostr_address(
-        self: @TContractState, starknet_address: ContractAddress
+        self: @TContractState, starknet_address: ContractAddress,
     ) -> NostrPublicKey;
 }
 
 #[starknet::contract]
 pub mod DepositEscrow {
-    use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use starknet::storage::Map;
     use core::num::traits::Zero;
-    use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
     };
     use starknet::{get_block_timestamp, get_caller_address, get_contract_address, ContractAddress};
-    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait,};
+    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait};
 
     use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
 
@@ -111,7 +108,7 @@ pub mod DepositEscrow {
                 amount: 0.into(),
                 token_address: 0.try_into().unwrap(),
                 recipient: 0_u256,
-                ttl: 0_u64
+                ttl: 0_u64,
             }
         }
     }
@@ -125,7 +122,7 @@ pub mod DepositEscrow {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct ClaimEvent {
+    pub struct ClaimEvent {
         #[key]
         deposit_id: DepositId,
         #[key]
@@ -137,19 +134,19 @@ pub mod DepositEscrow {
         amount: u256,
         token_address: ContractAddress,
         gas_token_address: ContractAddress,
-        gas_amount: u256
+        gas_amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct DepositEvent {
+    pub struct DepositEvent {
         #[key]
-        deposit_id: DepositId,
+        pub deposit_id: DepositId,
         #[key]
-        sender: ContractAddress,
+        pub sender: ContractAddress,
         #[key]
-        nostr_recipient: NostrPublicKey,
-        amount: u256,
-        token_address: ContractAddress,
+        pub nostr_recipient: NostrPublicKey,
+        pub amount: u256,
+        pub token_address: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -165,20 +162,20 @@ pub mod DepositEscrow {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct TransferEvent {
+    pub struct TransferEvent {
         #[key]
-        sender: ContractAddress,
+        pub sender: ContractAddress,
         #[key]
-        nostr_recipient: NostrPublicKey,
+        pub nostr_recipient: NostrPublicKey,
         #[key]
-        starknet_recipient: ContractAddress,
-        amount: u256,
-        token_address: ContractAddress,
+        pub starknet_recipient: ContractAddress,
+        pub amount: u256,
+        pub token_address: ContractAddress,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         ClaimEvent: ClaimEvent,
         DepositEvent: DepositEvent,
         CancelEvent: CancelEvent,
@@ -197,13 +194,13 @@ pub mod DepositEscrow {
         }
 
         fn get_nostr_address(
-            self: @ContractState, starknet_address: ContractAddress
+            self: @ContractState, starknet_address: ContractAddress,
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
 
         fn get_starknet_address(
-            self: @ContractState, nostr_pubkey: NostrPublicKey
+            self: @ContractState, nostr_pubkey: NostrPublicKey,
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_pubkey)
         }
@@ -213,7 +210,7 @@ pub mod DepositEscrow {
             amount: u256,
             token_address: ContractAddress,
             nostr_recipient: NostrPublicKey,
-            timelock: u64
+            timelock: u64,
         ) -> DepositResult {
             let recipient = self.nostr_to_sn.read(nostr_recipient);
 
@@ -227,8 +224,8 @@ pub mod DepositEscrow {
                             nostr_recipient,
                             starknet_recipient: recipient,
                             amount: amount,
-                            token_address: token_address
-                        }
+                            token_address: token_address,
+                        },
                     );
                 return DepositResult::Transfer(recipient);
             }
@@ -248,8 +245,19 @@ pub mod DepositEscrow {
                         amount,
                         token_address,
                         recipient: nostr_recipient,
-                        ttl: get_block_timestamp() + timelock
-                    }
+                        ttl: get_block_timestamp() + timelock,
+                    },
+                );
+
+            self
+                .emit(
+                    DepositEvent {
+                        deposit_id,
+                        sender: get_caller_address(),
+                        nostr_recipient,
+                        amount,
+                        token_address,
+                    },
                 );
 
             DepositResult::Deposit(deposit_id)
@@ -260,7 +268,7 @@ pub mod DepositEscrow {
             assert!(deposit != Default::default(), "can't find deposit");
             assert!(deposit.sender == get_caller_address(), "not authorized");
             assert!(
-                deposit.ttl <= get_block_timestamp(), "can't cancel before timelock expiration"
+                deposit.ttl <= get_block_timestamp(), "can't cancel before timelock expiration",
             );
 
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
@@ -274,12 +282,43 @@ pub mod DepositEscrow {
                         sender: get_caller_address(),
                         nostr_recipient: deposit.recipient,
                         amount: deposit.amount,
-                        token_address: deposit.token_address
-                    }
+                        token_address: deposit.token_address,
+                    },
                 );
         }
 
-        fn claim(ref self: ContractState, request: SocialRequest<Claim>, gas_amount: u256) {
+        fn claim(ref self: ContractState, request: SocialRequest<Claim>) {
+            let claim = @request.content;
+            let deposit = self.deposits.read(*claim.deposit_id);
+            assert!(deposit != Default::default(), "can't find deposit");
+            assert!(request.public_key == deposit.recipient, "invalid recipient");
+            request.verify().expect('can\'t verify signature');
+
+            let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
+            erc20.transfer(*claim.starknet_recipient, deposit.amount);
+
+            self.nostr_to_sn.entry(request.public_key).write(*claim.starknet_recipient);
+            self.sn_to_nostr.entry(*claim.starknet_recipient).write(request.public_key);
+            self.deposits.entry(*claim.deposit_id).write(Default::default());
+
+            self
+                .emit(
+                    ClaimEvent {
+                        deposit_id: *claim.deposit_id,
+                        sender: get_caller_address(),
+                        nostr_recipient: request.public_key,
+                        amount: deposit.amount,
+                        starknet_recipient: *claim.starknet_recipient,
+                        token_address: deposit.token_address,
+                        gas_token_address: *claim.gas_token_address,
+                        gas_amount: *claim.gas_amount,
+                    },
+                );
+        }
+
+        fn claim_with_gas(
+            ref self: ContractState, request: SocialRequest<Claim>, gas_amount: u256,
+        ) {
             let claim = @request.content;
             let deposit = self.deposits.read(*claim.deposit_id);
             assert!(deposit != Default::default(), "can't find deposit");
@@ -308,8 +347,8 @@ pub mod DepositEscrow {
                         starknet_recipient: *claim.starknet_recipient,
                         token_address: deposit.token_address,
                         gas_token_address: *claim.gas_token_address,
-                        gas_amount: *claim.gas_amount
-                    }
+                        gas_amount: *claim.gas_amount,
+                    },
                 );
         }
     }
@@ -322,13 +361,14 @@ mod tests {
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
         start_cheat_caller_address_global, stop_cheat_caller_address_global,
-        start_cheat_block_timestamp, DeclareResultTrait
+        start_cheat_block_timestamp, DeclareResultTrait, spy_events, EventSpyAssertionsTrait,
     };
-    use starknet::{ContractAddress, get_block_timestamp,};
+
+    use starknet::{ContractAddress, get_block_timestamp};
 
     use super::super::request::{SocialRequest, Signature};
+    use super::{DepositEscrow, IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
     use super::{DepositResult, NostrPublicKey, Claim};
-    use super::{IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
 
     fn declare_escrow() -> @ContractClass {
         declare("DepositEscrow").unwrap().contract_class()
@@ -351,7 +391,7 @@ mod tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -367,7 +407,7 @@ mod tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, escrow_class: ContractClass
+        erc20_class: ContractClass, escrow_class: ContractClass,
     ) -> (
         SocialRequest<Claim>,
         NostrPublicKey,
@@ -394,7 +434,7 @@ mod tests {
             deposit_id: 1,
             starknet_recipient: recipient_address,
             gas_amount: 0,
-            gas_token_address: erc20.contract_address
+            gas_token_address: erc20.contract_address,
         };
 
         let request = SocialRequest {
@@ -405,8 +445,8 @@ mod tests {
             content: claim,
             sig: Signature {
                 r: 0xf1dac3f8d0d19767805ca85933bdf0e744594aeee04058eedaa29e26de087be9_u256,
-                s: 0x144c4636083c7d0e3b8186c8c0bc6fa38bd9c6a629ec6e2ce5e437797a6e911c_u256
-            }
+                s: 0x144c4636083c7d0e3b8186c8c0bc6fa38bd9c6a629ec6e2ce5e437797a6e911c_u256,
+            },
         };
 
         (request, recipient_public_key, sender_address, erc20, escrow)
@@ -422,6 +462,143 @@ mod tests {
         let erc20_class = declare_erc20();
         let escrow_class = declare_escrow();
         request_fixture_custom_classes(*erc20_class, *escrow_class)
+    }
+
+    #[test]
+    fn first_deposit_with_unassigned_starknet_recipient() {
+        let (_, recipient_nostr_key, sender_address, erc20, escrow) = request_fixture();
+        let recipient_address: ContractAddress = 678.try_into().unwrap();
+        let amount = 100_u256;
+
+        start_cheat_caller_address_global(sender_address);
+        erc20.approve(escrow.contract_address, amount);
+        stop_cheat_caller_address_global();
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+        let sender_balance_before_deposit = erc20.balance_of(sender_address);
+
+        let mut spy = spy_events();
+        // Deposit by sender to recipient
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+
+        let sender_balance_after_deposit = erc20.balance_of(sender_address);
+
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
+
+        // Sender check
+        assert!(
+            sender_balance_before_deposit - amount == sender_balance_after_deposit,
+            "sender amount to deposit not send",
+        );
+        assert!(escrow_balance_before_claim == amount, "escrow before claim != amount");
+
+        // check event
+        spy
+            .assert_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::DepositEvent(
+                            DepositEscrow::DepositEvent {
+                                deposit_id: 1,
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+        spy
+            .assert_not_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::TransferEvent(
+                            DepositEscrow::TransferEvent {
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                starknet_recipient: recipient_address,
+                                amount: amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+    }
+
+    #[test]
+    fn deposit_with_known_starknet_recipient() {
+        let (request, recipient_nostr_key, sender_address, erc20, escrow) = request_fixture();
+        let recipient_address: ContractAddress = 678.try_into().unwrap();
+        let amount = 100_u256;
+
+        start_cheat_caller_address_global(sender_address);
+        erc20.approve(escrow.contract_address, amount);
+        stop_cheat_caller_address_global();
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+        // let sender_balance_before_deposit = erc20.balance_of(sender_address);
+
+        let mut spy = spy_events();
+        // Deposit by sender to recipient
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+
+        // Recipient user claim deposit
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        escrow.claim_with_gas(request, 0_u256);
+
+        start_cheat_caller_address(escrow.contract_address, sender_address);
+
+        start_cheat_caller_address(escrow.contract_address, recipient_address);
+        // let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
+        escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
+
+        // Sender check
+        // assert!(
+        //     sender_balance_before_deposit - amount == sender_balance_after_deposit,
+        //     "sender amount to deposit not send",
+        // );
+        // assert!(escrow_balance_before_claim == amount, "escrow before claim != amount");
+
+        // check event
+        spy
+            .assert_not_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::DepositEvent(
+                            DepositEscrow::DepositEvent {
+                                deposit_id: 2,
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
+        spy
+            .assert_emitted(
+                @array![
+                    (
+                        escrow.contract_address,
+                        DepositEscrow::Event::TransferEvent(
+                            DepositEscrow::TransferEvent {
+                                sender: sender_address,
+                                nostr_recipient: recipient_nostr_key,
+                                starknet_recipient: recipient_address,
+                                amount: amount,
+                                token_address: erc20.contract_address,
+                            },
+                        ),
+                    ),
+                ],
+            );
     }
 
     #[test]
@@ -448,12 +625,12 @@ mod tests {
 
         // Recipient user claim deposit
         let recipient_balance_before_claim = erc20.balance_of(recipient_address);
-        escrow.claim(request, 0_u256);
+        escrow.claim_with_gas(request, 0_u256);
 
         // Sender check
         assert!(
             sender_balance_before_deposit - amount == sender_balance_after_deposit,
-            "sender amount to deposit not send"
+            "sender amount to deposit not send",
         );
 
         // Recipient check
@@ -481,16 +658,16 @@ mod tests {
             deposit_id: 1,
             starknet_recipient: recipient_address,
             gas_amount: gas_amount,
-            gas_token_address: erc20.contract_address
+            gas_token_address: erc20.contract_address,
         };
 
         let request_gas_amount = SocialRequest {
             content: claim_gas_amount,
             sig: Signature {
                 r: 0x68e441c1f8756b5278c815cc110efb302c2a08bcf0349328ba7bd7683e8b0b29_u256,
-                s: 0xd592a5a5e9fc85334ab6801d6dde984c85d67fcd726fce38b9fb06874c25832e_u256
+                s: 0xd592a5a5e9fc85334ab6801d6dde984c85d67fcd726fce38b9fb06874c25832e_u256,
             },
-            ..request
+            ..request,
         };
 
         start_cheat_caller_address_global(sender_address);
@@ -511,20 +688,20 @@ mod tests {
         // Sender check
         assert!(
             sender_balance_before_deposit - amount == sender_balance_after_deposit,
-            "sender deposit amount not send"
+            "sender deposit amount not send",
         );
 
         // AFK account claim user for recipient with gas fees paid by the claim deposit
         let escrow_balance_before_claim = erc20.balance_of(escrow.contract_address);
         let recipient_balance_before_claim = erc20.balance_of(recipient_address);
-        escrow.claim(request_gas_amount, gas_amount);
+        escrow.claim_with_gas(request_gas_amount, gas_amount);
 
         // Recipient check
         let recipient_balance_after_claim = erc20.balance_of(recipient_address);
         assert!(recipient_balance_before_claim == 0, "recipient balance before claim != 0");
         assert!(
             recipient_balance_after_claim == amount - gas_amount,
-            "recipient after claim != (amount - gas)"
+            "recipient after claim != (amount - gas)",
         );
 
         // Check gas amount receive by AFK account
@@ -552,7 +729,7 @@ mod tests {
         start_cheat_caller_address(escrow.contract_address, sender_address);
         escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 10_u64);
 
-        escrow.claim(request, 1_u256);
+        escrow.claim_with_gas(request, 1_u256);
     }
 
     #[test]
@@ -579,7 +756,7 @@ mod tests {
             },
             ..request,
         };
-        escrow.claim(request, 0_u256);
+        escrow.claim_with_gas(request, 0_u256);
     }
 
 
@@ -607,7 +784,7 @@ mod tests {
             },
             ..request,
         };
-        escrow.claim(request, 0_u256);
+        escrow.claim_with_gas(request, 0_u256);
     }
 
     #[test]
@@ -713,7 +890,7 @@ mod tests {
         }
 
         start_cheat_caller_address(escrow.contract_address, recipient_address);
-        escrow.claim(request, 0_u256);
+        escrow.claim_with_gas(request, 0_u256);
 
         start_cheat_caller_address(escrow.contract_address, sender_address);
         let result = escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);

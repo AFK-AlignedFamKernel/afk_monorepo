@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import {useTips} from '../hooks';
+import {useTips} from '../hooks/api/indexer/useTips';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
 
@@ -69,7 +69,7 @@ export default function App() {
   useEffect(() => {
     if (sentTipNotification) return;
 
-    const hasUnclaimedTip = (tips.data ?? []).some((tip) => !tip.claimed && tip.depositId);
+    const hasUnclaimedTip = (tips.data ?? []).some((tip) => !tip.isClaimed && tip.depositId);
     if (hasUnclaimedTip) {
       setSentTipNotification(true);
       showToast({
