@@ -340,7 +340,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   }
 
   const registerShieldArea = () => {
-      if (shieldSelectionStart && shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null) {
+      if (shieldSelectionStart && shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null &&
+        typeof shieldSelectionStart?.x === "number" &&
+        typeof shieldSelectionStart?.y === "number" &&
+        typeof shieldSelectionEnd?.x === "number" &&
+        typeof shieldSelectionEnd?.y === "number"
+      ) {
         const newShieldedArea = {
           x: Math.min(shieldSelectionStart?.x, shieldSelectionEnd?.x),
           y: Math.min(shieldSelectionStart?.y, shieldSelectionEnd?.y),
