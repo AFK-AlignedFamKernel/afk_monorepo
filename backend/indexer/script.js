@@ -37,17 +37,9 @@ async function getLastProcessedBlock() {
 const lastProcessedBlock = await getLastProcessedBlock();
 
 async function updateLastProcessedBlock(blockNumber) {
-  const client = new Client({
-    user: Deno.env.get('POSTGRES_USER'),
-    hostname: Deno.env.get('POSTGRES_HOST'),
-    database: Deno.env.get('POSTGRES_DATABASE'),
-    password: Deno.env.get('POSTGRES_PASSWORD'),
-    port: parseInt(Deno.env.get('POSTGRES_PORT') || '5432'),
-  });
-
   try {
-    await client.connect();
-    await client.queryObject`
+    await pgClient.connect();
+    await pgClient.queryObject`
       INSERT INTO indexer_stats (last_block_scraped)
       VALUES (${blockNumber})
     `;
@@ -305,7 +297,8 @@ export const config = {
   },
 };
 
-export default function transform(block) {
-  updateLastProcessedBlock(block.header.blockNumber);
+export default async function transform({ block, endCursor }) {
+  await updateLastProcessedBlock(block.header.blockNumber);
+  console.log('block is here', block);
   return block;
 }
