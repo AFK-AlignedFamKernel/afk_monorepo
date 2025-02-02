@@ -4,6 +4,7 @@ import {AccountInterface, cairo, CairoCustomEnum, CallData, constants} from 'sta
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 import {formatFloatToUint256} from '../../utils/format';
 import {BondingType} from '../../types/keys';
+import { byteArray } from 'starknet';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -26,22 +27,33 @@ export const useCreateToken = () => {
 
       console.log('deployCall');
 
-      const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
-
+      let initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
       console.log('initial supply', initial_supply);
 
+      // if(Number.isNaN(initial_supply) && Number.isInteger(data?.initialSupply)){
+      //   initial_supply = cairo.uint256(data?.initialSupply)
+      // }
+      console.log('initial supply', initial_supply);
+
+      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+      console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
+      console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_token',
         calldata: CallData.compile({
           owner: data?.recipient ?? account?.address,
-          symbol: data.symbol ?? 'LFG',
-          name: data.name ?? 'LFG',
+          name: nameByteArray,
+          symbol: symbolByteArray,
+          // symbol: data.symbol ?? 'LFG',
+          // name: data.name ?? 'LFG',
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
           // contract_address_salt: cairo.felt(new Date().getTime()?.toString()),
           // contract_address_salt: new Date().getTime()?.toString(),
-          contract_address_salt: new Date().getTime(),
+          contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
+          // contract_address_salt: new Date().getTime(),
           // is_unruggable: false,
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           // bonding_type:bondingEnum
@@ -94,18 +106,25 @@ export const useCreateToken = () => {
       }
       console.log('[DEBUG] bondingEnum updt', bondingEnum);
 
+      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+      
+      console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
+      console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token',
         calldata: CallData.compile({
-          name: data.name ?? 'LFG',
-          symbol: data.symbol ?? 'LFG',
+          name: nameByteArray,
+          symbol: symbolByteArray,
+          // name: data.name ?? 'LFG',
+          // symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,
           // contract_address_salt: new Date().getTime() / 1000,
           // contract_address_salt: new Date().getTime(),
-          contract_address_salt: new Date().getTime(),
-          // contract_address_salt: cairo.felt(String(new Date().getTime())),
+          // contract_address_salt: new Date().getTime().toString(),
+          contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
           // is_unruggable: data?.is_unruggable
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,

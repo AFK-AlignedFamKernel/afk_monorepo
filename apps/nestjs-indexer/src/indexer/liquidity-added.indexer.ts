@@ -73,10 +73,22 @@ export class LiquidityAddedIndexer {
       const transferId = `${transactionHash}_${event.index}`;
   
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, callerFelt, tokenAddressFelt] = event.keys;
-  
-      const ownerAddress = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
+      const [_, idFeltLow, idFeltHigh, poolFelt, assetFelt, tokenAddressFelt] = event.keys;
+      // const id = validateAndParseAddress(
+      //   `0x${FieldElement.toBigInt(idFelt).toString(16)}`,
+      // ) as ContractAddress;
+      const idRaw = uint256.uint256ToBN({
+        low: FieldElement.toBigInt(idFeltLow),
+        high: FieldElement.toBigInt(idFeltHigh),
+      });
+      const id = formatUnits(idRaw, constants.DECIMALS).toString();
+
+      const pool = validateAndParseAddress(
+        `0x${FieldElement.toBigInt(poolFelt).toString(16)}`,
+      ) as ContractAddress;
+
+      const assetAddress = validateAndParseAddress(
+        `0x${FieldElement.toBigInt(assetFelt).toString(16)}`,
       ) as ContractAddress;
   
       const tokenAddress = validateAndParseAddress(
@@ -84,58 +96,62 @@ export class LiquidityAddedIndexer {
       ) as ContractAddress;
   
       const [
-        amountLow,
-        amountHigh,
-        priceLow,
-        priceHigh,
-        protocolFeeLow,
-        protocolFeeHigh,
-        lastPriceLow,
-        lastPriceHigh,
-        timestampFelt,
-        quoteAmountLow,
-        quoteAmountHigh,
+        ownerFelt,
+        // amountHigh,
+        // priceLow,
+        // priceHigh,
+        // protocolFeeLow,
+        // protocolFeeHigh,
+        // lastPriceLow,
+        // lastPriceHigh,
+        // timestampFelt,
+        // quoteAmountLow,
+        // quoteAmountHigh,
       ] = event.data;
   
-      const amountRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(amountLow),
-        high: FieldElement.toBigInt(amountHigh),
-      });
-      const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+      const ownerAddress = validateAndParseAddress(
+        `0x${FieldElement.toBigInt(ownerFelt).toString(16)}`,
+      ) as ContractAddress;
+
+      // const amountRaw = uint256.uint256ToBN({
+      //   low: FieldElement.toBigInt(amountLow),
+      //   high: FieldElement.toBigInt(amountHigh),
+      // });
+      // const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
   
-      const priceRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(priceLow),
-        high: FieldElement.toBigInt(priceHigh),
-      });
-      const price = formatUnits(priceRaw, constants.DECIMALS);
+      // const priceRaw = uint256.uint256ToBN({
+      //   low: FieldElement.toBigInt(priceLow),
+      //   high: FieldElement.toBigInt(priceHigh),
+      // });
+      // const price = formatUnits(priceRaw, constants.DECIMALS);
   
-      const protocolFeeRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(protocolFeeLow),
-        high: FieldElement.toBigInt(protocolFeeHigh),
-      });
-      const protocolFee = formatUnits(
-        protocolFeeRaw,
-        constants.DECIMALS,
-      ).toString();
+      // const protocolFeeRaw = uint256.uint256ToBN({
+      //   low: FieldElement.toBigInt(protocolFeeLow),
+      //   high: FieldElement.toBigInt(protocolFeeHigh),
+      // });
+      // const protocolFee = formatUnits(
+      //   protocolFeeRaw,
+      //   constants.DECIMALS,
+      // ).toString();
   
-      const lastPriceRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(lastPriceLow),
-        high: FieldElement.toBigInt(lastPriceHigh),
-      });
-      const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
+      // const lastPriceRaw = uint256.uint256ToBN({
+      //   low: FieldElement.toBigInt(lastPriceLow),
+      //   high: FieldElement.toBigInt(lastPriceHigh),
+      // });
+      // const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
   
-      const quoteAmountRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(quoteAmountLow ?? amountLow),
-        high: FieldElement.toBigInt(quoteAmountHigh ?? amountHigh),
-      });
-      const quoteAmount = formatUnits(
-        quoteAmountRaw,
-        constants.DECIMALS,
-      ).toString();
+      // const quoteAmountRaw = uint256.uint256ToBN({
+      //   low: FieldElement.toBigInt(quoteAmountLow ?? amountLow),
+      //   high: FieldElement.toBigInt(quoteAmountHigh ?? amountHigh),
+      // });
+      // const quoteAmount = formatUnits(
+      //   quoteAmountRaw,
+      //   constants.DECIMALS,
+      // ).toString();
   
-      const timestamp = new Date(
-        Number(FieldElement.toBigInt(timestampFelt)) * 1000,
-      );
+      // const timestamp = new Date(
+      //   Number(FieldElement.toBigInt(timestampFelt)) * 1000,
+      // );
   
       const data = {
         transferId,
@@ -145,13 +161,20 @@ export class LiquidityAddedIndexer {
         blockHash,
         blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
         ownerAddress,
+        assetAddress,
         memecoinAddress: tokenAddress,
-        amount: Number(amount),
-        price,
-        protocolFee,
-        lastPrice,
-        quoteAmount,
-        timestamp,
+        pool,
+        id,
+        // timestamp:blockTimestamp?.seconds,
+        date: new Date(Number(blockTimestamp.seconds) * 1000),
+        timestamp: new Date(Number(blockTimestamp.seconds) * 1000)?.toString(),
+
+        // amount: Number(amount),
+        // price,
+        // protocolFee,
+        // lastPrice,
+        // quoteAmount,
+        // timestamp,
         transactionType: 'buy',
       };
   

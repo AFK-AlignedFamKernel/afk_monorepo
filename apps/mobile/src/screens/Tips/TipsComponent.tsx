@@ -142,7 +142,8 @@ export const TipsComponent: React.FC = () => {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         keyExtractor={(item) => item.transactionHash}
         renderItem={({item}) => {
-          const amount = new Fraction(item.amount, decimalsScale(item.token.decimals)).toFixed(6);
+          // const amount = new Fraction(item.amount, decimalsScale(item.token.decimals)).toFixed(6);
+          const amount = item.amount;
 
           return (
             <View style={styles.tip}>
@@ -152,7 +153,7 @@ export const TipsComponent: React.FC = () => {
                     {amount}
                   </Text>
                   <Text weight="bold" fontSize={17}>
-                    {item.token.symbol}
+                    {item?.token?.symbol}
                   </Text>
                 </View>
 
@@ -195,7 +196,7 @@ export const TipsComponent: React.FC = () => {
               <View style={styles.senderInfo}>
                 <View style={styles.sender}>
                   <Text weight="semiBold" color="text" numberOfLines={1} ellipsizeMode="middle">
-                    {item.sender}
+                    {item?.sender}
                   </Text>
                 </View>
 

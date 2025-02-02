@@ -290,8 +290,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [shieldSelectionStart, setShieldSelectionStart] = useState({ x: null, y: null });
   const [shieldSelectionEnd, setShieldSelectionEnd] = useState({ x: null, y: null });
   const [isShieldSelecting, setIsShieldSelecting] = useState(false);
-  const [shieldedAreas, setShieldedAreas] = useState([]);
-  const [selectedShieldPixels, setSelectedShieldPixels] = useState([]);
+  const [shieldedAreas, setShieldedAreas] = useState<any[]>([]);
+  const [selectedShieldPixels, setSelectedShieldPixels] = useState<any[]>([]);
 
   // Shield Fn
   const toggleShieldMode = () => {
@@ -322,7 +322,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   // };
  
   const updateSelectedShieldPixels = (position, maxPixels) => {
-    setSelectedShieldPixels((prevPixels) => {
+    setSelectedShieldPixels((prevPixels:any[]) => {
       // Check if the position already exists in the array
       if (prevPixels.includes(position)) {
         return prevPixels // Position already selected, no change
@@ -339,18 +339,21 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     })
   }
 
-
-
-
   const registerShieldArea = () => {
-      if (shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null) {
+      if (shieldSelectionStart && shieldSelectionStart.x !== null && shieldSelectionEnd.x !== null &&
+        typeof shieldSelectionStart?.x === "number" &&
+        typeof shieldSelectionStart?.y === "number" &&
+        typeof shieldSelectionEnd?.x === "number" &&
+        typeof shieldSelectionEnd?.y === "number"
+      ) {
         const newShieldedArea = {
-          x: Math.min(shieldSelectionStart.x, shieldSelectionEnd.x),
-          y: Math.min(shieldSelectionStart.y, shieldSelectionEnd.y),
-          width: Math.abs(shieldSelectionEnd.x - shieldSelectionStart.x) + 1,
-          height: Math.abs(shieldSelectionEnd.y - shieldSelectionStart.y) + 1,
+          x: Math.min(shieldSelectionStart?.x, shieldSelectionEnd?.x),
+          y: Math.min(shieldSelectionStart?.y, shieldSelectionEnd?.y),
+          width: Math.abs(shieldSelectionEnd?.x - shieldSelectionStart?.x) + 1,
+          height: Math.abs(shieldSelectionEnd?.y - shieldSelectionStart?.y) + 1,
         };
-        setShieldedAreas(prev => [...prev, newShieldedArea]);
+        // setShieldedAreas(prev => [...prev, newShieldedArea]);
+        setShieldedAreas((prev: Array<{x: number, y: number, width: number, height: number}>) => [...prev, newShieldedArea]);
         console.log("Registered shield area:", newShieldedArea);
         // Reset selection after registering
         setShieldSelectionStart({ x: null, y: null });

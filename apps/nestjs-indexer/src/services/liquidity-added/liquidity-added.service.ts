@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { BuyToken } from './interfaces';
+import { LiquidityCreated } from './interfaces';
 
 @Injectable()
 export class LiquidityAddedService {
   private readonly logger = new Logger(LiquidityAddedService.name);
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: BuyToken) {
+  async create(data: LiquidityCreated) {
     try {
 
       const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
