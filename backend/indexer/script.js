@@ -24,7 +24,7 @@ async function getLastProcessedBlock() {
       LIMIT 1
     `);
     if (result.rows.length > 0) {
-      startingBlock = result.rows[0].last_block_scraped + 1;
+      startingBlock = result.rows[0].last_block_scraped;
     }
   } catch (error) {
     console.error('Error fetching last processed block:', error.message);
