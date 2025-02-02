@@ -318,3 +318,11 @@ CREATE TABLE AwardWinners (
 CREATE INDEX address ON AwardWinners (address);
 CREATE INDEX type ON AwardWinners (type);
 
+CREATE TABLE indexer_stats (
+  id SERIAL PRIMARY KEY,
+  last_block_scraped integer NOT NULL,
+  last_tx TEXT,
+  last_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO indexer_stats (last_block_scraped) VALUES (211030); 
+
