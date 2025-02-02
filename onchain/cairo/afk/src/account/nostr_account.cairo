@@ -12,6 +12,10 @@ pub trait INostrAccount<TContractState> {
     fn get_starknet_public_key(self: @TContractState) -> ContractAddress;
     fn init_nostr_account(ref self: TContractState) -> ContractAddress;
     fn set_vrf_contract_address(ref self: TContractState, vrf_contract_address: ContractAddress);
+
+    fn sign_message(ref self: TContractState, message: Array<felt252>) -> Array<felt252>;
+    fn sign_nostr_event(ref self: TContractState, message: SocialRequest<T>) -> Array<felt252>;
+
     fn handle_transfer(ref self: TContractState, request: SocialRequest<Transfer>);
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
@@ -326,11 +330,12 @@ mod tests {
         let sender_public_key =
             0xd6f1cf53f9f52d876505164103b1e25811ec4226a17c7449576ea48b00578171_u256;
 
-        let sender = deploy_account(account_class, sender_public_key);
+        let sender = deploy_account(account_class, sender_public_key, VRF_CONTRACT_ADDRESS);
 
         // recipient private key:
-        59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
-        not use for anything else let recipient_public_key =
+        // 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
+        // not use for anything else 
+        let recipient_public_key =
             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let recipient = deploy_account(account_class, recipient_public_key);
 
@@ -392,7 +397,9 @@ mod tests {
     #[test]
     fn get_public_key() {
         let public_key: u256 = 45;
-        let account = deploy_account(declare_account(), public_key);
+        // let account = deploy_account(declare_account(), public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS);
+
         assert!(account.get_public_key() == public_key, "wrong public_key");
     }
 
