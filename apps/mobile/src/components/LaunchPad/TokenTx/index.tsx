@@ -27,14 +27,14 @@ export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
         <View style={styles.container}>
           <View style={styles.txRow}>
             <View style={styles.rowItem}>
-              <Text style={styles.label}>Memecoin Address</Text>
+              <Text style={styles.label}>Memecoin</Text>
               <View style={styles.addressContainer}>
                 <AddressComponent address={item?.memecoin_address} />
               </View>
             </View>
 
             <View style={styles.rowItem}>
-              <Text style={styles.label}>Owner Address</Text>
+              <Text style={styles.label}>Owner</Text>
               <View style={styles.addressContainer}>
                 <AddressComponent address={item?.owner_address} />
               </View>
@@ -42,7 +42,7 @@ export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
 
             <View style={styles.rowItem}>
               <Text style={styles.label}>Transaction Type</Text>
-              <View style={styles.txType}>
+              <View style={[styles.txType, {backgroundColor: item?.transaction_type == 'buy' ? 'green' : 'red'}]}>
                 <Text style={styles.txTypeText}>{item?.transaction_type}</Text>
               </View>
             </View>
