@@ -1,8 +1,8 @@
 use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;
 use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 use super::request::ConvertToBytes;
+use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");

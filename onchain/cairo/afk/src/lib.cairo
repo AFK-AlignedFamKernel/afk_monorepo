@@ -1,8 +1,8 @@
 pub mod bip340;
-pub mod pedersen;
 
 pub mod errors;
 pub mod math;
+pub mod pedersen;
 pub mod sha256;
 pub mod social;
 pub mod staking;

@@ -1,7 +1,7 @@
 use core::traits::Into;
 use starknet::{ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, Encode};
 use super::request::ConvertToBytes;
+use super::request::{SocialRequest, SocialRequestImpl, Encode};
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -367,8 +367,8 @@ mod tests {
     use starknet::{ContractAddress, get_block_timestamp};
 
     use super::super::request::{SocialRequest, Signature};
-    use super::{DepositResult, NostrPublicKey, Claim};
     use super::{DepositEscrow, IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
+    use super::{DepositResult, NostrPublicKey, Claim};
 
     fn declare_escrow() -> @ContractClass {
         declare("DepositEscrow").unwrap().contract_class()
@@ -546,7 +546,7 @@ mod tests {
         let mut spy = spy_events();
         // Deposit by sender to recipient
         escrow.deposit(amount, erc20.contract_address, recipient_nostr_key, 0_u64);
-        
+
         // Recipient user claim deposit
         start_cheat_caller_address(escrow.contract_address, recipient_address);
         escrow.claim_with_gas(request, 0_u256);
