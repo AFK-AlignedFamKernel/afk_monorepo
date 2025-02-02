@@ -12,7 +12,8 @@ export interface LiquidityCreated {
   price?: string;
   amount?: number;
   protocolFee?: string;
-  timestamp: Date;
+  date?: Date;
+  timestamp?: string;
   id?: string;
   pool?: string;
   assetAddress?: string;

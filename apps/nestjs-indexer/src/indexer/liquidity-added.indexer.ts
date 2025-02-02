@@ -154,7 +154,10 @@ export class LiquidityAddedIndexer {
         memecoinAddress: tokenAddress,
         pool,
         id,
-        timestamp:blockTimestamp,
+        // timestamp:blockTimestamp?.seconds,
+        date: new Date(Number(blockTimestamp.seconds) * 1000),
+        timestamp: new Date(Number(blockTimestamp.seconds) * 1000)?.toString(),
+
         // amount: Number(amount),
         // price,
         // protocolFee,
