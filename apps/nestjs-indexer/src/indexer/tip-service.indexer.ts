@@ -152,6 +152,7 @@ export class TipServiceIndexer {
         senderFelt,
         nostrRecipientLow,
         nostrRecipientHigh,
+        starknetRecipientFelt,
       ] = event.keys;
 
       const depositId = FieldElement.toBigInt(depositIdFelt).toString();
@@ -161,9 +162,11 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
       );
 
-      const [amountLow, amountHigh, contractAddressFelt] = event.data;
+      const [amountLow, amountHigh, contractAddressFelt, gasTokenAddressFelt, gasAmountLow, gasAmountHigh] = event.data;
       const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
+      // const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
+      // const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
 
       const data = {
         ...commonTxData,
@@ -178,7 +181,6 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
 
   }
 
