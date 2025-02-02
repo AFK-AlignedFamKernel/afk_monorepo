@@ -290,7 +290,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [shieldSelectionStart, setShieldSelectionStart] = useState({ x: null, y: null });
   const [shieldSelectionEnd, setShieldSelectionEnd] = useState({ x: null, y: null });
   const [isShieldSelecting, setIsShieldSelecting] = useState(false);
-  const [shieldedAreas, setShieldedAreas] = useState([]);
+  const [shieldedAreas, setShieldedAreas] = useState<any[]>([]);
   const [selectedShieldPixels, setSelectedShieldPixels] = useState<any[]>([]);
 
   // Shield Fn
