@@ -1,19 +1,16 @@
-// use afk_launchpad::launchpad::errors;
-// use afk_launchpad::launchpad::math::{PercentageMath, pow_256, max_u256, min_u256};
 use afk_launchpad::types::launchpad_types::{TokenLaunch,};
-use ekubo::types::{i129::i129};
 use starknet::ContractAddress;
-
 const BPS: u256 = 10_000;
-
 const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 const MIN_PRICE: u256 = 1_u256;
 const LIQUIDITY_RATIO: u256 = 5;
 const TAYLOR_TERMS: u256 = 100;
-
 const LN_10: u256 = 2_302_585_092_994_045_684_u256;
 const LN_2: u256 = 693_147_180_559_945_309_u256;
 
+// Exponential approximation
+// TODO Audit HIGH SECURITY
+// Rounding and approximation issue to check
 pub fn exponential_approximation(x: u256, y: u256, terms: u256) -> u256 {
     if x == 0 {
         return DECIMAL_FACTOR;
@@ -37,6 +34,10 @@ pub fn exponential_approximation(x: u256, y: u256, terms: u256) -> u256 {
     result
 }
 
+
+// Logarithm approximation with a LOG_TERMS
+// TODO Audit HIGH SECURITY
+// Rounding and approximation issue to check
 pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
     if x == 0 {
         return 0_u256;
@@ -72,6 +73,10 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
     result
 }
 
+
+// Logarithm approximation with a LOG_TERMS
+// TODO Audit HIGH SECURITY
+// Rounding and approximation issue to check
 pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
     if x == 0 {
         return 0_u256;
@@ -235,67 +240,6 @@ pub fn get_coin_amount_by_quote_amount_exponential(
 //     return dynamic_factor;
 // }
 
-// pub fn calculate_initial_price(
-//     threshold_liquidity: u256, sellable_supply: u256, growth_factor: u256, // b
-//     dynamic_scale_factor:u256
-// ) -> u256 {
-//     // Constants
-
-//     // Compute the exponential term: e^(b * sellable_supply)
-//     let exponent = growth_factor * sellable_supply / SCALE_FACTOR;
-//     // let exp_value = e*exponent;
-//     // let exp_value = e*exponent;
-//     // Approximate e^(b * sellable_supply)
-//     let exp_value = exponential_approximation(exponent, SCALE_FACTOR, TAYLOR_TERMS);
-
-//     // math::exp(exponent); // Use Cairo's math library for exponentiation
-
-//     // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
-//     let denominator = exp_value - SCALE_FACTOR;
-//     assert!(denominator > 0, "Exponential denominator must not be zero");
-
-//     let initial_price = (threshold_liquidity * growth_factor) / denominator;
-//     initial_price
-// }
-
-// pub fn calculate_initial_price(
-//     threshold_liquidity: u256,
-//     sellable_supply: u256,
-//     growth_factor: u256, // b
-//     dynamic_scale_factor: u256
-// ) -> u256 {
-//     // Constants
-
-//     // Compute the exponential term: e^(b * sellable_supply)
-//     let exponent = growth_factor * sellable_supply / dynamic_scale_factor;
-//     // let exp_value = e*exponent;
-//     // let exp_value = e*exponent;
-//     // Approximate e^(b * sellable_supply)
-//     let exp_value = exponential_approximation(exponent, dynamic_scale_factor, TAYLOR_TERMS);
-
-//     // math::exp(exponent); // Use Cairo's math library for exponentiation
-
-//     // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
-//     let denominator = exp_value - dynamic_scale_factor;
-//     // assert!(denominator > 0, "Exponential denominator must not be zero");
-
-//     // Clamp the denominator to avoid zero or negative values
-//     let safe_denominator = max_u256(denominator, 1);
-
-//     // Calculate initial price: a = (threshold_liquidity * b) / (e^(b * sellable_supply) - 1)
-//     let initial_price = (threshold_liquidity * growth_factor) / safe_denominator;
-//     // let initial_price = (threshold_liquidity * growth_factor) / denominator;
-//     initial_price
-// }
-
-// pub fn exponential_price(initial_price: u256, growth_factor: u256, tokens_sold: u256,) -> u256 {
-//     // Calculate the price: P(x) = a * e^(b * x)
-//     // let exponent = math::exp(growth_factor * tokens_sold / SCALE_FACTOR);
-//     let value = growth_factor * tokens_sold / SCALE_FACTOR;
-//     let exponent = exponential_approximation(value, SCALE_FACTOR, TAYLOR_TERMS);
-//     let price = initial_price * exponent / SCALE_FACTOR;
-//     price
-// }
 
 // pub fn cumulative_cost(initial_price: u256, growth_factor: u256, tokens_to_buy: u256,) -> u256 {
 //     // Total cost for n tokens: (a / b) * (e^(b * n) - 1)
