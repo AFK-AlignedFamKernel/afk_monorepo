@@ -6,15 +6,15 @@ export interface LiquidityCreated {
   blockTimestamp: Date;
   transactionHash: string;
   memecoinAddress: string;
-  ownerAddress: string;
-  lastPrice: string;
-  quoteAmount: string;
-  price: string;
-  amount: number;
-  protocolFee: string;
+  ownerAddress?: string;
+  lastPrice?: string;
+  quoteAmount?: string;
+  price?: string;
+  amount?: number;
+  protocolFee?: string;
   timestamp: Date;
-  id: string;
+  id?: string;
   pool?: string;
   assetAddress?: string;
-  transactionType: string;
+  transactionType?: string;
 }
