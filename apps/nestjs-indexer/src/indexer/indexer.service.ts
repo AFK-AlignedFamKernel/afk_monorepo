@@ -3,13 +3,15 @@ import { StreamClient, v1alpha2 } from '@apibara/protocol';
 import {
   FieldElement,
   Filter,
-  StarkNetCursor,
   v1alpha2 as starknet,
+  StarkNetCursor,
 } from '@apibara/starknet';
 import { validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
 import { env } from 'src/common/env';
 import { IndexerConfig } from './interfaces';
+import { PrismaClient } from 'indexer-prisma';
+const prisma = new PrismaClient();
 
 @Injectable()
 export class IndexerService {
@@ -44,13 +46,23 @@ export class IndexerService {
 
     this.logger.log('Starting indexer...');
 
+    const indexerStats = await prisma.indexerStats.findFirst({
+      orderBy: { lastBlockScraped: 'desc' },
+    });
+
+    const startingBlock = indexerStats
+      ? indexerStats.lastBlockScraped
+      : constants.STARTING_BLOCK;
+
+    console.log(startingBlock);
+
     const combinedFilter = this.combineFilters();
 
     this.client.configure({
       filter: combinedFilter,
       batchSize: 1,
       finality: v1alpha2.DataFinality.DATA_STATUS_ACCEPTED,
-      cursor: StarkNetCursor.createWithBlockNumber(constants.STARTING_BLOCK),
+      cursor: StarkNetCursor.createWithBlockNumber(Number(startingBlock)),
     });
 
     for await (const message of this.client) {
@@ -67,9 +79,6 @@ export class IndexerService {
     const contractAddressFieldElements = [
       validateAndParseAddress(constants.contracts.sepolia.LAUNCHPAD_ADDRESS),
       validateAndParseAddress(constants.contracts.sepolia.NAMESERVICE_ADDRESS),
-      validateAndParseAddress(
-        constants.contracts.sepolia.ESCROW_DEPOSIT_ADDRESS,
-      ),
     ].map((address) => FieldElement.fromBigInt(BigInt(address)));
 
     contractAddressFieldElements.forEach((contractAddressFieldElement) => {
@@ -83,6 +92,7 @@ export class IndexerService {
 
   private async handleDataMessage(dataMessage: any) {
     const { data } = dataMessage;
+    let hash = '0x';
     for (const item of data) {
       const block = starknet.Block.decode(item);
       for (const event of block.events) {
@@ -95,7 +105,19 @@ export class IndexerService {
         for (const config of matchingConfigs) {
           await config.handler(block.header, event.event, event.transaction);
         }
+        if (event.receipt.transactionHash)
+          hash = FieldElement.toHex(event.receipt.transactionHash);
       }
+
+      await prisma.indexerStats.create({
+        data: {
+          lastBlockScraped: Number(block.header.blockNumber),
+          lastTx: hash,
+          lastTimestamp: new Date(
+            Number(block.header.timestamp.seconds) * 1000,
+          ),
+        },
+      });
     }
   }
 }
