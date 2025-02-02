@@ -23,7 +23,9 @@ pub mod LaunchpadMarketplace {
         get_initial_price, get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, get_coin_amount_by_quote_amount
+        calculate_starting_price_launch, 
+        // get_coin_amount_by_quote_amount,
+        get_coin_amount
     };
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
@@ -1005,11 +1007,12 @@ pub mod LaunchpadMarketplace {
         fn get_coin_amount_by_quote_amount(
             self: @ContractState,
             coin_address: ContractAddress,
-            quote_amount: u256,
+            quote_amount: u256, 
             is_decreased: bool
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
-            get_coin_amount_by_quote_amount(pool.clone(), quote_amount, is_decreased)
+            get_coin_amount(pool.clone(), quote_amount)
+            // get_coin_amount_by_quote_amount(pool.clone(), quote_amount, is_decreased)
         }
 
         fn get_is_paid_launch_enable(self: @ContractState) -> bool {

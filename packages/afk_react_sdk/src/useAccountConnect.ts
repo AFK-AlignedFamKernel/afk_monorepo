@@ -172,18 +172,18 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
         // setAccount(account);
         // setConnected(true);
         // await connectArgent()
-        await argentTMA.requestConnection({
-          callbackData: 'custom_callback_data',
-          approvalRequests: [
-            // {
-            //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
-            //   amount: BigInt(1000000000000000000).toString(),
-            //   spender: 'spender_address',
-            // }
-          ],
-        });
+        // await argentTMA.requestConnection({
+        //   callbackData: 'custom_callback_data',
+        //   approvalRequests: [
+        //     // {
+        //     //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+        //     //   amount: BigInt(1000000000000000000).toString(),
+        //     //   spender: 'spender_address',
+        //     // }
+        //   ],
+        // });
 
-              // await argentTMA.requestConnection("custom_callback", [
+        // await argentTMA.requestConnection("custom_callback", [
         //   // {
         //   //   token: {
         //   //     // Token address that you need approved

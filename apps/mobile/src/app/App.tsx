@@ -69,7 +69,7 @@ export default function App() {
   useEffect(() => {
     if (sentTipNotification) return;
 
-    const hasUnclaimedTip = (tips.data ?? []).some((tip) => !tip.isClaimed && tip.depositId);
+    const hasUnclaimedTip = (tips?.data ?? []).some((tip) => !tip?.isClaimed && tip?.depositId);
     if (hasUnclaimedTip) {
       setSentTipNotification(true);
       showToast({
@@ -79,7 +79,7 @@ export default function App() {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tips.data]);
+  }, [tips?.data]);
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {

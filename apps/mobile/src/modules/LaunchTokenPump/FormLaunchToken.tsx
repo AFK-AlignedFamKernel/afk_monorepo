@@ -19,7 +19,7 @@ import { BondingType } from '../../types/keys';
 import { numericValue } from '../../utils/format';
 import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { LoadingSpinner } from '../../components/Loading';
-
+import { byteArray } from 'starknet';
 enum TypeCreate {
   LAUNCH,
   CREATE,
@@ -98,7 +98,8 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
       if (type == TypeCreate.CREATE) {
         const data: DeployTokenFormValues = {
           recipient: account?.address,
-          name: values.name,
+          // name: byteArray.byteArrayFromString(values.name),
+          name:values.name,
           symbol: values.symbol,
           initialSupply: values?.initialSupply,
           contract_address_salt: values.contract_address_salt,
