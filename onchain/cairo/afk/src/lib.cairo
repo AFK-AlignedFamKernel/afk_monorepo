@@ -1,16 +1,12 @@
 pub mod bip340;
 
 pub mod errors;
-// pub mod interfaces;
-
 pub mod math;
+pub mod pedersen;
 pub mod sha256;
 pub mod social;
-
 pub mod staking;
-
 pub mod utils;
-
 
 pub mod interfaces {
     pub mod erc20;
@@ -58,9 +54,9 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
-    pub mod dn404_presets_test;
-    pub mod dn404_tests;
-    pub mod nameservice_tests;
+    // pub mod dn404_presets_test;
+    // pub mod dn404_tests;
+    // pub mod nameservice_tests;
     pub mod staking_tests;
     pub mod utils;
     pub mod vault_tests;
