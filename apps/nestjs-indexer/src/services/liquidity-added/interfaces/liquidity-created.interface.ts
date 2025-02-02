@@ -1,4 +1,4 @@
-export interface BuyToken {
+export interface LiquidityCreated {
   transferId: string;
   network: string;
   blockHash: string;
@@ -13,5 +13,8 @@ export interface BuyToken {
   amount: number;
   protocolFee: string;
   timestamp: Date;
+  id: string;
+  pool?: string;
+  assetAddress?: string;
   transactionType: string;
 }

@@ -4,6 +4,7 @@ import {AccountInterface, cairo, CairoCustomEnum, CallData, constants} from 'sta
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 import {formatFloatToUint256} from '../../utils/format';
 import {BondingType} from '../../types/keys';
+import { byteArray } from 'starknet';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -35,8 +36,10 @@ export const useCreateToken = () => {
         entrypoint: 'create_token',
         calldata: CallData.compile({
           owner: data?.recipient ?? account?.address,
-          symbol: data.symbol ?? 'LFG',
-          name: data.name ?? 'LFG',
+          name: byteArray.byteArrayFromString(data.name ?? 'LFG'),
+          symbol: byteArray.byteArrayFromString(data.symbol ?? 'LFG'),
+          // symbol: data.symbol ?? 'LFG',
+          // name: data.name ?? 'LFG',
           initialSupply: initial_supply,
           // initialSupply: cairo.uint256(data?.initialSupply ?? 100_000_000),
           // contract_address_salt: cairo.felt(new Date().getTime()?.toString()),
@@ -99,8 +102,10 @@ export const useCreateToken = () => {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token',
         calldata: CallData.compile({
-          name: data.name ?? 'LFG',
-          symbol: data.symbol ?? 'LFG',
+          name: byteArray.byteArrayFromString(data.name ?? 'LFG'),
+          symbol: byteArray.byteArrayFromString(data.symbol ?? 'LFG'),
+          // name: data.name ?? 'LFG',
+          // symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,
           // contract_address_salt: new Date().getTime() / 1000,
           // contract_address_salt: new Date().getTime(),
