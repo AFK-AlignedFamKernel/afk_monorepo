@@ -36,17 +36,25 @@ async function getLastProcessedBlock() {
 
 const lastProcessedBlock = await getLastProcessedBlock();
 
-async function updateLastProcessedBlock(blockNumber) {
+async function updateLastProcessedBlock(blockNumber, events) {
+  const transactionHashes = events
+    .map((event) => event.receipt.transactionHash)
+    .filter((hash) => hash !== undefined && hash !== null);
   try {
     await pgClient.connect();
     await pgClient.queryObject`
-      INSERT INTO indexer_stats (last_block_scraped)
-      VALUES (${blockNumber})
+     INSERT INTO indexer_stats (
+        last_block_scraped,
+        last_tx
+      ) VALUES (
+        ${blockNumber},
+        ${transactionHashes.join(',')}
+      )
     `;
   } catch (error) {
     console.error('Error updating last processed block:', error.message);
   } finally {
-    await client.end();
+    await pgClient.end();
   }
 }
 
@@ -297,8 +305,7 @@ export const config = {
   },
 };
 
-export default async function transform({ block, endCursor }) {
-  await updateLastProcessedBlock(block.header.blockNumber);
-  console.log('block is here', block);
+export default async function transform({ block }) {
+  await updateLastProcessedBlock(block.header.blockNumber, block.events);
   return block;
 }
