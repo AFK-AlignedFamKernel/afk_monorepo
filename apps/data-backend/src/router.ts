@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type {FastifyInstance} from 'fastify';
 
 import buyCoinRoute from './routes/indexer/buy-coin';
 import deployLaunchRoute from './routes/indexer/deploy-launch';
@@ -13,11 +13,12 @@ import getFunkitStripeCheckoutQuote from './routes/funkit/get_funkit_stripe_chec
 import getFunkitStripeCheckoutStatus from './routes/funkit/get_funkit_stripe_checkout_status';
 import createPaymentIntent from './routes/stripe/createPaymentIntent';
 import paymentSheet from './routes/stripe/paymentSheet';
-import { authRoutes } from './routes/auth';
+import {authRoutes} from './routes/auth';
 import nameserviceRoutes from './routes/indexer/nameservice/nameservice';
 import unrugRoutes from './routes/indexer/unruggable';
 import twitterRoutes from './routes/auth/twitter';
 import routesShareUserRoutes from './routes/indexer/share-user';
+import tipServiceRoute from "./routes/indexer/tip";
 // import getOtp from "./routes/otp/getOtp";
 // import verifyOtp from "./routes/otp/verifyOtp";
 // import type { Account } from 'starknet'
@@ -44,6 +45,7 @@ function declareRoutes(
   fastify.register(authRoutes);
   fastify.register(unrugRoutes);
   fastify.register(nameserviceRoutes);
+  fastify.register(tipServiceRoute);
   fastify.register(twitterRoutes);
   fastify.register(routesShareUserRoutes);
 

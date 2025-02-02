@@ -325,4 +325,3 @@ CREATE TABLE indexer_stats (
   last_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO indexer_stats (last_block_scraped) VALUES (211030); 
-

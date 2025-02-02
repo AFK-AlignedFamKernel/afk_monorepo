@@ -27,26 +27,26 @@ model token_deploy {
 }
 
 model token_launch {
-  transaction_hash   String    @id
-  network            String?
-  block_hash         String?
-  owner_address      String?
-  block_number       BigInt?
-  block_timestamp    DateTime? @db.Timestamp(6)
-  memecoin_address   String?
-  quote_token        String?
-  exchange_name      String?
-  total_supply       String?
-  threshold_liquidity       String?
-  current_supply     String?
-  liquidity_raised   String?
-  is_liquidity_added Boolean?
-  total_token_holded String?
-  price              String?
-  bonding_type       String?
-  cursor             BigInt?   @map("_cursor")
-  time_stamp         DateTime? @db.Timestamp(6)
-  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  transaction_hash    String    @id
+  network             String?
+  block_hash          String?
+  owner_address       String?
+  block_number        BigInt?
+  block_timestamp     DateTime? @db.Timestamp(6)
+  memecoin_address    String?
+  quote_token         String?
+  exchange_name       String?
+  total_supply        String?
+  threshold_liquidity String?
+  current_supply      String?
+  liquidity_raised    String?
+  is_liquidity_added  Boolean?
+  total_token_holded  String?
+  price               String?
+  bonding_type        String?
+  cursor              BigInt?   @map("_cursor")
+  time_stamp          DateTime? @db.Timestamp(6)
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model unrugmeme_deploy {
@@ -168,11 +168,46 @@ model username_claimed {
 }
 
 model shares_token_user {
-  id            String   @id
-  owner         String
-  token_address String
-  amount_owned  Decimal? @default(0) @db.Decimal
-  is_claimable  Boolean? @default(false)
-  amount_claimed Decimal? @default(0) @db.Decimal
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  id             String    @id
+  owner          String
+  token_address  String
+  amount_owned   Decimal?  @default(0) @db.Decimal
+  is_claimable   Boolean?  @default(false)
+  amount_claimed Decimal?  @default(0) @db.Decimal
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model tip_deposit {
+  network            String?
+  block_hash         String?
+  block_number       BigInt?
+  block_timestamp    DateTime? @db.Timestamp(6)
+  transaction_hash   String?
+  deposit_id         String    @id
+  sender             String
+  nostr_recipient    String
+  starknet_recipient String?
+  token_address      String
+  amount             Decimal?  @db.Decimal
+  gas_amount         Decimal?  @db.Decimal
+  gas_token_address  String?
+  is_cancelled       Boolean   @default(false)
+  is_claimed         Boolean   @default(false)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @db.Timestamp(6)
+}
+
+model tip_transfer {
+  network            String?
+  block_hash         String?
+  block_number       BigInt?
+  block_timestamp    DateTime? @db.Timestamp(6)
+  transaction_hash   String    @id
+  sender             String
+  nostr_recipient    String
+  starknet_recipient String?
+  token_address      String
+  amount             Decimal?  @db.Decimal
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @db.Timestamp(6)
 }

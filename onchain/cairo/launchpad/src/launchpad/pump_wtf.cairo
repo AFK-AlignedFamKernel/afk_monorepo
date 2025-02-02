@@ -1269,15 +1269,15 @@ pub mod PumpWtf {
                 is_unruggable: is_unruggable
             };
 
-            self.token_created.entry(token_address).write(token);
+            self.token_created.entry(token_address).write(token.clone());
 
             let total_token = self.total_token.read();
             if total_token == 0 {
                 self.total_token.write(1);
-                self.array_coins.entry(0).write(token);
+                self.array_coins.entry(0).write(token.clone());
             } else {
                 self.total_token.write(total_token + 1);
-                self.array_coins.entry(total_token).write(token);
+                self.array_coins.entry(total_token).write(token.clone());
             }
 
             self

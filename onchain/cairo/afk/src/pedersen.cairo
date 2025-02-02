@@ -1,9 +1,9 @@
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
-use core::fmt::{Display, Formatter, Error};
 use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
-use core::poseidon::PoseidonTrait;
+use core::fmt::{Display, Formatter, Error};
 use core::hash::{HashStateTrait, HashStateExTrait,};
+use core::poseidon::PoseidonTrait;
 
 pub impl EcPointDisplay of Display<EcPoint> {
     fn fmt(self: @EcPoint, ref f: Formatter) -> Result<(), Error> {
@@ -12,7 +12,6 @@ pub impl EcPointDisplay of Display<EcPoint> {
         writeln!(f, "Point ({x}, {y})")
     }
 }
-
 pub fn pedersen_commit(value: felt252, salt: felt252, H: EcPoint) -> EcPoint {
     let generator: EcPoint = EcPointTrait::new(GEN_X, GEN_Y).unwrap();
     let c_1 = generator.mul(value);
@@ -56,14 +55,13 @@ pub fn hash_to_curve() -> Option<EcPoint> {
 #[cfg(test)]
 mod tests {
     // use super::*;
-    use super::{pedersen_commit, verify_commitment, hash_to_curve};
     use core::ec::stark_curve::GEN_X;
     use core::ec::stark_curve::GEN_Y;
-    use core::fmt::{Display, Formatter, Error};
     use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
-    use core::poseidon::PoseidonTrait;
+    use core::fmt::{Display, Formatter, Error};
     use core::hash::{HashStateTrait, HashStateExTrait,};
-
+    use core::poseidon::PoseidonTrait;
+    use super::{pedersen_commit, verify_commitment, hash_to_curve};
 
     #[test]
     fn test_pedersen_commit() {
@@ -71,9 +69,8 @@ mod tests {
         let value: felt252 = 77777;
         let salt: felt252 = 228282189421094;
         let commitment = pedersen_commit(value, salt, H);
-        
+
         let is_valid = verify_commitment(commitment, value, salt, H);
         assert(is_valid, 'The commitment is not valid');
     }
-
 }

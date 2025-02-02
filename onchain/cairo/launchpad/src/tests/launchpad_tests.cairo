@@ -128,6 +128,10 @@ mod launchpad_tests {
     fn EKUBO_REGISTRY() -> ContractAddress {
         0x0013e25867b6eef62703735aa4cfa7754e72f4e94a56c9d3d9ad8ebe86cee4aa.try_into().unwrap()
     }
+    // v3
+    // fn EKUBO_REGISTRY() -> ContractAddress {
+    //     0x064bdb4094881140bc39340146c5fcc5a187a98aec5a53f448ac702e5de5067e.try_into().unwrap()
+    // }
 
     fn JEDISWAP_FACTORY() -> ContractAddress {
         0x01aa950c9b974294787de8df8880ecf668840a6ab8fa8290bf2952212b375148.try_into().unwrap()
@@ -164,12 +168,14 @@ mod launchpad_tests {
         'bob'.try_into().unwrap()
     }
 
-    fn NAME() -> felt252 {
-        'name'.try_into().unwrap()
+    fn NAME() -> ByteArray {
+        let name: ByteArray = "name";
+        name
     }
 
-    fn SYMBOL() -> felt252 {
-        'symbol'.try_into().unwrap()
+    fn SYMBOL() -> ByteArray {
+        let symbol: ByteArray = "symbol";
+        symbol
     }
 
     // Math
@@ -1356,7 +1362,6 @@ mod launchpad_tests {
     }
 
 
-
     #[test]
     #[should_panic()]
     fn test_sell_coin_when_share_too_low() {
@@ -2262,61 +2267,61 @@ mod launchpad_tests {
         let result = launchpad
             .get_amount_by_type_of_coin_or_quote(token_address, quote_amount_2, false, true);
     }
-
-    
     // #[test]
-    // // #[fork("Mainnet")]
-    // fn test_get_all_launch_tokens_and_coins() {
-    //     let (sender_address, erc20, launchpad) = request_fixture();
-    //     let first_token: felt252 = 'token_1';
-    //     let second_token: felt252 = 'token_2';
-    //     let third_token: felt252 = 'token_3';
+// // #[fork("Mainnet")]
+// fn test_get_all_launch_tokens_and_coins() {
+//     let (sender_address, erc20, launchpad) = request_fixture();
+//     let first_token: felt252 = 'token_1';
+//     let second_token: felt252 = 'token_2';
+//     let third_token: felt252 = 'token_3';
 
     //     let first_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'FRST',
-    //             name: first_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'FRST',
+//             name: first_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let second_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'SCND',
-    //             name: second_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'SCND',
+//             name: second_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let third_token_addr = launchpad
-    //         .create_and_launch_token(
-    //             symbol: 'THRD',
-    //             name: third_token,
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT(),
-    //             is_unruggable: false,
-    //             bonding_type: BondingType::Linear
-    //         );
+//         .create_and_launch_token(
+//             symbol: 'THRD',
+//             name: third_token,
+//             initial_supply: DEFAULT_INITIAL_SUPPLY(),
+//             contract_address_salt: SALT(),
+//             is_unruggable: false,
+//             bonding_type: BondingType::Linear
+//         );
 
     //     let all_launched_coins = launchpad.get_all_coins();
-    //     let all_launched_tokens = launchpad.get_all_launch();
+//     let all_launched_tokens = launchpad.get_all_launch();
 
     //     assert(all_launched_coins.len() == 3, 'wrong number of coins');
-    //     assert(all_launched_tokens.len() == 3, 'wrong number of tokens');
-    //     assert(*all_launched_coins.at(0).name == first_token, 'wrong coin name');
-    //     assert(*all_launched_coins.at(1).name == second_token, 'wrong coin name');
-    //     assert(*all_launched_coins.at(2).name == third_token, 'wrong coin name');
-    //     assert(*all_launched_tokens.at(0).token_address == first_token_addr, 'wrong token address');
-    //     assert(
-    //         *all_launched_tokens.at(1).token_address == second_token_addr, 'wrong token address'
-    //     );
-    //     assert(*all_launched_tokens.at(2).token_address == third_token_addr, 'wrong token address');
-    // }
-    // #[test]
+//     assert(all_launched_tokens.len() == 3, 'wrong number of tokens');
+//     assert(*all_launched_coins.at(0).name == first_token, 'wrong coin name');
+//     assert(*all_launched_coins.at(1).name == second_token, 'wrong coin name');
+//     assert(*all_launched_coins.at(2).name == third_token, 'wrong coin name');
+//     assert(*all_launched_tokens.at(0).token_address == first_token_addr, 'wrong token
+//     address');
+//     assert(
+//         *all_launched_tokens.at(1).token_address == second_token_addr, 'wrong token address'
+//     );
+//     assert(*all_launched_tokens.at(2).token_address == third_token_addr, 'wrong token
+//     address');
+// }
+// #[test]
 // #[fork("Mainnet")]
 // fn launchpad_buy_all_few_steps() {
 //     println!("launchpad_buy_all_few_steps");

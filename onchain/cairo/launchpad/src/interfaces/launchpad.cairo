@@ -17,8 +17,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn create_token(
         ref self: TContractState,
         recipient: ContractAddress,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool
@@ -26,8 +26,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn create_and_launch_token(
         ref self: TContractState,
-        symbol: felt252,
-        name: felt252,
+        symbol: ByteArray,
+        name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool,
@@ -41,7 +41,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
     );
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, coin_amount: u256);
-    fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
+    // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn claim_coin_all(ref self: TContractState, coin_address: ContractAddress);
     fn claim_coin_all_for_friend(
         ref self: TContractState, coin_address: ContractAddress, friend: ContractAddress

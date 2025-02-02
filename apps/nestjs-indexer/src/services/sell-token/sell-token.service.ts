@@ -36,6 +36,9 @@ export class SellTokenService {
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           Number(data.quoteAmount);
 
+        // Substract protocol fee
+        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
+
         // TODO fix issue negative number
         // Check event fees etc
         if (newLiquidityRaised < 0) {
@@ -60,6 +63,7 @@ export class SellTokenService {
         });
       }
 
+      // TODO check share user fixed negative number after total sell for first time
       await this.prismaService.shares_token_user.upsert({
         where: {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
@@ -71,6 +75,10 @@ export class SellTokenService {
             // decrement: data.amount,
             decrement: data.coinAmount ?? data?.amount,
           },
+          // amount_owned: {
+          //   // decrement: data.amount,
+          //   decrement: data.coinAmount ?? data?.amount,
+          // },
         },
         create: {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
@@ -79,6 +87,29 @@ export class SellTokenService {
           amount_owned: data.amount,
         },
       });
+      // await this.prismaService.shares_token_user.upsert({
+      //   where: {
+      //     id: `${data.ownerAddress}_${data.memecoinAddress}`,
+      //     owner: data.ownerAddress,
+      //     token_address: data.memecoinAddress,
+      //   },
+      //   update: {
+      //     amount_owned: {
+      //       // decrement: data.amount,
+      //       decrement: data.coinAmount ?? data?.amount,
+      //     },
+      //     // amount_owned: {
+      //     //   // decrement: data.amount,
+      //     //   decrement: data.coinAmount ?? data?.amount,
+      //     // },
+      //   },
+      //   create: {
+      //     id: `${data.ownerAddress}_${data.memecoinAddress}`,
+      //     owner: data.ownerAddress,
+      //     token_address: data.memecoinAddress,
+      //     amount_owned: data.amount,
+      //   },
+      // });
 
       await this.prismaService.token_transactions.create({
         data: {

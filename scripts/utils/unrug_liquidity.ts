@@ -118,10 +118,12 @@ export const createUnrugLiquidity = async (
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
-      console.log("Declare deploy", declareResponse);
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      console.log("DeclareResponse.class_hash", declareResponse.class_hash);
 
+      if (declareResponse?.class_hash) {    
+        console.log("Declare deploy", declareResponse);
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        console.log("DeclareResponse.class_hash", declareResponse.class_hash);
+      }
       const contractClassHash = declareResponse.class_hash;
       UnrugClassHash = contractClassHash;
       console.log("UnrugClass", UnrugClassHash);
