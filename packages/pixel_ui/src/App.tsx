@@ -291,7 +291,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [shieldSelectionEnd, setShieldSelectionEnd] = useState({ x: null, y: null });
   const [isShieldSelecting, setIsShieldSelecting] = useState(false);
   const [shieldedAreas, setShieldedAreas] = useState([]);
-  const [selectedShieldPixels, setSelectedShieldPixels] = useState([]);
+  const [selectedShieldPixels, setSelectedShieldPixels] = useState<any[]>([]);
 
   // Shield Fn
   const toggleShieldMode = () => {
@@ -322,7 +322,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   // };
  
   const updateSelectedShieldPixels = (position, maxPixels) => {
-    setSelectedShieldPixels((prevPixels) => {
+    setSelectedShieldPixels((prevPixels:any[]) => {
       // Check if the position already exists in the array
       if (prevPixels.includes(position)) {
         return prevPixels // Position already selected, no change

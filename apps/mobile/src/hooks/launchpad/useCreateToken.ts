@@ -31,13 +31,17 @@ export const useCreateToken = () => {
 
       console.log('initial supply', initial_supply);
 
+      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+      console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
+      console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_token',
         calldata: CallData.compile({
           owner: data?.recipient ?? account?.address,
-          name: byteArray.byteArrayFromString(data.name ?? 'LFG'),
-          symbol: byteArray.byteArrayFromString(data.symbol ?? 'LFG'),
+          name: nameByteArray,
+          symbol: symbolByteArray,
           // symbol: data.symbol ?? 'LFG',
           // name: data.name ?? 'LFG',
           initialSupply: initial_supply,
@@ -97,13 +101,18 @@ export const useCreateToken = () => {
       }
       console.log('[DEBUG] bondingEnum updt', bondingEnum);
 
+      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+      
+      console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
+      console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token',
         calldata: CallData.compile({
-          name: byteArray.byteArrayFromString(data.name ?? 'LFG'),
-          symbol: byteArray.byteArrayFromString(data.symbol ?? 'LFG'),
+          name: nameByteArray,
+          symbol: symbolByteArray,
           // name: data.name ?? 'LFG',
           // symbol: data.symbol ?? 'LFG',
           initialSupply: initial_supply,

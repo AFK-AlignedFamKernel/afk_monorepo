@@ -1,1 +1,1 @@
-export * from './buy-token.interface';
+export * from './liquidity-created.interface';
