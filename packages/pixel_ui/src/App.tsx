@@ -352,7 +352,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           width: Math.abs(shieldSelectionEnd?.x - shieldSelectionStart?.x) + 1,
           height: Math.abs(shieldSelectionEnd?.y - shieldSelectionStart?.y) + 1,
         };
-        setShieldedAreas(prev => [...prev, newShieldedArea]);
+        // setShieldedAreas(prev => [...prev, newShieldedArea]);
+        setShieldedAreas((prev: Array<{x: number, y: number, width: number, height: number}>) => [...prev, newShieldedArea]);
         console.log("Registered shield area:", newShieldedArea);
         // Reset selection after registering
         setShieldSelectionStart({ x: null, y: null });
