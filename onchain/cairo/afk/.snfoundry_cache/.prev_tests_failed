@@ -1,6 +1,6 @@
 afk::bip340::tests::test_20
-afk::social::deposit::tests::claim_incorrect_gas_amount
-afk::social::deposit::tests::deposit_claim_gas_fee
-afk::social::deposit::tests::deposit_claim
 afk::bip340::tests::test_generate_sign_and_verify
+afk::social::deposit::tests::deposit_claim
 afk::social::deposit::tests::deposit_with_known_starknet_recipient
+afk::social::deposit::tests::deposit_claim_gas_fee
+afk::social::deposit::tests::claim_incorrect_gas_amount

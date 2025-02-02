@@ -166,7 +166,7 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
     !(Rx == 0 && Ry == 0) && Ry % 2 == 0 && Rx == rx
 }
 
-fn count_digits(mut num: u256) -> (u32, felt252) {
+pub fn count_digits(mut num: u256) -> (u32, felt252) {
     let BASE: u256 = 16_u256;
     let mut count: u32 = 0;
     while num > 0 {
@@ -176,12 +176,12 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
-fn linkedStarknetAddress_to_bytes(linkedStarknetAddress: LinkedStarknetAddress) -> ByteArray {
+pub fn linkedStarknetAddress_to_bytes(linkedStarknetAddress: LinkedStarknetAddress) -> ByteArray {
     let mut ba: ByteArray = "";
     ba.append_word(linkedStarknetAddress.starknet_address.into(), 1_u32);
     ba
 }
-fn claim_to_bytes(claim: Claim) -> ByteArray {
+pub fn claim_to_bytes(claim: Claim) -> ByteArray {
     let mut ba: ByteArray = "";
     ba.append_word(claim.deposit_id.into(), 1_u32);
     ba.append_word(claim.starknet_recipient.into(), 1_u32);
@@ -192,7 +192,7 @@ fn claim_to_bytes(claim: Claim) -> ByteArray {
     ba.append_word(gas_felt252, gas_count);
     ba
 }
-fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
+pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     let mut ba: ByteArray = "";
     // Encode amount (u256 to felt252 conversion)
     let (amount_count, amount_count_felt252) = count_digits(transfer.amount);
@@ -230,7 +230,7 @@ fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     ba
 }
 
-fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
+pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
     request: SocialRequest<C>
 ) -> ByteArray {
     let mut ba: ByteArray = "";
@@ -268,7 +268,9 @@ fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
 }
 
 /// Generates a key pair (private key, public key) for Schnorr signatures
-fn generate_keypair(
+// Highly senstive data
+// Take care of the result
+pub fn generate_keypair(
     vrf_contract_address: ContractAddress
 ) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
     // vrf address
@@ -291,12 +293,18 @@ fn generate_keypair(
 
 
 /// Generates a nonce and corresponding R point for signature
-fn generate_nonce_point() -> (u256, Secp256k1Point) {
+pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point) {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
-    let nonce: u256 = 0x46952909012476409278523962123414653_u256; // VRF needed
-    let R = G.mul(nonce).unwrap_syscall();
+    let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
+    let caller = get_caller_address();
+    let source = Source::Nonce(caller);
+    let nonce: felt252 = vrf_provider.consume_random(source);
+    let nonce_u256: u256 = nonce.try_into().unwrap();
+    // let nonce: u256 = 0x46952909012476409278523962123414653_u256; // VRF needed
+    // let R = G.mul(nonce).unwrap_syscall();
+    let R = G.mul(nonce_u256).unwrap_syscall();
 
-    (nonce, R)
+    (nonce_u256, R)
 }
 
 /// Computes the challenge hash e using Poseidon
@@ -307,8 +315,8 @@ fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) ->
     hash_challenge(rx, px, message)
 }
 
-fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
-    let (nonce, R) = generate_nonce_point();
+pub fn sign(private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress) -> SchnorrSignature {
+    let (nonce, R) = generate_nonce_point(vrf_contract_address);
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
     let (s_G_x, _s_G_y) = public_key.get_coordinates().unwrap_syscall();
@@ -324,11 +332,11 @@ fn sign(private_key: u256, message: ByteArray) -> SchnorrSignature {
 }
 
 /// Verifies a Schnorr signature
-fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: SchnorrSignature) -> bool {
+pub fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: SchnorrSignature, vrf_contract_address: ContractAddress) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.r, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
-    let (_nonce, R) = generate_nonce_point();
+    let (_nonce, R) = generate_nonce_point(vrf_contract_address);
     // Check that s is within valid range
     if (signature.s).into() >= n {
         return false;
@@ -369,9 +377,10 @@ mod tests {
             ba
         }
     }
-    const CONTRACT_ADDRESS: felt252 =
-        0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    // const CONTRACT_ADDRESS: felt252 =
+    //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
 
+    const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -605,10 +614,10 @@ mod tests {
 
         // Sign message
         let private_key_u256: u256 = private_key.into();
-        let signature = sign(private_key_u256, message.clone());
+        let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key, message, signature);
+        let is_valid = verify_sig(public_key, message, signature, vrf_provider.contract_address);
 
         assert!(is_valid);
     }
@@ -627,10 +636,10 @@ mod tests {
 
         // Sign message
         let private_key_u256: u256 = private_key.into();
-        let signature = sign(private_key_u256, message.clone());
+        let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key, message, signature);
+        let is_valid = verify_sig(public_key, message, signature, vrf_provider.contract_address);
 
         assert!(is_valid);
     }

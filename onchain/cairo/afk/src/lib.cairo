@@ -38,6 +38,10 @@ pub mod types {
     pub mod tap_types;
 }
 
+pub mod account {
+    pub mod nostr_account;
+}
+
 pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;

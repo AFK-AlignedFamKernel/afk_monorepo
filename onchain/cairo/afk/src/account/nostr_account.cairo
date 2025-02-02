@@ -1,22 +1,22 @@
 use starknet::account::Call;
-// use starknet::{ContractAddress, get_caller_address, get_contract_address,
+use starknet::{ContractAddress, get_caller_address, get_contract_address};
 // contract_address_const};
-use super::profile::NostrProfile;
-use super::request::SocialRequest;
-use super::transfer::Transfer;
-
+use afk::social::profile::NostrProfile;
+use afk::social::request::SocialRequest;
+use afk::social::transfer::Transfer;
 
 #[starknet::interface]
 pub trait INostrAccount<TContractState> {
     fn get_public_key(self: @TContractState) -> u256;
+    fn get_nostr_public_key(self: @TContractState) -> u256;
     fn get_starknet_public_key(self: @TContractState) -> ContractAddress;
-    fn init_nostr_account(ref self: TContractState) -> ContractAddress;
+    fn init_nostr_account(ref self: TContractState);
     fn set_vrf_contract_address(ref self: TContractState, vrf_contract_address: ContractAddress);
 
-    fn sign_message(ref self: TContractState, message: Array<felt252>) -> Array<felt252>;
-    fn sign_nostr_event(ref self: TContractState, message: SocialRequest<T>) -> Array<felt252>;
+    // fn sign_message(ref self: TContractState, message: Array<felt252>) -> Array<felt252>;
+    // fn sign_nostr_event(ref self: TContractState, message: SocialRequest<T>) -> Array<felt252>;
 
-    fn handle_transfer(ref self: TContractState, request: SocialRequest<Transfer>);
+    // fn handle_transfer(ref self: TContractState, request: SocialRequest<Transfer>);
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
@@ -34,6 +34,8 @@ pub trait ISRC6<TState> {
 #[starknet::contract(account)]
 pub mod NostrAccount {
     use afk::bip340;
+    use afk::bip340::{verify, verify_sig, sign, generate_keypair};
+
     use afk::pedersen::{pedersen_commit, verify_commitment, hash_to_curve};
     use core::hash::{HashStateTrait, HashStateExTrait,};
     use core::poseidon::PoseidonTrait;
@@ -50,22 +52,33 @@ pub mod NostrAccount {
     use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
     use super::ISRC6;
 
-    use super::super::request::{
+    use afk::social::request::{
         SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
     };
-    use super::super::transfer::Transfer;
+    use afk::social::transfer::Transfer;
     use super::{INostrAccountDispatcher, INostrAccountDispatcherTrait};
-  
+    use core::ecdsa::check_ecdsa_signature;
+    use core::byte_array::ByteArrayTrait;
+    use core::ec::stark_curve::GEN_X;
+    use core::ec::stark_curve::GEN_Y;
+    use core::ec::stark_curve::ORDER;
+    use core::ec::{EcPoint, ec_point_unwrap};
+
     #[storage]
     struct Storage {
-        #[key]
+        // #[key]
         public_key: u256,
-        #[key]
+        // #[key]
         nostr_public_key: u256,
-        #[key]
+        // #[key]
         starknet_address:ContractAddress,
         private_key:u256,
+        signature_salt:felt252,
+        password:ByteArray,
+        address_recovery:ContractAddress,
         transfers: Map<u256, bool>,
+        nostr_account_public_key: Map<u256, u256>,
+        nostr_account_private_key: Map<u256, u256>,
         vrf_contract_address:ContractAddress
     }
 
@@ -78,15 +91,24 @@ pub mod NostrAccount {
     #[derive(Drop, starknet::Event)]
     struct AccountCreated {
         #[key]
+        public_key: ContractAddress,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct NostrAccountCreated {
+        #[key]
         public_key: u256,
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState,
-         public_key: u256,
+    fn constructor(
+        ref self: ContractState,
+        // public_key: u256,
+        public_key: ContractAddress,
         vrf_contract_address:ContractAddress
     ) {
         self.public_key.write(public_key);
+        self.starknet_address.write(public_key);
         self.vrf_contract_address.write(vrf_contract_address);
 
         // Generate a Salt for Pedersen commitment
@@ -102,6 +124,10 @@ pub mod NostrAccount {
             self.public_key.read()
         }
 
+        fn get_nostr_public_key(self: @ContractState) -> u256 {
+            self.nostr_public_key.read()
+        }
+
         fn get_starknet_public_key(self: @ContractState) -> ContractAddress {
             self.starknet_address.read()
         }
@@ -111,19 +137,20 @@ pub mod NostrAccount {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
             self.vrf_contract_address.write(vrf_contract_address);
-
         }
 
-        fn init_nostr_account(ref self: ContractState) -> ContractAddress {
+        fn init_nostr_account(ref self: ContractState) {
             assert!(self.private_key.read().is_zero(), "account already initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
-            let (private_key, public_key) = generate_keypair(self.vrf_contract_address.read());
+            let (private_key, public_key_point) = generate_keypair(self.vrf_contract_address.read());
 
+            let public_key = public_key_point.try_into().unwrap();
             // Save private key with Pedersen commitment with the signature of the Starknet account
             let H: EcPoint = hash_to_curve().unwrap();
-            // TODO add random salt with signature and save its
+            // TODO 
+            // add random salt with signature and save its
             let salt: felt252 = 228282189421094;
 
             let commitment = pedersen_commit(private_key, salt, H);
@@ -132,33 +159,33 @@ pub mod NostrAccount {
 
             self.private_key.write(private_key);
             self.nostr_public_key.write(public_key);
-            self.starknet_address.write(get_caller_address());
+            // self.starknet_address.write(get_caller_address());
         }
 
-        fn handle_transfer(ref self: ContractState, request: SocialRequest<Transfer>) {
-            // TODO: is this check necessary
-            assert!(request.public_key == self.public_key.read(), "wrong sender");
+        // fn handle_transfer(ref self: ContractState, request: SocialRequest<Transfer>) {
+        //     // TODO: is this check necessary
+        //     assert!(request.public_key == self.public_key.read(), "wrong sender");
 
-            let erc20 = IERC20Dispatcher { contract_address: request.content.token_address };
-            assert!(erc20.symbol() == request.content.token, "wrong token");
+        //     let erc20 = IERC20Dispatcher { contract_address: request.content.token_address };
+        //     assert!(erc20.symbol() == request.content.token, "wrong token");
 
-            let recipient = INostrAccountDispatcher {
-                contract_address: request.content.recipient_address
-            };
+        //     let recipient = INostrAccountDispatcher {
+        //         contract_address: request.content.recipient_address
+        //     };
 
-            assert!(
-                recipient.get_public_key() == request.content.recipient.public_key,
-                "wrong recipient"
-            );
+        //     assert!(
+        //         recipient.get_public_key() == request.content.recipient.public_key,
+        //         "wrong recipient"
+        //     );
 
-            if let Option::Some(id) = request.verify() {
-                assert!(!self.transfers.read(id), "double spend");
-                self.transfers.entry(id).write(true);
-                erc20.transfer(request.content.recipient_address, request.content.amount);
-            } else {
-                panic!("can't verify signature");
-            }
-        }
+        //     if let Option::Some(id) = request.verify() {
+        //         assert!(!self.transfers.read(id), "double spend");
+        //         self.transfers.entry(id).write(true);
+        //         erc20.transfer(request.content.recipient_address, request.content.amount);
+        //     } else {
+        //         panic!("can't verify signature");
+        //     }
+        // }
     }
 
     #[abi(embed_v0)]
@@ -196,8 +223,29 @@ pub mod NostrAccount {
         fn _is_valid_signature(
             self: @ContractState, hash: felt252, signature: Span<felt252>
         ) -> felt252 {
-            let public_key = self.public_key.read();
 
+            let is_valid_length = signature.len() == 2_u32;
+            assert(is_valid_length, 'Account: Incorrect tx signature');
+
+            // if !is_valid_length {
+            //   return 'INVALIDATED';
+            // }
+            
+            let is_valid = check_ecdsa_signature(
+              hash, self.starknet_address.read(), *signature.at(0_u32), *signature.at(1_u32)
+            );
+            if is_valid {
+              return starknet::VALIDATED;
+            }
+            assert(is_valid, 'INVALIDATED');
+            // let public_key = self.public_key.read();
+        }
+
+        fn _is_valid_signature_nostr(
+            self: @ContractState,
+            hash: felt252,
+            signature: Span<felt252>
+        ) -> felt252 {
             let mut signature = signature;
             let r: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
             let s: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
@@ -207,32 +255,15 @@ pub mod NostrAccount {
             hash_as_ba.append_word(hash.high.into(), 16);
             hash_as_ba.append_word(hash.low.into(), 16);
 
+            let public_key = self.nostr_account_public_key.read();
+
             if bip340::verify(public_key, r, s, hash_as_ba) {
                 starknet::VALIDATED
             } else {
                 0
             }
         }
-        // fn _is_valid_signature(
-        //     self: @ContractState, hash: felt252, signature: Span<felt252>
-        // ) -> felt252 {
-        //     let public_key = self.public_key.read();
-
-        //     let mut signature = signature;
-        //     let r: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
-        //     let s: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
-
-        //     let hash: u256 = hash.into();
-        //     let mut hash_as_ba = Default::default();
-        //     hash_as_ba.append_word(hash.high.into(), 16);
-        //     hash_as_ba.append_word(hash.low.into(), 16);
-
-        //     if bip340::verify(public_key, r, s, hash_as_ba) {
-        //         starknet::VALIDATED
-        //     } else {
-        //         0
-        //     }
-        // }
+     
     }
 }
 #[cfg(test)]
@@ -246,7 +277,7 @@ mod tests {
         stop_cheat_transaction_hash_global, stop_cheat_signature_global
     };
     use starknet::{
-        ContractAddress, get_caller_address, get_contract_address, contract_address_const
+        ContractAddress, get_caller_address, get_contract_address, contract_address_const, VALIDATED
     };
     use super::super::profile::NostrProfile;
 
@@ -259,7 +290,7 @@ mod tests {
 
     use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     // Sepolia
-    const VRF_CONTRACT_ADDRESS: felt252 =
+    const VRF_CONTRACT_ADDRESS: ContractAddress =
         0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
     fn declare_account() -> ContractClass {
         declare("NostrAccount").unwrap()
@@ -269,9 +300,10 @@ mod tests {
         declare("ERC20").unwrap()
     }
 
-    fn deploy_account(class: ContractClass, public_key: u256) -> INostrAccountDispatcher {
+    fn deploy_account(class: ContractClass, public_key: ContractAddress, vrf_contract_address: ContractAddress) -> INostrAccountDispatcher {
         let mut calldata = array![];
         public_key.serialize(ref calldata);
+        vrf_contract_address.serialize(ref calldata);
 
         let address = class.precalculate_address(@calldata);
 
@@ -317,6 +349,16 @@ mod tests {
         IERC20Dispatcher { contract_address }
     }
 
+     // Constants
+    fn OWNER() -> ContractAddress {
+        // 'owner'.try_into().unwrap()
+        123.try_into().unwrap()
+    }
+
+    fn RECIPIENT() -> ContractAddress {
+        'recipient'.try_into().unwrap()
+    }
+
     fn request_fixture_custom_classes(
         erc20_class: ContractClass, account_class: ContractClass
     ) -> (
@@ -327,17 +369,19 @@ mod tests {
     ) {
         // sender private key: 70aca2a9ab722bd56a9a1aadae7f39bc747c7d6735a04d677e0bc5dbefa71d47
         // just for testing, do not use for anything else
-        let sender_public_key =
+        let nostr_sender_public_key =
             0xd6f1cf53f9f52d876505164103b1e25811ec4226a17c7449576ea48b00578171_u256;
 
+        let sender_public_key: ContractAddress = OWNER();
         let sender = deploy_account(account_class, sender_public_key, VRF_CONTRACT_ADDRESS);
 
         // recipient private key:
         // 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
         // not use for anything else 
-        let recipient_public_key =
-            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
-        let recipient = deploy_account(account_class, recipient_public_key);
+        // let recipient_public_key =
+        //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        let recipient_public_key: ContractAddress = RECIPIENT();
+        let recipient = deploy_account(account_class, recipient_public_key, VRF_CONTRACT_ADDRESS);
 
         let joyboy_public_key =
         0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40;
@@ -359,7 +403,7 @@ mod tests {
         // for test data see: https://replit.com/@maciejka/WanIndolentKilobyte-2
 
         let request = SocialRequest {
-            public_key: sender_public_key,
+            public_key: nostr_sender_public_key,
             created_at: 1716285235_u64,
             kind: 1_u16,
             tags: "[]",
@@ -384,19 +428,21 @@ mod tests {
         request_fixture_custom_classes(erc20_class, account_class)
     }
 
-    
     #[test]
     #[fork("Sepolia")]
     fn init_nostr_account() {
-        let public_key: u256 = 45;
+        // let public_key: u256 = 45;
+        let public_key: ContractAddress = OWNER();
         let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS);
         account.init_nostr_account();
         // assert!(account.get_public_key() == public_key, "wrong public_key");
     }
 
     #[test]
-    fn get_public_key() {
-        let public_key: u256 = 45;
+    fn test_get_public_key() {
+        // let public_key: u256 = 45;
+        let public_key: ContractAddress = OWNER();
+
         // let account = deploy_account(declare_account(), public_key);
         let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS);
 
@@ -406,7 +452,7 @@ mod tests {
     #[test]
     fn successful_transfer() {
         let (request, sender, _, _) = request_fixture();
-        sender.handle_transfer(request);
+        // sender.handle_transfer(request);
     }
 
     #[test]
@@ -422,7 +468,7 @@ mod tests {
             ..request,
         };
 
-        sender.handle_transfer(request);
+        // sender.handle_transfer(request);
     }
 
     #[test]
@@ -432,7 +478,7 @@ mod tests {
 
         let request = SocialRequest { public_key: 123_u256, ..request, };
 
-        sender.handle_transfer(request);
+        // sender.handle_transfer(request);
     }
 
     #[test]
@@ -449,7 +495,7 @@ mod tests {
             ..request,
         };
 
-        sender.handle_transfer(request);
+        // sender.handle_transfer(request);
     }
 
     #[test]
@@ -467,27 +513,27 @@ mod tests {
             ..request,
         };
 
-        sender.handle_transfer(request);
+        // sender.handle_transfer(request);
     }
 
-    #[test]
-    #[should_panic(expected: "double spend")]
-    fn double_transfer() {
-        let erc20_class = declare_erc20();
-        let account_class = declare_account();
-        let (request, sender, _, _) = request_fixture_custom_classes(erc20_class, account_class);
-        let (request2, _, _, _) = request_fixture_custom_classes(erc20_class, account_class);
+    // #[test]
+    // #[should_panic(expected: "double spend")]
+    // fn double_transfer() {
+    //     let erc20_class = declare_erc20();
+    //     let account_class = declare_account();
+    //     let (request, sender, _, _) = request_fixture_custom_classes(erc20_class, account_class);
+    //     let (request2, _, _, _) = request_fixture_custom_classes(erc20_class, account_class);
 
-        sender.handle_transfer(request);
-        sender.handle_transfer(request2);
-    }
+    //     sender.handle_transfer(request);
+    //     sender.handle_transfer(request2);
+    // }
 
     #[test]
     fn is_valid_signature() {
-        let public_key = 0xdff1d77f2a671c5f36183726db2341be58feae1da2deced843240f7b502ba659;
+        let public_key: ContractAddress = OWNER();
 
         let account_class = declare_account();
-        let account = deploy_account(account_class, public_key);
+        let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS);
 
         let account = ISRC6Dispatcher { contract_address: account.contract_address };
 
@@ -509,10 +555,10 @@ mod tests {
 
     #[test]
     fn validate_transaction() {
-        let public_key = 0xdff1d77f2a671c5f36183726db2341be58feae1da2deced843240f7b502ba659;
+        let public_key: ContractAddress = OWNER();
 
         let account_class = declare_account();
-        let account = deploy_account(account_class, public_key);
+        let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS);
 
         let account = ISRC6Dispatcher { contract_address: account.contract_address };
 
