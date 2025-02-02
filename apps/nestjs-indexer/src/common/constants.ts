@@ -1,7 +1,8 @@
 export default {
   DECIMALS: 18,
-  STARTING_BLOCK: 140_000,
+  STARTING_BLOCK: 450_000,
   STARTING_BLOCK_UNRUG: 615_556,
+  STARTING_BLOCK_MAINNET: 615_556,
   contracts: {
     mainnet: {
       FACTORY_ADDRESS:
