@@ -63,6 +63,8 @@ pub mod NostrAccount {
     use core::ec::stark_curve::GEN_Y;
     use core::ec::stark_curve::ORDER;
     use core::ec::{EcPoint, ec_point_unwrap};
+    use starknet::SyscallResultTrait;
+    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
 
     #[storage]
     struct Storage {
@@ -70,6 +72,7 @@ pub mod NostrAccount {
         public_key: u256,
         // #[key]
         nostr_public_key: u256,
+        nostr_point_public_key: Secp256k1Point,
         // #[key]
         starknet_address:ContractAddress,
         private_key:u256,
@@ -77,8 +80,8 @@ pub mod NostrAccount {
         password:ByteArray,
         address_recovery:ContractAddress,
         transfers: Map<u256, bool>,
-        nostr_account_public_key: Map<u256, u256>,
-        nostr_account_private_key: Map<u256, u256>,
+        nostr_accounts_public_keys: Map<u256, u256>,
+        nostr_accounts_private_keys: Map<u256, u256>,
         vrf_contract_address:ContractAddress
     }
 
@@ -107,7 +110,7 @@ pub mod NostrAccount {
         public_key: ContractAddress,
         vrf_contract_address:ContractAddress
     ) {
-        self.public_key.write(public_key);
+        // self.public_key.write(public_key);
         self.starknet_address.write(public_key);
         self.vrf_contract_address.write(vrf_contract_address);
 
@@ -146,7 +149,7 @@ pub mod NostrAccount {
             }
             let (private_key, public_key_point) = generate_keypair(self.vrf_contract_address.read());
 
-            let public_key = public_key_point.try_into().unwrap();
+            // let public_key:u256 = public_key_point.try_into().unwrap();
             // Save private key with Pedersen commitment with the signature of the Starknet account
             let H: EcPoint = hash_to_curve().unwrap();
             // TODO 
@@ -158,7 +161,11 @@ pub mod NostrAccount {
             assert(is_valid, 'The commitment is not valid');
 
             self.private_key.write(private_key);
-            self.nostr_public_key.write(public_key);
+            // self.nostr_public_key.write(public_key);
+            self.nostr_point_public_key.write(public_key_point);
+            // Convert secp256k1 point to u256
+            // let public_key: u256 = public_key_point.try_into().unwrap();
+            // self.nostr_public_key.write(public_key);
             // self.starknet_address.write(get_caller_address());
         }
 
@@ -225,20 +232,21 @@ pub mod NostrAccount {
         ) -> felt252 {
 
             let is_valid_length = signature.len() == 2_u32;
-            assert(is_valid_length, 'Account: Incorrect tx signature');
+            // assert(is_valid_length, 'Account: Incorrect tx signature');
 
-            // if !is_valid_length {
-            //   return 'INVALIDATED';
-            // }
+            if !is_valid_length {
+              return 'INVALID_LENGTH';
+            }
             
+            let account_address:felt252 = self.starknet_address.read().try_into().unwrap();
             let is_valid = check_ecdsa_signature(
-              hash, self.starknet_address.read(), *signature.at(0_u32), *signature.at(1_u32)
+              hash, account_address, *signature.at(0_u32), *signature.at(1_u32)
             );
             if is_valid {
               return starknet::VALIDATED;
             }
-            assert(is_valid, 'INVALIDATED');
-            // let public_key = self.public_key.read();
+            // assert(is_valid, 'INVALIDATED');
+            0
         }
 
         fn _is_valid_signature_nostr(
@@ -255,7 +263,7 @@ pub mod NostrAccount {
             hash_as_ba.append_word(hash.high.into(), 16);
             hash_as_ba.append_word(hash.low.into(), 16);
 
-            let public_key = self.nostr_account_public_key.read();
+            let public_key = self.nostr_public_key.read();
 
             if bip340::verify(public_key, r, s, hash_as_ba) {
                 starknet::VALIDATED

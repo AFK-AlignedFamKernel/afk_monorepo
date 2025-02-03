@@ -294,6 +294,7 @@ pub fn generate_keypair(
 
 /// Generates a nonce and corresponding R point for signature
 pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point) {
+    // pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point) {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
     let caller = get_caller_address();
