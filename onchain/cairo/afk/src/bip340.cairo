@@ -39,7 +39,7 @@ pub enum Source {
 
 /// Represents a Schnorr signature
 #[derive(Drop)]
-struct SchnorrSignature {
+pub struct SchnorrSignature {
     s: u256,
     r: u256,
 }
@@ -365,7 +365,7 @@ mod tests {
     use core::option::OptionTrait;
     use core::traits::Into;
     use starknet::SyscallResultTrait;
-    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}};
+    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}, ContractAddress};
     use super::Secp256PointTrait;
     use super::{IVrfProvider, IVrfProviderDispatcher};
     // use super::*;
@@ -381,7 +381,11 @@ mod tests {
     // const CONTRACT_ADDRESS: felt252 =
     //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
 
-    const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    // const CONTRACT_ADDRESS: ContractAddress = "0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257";
+    // const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    fn CONTRACT_ADDRESS() -> ContractAddress {
+        0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+    }
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -602,10 +606,11 @@ mod tests {
 
         assert!(verify(px, rx, s, m.into()));
     }
+
     #[test]
     fn test_20() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
         let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
@@ -627,7 +632,7 @@ mod tests {
     #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
         let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
