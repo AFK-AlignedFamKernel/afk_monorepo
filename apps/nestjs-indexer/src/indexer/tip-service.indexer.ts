@@ -299,7 +299,7 @@ export class TipServiceIndexer {
     transaction: starknet.ITransaction,
   ) {
     try {
-      this.logger.error(error); const commonTxData = this.getTxData(header, transaction);
+      const commonTxData = this.getTxData(header, transaction);
 
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const [
@@ -334,7 +334,6 @@ export class TipServiceIndexer {
     
     } catch (error) {
       this.logger.error(error);
-        
     }
    
   }
