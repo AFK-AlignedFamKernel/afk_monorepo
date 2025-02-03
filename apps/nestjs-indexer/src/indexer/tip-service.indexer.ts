@@ -264,12 +264,12 @@ export class TipServiceIndexer {
         amountLow,
         amountHigh,
         contractAddressFelt,
+        gasTokenAddressFelt,
         gasAmountLow,
         gasAmountHigh,
-        gasTokenAddressFelt,
       ] = event.data;
   
-      const amount = this.uint256ToAmount(amountLow, amountHigh);
+      // const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
       const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
       const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
@@ -280,7 +280,7 @@ export class TipServiceIndexer {
         sender,
         nostrRecipient,
         starknetRecipient,
-        amount,
+        // amount,
         tokenAddress,
         gasTokenAddress,
         gasAmount,
