@@ -241,7 +241,8 @@ export class TipServiceIndexer {
     ) {
     try {
       const commonTxData = this.getTxData(header, transaction);
-
+      console.log(commonTxData);
+      console.log("Event claim", event);
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const [
         _,
@@ -259,7 +260,7 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
       );
       const starknetRecipient = this.getAddress(starknetRecipientFelt);
-  
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       const [
         amountLow,
         amountHigh,
@@ -272,6 +273,7 @@ export class TipServiceIndexer {
       // const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
       const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
+      console.log("gasAmount", gasAmount);
       const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
   
       const data = {

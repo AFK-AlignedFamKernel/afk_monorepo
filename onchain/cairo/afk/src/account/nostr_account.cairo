@@ -156,13 +156,15 @@ pub mod NostrAccount {
             // add random salt with signature and save its
             let salt: felt252 = 228282189421094;
 
+            // TODO find a signature
             // let commitment = pedersen_commit(private_key, salt, H);
             // let is_valid = verify_commitment(commitment, private_key.try_into().unwrap(), salt, H);
             // assert(is_valid, 'The commitment is not valid');
 
             self.private_key.write(private_key);
             // self.nostr_public_key.write(public_key);
-            self.nostr_point_public_key.write(public_key_point);
+            // TODO convert Point to public key
+            // self.nostr_point_public_key.write(public_key_point);
             // Convert secp256k1 point to u256
             // let public_key: u256 = public_key_point.try_into().unwrap();
             // self.nostr_public_key.write(public_key);
