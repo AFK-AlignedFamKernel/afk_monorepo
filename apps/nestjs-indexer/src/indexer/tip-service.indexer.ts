@@ -105,9 +105,14 @@ export class TipServiceIndexer {
   }
 
   private getAddress(addressFelt: IFieldElement) {
-    return validateAndParseAddress(
-      `0x${FieldElement.toBigInt(addressFelt).toString(16)}`,
-    ) as ContractAddress;
+    try {
+      return validateAndParseAddress(
+        `0x${FieldElement.toBigInt(addressFelt).toString(16)}`,
+      ) as ContractAddress;      
+    } catch (error) {
+      this.logger.error(error);
+    }
+
   }
 
   private getU256ToHex(lowFelt: IFieldElement, highFelt: IFieldElement) {
@@ -259,12 +264,12 @@ export class TipServiceIndexer {
         amountLow,
         amountHigh,
         contractAddressFelt,
+        gasTokenAddressFelt,
         gasAmountLow,
         gasAmountHigh,
-        gasTokenAddressFelt,
       ] = event.data;
   
-      const amount = this.uint256ToAmount(amountLow, amountHigh);
+      // const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
       const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
       const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
@@ -275,7 +280,7 @@ export class TipServiceIndexer {
         sender,
         nostrRecipient,
         starknetRecipient,
-        amount,
+        // amount,
         tokenAddress,
         gasTokenAddress,
         gasAmount,
@@ -294,8 +299,6 @@ export class TipServiceIndexer {
     transaction: starknet.ITransaction,
   ) {
     try {
-      
-    } catch (error) {
       this.logger.error(error); const commonTxData = this.getTxData(header, transaction);
 
       /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -328,6 +331,10 @@ export class TipServiceIndexer {
       };
   
       await this.tipService.updateCancel(data);
+    
+    } catch (error) {
+      this.logger.error(error);
+        
     }
    
   }

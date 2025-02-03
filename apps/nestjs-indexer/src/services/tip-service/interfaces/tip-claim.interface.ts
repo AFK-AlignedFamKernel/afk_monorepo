@@ -5,11 +5,11 @@ export interface TipClaim {
   blockTimestamp: Date;
   transactionHash: string;
   depositId: string;
-  sender: string;
-  nostrRecipient: string;
-  starknetRecipient: string;
-  amount: number;
-  tokenAddress: string;
-  gasTokenAddress: string;
-  gasAmount: number;
+  sender?: string;
+  nostrRecipient?: string;
+  starknetRecipient?: string;
+  amount?: number;
+  tokenAddress?: string;
+  gasTokenAddress?: string;
+  gasAmount?: number;
 }
