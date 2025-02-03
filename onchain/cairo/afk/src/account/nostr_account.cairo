@@ -143,7 +143,7 @@ pub mod NostrAccount {
         }
 
         fn init_nostr_account(ref self: ContractState) {
-            assert!(self.private_key.read().is_zero(), "account already initialized");
+            // assert!(self.private_key.read().is_zero(), "account already initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
@@ -156,9 +156,9 @@ pub mod NostrAccount {
             // add random salt with signature and save its
             let salt: felt252 = 228282189421094;
 
-            let commitment = pedersen_commit(private_key, salt, H);
-            let is_valid = verify_commitment(commitment, private_key, salt, H);
-            assert(is_valid, 'The commitment is not valid');
+            // let commitment = pedersen_commit(private_key, salt, H);
+            // let is_valid = verify_commitment(commitment, private_key.try_into().unwrap(), salt, H);
+            // assert(is_valid, 'The commitment is not valid');
 
             self.private_key.write(private_key);
             // self.nostr_public_key.write(public_key);
