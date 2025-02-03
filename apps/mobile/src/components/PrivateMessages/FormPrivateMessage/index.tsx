@@ -1,17 +1,18 @@
-import {NDKUser} from '@nostr-dev-kit/ndk';
-import {useQueryClient} from '@tanstack/react-query';
-import {Contact, getContacts, useSendPrivateMessage} from 'afk_nostr_sdk';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import { NDKUser } from '@nostr-dev-kit/ndk';
+import { useQueryClient } from '@tanstack/react-query';
+import { Contact, getContacts, useSendPrivateMessage } from 'afk_nostr_sdk';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 
-import {useStyles} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {ContactsRow} from '../../ContactsRow';
-import {Divider} from '../../Divider';
-import {IconButton} from '../../IconButton';
-import {Input} from '../../Input';
-import {KeyboardFixedView} from '../../Skeleton/KeyboardFixedView';
+import { useStyles } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { ContactsRow } from '../../ContactsRow';
+import { Divider } from '../../Divider';
+import { IconButton } from '../../IconButton';
+import { Input } from '../../Input';
+import { KeyboardFixedView } from '../../Skeleton/KeyboardFixedView';
 import stylesheet from './styles';
+import { ContactList } from '../../../modules/Contacts/ContactList';
 
 interface IFormPrivateMessage {
   publicKey?: string;
@@ -33,7 +34,7 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   const [receiverPublicKey, setReceiverPublicKey] = React.useState(receiverPublicKeyProps);
   const [message, setMessage] = React.useState<string | undefined>();
   const sendPrivateMessage = useSendPrivateMessage();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -54,22 +55,22 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
 
   const sendMessage = async (message: string) => {
     if (!receiverPublicKey) {
-      showToast({title: 'Please choose a Nostr public key', type: 'error'});
+      showToast({ title: 'Please choose a Nostr public key', type: 'error' });
       return;
     }
 
     await sendPrivateMessage.mutateAsync(
-      {receiverPublicKeyProps: receiverPublicKey, content: message},
+      { receiverPublicKeyProps: receiverPublicKey, content: message },
       {
         onSuccess: () => {
-          showToast({title: 'Message sent', type: 'success'});
+          showToast({ title: 'Message sent', type: 'success' });
           queryClient.invalidateQueries({
             queryKey: ['messagesSent'],
           });
           handleClose && handleClose();
         },
         onError() {
-          showToast({title: 'Error sending message', type: 'error'});
+          showToast({ title: 'Error sending message', type: 'error' });
         },
       },
     );
@@ -77,15 +78,25 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
 
   return (
     <View style={styles.container}>
-      <ContactsRow
+      {/* <ContactList>
+
+      </ContactList> */}
+      {/* <ContactsRow
         contacts={storedContacts}
         onContactPress={handleContactSelect}
         onAddContact={() => {
           // Handle add contact action
-          showToast({title: 'Add contact functionality to be implemented', type: 'info'});
+          showToast({ title: 'Add contact functionality to be implemented', type: 'info' });
         }}
-      />
-      <KeyboardFixedView containerProps={{style: styles.commentInputContainer}}>
+      /> */}
+      <KeyboardFixedView containerProps={{ style: styles.commentInputContainer }}>
+        <Divider />
+        <Input
+          value={receiverPublicKey}
+          onChangeText={setReceiverPublicKey}
+          containerStyle={styles.commentInput}
+          placeholder="Send to a Nostr pubkey"
+        />
         <Divider />
         <View style={styles.commentInputContent}>
           <Input
