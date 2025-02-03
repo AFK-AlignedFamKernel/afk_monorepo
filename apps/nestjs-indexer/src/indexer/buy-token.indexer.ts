@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash } from 'starknet';
+import { validateAndParseAddress, hash } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -36,16 +36,54 @@ export class BuyTokenIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    this.logger.log('Received event');
-    const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
+    try {
+      this.logger.log('Received event');
+      const eventKey = validateAndParseAddress(
+        FieldElement.toHex(event.keys[0]),
+      );
 
-    switch (eventKey) {
-      case validateAndParseAddress(hash.getSelectorFromName('BuyToken')):
-        this.logger.log('Event name: BuyToken');
-        this.handleBuyTokenEvent(header, event, transaction);
-        break;
-      default:
-        this.logger.warn(`Unknown event type: ${eventKey}`);
+      switch (eventKey) {
+        case validateAndParseAddress(hash.getSelectorFromName('BuyToken')):
+          this.logger.log('Event name: BuyToken');
+          await this.handleBuyTokenEvent(header, event, transaction);
+          break;
+        default:
+          this.logger.warn(`Unknown event type: ${eventKey}`);
+      }
+    } catch (error) {
+      this.logger.error('Error in handleEvents:', error);
+      throw error;
+    }
+  }
+
+  private safeUint256ToBN(
+    lowFelt: starknet.IFieldElement,
+    highFelt: starknet.IFieldElement,
+  ): bigint {
+    try {
+      // Convert FieldElements to BigInts directly
+      const low = FieldElement.toBigInt(lowFelt);
+      const high = FieldElement.toBigInt(highFelt);
+
+      this.logger.debug(`Converting uint256 - low: ${low}, high: ${high}`);
+
+      // Validate the low and high values
+      const UINT_128_MAX = BigInt('0xffffffffffffffffffffffffffffffff');
+      if (low > UINT_128_MAX || high > UINT_128_MAX) {
+        this.logger.warn(`Low or high value exceeds maximum ${UINT_128_MAX}`);
+        // Handle overflow by capping at max value
+        return UINT_128_MAX;
+      }
+
+      // Combine high and low parts into a single bigint
+      const fullValue = (high << BigInt(128)) + low;
+
+      this.logger.debug(`Full value: ${fullValue}`);
+
+      return fullValue;
+    } catch (error) {
+      this.logger.error('Error converting uint256:', error);
+      return BigInt(0);
     }
   }
 
@@ -60,29 +98,28 @@ export class BuyTokenIndexer {
         blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
-  
+
       const blockHash = validateAndParseAddress(
         `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
       ) as ContractAddress;
-  
+
       const transactionHashFelt = transaction.meta.hash;
       const transactionHash = validateAndParseAddress(
         `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
       ) as ContractAddress;
-  
+
       const transferId = `${transactionHash}_${event.index}`;
-  
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, callerFelt, tokenAddressFelt] = event.keys;
-  
+
+      const [, callerFelt, tokenAddressFelt] = event.keys;
+
       const ownerAddress = validateAndParseAddress(
         `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
       ) as ContractAddress;
-  
+
       const tokenAddress = validateAndParseAddress(
         `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
       ) as ContractAddress;
-  
+
       const [
         amountLow,
         amountHigh,
@@ -96,47 +133,41 @@ export class BuyTokenIndexer {
         quoteAmountLow,
         quoteAmountHigh,
       ] = event.data;
-  
-      const amountRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(amountLow),
-        high: FieldElement.toBigInt(amountHigh),
-      });
+
+      const amountRaw = this.safeUint256ToBN(amountLow, amountHigh);
       const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-  
-      const priceRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(priceLow),
-        high: FieldElement.toBigInt(priceHigh),
-      });
+
+      const priceRaw = this.safeUint256ToBN(priceLow, priceHigh);
       const price = formatUnits(priceRaw, constants.DECIMALS);
-  
-      const protocolFeeRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(protocolFeeLow),
-        high: FieldElement.toBigInt(protocolFeeHigh),
-      });
+
+      const protocolFeeRaw = this.safeUint256ToBN(
+        protocolFeeLow,
+        protocolFeeHigh,
+      );
       const protocolFee = formatUnits(
         protocolFeeRaw,
         constants.DECIMALS,
       ).toString();
-  
-      const lastPriceRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(lastPriceLow),
-        high: FieldElement.toBigInt(lastPriceHigh),
-      });
-      const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
-  
-      const quoteAmountRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(quoteAmountLow),
-        high: FieldElement.toBigInt(quoteAmountHigh),
-      });
+
+      const lastPriceRaw = this.safeUint256ToBN(lastPriceLow, lastPriceHigh);
+      const lastPrice = formatUnits(
+        lastPriceRaw,
+        constants.DECIMALS,
+      ).toString();
+
+      const quoteAmountRaw = this.safeUint256ToBN(
+        quoteAmountLow,
+        quoteAmountHigh,
+      );
       const quoteAmount = formatUnits(
         quoteAmountRaw,
         constants.DECIMALS,
       ).toString();
-  
+
       const timestamp = new Date(
         Number(FieldElement.toBigInt(timestampFelt)) * 1000,
       );
-  
+
       const data = {
         transferId,
         network: 'starknet-sepolia',
@@ -154,10 +185,11 @@ export class BuyTokenIndexer {
         timestamp,
         transactionType: 'buy',
       };
-  
+
       await this.buyTokenService.create(data);
     } catch (error) {
-      console.log("Error BuyTokenIndexer", error)
+      this.logger.error('Error in handleBuyTokenEvent:', error);
+      throw error;
     }
   }
 }

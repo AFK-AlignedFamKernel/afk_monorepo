@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IndexerService } from './indexer.service';
-import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
+import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { TipService } from '../services/tip-service/tip.service';
 import { v1alpha2 as starknet } from '@apibara/starknet/dist/proto';
 import { FieldElement } from '@apibara/starknet';
@@ -43,7 +43,9 @@ export class TipServiceIndexer {
   ) {
     this.logger.log('Received event');
     try {
-      const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
+      const eventKey = validateAndParseAddress(
+        FieldElement.toHex(event.keys[0]),
+      );
 
       switch (eventKey) {
         case validateAndParseAddress(hash.getSelectorFromName('DepositEvent')):
@@ -68,7 +70,6 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private getTxData(
@@ -101,18 +102,16 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private getAddress(addressFelt: IFieldElement) {
     try {
       return validateAndParseAddress(
         `0x${FieldElement.toBigInt(addressFelt).toString(16)}`,
-      ) as ContractAddress;      
+      ) as ContractAddress;
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private getU256ToHex(lowFelt: IFieldElement, highFelt: IFieldElement) {
@@ -126,7 +125,6 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private uint256ToAmount(lowFelt: IFieldElement, highFelt: IFieldElement) {
@@ -139,7 +137,6 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private async handleTipDepositEvent(
@@ -167,7 +164,14 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
       );
 
-      const [amountLow, amountHigh, contractAddressFelt, gasTokenAddressFelt, gasAmountLow, gasAmountHigh] = event.data;
+      const [
+        amountLow,
+        amountHigh,
+        contractAddressFelt,
+        gasTokenAddressFelt,
+        gasAmountLow,
+        gasAmountHigh,
+      ] = event.data;
       const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
       // const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
@@ -186,7 +190,6 @@ export class TipServiceIndexer {
     } catch (error) {
       this.logger.error(error);
     }
-
   }
 
   private async handleTipTransferEvent(
@@ -205,19 +208,19 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
         starknetRecipientFelt,
       ] = event.keys;
-  
+
       const sender = this.getAddress(senderFelt);
       const nostrRecipient = this.getU256ToHex(
         nostrRecipientLow,
         nostrRecipientHigh,
       );
       const starknetRecipient = this.getAddress(starknetRecipientFelt);
-  
+
       const [amountLow, amountHigh, contractAddressFelt] = event.data;
-  
+
       const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
-  
+
       const data = {
         ...commonTxData,
         sender,
@@ -226,19 +229,18 @@ export class TipServiceIndexer {
         tokenAddress,
         amount,
       };
-  
+
       await this.tipService.createTransfer(data);
     } catch (error) {
       this.logger.error(error);
     }
-   
   }
 
   private async handleTipClaimEvent(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
-    ) {
+  ) {
     try {
       const commonTxData = this.getTxData(header, transaction);
 
@@ -251,7 +253,7 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
         starknetRecipientFelt,
       ] = event.keys;
-  
+
       const depositId = FieldElement.toBigInt(depositIdFelt).toString();
       const sender = this.getAddress(senderFelt);
       const nostrRecipient = this.getU256ToHex(
@@ -259,7 +261,7 @@ export class TipServiceIndexer {
         nostrRecipientHigh,
       );
       const starknetRecipient = this.getAddress(starknetRecipientFelt);
-  
+
       const [
         amountLow,
         amountHigh,
@@ -268,12 +270,12 @@ export class TipServiceIndexer {
         gasAmountLow,
         gasAmountHigh,
       ] = event.data;
-  
+
       // const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
       const gasAmount = this.uint256ToAmount(gasAmountLow, gasAmountHigh);
       const gasTokenAddress = this.getAddress(gasTokenAddressFelt);
-  
+
       const data = {
         ...commonTxData,
         depositId,
@@ -285,12 +287,11 @@ export class TipServiceIndexer {
         gasTokenAddress,
         gasAmount,
       };
-  
+
       await this.tipService.updateClaim(data);
     } catch (error) {
       this.logger.error(error);
     }
-  
   }
 
   private async handleTipCancelEvent(
@@ -309,18 +310,18 @@ export class TipServiceIndexer {
         nostrRecipientLow,
         nostrRecipientHigh,
       ] = event.keys;
-  
+
       const depositId = FieldElement.toBigInt(depositIdFelt).toString();
       const sender = this.getAddress(senderFelt);
       const nostrRecipient = this.getU256ToHex(
         nostrRecipientLow,
         nostrRecipientHigh,
       );
-  
+
       const [amountLow, amountHigh, contractAddressFelt] = event.data;
       const amount = this.uint256ToAmount(amountLow, amountHigh);
       const tokenAddress = this.getAddress(contractAddressFelt);
-  
+
       const data = {
         ...commonTxData,
         depositId,
@@ -329,12 +330,10 @@ export class TipServiceIndexer {
         tokenAddress,
         amount: Number(amount),
       };
-  
+
       await this.tipService.updateCancel(data);
-    
     } catch (error) {
       this.logger.error(error);
     }
-   
   }
 }
