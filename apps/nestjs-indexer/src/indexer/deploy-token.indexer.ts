@@ -2,11 +2,10 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { validateAndParseAddress, hash, shortString } from 'starknet';
+import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { DeployTokenService } from 'src/services/deploy-token/deploy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
-import { safeUint256ToBN } from './utils';
 
 @Injectable()
 export class DeployTokenIndexer {
@@ -16,7 +15,6 @@ export class DeployTokenIndexer {
   constructor(
     @Inject(DeployTokenService)
     private readonly deployTokenService: DeployTokenService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -43,7 +41,7 @@ export class DeployTokenIndexer {
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('CreateToken')):
         this.logger.log('Event name: CreateToken');
-        this.handleCreateTokenEvent(header, event, transaction);
+        await this.handleCreateTokenEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
@@ -101,16 +99,19 @@ export class DeployTokenIndexer {
         )
       : '';
 
-    const initialSupplyRaw = safeUint256ToBN(
-      initialSupplyLow,
-      initialSupplyHigh,
-    );
+    const initialSupplyRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(initialSupplyLow),
+      high: FieldElement.toBigInt(initialSupplyHigh),
+    });
     const initialSupply = formatUnits(
       initialSupplyRaw,
       constants.DECIMALS,
     ).toString();
 
-    const totalSupplyRaw = safeUint256ToBN(totalSupplyLow, totalSupplyHigh);
+    const totalSupplyRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(totalSupplyLow),
+      high: FieldElement.toBigInt(totalSupplyHigh),
+    });
     const totalSupply = formatUnits(
       totalSupplyRaw,
       constants.DECIMALS,

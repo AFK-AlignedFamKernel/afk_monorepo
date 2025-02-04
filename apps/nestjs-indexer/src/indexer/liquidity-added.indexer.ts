@@ -2,10 +2,10 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { validateAndParseAddress, hash } from 'starknet';
+import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { IndexerService } from './indexer.service';
 import { LiquidityAddedService } from 'src/services/liquidity-added/liquidity-added.service';
-import { safeUint256ToBN } from './utils';
+import { ContractAddress } from '../common/types';
 
 @Injectable()
 export class LiquidityAddedIndexer {
@@ -15,7 +15,6 @@ export class LiquidityAddedIndexer {
   constructor(
     @Inject(LiquidityAddedService)
     private readonly liquidityAddedService: LiquidityAddedService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -44,7 +43,7 @@ export class LiquidityAddedIndexer {
         hash.getSelectorFromName('LiquidityCreated'),
       ):
         this.logger.log('Event name: LiquidityCreated');
-        this.handleLiquidityAddedEvent(header, event, transaction);
+        await this.handleLiquidityAddedEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
@@ -56,56 +55,101 @@ export class LiquidityAddedIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    const blockNumber = header.blockNumber;
-    const blockHashBigInt = BigInt(FieldElement.toHex(header.blockHash));
-    const blockHash = `0x${blockHashBigInt.toString(16).padStart(64, '0')}`;
-    const blockTimestamp = header.timestamp;
+    const {
+      blockNumber,
+      blockHash: blockHashFelt,
+      timestamp: blockTimestamp,
+    } = header;
 
-    const transactionHashBigInt = BigInt(
-      FieldElement.toHex(transaction.meta.hash),
-    );
-    const transactionHash = `0x${transactionHashBigInt.toString(16).padStart(64, '0')}`;
+    const blockHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transactionHashFelt = transaction.meta.hash;
+    const transactionHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
     const transferId = `${transactionHash}_${event.index}`;
 
-    const [, callerFelt, tokenAddressFelt] = event.keys;
-    const callerBigInt = BigInt(FieldElement.toHex(callerFelt));
-    const tokenBigInt = BigInt(FieldElement.toHex(tokenAddressFelt));
-    const ownerAddress = `0x${callerBigInt.toString(16).padStart(64, '0')}`;
-    const tokenAddress = `0x${tokenBigInt.toString(16).padStart(64, '0')}`;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, idFeltLow, idFeltHigh, poolFelt, assetFelt, tokenAddressFelt] =
+      event.keys;
+    // const id = validateAndParseAddress(
+    //   `0x${FieldElement.toBigInt(idFelt).toString(16)}`,
+    // ) as ContractAddress;
+    const idRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(idFeltLow),
+      high: FieldElement.toBigInt(idFeltHigh),
+    });
+    const id = formatUnits(idRaw, constants.DECIMALS).toString();
+    const pool = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(poolFelt).toString(16)}`,
+    ) as ContractAddress;
+    const assetAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(assetFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const tokenAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
+    ) as ContractAddress;
 
     const [
-      amountLow,
-      amountHigh,
-      priceLow,
-      priceHigh,
-      protocolFeeLow,
-      protocolFeeHigh,
-      lastPriceLow,
-      lastPriceHigh,
-      quoteAmountLow,
-      quoteAmountHigh,
+      ownerFelt,
+      // amountHigh,
+      // priceLow,
+      // priceHigh,
+      // protocolFeeLow,
+      // protocolFeeHigh,
+      // lastPriceLow,
+      // lastPriceHigh,
+      // timestampFelt,
+      // quoteAmountLow,
+      // quoteAmountHigh,
     ] = event.data;
 
-    const amountRaw = safeUint256ToBN(amountLow, amountHigh);
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+    const ownerAddress = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(ownerFelt).toString(16)}`,
+    ) as ContractAddress;
+    // const amountRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(amountLow),
+    //   high: FieldElement.toBigInt(amountHigh),
+    // });
+    // const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
 
-    const priceRaw = safeUint256ToBN(priceLow, priceHigh);
-    const price = formatUnits(priceRaw, constants.DECIMALS);
+    // const priceRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(priceLow),
+    //   high: FieldElement.toBigInt(priceHigh),
+    // });
+    // const price = formatUnits(priceRaw, constants.DECIMALS);
 
-    const protocolFeeRaw = safeUint256ToBN(protocolFeeLow, protocolFeeHigh);
-    const protocolFee = formatUnits(
-      protocolFeeRaw,
-      constants.DECIMALS,
-    ).toString();
+    // const protocolFeeRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(protocolFeeLow),
+    //   high: FieldElement.toBigInt(protocolFeeHigh),
+    // });
+    // const protocolFee = formatUnits(
+    //   protocolFeeRaw,
+    //   constants.DECIMALS,
+    // ).toString();
 
-    const lastPriceRaw = safeUint256ToBN(lastPriceLow, lastPriceHigh);
-    const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
+    // const lastPriceRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(lastPriceLow),
+    //   high: FieldElement.toBigInt(lastPriceHigh),
+    // });
+    // const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
-    const quoteAmountRaw = safeUint256ToBN(quoteAmountLow, quoteAmountHigh);
-    const quoteAmount = formatUnits(
-      quoteAmountRaw,
-      constants.DECIMALS,
-    ).toString();
+    // const quoteAmountRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(quoteAmountLow ?? amountLow),
+    //   high: FieldElement.toBigInt(quoteAmountHigh ?? amountHigh),
+    // });
+    // const quoteAmount = formatUnits(
+    //   quoteAmountRaw,
+    //   constants.DECIMALS,
+    // ).toString();
+
+    // const timestamp = new Date(
+    //   Number(FieldElement.toBigInt(timestampFelt)) * 1000,
+    // );
 
     const data = {
       transferId,
@@ -115,13 +159,19 @@ export class LiquidityAddedIndexer {
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       ownerAddress,
+      assetAddress,
       memecoinAddress: tokenAddress,
-      amount: Number(amount),
-      price,
-      protocolFee,
-      lastPrice,
-      quoteAmount,
-      timestamp: new Date(Number(blockTimestamp.seconds) * 1000).toISOString(),
+      pool,
+      id,
+      // timestamp:blockTimestamp?.seconds,
+      date: new Date(Number(blockTimestamp.seconds) * 1000),
+      timestamp: new Date(Number(blockTimestamp.seconds) * 1000)?.toString(),
+      // amount: Number(amount),
+      // price,
+      // protocolFee,
+      // lastPrice,
+      // quoteAmount,
+      // timestamp,
       transactionType: 'buy',
     };
 

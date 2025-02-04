@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash } from 'starknet';
+import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { SellTokenService } from 'src/services/sell-token/sell-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -15,7 +15,6 @@ export class SellTokenIndexer {
   constructor(
     @Inject(SellTokenService)
     private readonly sellTokenService: SellTokenService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -42,7 +41,7 @@ export class SellTokenIndexer {
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('SellToken')):
         this.logger.log('Event name: SellToken');
-        this.handleSellTokenEvent(header, event, transaction);
+        await this.handleSellTokenEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
@@ -89,6 +88,8 @@ export class SellTokenIndexer {
       priceHigh,
       protocolFeeLow,
       protocolFeeHigh,
+      creatorFeeLow,
+      creatorFeeHigh,
       timestampFelt,
       lastPriceLow,
       lastPriceHigh,
