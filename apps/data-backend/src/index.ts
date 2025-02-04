@@ -1,17 +1,13 @@
 import Fastify from 'fastify';
-import fs from 'fs';
 import fastifyCors from '@fastify/cors';
 import fastifyIO from 'fastify-socket.io';
 import { Server as SocketIOServer } from 'socket.io';
 import path from 'path';
 import { config } from './config';
 import { setupWebSocket } from './services/livestream/socket';
-import { authRoutes } from './routes/auth';
-import { indexerRoutes } from './routes/indexer/index';
 import authPlugin from './plugins/auth';
 import jwt from 'jsonwebtoken';
 import prismaPlugin from './plugins/prisma';
-import twitterPlugin from './plugins/twitter-oauth';
 import { launchBot } from './services/telegram-app';
 import declareRoutes from './router';
 import fastifySession from '@fastify/session';
@@ -84,7 +80,7 @@ async function buildServer() {
   });
 
   fastify.register(fastifySession, {
-    secret: JWT_SECRET ?? 'your-secret-key',
+    secret: JWT_SECRET,
     cookie: { secure: process.env.NODE_ENV == 'production' ? true : false }, // Set to true in production
   });
 
