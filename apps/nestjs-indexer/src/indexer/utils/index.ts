@@ -1,33 +1,61 @@
 import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
-import { Logger } from '@nestjs/common';
+import { uint256, validateAndParseAddress } from 'starknet';
+import { ContractAddress } from '../../common/types';
+import { formatUnits } from 'viem';
+import constants from '../../common/constants';
+import { apibara } from '@apibara/starknet/dist/proto/generated';
+import IFieldElement = apibara.starknet.v1alpha2.IFieldElement;
 
-export function safeUint256ToBN(
-  lowFelt: starknet.IFieldElement,
-  highFelt: starknet.IFieldElement,
-): bigint {
-  try {
-    // Convert FieldElements to BigInts directly
-    const low = FieldElement.toBigInt(lowFelt);
-    const high = FieldElement.toBigInt(highFelt);
+export function getEventTxData(
+  header: starknet.IBlockHeader,
+  transaction: starknet.ITransaction,
+) {
+  const {
+    blockNumber,
+    blockHash: blockHashFelt,
+    timestamp: blockTimestamp,
+  } = header;
 
-    Logger.debug(`Converting uint256 - low: ${low}, high: ${high}`);
+  const blockHash = validateAndParseAddress(
+    `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
+  ) as ContractAddress;
 
-    // Validate the low and high values
-    const UINT_128_MAX = BigInt('0xffffffffffffffffffffffffffffffff');
-    if (low > UINT_128_MAX || high > UINT_128_MAX) {
-      Logger.warn(`Low or high value exceeds maximum ${UINT_128_MAX}`);
-      // Handle overflow by capping at max value
-      return UINT_128_MAX;
-    }
+  const transactionHashFelt = transaction.meta.hash;
+  const transactionHash = validateAndParseAddress(
+    `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
+  ) as ContractAddress;
 
-    // Combine high and low parts into a single bigint
-    const fullValue = (high << BigInt(128)) + low;
+  return {
+    network: 'starknet-sepolia',
+    transactionHash,
+    blockNumber: Number(blockNumber),
+    blockHash,
+    blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+  };
+}
 
-    Logger.debug(`Full value: ${fullValue}`);
+export function feltToAddress(addressFelt: IFieldElement) {
+  return validateAndParseAddress(
+    `0x${FieldElement.toBigInt(addressFelt).toString(16)}`,
+  ) as ContractAddress;
+}
 
-    return fullValue;
-  } catch (error) {
-    Logger.error('Error converting uint256:', error);
-    return BigInt(0);
-  }
+export function uint256ToHex(lowFelt: IFieldElement, highFelt: IFieldElement) {
+  return uint256
+    .uint256ToBN({
+      low: FieldElement.toBigInt(lowFelt),
+      high: FieldElement.toBigInt(highFelt),
+    })
+    .toString(16);
+}
+
+export function uint256ToAmount(
+  lowFelt: IFieldElement,
+  highFelt: IFieldElement,
+) {
+  const rawData = uint256.uint256ToBN({
+    low: FieldElement.toBigInt(lowFelt),
+    high: FieldElement.toBigInt(highFelt),
+  });
+  return Number(formatUnits(rawData, constants.DECIMALS));
 }

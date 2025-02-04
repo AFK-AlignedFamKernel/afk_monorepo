@@ -94,11 +94,6 @@ export class TipService {
           `Claim error: Record with deposit ID ${data.depositId} already claimed`,
         );
         return;
-      } else if (tipClaimRecord.block_hash !== data.blockHash) {
-        this.logger.warn(
-          `Claim error: Record with deposit ID ${data.depositId} has different block hash`,
-        );
-        return;
       }
 
       await this.prismaService.tip_deposit.update({
@@ -130,14 +125,9 @@ export class TipService {
           `Cancel error: Record with deposit ID ${data.depositId} does not exists`,
         );
         return;
-      } else if (tipCancelRecord.is_claimed) {
+      } else if (tipCancelRecord.is_cancelled) {
         this.logger.warn(
-          `Cancel error: Record with deposit ID ${data.depositId} already claimed`,
-        );
-        return;
-      } else if (tipCancelRecord.block_hash !== data.blockHash) {
-        this.logger.warn(
-          `Cancel error: Record with deposit ID ${data.depositId} has different block hash`,
+          `Cancel error: Record with deposit ID ${data.depositId} already cancelled`,
         );
         return;
       }

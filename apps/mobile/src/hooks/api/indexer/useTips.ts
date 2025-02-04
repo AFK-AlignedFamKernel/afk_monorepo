@@ -19,7 +19,7 @@ export type Tip = {
   gasTokenAddress?: string;
   isCancelled: boolean;
   isClaimed: boolean;
-  createdAt?: Date;
+  createdAt: Date;
   updatedAt?: Date;
 };
 
@@ -37,8 +37,8 @@ const convertToCamelCase = (tip: any): Tip => {
     gasTokenAddress: tip.gas_token_address,
     isCancelled: tip.is_cancelled,
     isClaimed: tip.is_claimed,
-    createdAt: tip.created_at,
-    updatedAt: tip.updated_at,
+    createdAt: new Date(tip.created_at),
+    updatedAt: tip.updated_at ? new Date(tip.updated_at) : undefined,
   };
 };
 

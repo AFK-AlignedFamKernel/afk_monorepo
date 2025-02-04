@@ -11,69 +11,6 @@ interface TipParams {
 }
 
 async function tipServiceRoute(fastify: FastifyInstance, options: RouteOptions) {
-  // Get all tips
-  fastify.get('/tips', async (request, reply) => {
-    try {
-      const tips = await prisma.tip_deposit.findMany({
-        select: {
-          transaction_hash: true,
-          deposit_id: true,
-          sender: true,
-          nostr_recipient: true,
-          starknet_recipient: true,
-          token_address: true,
-          amount: true,
-          gas_amount: true,
-          is_claimed: true,
-          is_cancelled: true,
-          created_at: true,
-          updated_at: true,
-        },
-      });
-
-      reply.status(HTTPStatus.OK).send({
-        data: tips,
-      });
-    } catch (error) {
-      console.error('Error fetching tips:', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
-
-  // Get tip by deposit ID
-  fastify.get<{
-    Params: TipParams;
-  }>('/tips/:deposit_id', async (request, reply) => {
-    try {
-      const { deposit_id } = request.params;
-
-      const tip = await prisma.tip_deposit.findUnique({
-        where: { deposit_id },
-        select: {
-          transaction_hash: true,
-          deposit_id: true,
-          sender: true,
-          nostr_recipient: true,
-          starknet_recipient: true,
-          token_address: true,
-          amount: true,
-          gas_amount: true,
-          is_claimed: true,
-          is_cancelled: true,
-          created_at: true,
-          updated_at: true,
-        },
-      });
-
-      reply.status(HTTPStatus.OK).send({
-        data: tip,
-      });
-    } catch (error) {
-      console.error('Error fetching tip:', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
-
   // Get tips by sender
   fastify.get<{
     Params: TipParams;
@@ -130,7 +67,10 @@ async function tipServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
       }
 
       const tipsDeposit = await prisma.tip_deposit.findMany({
-        where: { nostr_recipient },
+        where: {
+          nostr_recipient,
+          is_cancelled: false,
+        },
         select: {
           transaction_hash: true,
           deposit_id: true,
