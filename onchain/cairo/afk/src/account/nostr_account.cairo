@@ -2,8 +2,9 @@ use starknet::account::Call;
 use starknet::{ContractAddress, get_caller_address, get_contract_address};
 // contract_address_const};
 use afk::social::profile::NostrProfile;
-use afk::social::request::SocialRequest;
+use afk::social::request::{SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage, NostrEventBasic};
 use afk::social::transfer::Transfer;
+use afk::bip340::SchnorrSignature;
 
 #[starknet::interface]
 pub trait INostrAccount<TContractState> {
@@ -13,8 +14,10 @@ pub trait INostrAccount<TContractState> {
     fn init_nostr_account(ref self: TContractState);
     fn set_vrf_contract_address(ref self: TContractState, vrf_contract_address: ContractAddress);
 
-    // fn sign_message(ref self: TContractState, message: Array<felt252>) -> Array<felt252>;
-    // fn sign_nostr_event(ref self: TContractState, message: SocialRequest<T>) -> Array<felt252>;
+    fn sign_message(ref self: TContractState, message: ByteArray) -> SchnorrSignature;
+    fn sign_nostr_event(ref self: TContractState, nostr_event: UnsignedSocialRequestMessage) -> SchnorrSignature;
+    fn generate_nostr_signature_based_on_inputs(ref self: TContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray, ) -> SchnorrSignature;
+    fn generate_nostr_event(ref self: TContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray, ) -> NostrEventBasic;
     // fn get_nostr_signature(ref self: TContractState, message: SocialRequest<T>) -> Array<felt252>;
 
     // fn handle_transfer(ref self: TContractState, request: SocialRequest<Transfer>);
@@ -35,7 +38,7 @@ pub trait ISRC6<TState> {
 #[starknet::contract(account)]
 pub mod NostrAccount {
     use afk::bip340;
-    use afk::bip340::{verify, verify_sig, sign, generate_keypair};
+    use afk::bip340::{verify, verify_sig, sign, generate_keypair, SchnorrSignature, encodeUnsignedSocialRequestMessage, Signature};
 
     use afk::pedersen::{pedersen_commit, verify_commitment, hash_to_curve};
     use core::hash::{HashStateTrait, HashStateExTrait,};
@@ -54,7 +57,7 @@ pub mod NostrAccount {
     use super::ISRC6;
 
     use afk::social::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
+        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, UnsignedSocialRequest, UnsignedSocialRequestMessage, NostrEventBasic
     };
     use afk::social::transfer::Transfer;
     use super::{INostrAccountDispatcher, INostrAccountDispatcherTrait};
@@ -162,7 +165,7 @@ pub mod NostrAccount {
             // let is_valid = verify_commitment(commitment, private_key.try_into().unwrap(), salt, H);
             // assert(is_valid, 'The commitment is not valid');
 
-            // TODO encrypte the private key
+            // TODO encrypte the private key with a Salt/Signature of the Starknet account
             // let encrypted_private_key = encrypt(private_key.try_into().unwrap());
             // let encrypted_private_key = commitment;
             self.private_key.write(private_key.try_into().unwrap());
@@ -175,6 +178,89 @@ pub mod NostrAccount {
             // self.starknet_address.write(get_caller_address());
         }
 
+        fn sign_message(ref self: ContractState, message: ByteArray) -> SchnorrSignature {
+            assert!(self.private_key.read().is_zero(), "account already initialized");
+            if !self.starknet_address.read().is_zero() {
+                assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
+            }
+            let private_key = self.private_key.read();
+
+            let pk_u256= private_key.try_into().unwrap();
+
+            let signature = sign(pk_u256, message, self.vrf_contract_address.read());
+            signature
+        }
+
+        fn sign_nostr_event(ref self: ContractState, nostr_event: UnsignedSocialRequestMessage) -> SchnorrSignature {
+            assert!(self.private_key.read().is_zero(), "account already initialized");
+            if !self.starknet_address.read().is_zero() {
+                assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
+            }
+            let private_key = self.private_key.read();
+            let pk_u256= private_key.try_into().unwrap();
+            let message = encodeUnsignedSocialRequestMessage(nostr_event);
+            // let message = nostr_event.encode();
+            let signature = sign(pk_u256, message, self.vrf_contract_address.read());
+            signature
+        }
+        
+        fn generate_nostr_signature_based_on_inputs(ref self: ContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray) -> SchnorrSignature {
+            assert!(self.private_key.read().is_zero(), "account already initialized");
+            if !self.starknet_address.read().is_zero() {
+                assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
+            }
+            let private_key = self.private_key.read();
+            let pk_u256= private_key.try_into().unwrap();
+
+            let public_key = self.nostr_public_key.read();
+
+            let nostr_event = UnsignedSocialRequestMessage{
+                public_key:public_key,
+                created_at:created_at,
+                kind,
+                tags,
+                content,
+            };
+            let message = encodeUnsignedSocialRequestMessage(nostr_event);
+            // let message = nostr_event.encode();
+            let signature = sign(pk_u256, message, self.vrf_contract_address.read());
+            
+            signature
+        }
+
+        fn generate_nostr_event(ref self: ContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray) -> NostrEventBasic {
+            assert!(self.private_key.read().is_zero(), "account already initialized");
+            if !self.starknet_address.read().is_zero() {
+                assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
+            }
+            let private_key = self.private_key.read();
+            let pk_u256= private_key.try_into().unwrap();
+
+            let public_key = self.nostr_public_key.read();
+
+            let nostr_event = UnsignedSocialRequestMessage{
+                public_key:public_key.clone(),
+                created_at:created_at.clone()   ,
+                kind:kind.clone(),
+                tags:tags.clone(),
+                content:content.clone(),
+            };
+            let message = encodeUnsignedSocialRequestMessage(nostr_event);
+            // let message = nostr_event.encode();
+            let signature = sign(pk_u256, message, self.vrf_contract_address.read());
+
+            let event_signed = NostrEventBasic {
+                public_key:public_key,
+                created_at:created_at,
+                kind,
+                tags,
+                content,
+                sig:signature,
+                // ..nostr_event.clone(),
+            };
+            
+            event_signed
+        }
         // fn handle_transfer(ref self: ContractState, request: SocialRequest<Transfer>) {
         //     // TODO: is this check necessary
         //     assert!(request.public_key == self.public_key.read(), "wrong sender");
@@ -300,8 +386,9 @@ mod tests {
         ContractAddress, get_caller_address, get_contract_address, contract_address_const, VALIDATED
     };
     use afk::social::profile::NostrProfile;
+    use afk::bip340::{Signature, SchnorrSignature};
 
-    use afk::social::request::{SocialRequest, Signature, Encode};
+    use afk::social::request::{SocialRequest, Encode, UnsignedSocialRequest, ConvertToBytes, UnsignedSocialRequestMessage};
     use afk::social::transfer::Transfer;
     use super::{
         INostrAccountDispatcher, INostrAccountDispatcherTrait, INostrAccountSafeDispatcher,
@@ -311,9 +398,13 @@ mod tests {
     // Sepolia
     // const VRF_CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
     // const VRF_CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;^
+    // fn VRF_CONTRACT_ADDRESS() -> ContractAddress {
+    //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+    // }
     fn VRF_CONTRACT_ADDRESS() -> ContractAddress {
-        0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+        0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f.try_into().unwrap()
     }
+    
     fn declare_account() -> @ContractClass {
         declare("NostrAccount").unwrap().contract_class()
     }
@@ -387,7 +478,9 @@ mod tests {
         SocialRequest<Transfer>,
         INostrAccountDispatcher,
         INostrAccountDispatcher,
-        IERC20Dispatcher
+        IERC20Dispatcher,
+        UnsignedSocialRequestMessage,
+
     ) {
         // sender private key: 70aca2a9ab722bd56a9a1aadae7f39bc747c7d6735a04d677e0bc5dbefa71d47
         // just for testing, do not use for anything else
@@ -430,21 +523,30 @@ mod tests {
             created_at: 1716285235_u64,
             kind: 1_u16,
             tags: "[]",
-            content: transfer,
-            sig: Signature {
+            content: transfer.clone(),
+            sig: SchnorrSignature {
                 r: 0x3570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
             }
         };
 
-        (request, sender, recipient, erc20)
+        let unsigned_request = UnsignedSocialRequestMessage {
+            public_key: nostr_sender_public_key.clone(),
+            created_at: 1716285235_u64,
+            kind: 1_u16,
+            tags: "[]",
+            content: "LFG",
+        };
+
+        (request, sender, recipient, erc20, unsigned_request)
     }
 
     fn request_fixture() -> (
         SocialRequest<Transfer>,
         INostrAccountDispatcher,
         INostrAccountDispatcher,
-        IERC20Dispatcher
+        IERC20Dispatcher,
+        UnsignedSocialRequestMessage
     ) {
         let erc20_class = declare_erc20();
         let account_class = declare_account();
@@ -456,10 +558,124 @@ mod tests {
     fn init_nostr_account() {
         // let public_key: u256 = 45;
         let public_key: ContractAddress = OWNER();
+        start_cheat_caller_address_global(public_key);
         let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
         account.init_nostr_account();
         // assert!(account.get_public_key() == public_key, "wrong public_key");
     }
+
+    #[test]
+    #[fork("Sepolia")]
+    fn test_sign_message() {
+        // let public_key: u256 = 45;
+        let public_key: ContractAddress = OWNER();
+        start_cheat_caller_address_global(public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        account.init_nostr_account();
+
+
+        let message= "Hello, world!";
+
+        let signature = account.sign_message(message);
+
+        // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature, VRF_CONTRACT_ADDRESS());
+        // assert!(is_valid, "signature is not valid");
+        // assert!(account.get_public_key() == public_key, "wrong public_key");
+    }
+
+    #[test]
+    #[fork("Sepolia")]
+    fn test_sign_nostr_event() {
+        let public_key: ContractAddress = OWNER();
+        start_cheat_caller_address_global(public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        account.init_nostr_account();
+
+
+        let erc20_class = declare_erc20();
+        let account_class = declare_account();
+
+        let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(erc20_class, account_class);
+
+        let request = UnsignedSocialRequestMessage {
+            ..unsigned_request,
+        };
+        let signature = account.sign_nostr_event(request);
+        // let signature = account.sign_message(message);
+
+        // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature, VRF_CONTRACT_ADDRESS());
+        // assert!(is_valid, "signature is not valid");
+        // assert!(account.get_public_key() == public_key, "wrong public_key");
+    }
+
+    #[test]
+    fn test_get_starknet_public_key() {
+        // let public_key: u256 = 45;
+        let public_key: ContractAddress = OWNER();
+
+        // let account = deploy_account(declare_account(), public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+
+        assert!(account.get_starknet_public_key() == public_key, "wrong public_key");
+    }
+    // #[fork("Mainnet")]
+    #[test]
+    #[fork("Sepolia")]
+    fn is_valid_signature() {
+        let public_key: ContractAddress = OWNER();
+
+        let account_class = declare_account();
+        let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS());
+
+        let account = ISRC6Dispatcher { contract_address: account.contract_address };
+
+        let hash = 0x6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
+
+        let r: u256 = 0x49ae3fa614e2877877a90987726f1b48387bef1f66de78e5075659040cbbf612;
+        let s: u256 = 0x11259ae25e0743ac7490df3fef875ea291c7b99cf2295e44aabd677107b9c53a;
+
+        let mut signature = Default::default();
+        r.serialize(ref signature);
+        s.serialize(ref signature);
+
+        assert!(account.is_valid_signature(hash, signature.clone()) == starknet::VALIDATED);
+
+        let invalid_hash = 0x5a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
+
+        assert!(account.is_valid_signature(invalid_hash, signature) != starknet::VALIDATED);
+    }
+
+    // #[test]
+    // fn validate_transaction() {
+    //     let public_key: ContractAddress = OWNER();
+
+    //     let account_class = declare_account();
+    //     let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS);
+
+    //     let account = ISRC6Dispatcher { contract_address: account.contract_address };
+
+    //     let hash = 0x6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
+
+    //     let r: u256 = 0x49ae3fa614e2877877a90987726f1b48387bef1f66de78e5075659040cbbf612;
+    //     let s: u256 = 0x11259ae25e0743ac7490df3fef875ea291c7b99cf2295e44aabd677107b9c53a;
+
+    //     let mut signature = Default::default();
+    //     r.serialize(ref signature);
+    //     s.serialize(ref signature);
+
+    //     // cheat_transaction_hash_global(hash);
+    //     // cheat_signature_global(signature.span());
+
+    //     assert!(account.__validate__(Default::default()) == starknet::VALIDATED);
+
+    //     let invalid_hash = 0x5a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
+    //     cheat_transaction_hash_global(invalid_hash);
+
+    //     assert!(account.__validate__(Default::default()) != starknet::VALIDATED);
+
+    //     stop_cheat_transaction_hash_global();
+    //     // stop_cheat_signature_global();
+    // }
 
     // #[test]
     // fn test_get_public_key() {
@@ -472,16 +688,6 @@ mod tests {
     //     assert!(account.get_public_key() == public_key, "wrong public_key");
     // }
 
-    #[test]
-    fn test_get_starknet_public_key() {
-        // let public_key: u256 = 45;
-        let public_key: ContractAddress = OWNER();
-
-        // let account = deploy_account(declare_account(), public_key);
-        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
-
-        assert!(account.get_starknet_public_key() == public_key, "wrong public_key");
-    }
 
     // #[test]
     // fn successful_transfer() {
@@ -562,62 +768,7 @@ mod tests {
     //     sender.handle_transfer(request2);
     // }
 
-    #[test]
-    fn is_valid_signature() {
-        let public_key: ContractAddress = OWNER();
 
-        let account_class = declare_account();
-        let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS());
-
-        let account = ISRC6Dispatcher { contract_address: account.contract_address };
-
-        let hash = 0x6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-
-        let r: u256 = 0x49ae3fa614e2877877a90987726f1b48387bef1f66de78e5075659040cbbf612;
-        let s: u256 = 0x11259ae25e0743ac7490df3fef875ea291c7b99cf2295e44aabd677107b9c53a;
-
-        let mut signature = Default::default();
-        r.serialize(ref signature);
-        s.serialize(ref signature);
-
-        assert!(account.is_valid_signature(hash, signature.clone()) == starknet::VALIDATED);
-
-        let invalid_hash = 0x5a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-
-        assert!(account.is_valid_signature(invalid_hash, signature) != starknet::VALIDATED);
-    }
-
-    // #[test]
-    // fn validate_transaction() {
-    //     let public_key: ContractAddress = OWNER();
-
-    //     let account_class = declare_account();
-    //     let account = deploy_account(account_class, public_key, VRF_CONTRACT_ADDRESS);
-
-    //     let account = ISRC6Dispatcher { contract_address: account.contract_address };
-
-    //     let hash = 0x6a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-
-    //     let r: u256 = 0x49ae3fa614e2877877a90987726f1b48387bef1f66de78e5075659040cbbf612;
-    //     let s: u256 = 0x11259ae25e0743ac7490df3fef875ea291c7b99cf2295e44aabd677107b9c53a;
-
-    //     let mut signature = Default::default();
-    //     r.serialize(ref signature);
-    //     s.serialize(ref signature);
-
-    //     // cheat_transaction_hash_global(hash);
-    //     // cheat_signature_global(signature.span());
-
-    //     assert!(account.__validate__(Default::default()) == starknet::VALIDATED);
-
-    //     let invalid_hash = 0x5a8885a308d313198a2e03707344a4093822299f31d0082efa98ec4e6c89;
-    //     cheat_transaction_hash_global(invalid_hash);
-
-    //     assert!(account.__validate__(Default::default()) != starknet::VALIDATED);
-
-    //     stop_cheat_transaction_hash_global();
-    //     // stop_cheat_signature_global();
-    // }
 }
 
 
