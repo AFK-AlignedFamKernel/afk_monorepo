@@ -1,14 +1,13 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useNavigation} from '@react-navigation/native';
 import {useAccount, useProvider} from '@starknet-react/core';
-import {Fraction} from '@uniswap/sdk-core';
 // import {useNostrContext} from '../../context/NostrContext';
 import {useNostrContext} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {ActivityIndicator, FlatList, RefreshControl, View} from 'react-native';
 import {byteArray, cairo, CallData, getChecksumAddress, uint256} from 'starknet';
 
-import {Button, Divider, Text} from '../../components';
+import {Button, Text} from '../../components';
 import {ESCROW_ADDRESSES} from '../../constants/contracts';
 import {CHAIN_ID} from '../../constants/env';
 import {Entrypoint} from '../../constants/misc';
@@ -17,7 +16,6 @@ import {useClaim, useEstimateClaim} from '../../hooks/api';
 import {useTips} from '../../hooks/api/indexer/useTips';
 import {useToast, useTransaction, useTransactionModal, useWalletModal} from '../../hooks/modals';
 import {MainStackNavigationProps} from '../../types';
-import {decimalsScale} from '../../utils/helpers';
 import stylesheet from './styles';
 
 export const TipsComponent: React.FC = () => {
@@ -147,7 +145,7 @@ export const TipsComponent: React.FC = () => {
 
           return (
             <View style={styles.tip}>
-              <View style={styles.tokenInfo}>
+              <View style={styles.tipInfo}>
                 <View style={styles.token}>
                   <Text weight="semiBold" fontSize={17}>
                     {amount}
@@ -157,54 +155,64 @@ export const TipsComponent: React.FC = () => {
                   </Text>
                 </View>
 
-                <View>
-                  {item.depositId ? (
-                    <>
-                      {item.isClaimed ? (
-                        <Button small variant="default" disabled>
-                          Claimed
-                        </Button>
-                      ) : (
-                        <Button
-                          small
-                          variant="primary"
-                          onPress={() => onClaimPress(item.depositId)}
-                          left={
-                            loading === item.depositId ? (
-                              <ActivityIndicator
-                                size="small"
-                                color={theme.colors.onPrimary}
-                                style={styles.buttonIndicator}
-                              />
-                            ) : undefined
-                          }
-                        >
-                          Claim
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <Button small variant="default" disabled>
-                      Received
-                    </Button>
-                  )}
+                <View style={styles.senderInfo}>
+                  <View
+                    style={[
+                      styles.sender,
+                      {flexDirection: 'row', justifyContent: 'flex-start', gap: 10},
+                    ]}
+                  >
+                    <Text weight="semiBold" color="text">
+                      From:{' '}
+                      {item?.sender
+                        ? `${item.sender.substring(0, 6)}...${item.sender.substring(
+                            item.sender.length - 4,
+                          )}`
+                        : 'Unknown'}
+                    </Text>
+                    <Text weight="semiBold" color="textSecondary" fontSize={13}>
+                      on{' '}
+                      {item.createdAt.toLocaleDateString('en-US', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
-              <Divider direction="horizontal" />
-
-              <View style={styles.senderInfo}>
-                <View style={styles.sender}>
-                  <Text weight="semiBold" color="text" numberOfLines={1} ellipsizeMode="middle">
-                    {item?.sender}
-                  </Text>
-                </View>
-
-                {/* <View>
-                  <Text weight="semiBold" color="textSecondary" fontSize={11}>
-                    24/06/2024
-                  </Text>
-                </View> */}
+              <View>
+                {item.depositId ? (
+                  <>
+                    {item.isClaimed ? (
+                      <Button small variant="default" disabled>
+                        Claimed
+                      </Button>
+                    ) : (
+                      <Button
+                        small
+                        variant="primary"
+                        onPress={() => onClaimPress(item.depositId)}
+                        left={
+                          loading === item.depositId ? (
+                            <ActivityIndicator
+                              size="small"
+                              color={theme.colors.onPrimary}
+                              style={styles.buttonIndicator}
+                            />
+                          ) : undefined
+                        }
+                      >
+                        Claim
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Button small variant="default" disabled>
+                    Received
+                  </Button>
+                )}
               </View>
             </View>
           );
