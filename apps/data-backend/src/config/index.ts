@@ -38,8 +38,15 @@ const rawConfig = {
   },
 } as const;
 
-// Parse and validate the configuration
-export const config = ConfigSchema.parse(rawConfig);
+// Parse and validate the configurations
+export const configRes = ConfigSchema.safeParse(rawConfig);
+
+if (!configRes.success) {
+  console.error('Environment variables are missing or not valid:', configRes.error.issues);
+  process.exit(1);
+}
+
+export const config = configRes.data;
 
 // Type inference
 export type Config = z.infer<typeof ConfigSchema>;
