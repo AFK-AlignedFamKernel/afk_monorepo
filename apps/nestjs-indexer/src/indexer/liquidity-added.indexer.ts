@@ -2,10 +2,10 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash } from 'starknet';
+import { validateAndParseAddress, hash } from 'starknet';
 import { IndexerService } from './indexer.service';
-import { ContractAddress } from 'src/common/types';
 import { LiquidityAddedService } from 'src/services/liquidity-added/liquidity-added.service';
+import { safeUint256ToBN } from './utils';
 
 @Injectable()
 export class LiquidityAddedIndexer {
@@ -40,7 +40,9 @@ export class LiquidityAddedIndexer {
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
-      case validateAndParseAddress(hash.getSelectorFromName('LiquidityCreated')):
+      case validateAndParseAddress(
+        hash.getSelectorFromName('LiquidityCreated'),
+      ):
         this.logger.log('Event name: LiquidityCreated');
         this.handleLiquidityAddedEvent(header, event, transaction);
         break;
@@ -54,134 +56,75 @@ export class LiquidityAddedIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    try {
-      const {
-        blockNumber,
-        blockHash: blockHashFelt,
-        timestamp: blockTimestamp,
-      } = header;
-  
-      const blockHash = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
-      ) as ContractAddress;
-  
-      const transactionHashFelt = transaction.meta.hash;
-      const transactionHash = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
-      ) as ContractAddress;
-  
-      const transferId = `${transactionHash}_${event.index}`;
-  
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, idFeltLow, idFeltHigh, poolFelt, assetFelt, tokenAddressFelt] = event.keys;
-      // const id = validateAndParseAddress(
-      //   `0x${FieldElement.toBigInt(idFelt).toString(16)}`,
-      // ) as ContractAddress;
-      const idRaw = uint256.uint256ToBN({
-        low: FieldElement.toBigInt(idFeltLow),
-        high: FieldElement.toBigInt(idFeltHigh),
-      });
-      const id = formatUnits(idRaw, constants.DECIMALS).toString();
+    const blockNumber = header.blockNumber;
+    const blockHashBigInt = BigInt(FieldElement.toHex(header.blockHash));
+    const blockHash = `0x${blockHashBigInt.toString(16).padStart(64, '0')}`;
+    const blockTimestamp = header.timestamp;
 
-      const pool = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(poolFelt).toString(16)}`,
-      ) as ContractAddress;
+    const transactionHashBigInt = BigInt(
+      FieldElement.toHex(transaction.meta.hash),
+    );
+    const transactionHash = `0x${transactionHashBigInt.toString(16).padStart(64, '0')}`;
+    const transferId = `${transactionHash}_${event.index}`;
 
-      const assetAddress = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(assetFelt).toString(16)}`,
-      ) as ContractAddress;
-  
-      const tokenAddress = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
-      ) as ContractAddress;
-  
-      const [
-        ownerFelt,
-        // amountHigh,
-        // priceLow,
-        // priceHigh,
-        // protocolFeeLow,
-        // protocolFeeHigh,
-        // lastPriceLow,
-        // lastPriceHigh,
-        // timestampFelt,
-        // quoteAmountLow,
-        // quoteAmountHigh,
-      ] = event.data;
-  
-      const ownerAddress = validateAndParseAddress(
-        `0x${FieldElement.toBigInt(ownerFelt).toString(16)}`,
-      ) as ContractAddress;
+    const [, callerFelt, tokenAddressFelt] = event.keys;
+    const callerBigInt = BigInt(FieldElement.toHex(callerFelt));
+    const tokenBigInt = BigInt(FieldElement.toHex(tokenAddressFelt));
+    const ownerAddress = `0x${callerBigInt.toString(16).padStart(64, '0')}`;
+    const tokenAddress = `0x${tokenBigInt.toString(16).padStart(64, '0')}`;
 
-      // const amountRaw = uint256.uint256ToBN({
-      //   low: FieldElement.toBigInt(amountLow),
-      //   high: FieldElement.toBigInt(amountHigh),
-      // });
-      // const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-  
-      // const priceRaw = uint256.uint256ToBN({
-      //   low: FieldElement.toBigInt(priceLow),
-      //   high: FieldElement.toBigInt(priceHigh),
-      // });
-      // const price = formatUnits(priceRaw, constants.DECIMALS);
-  
-      // const protocolFeeRaw = uint256.uint256ToBN({
-      //   low: FieldElement.toBigInt(protocolFeeLow),
-      //   high: FieldElement.toBigInt(protocolFeeHigh),
-      // });
-      // const protocolFee = formatUnits(
-      //   protocolFeeRaw,
-      //   constants.DECIMALS,
-      // ).toString();
-  
-      // const lastPriceRaw = uint256.uint256ToBN({
-      //   low: FieldElement.toBigInt(lastPriceLow),
-      //   high: FieldElement.toBigInt(lastPriceHigh),
-      // });
-      // const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
-  
-      // const quoteAmountRaw = uint256.uint256ToBN({
-      //   low: FieldElement.toBigInt(quoteAmountLow ?? amountLow),
-      //   high: FieldElement.toBigInt(quoteAmountHigh ?? amountHigh),
-      // });
-      // const quoteAmount = formatUnits(
-      //   quoteAmountRaw,
-      //   constants.DECIMALS,
-      // ).toString();
-  
-      // const timestamp = new Date(
-      //   Number(FieldElement.toBigInt(timestampFelt)) * 1000,
-      // );
-  
-      const data = {
-        transferId,
-        network: 'starknet-sepolia',
-        transactionHash,
-        blockNumber: Number(blockNumber),
-        blockHash,
-        blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-        ownerAddress,
-        assetAddress,
-        memecoinAddress: tokenAddress,
-        pool,
-        id,
-        // timestamp:blockTimestamp?.seconds,
-        date: new Date(Number(blockTimestamp.seconds) * 1000),
-        timestamp: new Date(Number(blockTimestamp.seconds) * 1000)?.toString(),
+    const [
+      amountLow,
+      amountHigh,
+      priceLow,
+      priceHigh,
+      protocolFeeLow,
+      protocolFeeHigh,
+      lastPriceLow,
+      lastPriceHigh,
+      quoteAmountLow,
+      quoteAmountHigh,
+    ] = event.data;
 
-        // amount: Number(amount),
-        // price,
-        // protocolFee,
-        // lastPrice,
-        // quoteAmount,
-        // timestamp,
-        transactionType: 'buy',
-      };
-  
-      await this.liquidityAddedService.create(data);
-    } catch (error) {
-      console.log("Error LiquidityAddedIndexer", error)
-      
-    }
+    const amountRaw = safeUint256ToBN(amountLow, amountHigh);
+    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+
+    const priceRaw = safeUint256ToBN(priceLow, priceHigh);
+    const price = formatUnits(priceRaw, constants.DECIMALS);
+
+    const protocolFeeRaw = safeUint256ToBN(protocolFeeLow, protocolFeeHigh);
+    const protocolFee = formatUnits(
+      protocolFeeRaw,
+      constants.DECIMALS,
+    ).toString();
+
+    const lastPriceRaw = safeUint256ToBN(lastPriceLow, lastPriceHigh);
+    const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
+
+    const quoteAmountRaw = safeUint256ToBN(quoteAmountLow, quoteAmountHigh);
+    const quoteAmount = formatUnits(
+      quoteAmountRaw,
+      constants.DECIMALS,
+    ).toString();
+
+    const data = {
+      transferId,
+      network: 'starknet-sepolia',
+      transactionHash,
+      blockNumber: Number(blockNumber),
+      blockHash,
+      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      ownerAddress,
+      memecoinAddress: tokenAddress,
+      amount: Number(amount),
+      price,
+      protocolFee,
+      lastPrice,
+      quoteAmount,
+      timestamp: new Date(Number(blockTimestamp.seconds) * 1000).toISOString(),
+      transactionType: 'buy',
+    };
+
+    await this.liquidityAddedService.create(data);
   }
 }
