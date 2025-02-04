@@ -5,6 +5,7 @@ import constants from 'src/common/constants';
 import { validateAndParseAddress, hash } from 'starknet';
 import { IndexerService } from './indexer.service';
 import { LiquidityAddedService } from 'src/services/liquidity-added/liquidity-added.service';
+import { safeUint256ToBN } from './utils';
 
 @Injectable()
 export class LiquidityAddedIndexer {
@@ -50,34 +51,6 @@ export class LiquidityAddedIndexer {
     }
   }
 
-  private safeUint256ToBN(
-    lowFelt: starknet.IFieldElement,
-    highFelt: starknet.IFieldElement,
-  ): bigint {
-    try {
-      const lowStr = FieldElement.toHex(lowFelt);
-      const highStr = FieldElement.toHex(highFelt);
-
-      const low = BigInt(`0x${lowStr}`);
-      const high = BigInt(`0x${highStr}`);
-
-      this.logger.debug(`Converting uint256 - low: ${low}, high: ${high}`);
-
-      const UINT_128_MAX = BigInt('0xffffffffffffffffffffffffffffffff');
-      if (low > UINT_128_MAX || high > UINT_128_MAX) {
-        this.logger.warn(`Low or high value exceeds maximum ${UINT_128_MAX}`);
-        return UINT_128_MAX;
-      }
-
-      const fullValue = (high << BigInt(128)) + low;
-      this.logger.debug(`Full value: ${fullValue}`);
-      return fullValue;
-    } catch (error) {
-      this.logger.error('Error converting uint256:', error);
-      return BigInt(0);
-    }
-  }
-
   private async handleLiquidityAddedEvent(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
@@ -113,28 +86,22 @@ export class LiquidityAddedIndexer {
       quoteAmountHigh,
     ] = event.data;
 
-    const amountRaw = this.safeUint256ToBN(amountLow, amountHigh);
+    const amountRaw = safeUint256ToBN(amountLow, amountHigh);
     const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
 
-    const priceRaw = this.safeUint256ToBN(priceLow, priceHigh);
+    const priceRaw = safeUint256ToBN(priceLow, priceHigh);
     const price = formatUnits(priceRaw, constants.DECIMALS);
 
-    const protocolFeeRaw = this.safeUint256ToBN(
-      protocolFeeLow,
-      protocolFeeHigh,
-    );
+    const protocolFeeRaw = safeUint256ToBN(protocolFeeLow, protocolFeeHigh);
     const protocolFee = formatUnits(
       protocolFeeRaw,
       constants.DECIMALS,
     ).toString();
 
-    const lastPriceRaw = this.safeUint256ToBN(lastPriceLow, lastPriceHigh);
+    const lastPriceRaw = safeUint256ToBN(lastPriceLow, lastPriceHigh);
     const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
-    const quoteAmountRaw = this.safeUint256ToBN(
-      quoteAmountLow,
-      quoteAmountHigh,
-    );
+    const quoteAmountRaw = safeUint256ToBN(quoteAmountLow, quoteAmountHigh);
     const quoteAmount = formatUnits(
       quoteAmountRaw,
       constants.DECIMALS,

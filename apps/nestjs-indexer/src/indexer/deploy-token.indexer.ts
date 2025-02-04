@@ -6,6 +6,7 @@ import { validateAndParseAddress, hash, shortString } from 'starknet';
 import { DeployTokenService } from 'src/services/deploy-token/deploy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
+import { safeUint256ToBN } from './utils';
 
 @Injectable()
 export class DeployTokenIndexer {
@@ -46,37 +47,6 @@ export class DeployTokenIndexer {
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
-    }
-  }
-
-  private safeUint256ToBN(
-    lowFelt: starknet.IFieldElement,
-    highFelt: starknet.IFieldElement,
-  ): bigint {
-    try {
-      // Convert FieldElements to BigInts directly
-      const low = FieldElement.toBigInt(lowFelt);
-      const high = FieldElement.toBigInt(highFelt);
-
-      this.logger.debug(`Converting uint256 - low: ${low}, high: ${high}`);
-
-      // Validate the low and high values
-      const UINT_128_MAX = BigInt('0xffffffffffffffffffffffffffffffff');
-      if (low > UINT_128_MAX || high > UINT_128_MAX) {
-        this.logger.warn(`Low or high value exceeds maximum ${UINT_128_MAX}`);
-        // Handle overflow by capping at max value
-        return UINT_128_MAX;
-      }
-
-      // Combine high and low parts into a single bigint
-      const fullValue = (high << BigInt(128)) + low;
-
-      this.logger.debug(`Full value: ${fullValue}`);
-
-      return fullValue;
-    } catch (error) {
-      this.logger.error('Error converting uint256:', error);
-      return BigInt(0);
     }
   }
 
@@ -131,7 +101,7 @@ export class DeployTokenIndexer {
         )
       : '';
 
-    const initialSupplyRaw = this.safeUint256ToBN(
+    const initialSupplyRaw = safeUint256ToBN(
       initialSupplyLow,
       initialSupplyHigh,
     );
@@ -140,10 +110,7 @@ export class DeployTokenIndexer {
       constants.DECIMALS,
     ).toString();
 
-    const totalSupplyRaw = this.safeUint256ToBN(
-      totalSupplyLow,
-      totalSupplyHigh,
-    );
+    const totalSupplyRaw = safeUint256ToBN(totalSupplyLow, totalSupplyHigh);
     const totalSupply = formatUnits(
       totalSupplyRaw,
       constants.DECIMALS,
