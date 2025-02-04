@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash } from 'starknet';
+import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
 import { ClaimUserShareService } from 'src/services/claim-user-share/claim-share.service';
@@ -15,7 +15,6 @@ export class ClaimUserShareIndexer {
   constructor(
     @Inject(ClaimUserShareService)
     private readonly claimUserShareService: ClaimUserShareService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -42,15 +41,14 @@ export class ClaimUserShareIndexer {
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('TokenClaimed')):
         this.logger.log('Event name: TokenClaimed');
-        this.handleClaimUserShareEvent(header, event, transaction);
+        await this.handleClaimUserShareEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
     }
   }
 
-
-  // TODO 
+  // TODO
   // finish handle claim event
   private async handleClaimUserShareEvent(
     header: starknet.IBlockHeader,
@@ -155,7 +153,7 @@ export class ClaimUserShareIndexer {
       quoteAmount,
       timestamp,
       transactionType: 'buy',
-      tokenAddress
+      tokenAddress,
     };
 
     await this.claimUserShareService.create(data);

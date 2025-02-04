@@ -15,7 +15,6 @@ export class NameServiceIndexer {
   constructor(
     @Inject(NameServiceService)
     private readonly nameServiceService: NameServiceService,
-
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -42,7 +41,7 @@ export class NameServiceIndexer {
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('UsernameClaimed')):
         this.logger.log('Event name: UsernameClaimed');
-        this.handleUsernameClaimedEvent(header, event, transaction);
+        await this.handleUsernameClaimedEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);

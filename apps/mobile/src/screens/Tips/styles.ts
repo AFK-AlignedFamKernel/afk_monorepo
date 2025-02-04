@@ -17,18 +17,20 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   separator: {
-    height: Spacing.xsmall,
+    height: 1,
+    backgroundColor: theme.colors.divider,
   },
 
   tip: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: theme.colors.surface,
     padding: Spacing.xsmall,
     borderRadius: 8,
     gap: Spacing.xsmall,
   },
-  tokenInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  tipInfo: {
+    gap: Spacing.xxsmall,
   },
   token: {
     flex: 1,

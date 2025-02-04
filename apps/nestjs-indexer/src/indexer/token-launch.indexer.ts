@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { uint256, validateAndParseAddress, hash, shortString } from 'starknet';
+import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { TokenLaunchService } from 'src/services/token-launch/token-launch.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -42,7 +42,7 @@ export class TokenLaunchIndexer {
     switch (eventKey) {
       case validateAndParseAddress(hash.getSelectorFromName('CreateLaunch')):
         this.logger.log('Event name: CreateLaunch');
-        this.handleTokenLaunchEvent(header, event, transaction);
+        await this.handleTokenLaunchEvent(header, event, transaction);
         break;
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
@@ -95,7 +95,7 @@ export class TokenLaunchIndexer {
       slopeHigh,
       thresholdLiquidityLow,
       thresholdLiquidityHigh,
-      bondingTypeFelt
+      bondingTypeFelt,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -135,17 +135,17 @@ export class TokenLaunchIndexer {
       thresholdLiquidityRaw,
       constants.DECIMALS,
     ).toString();
-    console.log("thresholdLiquidity", thresholdLiquidity)
+    console.log('thresholdLiquidity', thresholdLiquidity);
 
     // const bondingType = bondingTypeFelt;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const bondingType = bondingTypeFelt
-    ? shortString.decodeShortString(
-        FieldElement.toBigInt(bondingTypeFelt).toString(),
-      )
-    : '';
+      ? shortString.decodeShortString(
+          FieldElement.toBigInt(bondingTypeFelt).toString(),
+        )
+      : '';
 
-    console.log("bondingType", bondingType)
+    console.log('bondingType', bondingType);
 
     const data = {
       transactionHash,
@@ -160,7 +160,7 @@ export class TokenLaunchIndexer {
       price,
       ownerAddress,
       bondingType,
-      thresholdLiquidity
+      thresholdLiquidity,
     };
 
     await this.tokenLaunchService.create(data);

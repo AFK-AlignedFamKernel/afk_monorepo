@@ -3,14 +3,15 @@ import { StreamClient, v1alpha2 } from '@apibara/protocol';
 import {
   FieldElement,
   Filter,
-  v1alpha2 as starknet,
   StarkNetCursor,
+  v1alpha2 as starknet,
 } from '@apibara/starknet';
 import { validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
 import { env } from 'src/common/env';
 import { IndexerConfig } from './interfaces';
 import { PrismaClient } from 'indexer-prisma';
+
 const prisma = new PrismaClient();
 
 @Injectable()
@@ -79,6 +80,9 @@ export class IndexerService {
     const contractAddressFieldElements = [
       validateAndParseAddress(constants.contracts.sepolia.LAUNCHPAD_ADDRESS),
       validateAndParseAddress(constants.contracts.sepolia.NAMESERVICE_ADDRESS),
+      validateAndParseAddress(
+        constants.contracts.sepolia.ESCROW_DEPOSIT_ADDRESS,
+      ),
     ].map((address) => FieldElement.fromBigInt(BigInt(address)));
 
     contractAddressFieldElements.forEach((contractAddressFieldElement) => {
@@ -103,7 +107,23 @@ export class IndexerService {
         );
 
         for (const config of matchingConfigs) {
-          await config.handler(block.header, event.event, event.transaction);
+          try {
+            await config.handler(block.header, event.event, event.transaction);
+          } catch (error) {
+            this.logger.error(
+              `Failed to handle event`,
+              {
+                eventKey,
+                eventIndex: event.event.index.toString(),
+                blockNumber: block.header.blockNumber.toString(),
+                transactionHash: FieldElement.toHex(
+                  event.transaction.meta.hash,
+                ),
+                message: error.message,
+              },
+              error.stack,
+            );
+          }
         }
         if (event.receipt.transactionHash)
           hash = FieldElement.toHex(event.receipt.transactionHash);

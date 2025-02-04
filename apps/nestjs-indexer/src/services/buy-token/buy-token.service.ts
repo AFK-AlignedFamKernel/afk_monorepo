@@ -9,18 +9,6 @@ export class BuyTokenService {
 
   async create(data: BuyToken) {
     try {
-      const buyTokenRecord =
-        await this.prismaService.token_transactions.findUnique({
-          where: { transfer_id: data.transferId },
-        });
-
-      if (buyTokenRecord) {
-        this.logger.warn(
-          `Record with transfer ID ${data.transferId} already exists`,
-        );
-        return;
-      }
-
       const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
         { where: { memecoin_address: data.memecoinAddress } },
       );
@@ -71,8 +59,10 @@ export class BuyTokenService {
         },
       });
 
-      await this.prismaService.token_transactions.create({
-        data: {
+      await this.prismaService.token_transactions.upsert({
+        where: { transfer_id: data.transferId },
+        update: {},
+        create: {
           transfer_id: data.transferId,
           network: data.network,
           block_hash: data.blockHash,
