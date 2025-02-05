@@ -10,9 +10,7 @@ import { validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
 import { env } from 'src/common/env';
 import { IndexerConfig } from './interfaces';
-import { PrismaClient } from 'indexer-prisma';
-
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class IndexerService {
@@ -20,7 +18,7 @@ export class IndexerService {
   private readonly client: StreamClient;
   private configs: IndexerConfig[] = [];
 
-  constructor() {
+  constructor(private readonly prismaService: PrismaService) {
     this.client = new StreamClient({
       url: env.indexer.dnaClientUrl,
       clientOptions: {
@@ -47,7 +45,7 @@ export class IndexerService {
 
     this.logger.log('Starting indexer...');
 
-    const indexerStats = await prisma.indexerStats.findFirst({
+    const indexerStats = await this.prismaService.indexerStats.findFirst({
       orderBy: { lastBlockScraped: 'desc' },
     });
 
@@ -129,7 +127,7 @@ export class IndexerService {
           hash = FieldElement.toHex(event.receipt.transactionHash);
       }
 
-      await prisma.indexerStats.create({
+      await this.prismaService.indexerStats.create({
         data: {
           lastBlockScraped: Number(block.header.blockNumber),
           lastTx: hash,

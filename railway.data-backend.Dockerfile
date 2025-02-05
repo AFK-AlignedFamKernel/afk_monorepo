@@ -149,9 +149,9 @@ WORKDIR /app
 
 # Copy the node_modules and built files from the base stage
 COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/packages/common ./packages/common
-COPY --from=base /app/packages/prisma-db ./packages/prisma-db
-COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
+COPY --from=base /app/packages/common ./node_modules/common
+COPY --from=base /app/packages/prisma-db ./node_modules/prisma-db
+COPY --from=base /app/packages/indexer-prisma ./node_modules/indexer-prisma
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
