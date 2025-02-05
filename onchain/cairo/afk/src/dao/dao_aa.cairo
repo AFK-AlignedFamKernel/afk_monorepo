@@ -196,10 +196,10 @@ pub mod DaoAA {
             self.user_vote_type.entry(caller).write(vote);
         }
 
-        fn get_vote_state(ref self: ContractState, proposal_id: u256) -> VoteState {
-            let caller = get_caller_address();
-            self.vote_by_proposal.read(proposal_id)
-        }
+        // fn get_vote_state(ref self: ContractState, proposal_id: u256) -> VoteState {
+        //     let caller = get_caller_address();
+        //     self.vote_by_proposal.read(proposal_id)
+        // }
 
         fn get_proposal(ref self: ContractState, proposal_id: u256) -> Proposal {
             let caller = get_caller_address();

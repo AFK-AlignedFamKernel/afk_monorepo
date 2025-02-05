@@ -60,15 +60,15 @@ pub enum ProposalResult {
 }
 
    
-#[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+#[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
 pub struct Proposal {
     pub id: u256,
     pub created_at: u64,
     pub end_at: u64,
     pub content: ByteArray,
     pub is_whitelisted: bool,
-    pub whitelisted_users: Array<ContractAddress>,
-    pub calldata: Span<felt252>,
+    // pub whitelisted_users: Array<ContractAddress>,
+    // pub calldata: Array<felt252>,
     pub proposal_type: ProposalType,
     pub proposal_status: ProposalStatus,
     pub proposal_result: ProposalResult,
@@ -94,8 +94,8 @@ pub trait IVoteProposal<TContractState> {
     fn create_proposal(ref self: TContractState, token_address: ContractAddress, amount: u256);
     fn cast_vote_type(ref self: TContractState, proposal_id: u256, vote: UserVote);
     fn cast_vote(ref self: TContractState, proposal_id: u256, vote: u64);
-    fn cast_vote(ref self: TContractState, proposal_id: u256, vote: u64);
-    fn get_vote_state( self: @TContractState, proposal_id: u256) -> VoteState;
+    // fn cast_vote(ref self: TContractState, proposal_id: u256, vote: u64);
+    // fn get_vote_state( self: @TContractState, proposal_id: u256) -> VoteState;
     fn get_proposal( self: @TContractState, proposal_id: u256) -> Proposal;
     fn get_user_vote( self: @TContractState, proposal_id: u256, user:ContractAddress) -> UserVote;
 
