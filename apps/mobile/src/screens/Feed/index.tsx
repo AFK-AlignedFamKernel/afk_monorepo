@@ -152,7 +152,8 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
         //   </>
         // }
         contentContainerStyle={styles.flatListContent}
-        data={filteredNotes}
+        data={feedData}
+        // data={filteredNotes}
         keyExtractor={(item) => item?.id}
         renderItem={({item}) => {
           if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
