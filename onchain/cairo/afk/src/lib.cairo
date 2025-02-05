@@ -15,6 +15,7 @@ pub mod interfaces {
     pub mod nfts;
     pub mod username_store;
     pub mod vault;
+    pub mod voting;
 }
 
 pub mod afk_id {
@@ -24,6 +25,9 @@ pub mod afk_id {
     pub mod username_store;
 }
 
+pub mod dao {
+    pub mod dao_aa;
+}
 pub mod defi {
     pub mod vault;
 }
@@ -36,6 +40,10 @@ pub mod types {
     pub mod keys_types;
     pub mod pump_types;
     pub mod tap_types;
+}
+
+pub mod components {
+    // pub mod voting_proposal;
 }
 
 pub mod account {
