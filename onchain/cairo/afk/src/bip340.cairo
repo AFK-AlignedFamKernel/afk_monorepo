@@ -14,7 +14,7 @@ use core::traits::Into;
 use starknet::{ContractAddress, get_caller_address};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
 use super::social::{
-    request::{SocialRequest, ConvertToBytes}, transfer::Transfer, deposit::Claim,
+    request::{SocialRequest, ConvertToBytes, UnsignedSocialRequest, UnsignedSocialRequestMessage}, transfer::Transfer, deposit::Claim,
     namespace::LinkedStarknetAddress
 };
 
@@ -38,10 +38,16 @@ pub enum Source {
 }
 
 /// Represents a Schnorr signature
-#[derive(Drop)]
-struct SchnorrSignature {
-    s: u256,
-    r: u256,
+#[derive(Drop, Serde, Copy, Debug)]
+pub struct SchnorrSignature {
+    pub s: u256,
+    pub r: u256,
+}
+
+#[derive(Copy, Drop, Debug, Serde)]
+pub struct Signature {
+    pub r: u256,
+    pub s: u256
 }
 
 impl PartialEqImpl of PartialEq<EcPoint> {
@@ -267,6 +273,74 @@ pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>
     ba
 }
 
+
+pub fn encodeUnsignedSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
+    request: UnsignedSocialRequest<C>
+) -> ByteArray {
+    let mut ba: ByteArray = "";
+
+    // Encode public_key
+    let (pk_count, pk_count_felt252) = count_digits(request.public_key);
+    let pk_felt252: felt252 = request.public_key.try_into().unwrap();
+    ba.append_word(pk_count_felt252, 1_u32);
+    ba.append_word(pk_felt252, pk_count);
+
+    // Encode created_at
+    let created_at_u256: u256 = request.created_at.into();
+    let (created_count, created_count_felt252) = count_digits(created_at_u256);
+    let created_felt252: felt252 = created_at_u256.try_into().unwrap();
+    ba.append_word(created_count_felt252, 1_u32);
+    ba.append_word(created_felt252, created_count);
+
+    // Encode kind
+    let kind_u256: u256 = request.kind.into();
+    let (kind_count, kind_count_felt252) = count_digits(kind_u256);
+    let kind_felt252: felt252 = kind_u256.try_into().unwrap();
+    ba.append_word(kind_count_felt252, 1_u32);
+    ba.append_word(kind_felt252, kind_count);
+
+    // Encode tags directly
+    ba.append(@request.tags);
+    ba.append(@request.content.convert_to_bytes());
+    ba
+}
+
+pub fn encodeUnsignedSocialRequestMessage(
+    request: UnsignedSocialRequestMessage
+) -> ByteArray {
+    let mut ba: ByteArray = "";
+    // Encode public_key
+    let (pk_count, pk_count_felt252) = count_digits(request.public_key);
+    println!("encode public key");
+
+    let pk_felt252: felt252 = request.public_key.try_into().unwrap();
+    ba.append_word(pk_count_felt252, 1_u32);
+    ba.append_word(pk_felt252, pk_count);
+    println!("encode created_at");
+
+    // Encode created_at
+    let created_at_u256: u256 = request.created_at.into();
+    let (created_count, created_count_felt252) = count_digits(created_at_u256);
+    let created_felt252: felt252 = created_at_u256.try_into().unwrap();
+    ba.append_word(created_count_felt252, 1_u32);
+    ba.append_word(created_felt252, created_count);
+
+    println!("encode kind");
+    // Encode kind
+    let kind_u256: u256 = request.kind.into();
+    let (kind_count, kind_count_felt252) = count_digits(kind_u256);
+    let kind_felt252: felt252 = kind_u256.try_into().unwrap();
+    ba.append_word(kind_count_felt252, 1_u32);
+    ba.append_word(kind_felt252, kind_count);
+    println!("encode tags");
+
+    // Encode tags directly
+    ba.append(@request.tags);
+    println!("encode content");
+
+    ba.append(@request.content);
+    ba
+}
 /// Generates a key pair (private key, public key) for Schnorr signatures
 // Highly senstive data
 // Take care of the result
@@ -365,7 +439,7 @@ mod tests {
     use core::option::OptionTrait;
     use core::traits::Into;
     use starknet::SyscallResultTrait;
-    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}};
+    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}, ContractAddress};
     use super::Secp256PointTrait;
     use super::{IVrfProvider, IVrfProviderDispatcher};
     // use super::*;
@@ -381,7 +455,11 @@ mod tests {
     // const CONTRACT_ADDRESS: felt252 =
     //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
 
-    const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    // const CONTRACT_ADDRESS: ContractAddress = "0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257";
+    // const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    fn CONTRACT_ADDRESS() -> ContractAddress {
+        0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+    }
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -602,10 +680,11 @@ mod tests {
 
         assert!(verify(px, rx, s, m.into()));
     }
+
     #[test]
     fn test_20() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
         let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
@@ -627,7 +706,7 @@ mod tests {
     #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS.try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
         let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);

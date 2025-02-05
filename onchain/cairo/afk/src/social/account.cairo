@@ -39,8 +39,9 @@ pub mod SocialAccount {
     use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
     use super::ISRC6;
 
+    use afk::bip340::{SchnorrSignature};
     use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
+        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode
     };
     use super::super::transfer::Transfer;
     use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};

@@ -36,4 +36,4 @@ block_id.number = "615925"
 [[tool.snforge.fork]]
 name = "Sepolia"
 url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
-block_id.number = "615925"
+block_id.number = "315925"

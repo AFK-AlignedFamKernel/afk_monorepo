@@ -1,30 +1,30 @@
-import {useQueryClient} from '@tanstack/react-query';
-import {addContacts, Contact, getContacts, useEditContacts, useProfile} from 'afk_nostr_sdk';
-import React, {useEffect, useState} from 'react';
-import {Image, Text, TextInput, View} from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { addContacts, Contact, getContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
+import React, { useEffect, useState } from 'react';
+import { Image, Text, TextInput, View } from 'react-native';
 
-import {Button} from '../../components';
-import {useTheme} from '../../hooks';
-import {useStyles} from '../../hooks';
-import {useToast} from '../../hooks/modals';
+import { Button } from '../../components';
+import { useTheme } from '../../hooks';
+import { useStyles } from '../../hooks';
+import { useToast } from '../../hooks/modals';
 import stylesheet from './styles';
 
 interface ContactListProps {
   onClose?: () => void;
 }
 
-export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
+export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const [nostrAddress, setNostrAddress] = useState('');
   const [name, setName] = useState('');
   const [showProfileInfo, setShowProfileInfo] = useState(false);
   const [storedContacts, setStoredContacts] = useState<Contact[]>([]);
-  const {theme} = useTheme();
-  const {showToast} = useToast();
+  const { theme } = useTheme();
+  const { showToast } = useToast();
   const editContacts = useEditContacts();
   const queryClient = useQueryClient();
 
   // Destructure refetch from useProfile hook
-  const {data: profile, refetch} = useProfile({publicKey: nostrAddress});
+  const { data: profile, refetch } = useProfile({ publicKey: nostrAddress });
 
   useEffect(() => {
     setShowProfileInfo(false);
@@ -64,11 +64,11 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
 
     if (profile?.pubkey) {
       await editContacts.mutateAsync(
-        {pubkey: profile?.pubkey?.toString(), type: 'add'},
+        { pubkey: profile?.pubkey?.toString(), type: 'add' },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['contacts']});
-            showToast({type: 'success', title: 'Contact removed successfully'});
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            showToast({ type: 'success', title: 'Contact removed successfully' });
             // Update local storage contacts
             const updatedContacts = storedContacts.filter((c) => c.pubkey !== profile?.pubkey);
             setStoredContacts(updatedContacts);
@@ -142,7 +142,16 @@ export const ContactList: React.FC<ContactListProps> = ({onClose}) => {
   return (
     <View style={styles.addContactMainContainer}>
       <View style={styles.addContactContent}>
-        <Text style={styles.addContactTitle}>Add Contact</Text>
+        <View style={{ flex: 1 }}>
+          <Button
+            style={[styles.formActionButton, styles.formCancelButton]}
+            textStyle={styles.formCancelButtonText}
+            onPress={onClose}
+          >
+            Cancel
+          </Button>
+          <Text style={styles.addContactTitle}>Add Contact</Text>
+        </View>
         <View style={styles.addContactForm}>
           <TextInput
             style={styles.addContactFormInput}

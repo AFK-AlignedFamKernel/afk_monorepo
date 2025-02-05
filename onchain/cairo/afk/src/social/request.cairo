@@ -1,4 +1,5 @@
 use afk::bip340;
+use afk::bip340::{Signature, SchnorrSignature};
 use afk::utils::{compute_sha256_byte_array};
 use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;
@@ -8,20 +9,49 @@ const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;
 const TWO_POW_96: u128 = 0x1000000000000000000000000;
 
-#[derive(Copy, Drop, Debug, Serde)]
-pub struct Signature {
-    pub r: u256,
-    pub s: u256
-}
+// #[derive(Copy, Drop, Debug, Serde)]
+// pub struct Signature {
+//     pub r: u256,
+//     pub s: u256
+// }
 
-#[derive(Debug, Drop, Serde)]
+#[derive(Debug, Drop, Serde, Clone)]
 pub struct SocialRequest<C> {
     pub public_key: u256,
     pub created_at: u64,
     pub kind: u16,
     pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
     pub content: C,
-    pub sig: Signature
+    pub sig: SchnorrSignature
+}
+
+
+#[derive(Debug, Drop, Serde, Clone)]
+pub struct NostrEventBasic {
+    pub public_key: u256,
+    pub created_at: u64,
+    pub kind: u16,
+    pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
+    pub content: ByteArray,
+    pub sig: SchnorrSignature
+}
+
+#[derive(Debug, Drop, Serde, Clone)]
+pub struct UnsignedSocialRequest<C> {
+    pub public_key: u256,
+    pub created_at: u64,
+    pub kind: u16,
+    pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
+    pub content: C,
+}
+
+#[derive(Debug, Drop, Serde, Clone)]
+pub struct UnsignedSocialRequestMessage {
+    pub public_key: u256,
+    pub created_at: u64,
+    pub kind: u16,
+    pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
+    pub content: ByteArray,
 }
 
 pub trait Encode<T> {
@@ -75,7 +105,8 @@ pub impl SocialRequestImpl<C, +Encode<C>> of SocialRequestTrait<C> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Encode, Signature, SocialRequest, SocialRequestTrait};
+    // use super::{Encode, Signature, SocialRequest, SocialRequestTrait};
+    use super::{Encode, SchnorrSignature, SocialRequest, SocialRequestTrait};
 
     impl ByteArrayEncode of Encode<ByteArray> {
         fn encode(self: @ByteArray) -> @ByteArray {
@@ -91,7 +122,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: "abc",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0xd6891392ca5384da7b3e471380c9927a66a71c3cf9f3e6cd4d69813fd5258274_u256,
                 s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256
             }
@@ -108,7 +139,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: "nprofile1qys8wumn8ghj7un9d3shjtn2daukymme9e3k7mtdw4hxjare9e3k7mgqyzzxqw6wxqyyqqmv4rxgz2l0ej8zgrqfkuupycuatnwcannad6ayqx7zdcy send 1 USDC to nprofile1qqs2sa3zk4a49umxg4lgvlsaenrqaf33ejkffd78f2cgy4xy38h393s2w22mm",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x4fda18c929f820f7f93f310f4fa9a8f2efcdd544539f4ce24fe2daf4f68d0b2d_u256,
                 s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256
             }
@@ -125,7 +156,7 @@ mod tests {
             kind: 1_u16,
             tags: "[[\"e\",\"5c83da77af1dec6d7289834998ad7aafbd9e2191396d75ec3cc27f5a77226f36\"]]",
             content: "joyboy",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
                 s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
             }
@@ -144,7 +175,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: "joyboy",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
                 s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
             }
@@ -164,7 +195,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: "",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x4fda18c929f820f7f93f310f4fa9a8f2efcdd544539f4ce24fe2daf4f68d0b2d_u256,
                 s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256
             }
@@ -183,7 +214,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: "abc",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0xd6891392ca5384da7b3e471380c9927a66a71c3cf9f3e6cd4d69813fd5258274_u256,
                 s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256
             }
@@ -201,7 +232,7 @@ mod tests {
             kind: 1_u16,
             tags: "[[\"e\",\"5c83da77af1dec6d7289834998ad7aafbd9e2191396d75ec3cc27f5a77226f36\"]]",
             content: "joyboy",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
                 s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
             }
@@ -219,7 +250,7 @@ mod tests {
             kind: 1_u16,
             tags: "[[\"e\",\"5c83da77af1dec6d7289834998ad7aafbd9e2191396d75ec3cc27f5a77226f36\"]]",
             content: "joyboy",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8822_u256,
                 s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
             }
@@ -237,7 +268,7 @@ mod tests {
             kind: 1_u16,
             tags: "[[\"e\",\"5c83da77af1dec6d7289834998ad7aafbd9e2191396d75ec3cc27f5a77226f36\"]]",
             content: "joyboy",
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
                 s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8a_u256
             }

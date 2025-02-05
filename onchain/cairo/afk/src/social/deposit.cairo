@@ -35,6 +35,7 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
+
 impl ClaimImpl of ConvertToBytes<Claim> {
     fn convert_to_bytes(self: @Claim) -> ByteArray {
         let mut ba: ByteArray = "";
@@ -366,7 +367,9 @@ mod tests {
 
     use starknet::{ContractAddress, get_block_timestamp};
 
-    use super::super::request::{SocialRequest, Signature};
+    use super::super::request::{SocialRequest};
+    use afk::bip340::{Signature, SchnorrSignature};
+
     use super::{DepositEscrow, IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
     use super::{DepositResult, NostrPublicKey, Claim};
 
@@ -443,7 +446,7 @@ mod tests {
             kind: 1_u16,
             tags: "[]",
             content: claim,
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0xf1dac3f8d0d19767805ca85933bdf0e744594aeee04058eedaa29e26de087be9_u256,
                 s: 0x144c4636083c7d0e3b8186c8c0bc6fa38bd9c6a629ec6e2ce5e437797a6e911c_u256,
             },
@@ -663,7 +666,7 @@ mod tests {
 
         let request_gas_amount = SocialRequest {
             content: claim_gas_amount,
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x68e441c1f8756b5278c815cc110efb302c2a08bcf0349328ba7bd7683e8b0b29_u256,
                 s: 0xd592a5a5e9fc85334ab6801d6dde984c85d67fcd726fce38b9fb06874c25832e_u256,
             },
@@ -750,7 +753,7 @@ mod tests {
         start_cheat_caller_address(escrow.contract_address, recipient_address);
 
         let request = SocialRequest {
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
             },
@@ -778,7 +781,7 @@ mod tests {
         start_cheat_caller_address(escrow.contract_address, recipient_address);
 
         let request = SocialRequest {
-            sig: Signature {
+            sig: SchnorrSignature {
                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
             },

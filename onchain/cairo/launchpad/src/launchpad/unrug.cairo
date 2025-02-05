@@ -134,10 +134,8 @@ pub mod UnrugLiquidity {
         launched_coins: Map::<ContractAddress, TokenLaunch>,
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        bonding_type: Map::<ContractAddress, BondingType>,
-        array_launched_coins: Map::<u64, TokenLaunch>,
         array_coins: Map::<u64, Token>,
+        
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
         locked_positions: Map::<ContractAddress, LockPosition>,
@@ -507,7 +505,6 @@ pub mod UnrugLiquidity {
                 );
         }
 
-
         fn get_default_token(self: @ContractState) -> TokenQuoteBuyCoin {
             self.default_token.read()
         }
@@ -521,21 +518,8 @@ pub mod UnrugLiquidity {
             ref self: ContractState,
             coin_address: ContractAddress,
             unrug_params: EkuboUnrugLaunchParameters
-            // ) ->  Span<felt252>  {
         ) -> (u64, EkuboLP) {
             let caller = get_caller_address();
-            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-            // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-
-            //TODO Register the token in Ekubo Registry
-            // let registry_address = self.registry.read();
-            // let registry = ITokenRegistryDispatcher { contract_address: registry_address};
-            // let base_token = IERC20Dispatcher { contract_address: coin_address };
-            // // if with 18 decimals, thus the amount is 1 token.
-            // base_token.transfer(registry.contract_address, 1000000000000000000);
-            // registry.register_token(OZIERC20Dispatcher { contract_address: params.token_address
-            // });
-
             self._add_liquidity_ekubo(coin_address, unrug_params)
         }
 
@@ -554,6 +538,7 @@ pub mod UnrugLiquidity {
     #[external(v0)]
     impl LockerImpl of ILocker<ContractState> {
         /// Callback function called by the core contract.
+        /// Callback sent and consumed in the _add_liquidity_ekubo
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
@@ -710,6 +695,29 @@ pub mod UnrugLiquidity {
             token_address
         }
 
+        /// Adds liquidity to an Ekubo pool for a given memecoin and quote token pair
+        /// 
+        /// # Arguments
+        /// * `coin_address` - The address of the memecoin token contract
+        /// * `unrug_params_inputs` - Parameters for adding liquidity including:
+        ///   - token_address: Address of the memecoin token
+        ///   - quote_address: Address of the quote/base token
+        ///   - lp_supply: Amount of memecoin tokens to add as liquidity
+        ///   - pool_params: Parameters for pool creation (fee, tick spacing, etc)
+        ///   - owner: Owner address who can withdraw liquidity
+        ///
+        /// # Flow
+        /// 1. Validates caller and parameters
+        /// 2. Registers the memecoin token with Ekubo registry by:
+        ///    - Transferring small amount of tokens to registry
+        ///    - Calling register_token() on registry
+        /// 3. Sets up pool with initial price and liquidity bounds
+        /// 4. Adds liquidity to the pool
+        /// 
+        /// # Returns
+        /// * Tuple containing:
+        ///   - Pool ID (u64)
+        ///   - EkuboLP struct with pool details
         fn _add_liquidity_ekubo(
             ref self: ContractState,
             coin_address: ContractAddress,
@@ -817,7 +825,21 @@ pub mod UnrugLiquidity {
 
             (id, position)
         }
-
+        /// Adds liquidity to an Ekubo pool with the specified parameters
+        /// @param pool_key - The key identifying the pool (contains token addresses, fees, etc)
+        /// @param token - The address of the first token in the pair
+        /// @param token_quote - The address of the second token in the pair (quote token)
+        /// @param lp_supply - The amount of the first token to add as liquidity
+        /// @param lp_quote_supply - The amount of the second token to add as liquidity  
+        /// @param bounds - The price bounds for the position
+        /// @param owner - The address that will own the LP position
+        /// @return u64 - The ID of the minted LP position
+        ///
+        /// This function:
+        /// 1. Gets the positions contract address
+        /// 2. Transfers both tokens from the owner to the positions contract
+        /// 3. Calls the mint_and_deposit function on the positions contract
+        /// 4. Returns the ID of the minted LP position 
         fn _supply_liquidity_ekubo(
             ref self: ContractState,
             pool_key: PoolKey,
@@ -850,6 +872,33 @@ pub mod UnrugLiquidity {
         /// TODO fix change
         // / Modular way
         // Less restrictions but represent the params in the UI etc
+        /// Validates common parameters for launching a memecoin
+        /// 
+        /// # Arguments
+        /// * `launch_parameters` - LaunchParameters struct containing:
+        ///   - memecoin_address: Address of the memecoin token contract
+        ///   - transfer_restriction_delay: Delay before transfers are enabled
+        ///   - max_percentage_buy_launch: Max % of supply that can be bought at launch
+        ///   - quote_address: Address of quote/base token
+        ///   - initial_holders: Array of initial token holder addresses
+        ///   - initial_holders_amounts: Array of token amounts for initial holders
+        ///
+        /// # Validation Checks
+        /// 1. Verifies memecoin is not already launched
+        /// 2. Validates initial holders arrays have matching lengths
+        /// 3. Checks number of initial holders does not exceed MAX_HOLDERS_LAUNCH
+        /// 4. Ensures total allocation to initial holders does not exceed MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION
+        ///
+        /// # Returns
+        /// * Tuple containing:
+        ///   - Total allocation amount to initial holders (u256)
+        ///   - Number of unique initial holders (u8)
+        ///
+        /// # Reverts
+        /// * If memecoin is already launched
+        /// * If initial holders arrays have different lengths
+        /// * If too many initial holders specified
+        /// * If team allocation exceeds maximum allowed
         fn _check_common_launch_parameters(
             ref self: ContractState, launch_parameters: LaunchParameters
         ) -> (u256, u8) {
