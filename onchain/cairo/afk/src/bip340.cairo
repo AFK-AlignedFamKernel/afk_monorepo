@@ -346,7 +346,7 @@ pub fn encodeUnsignedSocialRequestMessage(
 // Take care of the result
 pub fn generate_keypair(
     vrf_contract_address: ContractAddress
-) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point) {
+) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point, u256) {
     // vrf address
     let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
 
@@ -356,13 +356,18 @@ pub fn generate_keypair(
 
     // Get random key from vrf
     let private_key = vrf_provider.consume_random(source);
+    println!("private_key: {:?}", private_key);
 
     // Generate public key
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let private_key_u256: u256 = private_key.into();
-    let public_key = G.mul(private_key_u256).unwrap_syscall();
+    let public_key_point = G.mul(private_key_u256).unwrap_syscall();
+    
+    // Extract x-coordinate of the public key point
+    let (public_key_x, _public_key_y) = public_key_point.get_coordinates().unwrap_syscall();
 
-    (private_key, public_key)
+
+    (private_key, public_key_point, public_key_x )
 }
 
 
@@ -457,9 +462,15 @@ mod tests {
 
     // const CONTRACT_ADDRESS: ContractAddress = "0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257";
     // const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    // fn CONTRACT_ADDRESS() -> ContractAddress {
+    //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+    // }
+
     fn CONTRACT_ADDRESS() -> ContractAddress {
-        0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
+        0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f.try_into().unwrap()
     }
+
+    
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -687,8 +698,9 @@ mod tests {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
-        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
+        let (private_key, public_key_point, public_key_x) = generate_keypair(vrf_provider.contract_address);
 
+        println!("private_key: {}", private_key);
         // Message to sign
         let message: ByteArray = "I love Cairo";
 
@@ -697,7 +709,7 @@ mod tests {
         let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key, message, signature, vrf_provider.contract_address);
+        let is_valid = verify_sig(public_key_point, message, signature, vrf_provider.contract_address);
 
         assert!(is_valid);
     }
@@ -709,7 +721,7 @@ mod tests {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
-        let (private_key, public_key) = generate_keypair(vrf_provider.contract_address);
+        let (private_key, public_key_point, public_key_x) = generate_keypair(vrf_provider.contract_address);
 
         // Message to sign
         let message: ByteArray = "I love Cairo";
@@ -719,7 +731,7 @@ mod tests {
         let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key, message, signature, vrf_provider.contract_address);
+        let is_valid = verify_sig(public_key_point, message, signature, vrf_provider.contract_address);
 
         assert!(is_valid);
     }

@@ -436,12 +436,24 @@ const linking = {
           // BottomBar: {
           //   path: '',
           // },
+          Home: {
+            path: 'home',
+            screens: {
+              // Add the Shorts screen under Home
+              ShortVideos: 'shorts',
+              Launchpad: 'launchpad',
+              LaunchToken: 'launch-token',
+              TokenDetail: 'token-detail',
+              StudioModuleView: 'studio',
+              // ... other screens ...
+            },
+          },
           Login: 'login',
           Onboarding: 'onboarding',
           CreateAccount: 'create-account',
           SaveKeys: 'save-keys',
           ImportKeys: 'import-keys',
-          Home: 'home',
+          // Home: 'home',
           Feed: 'feed',
           Tags: 'Tags',
           Profile: {

@@ -80,6 +80,7 @@ pub mod NostrAccount {
         // #[key]
         starknet_address:ContractAddress,
         private_key:u256,
+        encrypted_private_key:u256,
         signature_salt:felt252,
         password:ByteArray,
         address_recovery:ContractAddress,
@@ -125,6 +126,21 @@ pub mod NostrAccount {
 
     }
 
+    
+    // // Internal functions for create token, launch, add liquidity in DEX
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+
+        fn _is_caller_valid(ref self: ContractState)  {
+            if !self.starknet_address.read().is_zero() {
+                assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
+            }
+        }
+        
+        fn _is_private_key_initialized(ref self: ContractState) {
+            assert!(!self.private_key.read().is_zero(), "account not initialized");
+        }
+    }
     #[abi(embed_v0)]
     impl NostrAccount of super::INostrAccount<ContractState> {
         fn get_public_key(self: @ContractState) -> u256 {
@@ -151,48 +167,55 @@ pub mod NostrAccount {
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
-            let (private_key, public_key_point) = generate_keypair(self.vrf_contract_address.read());
+            let (private_key, public_key_point, public_key_x) = generate_keypair(self.vrf_contract_address.read());
 
-            // let public_key:u256 = public_key_point.try_into().unwrap();
-            // Save private key with Pedersen commitment with the signature of the Starknet account
-            let H: EcPoint = hash_to_curve().unwrap();
-            // TODO 
-            // add random salt with signature and save its
-            let salt: felt252 = 228282189421094;
+            // // Get caller's signature to use as encryption key
+            // let caller = get_caller_address();
+            // let caller_sig = starknet::get_tx_info().unbox().signature;
+            // assert(caller_sig.len() > 0, 'Signature required');
+            
+            // // Use first signature element as encryption key
+            // let encryption_key:felt252 = *caller_sig[0].try_into().unwrap();
+            
+            // // XOR encrypt the private key with caller's signature
+            // let encrypted_private_key = private_key ^ encryption_key;
 
-            // TODO find a signature
-            // let commitment = pedersen_commit(private_key, salt, H);
-            // let is_valid = verify_commitment(commitment, private_key.try_into().unwrap(), salt, H);
-            // assert(is_valid, 'The commitment is not valid');
-
-            // TODO encrypte the private key with a Salt/Signature of the Starknet account
-            // let encrypted_private_key = encrypt(private_key.try_into().unwrap());
-            // let encrypted_private_key = commitment;
+            // Store encrypted private key - can only be decrypted by caller's signature
+            // self.encrypted_private_key.write(encrypted_private_key.try_into().unwrap());
             self.private_key.write(private_key.try_into().unwrap());
-            // self.nostr_public_key.write(public_key);
-            // TODO convert Point to public key
-            // self.nostr_point_public_key.write(public_key_point);
-            // Convert secp256k1 point to u256
-            // let public_key: u256 = public_key_point.try_into().unwrap();
-            // self.nostr_public_key.write(public_key);
-            // self.starknet_address.write(get_caller_address());
+            self.nostr_public_key.write(public_key_x);
         }
 
         fn sign_message(ref self: ContractState, message: ByteArray) -> SchnorrSignature {
-            assert!(self.private_key.read().is_zero(), "account already initialized");
+            let private_key = self.private_key.read();
+            println!("private_key: {}", private_key);
+            assert!(!private_key.is_zero(), "account not initialized");
+
+            // assert!(!self.private_key.read().is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
-            let private_key = self.private_key.read();
+            
+            // // Get caller's signature to decrypt
+            // let caller_sig = starknet::get_tx_info().unbox().signature;
+            // assert(caller_sig.len() > 0, 'Signature required');
+            // let encryption_key = *caller_sig[0];
 
-            let pk_u256= private_key.try_into().unwrap();
+            // // Decrypt private key using caller's signature
+            // let encrypted_private_key = self.private_key.read();
+            // let private_key = encrypted_private_key ^ encryption_key;
 
+
+            let pk_u256 = private_key.try_into().unwrap();
             let signature = sign(pk_u256, message, self.vrf_contract_address.read());
             signature
         }
 
         fn sign_nostr_event(ref self: ContractState, nostr_event: UnsignedSocialRequestMessage) -> SchnorrSignature {
-            assert!(self.private_key.read().is_zero(), "account already initialized");
+            let private_key = self.private_key.read();
+            println!("private_key: {}", private_key);
+
+            assert!(!private_key.is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
@@ -205,7 +228,7 @@ pub mod NostrAccount {
         }
         
         fn generate_nostr_signature_based_on_inputs(ref self: ContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray) -> SchnorrSignature {
-            assert!(self.private_key.read().is_zero(), "account already initialized");
+            assert!(!self.private_key.read().is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
@@ -229,7 +252,7 @@ pub mod NostrAccount {
         }
 
         fn generate_nostr_event(ref self: ContractState, created_at:u64, kind:u16, content:ByteArray, tags:ByteArray) -> NostrEventBasic {
-            assert!(self.private_key.read().is_zero(), "account already initialized");
+            assert!(!self.private_key.read().is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
@@ -601,6 +624,64 @@ mod tests {
             ..unsigned_request,
         };
         let signature = account.sign_nostr_event(request);
+        // let signature = account.sign_message(message);
+
+        // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature, VRF_CONTRACT_ADDRESS());
+        // assert!(is_valid, "signature is not valid");
+        // assert!(account.get_public_key() == public_key, "wrong public_key");
+    }
+
+    #[test]
+    #[fork("Sepolia")]
+    fn test_generate_nostr_event() {
+        let public_key: ContractAddress = OWNER();
+        start_cheat_caller_address_global(public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        account.init_nostr_account();
+
+
+        let erc20_class = declare_erc20();
+        let account_class = declare_account();
+
+        let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(erc20_class, account_class);
+
+        let created_at = 1716285235_u64;
+        let kind = 1_u16;
+        let tags = "[]";
+        let content = "LFG";
+        // let request = UnsignedSocialRequestMessage {
+        //     ..unsigned_request,
+        // };
+        let nostr_event = account.generate_nostr_event(created_at, kind, content, tags);
+        // let signature = account.sign_message(message);
+
+        // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature, VRF_CONTRACT_ADDRESS());
+        // assert!(is_valid, "signature is not valid");
+        // assert!(account.get_public_key() == public_key, "wrong public_key");
+    }
+
+    #[test]
+    #[fork("Sepolia")]
+    fn test_generate_nostr_signature_based_on_inputs() {
+        let public_key: ContractAddress = OWNER();
+        start_cheat_caller_address_global(public_key);
+        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        account.init_nostr_account();
+
+
+        let erc20_class = declare_erc20();
+        let account_class = declare_account();
+
+        let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(erc20_class, account_class);
+
+        let created_at = 1716285235_u64;
+        let kind = 1_u16;
+        let tags = "[]";
+        let content = "LFG";
+        // let request = UnsignedSocialRequestMessage {
+        //     ..unsigned_request,
+        // };
+        let signature = account.generate_nostr_signature_based_on_inputs(created_at, kind, content, tags);
         // let signature = account.sign_message(message);
 
         // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature, VRF_CONTRACT_ADDRESS());
