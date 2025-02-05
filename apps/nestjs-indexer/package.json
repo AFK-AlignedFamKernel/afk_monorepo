@@ -32,7 +32,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.0.0",
     "env-var": "^7.5.0",
-    "indexer-prisma": "workspace:*",
+    "indexer-prisma": "^1.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "viem": "^2.21.53"
