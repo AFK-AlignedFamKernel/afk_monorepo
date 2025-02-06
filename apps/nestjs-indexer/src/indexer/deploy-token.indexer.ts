@@ -80,6 +80,7 @@ export class DeployTokenIndexer {
 
     const [
       symbolFelt,
+      nameFelt,
       initialSupplyLow,
       initialSupplyHigh,
       totalSupplyLow,
@@ -123,7 +124,7 @@ export class DeployTokenIndexer {
 
       name = namefirst + namesecond;
     } else {
-      const namefirst = event.data[4]
+      const namefirst = nameFelt
         ? shortString.decodeShortString(
             FieldElement.toBigInt(event.data[4]).toString(),
           )
