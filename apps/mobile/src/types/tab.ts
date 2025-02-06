@@ -53,6 +53,7 @@ export enum SelectedTab {
   GRAPH = 'GRAPH',
   DYNAMIC_OWNED = 'DYNAMIC_OWNED',
   DYNAMIC_ALL = 'DYNAMIC_ALL',
+  CREATE_ARTICLE = 'CREATE_ARTICLE',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -135,6 +136,11 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
     tab: SelectedTab.CREATE_NOTE,
   },
   {
+    title: 'Article',
+    screen: 'Article',
+    tab: SelectedTab.CREATE_ARTICLE,
+  },
+  {
     title: 'Channel',
     screen: 'CreateChannel',
     tab: SelectedTab.CREATE_CHANNEL,
@@ -158,72 +164,73 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
-  {
-    title: 'Pump',
-    description: 'Pump Description',
-    screen: 'Launchpad',
-    tab: SelectedTab.LAUNCHPAD_VIEW,
-  },
-  {
-    title: 'Pixel Peace',
-    description: 'Pixel Peace Description',
-    screen: 'PixelPeace',
-    tab: SelectedTab.PIXEL_PEACE,
-  },
-  {
-    title: 'AFK Nameservice',
-    description: 'AFK Nameservice Description',
-    screen: 'AFK Nameservice',
-    tab: SelectedTab.NAMESERVICE,
-  },
-  // {
-  //   title: 'AFK ID',
-  //   screen: 'AFK ID',
-  //   tab: SelectedTab.AFK_ID,
-  // },
-  {
-    title: 'Keys',
-    description: 'Keys Description',
-    screen: 'KeysMarketplace',
-    tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
-  },
-  {
-    title: 'Slink',
-    description: 'Slink Description',
-    screen: 'Slink',
-    tab: SelectedTab.SLINK,
-  },
+export const TABS_MENU: {screen?: string; title: string; description: string; tab: SelectedTab}[] =
+  [
+    {
+      title: 'Pump',
+      description: 'Pump Description',
+      screen: 'Launchpad',
+      tab: SelectedTab.LAUNCHPAD_VIEW,
+    },
+    {
+      title: 'Pixel Peace',
+      description: 'Pixel Peace Description',
+      screen: 'PixelPeace',
+      tab: SelectedTab.PIXEL_PEACE,
+    },
+    {
+      title: 'AFK Nameservice',
+      description: 'AFK Nameservice Description',
+      screen: 'AFK Nameservice',
+      tab: SelectedTab.NAMESERVICE,
+    },
+    // {
+    //   title: 'AFK ID',
+    //   screen: 'AFK ID',
+    //   tab: SelectedTab.AFK_ID,
+    // },
+    {
+      title: 'Keys',
+      description: 'Keys Description',
+      screen: 'KeysMarketplace',
+      tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+    },
+    {
+      title: 'Slink',
+      description: 'Slink Description',
+      screen: 'Slink',
+      tab: SelectedTab.SLINK,
+    },
 
-  {
-    title: '?',
-    description: '? Description',
-    screen: '?',
-    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
-  },
-  {
-    title: '?!',
-    description: '?! Description',
-    screen: '?!',
-    tab: SelectedTab.LAUNCH_TOKEN_PUMP,
-  },
-  // {
-  //   title: 'Channel',
-  //   screen: 'CreateChannel',
-  //   tab: SelectedTab.CREATE_CHANNEL,
-  // },
-  // {
-  //   title: 'Token',
-  //   screen: 'LaunchToken',
-  //   tab: SelectedTab.LAUNCH_TOKEN,
-  // },
-  // {
-  //   title: 'Messages',
-  //   screen: "ChannelsFeed",
-  //   tab: SelectedTab.MESSAGES
+    {
+      title: '?',
+      description: '? Description',
+      screen: '?',
+      tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+    },
+    {
+      title: '?!',
+      description: '?! Description',
+      screen: '?!',
+      tab: SelectedTab.LAUNCH_TOKEN_PUMP,
+    },
+    // {
+    //   title: 'Channel',
+    //   screen: 'CreateChannel',
+    //   tab: SelectedTab.CREATE_CHANNEL,
+    // },
+    // {
+    //   title: 'Token',
+    //   screen: 'LaunchToken',
+    //   tab: SelectedTab.LAUNCH_TOKEN,
+    // },
+    // {
+    //   title: 'Messages',
+    //   screen: "ChannelsFeed",
+    //   tab: SelectedTab.MESSAGES
 
-  // },
-];
+    // },
+  ];
 
 export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
   {
