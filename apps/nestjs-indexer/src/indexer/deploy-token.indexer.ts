@@ -98,7 +98,7 @@ export class DeployTokenIndexer {
         )
       : '';
 
-    let symbol: string;
+      let symbol: string = '';
 
     if (isNaN(parseFloat(symbolSecond))) {
       symbol = symbolfirst + symbolSecond;
@@ -106,7 +106,7 @@ export class DeployTokenIndexer {
       symbol = symbolfirst;
     }
 
-    let name: string;
+    let name: string = '';
 
     if (isNaN(parseFloat(symbolSecond))) {
       const namefirst = event.data[5]
