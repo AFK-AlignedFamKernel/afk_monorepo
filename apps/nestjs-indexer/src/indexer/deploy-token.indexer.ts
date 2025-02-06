@@ -80,24 +80,57 @@ export class DeployTokenIndexer {
 
     const [
       symbolFelt,
-      nameFelt,
       initialSupplyLow,
       initialSupplyHigh,
       totalSupplyLow,
       totalSupplyHigh,
     ] = event.data;
 
-    const symbol = symbolFelt
+    const symbolfirst = symbolFelt
       ? shortString.decodeShortString(
-          FieldElement.toBigInt(symbolFelt).toString(),
+          FieldElement.toBigInt(event.data[1]).toString(),
         )
       : '';
 
-    const name = nameFelt
+    const symbolSecond = symbolFelt
       ? shortString.decodeShortString(
-          FieldElement.toBigInt(nameFelt).toString(),
+          FieldElement.toBigInt(event.data[2]).toString(),
         )
       : '';
+
+    let symbol: string;
+
+    if (isNaN(parseFloat(symbolSecond))) {
+      symbol = symbolfirst + symbolSecond;
+    } else {
+      symbol = symbolfirst;
+    }
+
+    let name: string;
+
+    if (isNaN(parseFloat(symbolSecond))) {
+      const namefirst = event.data[5]
+        ? shortString.decodeShortString(
+            FieldElement.toBigInt(event.data[5]).toString(),
+          )
+        : '';
+
+      const namesecond = event.data[6]
+        ? shortString.decodeShortString(
+            FieldElement.toBigInt(event.data[6]).toString(),
+          )
+        : '';
+
+      name = namefirst + namesecond;
+    } else {
+      const namefirst = event.data[4]
+        ? shortString.decodeShortString(
+            FieldElement.toBigInt(event.data[4]).toString(),
+          )
+        : '';
+
+      name = namefirst;
+    }
 
     const initialSupplyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(initialSupplyLow),
