@@ -30,6 +30,10 @@ export class DeployTokenIndexer {
     );
   }
 
+  private isNumeric = (str: string): boolean => {
+    return /^\d+$/.test(str);
+  };
+
   private async handleEvents(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
@@ -87,50 +91,49 @@ export class DeployTokenIndexer {
       totalSupplyHigh,
     ] = event.data;
 
-    const symbolfirst = symbolFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(event.data[1]).toString(),
-        )
-      : '';
+    console.log(symbolFelt, nameFelt);
 
-    const symbolSecond = symbolFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(event.data[2]).toString(),
-        )
-      : '';
+    let symbol = '';
+    let i = 1;
 
-      let symbol: string = '';
+    while (i < event.data.length) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
 
-    if (isNaN(parseFloat(symbolSecond))) {
-      symbol = symbolfirst + symbolSecond;
-    } else {
-      symbol = symbolfirst;
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
+
+      symbol += decodedPart;
+      i++;
     }
 
-    let name: string = '';
+    const part = event.data[i];
+    const decodedPart = shortString.decodeShortString(
+      FieldElement.toBigInt(part).toString(),
+    );
 
-    if (isNaN(parseFloat(symbolSecond))) {
-      const namefirst = event.data[5]
-        ? shortString.decodeShortString(
-            FieldElement.toBigInt(event.data[5]).toString(),
-          )
-        : '';
+    if (this.isNumeric(decodedPart)) {
+      i++;
+    }
 
-      const namesecond = event.data[6]
-        ? shortString.decodeShortString(
-            FieldElement.toBigInt(event.data[6]).toString(),
-          )
-        : '';
+    let name = '';
+    while (i < event.data.length - 5) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
 
-      name = namefirst + namesecond;
-    } else {
-      const namefirst = nameFelt
-        ? shortString.decodeShortString(
-            FieldElement.toBigInt(event.data[4]).toString(),
-          )
-        : '';
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
 
-      name = namefirst;
+      name += decodedPart;
+      i++;
     }
 
     const initialSupplyRaw = uint256.uint256ToBN({
