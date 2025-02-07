@@ -34,6 +34,24 @@ export class DeployTokenIndexer {
     return /^\d+$/.test(str);
   };
 
+  private async handleEvents(
+    header: starknet.IBlockHeader,
+    event: starknet.IEvent,
+    transaction: starknet.ITransaction,
+  ) {
+    this.logger.log('Received event');
+    const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
+
+    switch (eventKey) {
+      case validateAndParseAddress(hash.getSelectorFromName('CreateToken')):
+        this.logger.log('Event name: CreateToken');
+        await this.handleCreateTokenEvent(header, event, transaction);
+        break;
+      default:
+        this.logger.warn(`Unknown event type: ${eventKey}`);
+    }
+  }
+
   private async handleCreateTokenEvent(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
@@ -66,7 +84,7 @@ export class DeployTokenIndexer {
 
     let i = 1;
     let symbol = '';
-
+    
     while (i < event.data.length) {
       const part = event.data[i];
       const decodedPart = shortString.decodeShortString(
@@ -79,6 +97,31 @@ export class DeployTokenIndexer {
       }
 
       symbol += decodedPart;
+      i++;
+    }
+
+    const part = event.data[i];
+    const decodedPart = shortString.decodeShortString(
+      FieldElement.toBigInt(part).toString(),
+    );
+
+    if (this.isNumeric(decodedPart)) {
+      i++;
+    }
+
+    let name = '';
+    while (i < event.data.length - 5) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
+
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
+
+      name += decodedPart;
       i++;
     }
 
