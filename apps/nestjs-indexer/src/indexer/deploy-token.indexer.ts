@@ -82,20 +82,9 @@ export class DeployTokenIndexer {
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
-    const [
-      symbolFelt,
-      nameFelt,
-      initialSupplyLow,
-      initialSupplyHigh,
-      totalSupplyLow,
-      totalSupplyHigh,
-    ] = event.data;
-
-    console.log(symbolFelt, nameFelt);
-
-    let symbol = '';
     let i = 1;
-
+    let symbol = '';
+    
     while (i < event.data.length) {
       const part = event.data[i];
       const decodedPart = shortString.decodeShortString(
@@ -121,6 +110,7 @@ export class DeployTokenIndexer {
     }
 
     let name = '';
+
     while (i < event.data.length - 5) {
       const part = event.data[i];
       const decodedPart = shortString.decodeShortString(
@@ -136,6 +126,8 @@ export class DeployTokenIndexer {
       i++;
     }
 
+    const initialSupplyLow = event.data[i++];
+    const initialSupplyHigh = event.data[i++];
     const initialSupplyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(initialSupplyLow),
       high: FieldElement.toBigInt(initialSupplyHigh),
@@ -145,6 +137,10 @@ export class DeployTokenIndexer {
       constants.DECIMALS,
     ).toString();
 
+    console.log('initial supply', initialSupply);
+
+    const totalSupplyLow = event.data[i++];
+    const totalSupplyHigh = event.data[i];
     const totalSupplyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(totalSupplyLow),
       high: FieldElement.toBigInt(totalSupplyHigh),
@@ -153,6 +149,8 @@ export class DeployTokenIndexer {
       totalSupplyRaw,
       constants.DECIMALS,
     ).toString();
+
+    console.log('total supply', totalSupply);
 
     const data = {
       transactionHash,
