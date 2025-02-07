@@ -110,31 +110,6 @@ export class DeployTokenIndexer {
     }
 
     let name = '';
-    while (i < event.data.length - 5) {
-      const part = event.data[i];
-      const decodedPart = shortString.decodeShortString(
-        FieldElement.toBigInt(part).toString(),
-      );
-
-      if (this.isNumeric(decodedPart)) {
-        i++;
-        break;
-      }
-
-      name += decodedPart;
-      i++;
-    }
-
-    const part = event.data[i];
-    const decodedPart = shortString.decodeShortString(
-      FieldElement.toBigInt(part).toString(),
-    );
-
-    if (this.isNumeric(decodedPart)) {
-      i++;
-    }
-
-    let name = '';
 
     while (i < event.data.length - 5) {
       const part = event.data[i];
