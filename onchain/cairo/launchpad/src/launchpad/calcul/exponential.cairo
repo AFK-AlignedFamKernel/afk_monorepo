@@ -240,7 +240,6 @@ pub fn get_coin_amount_by_quote_amount_exponential(
 //     return dynamic_factor;
 // }
 
-
 // pub fn cumulative_cost(initial_price: u256, growth_factor: u256, tokens_to_buy: u256,) -> u256 {
 //     // Total cost for n tokens: (a / b) * (e^(b * n) - 1)
 //     // let exponent = math::exp(growth_factor * tokens_to_buy / SCALE_FACTOR);

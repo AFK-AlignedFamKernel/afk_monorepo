@@ -23,8 +23,7 @@ pub mod LaunchpadMarketplace {
         get_initial_price, get_amount_by_type_of_coin_or_quote
     };
     use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, 
-        // get_coin_amount_by_quote_amount,
+        calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
         get_coin_amount
     };
     use afk_launchpad::launchpad::errors;
@@ -615,7 +614,8 @@ pub mod LaunchpadMarketplace {
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
 
             let mut threshold = threshold_liquidity - slippage_threshold;
-            // Handle protocol fees if enabled
+            // Substract fees protocol from threshold and the quote amount to used to calculate the
+            // coin amount Handle protocol fees if enabled
             // HIGH SECURITY ISSUE
             // Security check to do
             if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
@@ -632,7 +632,7 @@ pub mod LaunchpadMarketplace {
                     );
             }
             let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
-            // assert(new_liquidity <= threshold, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
+            // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
             // Calculate coin amount to receive
             // AUDIT
@@ -795,8 +795,8 @@ pub mod LaunchpadMarketplace {
             // Validate against liquidity and balance constraints
             // AUDIT
             // High security check to do.
+            // Approximation and rounding issue can cause to enter this check
             // println!("check liq raised and quote amount");
-
             if pool.liquidity_raised < quote_amount {
                 // println!("pool.liquidity_raised < quote_amount");
                 quote_amount = pool.liquidity_raised;
@@ -813,6 +813,7 @@ pub mod LaunchpadMarketplace {
             let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
             // println!("transfer fees: {}", quote_fee_amount.clone());
 
+            // Transfer protocol fees to the address
             if is_fees_enabled && quote_fee_amount > 0 {
                 quote_token.transfer(self.protocol_fee_destination.read(), quote_fee_amount);
             }
@@ -826,10 +827,12 @@ pub mod LaunchpadMarketplace {
             // let quote_amount_paid = quote_amount - quote_fee_amount;
             // println!("quote_amount_paid: {}", quote_amount_paid.clone());
 
-            // TODO audit
+            // Checking rounding and approximation issue for the balance contract and the quote
+            // amount to receive TODO audit
             // HIGH SECURITY ISSUE
             // Security check to do.
-            // Rounding issue and approximation of the quote amount caused overflow
+            // Rounding issue and approximation of the quote amount caused overflow/underflow when
+            // transfering the token to the user
             if balance_contract > quote_amount_paid {
                 quote_token.transfer(caller, quote_amount_paid);
             } else {
@@ -1007,7 +1010,7 @@ pub mod LaunchpadMarketplace {
         fn get_coin_amount_by_quote_amount(
             self: @ContractState,
             coin_address: ContractAddress,
-            quote_amount: u256, 
+            quote_amount: u256,
             is_decreased: bool
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
@@ -1124,16 +1127,15 @@ pub mod LaunchpadMarketplace {
             let token = self.token_created.read(coin_address);
 
             // Handle paid launch if enabled
+            // Price of the token and the address is set by the admin
             if self.is_paid_launch_enable.read() {
-                let admins_fees_params = self.admins_fees_params.read();
-                let erc20 = IERC20Dispatcher {
-                    contract_address: admins_fees_params.token_address_to_paid_launch
-                };
+                // let admins_fees_params = self.admins_fees_params.read();
+                let token_address_to_paid_launch = self.token_address_to_paid_launch.read();
+                let amount_to_paid_launch = self.amount_to_paid_launch.read();
+                let erc20 = IERC20Dispatcher { contract_address: token_address_to_paid_launch };
                 erc20
                     .transfer_from(
-                        caller,
-                        self.protocol_fee_destination.read(),
-                        admins_fees_params.amount_to_paid_launch
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_launch
                     );
             }
 
@@ -1150,6 +1152,8 @@ pub mod LaunchpadMarketplace {
             let total_supply = memecoin.total_supply();
 
             // Calculate supply distribution
+            // AUDIT: check rounding and approximation issue
+            // V2 is gonna be more flexible here for the user
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
 
@@ -1177,7 +1181,10 @@ pub mod LaunchpadMarketplace {
                 creator_fee_percent: self.creator_fee_percent.read()
             };
 
-            // Handle token transfer
+            // Handle token transfer to the launchpad
+            // Check the allowance and the balance of the contract
+            // The user need to approve the token to the launchpad if the token is created elsewhere
+            // or without the function create_token_and_launch directly
             let balance_contract = memecoin.balance_of(get_contract_address());
             if balance_contract < total_supply {
                 let allowance = memecoin.allowance(caller, get_contract_address());
@@ -1211,7 +1218,10 @@ pub mod LaunchpadMarketplace {
                 );
         }
 
-        // Call the Unrug V2 to deposit Liquidity and locked it
+        // Call the Unrug V2 to deposit Liquidity of the memecoin initial_pool_supply  and the
+        // liquidity_raised The LP is owned by the Launchpad and locked it
+        // TODO AUDIT: check rounding and approximation issue
+        // HIGH SECURITY RISK and Vulnerability
         fn _add_liquidity_ekubo(
             ref self: ContractState, coin_address: ContractAddress,
         ) -> (u64, EkuboLP) {
@@ -1233,6 +1243,7 @@ pub mod LaunchpadMarketplace {
             // Set pool parameters
             // TODO audit
             // HIGH SECURITY RISK
+            // V2 need to be more flexible here for the user
             let tick_spacing = 5928;
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
@@ -1253,10 +1264,11 @@ pub mod LaunchpadMarketplace {
                 contract_address: launch.token_quote.token_address.clone()
             };
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
-          
+
             // TODO audit
             // HIGH SECURITY RISK
-            // Can be a rounding error, fees and others stuff
+            // Can be a rounding and approximation error, fees and others stuff
+            // TODO fix this
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
                 lp_quote_supply = contract_quote_balance.clone();

@@ -4,14 +4,17 @@ mod launchpad_tests {
     use afk_launchpad::interfaces::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
-    use afk_launchpad::launchpad::math::{PercentageMath};
 
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
+    use afk_launchpad::launchpad::calcul::linear::{
+        calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
+        get_coin_amount
+    };
     // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
+    use afk_launchpad::launchpad::math::{PercentageMath};
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
@@ -23,6 +26,7 @@ mod launchpad_tests {
     };
     use core::num::traits::Zero;
     use core::traits::Into;
+    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
     use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
@@ -38,11 +42,6 @@ mod launchpad_tests {
         EventSpyAssertionsTrait
     };
     use starknet::syscalls::call_contract_syscall;
-    use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, 
-        // get_coin_amount_by_quote_amount,
-        get_coin_amount
-    };
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
 
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
@@ -532,17 +531,14 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
 
-        
         let contract_meme_balance_after_buy = memecoin.balance_of(launchpad.contract_address);
         println!("contract_meme_balance_after_buy {:?}", contract_meme_balance_after_buy);
 
-        
         let contract_quote_balance_after_buy = erc20.balance_of(launchpad.contract_address);
         println!("contract_quote_balance_after_buy {:?}", contract_quote_balance_after_buy);
 
-
         // Verify memecoin balance are sent to the unrug and liquidity
-        assert(contract_meme_balance_after_buy <  contract_meme_balance, 'wrong meme balance');
+        assert(contract_meme_balance_after_buy < contract_meme_balance, 'wrong meme balance');
         // run_buy_by_amount(launchpad, erc20, memecoin, 1, token_address, sender_address,);
 
         // let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
@@ -617,12 +613,11 @@ mod launchpad_tests {
             launchpad, erc20, memecoin, THRESHOLD_LIQUIDITY, token_address, sender_address,
         );
 
-
         let initial_pool_supply = DEFAULT_INITIAL_SUPPLY() / 5_u256;
         // Set pool parameters
         let tick_spacing = 5928;
         let bound_spacing = tick_spacing * 2;
-        let fee= 0xc49ba5e353f7d00000000000000000;
+        let fee = 0xc49ba5e353f7d00000000000000000;
         let starting_price = calculate_starting_price_launch(
             initial_pool_supply.clone(), THRESHOLD_LIQUIDITY.clone()
         );
@@ -635,7 +630,7 @@ mod launchpad_tests {
             extension: 0.try_into().unwrap(),
         };
 
-        let quote_address= erc20.contract_address.clone();        
+        let quote_address = erc20.contract_address.clone();
         let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
         let liquidity = core.get_pool_liquidity(pool_key);
         let price = core.get_pool_price(pool_key);
@@ -651,7 +646,6 @@ mod launchpad_tests {
         // let lp_meme_supply = total_supply - total_token_holded;
         // println!("lp_meme_supply {:?}", lp_meme_supply);
 
-
         // TODO check the reserver of the positions
 
         let reserve_memecoin = memecoin.balance_of(core.contract_address);
@@ -659,15 +653,21 @@ mod launchpad_tests {
         //     .balance_of(core.contract_address);
         let positions = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
         let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
-        .balance_of(positions.contract_address);
-     // let reserve_quote_core = IERC20Dispatcher { contract_address: quote_address }
+            .balance_of(positions.contract_address);
+        // let reserve_quote_core = IERC20Dispatcher { contract_address: quote_address }
         //     .balance_of(core.contract_address);
         println!("reserve_memecoin {:?}", reserve_memecoin);
         println!("reserve_quote {:?}", reserve_quote);
 
-        assert(reserve_memecoin >= PercentageMath::percent_mul(lp_meme_supply, 9800), 'reserve too low meme');
-    
-        assert(reserve_quote >= PercentageMath::percent_mul(THRESHOLD_LIQUIDITY, 9000), 'reserve too low quote');
+        assert(
+            reserve_memecoin >= PercentageMath::percent_mul(lp_meme_supply, 9800),
+            'reserve too low meme'
+        );
+
+        assert(
+            reserve_quote >= PercentageMath::percent_mul(THRESHOLD_LIQUIDITY, 9000),
+            'reserve too low quote'
+        );
 
         let liquidity = core.get_pool_liquidity(pool_key);
         // assert(liquidity == THRESHOLD_LIQUIDITY, 'wrong liquidity');
