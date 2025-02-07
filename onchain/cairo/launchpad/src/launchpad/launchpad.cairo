@@ -1231,6 +1231,8 @@ pub mod LaunchpadMarketplace {
             let threshold = threshold_liquidity - slippage_threshold;
 
             // Set pool parameters
+            // TODO audit
+            // HIGH SECURITY RISK
             let tick_spacing = 5928;
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
@@ -1251,6 +1253,10 @@ pub mod LaunchpadMarketplace {
                 contract_address: launch.token_quote.token_address.clone()
             };
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
+          
+            // TODO audit
+            // HIGH SECURITY RISK
+            // Can be a rounding error, fees and others stuff
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
                 lp_quote_supply = contract_quote_balance.clone();

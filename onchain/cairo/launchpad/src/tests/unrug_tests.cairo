@@ -5,8 +5,10 @@ mod unrug_tests {
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
+    use afk_launchpad::math::PercentageMath;
     // use afk_launchpad::launchpad::utils::{calculate_aligned_bound_mag};
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    use ekubo::interfaces::erc20::{IERC20Dispatcher as IERC20DispatcherEkubo, IERC20DispatcherTrait as IERC20DispatcherTraitEkubo};
     // use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher,
     // IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{ // CreateToken, TokenQuoteBuyCoin,
@@ -30,9 +32,9 @@ mod unrug_tests {
     use ekubo::interfaces::token_registry::{ // ITokenRegistryDispatcher,
     // ITokenRegistryDispatcherTrait,
     };
-
+    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
     use ekubo::types::i129::i129;
-    // use ekubo::types::keys::PoolKey;
+    use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, // spy_events,
@@ -369,24 +371,54 @@ mod unrug_tests {
         memecoin.approve(unrug_liq.contract_address, lp_meme_supply);
         stop_cheat_caller_address(memecoin.contract_address);
 
+        let fee= 0xc49ba5e353f7d00000000000000000;
+        let tick_spacing= 5982;
+        let bound= 5982;
+        let quote_address=  erc20.contract_address.clone();
         let params: EkuboUnrugLaunchParameters = EkuboUnrugLaunchParameters {
             // owner: unrug_liq.contract_address,
             owner: OWNER(),
-            token_address: token_address,
-            quote_address: erc20.contract_address,
+            token_address: token_address.clone(),
+            quote_address: erc20.contract_address.clone(),
             lp_supply: lp_meme_supply,
             lp_quote_supply: lp_quote_supply,
             caller: OWNER(),
             pool_params: EkuboPoolParameters {
-                fee: 0xc49ba5e353f7d00000000000000000,
-                tick_spacing: 5982,
+                fee: fee.clone(),
+                tick_spacing: tick_spacing.clone(),
                 starting_price,
-                bound: 88719042,
+                bound: bound.clone(),
             }
         };
         println!("add liquidity ekubo");
         stop_cheat_caller_address(unrug_liq.contract_address);
         unrug_liq.launch_on_ekubo(token_address, params);
+
+        let pool_key = PoolKey {
+            token0: token_address,
+            token1: erc20.contract_address.clone(),
+            fee: fee.try_into().unwrap().clone(),
+            tick_spacing: tick_spacing.try_into().unwrap(),
+            extension: 0.try_into().unwrap(),
+        };
+    
+        let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
+        let liquidity = core.get_pool_liquidity(pool_key);
+        let price = core.get_pool_price(pool_key);
+        let reserve_memecoin = memecoin.balance_of(core.contract_address);
+        // let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+        //     .balance_of(core.contract_address);
+
+        let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+        .balance_of(EKUBO_POSITIONS());
+
+        println!("reserve_memecoin {:?}", reserve_memecoin);
+        println!("reserve_quote {:?}", reserve_quote);
+
+        assert(reserve_memecoin >= PercentageMath::percent_mul(lp_quote_supply, 9940), 'reserve too low meme');
+    
+        assert(reserve_quote >= PercentageMath::percent_mul(lp_quote_supply, 9900), 'reserve too low quote');
+        // No need to check +2% percent
         //     let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
     //     let liquidity = core.get_pool_liquidity(pool_key);
     //     let price = core.get_pool_price(pool_key);
