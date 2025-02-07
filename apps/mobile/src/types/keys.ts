@@ -59,6 +59,7 @@ export interface TokenDeployInterface {
   threshold_liquidity?: Uint256;
   slope?: Uint256;
   quote_token?: string;
+  block_timestamp?: string;
 }
 
 export interface TokenDeployIndexerInterface {
