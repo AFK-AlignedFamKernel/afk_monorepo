@@ -64,8 +64,8 @@ export class DeployTokenIndexer {
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
-    let symbol = '';
     let i = 1;
+    let symbol = '';
 
     while (i < event.data.length) {
       const part = event.data[i];
