@@ -30,6 +30,10 @@ export class DeployTokenIndexer {
     );
   }
 
+  private isNumeric = (str: string): boolean => {
+    return /^\d+$/.test(str);
+  };
+
   private async handleEvents(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
@@ -87,17 +91,50 @@ export class DeployTokenIndexer {
       totalSupplyHigh,
     ] = event.data;
 
-    const symbol = symbolFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(symbolFelt).toString(),
-        )
-      : '';
+    console.log(symbolFelt, nameFelt);
 
-    const name = nameFelt
-      ? shortString.decodeShortString(
-          FieldElement.toBigInt(nameFelt).toString(),
-        )
-      : '';
+    let symbol = '';
+    let i = 1;
+
+    while (i < event.data.length) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
+
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
+
+      symbol += decodedPart;
+      i++;
+    }
+
+    const part = event.data[i];
+    const decodedPart = shortString.decodeShortString(
+      FieldElement.toBigInt(part).toString(),
+    );
+
+    if (this.isNumeric(decodedPart)) {
+      i++;
+    }
+
+    let name = '';
+    while (i < event.data.length - 5) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
+
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
+
+      name += decodedPart;
+      i++;
+    }
 
     const initialSupplyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(initialSupplyLow),
