@@ -14,8 +14,8 @@ use core::traits::Into;
 use starknet::{ContractAddress, get_caller_address};
 use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
 use super::social::{
-    request::{SocialRequest, ConvertToBytes, UnsignedSocialRequest, UnsignedSocialRequestMessage}, transfer::Transfer, deposit::Claim,
-    namespace::LinkedStarknetAddress
+    request::{SocialRequest, ConvertToBytes, UnsignedSocialRequest, UnsignedSocialRequestMessage},
+    transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress
 };
 
 
@@ -305,9 +305,7 @@ pub fn encodeUnsignedSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop:
     ba
 }
 
-pub fn encodeUnsignedSocialRequestMessage(
-    request: UnsignedSocialRequestMessage
-) -> ByteArray {
+pub fn encodeUnsignedSocialRequestMessage(request: UnsignedSocialRequestMessage) -> ByteArray {
     let mut ba: ByteArray = "";
     // Encode public_key
     let (pk_count, pk_count_felt252) = count_digits(request.public_key);
@@ -362,18 +360,18 @@ pub fn generate_keypair(
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let private_key_u256: u256 = private_key.into();
     let public_key_point = G.mul(private_key_u256).unwrap_syscall();
-    
+
     // Extract x-coordinate of the public key point
     let (public_key_x, _public_key_y) = public_key_point.get_coordinates().unwrap_syscall();
 
-
-    (private_key, public_key_point, public_key_x )
+    (private_key, public_key_point, public_key_x)
 }
 
 
 /// Generates a nonce and corresponding R point for signature
 pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point) {
-    // pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point) {
+    // pub fn generate_nonce_point(vrf_contract_address: ContractAddress) -> (u256, Secp256k1Point)
+    // {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
     let caller = get_caller_address();
@@ -395,7 +393,9 @@ fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) ->
     hash_challenge(rx, px, message)
 }
 
-pub fn sign(private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress) -> SchnorrSignature {
+pub fn sign(
+    private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress
+) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point(vrf_contract_address);
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let public_key = G.mul(private_key).unwrap_syscall();
@@ -412,7 +412,12 @@ pub fn sign(private_key: u256, message: ByteArray, vrf_contract_address: Contrac
 }
 
 /// Verifies a Schnorr signature
-pub fn verify_sig(public_key: Secp256k1Point, message: ByteArray, signature: SchnorrSignature, vrf_contract_address: ContractAddress) -> bool {
+pub fn verify_sig(
+    public_key: Secp256k1Point,
+    message: ByteArray,
+    signature: SchnorrSignature,
+    vrf_contract_address: ContractAddress
+) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.r, public_key, message);
     let n = Secp256Trait::<Secp256k1Point>::get_curve_size();
@@ -460,8 +465,10 @@ mod tests {
     // const CONTRACT_ADDRESS: felt252 =
     //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
 
-    // const CONTRACT_ADDRESS: ContractAddress = "0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257";
-    // const CONTRACT_ADDRESS: ContractAddress = 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
+    // const CONTRACT_ADDRESS: ContractAddress =
+    // "0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257";
+    // const CONTRACT_ADDRESS: ContractAddress =
+    // 0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257;
     // fn CONTRACT_ADDRESS() -> ContractAddress {
     //     0x00be3edf412dd5982aa102524c0b8a0bcee584c5a627ed1db6a7c36922047257.try_into().unwrap()
     // }
@@ -470,7 +477,7 @@ mod tests {
         0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f.try_into().unwrap()
     }
 
-    
+
     // test data adapted from: https://github.com/bitcoin/bips/blob/master/bip-0340/test-vectors.csv
 
     #[test]
@@ -698,7 +705,9 @@ mod tests {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
-        let (private_key, public_key_point, public_key_x) = generate_keypair(vrf_provider.contract_address);
+        let (private_key, public_key_point, public_key_x) = generate_keypair(
+            vrf_provider.contract_address
+        );
 
         println!("private_key: {}", private_key);
         // Message to sign
@@ -709,7 +718,9 @@ mod tests {
         let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key_point, message, signature, vrf_provider.contract_address);
+        let is_valid = verify_sig(
+            public_key_point, message, signature, vrf_provider.contract_address
+        );
 
         assert!(is_valid);
     }
@@ -721,7 +732,9 @@ mod tests {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
 
-        let (private_key, public_key_point, public_key_x) = generate_keypair(vrf_provider.contract_address);
+        let (private_key, public_key_point, public_key_x) = generate_keypair(
+            vrf_provider.contract_address
+        );
 
         // Message to sign
         let message: ByteArray = "I love Cairo";
@@ -731,7 +744,9 @@ mod tests {
         let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
-        let is_valid = verify_sig(public_key_point, message, signature, vrf_provider.contract_address);
+        let is_valid = verify_sig(
+            public_key_point, message, signature, vrf_provider.contract_address
+        );
 
         assert!(is_valid);
     }

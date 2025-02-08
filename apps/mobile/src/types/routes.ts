@@ -89,6 +89,7 @@ export type MainStackParams = {
   TwitterCallback: {code: string};
   Nameservice: undefined;
   Console: undefined;
+  Community: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -123,6 +124,7 @@ export type HomeBottomStackParams = {
   TokenDetail: {coinAddress: string};
   Nameservice: undefined;
   Console: undefined;
+  Community: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -201,6 +203,7 @@ export type SearchScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<HomeBottomStackParams, 'ChannelsFeed'>,
 //   NativeStackScreenProps<RootStackParams>
 // >;
+
 
 // Main Stack
 export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParams>;
@@ -404,6 +407,11 @@ export type TwitterCallback = CompositeScreenProps<
 
 export type ConsoleScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Console'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type CommunityScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'Community'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

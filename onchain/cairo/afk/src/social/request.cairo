@@ -1,5 +1,5 @@
-use afk::bip340;
 use afk::bip340::{Signature, SchnorrSignature};
+use afk::bip340;
 use afk::utils::{compute_sha256_byte_array};
 use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;

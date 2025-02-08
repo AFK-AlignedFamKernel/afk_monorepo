@@ -26,6 +26,7 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod SocialAccount {
+    use afk::bip340::{SchnorrSignature};
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
@@ -38,11 +39,7 @@ pub mod SocialAccount {
     };
     use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
     use super::ISRC6;
-
-    use afk::bip340::{SchnorrSignature};
-    use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode
-    };
+    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use super::super::transfer::Transfer;
     use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
     #[storage]

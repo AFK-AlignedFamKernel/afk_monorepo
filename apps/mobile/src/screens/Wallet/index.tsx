@@ -1,21 +1,23 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
-import {Swap} from '../../components/Swap';
+import { TextButton } from '../../components';
+import { Swap } from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import {TOKENSMINT} from '../../constants/tokens';
-import {useStyles} from '../../hooks';
-import {LayerswapView} from '../../modules/Bridge/layerswap';
-import {CashuWalletView} from '../../modules/CashuWallet';
-import {LightningNetworkWalletView} from '../../modules/Lightning';
-import {OnrampMoney} from '../../modules/onramp/onramp_money';
-import {WalletScreen} from '../../types';
-import {SelectedTab, TABS_WALLET} from '../../types/tab';
+import { TOKENSMINT } from '../../constants/tokens';
+import { useStyles } from '../../hooks';
+import { LayerswapView } from '../../modules/Bridge/layerswap';
+import { CashuWalletView } from '../../modules/CashuWallet';
+import { LightningNetworkWalletView } from '../../modules/Lightning';
+import { OnrampMoney } from '../../modules/onramp/onramp_money';
+import { WalletScreen } from '../../types';
+import { SelectedTab, TABS_WALLET } from '../../types/tab';
 import stylesheet from './styles';
+import { TipsComponent } from '../Tips/TipsComponent';
+import TokenSwapView from '../../modules/Swap';
 
-export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
+export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
@@ -59,7 +61,7 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
             )}
 
             {selectedTab == SelectedTab.BTC_FI_VAULT && (
-              <View style={{display: 'flex', alignItems: 'center'}}>
+              <View style={{ display: 'flex', alignItems: 'center' }}>
                 <Swap
                   tokensIns={TOKENSMINT}
                   tokenOut={TOKENSMINT.WBTC}
@@ -85,6 +87,17 @@ export const Wallet: React.FC<WalletScreen> = ({navigation}) => {
               </View>
             )}
 
+            {selectedTab == SelectedTab.TIPS && (
+              <View>
+                <TipsComponent></TipsComponent>
+              </View>
+            )}
+
+            {selectedTab == SelectedTab.SWAP_AVNU && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <TokenSwapView />
+              </View>
+            )}
             {/*
 
             {selectedTab == SelectedTab.WALLET_INTERNAL && (
