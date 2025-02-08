@@ -76,12 +76,18 @@ pub mod DaoAA {
     struct Storage {
         #[key]
         public_key: u256,
+        token_contract_address: ContractAddress,
+        minimal_balance_voting: u256,
+        max_balance_per_vote: u256,
+        minimal_balance_create_proposal: u256,
+        is_multi_vote_available_per_token_balance: bool,
         transfers: Map<u256, bool>,
         proposals: Map<u256, Proposal>,
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>,
         vote_by_proposal: Map<u256, Proposal>,
+        tx_data_per_proposal: Map<u256, Span<felt252>>,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         user_votes: Map<
             (u256, ContractAddress), u64
