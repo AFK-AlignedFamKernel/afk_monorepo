@@ -5,7 +5,7 @@ import {Pressable, Text, TextInput, View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
 import {useStyles, useWindowDimensions} from '../../hooks';
-import {SORT_OPTION_EVENT_NOSTR} from '../../types/nostr';
+import {SORT_OPTION_EVENT_NOSTR, SORT_OPTIONS} from '../../types/nostr';
 import FilterMenu from '../Filter';
 import stylesheet from './styles';
 import {Icon} from '../Icon';
@@ -20,12 +20,6 @@ interface ISearchComponent {
   sortBy?: string;
 }
 
-const SORT_OPTIONS = [
-  {label: 'Recent', value: SORT_OPTION_EVENT_NOSTR.TIME},
-  {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
-  {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
-];
-
 const SearchComponent: React.FC<ISearchComponent> = ({
   searchQuery,
   setSearchQuery,
@@ -39,6 +33,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
   const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'trending');
+  // const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'trending');
 
   const handleSortChange = (sortBy: string) => {
     setActiveSortBy(sortBy);

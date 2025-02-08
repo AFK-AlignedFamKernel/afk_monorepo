@@ -122,12 +122,12 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
-        name="Tips"
-        component={Tips}
+        name="Community"
+        component={Community}
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CoinIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CommunityIcon" />,
         }}
       />
 
@@ -142,6 +142,16 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
+        name="Wallet"
+        component={Wallet}
+        options={{
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: theme.colors.background,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
+        }}
+      />
+
+      {/* <HomeBottomTabsStack.Screen
         name="Defi"
         component={Defi}
         options={{
@@ -149,7 +159,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarInactiveTintColor: theme.colors.background,
           tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
-      />
+      /> */}
 
       {publicKey ? (
         <HomeBottomTabsStack.Screen

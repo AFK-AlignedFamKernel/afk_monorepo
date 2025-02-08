@@ -13,13 +13,14 @@ import {PostCard} from '../../modules/PostCard';
 import {VideoPostCard} from '../../modules/VideoPostCard';
 import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
+import { SORT_OPTIONS } from '../../types/nostr';
 
 export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
   const {publicKey} = useAuth();
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles({limit: 10});
-  const [activeSortBy, setSortBy] = useState<string | undefined>();
+  const [activeSortBy, setSortBy] = useState<string | undefined>(SORT_OPTIONS[0].value);
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
@@ -68,7 +69,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     const filtered = flattenedPages?.filter((item) =>
       item?.content?.toLowerCase().includes(searchLower),
     );
-    // console.log('search result is => ', filtered);
+    console.log('search result is => ', filtered);
     return filtered;
   }, [notes.data?.pages, search]);
   // Filter notes based on the search query
