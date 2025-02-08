@@ -1,8 +1,8 @@
-import {Feather} from '@expo/vector-icons';
-import {Picker} from '@react-native-picker/picker';
-import {useQueryClient} from '@tanstack/react-query';
-import {useAuth, useGetLiveEvents, useLiveActivity} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
+import { Feather } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth, useGetLiveEvents, useLiveActivity } from 'afk_nostr_sdk';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,17 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Badge from '../../components/Badge';
-import {LoadingSpinner} from '../../components/Loading';
-import {useSocketContext} from '../../context/SocketContext';
+import { LoadingSpinner } from '../../components/Loading';
+import { useSocketContext } from '../../context/SocketContext';
 // import {DatePicker} from '../../components/DateComponent';
-import {useNostrAuth, useStyles, useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {StreamStudio} from '../../types';
+import { useNostrAuth, useStyles, useTheme } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { StreamStudio } from '../../types';
 import styleSheet from './event.styles';
-import {useWebStream} from './stream/useWebStream';
+import { useWebStream } from './stream/useWebStream';
 
 type Event = {
   identifier: string;
@@ -40,23 +40,23 @@ type Event = {
   }[];
 };
 
-export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) => {
-  const {publicKey} = useAuth();
-  const {data, isFetching, refetch, isPending} = useGetLiveEvents({
+export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) => {
+  const { publicKey } = useAuth();
+  const { data, isFetching, refetch, isPending } = useGetLiveEvents({
     limit: 100,
   });
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(styleSheet);
 
   const [isModalVisible, setModalVisible] = useState(false);
 
   const handleNavigate = (id: string) => {
-    navigation.navigate('WatchStream', {streamId: id});
+    navigation.navigate('WatchStream', { streamId: id });
   };
 
   const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', {streamId: id});
+    navigation.navigate('ViewStreamGuest', { streamId: id });
   };
 
   if (isPending) {
@@ -88,7 +88,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
     <View style={styles.container}>
       <SafeAreaView style={styles.scrollContent}>
 
-        {data?.pages?.flat().length === 0 ?
+        {/* {data?.pages?.flat().length === 0 ?
           <View style={styles.container}>
             <SafeAreaView style={styles.scrollContent}>
               <Text style={styles.headerText}>Stream Studio Events</Text>
@@ -110,8 +110,19 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
             </SafeAreaView>
           </View>
 
-        }
+        } */}
 
+        {data?.pages?.flat().length === 0 &&
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <RenderEmptyState
+                isVisible={isModalVisible}
+                handleModalOpen={() => setModalVisible(!isModalVisible)}
+                isEmpty={true}
+              />
+            </SafeAreaView>
+          </View>
+        }
 
         {/* <Modal
           animationType="fade"
@@ -124,7 +135,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
         <Text style={styles.headerText}>Stream Studio Events</Text>
         <FlatList
           data={data?.pages.flat()}
-          renderItem={({item}) => (
+          renderItem={({ item }) => (
             <RenderEventCard
               handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier)}
               streamKey={item.identifier}
@@ -135,7 +146,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({navigation, route}) =>
           )}
           keyExtractor={(item: any) => item.eventId}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => refetch()} />}
-          // onEndReached={() => fetchNextPage()}
+        // onEndReached={() => fetchNextPage()}
         />
       </SafeAreaView>
 
@@ -169,19 +180,19 @@ export const RenderEventCard = ({
   streamKey: string;
 }) => {
   const isStreamer = false;
-  const {socketRef, isConnected} = useSocketContext();
+  const { socketRef, isConnected } = useSocketContext();
   const toast = useToast();
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(styleSheet);
   const isOwner =
     event?.participants.findIndex((item) => item.pubkey === pubKey && item.role === 'Host') !== -1
       ? true
       : false;
 
-  const {addParticipant} = useLiveActivity();
-  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
+  const { addParticipant } = useLiveActivity();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
 
-  const {joinStream} = useWebStream({
+  const { joinStream } = useWebStream({
     socketRef,
     streamerUserId: pubKey,
     streamKey,
@@ -193,7 +204,7 @@ export const RenderEventCard = ({
     await handleCheckNostrAndSendConnectDialog();
 
     if (!pubKey) {
-      toast.showToast({title: 'Must be signed in', type: 'error'});
+      toast.showToast({ title: 'Must be signed in', type: 'error' });
       return;
     }
 
@@ -210,7 +221,7 @@ export const RenderEventCard = ({
           joinStream();
         },
         onError(error) {
-          toast.showToast({title: 'Error joining Stream', type: 'error'});
+          toast.showToast({ title: 'Error joining Stream', type: 'error' });
         },
       },
     );
@@ -285,16 +296,16 @@ const RenderEmptyState = ({
 }: {
   handleModalOpen: () => void;
   isVisible: boolean;
-    isEmpty: boolean;
+  isEmpty: boolean;
 }) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(styleSheet);
   return (
     <>
       <View style={styles.emptyStateContainer}>
         <Feather name="calendar" size={64} color={theme.colors.streamStudio_textSecondary} />
-        {isEmpty && 
-        <Text style={styles.emptyStateText}>No events available</Text>
+        {isEmpty &&
+          <Text style={styles.emptyStateText}>No events available</Text>
         }
         <TouchableOpacity style={styles.createButton} onPress={() => handleModalOpen()}>
           <Feather name="plus" size={20} color={theme.colors.streamStudio_buttonText} />
@@ -313,15 +324,15 @@ const RenderEmptyState = ({
   );
 };
 
-function CreateEventModal({handleModal}: {handleModal: () => void}) {
+function CreateEventModal({ handleModal }: { handleModal: () => void }) {
   const queryClient = useQueryClient();
-  const {showToast} = useToast();
-  const {publicKey} = useAuth();
+  const { showToast } = useToast();
+  const { publicKey } = useAuth();
 
-  const {createEvent} = useLiveActivity();
+  const { createEvent } = useLiveActivity();
 
   const styles = useStyles(styleSheet);
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   // const [startDate, setStartDate] = useState(new Date());
   // const [endDate, setEndDate] = useState(new Date());
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
@@ -356,12 +367,12 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
         },
         {
           onSuccess() {
-            showToast({title: 'Event Created Successfully', type: 'success'});
-            queryClient.invalidateQueries({queryKey: ['liveEvents']});
+            showToast({ title: 'Event Created Successfully', type: 'success' });
+            queryClient.invalidateQueries({ queryKey: ['liveEvents'] });
             handleModal();
           },
           onError() {
-            showToast({title: 'Error creating event', type: 'error'});
+            showToast({ title: 'Error creating event', type: 'error' });
           },
         },
       );
@@ -376,14 +387,14 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
           placeholder="Event Title"
           placeholderTextColor={theme.colors.inputPlaceholder}
           value={newEvent.title}
-          onChangeText={(text) => setNewEvent({...newEvent, title: text})}
+          onChangeText={(text) => setNewEvent({ ...newEvent, title: text })}
         />
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Event Description"
           placeholderTextColor={theme.colors.inputPlaceholder}
           value={newEvent.summary}
-          onChangeText={(text) => setNewEvent({...newEvent, summary: text})}
+          onChangeText={(text) => setNewEvent({ ...newEvent, summary: text })}
           multiline
         />
         <TextInput
@@ -392,14 +403,14 @@ function CreateEventModal({handleModal}: {handleModal: () => void}) {
           placeholderTextColor={theme.colors.inputPlaceholder}
           value={newEvent.hashtags?.join(', ')}
           onChangeText={(text) =>
-            setNewEvent({...newEvent, hashtags: text.split(',').map((tag) => tag.trim())})
+            setNewEvent({ ...newEvent, hashtags: text.split(',').map((tag) => tag.trim()) })
           }
         />
 
         <Picker
           selectedValue={newEvent.status}
           style={styles.picker}
-          onValueChange={(text) => setNewEvent({...newEvent, status: text})}
+          onValueChange={(text) => setNewEvent({ ...newEvent, status: text })}
         >
           {['planned', 'live', 'ended'].map((val) => (
             <Picker.Item

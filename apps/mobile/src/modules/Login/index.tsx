@@ -241,11 +241,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             <Text>Nostr Extension</Text>
           </View>
         </Button>
-        <LoginStarknet
+        {/* <LoginStarknet
           handleNavigation={() => navigationProps?.navigate('Feed')}
           btnText={'Starknet Account'}
           useCustomBtn
-        />
+        /> */}
       </View>
       <Text style={styles.passwordLabel}>Password</Text>
       <View style={styles.passwordInputContainer}>

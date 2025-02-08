@@ -59,6 +59,7 @@ import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {TagsView} from '../screens/Tags';
 import {Tips} from '../screens/Tips';
+import {Community} from '../screens/Community';
 import {Wallet} from '../screens/Wallet';
 import {WalletBTC} from '../screens/WalletBTC';
 import {ThemedStyleSheet} from '../styles';
@@ -325,6 +326,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
+      <MainStack.Screen name="Community" component={Community} />
     </MainStack.Navigator>
   );
 };
@@ -510,6 +512,7 @@ const linking = {
             },
           },
           SocialPayment: 'SocialPayment',
+          Community: 'community',
         },
       },
     },
