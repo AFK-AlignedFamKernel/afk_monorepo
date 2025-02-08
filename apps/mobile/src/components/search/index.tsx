@@ -32,7 +32,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [isOpenFilter, setIsOpenFilter] = useState(false);
-  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'trending');
+  const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'recent');
   // const [activeSortBy, setActiveSortBy] = useState<string>(sortBy ?? 'trending');
 
   const handleSortChange = (sortBy: string) => {
@@ -74,7 +74,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
             key={option.value}
             style={[
               styles.button,
-              activeSortBy.toLowerCase() === option.label.toLowerCase() && styles.activeButton,
+              activeSortBy?.toLowerCase() === option.label.toLowerCase() && styles.activeButton,
             ]}
             onPress={() => handleSortChange(option.label)}
           >

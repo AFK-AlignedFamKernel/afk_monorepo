@@ -20,7 +20,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const {publicKey} = useAuth();
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles({limit: 10});
-  const [activeSortBy, setSortBy] = useState<string | undefined>(SORT_OPTIONS[0].value);
+  const [activeSortBy, setSortBy] = useState<string | undefined>();
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
