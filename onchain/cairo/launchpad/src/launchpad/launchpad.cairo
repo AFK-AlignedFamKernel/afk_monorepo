@@ -24,7 +24,7 @@ pub mod LaunchpadMarketplace {
     };
     use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
-        get_coin_amount
+         get_coin_amount
     };
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
