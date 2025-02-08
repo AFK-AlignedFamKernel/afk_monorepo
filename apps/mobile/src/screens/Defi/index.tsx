@@ -1,21 +1,22 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {TextButton} from '../../components';
-import {Swap} from '../../components/Swap';
+import { TextButton } from '../../components';
+import { Swap } from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
-import {TOKENSMINT} from '../../constants/tokens';
-import {useStyles} from '../../hooks';
-import {LayerswapView} from '../../modules/Bridge/layerswap';
-import {CashuWalletView} from '../../modules/CashuWallet';
-import {LightningNetworkWalletView} from '../../modules/Lightning';
+import { TOKENSMINT } from '../../constants/tokens';
+import { useStyles } from '../../hooks';
+import { LayerswapView } from '../../modules/Bridge/layerswap';
+import { CashuWalletView } from '../../modules/CashuWallet';
+import { LightningNetworkWalletView } from '../../modules/Lightning';
 import TokenSwapView from '../../modules/Swap';
-import {DefiScreenProps} from '../../types';
-import {SelectedTab, TABS_DEFI} from '../../types/tab';
+import { DefiScreenProps } from '../../types';
+import { SelectedTab, TABS_DEFI } from '../../types/tab';
 import stylesheet from './styles';
+import { TipsComponent } from '../Tips/TipsComponent';
 
-export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
+export const Defi: React.FC<DefiScreenProps> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
@@ -45,7 +46,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
             {/* <Text style={styles.text}>DeFi, Ramp and more soon. Stay tuned for the AFK Fi</Text> */}
 
             {selectedTab == SelectedTab.BTC_FI_VAULT && (
-              <View style={{display: 'flex', alignItems: 'center'}}>
+              <View style={{ display: 'flex', alignItems: 'center' }}>
                 <Swap
                   tokensIns={TOKENSMINT}
                   tokenOut={TOKENSMINT.WBTC}
@@ -57,7 +58,7 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
               </View>
             )}
             {selectedTab == SelectedTab.SWAP_AVNU && (
-              <View style={{display: 'flex', alignItems: 'center'}}>
+              <View style={{ display: 'flex', alignItems: 'center' }}>
                 <TokenSwapView />
               </View>
             )}
@@ -67,6 +68,12 @@ export const Defi: React.FC<DefiScreenProps> = ({navigation}) => {
               <Text style={styles.text}>Bridge coming soon</Text>
             </View>
           )} */}
+
+            {selectedTab == SelectedTab.TIPS && (
+              <View style={{ display: 'flex', alignItems: 'center' }}>
+                <TipsComponent />
+              </View>
+            )}
 
             {selectedTab == SelectedTab.LIGHTNING_NETWORK_WALLET && (
               <View>

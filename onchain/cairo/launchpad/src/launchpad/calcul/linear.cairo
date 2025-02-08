@@ -88,7 +88,7 @@ pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
 
 // quote ETH/MEME
 // TODO check algo
-// 
+//
 pub fn calculate_starting_price_launch(
     initial_pool_supply: u256, threshold_liquidity: u256,
 ) -> i129 {
@@ -101,7 +101,6 @@ pub fn calculate_starting_price_launch(
 
     starting_price
 }
-
 // pub fn calculate_pricing(threshold_liquidity: u256, sellable_supply: u256) -> u256 {
 //     assert(sellable_supply.clone() > 0, 'Sellable supply must sup 0');
 //     let starting_price = (threshold_liquidity.clone() * SCALE_FACTOR) / sellable_supply.clone();
@@ -151,3 +150,5 @@ pub fn calculate_starting_price_launch(
 //     }
 //     q_out / SCALE_FACTOR
 // }
+
+

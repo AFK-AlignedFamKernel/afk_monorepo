@@ -141,7 +141,7 @@ export class DeployTokenIndexer {
     }
 
     name = this.cleanString(name);
-
+      
     const initialSupplyLow = event.data[i++];
     const initialSupplyHigh = event.data[i++];
     const initialSupplyRaw = uint256.uint256ToBN({
