@@ -1,8 +1,8 @@
-use starknet::{ContractAddress};
 use afk::profile::NostrProfile;
 use afk::social::request::SocialRequest;
 use afk::tokens::transfer::Transfer;
 use starknet::account::Call;
+use starknet::{ContractAddress};
 
 #[starknet::interface]
 pub trait IDaoAA<TContractState> {
@@ -90,7 +90,6 @@ pub mod DaoAA {
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>,
-        : Map<u256, VoteState>,
         vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
@@ -126,7 +125,9 @@ pub mod DaoAA {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress, token_contract_address: ContractAddress) {
+    fn constructor(
+        ref self: ContractState, owner: ContractAddress, token_contract_address: ContractAddress
+    ) {
         // self.public_key.write(public_key);
         self.owner.write(owner);
         self.token_contract_address.write(token_contract_address);
@@ -151,7 +152,7 @@ pub mod DaoAA {
     #[abi(embed_v0)]
     impl DaoAA of super::IVoteProposal<ContractState> {
         // TODO
-        // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance 
+        // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance
         // Add TX Calldata for this proposal
         fn create_proposal(ref self: ContractState, proposal: Proposal) {
             let caller = get_caller_address();
@@ -282,19 +283,19 @@ pub mod DaoAA {
             // let public_key = self.public_key.read();
 
             // let mut signature = signature;
-            // let r: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
-            // let s: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
+        // let r: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
+        // let s: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
 
             // let hash: u256 = hash.into();
-            // let mut hash_as_ba = Default::default();
-            // hash_as_ba.append_word(hash.high.into(), 16);
-            // hash_as_ba.append_word(hash.low.into(), 16);
+        // let mut hash_as_ba = Default::default();
+        // hash_as_ba.append_word(hash.high.into(), 16);
+        // hash_as_ba.append_word(hash.low.into(), 16);
 
             // if bip340::verify(public_key, r, s, hash_as_ba) {
-            //     starknet::VALIDATED
-            // } else {
-            //     0
-            // }
+        //     starknet::VALIDATED
+        // } else {
+        //     0
+        // }
         }
     }
 }

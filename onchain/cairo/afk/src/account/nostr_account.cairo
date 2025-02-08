@@ -124,7 +124,8 @@ pub mod NostrAccount {
     #[constructor]
     fn constructor(
         ref self: ContractState, // public_key: u256,
-        public_key: ContractAddress, vrf_contract_address: ContractAddress
+        public_key: ContractAddress,
+        vrf_contract_address: ContractAddress
     ) {
         // self.public_key.write(public_key);
         self.starknet_address.write(public_key);
@@ -409,11 +410,11 @@ mod tests {
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, EventSpy, DeclareResultTrait,
         EventSpyAssertionsTrait, // Event, EventFetcher, SpyOn
-        //  EventAssertions,
+         //  EventAssertions,
         // cheat_transaction_hash_global,
         // cheat_signature_global,
-        stop_cheat_transaction_hash_global, stop_cheat_signature_global,
-        start_cheat_caller_address_global, stop_cheat_caller_address,
+        stop_cheat_transaction_hash_global,
+        stop_cheat_signature_global, start_cheat_caller_address_global, stop_cheat_caller_address,
         stop_cheat_caller_address_global, start_cheat_block_timestamp,
     };
     use starknet::{
