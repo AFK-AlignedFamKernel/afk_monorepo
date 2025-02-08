@@ -30,10 +30,6 @@ export class DeployTokenIndexer {
     );
   }
 
-  private isNumeric = (str: string): boolean => {
-    return /^\d+$/.test(str);
-  };
-
   private async handleEvents(
     header: starknet.IBlockHeader,
     event: starknet.IEvent,
@@ -51,6 +47,22 @@ export class DeployTokenIndexer {
         this.logger.warn(`Unknown event type: ${eventKey}`);
     }
   }
+
+  private isNumeric = (str: string): boolean => {
+    return /^\d+$/.test(str);
+  };
+
+  private isValidChar = (char: string): boolean => {
+    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()]+$/.test(char);
+  };
+
+  private cleanString = (str: string): string => {
+    return str
+      .split('')
+      .filter((char) => this.isValidChar(char))
+      .join('')
+      .trim();
+  };
 
   private async handleCreateTokenEvent(
     header: starknet.IBlockHeader,
@@ -100,6 +112,8 @@ export class DeployTokenIndexer {
       i++;
     }
 
+    symbol = this.cleanString(symbol);
+
     const part = event.data[i];
     const decodedPart = shortString.decodeShortString(
       FieldElement.toBigInt(part).toString(),
@@ -125,6 +139,8 @@ export class DeployTokenIndexer {
       name += decodedPart;
       i++;
     }
+
+    name = this.cleanString(name);
 
     const initialSupplyLow = event.data[i++];
     const initialSupplyHigh = event.data[i++];
