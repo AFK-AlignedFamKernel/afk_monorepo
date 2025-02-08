@@ -1,4 +1,3 @@
-use starknet::{ContractAddress};
 use starknet::storage::{
     Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
      StoragePointerReadAccess,
@@ -7,38 +6,39 @@ use starknet::storage::{
 // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
 // StorageAsPathWriteForward,PathableStorageEntryImpl
 };
+use starknet::{ContractAddress};
 
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum UserVote {
-   Yes,
-   No,
-   Abstention,
+    Yes,
+    No,
+    Abstention,
 }
 
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum ProposalType {
-   SavedAutomatedTransaction,
-   Execution,
-   Proposal,
+    SavedAutomatedTransaction,
+    Execution,
+    Proposal,
 }
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum ProposalAutomatedTransaction {
-   Transfer,
-   Mint,
-   Burn,
-   Buy,
-   Sell,
-   Invest,
-   Withdraw,
+    Transfer,
+    Mint,
+    Burn,
+    Buy,
+    Sell,
+    Invest,
+    Withdraw,
 }
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum ProposalStatus {
     Pending,
@@ -50,7 +50,7 @@ pub enum ProposalStatus {
 }
 
 #[derive(Serde, Copy, // Clone,
-    Drop, starknet::Store, PartialEq //  PartialEq
+ Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum ProposalResult {
     Passed,
@@ -59,7 +59,7 @@ pub enum ProposalResult {
     Canceled
 }
 
-   
+
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
 pub struct Proposal {
     pub id: u256,
@@ -79,12 +79,12 @@ pub struct Proposal {
     pub is_canceled: bool,
 }
 
-   
+
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct VoteState {
 //     pub votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
-//     pub user_votes: Map<(u256, ContractAddress), u64>, // Maps user address to proposal ID they voted for
-//     pub has_voted: Map<(u256, ContractAddress), bool>, 
+//     pub user_votes: Map<(u256, ContractAddress), u64>, // Maps user address to proposal ID they
+//     voted for pub has_voted: Map<(u256, ContractAddress), bool>,
 //     pub user_vote_type: Map<(u256, ContractAddress), UserVote>,
 // }
 
@@ -96,8 +96,8 @@ pub trait IVoteProposal<TContractState> {
     fn cast_vote(ref self: TContractState, proposal_id: u256, vote: u64);
     // fn cast_vote(ref self: TContractState, proposal_id: u256, vote: u64);
     // fn get_vote_state( self: @TContractState, proposal_id: u256) -> VoteState;
-    fn get_proposal( self: @TContractState, proposal_id: u256) -> Proposal;
-    fn get_user_vote( self: @TContractState, proposal_id: u256, user:ContractAddress) -> UserVote;
+    fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
+    fn get_user_vote(self: @TContractState, proposal_id: u256, user: ContractAddress) -> UserVote;
 
     fn set_token_permitted(
         ref self: TContractState,
