@@ -1,34 +1,41 @@
-import {MaterialIcons} from '@expo/vector-icons';
-import {useAuth, useGetSingleEvent} from 'afk_nostr_sdk';
-import React from 'react';
-import {Pressable, Text, View} from 'react-native';
+import { MaterialIcons } from "@expo/vector-icons";
+import { useAuth, useGetSingleEvent } from "afk_nostr_sdk";
+import React from "react";
+import { Pressable, Text, View } from "react-native";
+import { useSocketContext } from "../../context/SocketContext";
+import { useStyles } from "../../hooks";
+import { LiveChatView } from "./LiveChat";
+import { useWebStream } from "./stream/useWebStream";
+import { ViewerVideoView } from "./StreamVideoPlayer";
+import stylesheet from "./styles";
+import { MainStackParams } from "../../types";
+import { RouteProp } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 
-import {useSocketContext} from '../../context/SocketContext';
-import {useStyles} from '../../hooks';
-import {ViewStreamGuest} from '../../types';
-import {LiveChatView} from './LiveChat';
-import {useWebStream} from './stream/useWebStream';
-import {ViewerVideoView} from './StreamVideoPlayer';
-import stylesheet from './styles';
 
-export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
-  const {publicKey} = useAuth();
+type ViewStreamProps = {
+  route: RouteProp<MainStackParams, "Stream">;
+  navigation: StackNavigationProp<MainStackParams, "Stream">;
+};
+
+
+export const ViewStreamModuleView: React.FC<ViewStreamProps> = ({ route }) => {
+  const { publicKey } = useAuth();
   const isStreamer = false;
-  const streamKey = route?.params.streamId; // Stream Key will be the event Id
+  const streamKey = route.params.streamId;
   const streamerUserId = publicKey;
 
   const styles = useStyles(stylesheet);
-  const {socketRef, isConnected} = useSocketContext();
-  const {isChatOpen, setNewMessage, newMessage, setIsChatOpen, viewerCount} = useWebStream({
+  const { socketRef, isConnected } = useSocketContext();
+  const { isChatOpen, setNewMessage, newMessage, setIsChatOpen, viewerCount } = useWebStream({
     socketRef,
     streamerUserId,
     streamKey,
     isStreamer,
     isConnected,
   });
-  const {data: eventData} = useGetSingleEvent({
-    eventId: streamKey,
-  });
+
+  const { data: eventData } = useGetSingleEvent({ eventId: streamKey });
 
   const renderStreamContent = () => {
     if (!eventData) {
@@ -40,24 +47,21 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
     }
 
     switch (eventData.status) {
-      case 'planned':
+      case "planned":
         return (
           <View style={styles.centerContent}>
             <Text style={styles.plannedText}>This stream is scheduled to start soon.</Text>
-            {/* <Text style={styles.scheduledTime}>
-              Scheduled time: {new Date(event.startTime).toLocaleString()}
-            </Text> */}
           </View>
         );
-      case 'live':
+      case "live":
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              <ViewerVideoView playbackUrl={eventData.streamingUrl || ""} />
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>
-                    {isConnected ? 'LIVE' : 'NOT CONNECTED CHECK YOUR NETWORK CONNECTION'}
+                    {isConnected ? "LIVE" : "NOT CONNECTED CHECK YOUR NETWORK CONNECTION"}
                   </Text>
                 </View>
                 <View style={styles.viewerContainer}>
@@ -68,17 +72,17 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
             <Pressable
               style={styles.chatToggle}
               onPress={() => setIsChatOpen(!isChatOpen)}
-              accessibilityLabel={isChatOpen ? 'Close chat' : 'Open chat'}
+              accessibilityLabel={isChatOpen ? "Close chat" : "Open chat"}
             >
-              <MaterialIcons name={isChatOpen ? 'chat' : 'chat-bubble'} size={24} color="white" />
+              <MaterialIcons name={isChatOpen ? "chat" : "chat-bubble"} size={24} color="white" />
             </Pressable>
           </>
         );
-      case 'ended':
+      case "ended":
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              <ViewerVideoView playbackUrl={eventData.streamingUrl || ""} />
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>STREAM ENDED</Text>
@@ -91,13 +95,12 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
             <Pressable
               style={styles.chatToggle}
               onPress={() => setIsChatOpen(!isChatOpen)}
-              accessibilityLabel={isChatOpen ? 'Close chat' : 'Open chat'}
+              accessibilityLabel={isChatOpen ? "Close chat" : "Open chat"}
             >
-              <MaterialIcons name={isChatOpen ? 'chat' : 'chat-bubble'} size={24} color="white" />
+              <MaterialIcons name={isChatOpen ? "chat" : "chat-bubble"} size={24} color="white" />
             </Pressable>
           </>
         );
-
       default:
         return (
           <View style={styles.centerContent}>
@@ -110,9 +113,9 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
   return (
     <View style={styles.container}>
       {renderStreamContent()}
-      {isChatOpen && eventData?.status === 'live' && (
+      {isChatOpen && eventData?.status === "live" && (
         <LiveChatView
-          eventId={route?.params.streamId}
+          eventId={route.params.streamId}
           newMessage={newMessage}
           setNewMessage={setNewMessage}
           setIsChatOpen={() => setIsChatOpen(!isChatOpen)}
