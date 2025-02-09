@@ -30,7 +30,7 @@ pub mod DaoAA {
     use afk::bip340;
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
-        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted
+        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
     };
     use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use afk::social::transfer::Transfer;
@@ -38,6 +38,7 @@ pub mod DaoAA {
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
+    use core::ecdsa::check_ecdsa_signature;
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::governance::timelock::TimelockControllerComponent;
@@ -47,11 +48,11 @@ pub mod DaoAA {
 
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapWriteAccess, Vec, MutableVecTrait
+        StorageMapWriteAccess, Vec, MutableVecTrait,
     };
     use starknet::{
         get_caller_address, get_contract_address, get_tx_info, ContractAddress,
-        contract_address_const
+        contract_address_const,
     };
     use super::ISRC6;
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
@@ -97,7 +98,7 @@ pub mod DaoAA {
         proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
         proposals_calldata: Map<u256, Vec<felt252>>, // Map ProposalID => calldata
         proposal_by_user: Map<ContractAddress, u256>,
-        total_proposal:  u256,
+        total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>,
@@ -140,7 +141,10 @@ pub mod DaoAA {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, owner: ContractAddress, token_contract_address: ContractAddress, public_key: u256
+        ref self: ContractState,
+        owner: ContractAddress,
+        token_contract_address: ContractAddress,
+        public_key: u256,
     ) {
         // self.public_key.write(public_key);
         self.owner.write(owner);
@@ -169,7 +173,7 @@ pub mod DaoAA {
         // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance
         // Add TX Calldata for this proposal
         fn create_proposal(
-            ref self: ContractState, proposal_params: ProposalParams, calldata: Array<felt252>
+            ref self: ContractState, proposal_params: ProposalParams, calldata: Array<felt252>,
         ) -> u256 {
             assert(calldata.len() > 0, 'EMPTY CALLDATA');
             let owner = get_caller_address();
@@ -189,7 +193,7 @@ pub mod DaoAA {
                 owner,
                 proposal_result_by: contract_address_const::<0x0>(),
                 is_executed: false,
-                is_canceled: false
+                is_canceled: false,
             };
 
             self.proposals.entry(id).write(Option::Some(proposal));
@@ -209,13 +213,13 @@ pub mod DaoAA {
         }
 
         fn cast_vote(
-            ref self: ContractState, proposal_id: u256, vote: u64, opt_vote_type: Option<UserVote>
+            ref self: ContractState, proposal_id: u256, vote: u64, opt_vote_type: Option<UserVote>,
         ) {
             // TODO
-        // Check if ERC20 minimal balance is needed
-        // Check if ERC20 max balance is needed
-        // Check is_multi_vote_available_per_token_balance
-        // Finish the voting part
+            // Check if ERC20 minimal balance is needed
+            // Check if ERC20 max balance is needed
+            // Check is_multi_vote_available_per_token_balance
+            // Finish the voting part
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
             assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
@@ -225,7 +229,7 @@ pub mod DaoAA {
 
             // Use balance for vote power
             let vote_token_dispatcher = IERC20Dispatcher {
-                contract_address: self.vote_token_address.read()
+                contract_address: self.vote_token_address.read(),
             };
             let caller_votes = vote_token_dispatcher
                 .balance_of(caller); // this is without its decimals
@@ -239,7 +243,7 @@ pub mod DaoAA {
 
             let vote_type: UserVote = match opt_vote_type {
                 Option::Some(vote_type) => vote_type,
-                _ => Default::default()
+                _ => Default::default(),
             };
 
             vote_state.user_votes.entry(caller).write((vote_type, caller_votes));
@@ -255,8 +259,8 @@ pub mod DaoAA {
                         vote: vote_type,
                         votes: caller_votes,
                         total_votes: previous_vote_count + caller_votes,
-                        voted_at: starknet::get_block_timestamp()
-                    }
+                        voted_at: starknet::get_block_timestamp(),
+                    },
                 );
         }
 
@@ -342,9 +346,13 @@ pub mod DaoAA {
                 return 'INVALID_LENGTH';
             }
 
-            let account_address: felt252 = self.starknet_address.read().try_into().unwrap();
+            let account_address: felt252 = self
+                .starknet_address
+                .read()
+                .try_into()
+                .unwrap(); // is this variable from the storage?
             let is_valid = check_ecdsa_signature(
-                hash, account_address, *signature.at(0_u32), *signature.at(1_u32)
+                hash, account_address, *signature.at(0_u32), *signature.at(1_u32),
             );
             if is_valid {
                 return starknet::VALIDATED;
@@ -363,10 +371,10 @@ pub mod DaoAA {
         // hash_as_ba.append_word(hash.low.into(), 16);
 
             // if bip340::verify(public_key, r, s, hash_as_ba) {
-            //     starknet::VALIDATED
-            // } else {
-            //     0
-            // }
+        //     starknet::VALIDATED
+        // } else {
+        //     0
+        // }
         }
 
         fn _get_proposal(self: @ContractState, proposal_id: u256) -> Proposal {
