@@ -6,7 +6,9 @@ use starknet::ContractAddress;
 #[starknet::component]
 pub mod VoteComponent {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::voting_proposal::{IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState};
+    use afk::interfaces::voting::{
+        IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState
+    };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
     use core::num::traits::Zero;
@@ -16,8 +18,8 @@ pub mod VoteComponent {
     use starknet::event::EventEmitter;
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
-         StoragePointerReadAccess,StoragePointerWriteAccess,
-          StoragePathEntry,
+         StoragePointerReadAccess,
+        StoragePointerWriteAccess, StoragePathEntry,
         // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
     // StorageAsPathWriteForward,PathableStorageEntryImpl
@@ -37,13 +39,14 @@ pub mod VoteComponent {
     #[abi(embed_v0)]
     impl AccessControlImpl =
         AccessControlComponent::AccessControlImpl<ComponentState<TContractState>>;
-    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ComponentState<TContractState>>;
+    impl AccessControlInternalImpl =
+        AccessControlComponent::InternalImpl<ComponentState<TContractState>>;
 
     #[storage]
     struct Storage {
         proposals: Map<u256, Proposal>,
         proposal_by_user: Map<ContractAddress, u256>,
-        total_proposal:u256,
+        total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>,
         vote_by_proposal: Map<u256, Proposal>,
         #[substorage(v0)]
@@ -55,14 +58,16 @@ pub mod VoteComponent {
 
     #[constructor]
     fn constructor(
-        ref self: ComponentState<TContractState>, token_address: ContractAddress, admin: ContractAddress
+        ref self: ComponentState<TContractState>,
+        token_address: ContractAddress,
+        admin: ContractAddress
     ) {
         // Give MINTER role to the Vault for the token used
         self.total_proposal.write(0);
         // self.token_address.write(token_address);
-        // self.accesscontrol.initializer();
-        // self.accesscontrol._grant_role(ADMIN_ROLE, admin);
-        // self.accesscontrol._grant_role(MINTER_ROLE, admin);
+    // self.accesscontrol.initializer();
+    // self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+    // self.accesscontrol._grant_role(MINTER_ROLE, admin);
     }
 
     #[event]
@@ -79,25 +84,23 @@ pub mod VoteComponent {
     #[embeddable_as(Vote)]
     impl VoteImpl<
         TContractState, +HasComponent<TContractState>
-    > of super::IVoteProposal<ComponentState<TContractState>> {
-
-        fn create_proposal(ref self: ComponentState<TContractState>, proposal:Proposal) { 
-
+    > of IVoteProposal<ComponentState<TContractState>> {
+        fn create_proposal(ref self: ComponentState<TContractState>, proposal: Proposal) {
             let caller = get_caller_address();
             let proposal_id = self.total_proposal.read();
             self.total_proposal.write(proposal_id + 1);
             self.proposals.entry(proposal_id).write(proposal);
 
             let vote_state = VoteState {
-                votes_by_proposal: Map::new(),
-                user_votes: Map::new(),
-                has_voted: Map::new(),
+                votes_by_proposal: Map::new(), user_votes: Map::new(), has_voted: Map::new(),
             };
             self.proposal_by_user.entry(caller).write(proposal_id);
             self.vote_state_by_proposal.entry(proposal_id).write(vote_state);
         }
-        
-        fn cast_vote_type(ref self: ComponentState<TContractState>, proposal_id: u256, vote: UserVote) {
+
+        fn cast_vote_type(
+            ref self: ComponentState<TContractState>, proposal_id: u256, vote: UserVote
+        ) {
             let caller = get_caller_address();
             self.vote_by_proposal.entry(proposal_id).write(vote);
             self.user_votes.entry(caller).write(proposal_id);
@@ -115,13 +118,16 @@ pub mod VoteComponent {
 
             vote_state.user_votes.entry(caller).write(vote);
             vote_state.has_voted.entry(caller).write(true);
-            // vote_state.votes_by_proposal.entry(vote).write(vote_state.votes_by_proposal.read(vote) + 1);
-          
+            // vote_state.votes_by_proposal.entry(vote).write(vote_state.votes_by_proposal.read(vote)
+            // + 1);
+
             self.vote_state_by_proposal.entry(proposal_id).write(vote_state);
             self.user_vote_type.entry(caller).write(vote);
         }
 
-        fn get_vote_state(ref self: ComponentState<TContractState>, proposal_id: u256) -> VoteState {
+        fn get_vote_state(
+            ref self: ComponentState<TContractState>, proposal_id: u256
+        ) -> VoteState {
             let caller = get_caller_address();
             self.vote_by_proposal.read(proposal_id)
         }
@@ -131,13 +137,12 @@ pub mod VoteComponent {
             self.proposals.read(proposal_id)
         }
 
-        fn get_user_vote(ref self: ComponentState<TContractState>, proposal_id: u256, user:ContractAddress) -> UserVote {
+        fn get_user_vote(
+            ref self: ComponentState<TContractState>, proposal_id: u256, user: ContractAddress
+        ) -> UserVote {
             let caller = get_caller_address();
             self.vote_by_proposal.read(proposal_id)
         }
-    
-
-    
     }
     // Admin
 // Add OPERATOR role to the Vault escrow

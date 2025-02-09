@@ -1,9 +1,9 @@
-use starknet::account::Call;
 // use starknet::{ContractAddress, get_caller_address, get_contract_address,
 // contract_address_const};
-use afk::profile::NostrProfile;
+use afk::social::profile::NostrProfile;
 use afk::social::request::SocialRequest;
-use afk::tokens::transfer::Transfer;
+use afk::social::transfer::Transfer;
+use starknet::account::Call;
 
 #[starknet::interface]
 pub trait IDaoAA<TContractState> {
@@ -25,41 +25,47 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod DaoAA {
+    use afk::bip340::{Signature, SchnorrSignature};
     use afk::bip340;
+    use afk::interfaces::voting::{
+        IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
+        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted
+    };
+    use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
+    use afk::social::transfer::Transfer;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::num::traits::Zero;
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
-    use openzeppelin_governance::timelock::TimelockControllerComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
+    use openzeppelin::governance::timelock::TimelockControllerComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
     use starknet::account::Call;
-    use afk::interfaces::voting::{IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState};
 
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
+        StorageMapWriteAccess, Vec, MutableVecTrait
     };
-    use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
+    use starknet::{
+        get_caller_address, get_contract_address, get_tx_info, ContractAddress,
+        contract_address_const
+    };
     use super::ISRC6;
-
-    use afk::bip340::{Signature, SchnorrSignature};
-    use afk::social::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode
-    };
-    use afk::social::transfer::Transfer;
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
 
-    component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
+    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     // AccessControl
     #[abi(embed_v0)]
     impl AccessControlImpl =
         AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
-    
+
     // Upgradeable
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
@@ -72,51 +78,60 @@ pub mod DaoAA {
     // impl TimelockMixinImpl =
     //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
     // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
-   
+
     #[storage]
     struct Storage {
         #[key]
         public_key: u256,
         transfers: Map<u256, bool>,
-        proposals: Map<u256, Proposal>,
+        proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
+        proposals_calldata: Map<u256, Vec<felt252>>, // Map ProposalID => calldata
         proposal_by_user: Map<ContractAddress, u256>,
-        total_proposal:u256,
-        vote_state_by_proposal: Map<u256, VoteState>,
-        vote_by_proposal: Map<u256, Proposal>,
+        total_proposal: u256,
+        vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
+        // vote_by_proposal: Map<u256, Proposal>,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
-        user_votes: Map<(u256, ContractAddress), u64>, // Maps user address to proposal ID they voted for
-        has_voted: Map<(u256, ContractAddress), bool>, 
-        user_vote_type: Map<(u256, ContractAddress), UserVote>,
+        // here
+        // user_votes: Map<
+        //     (u256, ContractAddress), u64,
+        // >, // Maps user address to proposal ID they voted for
+        // has_voted: Map<(u256, ContractAddress), bool>,
+        // user_vote_type: Map<(u256, ContractAddress), UserVote>,
+        vote_token_address: ContractAddress,
+        total_voters: u128,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         #[substorage(v0)]
-        upgradeable: UpgradeableComponent::Storage
+        upgradeable: UpgradeableComponent::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         AccountCreated: AccountCreated,
+        ProposalCreated: ProposalCreated,
+        ProposalVoted: ProposalVoted,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
-        UpgradeableEvent: UpgradeableComponent::Event
+        UpgradeableEvent: UpgradeableComponent::Event,
     }
 
     #[derive(Drop, starknet::Event)]
     struct AccountCreated {
         #[key]
-        public_key: u256
+        public_key: u256,
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, public_key: u256) {
+    fn constructor(ref self: ContractState, public_key: u256, vote_token_address: ContractAddress) {
         self.public_key.write(public_key);
         self.total_proposal.write(0);
+        self.vote_token_address.write(vote_token_address);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, admin);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -136,64 +151,110 @@ pub mod DaoAA {
             assert!(erc20.symbol() == request.content.token, "wrong token");
 
             let recipient = IDaoAADispatcher {
-                contract_address: request.content.recipient_address
+                contract_address: request.content.recipient_address,
             };
 
             assert!(
                 recipient.get_public_key() == request.content.recipient.public_key,
-                "wrong recipient"
+                "wrong recipient",
             );
-
             // if let Option::Some(id) = request.verify() {
-            //     assert!(!self.transfers.read(id), "double spend");
-            //     self.transfers.entry(id).write(true);
-            //     erc20.transfer(request.content.recipient_address, request.content.amount);
-            // } else {
-            //     panic!("can't verify signature");
-            // }
+        //     assert!(!self.transfers.read(id), "double spend");
+        //     self.transfers.entry(id).write(true);
+        //     erc20.transfer(request.content.recipient_address, request.content.amount);
+        // } else {
+        //     panic!("can't verify signature");
+        // }
         }
     }
 
     #[abi(embed_v0)]
-    impl DaoAA of super::IVoteProposal<ContractState> {
-        fn create_proposal(ref self: ContractState, proposal:Proposal) { 
+    impl DaoAAProposalImpl of IVoteProposal<ContractState> {
+        fn create_proposal(
+            ref self: ContractState, proposal_params: ProposalParams, calldata: Array<felt252>
+        ) -> u256 {
+            assert(calldata.len() > 0, 'EMPTY CALLDATA');
+            let owner = get_caller_address();
+            let id = self.total_proposal.read() + 1;
+            let created_at = starknet::get_block_timestamp();
+            let end_at = starknet::get_block_timestamp() + SET_PROPOSAL_DURATION_IN_SECONDS;
 
-            let caller = get_caller_address();
-            let proposal_id = self.total_proposal.read();
-            self.total_proposal.write(proposal_id + 1);
-            self.proposals.entry(proposal_id).write(proposal);
-
-            let vote_state = VoteState {
-                votes_by_proposal: Map::new(),
-                user_votes: Map::new(),
-                has_voted: Map::new(),
+            let proposal = Proposal {
+                id,
+                created_at,
+                end_at,
+                is_whitelisted: false,
+                proposal_params,
+                proposal_status: Default::default(),
+                proposal_result: Default::default(),
+                proposal_result_at: 0,
+                owner,
+                proposal_result_by: contract_address_const::<0x0>(),
+                is_executed: false,
+                is_canceled: false
             };
-            self.proposal_by_user.entry(caller).write(proposal_id);
-            self.vote_state_by_proposal.entry(proposal_id).write(vote_state);
+
+            self.proposals.entry(id).write(Option::Some(proposal));
+
+            let proposal_calldata = self.proposals_calldata.entry(id);
+            for i in 0
+                ..calldata
+                    .len() {
+                        let data = *calldata.at(i);
+                        proposal_calldata.append().write(data);
+                    };
+
+            self.total_proposal.write(id);
+            self.emit(ProposalCreated { id, owner, created_at, end_at });
+
+            id
         }
-        
-        fn cast_vote_type(ref self: ContractState, proposal_id: u256, vote: UserVote) {
+
+        fn cast_vote(
+            ref self: ContractState, proposal_id: u256, vote: u64, opt_vote_type: Option<UserVote>
+        ) {
             let caller = get_caller_address();
-            self.vote_by_proposal.entry(proposal_id).write(vote);
-            self.user_votes.entry(caller).write(proposal_id);
-            self.has_voted.entry(caller).write(true);
-            self.user_vote_type.entry(caller).write(vote);
-        }
+            let proposal = self._get_proposal(proposal_id);
+            assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
 
-        fn cast_vote(ref self: ContractState, proposal_id: u256, vote: u64) {
-            let caller = get_caller_address();
-            self.vote_by_proposal.entry(proposal_id).write(vote);
-            self.user_votes.entry(caller).write(proposal_id);
-            self.has_voted.entry(caller).write(true);
+            let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
+            assert(!vote_state.user_has_voted.entry(caller).read(), 'CALLER HAS VOTED');
 
-            let mut vote_state = self.vote_state_by_proposal.read(proposal_id);
+            // Use balance for vote power
+            let vote_token_dispatcher = IERC20Dispatcher {
+                contract_address: self.vote_token_address.read()
+            };
+            let caller_votes = vote_token_dispatcher
+                .balance_of(caller); // this is without its decimals
+            // let number_of_votes: u64 = (caller_balance /
+            // TOKEN_DECIMALS.into()).try_into().unwrap();
 
-            vote_state.user_votes.entry(caller).write(vote);
-            vote_state.has_voted.entry(caller).write(true);
-            // vote_state.votes_by_proposal.entry(vote).write(vote_state.votes_by_proposal.read(vote) + 1);
-          
-            self.vote_state_by_proposal.entry(proposal_id).write(vote_state);
-            self.user_vote_type.entry(caller).write(vote);
+            let previous_vote_count = vote_state.no_of_votes.read();
+            vote_state.no_of_votes.write(previous_vote_count + caller_votes);
+            let previous_voter_count = vote_state.voter_count.read();
+            vote_state.voter_count.write(previous_voter_count + 1);
+
+            let vote_type: UserVote = match opt_vote_type {
+                Option::Some(vote_type) => vote_type,
+                _ => Default::default()
+            };
+
+            vote_state.user_votes.entry(caller).write((vote_type, caller_votes));
+            vote_state.user_has_voted.entry(caller).write(true);
+            vote_state.voters_list.append().write(caller);
+            self.total_voters.write(self.total_voters.read() + 1);
+
+            self
+                .emit(
+                    ProposalVoted {
+                        id: proposal_id,
+                        voter: caller,
+                        vote: vote_type,
+                        votes: caller_votes,
+                        total_votes: previous_vote_count + caller_votes,
+                        voted_at: starknet::get_block_timestamp()
+                    }
+                );
         }
 
         // fn get_vote_state(ref self: ContractState, proposal_id: u256) -> VoteState {
@@ -201,14 +262,29 @@ pub mod DaoAA {
         //     self.vote_by_proposal.read(proposal_id)
         // }
 
-        fn get_proposal(ref self: ContractState, proposal_id: u256) -> Proposal {
-            let caller = get_caller_address();
-            self.proposals.read(proposal_id)
+        fn get_proposal(self: @ContractState, proposal_id: u256) -> Proposal {
+            self._get_proposal(proposal_id)
         }
 
-        fn get_user_vote(ref self: ContractState, proposal_id: u256, user:ContractAddress) -> UserVote {
+        fn get_user_vote(
+            self: @ContractState, proposal_id: u256, user: ContractAddress,
+        ) -> UserVote {
             let caller = get_caller_address();
-            self.vote_by_proposal.read(proposal_id)
+            let _ = self._get_proposal(proposal_id); // assert
+            let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
+            assert(vote_state.user_has_voted.entry(caller).read(), 'CALLER HAS NO VOTES');
+
+            let (user_vote, _) = vote_state.user_votes.entry(caller).read();
+            user_vote
+        }
+
+        fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
+            let mut proposal = self._get_proposal(proposal_id);
+            assert(get_caller_address() == proposal.owner, 'UNAUTHORIZED CALLER');
+            assert(!proposal.is_canceled, 'PROPOSAL ALREADY CANCELED');
+            assert(!proposal.is_executed, 'PROPOSAL ALREADY EXECUTED');
+            proposal.is_canceled = true;
+            self.proposals.entry(proposal_id).write(Option::Some(proposal));
         }
     }
 
@@ -236,7 +312,7 @@ pub mod DaoAA {
         }
 
         fn is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Array<felt252>
+            self: @ContractState, hash: felt252, signature: Array<felt252>,
         ) -> felt252 {
             self._is_valid_signature(hash, signature.span())
         }
@@ -245,7 +321,7 @@ pub mod DaoAA {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn _is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Span<felt252>
+            self: @ContractState, hash: felt252, signature: Span<felt252>,
         ) -> felt252 {
             let public_key = self.public_key.read();
 
@@ -264,5 +340,22 @@ pub mod DaoAA {
                 0
             }
         }
+
+        fn _get_proposal(self: @ContractState, proposal_id: u256) -> Proposal {
+            let opt_proposal = self.proposals.entry(proposal_id).read();
+            assert(opt_proposal.is_some(), 'INVALID PROPOSAL ID');
+
+            opt_proposal.unwrap()
+        }
     }
 }
+// Proposal IVoteProposal Impl possible functions
+// fn cast_vote_type(ref self: ContractState, proposal_id: u256, vote: UserVote) {
+//     let caller = get_caller_address();
+//     self.vote_by_proposal.entry(proposal_id).write(vote);
+//     self.user_votes.entry(caller).write(proposal_id);
+//     self.has_voted.entry(caller).write(true);
+//     self.user_vote_type.entry(caller).write(vote);
+// }
+
+

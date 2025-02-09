@@ -357,6 +357,7 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
+    use afk::bip340::{Signature, SchnorrSignature};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::option::OptionTrait;
     use snforge_std::{
@@ -368,7 +369,6 @@ mod tests {
     use starknet::{ContractAddress, get_block_timestamp};
 
     use super::super::request::{SocialRequest};
-    use afk::bip340::{Signature, SchnorrSignature};
 
     use super::{DepositEscrow, IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
     use super::{DepositResult, NostrPublicKey, Claim};
