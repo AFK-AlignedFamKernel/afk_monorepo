@@ -46,11 +46,11 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
         >
           {TABS_MENU.map((option) => (
             <Pressable
-              style={[styles.menuItem, {borderRadius: isDesktop ? 38 : 15}]}
+              style={[styles.menuItem, {borderRadius: isDesktop ? 20 : 15}]}
               onPress={() => handleTabSelected(option.tab)}
             >
-              <Text style={[styles.title, {fontSize: isDesktop ? 30 : 18}]}>{option.title}</Text>
-              <Text style={[styles.description, {fontSize: isDesktop ? 18 : 12}]}>
+              <Text style={[styles.title, {fontSize: isDesktop ? 20 : 18}]}>{option.title}</Text>
+              <Text style={[styles.description, {fontSize: isDesktop ? 20 : 12}]}>
                 {option.description}
               </Text>
             </Pressable>

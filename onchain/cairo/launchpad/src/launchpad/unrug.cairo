@@ -135,7 +135,6 @@ pub mod UnrugLiquidity {
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
         metadata_coins: Map::<ContractAddress, MetadataLaunch>,
         array_coins: Map::<u64, Token>,
-        
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
         locked_positions: Map::<ContractAddress, LockPosition>,
@@ -696,7 +695,7 @@ pub mod UnrugLiquidity {
         }
 
         /// Adds liquidity to an Ekubo pool for a given memecoin and quote token pair
-        /// 
+        ///
         /// # Arguments
         /// * `coin_address` - The address of the memecoin token contract
         /// * `unrug_params_inputs` - Parameters for adding liquidity including:
@@ -713,7 +712,7 @@ pub mod UnrugLiquidity {
         ///    - Calling register_token() on registry
         /// 3. Sets up pool with initial price and liquidity bounds
         /// 4. Adds liquidity to the pool
-        /// 
+        ///
         /// # Returns
         /// * Tuple containing:
         ///   - Pool ID (u64)
@@ -830,7 +829,7 @@ pub mod UnrugLiquidity {
         /// @param token - The address of the first token in the pair
         /// @param token_quote - The address of the second token in the pair (quote token)
         /// @param lp_supply - The amount of the first token to add as liquidity
-        /// @param lp_quote_supply - The amount of the second token to add as liquidity  
+        /// @param lp_quote_supply - The amount of the second token to add as liquidity
         /// @param bounds - The price bounds for the position
         /// @param owner - The address that will own the LP position
         /// @return u64 - The ID of the minted LP position
@@ -839,7 +838,7 @@ pub mod UnrugLiquidity {
         /// 1. Gets the positions contract address
         /// 2. Transfers both tokens from the owner to the positions contract
         /// 3. Calls the mint_and_deposit function on the positions contract
-        /// 4. Returns the ID of the minted LP position 
+        /// 4. Returns the ID of the minted LP position
         fn _supply_liquidity_ekubo(
             ref self: ContractState,
             pool_key: PoolKey,
@@ -873,7 +872,7 @@ pub mod UnrugLiquidity {
         // / Modular way
         // Less restrictions but represent the params in the UI etc
         /// Validates common parameters for launching a memecoin
-        /// 
+        ///
         /// # Arguments
         /// * `launch_parameters` - LaunchParameters struct containing:
         ///   - memecoin_address: Address of the memecoin token contract
@@ -887,7 +886,8 @@ pub mod UnrugLiquidity {
         /// 1. Verifies memecoin is not already launched
         /// 2. Validates initial holders arrays have matching lengths
         /// 3. Checks number of initial holders does not exceed MAX_HOLDERS_LAUNCH
-        /// 4. Ensures total allocation to initial holders does not exceed MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION
+        /// 4. Ensures total allocation to initial holders does not exceed
+        /// MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION
         ///
         /// # Returns
         /// * Tuple containing:

@@ -59,6 +59,7 @@ import {Search} from '../screens/Search';
 import {Settings} from '../screens/Settings';
 import {TagsView} from '../screens/Tags';
 import {Tips} from '../screens/Tips';
+import {Community} from '../screens/Community';
 import {Wallet} from '../screens/Wallet';
 import {WalletBTC} from '../screens/WalletBTC';
 import {ThemedStyleSheet} from '../styles';
@@ -121,12 +122,12 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
-        name="Tips"
-        component={Tips}
+        name="Community"
+        component={Community}
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CoinIcon" />,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CommunityIcon" />,
         }}
       />
 
@@ -141,6 +142,16 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
+        name="Wallet"
+        component={Wallet}
+        options={{
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: theme.colors.background,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
+        }}
+      />
+
+      {/* <HomeBottomTabsStack.Screen
         name="Defi"
         component={Defi}
         options={{
@@ -148,7 +159,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarInactiveTintColor: theme.colors.background,
           tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
-      />
+      /> */}
 
       {publicKey ? (
         <HomeBottomTabsStack.Screen
@@ -325,6 +336,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
+      <MainStack.Screen name="Community" component={Community} />
     </MainStack.Navigator>
   );
 };
@@ -510,6 +522,7 @@ const linking = {
             },
           },
           SocialPayment: 'SocialPayment',
+          Community: 'community',
         },
       },
     },

@@ -65,7 +65,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
       <View style={styles.header}>
         {token?.created_at ? (
           <Text style={styles.creationTime}>
-            {getElapsedTimeStringFull(new Date(token.created_at).getTime())}
+            {getElapsedTimeStringFull(new Date(token.block_timestamp).getTime())}
           </Text>
         ) : null}
         <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>

@@ -1,12 +1,13 @@
 import dotenv from 'dotenv';
+// Use require instead of import because of the error "Cannot use import statement outside a module"
+import { Telegraf } from 'telegraf';
+import { message } from 'telegraf/filters';
+
 dotenv.config();
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 const WEB_APP_URL = process.env.TELEGRAM_WEB_APP ?? 'https://lfg.afk-community.xyz'; // Replace with your web app's URL
 
 const MOBILE_APP_URL = process.env.TELEGRAM_MOBILE_APP ?? 'https:/afk-community.xyz';
-// Use require instead of import because of the error "Cannot use import statement outside a module"
-import { Telegraf } from 'telegraf';
-import { message } from 'telegraf/filters';
 
 /**
  * Creates and launches Telegram bot, and assigns all the required listeners
@@ -18,6 +19,13 @@ import { message } from 'telegraf/filters';
  *
  */
 export function launchBot(token: string) {
+  // Allow to not launch bot in development mode if TELEGRAM_WEB_APP is not set
+  // TODO: use config var instead relying on process.env
+  if (process.env.NODE_ENV === 'development' && !process.env.TELEGRAM_WEB_APP) {
+    console.warn('TELEGRAM_WEB_APP is not set');
+    return;
+  }
+
   try {
     // Create a bot using the token received from @BotFather(https://t.me/BotFather)
     const bot = new Telegraf(token);
@@ -93,7 +101,9 @@ function listenToCommands(bot) {
     bot.help(async (ctx) => {
       await ctx.reply('Run the /start command to use our mini app');
     });
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error listenToCommands', e);
+  }
 }
 
 /**
@@ -120,7 +130,7 @@ function listenToMessages(bot: Telegraf) {
       await ctx.reply('I like your sticker! 🔥');
     });
   } catch (e) {
-    console.log('listenToMessages', e);
+    console.error('Error listenToMessages', e);
   }
 }
 
@@ -148,7 +158,7 @@ function listenToMiniAppData(bot) {
       }
     });
   } catch (e) {
-    console.log('Error listenMiniAppData', e);
+    console.error('Error listenMiniAppData', e);
   }
 }
 
@@ -185,8 +195,11 @@ function listenToQueries(bot) {
       // Using context shortcut
       await ctx.answerInlineQuery(result);
     });
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error listenToQueries', e);
+  }
 }
+
 /**
  * Listens to process stop events and performs a graceful bot stop
  *
@@ -198,7 +211,9 @@ function enableGracefulStop(bot) {
     // Enable graceful stop
     process.once('SIGINT', () => bot.stop('SIGINT'));
     process.once('SIGTERM', () => bot.stop('SIGTERM'));
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error enableGracefulStop', e);
+  }
 }
 
 /**
@@ -233,7 +248,7 @@ export const handleMessageRequest = async (bot, request, response) => {
     });
   } catch (e) {
     const errorJson = JSON.stringify(e);
-    console.log(`handleMessageRequest error ${errorJson}`);
+    console.error(`handleMessageRequest error ${errorJson}`);
 
     await response.status(500).json({
       error: errorJson,
@@ -277,7 +292,7 @@ export async function sendWebAppButton(chatId) {
     const result = await response.json();
     console.log(result);
   } catch (e) {
-    console.log('Error sendWebApp', e);
+    console.error('Error sendWebApp', e);
   }
 }
 
@@ -302,6 +317,6 @@ export async function sendMessage(chatId, text) {
       console.error(`Error sending message: ${response.statusText}`);
     }
   } catch (e) {
-    console.log('sendMessage error', e);
+    console.error('sendMessage error', e);
   }
 }

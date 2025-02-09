@@ -161,19 +161,19 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
 export const TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
   {
     title: 'Pump',
-    description: 'Pump Description',
+    description: 'Launch your token to be trade and pumped',
     screen: 'Launchpad',
     tab: SelectedTab.LAUNCHPAD_VIEW,
   },
   {
     title: 'Pixel Peace',
-    description: 'Pixel Peace Description',
+    description: 'Pixel Game for communities',
     screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
   },
   {
-    title: 'AFK Nameservice',
-    description: 'AFK Nameservice Description',
+    title: 'Nameservice',
+    description: 'AFK nameservice to mint your own name.afk',
     screen: 'AFK Nameservice',
     tab: SelectedTab.NAMESERVICE,
   },
@@ -184,7 +184,7 @@ export const TABS_MENU: {screen?: string; title: string;  description: string; t
   // },
   {
     title: 'Keys',
-    description: 'Keys Description',
+    description: 'Launch your own keys as a Starknet user linked to your profile',
     screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
   },
@@ -194,19 +194,18 @@ export const TABS_MENU: {screen?: string; title: string;  description: string; t
     screen: 'Slink',
     tab: SelectedTab.SLINK,
   },
-
-  {
-    title: '?',
-    description: '? Description',
-    screen: '?',
-    tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
-  },
-  {
-    title: '?!',
-    description: '?! Description',
-    screen: '?!',
-    tab: SelectedTab.LAUNCH_TOKEN_PUMP,
-  },
+  // {
+  //   title: '?',
+  //   description: '? Description',
+  //   screen: '?',
+  //   tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+  // },
+  // {
+  //   title: '?!',
+  //   description: '?! Description',
+  //   screen: '?!',
+  //   tab: SelectedTab.LAUNCH_TOKEN_PUMP,
+  // },
   // {
   //   title: 'Channel',
   //   screen: 'CreateChannel',
@@ -235,6 +234,11 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
     title: 'Lightning',
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  },
+  {
+    title: 'Tips',
+    screen: 'Tips',
+    tab: SelectedTab.TIPS,
   },
   {
     title: 'BTC Fi',
@@ -343,7 +347,21 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'Lightning',
     tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
   },
-
+  {
+    title: 'Tips',
+    screen: 'Tips',
+    tab: SelectedTab.TIPS,
+  },
+  {
+    title: 'BTC Fi',
+    screen: 'BTCVault',
+    tab: SelectedTab.BTC_FI_VAULT,
+  },
+  {
+    title: 'Swap',
+    screen: 'Swap',
+    tab: SelectedTab.SWAP_AVNU,
+  },
   {
     title: 'Bridge',
     screen: 'Bridge',
@@ -456,6 +474,37 @@ export const TABS_CONSOLE: {screen?: string; title: string; tab: SelectedTab}[] 
   //   title: 'Token',
   //   screen: 'LaunchToken',
   //   tab: SelectedTab.LAUNCH_TOKEN,
+  // },
+  // {
+  //   title: 'Messages',
+  //   screen: "ChannelsFeed",
+  //   tab: SelectedTab.MESSAGES
+
+  // },
+];
+
+
+export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[] = [
+
+  {
+    title: 'All Group',
+    screen: 'AllGroup',
+    tab: SelectedTab.ALL_GROUP,
+  },
+  {
+    title: 'Channels',
+    screen: 'ChannelsFeed',
+    tab: SelectedTab.CHANNELS,
+  },
+  {
+    title: 'Messages',
+    screen: 'Messages',
+    tab: SelectedTab.MESSAGES,
+  },
+  // {
+  //   title: 'Tips',
+  //   screen: 'Tips',
+  //   tab: SelectedTab.TIPS,
   // },
   // {
   //   title: 'Messages',
