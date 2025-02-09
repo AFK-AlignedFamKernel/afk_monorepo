@@ -109,7 +109,6 @@ pub mod DaoAA {
         // >, // Maps user address to proposal ID they voted for
         // has_voted: Map<(u256, ContractAddress), bool>,
         // user_vote_type: Map<(u256, ContractAddress), UserVote>,
-        vote_token_address: ContractAddress,
         total_voters: u128,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
@@ -177,6 +176,18 @@ pub mod DaoAA {
         ) -> u256 {
             assert(calldata.len() > 0, 'EMPTY CALLDATA');
             let owner = get_caller_address();
+            let minimal_balance = self.minimal_balance_create_proposal.read();
+
+            if minimal_balance > 0 {
+                let vote_token_dispatcher = IERC20Dispatcher {
+                    contract_address: self.token_contract_address.read()
+                };
+                assert(
+                    vote_token_dispatcher.balance_of(owner) > minimal_balance,
+                    'INSUFFICIENT CREATION FUNDS'
+                );
+            }
+
             let id = self.total_proposal.read() + 1;
             let created_at = starknet::get_block_timestamp();
             let end_at = starknet::get_block_timestamp() + SET_PROPOSAL_DURATION_IN_SECONDS;
@@ -219,22 +230,40 @@ pub mod DaoAA {
             // Check if ERC20 minimal balance is needed
             // Check if ERC20 max balance is needed
             // Check is_multi_vote_available_per_token_balance
+
             // Finish the voting part
+            // done
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
             assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
-
+            
             let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
-            assert(!vote_state.user_has_voted.entry(caller).read(), 'CALLER HAS VOTED');
+            assert(
+                !vote_state.user_has_voted.entry(caller).read()
+                    && !self.is_multi_vote_available_per_token_balance.read(),
+                'CALLER HAS VOTED'
+            );
 
             // Use balance for vote power
             let vote_token_dispatcher = IERC20Dispatcher {
-                contract_address: self.vote_token_address.read(),
+                contract_address: self.token_contract_address.read(),
             };
-            let caller_votes = vote_token_dispatcher
+            let caller_balance = vote_token_dispatcher
                 .balance_of(caller); // this is without its decimals
             // let number_of_votes: u64 = (caller_balance /
             // TOKEN_DECIMALS.into()).try_into().unwrap();
+
+            let max_votes = self.max_balance_per_vote.read();
+            assert(
+                caller_balance > 0 && caller_balance >= self.minimal_balance_voting.read(),
+                'INSUFFICIENT VOTING FUNDS'
+            );
+
+            let caller_votes = if caller_balance > max_votes && max_votes > 0 {
+                max_votes
+            } else {
+                caller_balance
+            };
 
             let previous_vote_count = vote_state.no_of_votes.read();
             vote_state.no_of_votes.write(previous_vote_count + caller_votes);
