@@ -13,6 +13,7 @@ import {PostCard} from '../../modules/PostCard';
 import {VideoPostCard} from '../../modules/VideoPostCard';
 import {FeedScreenProps} from '../../types';
 import stylesheet from './styles';
+import { SORT_OPTIONS } from '../../types/nostr';
 
 export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
   const {theme} = useTheme();
@@ -68,7 +69,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     const filtered = flattenedPages?.filter((item) =>
       item?.content?.toLowerCase().includes(searchLower),
     );
-    // console.log('search result is => ', filtered);
+    console.log('search result is => ', filtered);
     return filtered;
   }, [notes.data?.pages, search]);
   // Filter notes based on the search query

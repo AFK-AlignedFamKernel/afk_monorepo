@@ -1,24 +1,24 @@
 // import { useAuth } from '../../../store/auth';
-import {useAuth, useNostrContext} from 'afk_nostr_sdk';
-import React, {useEffect, useMemo, useState} from 'react';
-import {Image, Platform, Pressable, ScrollView, Text, View} from 'react-native';
+import { useAuth, useNostrContext } from 'afk_nostr_sdk';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 
-import {Icon} from '../../../components/Icon';
-import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
+import { Icon } from '../../../components/Icon';
+import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
 import stylesheet from './styles';
 
 interface SidebarInterface {
   // navigation:MainStackNavigationProps | DrawerNavigationHelpers
   navigation: any;
 }
-const Sidebar = ({navigation}: SidebarInterface) => {
+const Sidebar = ({ navigation }: SidebarInterface) => {
   const styles = useStyles(stylesheet);
   const publicKey = useAuth((state) => state.publicKey);
   const ndk = useNostrContext();
   // const navigation = useNavigation<MainStackNavigationProps>()
   // const navigation = useNavigation<DrawerStackNavigationProps>()
   const handleNavigateProfile = () => {
-    navigation.navigate('Profile', {publicKey});
+    navigation.navigate('Profile', { publicKey });
   };
 
   const handleAuth = () => {
@@ -44,6 +44,10 @@ const Sidebar = ({navigation}: SidebarInterface) => {
 
   const handleTipsScreen = () => {
     navigation.navigate('Tips');
+  };
+
+  const handleCommunityScreen = () => {
+    navigation.navigate('Community');
   };
   const handleStudioScreen = () => {
     navigation.navigate('StreamStudio');
@@ -130,6 +134,21 @@ const Sidebar = ({navigation}: SidebarInterface) => {
         </Pressable>
 
         <Pressable
+          onPress={handleCommunityScreen}
+          onHoverIn={() => setHoveredKey('Community')}
+          onHoverOut={() => setHoveredKey('')}
+          style={[
+            isDesktop ? styles.itemDesktop : styles.itemMobile,
+            currentRouteKey?.includes('Community') || hoveredKey === 'Community'
+              ? styles.activeItem
+              : styles.inactiveItem,
+          ]}
+        >
+          <Icon name="CommunityIcon" size={isDesktop ? 30 : 25} />
+          <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Community</Text>
+        </Pressable>
+
+        {/* <Pressable
           onPress={handleTipsScreen}
           onHoverIn={() => setHoveredKey('Tips')}
           onHoverOut={() => setHoveredKey('')}
@@ -142,7 +161,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
         >
           <Icon name="CoinIcon" size={isDesktop ? 30 : 25} />
           <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Tips</Text>
-        </Pressable>
+        </Pressable> */}
 
         <Pressable
           onPress={handleGameScreen}
@@ -159,7 +178,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
           <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>?</Text>
         </Pressable>
 
-        <Pressable
+        {/* <Pressable
           onPress={handleDefiScreen}
           onHoverIn={() => setHoveredKey('Defi')}
           onHoverOut={() => setHoveredKey('')}
@@ -172,7 +191,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
         >
           <Icon name="CoinIcon" size={isDesktop ? 30 : 25} />
           <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>DeFi</Text>
-        </Pressable>
+        </Pressable> */}
 
         <Pressable
           onPress={handleWallet}
@@ -205,7 +224,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
             <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Studio</Text>
           </Pressable>
         )}
-
+        {/* 
         <Pressable
           onPress={handleSocialScreen}
           onHoverIn={() => setHoveredKey('SocialPayment')}
@@ -219,7 +238,7 @@ const Sidebar = ({navigation}: SidebarInterface) => {
         >
           <Icon name="SunIcon" size={isDesktop ? 30 : 25} />
           <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Socials</Text>
-        </Pressable>
+        </Pressable> */}
 
         {publicKey && (
           <Pressable

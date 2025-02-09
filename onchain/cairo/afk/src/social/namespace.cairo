@@ -77,6 +77,7 @@ pub trait INamespace<TContractState> {
 
 #[starknet::contract]
 pub mod Namespace {
+    use afk::bip340::{Signature, SchnorrSignature};
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
@@ -91,10 +92,7 @@ pub mod Namespace {
     use starknet::{
         get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
     };
-    use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode
-    };
-    use afk::bip340::{Signature, SchnorrSignature};
+    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use super::{
         LinkedWalletProfileDefault, LinkedResult, INamespace, NostrPublicKey,
         LinkedStarknetAddressEncodeImpl, LinkedStarknetAddress, OPERATOR_ROLE, ADMIN_ROLE
@@ -244,6 +242,7 @@ pub mod Namespace {
 
 #[cfg(test)]
 mod tests {
+    use afk::bip340::{SchnorrSignature};
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{
@@ -255,8 +254,6 @@ mod tests {
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
         contract_address_const,
     };
-
-    use afk::bip340::{SchnorrSignature};
 
     use super::super::request::{SocialRequest, Encode};
     use super::super::transfer::Transfer;

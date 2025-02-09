@@ -30,6 +30,7 @@ import { StudioModuleView } from '../modules/Studio';
 import { SingleStreamModuleView } from '../modules/Studio/SingleStream';
 import { ViewStreamModuleView } from '../modules/Studio/ViewStream';
 // Screens
+
 import { CreateAccount } from '../screens/Auth/nostr/CreateAccount';
 import { ImportKeys } from '../screens/Auth/nostr/ImportKeys';
 import { LoginNostr } from '../screens/Auth/nostr/LoginNostr';
@@ -62,6 +63,7 @@ import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
 import { ThemedStyleSheet } from '../styles';
+
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
@@ -121,12 +123,14 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
-        name="Tips"
-        component={Tips}
+        name="Community"
+        component={Community}
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
-          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="CoinIcon" />,
+
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CommunityIcon" />,
+
         }}
       />
 
@@ -141,6 +145,16 @@ const HomeBottomTabNavigator: React.FC = () => {
       />
 
       <HomeBottomTabsStack.Screen
+        name="Wallet"
+        component={Wallet}
+        options={{
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: theme.colors.background,
+          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
+        }}
+      />
+
+      {/* <HomeBottomTabsStack.Screen
         name="Defi"
         component={Defi}
         options={{
@@ -148,7 +162,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarInactiveTintColor: theme.colors.background,
           tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
-      />
+      /> */}
 
       {publicKey ? (
         <HomeBottomTabsStack.Screen
@@ -447,7 +461,19 @@ const linking = {
           Cashu: 'cashu',
           WalletBTC: 'wallet-btc',
           Wallet: 'wallet',
-          SocialPayment: 'social-payment',
+          Portfolio: 'portfolio',
+          ShortVideos: 'shorts',
+          DappBrowser: 'browser',
+          Oauth: 'oauth',
+          ReceiveEcash: {
+            path: 'receive/ecash/:token',
+            parse: {
+              token: (token: any) => `${token}`,
+            },
+          },
+          SocialPayment: 'SocialPayment',
+          Community: 'community',
+
         },
       },
     },
