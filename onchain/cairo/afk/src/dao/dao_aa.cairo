@@ -501,7 +501,7 @@ mod tests {
 
     #[test]
     fn test_proposal_vote_success() {
-        // afk::dao::dao_aa::tests::test_proposal_vote_success 
+        // snforge test afk::dao::dao_aa::tests::test_proposal_vote_success --exact
         let creator = contract_address_const::<'CREATOR'>();
         let voter = OWNER(); // minted with tokens
         let token_contract = deploy_token();
@@ -541,5 +541,28 @@ mod tests {
         );
 
         spy.assert_emitted(@array![(proposal_contract, voted_event)]);
+    }
+
+    #[test]
+    fn test_proposal_cancellation_success() {
+        // snforge test afk::dao::dao_aa::tests::test_proposal_cancellation_success --exact
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let creator = contract_address_const::<'CREATOR'>();
+
+        cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(2));
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default()
+        };
+        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+        proposal_dispatcher.cancel_proposal(proposal_id);
+
+        let proposal = proposal_dispatcher.get_proposal(proposal_id);
+        assert(proposal.is_canceled == true, 'CANCEL FAILED');
     }
 }

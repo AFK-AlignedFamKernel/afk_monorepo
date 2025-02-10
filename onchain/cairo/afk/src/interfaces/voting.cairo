@@ -107,6 +107,15 @@ pub struct ProposalVoted {
     pub voted_at: u64
 }
 
+#[derive(Drop, Copy, starknet::Event)]
+pub struct ProposalCanceled {
+    #[key]
+    pub id: u256,
+    pub owner: ContractAddress,
+    pub is_canceled: bool,
+    // pub votes: u256, // subject to review
+}
+
 
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct VoteState {
