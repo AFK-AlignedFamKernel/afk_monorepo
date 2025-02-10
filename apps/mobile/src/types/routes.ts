@@ -1,9 +1,9 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {DrawerNavigationProp, DrawerScreenProps} from '@react-navigation/drawer';
-import {CompositeScreenProps, NavigatorScreenParams} from '@react-navigation/native';
-import {NativeStackNavigationProp, NativeStackScreenProps} from '@react-navigation/native-stack';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { DrawerNavigationProp, DrawerScreenProps } from '@react-navigation/drawer';
+import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import {TokenDeployInterface} from './keys';
+import { TokenDeployInterface } from './keys';
 
 export type RootStackParams = {
   MainStack: NavigatorScreenParams<MainStackParams>;
@@ -25,28 +25,29 @@ export type AuthStackParams = {
   Profile: {
     publicKey: string;
   };
+  Community: undefined;
 };
 
 export type MainStackParams = {
   // Home: NavigatorScreenParams<HomeBottomStackParams>;
   BottomBar: undefined;
   CreatePost: undefined;
-  Profile: {publicKey: string};
-  PostDetail: {postId: string; post?: NDKEvent};
-  GroupChat: {groupId: string; post?: NDKEvent; groupName: string; groupAccess: string};
-  GroupChatDetail: {groupId: string; groupName: string; post?: NDKEvent; groupAccess: string};
+  Profile: { publicKey: string };
+  PostDetail: { postId: string; post?: NDKEvent };
+  GroupChat: { groupId: string; post?: NDKEvent; groupName: string; groupAccess: string };
+  GroupChatDetail: { groupId: string; groupName: string; post?: NDKEvent; groupAccess: string };
   GroupChatMemberRequest: {
     groupId: string;
     groupName: string;
     post?: NDKEvent;
     groupAccess: string;
   };
-  Tags: {tagName: string; post?: NDKEvent};
+  Tags: { tagName: string; post?: NDKEvent };
   EditProfile: undefined;
   Search: undefined;
   CreateChannel: undefined;
   ChannelsFeed: undefined;
-  ChannelDetail: {postId: string; post?: NDKEvent};
+  ChannelDetail: { postId: string; post?: NDKEvent };
   CreateForm: undefined;
   Defi: undefined;
   Games: undefined;
@@ -57,7 +58,7 @@ export type MainStackParams = {
   Feed: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string};
+  LaunchDetail: { coinAddress: string };
   Login: undefined;
   LoginNostr: undefined;
   CreateAccount: undefined;
@@ -67,15 +68,15 @@ export type MainStackParams = {
   };
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
-  PrivateGroupDetails: {postId: string; post?: NDKEvent};
+  PrivateGroupDetails: { postId: string; post?: NDKEvent };
   Lightning: undefined;
   Cashu: undefined;
   Whatever: undefined;
   RightDrawer: undefined;
   WalletBTC: undefined;
   StreamStudio: undefined;
-  WatchStream: {streamId: string};
-  ViewStreamGuest: {streamId: string};
+  WatchStream: { streamId: string };
+  ViewStreamGuest: { streamId: string };
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
@@ -83,28 +84,30 @@ export type MainStackParams = {
   DappBrowser: undefined;
   Oauth: undefined;
   ShortVideos: undefined;
-  TokenDetail: {coinAddress: string};
-  ReceiveEcash: {token: string};
+  TokenDetail: { coinAddress: string };
+  ReceiveEcash: { token: string };
   SocialPayment: undefined;
-  TwitterCallback: {code: string};
+  TwitterCallback: { code: string };
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
 };
 
+
 export type HomeBottomStackParams = {
   Feed: undefined;
-  UserProfile: {publicKey: string};
+  UserProfile: { publicKey: string };
   Notifications: undefined;
   Tips: undefined;
   Search: undefined;
   Games: undefined;
+  Wallet: undefined;
   Defi: undefined;
   Home: undefined;
   Settings: undefined;
-  Profile: {publicKey: string};
+  Profile: { publicKey: string };
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+  LaunchDetail: { coinAddress: string; launch?: TokenDeployInterface };
   Login: undefined;
   CreateAccount: undefined;
   SaveKeys: {
@@ -114,14 +117,14 @@ export type HomeBottomStackParams = {
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
   Main: NavigatorScreenParams<MainStackParams>;
-  PrivateGroupDetails: {postId: string; post?: NDKEvent};
+  PrivateGroupDetails: { postId: string; post?: NDKEvent };
   Lightning: undefined;
   Cashu: undefined;
   LoginNostr: undefined;
   DappBrowser: undefined;
   Oauth: undefined;
   ShortVideos: undefined;
-  TokenDetail: {coinAddress: string};
+  TokenDetail: { coinAddress: string };
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
@@ -423,7 +426,7 @@ export type DegensAppStackParams = {
   Home: NavigatorScreenParams<DegensBottomStackParams>;
 
   CreatePost: undefined;
-  Profile: {publicKey: string};
+  Profile: { publicKey: string };
   CreateForm: undefined;
   Defi: undefined;
   Games: undefined;
@@ -435,7 +438,7 @@ export type DegensAppStackParams = {
   Lightning: undefined;
   Settings: undefined;
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+  LaunchDetail: { coinAddress: string; launch?: TokenDeployInterface };
   Login: undefined;
   CreateAccount: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
@@ -449,16 +452,16 @@ export type DegensAppStackParams = {
 
 export type DegensBottomStackParams = {
   // Feed: undefined;
-  UserProfile: {publicKey: string};
+  UserProfile: { publicKey: string };
   Notifications: undefined;
   Tips: undefined;
   Games: undefined;
   Defi: undefined;
   Home: undefined;
   Settings: undefined;
-  Profile: {publicKey: string};
+  Profile: { publicKey: string };
   Launchpad: undefined;
-  LaunchDetail: {coinAddress: string; launch?: TokenDeployInterface};
+  LaunchDetail: { coinAddress: string; launch?: TokenDeployInterface };
 
   Login: undefined;
   CreateAccount: undefined;
