@@ -11,6 +11,7 @@ const LN_2: u256 = 693_147_180_559_945_309_u256;
 // Exponential approximation
 // TODO Audit HIGH SECURITY
 // Rounding and approximation issue to check
+
 pub fn exponential_approximation(x: u256, y: u256, terms: u256) -> u256 {
     if x == 0 {
         return DECIMAL_FACTOR;
@@ -77,6 +78,46 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
 // Logarithm approximation with a LOG_TERMS
 // TODO Audit HIGH SECURITY
 // Rounding and approximation issue to check
+/// Logarithm Approximation Documentation for Auditors
+///
+/// This function implements a logarithm approximation using Taylor series expansion
+/// specifically optimized for values close to 1 (1+x).
+///
+/// # Key Parameters
+/// - x: Numerator of the fraction to compute ln(x/y)
+/// - y: Denominator of the fraction
+/// - terms: Number of Taylor series terms to use (affects precision)
+///
+/// # Implementation Details
+/// 1. Input Validation:
+///    - Checks for zero input
+///    - Handles cases where x > y by transforming calculation
+///
+/// 2. Series Calculation:
+///    - Alternates between adding and subtracting terms
+///    - Uses scaled arithmetic (DECIMAL_FACTOR) for precision
+///    - Early termination when terms become negligible
+///
+/// 3. Special Cases:
+///    - When x > y, combines with natural log calculation
+///    - Maintains precision through scaled arithmetic
+///
+/// # Security Considerations
+/// - Precision loss in term calculations
+/// - Convergence depends on input values
+/// - Potential overflow in term multiplication
+/// - Rounding errors in division
+/// - Gas costs with iteration
+/// - Edge cases: very small/large inputs
+///
+/// # Known Limitations
+/// - Precision decreases for inputs far from 1
+/// - Gas cost increases with more terms
+/// - May not converge for certain input ranges
+///
+/// # Integration Notes
+/// Used in exponential bonding curve calculations
+/// Critical for accurate price computations
 pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
     if x == 0 {
         return 0_u256;
@@ -120,6 +161,9 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
 
     result
 }
+// Get meme amount to received based on the amount_in quote token
+// TODO Audit HIGH SECURITY
+// Rounding and approximation issue to check
 
 pub fn get_meme_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
@@ -147,7 +191,26 @@ pub fn get_meme_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u
     };
     amount_out
 }
-
+/// Exponential Bonding Curve Algorithm Documentation
+///
+/// The exponential bonding curve implements a pricing mechanism where token price increases
+/// exponentially with supply sold. This creates a steeper price curve compared to linear.
+///
+/// # Key Parameters
+/// - threshold_liquidity: Maximum quote tokens (e.g. ETH) that can be used to buy tokens
+/// - total_supply: Total token supply
+/// - sellable_supply: Amount available for sale (total_supply - liquidity reserve)
+/// - LIQUIDITY_RATIO: Ratio determining liquidity reserve (e.g. 5 means 20% reserved)
+///
+/// # Security Considerations
+/// - Taylor series convergence at extreme values
+/// - Precision loss in iterative calculations
+/// - Gas costs for term computation
+/// - Overflow risks in exponential growth
+/// - Front-running exposure
+/// - Price manipulation vectors
+/// - Numerical stability at scale
+/// - Edge cases: zero amounts, max supply
 pub fn get_coin_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
@@ -171,13 +234,6 @@ pub fn get_coin_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u
     if amount_out > liquidity_raised {
         amount_out = liquidity_raised;
     };
-    amount_out
-}
-
-pub fn get_coin_amount_by_quote_amount_exponential(
-    pool_coin: TokenLaunch, amount_in: u256
-) -> u256 {
-    let amount_out = 0_u256;
     amount_out
 }
 // pub fn natural_log(x: u256, scale_factor: u256, terms: u256) -> u256 {

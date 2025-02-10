@@ -23,6 +23,44 @@ const SAFE_SCALE: u256 = 1_000_000; // 1e6 instead of 1e18
 // Get the meme amount to received based on the amount_in quote token
 // TODO audit
 // Rounding and approximation issue
+/// Linear Bonding Curve Algorithm Documentation
+///
+/// The linear bonding curve implements a pricing mechanism where the token price increases linearly
+/// with the amount of tokens sold. This creates a fair launch mechanism where early buyers get
+/// lower prices.
+///
+/// # Key Parameters
+/// - threshold_liquidity: Maximum amount of quote tokens (e.g. ETH) that can be used to buy tokens
+/// - total_supply: Total token supply
+/// - sellable_supply: Amount available for sale (total_supply - liquidity reserve)
+/// - LIQUIDITY_RATIO: Ratio determining liquidity reserve (e.g. 5 means 20% reserved)
+///
+/// # Key Functions
+/// - get_meme_amount(): Calculates tokens received when buying
+/// - get_coin_amount(): Calculates quote tokens received when selling
+///
+/// # Implementation Details
+/// 1. Scaling factors used to handle precision:
+///    - SCALE_FACTOR: 1e30 for general calculations
+///    - SCALE_ROOT_FACTOR: 1e15 for square root operations
+///    - DECIMAL_FACTOR: 1e18 for token decimals
+///
+/// 2. Buy Process (get_meme_amount):
+///    a. Calculate current price based on tokens sold
+///    b. Solve quadratic equation to determine tokens received
+///    c. Apply scaling and precision handling
+///
+/// 3. Sell Process (get_coin_amount):
+///    a. Calculate price before and after sale
+///    b. Integrate price function to determine quote tokens returned
+///    c. Apply scaling and safety checks
+///
+/// # Security Considerations
+/// - Precision loss in calculations
+/// - Overflow risks in multiplication
+/// - Edge cases: zero amounts, max supply
+/// - Rounding behavior impact
+/// - Front-running possibilities
 pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
@@ -58,9 +96,29 @@ pub fn get_meme_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     amount_out
 }
 
-// Get the Quote token to received based on the amount_in of meme to sell
-// TODO audit
+// Get the Quote token to received based on the amount_in of meme to sell based on the bonding curve
+// Linear TODO audit
 // Rounding and approximation issue
+// HIGH SECURITY RISK
+// Linear Bonding Curve Algorithm Documentation
+//
+// The linear bonding curve implements a pricing mechanism where the token price increases linearly
+// with the amount of tokens sold. The key components are:
+//
+//    Key Parameters:
+//    - threshold_liquidity: Maximum amount of quote tokens (e.g. ETH) that can be used to buy
+//    tokens - total_supply: Total token supply
+//    - sellable_supply: Amount available for sale (total_supply - liquidity reserve)
+//    - LIQUIDITY_RATIO: Ratio determining liquidity reserve (e.g. 5 means 20% reserved)
+//    Key Considerations:
+//    - Uses scaled arithmetic to handle precision
+//    - Includes safety checks for zero values and thresholds
+//    - Maintains constant liquidity reserve ratio
+//    - Price increases predictably with sales volume
+//
+// Note: The implementation includes scaling factors and safety checks to handle
+// numerical precision and prevent overflow/underflow conditions.
+
 pub fn get_coin_amount(pool_coin: TokenLaunch, amount_in: u256) -> u256 {
     let total_supply = pool_coin.total_supply.clone();
     let current_supply = pool_coin.available_supply.clone();
