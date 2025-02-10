@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mobile:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PATH: apps/mobile
+    working_dir: /app/apps/mobile
+    command: pnpm run start
+    volumes:
+      - .:/app
+    ports:
+      - "${MOBILE_PORT}:${MOBILE_PORT}" # Use environment variable
+    depends_on:
+      - packages
+    env_file:
+      - .env
+
+  data-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PATH: apps/data-backend
+    working_dir: /app/apps/data-backend
+    command: pnpm run start
+    volumes:
+      - .:/app
+    ports:
+      - "${DATA_BACKEND_PORT}:${DATA_BACKEND_PORT}" # Use environment variable
+    depends_on:
+      - packages
+    env_file:
+      - .env
+
+  nestjs-indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PATH: apps/nestjs-indexer
+    working_dir: /app/apps/nestjs-indexer
+    command: pnpm run start
+    volumes:
+      - .:/app
+    ports:
+      - "${NESTJS_INDEXER_PORT}:${NESTJS_INDEXER_PORT}" # Use environment variable
+    depends_on:
+      - packages
+    env_file:
+      - .env
+
+  packages:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PATH: packages
+    working_dir: /app/packages
+    command: pnpm run build
+    volumes:
+      - .:/app
+    env_file:
+      - .env
