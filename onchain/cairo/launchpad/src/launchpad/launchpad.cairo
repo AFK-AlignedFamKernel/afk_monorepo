@@ -269,7 +269,7 @@ pub mod LaunchpadMarketplace {
         // self.is_fees_protocol_buy_enabled.write(false);
         // self.is_fees_protocol_sell_enabled.write(false);
 
-        // TODO AUDIT 
+        // TODO AUDIT
         // Check fees implementation in buy an sell
         // Rounding and approximation can caused an issue
         self.is_fees_protocol_buy_enabled.write(true);
@@ -697,8 +697,9 @@ pub mod LaunchpadMarketplace {
             // let threshold = pool.threshold_liquidity - (pool.threshold_liquidity *
             // SLIPPAGE_THRESHOLD / BPS);
             // Update pool first time
-            // Used by the add liquidity ekubo, 
-            // maybe better to only sent the mut storage to the function to not write two times the state
+            // Used by the add liquidity ekubo,
+            // maybe better to only sent the mut storage to the function to not write two times the
+            // state
             self.launched_coins.entry(coin_address).write(pool);
 
             // High security risk
@@ -790,7 +791,7 @@ pub mod LaunchpadMarketplace {
             // HIGH RISK SECURITY
             // Rounding and approximation of the Linear and Exponential bonding curve can occurs
             // Calculate fees for protocol based on this quote amount calculated
-            // 
+            //
             let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
             let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
 
@@ -858,7 +859,6 @@ pub mod LaunchpadMarketplace {
             if balance_contract >= quote_amount_paid {
                 quote_token.transfer(caller, quote_amount_paid);
             } else {
-
                 // Balance doesn't have the quote amount to paid
                 // AUDIT HIGH SECURITY
                 // Rounding and approximation on calculation and fees have lost some precision
@@ -1022,7 +1022,7 @@ pub mod LaunchpadMarketplace {
                 pool.clone(), coin_address, amount, is_decreased, is_quote_amount
             )
         }
-        // Get the amount of coin received by quote amount 
+        // Get the amount of coin received by quote amount
         // Bonding curve calculation are Linear and Exponential
         fn get_coin_amount_by_quote_amount(
             self: @ContractState,
@@ -1202,7 +1202,6 @@ pub mod LaunchpadMarketplace {
                 creator_fee_percent: self.creator_fee_percent.read()
             };
 
-
             // TODO Check approve
             // AUDIT
             // Handle token transfer to the launchpad
@@ -1249,7 +1248,7 @@ pub mod LaunchpadMarketplace {
         // Check better the liquidity position of Ekubo
         // Call the Unrug V2 to deposit Liquidity of the memecoin initial_pool_supply  and the
         // liquidity_raised The LP is owned by the Launchpad and locked it
-       
+
         fn _add_liquidity_ekubo(
             ref self: ContractState, coin_address: ContractAddress,
         ) -> (u64, EkuboLP) {
@@ -1285,7 +1284,7 @@ pub mod LaunchpadMarketplace {
             };
 
             // Calculate liquidity amounts
-            // AUDIT 
+            // AUDIT
             let lp_supply = launch.initial_pool_supply.clone();
             let mut lp_quote_supply = launch.liquidity_raised.clone();
 
