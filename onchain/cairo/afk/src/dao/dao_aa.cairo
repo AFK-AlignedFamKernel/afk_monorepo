@@ -225,9 +225,7 @@ pub mod DaoAA {
             id
         }
 
-        fn cast_vote(
-            ref self: ContractState, proposal_id: u256, vote: u64, opt_vote_type: Option<UserVote>,
-        ) {
+        fn cast_vote(ref self: ContractState, proposal_id: u256, opt_vote_type: Option<UserVote>,) {
             // TODO
             // Check if ERC20 minimal balance is needed
             // Check if ERC20 max balance is needed
@@ -418,9 +416,10 @@ pub mod DaoAA {
 mod tests {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
-        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted,
-        IVoteProposalDispatcher, IVoteProposalDispatcherTrait
+        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
+        IVoteProposalDispatcherTrait
     };
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
@@ -433,10 +432,29 @@ mod tests {
         contract_address_const::<'OWNER'>()
     }
 
-    fn deploy_dao() -> ContractAddress {
+    fn deploy_token() -> ContractAddress {
+        // ref self: ContractState,
+        // name: felt252,
+        // symbol: felt252,
+        // initial_supply: u256,
+        // recipient: ContractAddress,
+        // decimals: u8,
+        let mut constructor_calldata = array![];
+        let decimals = 10_u8;
+        constructor_calldata.append_serde('DaoToken');
+        constructor_calldata.append_serde('DAOO');
+        constructor_calldata.append_serde(100000_u256);
+        constructor_calldata.append_serde(OWNER());
+        decimals.serialize(ref constructor_calldata);
+
+        let contract = declare("ERC20").unwrap().contract_class();
+        let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
+        contract_address
+    }
+
+    fn deploy_dao(token_contract_address: ContractAddress) -> ContractAddress {
         let mut constructor_calldata = array![];
         let owner = OWNER();
-        let token_contract_address = contract_address_const::<'Mock'>();
         let public_key = 55555_u256;
         constructor_calldata.append_serde(owner);
         constructor_calldata.append_serde(token_contract_address);
@@ -450,7 +468,9 @@ mod tests {
 
     #[test]
     fn test_proposal_creation() {
-        let proposal_contract = deploy_dao();
+        // snforge test afk::dao::dao_aa::tests::test_proposal_creation --exact
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
         let caller = contract_address_const::<'CALLER_1'>();
 
@@ -477,5 +497,49 @@ mod tests {
         );
 
         spy.assert_emitted(@array![(proposal_contract, creation_event)]);
+    }
+
+    #[test]
+    fn test_proposal_vote_success() {
+        // afk::dao::dao_aa::tests::test_proposal_vote_success 
+        let creator = contract_address_const::<'CREATOR'>();
+        let voter = OWNER(); // minted with tokens
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
+
+        let voter_balance = token_dispatcher.balance_of(voter);
+        assert(voter_balance > 0, 'MINT FAILED');
+
+        cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(1));
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default()
+        };
+
+        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+        // created by 'CREATOR'
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+
+        let mut spy = spy_events();
+        let voted_at = starknet::get_block_timestamp();
+        cheat_block_timestamp(proposal_contract, voted_at, CheatSpan::TargetCalls(1));
+        cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
+        proposal_dispatcher.cast_vote(proposal_id, Option::None); // should use a default then.
+
+        let voted_event = super::DaoAA::Event::ProposalVoted(
+            ProposalVoted {
+                id: proposal_id,
+                voter,
+                vote: Default::default(),
+                votes: voter_balance,
+                total_votes: voter_balance,
+                voted_at
+            }
+        );
+
+        spy.assert_emitted(@array![(proposal_contract, voted_event)]);
     }
 }

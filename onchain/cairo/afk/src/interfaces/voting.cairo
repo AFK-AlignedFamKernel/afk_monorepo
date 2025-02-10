@@ -130,9 +130,7 @@ pub trait IVoteProposal<TContractState> {
     fn create_proposal(
         ref self: TContractState, proposal_params: ProposalParams, calldata: Array<felt252>
     ) -> u256;
-    fn cast_vote(
-        ref self: TContractState, proposal_id: u256, vote: u64, opt_vote_type: Option<UserVote>
-    );
+    fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
     fn get_user_vote(self: @TContractState, proposal_id: u256, user: ContractAddress) -> UserVote;
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
