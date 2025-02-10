@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
 import {PixelPeace} from '../../modules/PixelPeace';
 import {GameSreenProps} from '../../types';
-import {SelectedTab, TABS_MENU} from '../../types/tab';
+import {SelectedTab, CONSOLE_TABS_MENU} from '../../types/tab';
 import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
 import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
@@ -44,7 +44,7 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {TABS_MENU.map((option) => (
+          {CONSOLE_TABS_MENU.map((option) => (
             <Pressable
               style={[styles.menuItem, {borderRadius: isDesktop ? 20 : 15}]}
               onPress={() => handleTabSelected(option.tab)}

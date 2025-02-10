@@ -77,12 +77,12 @@ pub mod LaunchpadMarketplace {
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
-    const MAX_STEPS_LOOP: u256 = 100;
 
     // TODO add optional parameters to be select LIQ percent to be lock to Unrug at some point
     // Total supply / LIQUIDITY_RATIO
     // Get the 20% of Bonding curve going to Liquidity
     // Liquidity can be lock to Unrug
+
     const LIQUIDITY_RATIO: u256 = 5; // Divid by 5 the total supply.
     // TODO add with a enabled pay boolean to be free at some point
     const PAY_TO_LAUNCH: u256 = 1; // amount in the coin used
@@ -92,6 +92,7 @@ pub mod LaunchpadMarketplace {
     const MID_FEE_PROTOCOL: u256 = 100; //1%
     const SLIPPAGE_THRESHOLD: u256 = 100; //1%
 
+    // TODO  Used in V2 and be choose by user
     const MIN_FEE_CREATOR: u256 = 100; //1%
     const MID_FEE_CREATOR: u256 = 1000; //10%
     const MAX_FEE_CREATOR: u256 = 5000; //50%
@@ -100,32 +101,18 @@ pub mod LaunchpadMarketplace {
     const SCALE_FACTOR: u256 =
         100_000_000_000_000_000_u256; // Scale factor decimals place for price division and others stuff
 
-    // MVP
+    // MVP TODO AUDIT FLEXIBLE SUPPLY with Fuzzing
     // FIXED SUPPLY because edge cases not finish testing hard between threshold/supply
     const FIXED_SUPPLY: u256 = 1_000_000_000_000_000_000_000_000_000_u256; // 1_000_000_000
 
     // Unrug params
-
-    // CHANGE it
-    /// The maximum percentage of the total supply that can be allocated to the team.
-    /// This is to prevent the team from having too much control over the supply.
-    const MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION: u16 = 1_000; // 10%
-
-    /// The maximum number of holders one can specify when launching.
-    /// This is to prevent the contract from being is_launched with a large number of holders.
-    /// Once reached, transfers are disabled until the memecoin is is_launched.
-    const MAX_HOLDERS_LAUNCH: u8 = 10;
-
     const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
-
     // fn _validate_transaction_size(amount: u256) {
     //     assert(amount <= MAX_TRANSACTION_AMOUNT, 'transaction too large');
     // }
-
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-
 
     // AccessControl
     #[abi(embed_v0)]
@@ -282,6 +269,9 @@ pub mod LaunchpadMarketplace {
         // self.is_fees_protocol_buy_enabled.write(false);
         // self.is_fees_protocol_sell_enabled.write(false);
 
+        // TODO AUDIT
+        // Check fees implementation in buy an sell
+        // Rounding and approximation can caused an issue
         self.is_fees_protocol_buy_enabled.write(true);
         self.is_fees_protocol_sell_enabled.write(true);
         self.is_fees_protocol_enabled.write(true);
@@ -306,6 +296,7 @@ pub mod LaunchpadMarketplace {
             is_enable: true,
             step_increase_linear
         };
+        // TODO  test add case  if the payment are needed to create and launch
         self.is_custom_launch_enable.write(false);
         self.is_custom_token_enable.write(false);
         self.default_token.write(init_token.clone());
@@ -319,6 +310,7 @@ pub mod LaunchpadMarketplace {
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
+        // Unrug Liquitidy to deposit through Ekubo
         self.unrug_liquidity_address.write(unrug_liquidity_address);
     }
 
@@ -514,7 +506,9 @@ pub mod LaunchpadMarketplace {
         // User call
 
         // Create token for an user
-        // Send the supply to the caller
+        // Send the supply to the recipient
+        // Add Ownable to the caller
+        // Add Factory address for the memecoin.cairo
         fn create_token(
             ref self: ContractState,
             recipient: ContractAddress,
@@ -543,6 +537,9 @@ pub mod LaunchpadMarketplace {
         }
 
         // Create coin and launch in bonding curve
+        // Need to have the allowance of the total supply to be used
+        // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
+        // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn create_and_launch_token(
             ref self: ContractState,
             symbol: ByteArray,
@@ -573,6 +570,9 @@ pub mod LaunchpadMarketplace {
         }
 
         // Launch coin to pool bonding curve
+        // Need to have the allowance of the total supply to be used
+        // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
+        // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn launch_token(
             ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType
         ) {
@@ -609,6 +609,11 @@ pub mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             let mut amount_protocol_fee = 0;
             let mut remain_quote_to_liquidity = quote_amount;
+
+            // HIGH SECURITY RISK For Liquidity Ekubo and Buy coin
+            // Calculate threshold before launch the liquidity
+            // We add a slippage tolerance to launch on the threshold and thresloss - 2%
+            // We also substract protocol fees to the threshold: MAYBE CAUSING ISSUE
             let mut threshold_liquidity = pool.threshold_liquidity.clone();
 
             let mut slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
@@ -616,8 +621,9 @@ pub mod LaunchpadMarketplace {
             let mut threshold = threshold_liquidity - slippage_threshold;
             // Substract fees protocol from threshold and the quote amount to used to calculate the
             // coin amount Handle protocol fees if enabled
-            // HIGH SECURITY ISSUE
+            // HIGH SECURITY RISK ISSUE
             // Security check to do
+            // Rounding and approximation of the percentage can lead to security vulnerabilities
             if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
                 amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
                 remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
@@ -634,9 +640,12 @@ pub mod LaunchpadMarketplace {
             let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
             // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
+            // TODO V2
+            // add the Creator feed here setup by the user
+
             // Calculate coin amount to receive
             // AUDIT
-            // High security check to do.
+            // High security risk.
             // Verify rounding issue and approximation of the quote amount caused overflow
             let coin_amount = get_amount_by_type_of_coin_or_quote(
                 pool.clone(), coin_address, remain_quote_to_liquidity, false, true
@@ -655,7 +664,6 @@ pub mod LaunchpadMarketplace {
             pool.price = quote_amount;
             pool.total_token_holded += coin_amount;
 
-            // pool.available_supply -= coin_amount;
             if coin_amount >= pool.available_supply {
                 pool.available_supply = 0;
                 pool.total_token_holded += coin_amount;
@@ -688,8 +696,15 @@ pub mod LaunchpadMarketplace {
             // Check if liquidity threshold reached
             // let threshold = pool.threshold_liquidity - (pool.threshold_liquidity *
             // SLIPPAGE_THRESHOLD / BPS);
+            // Update pool first time
+            // Used by the add liquidity ekubo,
+            // maybe better to only sent the mut storage to the function to not write two times the
+            // state
             self.launched_coins.entry(coin_address).write(pool);
 
+            // High security risk
+            // Launch to ekubo if the liquidity raised = threshold liquidity
+            // This threshold liquidity have a slippage tolrance of 2% and less protocl fees
             if pool.liquidity_raised >= threshold {
                 self
                     .emit(
@@ -700,7 +715,7 @@ pub mod LaunchpadMarketplace {
                         }
                     );
 
-                // Add liquidity to DEX
+                // Add liquidity to DEX Ekubo
                 self._add_liquidity_ekubo(coin_address);
                 pool.is_liquidity_launch = true;
             }
@@ -743,7 +758,7 @@ pub mod LaunchpadMarketplace {
             // Get user's share and validate amount
             let mut share = self.shares_by_users.entry(caller).entry(coin_address).read();
 
-            // Adjust sell amount if needed
+            // Adjust sell amount if needed to the max owne by user if it's above it
             let mut sell_amount = if share.amount_owned < coin_amount {
                 share.amount_owned
             } else {
@@ -753,7 +768,9 @@ pub mod LaunchpadMarketplace {
             assert(share.amount_owned >= sell_amount, errors::ABOVE_SUPPLY);
 
             // Calculate fees
+            // Get percentage fees setup for protoocol
             let protocol_fee_percent = self.protocol_fee_percent.read();
+            // TODO V2: used creator fees setup by admin/user
             let creator_fee_percent = self.creator_fee_percent.read();
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
@@ -764,13 +781,17 @@ pub mod LaunchpadMarketplace {
             //     share.amount_owned <= pool.total_token_holded,
             //     errors::SUPPLY_ABOVE_TOTAL_OWNED
             // );
-            // Calculate quote token amounts
+            // Calculate quote token amounts to received with  the amount of memecoin sell
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
                 pool.clone(), coin_address, sell_amount, true, false
             );
             let mut quote_amount = quote_amount_total.clone();
-            // println!("quote_amount_total first: {}", quote_amount_total.clone());
 
+            // AUDIT
+            // HIGH RISK SECURITY
+            // Rounding and approximation of the Linear and Exponential bonding curve can occurs
+            // Calculate fees for protocol based on this quote amount calculated
+            //
             let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
             let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
 
@@ -792,10 +813,11 @@ pub mod LaunchpadMarketplace {
                 quote_amount -= quote_fee_amount;
             }
 
-            // Validate against liquidity and balance constraints
             // AUDIT
+            // Validate against liquidity and balance constraints
             // High security check to do.
             // Approximation and rounding issue can cause to enter this check
+            // We maybe do something wrong to enter this check
             // println!("check liq raised and quote amount");
             if pool.liquidity_raised < quote_amount {
                 // println!("pool.liquidity_raised < quote_amount");
@@ -833,29 +855,21 @@ pub mod LaunchpadMarketplace {
             // Security check to do.
             // Rounding issue and approximation of the quote amount caused overflow/underflow when
             // transfering the token to the user
-            if balance_contract > quote_amount_paid {
+            // We do something wrong to enter this check
+            if balance_contract >= quote_amount_paid {
                 quote_token.transfer(caller, quote_amount_paid);
             } else {
+                // Balance doesn't have the quote amount to paid
+                // AUDIT HIGH SECURITY
+                // Rounding and approximation on calculation and fees have lost some precision
                 // let quote_amount_paid = quote_amount - quote_fee_amount;
                 let difference_amount = quote_amount_paid - balance_contract;
                 let amount_paid = quote_amount_paid - difference_amount;
                 // println!("amount_paid: {}", amount_paid.clone());
                 quote_token.transfer(caller, amount_paid);
             }
-            // if balance_contract > quote_amount {
-            //     quote_token.transfer(caller, quote_amount);
-            // } else {
-            //     let amount_paid= quote_amount - balance_contract;
-            //     println!("amount_paid: {}", amount_paid.clone());
-            //     quote_token.transfer(caller, amount_paid);
-            // }
 
-            // if quote_amount > 0 {
-            //     quote_token.transfer(caller, quote_amount);
-            // }
-
-            // Update state
-            // println!("update share");
+            // Update state of share user
 
             share.amount_owned -= sell_amount;
             share.amount_sell += sell_amount;
@@ -863,6 +877,8 @@ pub mod LaunchpadMarketplace {
             let mut updated_pool = pool.clone();
             // println!("update pool");
 
+            // Update the pool with the last data
+            // Liquidity raised, available supply and total token holded
             updated_pool
                 .liquidity_raised =
                     if updated_pool.liquidity_raised >= quote_amount {
@@ -972,7 +988,7 @@ pub mod LaunchpadMarketplace {
                     }
                 );
         }
-        // TODO finish add Metadata
+        // TODO finish add Metadata for Token and Launched and also updated it
         fn add_metadata(
             ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
         ) {
@@ -1006,7 +1022,8 @@ pub mod LaunchpadMarketplace {
                 pool.clone(), coin_address, amount, is_decreased, is_quote_amount
             )
         }
-
+        // Get the amount of coin received by quote amount
+        // Bonding curve calculation are Linear and Exponential
         fn get_coin_amount_by_quote_amount(
             self: @ContractState,
             coin_address: ContractAddress,
@@ -1052,6 +1069,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
 
             // TODO finish this
+            // ADD TEST CASE for Paid create token
             let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
             if is_paid_create_token_enable {
                 let token_address_to_paid_create_token = self
@@ -1126,6 +1144,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
+            // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
             // Price of the token and the address is set by the admin
             if self.is_paid_launch_enable.read() {
@@ -1154,6 +1173,8 @@ pub mod LaunchpadMarketplace {
             // Calculate supply distribution
             // AUDIT: check rounding and approximation issue
             // V2 is gonna be more flexible here for the user
+            // V2 allow you to select your token on sale between a range to figure out
+            // a range of liquidity to add (5 to 25%)
             let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             let supply_distribution = total_supply - liquidity_supply;
 
@@ -1181,6 +1202,8 @@ pub mod LaunchpadMarketplace {
                 creator_fee_percent: self.creator_fee_percent.read()
             };
 
+            // TODO Check approve
+            // AUDIT
             // Handle token transfer to the launchpad
             // Check the allowance and the balance of the contract
             // The user need to approve the token to the launchpad if the token is created elsewhere
@@ -1218,10 +1241,14 @@ pub mod LaunchpadMarketplace {
                 );
         }
 
-        // Call the Unrug V2 to deposit Liquidity of the memecoin initial_pool_supply  and the
-        // liquidity_raised The LP is owned by the Launchpad and locked it
+
         // TODO AUDIT: check rounding and approximation issue
         // HIGH SECURITY RISK and Vulnerability
+        // ADD more test case for Unrug
+        // Check better the liquidity position of Ekubo
+        // Call the Unrug V2 to deposit Liquidity of the memecoin initial_pool_supply  and the
+        // liquidity_raised The LP is owned by the Launchpad and locked it
+
         fn _add_liquidity_ekubo(
             ref self: ContractState, coin_address: ContractAddress,
         ) -> (u64, EkuboLP) {
@@ -1243,7 +1270,8 @@ pub mod LaunchpadMarketplace {
             // Set pool parameters
             // TODO audit
             // HIGH SECURITY RISK
-            // V2 need to be more flexible here for the user
+            // V2 need to be more flexible here for the user.
+            // Add more test case
             let tick_spacing = 5928;
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
@@ -1256,6 +1284,7 @@ pub mod LaunchpadMarketplace {
             };
 
             // Calculate liquidity amounts
+            // AUDIT
             let lp_supply = launch.initial_pool_supply.clone();
             let mut lp_quote_supply = launch.liquidity_raised.clone();
 
@@ -1267,8 +1296,9 @@ pub mod LaunchpadMarketplace {
 
             // TODO audit
             // HIGH SECURITY RISK
-            // Can be a rounding and approximation error, fees and others stuff
             // TODO fix this
+            // We do something wrong if we enter this case
+            // Can be caused a rounding and approximation error, fees and others stuff
             if contract_quote_balance < lp_quote_supply
                 && contract_quote_balance < launch.threshold_liquidity {
                 lp_quote_supply = contract_quote_balance.clone();
@@ -1291,6 +1321,7 @@ pub mod LaunchpadMarketplace {
             memecoin.approve(unrug_liquidity_address, lp_supply);
 
             // Launch on Ekubo
+            // TODO Audit unrug.caior
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
 
             // Update launch state
