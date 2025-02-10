@@ -114,11 +114,14 @@ async function start() {
     console.log(`Server listening on ${host}:${config.server.port}`);
 
     // Launch Telegram bot
-    try {
-      await launchBot(process.env.TELEGRAM_BOT_TOKEN || '');
-    } catch (error) {
-      console.error('Error launching bot:', error);
-    }
+
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.IS_TELEGRAM_BOT_RUNNING === 'true') {
+      try {
+        await launchBot(process.env.TELEGRAM_BOT_TOKEN || '');
+      } catch (error) {
+        console.log('Error launching bot:', error);
+      }
+    } 
   } catch (err) {
     console.error(err);
     process.exit(1);
