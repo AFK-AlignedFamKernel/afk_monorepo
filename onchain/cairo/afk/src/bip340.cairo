@@ -453,6 +453,7 @@ mod tests {
     use super::Secp256PointTrait;
     use super::{IVrfProvider, IVrfProviderDispatcher};
     // use super::*;
+    use stark_vrf::ecvrf::{Point, Proof, ECVRF, ECVRFImpl};
     use super::{verify, verify_sig, sign, generate_keypair};
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
@@ -701,6 +702,7 @@ mod tests {
 
     #[test]
     fn test_20() {
+        let setup = setup();
         let vrf_provider = IVrfProviderDispatcher {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()
         };
@@ -726,7 +728,7 @@ mod tests {
     }
 
     #[test]
-    #[fork("Sepolia")]
+    // #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
         let vrf_provider = IVrfProviderDispatcher {
             contract_address: CONTRACT_ADDRESS().try_into().unwrap()

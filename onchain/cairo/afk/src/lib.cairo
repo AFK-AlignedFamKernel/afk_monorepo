@@ -8,6 +8,10 @@ pub mod social;
 pub mod staking;
 pub mod utils;
 
+pub mod _mocks{
+    pub mod vrf_mock;
+}
+
 pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;

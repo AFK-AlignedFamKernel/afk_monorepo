@@ -8,6 +8,8 @@ dependencies = [
  "alexandria_math",
  "ekubo",
  "openzeppelin",
+ "openzeppelin_testing",
+ "openzeppelin_utils",
  "snforge_std",
  "stark_vrf",
 ]
@@ -108,6 +110,14 @@ version = "0.18.0"
 source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.18.0#2f37306b490e63c0afa9e33ad192ba428141b487"
 
 [[package]]
+name = "openzeppelin_testing"
+version = "0.18.0"
+source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.18.0#2f37306b490e63c0afa9e33ad192ba428141b487"
+dependencies = [
+ "snforge_std",
+]
+
+[[package]]
 name = "openzeppelin_token"
 version = "0.18.0"
 source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.18.0#2f37306b490e63c0afa9e33ad192ba428141b487"
@@ -129,13 +139,15 @@ source = "git+https://github.com/openzeppelin/cairo-contracts?tag=v0.18.0#2f3730
 
 [[package]]
 name = "snforge_scarb_plugin"
-version = "0.1.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.30.0#196f06b251926697c3d66800f2a93ae595e76496"
+version = "0.31.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:1fce075fcbf7fce1b0935f6f9a034549704837fb221da212d3b6e9134cebfdaa"
 
 [[package]]
 name = "snforge_std"
-version = "0.30.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.30.0#196f06b251926697c3d66800f2a93ae595e76496"
+version = "0.31.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:60ac980b297281f9a59a5f1668cb56bdea1b28fd2f8008008270f9a3c91ad3ba"
 dependencies = [
  "snforge_scarb_plugin",
 ]
