@@ -2,7 +2,7 @@
 // contract_address_const};
 use afk::social::profile::NostrProfile;
 use afk::social::request::SocialRequest;
-use afk::tokens::transfer::Transfer;
+use afk::social::transfer::Transfer;
 use starknet::account::Call;
 use starknet::{ContractAddress};
 
@@ -102,6 +102,7 @@ pub mod DaoAA {
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>,
+        starknet_address: felt252,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -120,7 +121,7 @@ pub mod DaoAA {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         AccountCreated: AccountCreated,
         ProposalCreated: ProposalCreated,
         ProposalVoted: ProposalVoted,
@@ -149,6 +150,7 @@ pub mod DaoAA {
         self.owner.write(owner);
         self.token_contract_address.write(token_contract_address);
         self.total_proposal.write(0);
+        // TODO: init self.starknet_address here
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -236,7 +238,7 @@ pub mod DaoAA {
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
             assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
-            
+
             let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
             assert(
                 !vote_state.user_has_voted.entry(caller).read()
@@ -375,11 +377,8 @@ pub mod DaoAA {
                 return 'INVALID_LENGTH';
             }
 
-            let account_address: felt252 = self
-                .starknet_address
-                .read()
-                .try_into()
-                .unwrap(); // is this variable from the storage?
+            // is this variable from the storage?
+            let account_address: felt252 = self.starknet_address.read().try_into().unwrap();
             let is_valid = check_ecdsa_signature(
                 hash, account_address, *signature.at(0_u32), *signature.at(1_u32),
             );
@@ -412,5 +411,71 @@ pub mod DaoAA {
 
             opt_proposal.unwrap()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use afk::interfaces::voting::{
+        IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
+        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted,
+        IVoteProposalDispatcher, IVoteProposalDispatcherTrait
+    };
+    use openzeppelin::utils::serde::SerializedAppend;
+    use snforge_std::{
+        CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
+        EventsFilterTrait, cheat_caller_address, cheatcodes::events::Event, declare, spy_events,
+        cheat_block_timestamp
+    };
+    use starknet::{ContractAddress, contract_address_const};
+
+    fn OWNER() -> ContractAddress {
+        contract_address_const::<'OWNER'>()
+    }
+
+    fn deploy_dao() -> ContractAddress {
+        let mut constructor_calldata = array![];
+        let owner = OWNER();
+        let token_contract_address = contract_address_const::<'Mock'>();
+        let public_key = 55555_u256;
+        constructor_calldata.append_serde(owner);
+        constructor_calldata.append_serde(token_contract_address);
+        constructor_calldata.append_serde(public_key);
+
+        let contract = declare("DaoAA").unwrap().contract_class();
+        let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
+
+        contract_address
+    }
+
+    #[test]
+    fn test_proposal_creation() {
+        let proposal_contract = deploy_dao();
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let caller = contract_address_const::<'CALLER_1'>();
+
+        cheat_caller_address(proposal_contract, caller, CheatSpan::TargetCalls(1));
+
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default()
+        };
+
+        let created_at = starknet::get_block_timestamp();
+        let end_at = created_at + SET_PROPOSAL_DURATION_IN_SECONDS;
+        cheat_block_timestamp(proposal_contract, created_at, CheatSpan::TargetCalls(1));
+
+        let mut spy = spy_events();
+
+        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+        assert(proposal_id > 0, 'No proposal created');
+
+        let creation_event = super::DaoAA::Event::ProposalCreated(
+            ProposalCreated { id: proposal_id, owner: caller, created_at, end_at }
+        );
+
+        spy.assert_emitted(@array![(proposal_contract, creation_event)]);
     }
 }
