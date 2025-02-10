@@ -25,11 +25,11 @@ export type AuthStackParams = {
   Profile: {
     publicKey: string;
   };
+  Community: undefined;
 };
 
-
-
 export type MainStackParams = {
+  // Home: NavigatorScreenParams<HomeBottomStackParams>;
   BottomBar: undefined;
   CreatePost: undefined;
   Profile: { publicKey: string };
@@ -54,6 +54,8 @@ export type MainStackParams = {
   KeysMarketplace: undefined;
   Slinks: undefined;
   Tips: undefined;
+  Home: undefined;
+  Feed: undefined;
   Settings: undefined;
   Launchpad: undefined;
   LaunchDetail: { coinAddress: string };
@@ -69,6 +71,8 @@ export type MainStackParams = {
   PrivateGroupDetails: { postId: string; post?: NDKEvent };
   Lightning: undefined;
   Cashu: undefined;
+  Whatever: undefined;
+  RightDrawer: undefined;
   WalletBTC: undefined;
   StreamStudio: undefined;
   WatchStream: { streamId: string };
@@ -79,15 +83,9 @@ export type MainStackParams = {
   Onboarding: undefined;
   DappBrowser: undefined;
   Oauth: undefined;
-
-  Feed: undefined;
   ShortVideos: undefined;
-  Stream: { streamId: string };
-  ReceiveEcash: { token: string };
-
-  Home: undefined;
-
   TokenDetail: { coinAddress: string };
+  ReceiveEcash: { token: string };
   SocialPayment: undefined;
   TwitterCallback: { code: string };
   Nameservice: undefined;
@@ -103,6 +101,7 @@ export type HomeBottomStackParams = {
   Tips: undefined;
   Search: undefined;
   Games: undefined;
+  Wallet: undefined;
   Defi: undefined;
   Home: undefined;
   Settings: undefined;

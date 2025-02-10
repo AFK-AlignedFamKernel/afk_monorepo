@@ -63,6 +63,8 @@ import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
 import { ThemedStyleSheet } from '../styles';
+import { Community } from '../screens/Community';
+
 
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
@@ -129,7 +131,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: 'grey',
 
-          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="CommunityIcon" />,
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="CommunityIcon" />,
 
         }}
       />
@@ -150,7 +152,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         options={{
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: theme.colors.background,
-          tabBarIcon: ({focused}) => <TabBarIcon focused={focused} name="WalletIcon" />,
+          tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="WalletIcon" />,
         }}
       />
 
@@ -339,6 +341,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
+      <MainStack.Screen name="Community" component={Community} />;
+
     </MainStack.Navigator>
   );
 };
@@ -401,125 +405,97 @@ export const Router = () => {
 };
 
 const linking = {
-  prefixes: ["https://afk-community.xyz", "afk://"],
+  prefixes: ['https://afk-community.xyz', 'afk://'],
   config: {
     screens: {
       AuthStack: {
-        path: "auth",
+        path: 'auth',
         screens: {
-          Login: "login",
-          CreateAccount: "create-account",
-          SaveKeys: "save-keys",
-          ImportKeys: "import-keys",
-          DappBrowser: "browser",
-          Oauth: "oauth",
-          Profile: "profile/:publicKey",
+          Login: 'login',
+          CreateAccount: 'create-account',
+          SaveKeys: 'save-keys',
+          ImportKeys: 'import-keys',
+          DappBrowser: 'browser',
+          Oauth: 'oauth',
+          Profile: {
+            path: 'profile/:publicKey',
+            parse: {
+              publicKey: (publicKey: string) => `${publicKey}`,
+            },
+          },
         },
       },
       MainStack: {
-        path: "app",
+        path: 'app',
         screens: {
           Home: {
-            path: "home",
+            path: 'home',
             screens: {
-              ShortVideos: "shorts",
-              Feed: "feed",
+              ShortVideos: 'shorts',
+              Feed: 'feed',
               Stream: {
-                path: "stream/:streamId",
-                parse: { streamId: (streamId: string) => `${streamId}` },
+                path: 'stream/:streamId',
+                parse: {
+                  streamId: (streamId: string) => `${streamId}`,
+                },
               },
               ReceiveEcash: {
-                path: "receive/ecash/:token",
-                parse: { token: (token: string) => `${token}` },
+                path: 'receive/ecash/:token',
+                parse: {
+                  token: (token: string) => `${token}`,
+                },
               },
-              Launchpad: "launchpad",
-              LaunchToken: "launch-token",
-              TokenDetail: "token-detail",
-              StudioModuleView: "studio",
+              Launchpad: 'launchpad',
+              LaunchToken: 'launch-token',
+              TokenDetail: 'token-detail',
+              StudioModuleView: 'studio',
             },
           },
-          Community: "community",
-          Login: "login",
-          Onboarding: "onboarding",
-          CreateAccount: "create-account",
-          SaveKeys: "save-keys",
-          ImportKeys: "import-keys",
-          Feed: "feed",
-          Tags: "Tags",
-          Profile: {
-            path: "profile/:publicKey",
-            parse: { publicKey: (publicKey: string) => `${publicKey}` },
-          },
-          EditProfile: "edit-profile",
-          CreatePost: "create-post",
+          Community: 'community',
+          Search: 'search',
+          CreatePost: 'create-post',
           PostDetail: {
-            path: "post/:id",
-            parse: { id: (id: string) => `${id}` },
+            path: 'post/:id',
+            parse: {
+              id: (id: string) => `${id}`,
+            },
           },
           ChannelDetail: {
-            path: "channel/:publicKey",
-            parse: { publicKey: (publicKey: string) => `${publicKey}` },
+            path: 'channel/:publicKey',
+            parse: {
+              publicKey: (publicKey: string) => `${publicKey}`,
+            },
           },
-<<<<<<< HEAD
-          CreatePost: 'create-post',
           CreateChannel: 'create-channel',
           ChannelsFeed: 'channels',
           CreateForm: 'create-form',
-          Search: 'search',
-          Tags: 'tags',
-          Games: 'games',
           Defi: 'defi',
+          Games: 'games',
+          Tags: 'tags',
           Tips: 'tips',
           Settings: 'settings',
-          Launchpad: 'launchpad',
-          TokenDetail: 'token-detail',
-          Studio: 'studio',
+          LaunchDetail: {
+            path: 'launch/:coinAddress',
+            parse: {
+              coinAddress: (coinAddress: string) => `${coinAddress}`,
+            },
+          },
           Lightning: 'lightning',
           Cashu: 'cashu',
           WalletBTC: 'wallet-btc',
+          KeysMarketplace: 'keys-marketplace',
           Wallet: 'wallet',
           Portfolio: 'portfolio',
-          ShortVideos: 'shorts',
           DappBrowser: 'browser',
           Oauth: 'oauth',
-          ReceiveEcash: {
-            path: 'receive/ecash/:token',
-            parse: {
-              token: (token: any) => `${token}`,
-            },
-          },
-          SocialPayment: 'SocialPayment',
-          Community: 'community',
-
-=======
-          Search: "search",
-          CreateChannel: "create-channel",
-          ChannelsFeed: "channels",
-          CreateForm: "create-form",
-          Defi: "defi",
-          Games: "games",
-          Tips: "tips",
-          Settings: "settings",
-          LaunchDetail: {
-            path: "launch/:coinAddress",
-            parse: { coinAddress: (coinAddress: string) => `${coinAddress}` },
-          },
-          Lightning: "lightning",
-          Cashu: "cashu",
-          WalletBTC: "wallet-btc",
-          KeysMarketplace: "keys-marketplace",
-          Wallet: "wallet",
-          Portfolio: "portfolio",
-          ShortVideos: "shorts",
-          DappBrowser: "browser",
-          Oauth: "oauth",
-          SocialPayment: "SocialPayment",
->>>>>>> e559b7c (added .env.example and updated the code)
+          SocialPayment: 'social-payment',
         },
       },
     },
   },
 };
+
+
 
 
 const stylesheet = ThemedStyleSheet((theme) => ({
