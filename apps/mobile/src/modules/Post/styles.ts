@@ -2,6 +2,16 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {},
+  replyView: {
+    padding: Spacing.medium,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xxsmall,
+    paddingHorizontal: Spacing.small,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.cardBorder,
+    marginBottom: Spacing.small,
+  },
 
   repost: {
     flexDirection: 'row',

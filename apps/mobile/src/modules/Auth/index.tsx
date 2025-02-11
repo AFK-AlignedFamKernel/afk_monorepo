@@ -19,7 +19,7 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
   }, [dimensions]);
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+    <KeyboardAvoidingView behavior="padding" style={{flex: 1, height: '100%'}}>
       <View style={styles.container}>
         <View style={styles.background}>
           <Image
@@ -49,6 +49,6 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
           </ScrollView>
         </View>
       </View>
-    </KeyboardAvoidingView>
+     </KeyboardAvoidingView>
   );
 };

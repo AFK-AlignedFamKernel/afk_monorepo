@@ -85,6 +85,10 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
   const handleDefi = () => {
     navigation.navigate('Defi');
   };
+
+  const handleWallet = () => {
+    navigation.navigate('Wallet');
+  };
   return (
     <View>
       <ProfileHead
@@ -107,7 +111,7 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({publicKey: userPublicKe
                 icon="CoinIcon"
                 size={20}
                 // style={styles.backButton}
-                onPress={handleDefi}
+                onPress={handleWallet}
               />
 
               <IconButton

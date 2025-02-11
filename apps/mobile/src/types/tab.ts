@@ -496,11 +496,11 @@ export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[
     screen: 'ChannelsFeed',
     tab: SelectedTab.CHANNELS,
   },
-  {
-    title: 'Messages',
-    screen: 'Messages',
-    tab: SelectedTab.MESSAGES,
-  },
+  // {
+  //   title: 'Messages',
+  //   screen: 'Messages',
+  //   tab: SelectedTab.MESSAGES,
+  // },
   // {
   //   title: 'Tips',
   //   screen: 'Tips',

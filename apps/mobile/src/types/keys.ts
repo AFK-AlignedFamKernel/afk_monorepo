@@ -48,7 +48,8 @@ export interface TokenDeployInterface {
   price: Uint256;
   name: string;
   network: string;
-  owner: string;
+  owner?: string;
+  owner_address?: string;
   total_supply: Uint256;
   // created_at: Uint256;
   created_at: string;

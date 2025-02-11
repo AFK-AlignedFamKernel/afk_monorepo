@@ -22,6 +22,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   container: {
     flex: 1,
+    height: '100%',
   },
   connectButton: {
     // backgroundColor: '#FF007A',
@@ -48,6 +49,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   modalContent: {
     paddingTop: 18,
+    height: '100%',
   },
   modalTitle: {
     fontSize: 20,
@@ -128,6 +130,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     padding: 14,
     marginBottom: 16,
+    height: '100%',
   },
   content: {
     flex: 1,
@@ -237,7 +240,8 @@ export default ThemedStyleSheet((theme) => ({
     flexWrap: 'wrap'
   },
   loginMethodsContainerDesktop: {
-    flexWrap: 'nowrap'
+    flexWrap: 'nowrap',
+    height: '100%'
   },
   loginMethodBtn: {
     borderRadius: 32,

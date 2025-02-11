@@ -59,7 +59,10 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
       ) : (
         <KeyboardAvoidingView behavior="padding" style={styles.selectedContent}>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
-            <ScrollView>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+            >
               {selectedTab == SelectedTab.PIXEL_PEACE && (
                 <>
                   <PixelPeace></PixelPeace>

@@ -1,14 +1,14 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
+import { NDKKind } from '@nostr-dev-kit/ndk';
 // Import useSearch
-import React, {useEffect, useMemo, useState} from 'react';
-import {Pressable, Text, TextInput, View} from 'react-native';
-import Svg, {Path} from 'react-native-svg';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
-import {useStyles, useWindowDimensions} from '../../hooks';
-import {SORT_OPTION_EVENT_NOSTR, SORT_OPTIONS} from '../../types/nostr';
+import { useStyles, useWindowDimensions } from '../../hooks';
+import { SORT_OPTION_EVENT_NOSTR, SORT_OPTIONS } from '../../types/nostr';
 import FilterMenu from '../Filter';
 import stylesheet from './styles';
-import {Icon} from '../Icon';
+import { Icon } from '../Icon';
 
 interface ISearchComponent {
   searchQuery: string;
@@ -24,10 +24,10 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   searchQuery,
   setSearchQuery,
   kinds = [],
-  setKinds = () => {},
+  setKinds = () => { },
   contactList,
   sortBy,
-  setSortBy = () => {},
+  setSortBy = () => { },
 }) => {
   const styles = useStyles(stylesheet);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -69,20 +69,22 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   return (
     <View style={isDesktop ? styles.container : styles.containerMobile}>
       <View style={styles.rowContainer}>
-        {SORT_OPTIONS.map((option) => (
+        {SORT_OPTIONS.map((option, index) => (
           <Pressable
             key={option.value}
             style={[
               styles.button,
-              activeSortBy?.toLowerCase() === option.label.toLowerCase() && styles.activeButton,
+              (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
+                activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
             ]}
-            onPress={() => handleSortChange(option.label)}
+            // onPress={() => handleSortChange(option.label)}
+            onPress={() => handleSortChange(index?.toString())}
           >
             <Text style={styles.buttonText}>{option.label}</Text>
           </Pressable>
         ))}
         {!isDesktop ? (
-          <Pressable onPress={() => setIsOpenFilter(true)} style={{marginLeft: 'auto'}}>
+          <Pressable onPress={() => setIsOpenFilter(true)} style={{ marginLeft: 'auto' }}>
             <Svg width="32" height="32" viewBox="0 0 24 24">
               <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
             </Svg>
