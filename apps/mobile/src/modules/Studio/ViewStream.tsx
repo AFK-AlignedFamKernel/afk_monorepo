@@ -1,32 +1,32 @@
-import {MaterialIcons} from '@expo/vector-icons';
-import {useAuth, useGetSingleEvent} from 'afk_nostr_sdk';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useAuth, useGetSingleEvent } from 'afk_nostr_sdk';
 import React from 'react';
-import {Pressable, Text, View} from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import {useSocketContext} from '../../context/SocketContext';
-import {useStyles} from '../../hooks';
-import {ViewStreamGuest} from '../../types';
-import {LiveChatView} from './LiveChat';
-import {useWebStream} from './stream/useWebStream';
-import {ViewerVideoView} from './StreamVideoPlayer';
+import { useSocketContext } from '../../context/SocketContext';
+import { useStyles } from '../../hooks';
+import { ViewStreamGuest } from '../../types';
+import { LiveChatView } from './LiveChat';
+import { useWebStream } from './stream/useWebStream';
+import { ViewerVideoView } from './StreamVideoPlayer';
 import stylesheet from './styles';
 
-export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({route}) => {
-  const {publicKey} = useAuth();
+export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
+  const { publicKey } = useAuth();
   const isStreamer = false;
   const streamKey = route?.params.streamId; // Stream Key will be the event Id
   const streamerUserId = publicKey;
 
   const styles = useStyles(stylesheet);
-  const {socketRef, isConnected} = useSocketContext();
-  const {isChatOpen, setNewMessage, newMessage, setIsChatOpen, viewerCount} = useWebStream({
+  const { socketRef, isConnected } = useSocketContext();
+  const { isChatOpen, setNewMessage, newMessage, setIsChatOpen, viewerCount } = useWebStream({
     socketRef,
     streamerUserId,
     streamKey,
     isStreamer,
     isConnected,
   });
-  const {data: eventData} = useGetSingleEvent({
+  const { data: eventData } = useGetSingleEvent({
     eventId: streamKey,
   });
 
