@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { addContacts, Contact, getContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
+import { addContacts, Contact, getContacts, useContacts, useEditContacts, useProfile } from 'afk_nostr_sdk';
 import React, { useEffect, useState } from 'react';
-import { Image, Text, TextInput, View } from 'react-native';
+import { Image, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { Button } from '../../components';
 import { useTheme } from '../../hooks';
@@ -21,6 +21,8 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const editContacts = useEditContacts();
+  const contacts = useContacts();
+  console.log('contacts', contacts.data?.flat());
   const queryClient = useQueryClient();
 
   // Destructure refetch from useProfile hook
@@ -139,6 +141,8 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
     );
   };
 
+  const [isViewContact, setIsViewContact] = useState(false);
+
   return (
     <View style={styles.addContactMainContainer}>
       <View style={styles.addContactContent}>
@@ -150,9 +154,19 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
           >
             Cancel
           </Button>
-          <Text style={styles.addContactTitle}>Add Contact</Text>
         </View>
+        <ScrollView showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+        >
+          {contacts.data?.flat().map((contact) => (
+            <View key={contact}>
+              <Text style={styles.contactItem}>{contact}</Text>
+            </View>
+          ))}
+        </ScrollView>
         <View style={styles.addContactForm}>
+          <Text style={styles.addContactTitle}>Add Contact</Text>
+
           <TextInput
             style={styles.addContactFormInput}
             value={name}
