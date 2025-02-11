@@ -19,9 +19,9 @@ export const prepareAndConnectContract = async (
   console.log('contract', contract);
 
   // // Connect account with the contract
-  // if (account) {
-  //   contract.connect(account);
-  // }
+  if (account) {
+    contract.connect(account);
+  }
   return contract;
 };
 

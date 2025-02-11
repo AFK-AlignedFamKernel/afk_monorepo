@@ -1,14 +1,14 @@
-import {useAuth, useCashuStore, useNip07Extension} from 'afk_nostr_sdk';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useEffect, useMemo, useState} from 'react';
-import {Platform, TextInput, View, Image, Text} from 'react-native';
+import { useAuth, useCashuStore, useNip07Extension } from 'afk_nostr_sdk';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { useEffect, useMemo, useState } from 'react';
+import { Platform, TextInput, View, Image, Text } from 'react-native';
 
-import {Button, Icon} from '../../components';
-import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {MainStackNavigationProps} from '../../types';
-import {getPublicKeyFromSecret} from '../../utils/keypair';
+import { Button, Icon } from '../../components';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { Auth } from '../../modules/Auth';
+import { MainStackNavigationProps } from '../../types';
+import { getPublicKeyFromSecret } from '../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
   retrieveAndDecryptCashuSeed,
@@ -18,10 +18,10 @@ import {
   storeCashuMnemonic,
   storeCashuSeed,
 } from '../../utils/storage';
-import {LoginStarknet} from './StarknetLogin';
+import { LoginStarknet } from './StarknetLogin';
 import stylesheet from './styles';
-import {TouchableOpacity} from 'react-native-gesture-handler';
-import {useCashuContext} from '../../providers/CashuProvider';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useCashuContext } from '../../providers/CashuProvider';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -39,20 +39,20 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   handleNavigateCreateAccount,
   handleNavigateImportKeys,
 }: ILoginNostr) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const setAuth = useAuth((state) => state.setAuth);
   const publicKey = useAuth((state) => state.publicKey);
 
   // const navigation = useNavigation<MainStackNavigationProps>()
   // const { setIsSeedCashuStorage } = useAuth()
-  const {setIsSeedCashuStorage, setSeed, setMnemonic} = useCashuStore();
+  const { setIsSeedCashuStorage, setSeed, setMnemonic } = useCashuStore();
   const [password, setPassword] = useState('');
 
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
-  const {getPublicKey} = useNip07Extension();
-  const {generateNewMnemonic, derivedSeedFromMnenomicAndSaved} = useCashuContext()!;
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
+  const { getPublicKey } = useNip07Extension();
+  const { generateNewMnemonic, derivedSeedFromMnenomicAndSaved } = useCashuContext()!;
 
   useEffect(() => {
     (async () => {
@@ -67,13 +67,13 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
 
   const handleLogin = async () => {
     if (!password) {
-      showToast({type: 'error', title: 'Password is required'});
+      showToast({ type: 'error', title: 'Password is required' });
       return;
     }
 
     const privateKey = await retrieveAndDecryptPrivateKey(password);
     if (!privateKey || privateKey.length !== 32) {
-      showToast({type: 'error', title: 'Invalid password'});
+      showToast({ type: 'error', title: 'Invalid password' });
       return;
     }
     const privateKeyHex = privateKey.toString('hex');
@@ -82,7 +82,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     const publicKey = getPublicKeyFromSecret(privateKeyHex);
 
     if (publicKey !== storedPublicKey) {
-      showToast({type: 'error', title: 'Invalid password'});
+      showToast({ type: 'error', title: 'Invalid password' });
       return;
     }
     setAuth(publicKey, privateKeyHex);
@@ -144,7 +144,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             hideDialog();
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
@@ -167,7 +167,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             hideDialog();
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
@@ -187,11 +187,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             if (handleSuccess) {
               handleSuccess();
             } else if (publicKey && navigationProps) {
-              navigationProps.navigate('Profile', {publicKey});
+              navigationProps.navigate('Profile', { publicKey });
             }
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };
@@ -223,9 +223,16 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   // };
 
   return (
-    <Auth title="Log In">
+    <Auth title="Log In"
+    // style={{
+    // height: '100%',
+    // }}
+    >
       <View
-        style={[styles.loginMethodsContainer, isDesktop && styles.loginMethodsContainerDesktop]}
+        style={[styles.loginMethodsContainer,
+        styles.container,
+        isDesktop && styles.loginMethodsContainerDesktop
+        ]}
       >
         <Button
           onPress={handleExtensionConnect}

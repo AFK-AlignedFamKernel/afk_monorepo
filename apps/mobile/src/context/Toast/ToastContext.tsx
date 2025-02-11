@@ -16,6 +16,7 @@ export enum TypeToast {
 export type ToastConfig = ToastProps & {
   key: string;
   timeout?: number;
+  description?: string;
 };
 
 export type ToastContextType = {

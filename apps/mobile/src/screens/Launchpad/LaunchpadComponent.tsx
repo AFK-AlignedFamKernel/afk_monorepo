@@ -1,19 +1,19 @@
-import {useAccount} from '@starknet-react/core';
-import {useEffect, useState} from 'react';
-import {FlatList, RefreshControl, ScrollView, Text, View} from 'react-native';
+import { useAccount } from '@starknet-react/core';
+import { useEffect, useState } from 'react';
+import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 
-import {Button} from '../../components';
+import { Button } from '../../components';
 import Loading from '../../components/Loading';
-import {TokenCard} from '../../components/search/TokenCard';
-import {TokenLaunchCard} from '../../components/search/TokenLaunchCard';
-import {useStyles, useWindowDimensions} from '../../hooks';
-import {useMyLaunchCreated} from '../../hooks/api/indexer/useMyLaunchCreated';
-import {useMyTokensCreated} from '../../hooks/api/indexer/useMyTokensCreated';
-import {useTokens} from '../../hooks/api/indexer/useTokens';
-import {useWalletModal} from '../../hooks/modals';
-import {useTokenCreatedModal} from '../../hooks/modals/useTokenCreateModal';
-import {useCombinedTokenData} from '../../hooks/useCombinedTokens';
-import {useLaunchpadStore} from '../../store/launchpad';
+import { TokenCard } from '../../components/search/TokenCard';
+import { TokenLaunchCard } from '../../components/search/TokenLaunchCard';
+import { useStyles, useWindowDimensions } from '../../hooks';
+import { useMyLaunchCreated } from '../../hooks/api/indexer/useMyLaunchCreated';
+import { useMyTokensCreated } from '../../hooks/api/indexer/useMyTokensCreated';
+import { useTokens } from '../../hooks/api/indexer/useTokens';
+import { useWalletModal } from '../../hooks/modals';
+import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
+import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
+import { useLaunchpadStore } from '../../store/launchpad';
 import stylesheet from './styles';
 
 interface AllKeysComponentInterface {
@@ -24,15 +24,15 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 }) => {
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const {launches: launchesData, isLoading, isFetching} = useCombinedTokenData();
-  const {data: tokens} = useTokens();
+  const { launches: launchesData, isLoading, isFetching } = useCombinedTokenData();
+  const { data: tokens } = useTokens();
   console.log('tokens data', tokens);
 
-  const {show: showModal} = useTokenCreatedModal();
-  const {width} = useWindowDimensions();
+  const { show: showModal } = useTokenCreatedModal();
+  const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
-  const {tokens: tokensStore, setTokens, setLaunches} = useLaunchpadStore();
+  const { tokens: tokensStore, setTokens, setLaunches } = useLaunchpadStore();
 
   const [tokenOrLaunch, setTokenOrLaunch] = useState<
     'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'
@@ -70,7 +70,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
       )}
 
-      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+      >
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'LAUNCH' && styles.activeToggle]}
           textStyle={styles.toggleButtonText}
@@ -106,6 +108,11 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       {isLoading ? (
         <Loading />
       ) : (
+
+        // <ScrollView
+        //   showsVerticalScrollIndicator={false}
+        // >
+
         <>
           {tokenOrLaunch == 'LAUNCH' && (
             <FlatList
@@ -114,7 +121,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               keyExtractor={(item) => item.token_address}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item}) => {
+              renderItem={({ item }) => {
                 return <TokenLaunchCard key={item.token_address} token={item} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
@@ -129,7 +136,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}
-              renderItem={({item, index}) => {
+              renderItem={({ item, index }) => {
                 return <TokenCard key={index} token={item} isTokenOnly={true} />;
               }}
               refreshControl={<RefreshControl refreshing={isFetching} />}
@@ -156,6 +163,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
             />
           )}
         </>
+        // </ScrollView>
+
       )}
     </View>
   );
@@ -176,8 +185,8 @@ export function TokenDashboard({
 }) {
   const styles = useStyles(stylesheet);
 
-  const {data: myTokens} = useMyTokensCreated(address);
-  const {data: myLaunchs} = useMyLaunchCreated(address);
+  const { data: myTokens } = useMyTokensCreated(address);
+  const { data: myLaunchs } = useMyLaunchCreated(address);
 
   const renderContent = () => {
     if (!address) {
@@ -189,7 +198,7 @@ export function TokenDashboard({
             alignItems: 'center',
           }}
         >
-          <Text style={[styles.text, {fontSize: 16, marginBottom: 4}]}>
+          <Text style={[styles.text, { fontSize: 16, marginBottom: 4 }]}>
             Connect wallet to see your tokens
           </Text>
           <Button onPress={onConnect}>Connect Wallet</Button>
@@ -208,7 +217,7 @@ export function TokenDashboard({
             alignItems: 'center',
           }}
         >
-          <Text style={[styles.text, {fontSize: 16}]}>No tokens found</Text>
+          <Text style={[styles.text, { fontSize: 16 }]}>No tokens found</Text>
         </View>
       );
     }
@@ -220,7 +229,7 @@ export function TokenDashboard({
         keyExtractor={(item, i) => i.toString()}
         key={`flatlist-${isDesktop ? 3 : 1}`}
         numColumns={isDesktop ? 3 : 1}
-        renderItem={({item, index}) => {
+        renderItem={({ item, index }) => {
           if (tokenOrLaunch === 'MY_DASHBOARD') {
             return <TokenCard key={index} token={item} isTokenOnly={true} />;
           }
@@ -231,5 +240,5 @@ export function TokenDashboard({
     );
   };
 
-  return <View style={{marginTop: 14}}>{renderContent()}</View>;
+  return <View style={{ marginTop: 14 }}>{renderContent()}</View>;
 }

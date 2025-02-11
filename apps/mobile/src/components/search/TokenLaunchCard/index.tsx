@@ -1,18 +1,18 @@
-import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useAccount} from '@starknet-react/core';
-import {useProfile} from 'afk_nostr_sdk';
+import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useAccount } from '@starknet-react/core';
+import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {useMemo} from 'react';
-import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
+import { useMemo, useState } from 'react';
+import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 
-import {useStyles, useTheme, useWindowDimensions} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {MainStackNavigationProps} from '../../../types';
-import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
-import {getElapsedTimeStringFull} from '../../../utils/timestamp';
-import {Icon} from '../../Icon';
-import {Text} from '../../Text';
+import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { MainStackNavigationProps } from '../../../types';
+import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
+import { getElapsedTimeStringFull } from '../../../utils/timestamp';
+import { Icon } from '../../Icon';
+import { Text } from '../../Text';
 import stylesheet from './styles';
 
 export type LaunchCoinProps = {
@@ -42,17 +42,17 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
   isViewDetailDisabled,
   isTokenOnly,
 }) => {
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const account = useAccount();
-  const {showToast} = useToast();
-  const {theme} = useTheme();
+  const { showToast } = useToast();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
     await Clipboard.setStringAsync(token?.memecoin_address);
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
   const dimensions = useWindowDimensions();
@@ -60,16 +60,36 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     return dimensions.width >= 1024;
   }, [dimensions]);
 
+
+
+  const [isExpanded, setIsExpanded] = useState<boolean>(false)
+  const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
+
   return (
     <View style={[styles.container, isDesktop && styles.containerDesktop]}>
+      {token?.created_at ? (
+        <Text style={styles.creationTime}>
+          {getElapsedTimeStringFull(new Date(token.block_timestamp).getTime())}
+        </Text>
+      ) : null}
       <View style={styles.header}>
-        {token?.created_at ? (
-          <Text style={styles.creationTime}>
-            {getElapsedTimeStringFull(new Date(token.block_timestamp).getTime())}
-          </Text>
-        ) : null}
-        <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
-        {token?.symbol ? <Text style={styles.tokenSymbol}>{token.symbol}</Text> : null}
+
+
+        <TouchableOpacity
+          onPress={() => setIsExpanded(!isExpanded)}>
+          <Text
+            numberOfLines={isExpanded ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
+          {token?.symbol ? <Text
+
+            numberOfLines={isExpandedSymbol ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.tokenSymbol}>{token.symbol}</Text> : null}
+        </TouchableOpacity>
         <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text>
       </View>
       <View style={styles.divider} />
@@ -86,13 +106,13 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             <View
               style={[
                 Number(token.liquidity_raised) <=
-                Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
+                  Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
                   ? styles.progressBarFillWarn
                   : styles.progressBarFill,
                 {
                   width: `${Math.min(
                     (Number(token?.liquidity_raised || 0) / Number(token?.threshold_liquidity)) *
-                      100,
+                    100,
                     100,
                   )}%`,
                 },

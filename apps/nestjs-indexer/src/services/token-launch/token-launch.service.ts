@@ -45,6 +45,19 @@ export class TokenLaunchService {
           bonding_type: bondingType,
         },
       });
+      
+      try {
+        await this.prismaService.token_deploy.updateMany({
+          where: {
+            memecoin_address: data.memecoinAddress
+          },
+          data: {
+            is_launched: true
+          }
+        });
+      } catch (error) {
+        console.log("Errpr Update the Token model to launched",error)
+      }
     } catch (error) {
       this.logger.error(
         `Error creating buy token record: ${error.message}`,

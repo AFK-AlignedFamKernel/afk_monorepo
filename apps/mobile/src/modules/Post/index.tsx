@@ -1,6 +1,7 @@
-import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useQueryClient} from '@tanstack/react-query';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Clipboard from 'expo-clipboard';
 import {
   useBookmark,
   useProfile,
@@ -10,10 +11,10 @@ import {
   useRepost,
 } from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
-import {useMemo, useState} from 'react';
+import { useAuth } from 'afk_nostr_sdk';
+import { useMemo, useState } from 'react';
 import React from 'react';
-import {ActivityIndicator, Image, Pressable, View} from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -23,15 +24,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import {CommentIcon, LikeFillIcon, LikeIcon, RepostIcon} from '../../assets/icons';
-import {Avatar, Icon, IconButton, Menu, Text} from '../../components';
+import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from '../../assets/icons';
+import { Avatar, Icon, IconButton, Menu, Text } from '../../components';
 import Badge from '../../components/Badge';
-import {useNostrAuth, useStyles, useTheme} from '../../hooks';
-import {useTipModal, useToast} from '../../hooks/modals';
-import {MainStackNavigationProps} from '../../types';
-import {getImageRatio, removeHashFn, shortenPubkey} from '../../utils/helpers';
-import {getElapsedTimeStringFull} from '../../utils/timestamp';
-import {ContentWithClickableHashtags} from '../PostCard';
+import { useNostrAuth, useStyles, useTheme } from '../../hooks';
+import { useTipModal, useToast } from '../../hooks/modals';
+import { MainStackNavigationProps } from '../../types';
+import { getImageRatio, removeHashFn, shortenPubkey } from '../../utils/helpers';
+import { getElapsedTimeStringFull } from '../../utils/timestamp';
+import { ContentWithClickableHashtags } from '../PostCard';
+
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -40,6 +42,7 @@ export type PostProps = {
   repostedEventProps?: string;
   isRepost?: boolean;
   isBookmarked?: boolean;
+  isReplyView?: boolean;
 };
 
 export const Post: React.FC<PostProps> = ({
@@ -48,28 +51,29 @@ export const Post: React.FC<PostProps> = ({
   repostedEventProps,
   isRepost,
   isBookmarked = false,
+  isReplyView,
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
-  const {publicKey} = useAuth();
-  const {show: showTipModal} = useTipModal();
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const reactions = useReactions({noteId: event?.id});
-  const userReaction = useReactions({authors: [publicKey], noteId: event?.id});
-  const comments = useReplyNotes({noteId: event?.id});
+  const { publicKey } = useAuth();
+  const { show: showTipModal } = useTipModal();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const reactions = useReactions({ noteId: event?.id });
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
+  const comments = useReplyNotes({ noteId: event?.id });
   const react = useReact();
   const queryClient = useQueryClient();
-  const repostMutation = useRepost({event});
-  const {bookmarkNote, removeBookmark} = useBookmark(publicKey);
+  const repostMutation = useRepost({ event });
+  const { bookmarkNote, removeBookmark } = useBookmark(publicKey);
   const [noteBookmarked, setNoteBookmarked] = useState(isBookmarked);
-  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -88,6 +92,7 @@ export const Post: React.FC<PostProps> = ({
     [userReaction.data],
   );
 
+
   const likes = useMemo(() => {
     if (!reactions.data) return 0;
 
@@ -100,6 +105,12 @@ export const Post: React.FC<PostProps> = ({
     return event?.tags?.filter((tag) => tag[0] === 't').map((tag) => tag[1]) || [];
   }, [event?.tags]);
 
+  const reply = useMemo(() => {
+    return event?.tags?.filter((tag) => tag[0] === 'e').map((tag) => tag[1]) || [];
+  }, [event?.tags, event],);
+
+  // // console.log('reply', reply);
+
   const postSource = useMemo(() => {
     if (!event?.tags) return;
 
@@ -110,23 +121,29 @@ export const Post: React.FC<PostProps> = ({
       dimensions = imageTag[2].split('x').map(Number);
       setMediaDimensions(dimensions);
     }
-    return {uri: imageTag[1], width: dimensions[0], height: dimensions[1]};
+    return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [{scale: scale.value}],
+    transform: [{ scale: scale.value }],
   }));
 
   const handleProfilePress = (userId?: string) => {
     if (userId) {
-      navigation.navigate('Profile', {publicKey: userId});
+      navigation.navigate('Profile', { publicKey: userId });
     }
   };
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    navigation.navigate('PostDetail', {postId: event?.id, post: event});
+    navigation.navigate('PostDetail', { postId: event?.id, post: event });
   };
+
+  const handleToReplyView = () => {
+    if (!reply || reply.length === 0) return;
+    navigation.navigate('PostDetail', { postId: reply[0], post: event });
+  };
+
 
   const toggleLike = async () => {
     if (!event?.id) return;
@@ -134,14 +151,14 @@ export const Post: React.FC<PostProps> = ({
     await handleCheckNostrAndSendConnectDialog();
 
     await react.mutateAsync(
-      {event, type: isLiked ? 'dislike' : 'like'},
+      { event, type: isLiked ? 'dislike' : 'like' },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['reactions', event?.id]});
+          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
 
           scale.value = withSequence(
-            withTiming(1.5, {duration: 100, easing: Easing.out(Easing.ease)}),
-            withSpring(1, {damping: 6, stiffness: 200}),
+            withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+            withSpring(1, { damping: 6, stiffness: 200 }),
           );
         },
       },
@@ -155,10 +172,10 @@ export const Post: React.FC<PostProps> = ({
       await handleCheckNostrAndSendConnectDialog();
 
       await repostMutation.mutateAsync();
-      showToast({title: 'Post reposted successfully', type: 'success'});
+      showToast({ title: 'Post reposted successfully', type: 'success' });
     } catch (error) {
       console.error('Repost error:', error);
-      showToast({title: 'Failed to repost', type: 'error'});
+      showToast({ title: 'Failed to repost', type: 'error' });
     }
   };
 
@@ -168,19 +185,19 @@ export const Post: React.FC<PostProps> = ({
       await handleCheckNostrAndSendConnectDialog();
 
       if (noteBookmarked) {
-        await removeBookmark({eventId: event.id});
-        showToast({title: 'Post removed from bookmarks', type: 'success'});
+        await removeBookmark({ eventId: event.id });
+        showToast({ title: 'Post removed from bookmarks', type: 'success' });
       } else {
-        await bookmarkNote({event});
-        showToast({title: 'Post bookmarked successfully', type: 'success'});
+        await bookmarkNote({ event });
+        showToast({ title: 'Post bookmarked successfully', type: 'success' });
       }
       // Invalidate the queries to refetch data
-      queryClient.invalidateQueries({queryKey: ['search', {authors: [event.pubkey]}]});
-      queryClient.invalidateQueries({queryKey: ['bookmarksWithNotes', event.pubkey]});
+      queryClient.invalidateQueries({ queryKey: ['search', { authors: [event.pubkey] }] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarksWithNotes', event.pubkey] });
       setNoteBookmarked((prev) => !prev);
     } catch (error) {
       console.error('Bookmark error:', error);
-      showToast({title: 'Failed to bookmark', type: 'error'});
+      showToast({ title: 'Failed to bookmark', type: 'error' });
     }
   };
 
@@ -189,19 +206,90 @@ export const Post: React.FC<PostProps> = ({
 
   const handleHashtagPress = (hashtag: string) => {
     const tag = removeHashFn(hashtag);
-    navigation.navigate('Tags', {tagName: tag});
+    navigation.navigate('Tags', { tagName: tag });
   };
 
+  // console.log('isReplyView', isReplyView);
+
+  const handleShareLink = async () => {
+    if (!event) return;
+    const origin = window.location.origin;
+    // const url = `https://nostr.com/note/${event.id}`;
+    const url = `${origin}/app/post/?id=${event.id}`;
+    console.log('url', url);
+
+    const message = `Check out this note: ${url}`;
+    const options = {
+      title: 'Share Note',
+    }
+    // Check if running in Expo Web or Mobile
+    if (Platform.OS === 'web') {
+      // Web sharing
+      try {
+        const message = "lfg"
+        // Clipboard
+        await Clipboard.setStringAsync(url);
+        // const url = `https://nostr.com/note/${event.id}`;
+        // await navigator.share({
+        //   title: 'Share Note',
+        //   text: message,
+        //   url: url
+        // });
+        showToast({
+          title: `Link copied to clipboard: ${url}`,
+          // description: url,
+          type: 'success'
+        });
+
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Fallback to clipboard
+        // await Clipboard.setString(url);
+        showToast({ title: 'Link copied to clipboard', type: 'success' });
+      }
+    } else {
+      // Mobile sharing
+      try {
+        // await Share.share({
+        //   message: message,
+        //   url: url
+        // }, options);
+        // navigation.navigate('PostDetail', { postId: event?.id, post: event });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        showToast({ title: 'Failed to share', type: 'error' });
+      }
+    }
+
+  }
   return (
     <View style={styles.container}>
-      {/* {repostedEvent ||
+
+
+      {isReplyView == true &&
+        reply && reply?.length > 0 &&
+        (
+          <View
+            style={styles.replyView}
+          >
+            <Pressable onPress={handleToReplyView}>
+              <Text color="textTertiary" fontSize={13} lineHeight={20}
+                style={{ color: theme.colors.text }}
+              >
+                Reply to this note
+              </Text>
+            </Pressable>
+            {/* <Text>Reply View</Text> */}
+          </View>
+        )}
+      {repostedEvent ||
         event?.kind == NDKKind.Repost ||
         (isRepost && (
           <View style={styles.repost}>
             <RepostIcon color={theme.colors.textLight} height={18} />
             <Text color="textLight">Reposted</Text>
           </View>
-        ))} */}
+        ))}
       <View style={styles.info}>
         <View style={styles.infoUser}>
           {/* // user pic */}
@@ -209,7 +297,7 @@ export const Post: React.FC<PostProps> = ({
             <Avatar
               size={30}
               source={
-                profile?.image ? {uri: profile.image} : require('../../assets/degen-logo.png')
+                profile?.image ? { uri: profile.image } : require('../../assets/degen-logo.png')
               }
             />
           </Pressable>
@@ -344,17 +432,19 @@ export const Post: React.FC<PostProps> = ({
                 <Icon name="GiftIcon" size={15} title="Tip" />
               </Pressable>
 
-              <Pressable onPress={() => {}}>
-                <Icon name="ShareIcon" size={15} title="Share" />
+
+
+              <Pressable style={{ marginHorizontal: 3 }} onPress={handleBookmark}>
+                <Icon
+                  name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
+                  size={18}
+                  title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
+                />
               </Pressable>
 
-              {/* <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
-                  <Icon
-                    name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
-                    size={18}
-                    title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
-                  />
-                </Pressable> */}
+              <Pressable onPress={handleShareLink}>
+                <Icon name="ShareIcon" size={15} title="Share" />
+              </Pressable>
             </View>
           </View>
         </View>

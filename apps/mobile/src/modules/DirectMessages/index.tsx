@@ -1,6 +1,6 @@
 import { useAuth, useIncomingMessageUsers, useMyGiftWrapMessages } from 'afk_nostr_sdk';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { AddPostIcon } from '../../assets/icons';
 import { Button, Conversation as ConversationPreview, Modalize } from '../../components';
@@ -42,9 +42,31 @@ export const DirectMessages: React.FC = () => {
     <>
       <Modalize ref={modalizeRef}>
         <FormPrivateMessage handleClose={() => modalizeRef.current?.close()} />
-        <ContactList onClose={() => modalizeRef.current?.close()} ></ContactList>
+        {/* <ContactList onClose={() => modalizeRef.current?.close()} ></ContactList> */}
       </Modalize>
 
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        horizontal
+        style={styles.actionToggle}
+      >
+
+        <Button
+          style={styles.toggleButton}
+        >
+          Messages
+        </Button>
+        <Button
+          style={styles.toggleButton}
+
+          onPress={() => setActiveTab('contacts')}
+        >
+          Contact
+        </Button>
+
+      </ScrollView>
 
       {!publicKey &&
         <View>

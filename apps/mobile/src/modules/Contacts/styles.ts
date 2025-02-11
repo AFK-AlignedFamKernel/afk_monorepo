@@ -1,17 +1,18 @@
 import {Dimensions} from 'react-native';
 
-import {ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   addContactMainContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   addContactContent: {
-    width: Dimensions.get('window').width * 0.85,
-    maxHeight: Dimensions.get('window').height * 0.8,
+    width: "100%",
+    // width: Dimensions.get('window').width * 0.85,
+    // maxHeight: Dimensions.get('window').height * 0.8,
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
@@ -68,6 +69,7 @@ export default ThemedStyleSheet((theme) => ({
   formAddButton: {
     borderTopWidth: 1,
     borderColor: theme.colors.divider,
+    color:theme.colors.text,
   },
   formAddButtonText: {
     color: theme.colors.primary,
@@ -114,5 +116,26 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.textSecondary,
     marginBottom: 4,
     lineHeight: 20,
+  },
+  contactItem: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+  actionToggle: {
+    flexDirection: 'row',
+    gap: Spacing.xsmall,
+    marginBottom: Spacing.small,
+    height: '100%',
+    maxHeight: 100,
+  },
+  
+  toggleButton: {
+    width: 'auto',
+    backgroundColor: theme.colors.background,
+    padding: 2,
+    borderRadius: 0,
+    height: 'auto',
   },
 }));

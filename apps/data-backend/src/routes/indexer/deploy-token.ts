@@ -20,6 +20,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           total_supply: true,
           network: true,
           created_at: true,
+          is_launched: true
         },
       });
 
@@ -55,6 +56,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           total_supply: true,
           network: true,
           created_at: true,
+          is_launched: true
         },
       });
 
@@ -90,6 +92,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           total_supply: true,
           network: true,
           created_at: true,
+          is_launched: true
         },
       });
 

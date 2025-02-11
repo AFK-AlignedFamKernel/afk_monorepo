@@ -21,8 +21,9 @@ export default (theme: any) =>
     creationTime: {
       fontSize: 10,
       color: theme.colors.textPrimary,
-      textAlign: 'right',
-      position: 'absolute',
+      textAlign:"left",
+      // textAlign: 'right',
+      // position: 'absolute',
       right: 0,
       top: 0,
     },

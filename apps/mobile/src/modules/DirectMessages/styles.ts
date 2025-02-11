@@ -19,4 +19,17 @@ export default ThemedStyleSheet((theme) => ({
     bottom: Spacing.large,
     right: Spacing.pagePadding,
   },
+  actionToggle: {
+    flexDirection: 'row',
+    gap: Spacing.xsmall,
+    marginBottom: Spacing.small,
+    height: '100%',
+    maxHeight: 100,
+  },
+  toggleButton: {
+    width: 'auto',
+    backgroundColor: theme.colors.background,
+    padding: 2,
+    borderRadius: 0,
+  },
 }));
