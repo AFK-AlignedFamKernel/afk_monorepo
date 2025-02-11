@@ -341,7 +341,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Launchpad" component={LaunchpadScreen} />
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
-      <MainStack.Screen name="Community" component={Community} />;
+      <MainStack.Screen name="Community" component={Community} />
 
     </MainStack.Navigator>
   );
