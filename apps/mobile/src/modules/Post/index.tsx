@@ -1,6 +1,7 @@
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import * as Clipboard from 'expo-clipboard';
 import {
   useBookmark,
   useProfile,
@@ -13,7 +14,7 @@ import {
 import { useAuth } from 'afk_nostr_sdk';
 import { useMemo, useState } from 'react';
 import React from 'react';
-import { ActivityIndicator, Image, Pressable, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -32,6 +33,7 @@ import { MainStackNavigationProps } from '../../types';
 import { getImageRatio, removeHashFn, shortenPubkey } from '../../utils/helpers';
 import { getElapsedTimeStringFull } from '../../utils/timestamp';
 import { ContentWithClickableHashtags } from '../PostCard';
+
 import stylesheet from './styles';
 
 export type PostProps = {
@@ -207,8 +209,59 @@ export const Post: React.FC<PostProps> = ({
     navigation.navigate('Tags', { tagName: tag });
   };
 
-  console.log('isReplyView', isReplyView);
+  // console.log('isReplyView', isReplyView);
 
+  const handleShareLink = async () => {
+    if (!event) return;
+    const origin = window.location.origin;
+    // const url = `https://nostr.com/note/${event.id}`;
+    const url = `${origin}/app/post/?id=${event.id}`;
+    console.log('url', url);
+
+    const message = `Check out this note: ${url}`;
+    const options = {
+      title: 'Share Note',
+    }
+    // Check if running in Expo Web or Mobile
+    if (Platform.OS === 'web') {
+      // Web sharing
+      try {
+        const message = "lfg"
+        // Clipboard
+        await Clipboard.setStringAsync(url);
+        // const url = `https://nostr.com/note/${event.id}`;
+        // await navigator.share({
+        //   title: 'Share Note',
+        //   text: message,
+        //   url: url
+        // });
+        showToast({
+          title: `Link copied to clipboard: ${url}`,
+          // description: url,
+          type: 'success'
+        });
+
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Fallback to clipboard
+        // await Clipboard.setString(url);
+        showToast({ title: 'Link copied to clipboard', type: 'success' });
+      }
+    } else {
+      // Mobile sharing
+      try {
+        // await Share.share({
+        //   message: message,
+        //   url: url
+        // }, options);
+        // navigation.navigate('PostDetail', { postId: event?.id, post: event });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        showToast({ title: 'Failed to share', type: 'error' });
+      }
+    }
+
+  }
   return (
     <View style={styles.container}>
 
@@ -217,11 +270,11 @@ export const Post: React.FC<PostProps> = ({
         reply && reply?.length > 0 &&
         (
           <View
-          style={styles.replyView}
+            style={styles.replyView}
           >
             <Pressable onPress={handleToReplyView}>
               <Text color="textTertiary" fontSize={13} lineHeight={20}
-              style={{color:theme.colors.text}}
+                style={{ color: theme.colors.text }}
               >
                 Reply to this note
               </Text>
@@ -379,9 +432,7 @@ export const Post: React.FC<PostProps> = ({
                 <Icon name="GiftIcon" size={15} title="Tip" />
               </Pressable>
 
-              <Pressable onPress={() => { }}>
-                <Icon name="ShareIcon" size={15} title="Share" />
-              </Pressable>
+
 
               <Pressable style={{ marginHorizontal: 3 }} onPress={handleBookmark}>
                 <Icon
@@ -389,6 +440,10 @@ export const Post: React.FC<PostProps> = ({
                   size={18}
                   title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
                 />
+              </Pressable>
+
+              <Pressable onPress={handleShareLink}>
+                <Icon name="ShareIcon" size={15} title="Share" />
               </Pressable>
             </View>
           </View>

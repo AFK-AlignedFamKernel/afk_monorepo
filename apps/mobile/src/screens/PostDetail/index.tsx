@@ -9,6 +9,7 @@ import {useToast} from '../../hooks/modals';
 import {Post} from '../../modules/Post';
 import {PostDetailScreenProps} from '../../types';
 import stylesheet from './styles';
+import { InputArea } from '../../components/InputArea';
 
 export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route}) => {
   const {postId, post} = route.params;
@@ -91,7 +92,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
         <Divider />
 
         <View style={styles.commentInputContent}>
-          <Input
+          <InputArea
             value={comment}
             onChangeText={setComment}
             containerStyle={styles.commentInput}
