@@ -155,15 +155,25 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
             Cancel
           </Button>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-        >
-          {contacts.data?.flat().map((contact) => (
-            <View key={contact}>
-              <Text style={styles.contactItem}>{contact}</Text>
-            </View>
-          ))}
-        </ScrollView>
+        <View style={styles.addContactForm}>
+
+          {isViewContact && (
+            <ScrollView showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+            >
+              {contacts.data?.flat().map((contact) => (
+                <View key={contact}>
+                  <Text style={styles.contactItem}>{contact}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+          <Button style={styles.addContactForm}
+            onPress={() => setIsViewContact(true)}
+          >
+            <Text style={styles.addContactTitle}>View contact</Text>
+          </Button>
+        </View>
         <View style={styles.addContactForm}>
           <Text style={styles.addContactTitle}>Add Contact</Text>
 

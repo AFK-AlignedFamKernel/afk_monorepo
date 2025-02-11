@@ -42,7 +42,7 @@ export const DirectMessages: React.FC = () => {
     <>
       <Modalize ref={modalizeRef}>
         <FormPrivateMessage handleClose={() => modalizeRef.current?.close()} />
-        <ContactList onClose={() => modalizeRef.current?.close()} ></ContactList>
+        {/* <ContactList onClose={() => modalizeRef.current?.close()} ></ContactList> */}
       </Modalize>
 
 
@@ -55,7 +55,6 @@ export const DirectMessages: React.FC = () => {
 
         <Button
           style={styles.toggleButton}
-
         >
           Messages
         </Button>

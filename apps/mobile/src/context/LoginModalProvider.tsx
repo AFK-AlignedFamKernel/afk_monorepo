@@ -48,9 +48,13 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children
 
       <Modalize
         modalStyle={{
+          maxWidth:700,
           height: '100%',
           width: '100%',
           borderRadius: 20,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          marginBottom: 20,
         }}
         childrenStyle={{
           height: '100%',
