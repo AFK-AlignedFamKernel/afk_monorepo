@@ -70,7 +70,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
       )}
 
-      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+      >
         <Button
           style={[styles.toggleButton, tokenOrLaunch == 'LAUNCH' && styles.activeToggle]}
           textStyle={styles.toggleButtonText}
@@ -107,59 +109,61 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         <Loading />
       ) : (
 
-        <ScrollView>
+        // <ScrollView
+        //   showsVerticalScrollIndicator={false}
+        // >
 
-          <>
-            {tokenOrLaunch == 'LAUNCH' && (
-              <FlatList
-                contentContainerStyle={styles.flatListContent}
-                data={launchesData}
-                keyExtractor={(item) => item.token_address}
-                key={`flatlist-${isDesktop ? 3 : 1}`}
-                numColumns={isDesktop ? 3 : 1}
-                renderItem={({ item }) => {
-                  return <TokenLaunchCard key={item.token_address} token={item} />;
-                }}
-                refreshControl={<RefreshControl refreshing={isFetching} />}
-              />
-            )}
+        <>
+          {tokenOrLaunch == 'LAUNCH' && (
+            <FlatList
+              contentContainerStyle={styles.flatListContent}
+              data={launchesData}
+              keyExtractor={(item) => item.token_address}
+              key={`flatlist-${isDesktop ? 3 : 1}`}
+              numColumns={isDesktop ? 3 : 1}
+              renderItem={({ item }) => {
+                return <TokenLaunchCard key={item.token_address} token={item} />;
+              }}
+              refreshControl={<RefreshControl refreshing={isFetching} />}
+            />
+          )}
 
-            {tokenOrLaunch == 'TOKEN' && (
-              <FlatList
-                contentContainerStyle={styles.flatListContent}
-                data={tokens?.data}
-                // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-                keyExtractor={(item, i) => i.toString()}
-                key={`flatlist-${isDesktop ? 3 : 1}`}
-                numColumns={isDesktop ? 3 : 1}
-                renderItem={({ item, index }) => {
-                  return <TokenCard key={index} token={item} isTokenOnly={true} />;
-                }}
-                refreshControl={<RefreshControl refreshing={isFetching} />}
-              />
-            )}
+          {tokenOrLaunch == 'TOKEN' && (
+            <FlatList
+              contentContainerStyle={styles.flatListContent}
+              data={tokens?.data}
+              // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
+              keyExtractor={(item, i) => i.toString()}
+              key={`flatlist-${isDesktop ? 3 : 1}`}
+              numColumns={isDesktop ? 3 : 1}
+              renderItem={({ item, index }) => {
+                return <TokenCard key={index} token={item} isTokenOnly={true} />;
+              }}
+              refreshControl={<RefreshControl refreshing={isFetching} />}
+            />
+          )}
 
-            {tokenOrLaunch === 'MY_DASHBOARD' && (
-              <TokenDashboard
-                address={account.address}
-                onConnect={onConnect}
-                isDesktop={isDesktop}
-                isFetching={isFetching}
-                tokenOrLaunch={tokenOrLaunch}
-              />
-            )}
+          {tokenOrLaunch === 'MY_DASHBOARD' && (
+            <TokenDashboard
+              address={account.address}
+              onConnect={onConnect}
+              isDesktop={isDesktop}
+              isFetching={isFetching}
+              tokenOrLaunch={tokenOrLaunch}
+            />
+          )}
 
-            {tokenOrLaunch === 'MY_LAUNCH_TOKEN' && (
-              <TokenDashboard
-                address={account.address}
-                onConnect={onConnect}
-                isDesktop={isDesktop}
-                isFetching={isFetching}
-                tokenOrLaunch={tokenOrLaunch}
-              />
-            )}
-          </>
-        </ScrollView>
+          {tokenOrLaunch === 'MY_LAUNCH_TOKEN' && (
+            <TokenDashboard
+              address={account.address}
+              onConnect={onConnect}
+              isDesktop={isDesktop}
+              isFetching={isFetching}
+              tokenOrLaunch={tokenOrLaunch}
+            />
+          )}
+        </>
+        // </ScrollView>
 
       )}
     </View>

@@ -2,7 +2,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    // position: 'relative',
+    position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
@@ -26,7 +26,8 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     gap: Spacing.xsmall,
     marginBottom: Spacing.small,
-    height:"100%"
+    height: '100%',
+    maxHeight: 100,
   },
   activeToggle: {
     borderBottomWidth: 3,
