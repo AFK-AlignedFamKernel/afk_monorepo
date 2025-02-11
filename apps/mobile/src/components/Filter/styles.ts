@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
+import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modalContainer: {
@@ -14,16 +14,46 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 5,
+    display: 'flex',
+    // gridTemplateRows: 'repeat(2, 1fr)', // Creates 2 equal-height rows
+    // rowGap: 12, // Vertical gap between rows
+    // columnGap: 12, // Horizontal gap between columns
+    // alignItems: 'center',
   },
+  // container: {
+  //   padding: Spacing.pagePadding,
+  //   backgroundColor: theme.colors.surface,
+  //   borderRadius: 12,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.8,
+  //   shadowRadius: 2,
+  //   elevation: 5,
+  //   gridTemplateColumns: 'repeat(2, 1fr)', // Creates 2 equal-width columns
+  //   columnGap: 12, // Horizontal gap between columns
+  //   rowGap: 12, // Vertical gap between rows
+  //   alignItems: 'center',
+  // },
   rowContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap', // Allow wrapping if items overflow
     justifyContent: 'space-between', // Adjust spacing between items
+    // },
+    // display: 'grid',
+    // gridTemplateColumns: 'repeat(2, 1fr)', // Creates 2 equal-width columns
+    // columnGap: 12, // Horizontal gap between columns
+    // rowGap: 12, // Vertical gap between rows
+    // alignItems: 'center',
   },
+  // rowContainer: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap', // Allow wrapping if items overflow
+  //   justifyContent: 'space-between', // Adjust spacing between items
+  // },
   button: {
     paddingVertical: Spacing.small,
     paddingHorizontal: Spacing.large,
@@ -49,9 +79,10 @@ export default ThemedStyleSheet((theme) => ({
     // backgroundColor: theme.colors.primary,
     borderRadius: 8,
     marginTop: Spacing.small,
+    backgroundColor:theme.colors.background
   },
   closeButtonText: {
-    color: theme.colors.onPrimary,
+    color: theme.colors.text,
     textAlign: 'center',
     ...Typography.medium,
   },
