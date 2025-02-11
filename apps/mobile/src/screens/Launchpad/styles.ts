@@ -2,11 +2,11 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    position: 'relative',
+    // position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
-    padding: 40,
+    padding: 20,
   },
   createTokenButton: {
     width: 200,
@@ -26,6 +26,7 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     gap: Spacing.xsmall,
     marginBottom: Spacing.small,
+    height:"100%"
   },
   activeToggle: {
     borderBottomWidth: 3,

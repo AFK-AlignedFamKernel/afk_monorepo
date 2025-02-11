@@ -1,7 +1,7 @@
 import { useNetwork } from '@starknet-react/core';
 // import { LAUNCHPAD_ADDRESS} from '../../constants/contracts';
 import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, CallData, constants, RpcProvider, CairoCustomEnum, cairo } from 'starknet';
+import { AccountInterface, CallData, constants, RpcProvider, CairoCustomEnum, cairo, uint256 } from 'starknet';
 // import { CairoOption, CairoOptionVariant } from 'starknet';
 import { STRK } from '../../constants/tokens';
 import { formatFloatToUint256 } from '../../utils/format';
@@ -34,18 +34,18 @@ export const useLaunchToken = () => {
       // const orderToSend: BondingType = { Linear: {} };
       // const myCustomEnum = new CairoCustomEnum({ Linear: {} });
 
-      const erc20 = await prepareAndConnectContract(provider, addressContract, account);
-      let totalSupply= cairo.uint256(1);
+      const erc20 = await prepareAndConnectContract(provider, coin_address, account);
+      let totalSupply= BigInt(1);
   
-      await erc20.totalSupply()
+      totalSupply = await erc20.totalSupply()
       console.log("totalSupply", totalSupply)
 
       const approveCalldata = {
-        contractAddress: addressContract,
+        contractAddress: coin_address,
         entrypoint: 'approve',
         calldata: CallData.compile({
           address: addressContract,
-          amount: totalSupply
+          amount: uint256.bnToUint256(totalSupply) 
           // amount: totalSupply
           // ekubo_pool:CairoOptionVariant.None
         }),
@@ -71,7 +71,9 @@ export const useLaunchToken = () => {
         }),
       };
 
-      const tx = await account?.execute([approveCalldata, launchDeployCall], undefined, {});
+      const tx = await account?.execute([approveCalldata, 
+        launchDeployCall
+      ], undefined, {});
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;
