@@ -12,6 +12,7 @@ export type PostCardProps = {
   event?: NDKEvent;
   isRepostProps?: boolean;
   isBookmarked?: boolean;
+  isReplyView?:boolean;
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 

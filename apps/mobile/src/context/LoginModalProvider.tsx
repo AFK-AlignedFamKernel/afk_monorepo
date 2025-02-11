@@ -47,15 +47,16 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
 
       <Modalize
         modalStyle={{
-          maxWidth: 700,
+          height: '100%',
+          // maxWidth: 700,
           width: '100%',
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          marginBottom: 20,
+          // marginLeft: 'auto',
+          // marginRight: 'auto',
+          // marginBottom: 20,
           borderRadius: 20,
         }}
         ref={loginModalRef}
-        adjustToContentHeight
+        // adjustToContentHeight
       >
         <SharedAuthModalModule handleSuccess={hide} />
       </Modalize>

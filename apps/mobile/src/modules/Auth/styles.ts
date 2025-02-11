@@ -4,6 +4,7 @@ const LOGO_SIZE = 170;
 
 export default ThemedStyleSheet((theme) => ({
   container: {
+    height: '100%',
     flex: 1,
   },
 
@@ -17,6 +18,7 @@ export default ThemedStyleSheet((theme) => ({
 
   middle: {
     position: 'absolute',
+    // height: '100%',
     bottom: 0,
     left: 0,
     right: 0,
@@ -55,10 +57,12 @@ export default ThemedStyleSheet((theme) => ({
 
   contentContainer: {
     flex: 1,
+    height: '100%',
     backgroundColor: theme.colors.surface,
   },
   content: {
     flex: 1,
+    height: '100%',
     alignItems: 'center',
     paddingHorizontal: Spacing.medium,
     backgroundColor: theme.colors.surface,

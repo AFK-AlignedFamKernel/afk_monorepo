@@ -29,7 +29,8 @@ export const TipSuccessModal: React.FC<TipSuccessModalProps> = ({
           <Image
             style={styles.logoImage}
             // source={require('../../assets/tipping-modal.png')}
-            source={require('../../assets/pepe-uhoh-unbg.png')}
+            source={require('../../assets/pepe-logo.png')}
+            // source={require('../../assets/pepe-uhoh-unbg.png')}
             resizeMode="cover"
           />
         </View>

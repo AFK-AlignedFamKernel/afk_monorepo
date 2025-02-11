@@ -40,6 +40,7 @@ export type PostProps = {
   repostedEventProps?: string;
   isRepost?: boolean;
   isBookmarked?: boolean;
+  isReplyView?: boolean;
 };
 
 export const Post: React.FC<PostProps> = ({
@@ -48,6 +49,7 @@ export const Post: React.FC<PostProps> = ({
   repostedEventProps,
   isRepost,
   isBookmarked = false,
+  isReplyView = false,
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
 
@@ -348,13 +350,13 @@ export const Post: React.FC<PostProps> = ({
                 <Icon name="ShareIcon" size={15} title="Share" />
               </Pressable>
 
-              {/* <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
+              <Pressable style={{marginHorizontal: 3}} onPress={handleBookmark}>
                   <Icon
                     name={noteBookmarked ? 'BookmarkFillIcon' : 'BookmarkIcon'}
                     size={18}
                     title={noteBookmarked ? 'Bookmarked' : 'Bookmark'}
                   />
-                </Pressable> */}
+                </Pressable>
             </View>
           </View>
         </View>

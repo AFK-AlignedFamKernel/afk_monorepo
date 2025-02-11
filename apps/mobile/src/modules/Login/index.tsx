@@ -225,7 +225,10 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   return (
     <Auth title="Log In">
       <View
-        style={[styles.loginMethodsContainer, isDesktop && styles.loginMethodsContainerDesktop]}
+        style={[styles.loginMethodsContainer, 
+          styles.container,
+          isDesktop && styles.loginMethodsContainerDesktop
+        ]}
       >
         <Button
           onPress={handleExtensionConnect}
