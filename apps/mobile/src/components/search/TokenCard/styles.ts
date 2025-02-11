@@ -5,12 +5,13 @@ import {Spacing} from '../../../styles';
 export default (theme: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: '#1E1E1E',
+      // backgroundColor: '#1E1E1E',
+      backgroundColor: theme.colors.cardBg,
       borderRadius: 16,
       padding: 20,
       margin: 8,
       borderWidth: 1,
-      borderColor: '#2A2A2A',
+      // borderColor: '#2A2A2A',
       flex: 1,
       maxWidth: '100%',
     },
@@ -21,8 +22,15 @@ export default (theme: any) =>
     },
     tokenName: {
       fontSize: 24,
-      color: '#FFFFFF',
+      // color: '#FFFFFF',
+      color: theme.colors.text,
       fontWeight: 'bold',
+    },
+    symbolName: {
+      fontSize: 20,
+      // color: '#FFFFFF',
+      color: theme.colors.text,
+      // fontWeight: 'bold',
     },
     addressContainer: {
       backgroundColor: '#2A2A2A',
@@ -47,7 +55,7 @@ export default (theme: any) =>
       marginVertical: 16,
     },
     statBox: {
-      backgroundColor: '#2A2A2A',
+      // backgroundColor: '#2A2A2A',
       padding: 12,
       borderRadius: 8,
       width: '48%',
@@ -66,5 +74,15 @@ export default (theme: any) =>
       borderRadius: 8,
       alignItems: 'center',
       marginTop: Spacing.small,
+    },
+    label: {
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      minWidth: 100,
+    },
+    value: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: '600',
     },
   });

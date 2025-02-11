@@ -1,22 +1,23 @@
-import {NDKEvent, NDKUserProfile} from '@nostr-dev-kit/ndk';
-import {useNavigation} from '@react-navigation/native';
-import {useAccount} from '@starknet-react/core';
-import {useProfile} from 'afk_nostr_sdk';
+import { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { useNavigation } from '@react-navigation/native';
+import { useAccount } from '@starknet-react/core';
+import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {ImageSourcePropType, TouchableOpacity, View} from 'react-native';
+import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 
-import {CopyIconStack} from '../../../assets/icons';
-import {useStyles, useTheme} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {MainStackNavigationProps} from '../../../types';
-import {TokenDeployInterface, TokenLaunchInterface} from '../../../types/keys';
-import {feltToAddress} from '../../../utils/format';
-import {Button} from '../..';
-import {Text} from '../../Text';
+import { CopyIconStack } from '../../../assets/icons';
+import { useStyles, useTheme } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { MainStackNavigationProps } from '../../../types';
+import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
+import { feltToAddress } from '../../../utils/format';
+import { Button } from '../..';
+import { Text } from '../../Text';
 import stylesheet from './styles';
-import {useLaunchToken} from '../../../hooks/launchpad/useLaunchToken';
-import {AddLiquidityForm} from '../../AddLiquidityForm';
-import {useModal} from '../../../hooks/modals/useModal';
+import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
+import { AddLiquidityForm } from '../../AddLiquidityForm';
+import { useModal } from '../../../hooks/modals/useModal';
+import { useState } from 'react';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -45,34 +46,54 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   isViewDetailDisabled,
   isTokenOnly,
 }) => {
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const {account} = useAccount();
-  const {showToast} = useToast();
-  const {theme} = useTheme();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { account } = useAccount();
+  const { showToast } = useToast();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  const {handleLaunchCoin} = useLaunchToken();
-  const {show: showModal} = useModal();
+  const { handleLaunchCoin } = useLaunchToken();
+  const { show: showModal } = useModal();
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
     await Clipboard.setStringAsync(token?.memecoin_address);
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
+
+  const [isExpanded, setIsExpanded] = useState<boolean>(false)
+  const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
-        <Text style={styles.tokenName}>{token?.symbol || 'Unnamed Token'}</Text>
-        <View style={styles.addressContainer}>
-          <Text numberOfLines={1} ellipsizeMode="middle" style={{color: '#808080', flex: 1}}>
-            {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
+        <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
+          <Text
+            numberOfLines={isExpanded ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.tokenName}
+          >
+            {token?.name || 'Unnamed Token'}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
+          <Text
+            numberOfLines={isExpandedSymbol ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
+        </TouchableOpacity>
+        <View style={styles.addressContainer}>
           <TouchableOpacity onPress={handleCopy}>
-            <CopyIconStack color={theme.colors.primary} />
+
+            <Text
+              // onPress={handleCopy} 
+              numberOfLines={1} ellipsizeMode="middle" style={{ color: '#808080', flex: 1 }}>
+              {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
+            </Text>
           </TouchableOpacity>
+
+          <CopyIconStack color={theme.colors.primary} />
         </View>
         <View style={styles.priceTag}>
           {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
@@ -84,11 +105,11 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           <Text style={styles.statLabel}>Supply</Text>
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-
+{/* 
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Network</Text>
           <Text style={styles.statValue}>{token?.network || '-'}</Text>
-        </View>
+        </View> */}
       </View>
 
       {account && account?.address == token?.owner && (
