@@ -1,8 +1,9 @@
-import {createContext, useCallback, useMemo, useRef, useState} from 'react';
+import { createContext, useCallback, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 
-import {Modalize} from '../components';
-import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
-import {SharedAuthModalModule} from '../modules/Login/SharedModal';
+import { Modalize } from '../components';
+import { TipSuccessModal, TipSuccessModalProps } from '../modules/TipSuccessModal';
+import { SharedAuthModalModule } from '../modules/Login/SharedModal';
 
 export type LoginModalContextType = {
   show: () => void;
@@ -15,7 +16,7 @@ export type LoginModalContextType = {
 export const LoginModalContext = createContext<LoginModalContextType | null>(null);
 export type LoginModal = Modalize;
 
-export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}) => {
+export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const loginModalRef = useRef<LoginModal>(null);
 
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
@@ -37,7 +38,7 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
   }, []);
 
   const context = useMemo(
-    () => ({show, hide, showSuccess, hideSuccess}),
+    () => ({ show, hide, showSuccess, hideSuccess }),
     [show, hide, showSuccess, hideSuccess],
   );
 
@@ -48,17 +49,31 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({children}
       <Modalize
         modalStyle={{
           height: '100%',
-          // maxWidth: 700,
           width: '100%',
-          // marginLeft: 'auto',
-          // marginRight: 'auto',
-          // marginBottom: 20,
           borderRadius: 20,
         }}
+        childrenStyle={{
+          height: '100%',
+          // flex: 1,
+        }}
+        modalTopOffset={0}
+        adjustToContentHeight={true}
         ref={loginModalRef}
-        // adjustToContentHeight
       >
         <SharedAuthModalModule handleSuccess={hide} />
+
+        {/* <View 
+          style={{ 
+            flex: 1, 
+            // height: 'auto',
+            height: '100%',
+            // minHeight: '100%',
+            // padding: '8px 16px 16px',
+            // overflow: 'auto'
+          }}
+        >
+          <SharedAuthModalModule handleSuccess={hide} />
+        </View> */}
       </Modalize>
 
       {successModal && <TipSuccessModal {...successModal} />}

@@ -26,24 +26,31 @@ export const SharedAuthModalModule: React.FC<ISharedAuthModal> = ({
   };
 
   return (
-    <>
-      <View style={{ height: '100%' }}>
-        {currentModule === 'login' ? (
-          <LoginNostrModule
-            handleSuccess={handleSuccess}
-            handleNavigateCreateAccount={handleGoToCreateAccount}
-            handleNavigateImportKeys={handleGoToImportKeys}
-          />
-        ) : currentModule === 'signup' ? (
-          <CreateAccountModule
-            handleSuccess={handleSuccess}
-            handleNavigateLoginScreen={handleGoToLogin}
-          />
-        ) : currentModule === 'importKeys' ? (
-          <ImportKeysModule handleSuccess={handleSuccess} handleNavigateLoginScreen={handleGoToLogin} />
-        ) : null}
-      </View>
-    </>
-
-  )
+    <View style={{ 
+      flex: 1,
+      height: '100%',
+      // WebkitOverflowScrolling: 'touch',
+      // flexDirection: 'column',
+      // overflowX: 'hidden',
+      // overflowY: 'auto',
+    }}>
+      {currentModule === 'login' ? (
+        <LoginNostrModule
+          handleSuccess={handleSuccess}
+          handleNavigateCreateAccount={handleGoToCreateAccount}
+          handleNavigateImportKeys={handleGoToImportKeys}
+        />
+      ) : currentModule === 'signup' ? (
+        <CreateAccountModule
+          handleSuccess={handleSuccess}
+          handleNavigateLoginScreen={handleGoToLogin}
+        />
+      ) : currentModule === 'importKeys' ? (
+        <ImportKeysModule 
+          handleSuccess={handleSuccess} 
+          handleNavigateLoginScreen={handleGoToLogin} 
+        />
+      ) : null}
+    </View>
+  );
 };

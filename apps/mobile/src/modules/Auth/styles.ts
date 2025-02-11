@@ -9,7 +9,10 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   background: {
-    flex: 1,
+    flex:1,
+    height: '100%',
+    // flex: 0,
+    // height: '40%',
   },
   backgroundImage: {
     width: '100%',
@@ -18,7 +21,6 @@ export default ThemedStyleSheet((theme) => ({
 
   middle: {
     position: 'absolute',
-    // height: '100%',
     bottom: 0,
     left: 0,
     right: 0,
@@ -28,6 +30,8 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
+    height: '100%',
+    // paddingTop: LOGO_SIZE / 2 + 20,
   },
   logo: {
     width: LOGO_SIZE,
@@ -57,7 +61,7 @@ export default ThemedStyleSheet((theme) => ({
 
   contentContainer: {
     flex: 1,
-    height: '100%',
+    height: '60%',
     backgroundColor: theme.colors.surface,
   },
   content: {

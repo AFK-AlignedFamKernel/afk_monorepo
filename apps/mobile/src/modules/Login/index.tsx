@@ -223,7 +223,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   // };
 
   return (
-    <Auth title="Log In">
+    <Auth title="Log In"
+    style={{
+      height: '100%',
+    }}
+    >
       <View
         style={[styles.loginMethodsContainer, 
           styles.container,
