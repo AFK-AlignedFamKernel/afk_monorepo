@@ -99,7 +99,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       setFeedData(forYouNotes as any);
     }
 
-    if(searchLower &&searchLower?.length> 0 ) {
+    if (searchLower && searchLower?.length > 0) {
       filtered = flattenedPages?.filter((item) =>
         item?.content?.toLowerCase().includes(searchLower),
       ) ?? flattenedPages;
@@ -201,11 +201,13 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
           } else if (item.kind === NDKKind.ChannelMessage) {
-            return <PostCard event={item} />;
+            return <PostCard event={item}
+              isReplyView={true}
+            />;
           } else if (item.kind === NDKKind.VerticalVideo || item.kind === NDKKind.HorizontalVideo) {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
-            return <PostCard event={item} />;
+            return <PostCard event={item} isReplyView={true}/>;
           }
           // else if (item.kind === 30311) {
           //   return <RenderEventCard

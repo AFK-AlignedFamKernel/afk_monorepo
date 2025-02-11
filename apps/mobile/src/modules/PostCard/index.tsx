@@ -16,7 +16,7 @@ export type PostCardProps = {
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 
-export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookmarked}) => {
+export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookmarked, isReplyView}) => {
   const styles = useStyles(stylesheet);
 
   let repostedEvent = undefined;
@@ -35,6 +35,7 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
         repostedEventProps={repostedEvent}
         isRepost={isRepost}
         isBookmarked={isBookmarked}
+        isReplyView={isReplyView}
       />
     </View>
   );
