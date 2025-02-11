@@ -98,6 +98,7 @@ pub mod DaoAA {
         max_balance_per_vote: u256,
         minimal_balance_create_proposal: u256,
         is_multi_vote_available_per_token_balance: bool,
+        minimum_threshold_percentage: u64,
         transfers: Map<u256, bool>,
         proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
         proposals_calldata: Map<u256, Vec<felt252>>, // Map ProposalID => calldata
@@ -156,6 +157,7 @@ pub mod DaoAA {
         self.token_contract_address.write(token_contract_address);
         self.total_proposal.write(0);
         self.is_only_dao_execution.write(true);
+        self.minimum_threshold_percentage.write(60);
         // TODO: init self.starknet_address here
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
@@ -226,10 +228,12 @@ pub mod DaoAA {
             self.proposals.entry(id).write(Option::Some(proposal));
 
             let proposal_calldata = self.proposals_calldata.entry(id);
-            for i in 0..calldata.len() {
-                let data = *calldata.at(i);
-                proposal_calldata.append().write(data);
-            };
+            for i in 0
+                ..calldata
+                    .len() {
+                        let data = *calldata.at(i);
+                        proposal_calldata.append().write(data);
+                    };
 
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
@@ -245,10 +249,11 @@ pub mod DaoAA {
 
             // Finish the voting part
             // done
+            let voted_at = starknet::get_block_timestamp();
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
-            assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
-            assert(proposal.end_at < starknet::get_block_timestamp(), 'PROPOSAL HAS ENDED');
+            assert(!proposal.is_canceled && !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
+            assert(voted_at < proposal.end_at, 'PROPOSAL HAS ENDED');
             let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
             assert(
                 !vote_state.user_has_voted.entry(caller).read()
@@ -300,7 +305,7 @@ pub mod DaoAA {
                         vote: vote_type,
                         votes: caller_votes,
                         total_votes: previous_vote_count + caller_votes,
-                        voted_at: starknet::get_block_timestamp(),
+                        voted_at,
                     },
                 );
         }
@@ -450,6 +455,9 @@ pub mod DaoAA {
             if let Option::Some(var) = config_params.minimal_balance_create_proposal {
                 self.minimal_balance_create_proposal.write(var);
             }
+            if let Option::Some(var) = config_params.minimum_threshold_percentage {
+                self.minimum_threshold_percentage.write(var);
+            }
         }
 
         fn _get_config(self: @ContractState) -> ConfigResponse {
@@ -460,6 +468,7 @@ pub mod DaoAA {
                 minimal_balance_voting: self.minimal_balance_voting.read(),
                 max_balance_per_vote: self.max_balance_per_vote.read(),
                 minimal_balance_create_proposal: self.minimal_balance_create_proposal.read(),
+                minimum_threshold_percentage: self.minimum_threshold_percentage.read()
             }
         }
     }
@@ -569,7 +578,6 @@ mod tests {
     #[test]
     fn test_proposal_vote_success() {
         // snforge test afk::dao::dao_aa::tests::test_proposal_vote_success --exact
-        let creator = contract_address_const::<'CREATOR'>();
         let voter = OWNER(); // minted with tokens
         let token_contract = deploy_token();
         let proposal_contract = deploy_dao(token_contract);
@@ -579,7 +587,9 @@ mod tests {
         let voter_balance = token_dispatcher.balance_of(voter);
         assert(voter_balance > 0, 'MINT FAILED');
 
-        let proposal_id = init_default_proposal(proposal_dispatcher, starknet::get_block_timestamp());
+        let proposal_id = init_default_proposal(
+            proposal_dispatcher, starknet::get_block_timestamp()
+        );
 
         let mut spy = spy_events();
         let voted_at = starknet::get_block_timestamp();
@@ -602,19 +612,21 @@ mod tests {
     }
 
     #[test]
-    fn test_proposal_cancellation_success() {
-        // snforge test afk::dao::dao_aa::tests::test_proposal_cancellation_success --exact
+    fn test_proposal_cancelation_success() {
+        // snforge test afk::dao::dao_aa::tests::test_proposal_cancelation_success --exact
         let token_contract = deploy_token();
         let proposal_contract = deploy_dao(token_contract);
         let creator = CREATOR();
 
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
-        let proposal_id = init_default_proposal(proposal_dispatcher, starknet::get_block_timestamp());
+        let proposal_id = init_default_proposal(
+            proposal_dispatcher, starknet::get_block_timestamp()
+        );
         cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(1));
         proposal_dispatcher.cancel_proposal(proposal_id);
 
         let proposal = proposal_dispatcher.get_proposal(proposal_id);
-        assert(proposal.is_canceled == true, 'CANCEL FAILED');
+        assert(proposal.is_canceled, 'CANCEL FAILED');
     }
 
     #[test]
@@ -638,6 +650,7 @@ mod tests {
             minimal_balance_voting: Option::Some(minimal_balance_voting),
             max_balance_per_vote: Option::None,
             minimal_balance_create_proposal: Option::None,
+            minimum_threshold_percentage: Option::None // 60 init in the contructor
         };
 
         dao_dispatcher.update_config(config_params);
@@ -668,6 +681,37 @@ mod tests {
         cheat_block_timestamp(proposal_contract, vote_at, CheatSpan::TargetCalls(1));
         cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
         proposal_dispatcher.cast_vote(proposal_id, Option::None); // should panic
+    }
+
+    #[test]
+    #[should_panic(expected: 'CANNOT VOTE ON PROPOSAL')]
+    fn test_proposal_should_panic_when_voted_on_upon_cancelation() {
+        // snforge test
+        // afk::dao::dao_aa::tests::test_proposal_should_panic_when_voted_on_upon_cancelation
+        // --exact
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let voter = OWNER();
+
+        let proposal_id = init_default_proposal(
+            proposal_dispatcher, starknet::get_block_timestamp()
+        );
+        cheat_caller_address(proposal_contract, CREATOR(), CheatSpan::TargetCalls(1));
+        proposal_dispatcher.cancel_proposal(proposal_id);
+
+        cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
+        proposal_dispatcher.cast_vote(proposal_id, Option::None);
+    }
+
+    #[test]
+    #[should_panic(expected: 'INVALID PROPOSAL ID')]
+    fn test_proposal_should_panic_with_nonexistent_id() {
+        // snforge test
+        // afk::dao::dao_aa::tests::test_proposal_should_panic_with_nonexistent_id --exact
+        let proposal_contract = deploy_dao('token'.try_into().unwrap());
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let _ = proposal_dispatcher.get_proposal(1);
     }
 }
 

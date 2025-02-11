@@ -62,7 +62,6 @@ pub enum ProposalResult {
     Canceled
 }
 
-
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
 pub struct Proposal {
     pub id: u256,
@@ -124,6 +123,7 @@ pub struct ConfigParams {
     pub minimal_balance_voting: Option<u256>,
     pub max_balance_per_vote: Option<u256>,
     pub minimal_balance_create_proposal: Option<u256>,
+    pub minimum_threshold_percentage: Option<u64>
 }
 
 #[derive(Drop, Copy, Serde)]
@@ -134,6 +134,7 @@ pub struct ConfigResponse {
     pub minimal_balance_voting: u256,
     pub max_balance_per_vote: u256,
     pub minimal_balance_create_proposal: u256,
+    pub minimum_threshold_percentage: u64
 }
 
 
@@ -151,7 +152,9 @@ pub struct VoteState {
     pub voter_count: u64,
     pub user_votes: Map<ContractAddress, (UserVote, u256)>, // Map Voter => (UserVote, power)
     pub user_has_voted: Map<ContractAddress, bool>,
-    pub voters_list: Vec<ContractAddress>
+    pub voters_list: Vec<ContractAddress>,
+    pub yes_votes: (u64, u256), // (number of votes, power)
+    pub no_votes: (u64, u256)
 }
 
 #[starknet::interface]
