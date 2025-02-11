@@ -513,3 +513,69 @@ export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[
 
   // },
 ];
+
+export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
+  {
+    title: 'Pump',
+    description: 'Launch your token to be trade and pumped',
+    screen: 'Launchpad',
+    tab: SelectedTab.LAUNCHPAD_VIEW,
+  },
+  {
+    title: 'Pixel Peace',
+    description: 'Pixel Game for communities',
+    screen: 'PixelPeace',
+    tab: SelectedTab.PIXEL_PEACE,
+  },
+  {
+    title: 'Nameservice',
+    description: 'AFK nameservice to mint your own name.afk',
+    screen: 'AFK Nameservice',
+    tab: SelectedTab.NAMESERVICE,
+  },
+  // {
+  //   title: 'AFK ID',
+  //   screen: 'AFK ID',
+  //   tab: SelectedTab.AFK_ID,
+  // },
+  {
+    title: 'Keys',
+    description: 'Launch your own keys as a Starknet user linked to your profile',
+    screen: 'KeysMarketplace',
+    tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+  },
+  // {
+  //   title: 'Slink',
+  //   description: 'Slink Description',
+  //   screen: 'Slink',
+  //   tab: SelectedTab.SLINK,
+  // },
+  // {
+  //   title: '?',
+  //   description: '? Description',
+  //   screen: '?',
+  //   tab: SelectedTab.LAUNCH_TOKEN_UNRUGGABLE,
+  // },
+  // {
+  //   title: '?!',
+  //   description: '?! Description',
+  //   screen: '?!',
+  //   tab: SelectedTab.LAUNCH_TOKEN_PUMP,
+  // },
+  // {
+  //   title: 'Channel',
+  //   screen: 'CreateChannel',
+  //   tab: SelectedTab.CREATE_CHANNEL,
+  // },
+  // {
+  //   title: 'Token',
+  //   screen: 'LaunchToken',
+  //   tab: SelectedTab.LAUNCH_TOKEN,
+  // },
+  // {
+  //   title: 'Messages',
+  //   screen: "ChannelsFeed",
+  //   tab: SelectedTab.MESSAGES
+
+  // },
+];
