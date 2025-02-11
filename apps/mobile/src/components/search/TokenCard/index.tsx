@@ -105,26 +105,36 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           <Text style={styles.statLabel}>Supply</Text>
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-{/* 
+        {/* 
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Network</Text>
           <Text style={styles.statValue}>{token?.network || '-'}</Text>
         </View> */}
       </View>
 
-      {account && account?.address == token?.owner && (
-        <View>
-          <Button
-            onPress={() => {
-              handleLaunchCoin(account, token?.memecoin_address);
-            }}
-          >
-            Launch your coin
-          </Button>
+      {token?.owner_address &&
+        account && account?.address == token?.owner_address && (
+          <View>
+            <Button
+              onPress={() => {
+                handleLaunchCoin(account, token?.memecoin_address);
+              }}
+            >
+              Launch your coin
+            </Button>
 
-          <AddLiquidityForm tokenAddress={token?.memecoin_address} />
-        </View>
-      )}
+            {/* <AddLiquidityForm tokenAddress={token?.memecoin_address} /> */}
+            <Button
+              onPress={() => {
+                if (token?.memecoin_address) {
+                  showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
+                }
+              }}
+            >
+              Add Liquidity
+            </Button>
+          </View>
+        )}
 
       {!isViewDetailDisabled && (
         <>
@@ -141,7 +151,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             View token page
           </Button>
 
-          <Button
+          {/* <Button
             onPress={() => {
               if (token?.memecoin_address) {
                 showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
@@ -149,7 +159,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             }}
           >
             Add Liquidity
-          </Button>
+          </Button> */}
         </>
       )}
     </View>
