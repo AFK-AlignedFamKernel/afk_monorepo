@@ -116,6 +116,26 @@ pub struct ProposalCanceled {
     // pub votes: u256, // subject to review
 }
 
+#[derive(Drop, Copy, Serde)]
+pub struct ConfigParams {
+    pub is_admin_bypass_available: Option<bool>,
+    pub is_only_dao_execution: Option<bool>,
+    pub token_contract_address: Option<ContractAddress>,
+    pub minimal_balance_voting: Option<u256>,
+    pub max_balance_per_vote: Option<u256>,
+    pub minimal_balance_create_proposal: Option<u256>,
+}
+
+#[derive(Drop, Copy, Serde)]
+pub struct ConfigResponse {
+    pub is_admin_bypass_available: bool,
+    pub is_only_dao_execution: bool,
+    pub token_contract_address: ContractAddress,
+    pub minimal_balance_voting: u256,
+    pub max_balance_per_vote: u256,
+    pub minimal_balance_create_proposal: u256,
+}
+
 
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct VoteState {

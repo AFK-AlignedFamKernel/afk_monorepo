@@ -1,5 +1,6 @@
 // use starknet::{ContractAddress, get_caller_address, get_contract_address,
 // contract_address_const};
+use afk::interfaces::voting::{ConfigParams, ConfigResponse};
 use afk::social::profile::NostrProfile;
 use afk::social::request::SocialRequest;
 use afk::social::transfer::Transfer;
@@ -10,6 +11,8 @@ use starknet::{ContractAddress};
 pub trait IDaoAA<TContractState> {
     fn get_public_key(self: @TContractState) -> u256;
     fn get_token_contract_address(self: @TContractState) -> ContractAddress;
+    fn update_config(ref self: TContractState, config_params: ConfigParams);
+    fn get_config(self: @TContractState) -> ConfigResponse;
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
@@ -31,6 +34,7 @@ pub mod DaoAA {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
+        ConfigParams, ConfigResponse, ProposalCanceled
     };
     use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use afk::social::transfer::Transfer;
@@ -101,7 +105,7 @@ pub mod DaoAA {
         total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
         // vote_by_proposal: Map<u256, Proposal>,
-        tx_data_per_proposal: Map<u256, Span<felt252>>,
+        tx_data_per_proposal: Map<u256, Span<felt252>>, // 
         starknet_address: felt252,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
@@ -125,6 +129,7 @@ pub mod DaoAA {
         AccountCreated: AccountCreated,
         ProposalCreated: ProposalCreated,
         ProposalVoted: ProposalVoted,
+        ProposalCanceled: ProposalCanceled,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -150,6 +155,7 @@ pub mod DaoAA {
         self.owner.write(owner);
         self.token_contract_address.write(token_contract_address);
         self.total_proposal.write(0);
+        self.is_only_dao_execution.write(true);
         // TODO: init self.starknet_address here
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
@@ -165,6 +171,14 @@ pub mod DaoAA {
 
         fn get_token_contract_address(self: @ContractState) -> ContractAddress {
             self.token_contract_address.read()
+        }
+
+        fn update_config(ref self: ContractState, config_params: ConfigParams) {
+            self._update_config(config_params);
+        }
+
+        fn get_config(self: @ContractState) -> ConfigResponse {
+            self._get_config()
         }
     }
 
@@ -236,7 +250,7 @@ pub mod DaoAA {
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
             assert(!proposal.is_canceled || !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
-
+            assert(proposal.end_at < starknet::get_block_timestamp(), 'PROPOSAL HAS ENDED');
             let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
             assert(
                 !vote_state.user_has_voted.entry(caller).read()
@@ -321,6 +335,11 @@ pub mod DaoAA {
             assert(!proposal.is_executed, 'PROPOSAL ALREADY EXECUTED');
             proposal.is_canceled = true;
             self.proposals.entry(proposal_id).write(Option::Some(proposal));
+
+            self
+                .emit(
+                    ProposalCanceled { id: proposal_id, owner: get_caller_address(), is_canceled: true }
+                );
         }
     }
 
@@ -409,6 +428,40 @@ pub mod DaoAA {
 
             opt_proposal.unwrap()
         }
+
+        fn _update_config(ref self: ContractState, config_params: ConfigParams) {
+            // Updates all possible proposal configuration for
+            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED');
+            if let Option::Some(var) = config_params.is_admin_bypass_available {
+                self.is_admin_bypass_available.write(var);
+            }
+            if let Option::Some(var) = config_params.is_only_dao_execution {
+                self.is_only_dao_execution.write(var);
+            }
+            if let Option::Some(var) = config_params.token_contract_address {
+                self.token_contract_address.write(var);
+            }
+            if let Option::Some(var) = config_params.minimal_balance_voting {
+                self.minimal_balance_voting.write(var);
+            }
+            if let Option::Some(var) = config_params.max_balance_per_vote {
+                self.max_balance_per_vote.write(var);
+            }
+            if let Option::Some(var) = config_params.minimal_balance_create_proposal {
+                self.minimal_balance_create_proposal.write(var);
+            }
+        }
+
+        fn _get_config(self: @ContractState) -> ConfigResponse {
+            ConfigResponse {
+                is_admin_bypass_available: self.is_admin_bypass_available.read(),
+                is_only_dao_execution: self.is_only_dao_execution.read(),
+                token_contract_address: self.token_contract_address.read(),
+                minimal_balance_voting: self.minimal_balance_voting.read(),
+                max_balance_per_vote: self.max_balance_per_vote.read(),
+                minimal_balance_create_proposal: self.minimal_balance_create_proposal.read(),
+            }
+        }
     }
 }
 
@@ -417,7 +470,7 @@ mod tests {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait
+        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
@@ -427,18 +480,16 @@ mod tests {
         cheat_block_timestamp
     };
     use starknet::{ContractAddress, contract_address_const};
+    use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
+
+
+    /// UTILIY FUNCTIONS
 
     fn OWNER() -> ContractAddress {
         contract_address_const::<'OWNER'>()
     }
 
     fn deploy_token() -> ContractAddress {
-        // ref self: ContractState,
-        // name: felt252,
-        // symbol: felt252,
-        // initial_supply: u256,
-        // recipient: ContractAddress,
-        // decimals: u8,
         let mut constructor_calldata = array![];
         let decimals = 10_u8;
         constructor_calldata.append_serde('DaoToken');
@@ -465,6 +516,8 @@ mod tests {
 
         contract_address
     }
+
+    /// TESTS
 
     #[test]
     fn test_proposal_creation() {
@@ -565,4 +618,35 @@ mod tests {
         let proposal = proposal_dispatcher.get_proposal(proposal_id);
         assert(proposal.is_canceled == true, 'CANCEL FAILED');
     }
+
+    #[test]
+    fn test_update_config_success() {
+        // snforge test afk::dao::dao_aa::tests::test_update_config_success --exact
+        let token_contract = contract_address_const::<'init'>();
+        let proposal_contract = deploy_dao(token_contract);
+        let dao_dispatcher = IDaoAADispatcher { contract_address: proposal_contract };
+
+        let old_token_contract = dao_dispatcher.get_token_contract_address();
+        assert(token_contract == old_token_contract, '');
+        let new_token_contract = contract_address_const::<'new'>();
+        let minimal_balance_voting = 5000;
+        // change just two values
+        cheat_caller_address(proposal_contract, OWNER(), CheatSpan::TargetCalls(1));
+        let config_params = ConfigParams {
+            is_admin_bypass_available: Option::None,
+            // note: default is true, set in constructor. But we don't wish to change it.
+            is_only_dao_execution: Option::None,
+            token_contract_address: Option::Some(new_token_contract),
+            minimal_balance_voting: Option::Some(minimal_balance_voting),
+            max_balance_per_vote: Option::None,
+            minimal_balance_create_proposal: Option::None
+        };
+
+        dao_dispatcher.update_config(config_params);
+        let config_response = dao_dispatcher.get_config();
+        assert(config_response.is_only_dao_execution, 'UPDATE ERROR'); // should return true, unchanged
+        assert(config_response.token_contract_address == new_token_contract, 'TOKEN UPDATE ERROR');
+        assert(config_response.minimal_balance_voting == minimal_balance_voting, 'VOTING UPDATE ERROR');
+    }
 }
+
