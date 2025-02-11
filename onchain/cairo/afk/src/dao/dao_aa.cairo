@@ -34,7 +34,7 @@ pub mod DaoAA {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
-        ConfigParams, ConfigResponse, ProposalCanceled
+        ConfigParams, ConfigResponse, ProposalCanceled,
     };
     use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use afk::social::transfer::Transfer;
@@ -196,11 +196,11 @@ pub mod DaoAA {
 
             if minimal_balance > 0 {
                 let vote_token_dispatcher = IERC20Dispatcher {
-                    contract_address: self.token_contract_address.read()
+                    contract_address: self.token_contract_address.read(),
                 };
                 assert(
                     vote_token_dispatcher.balance_of(owner) > minimal_balance,
-                    'INSUFFICIENT CREATION FUNDS'
+                    'INSUFFICIENT CREATION FUNDS',
                 );
             }
 
@@ -226,12 +226,10 @@ pub mod DaoAA {
             self.proposals.entry(id).write(Option::Some(proposal));
 
             let proposal_calldata = self.proposals_calldata.entry(id);
-            for i in 0
-                ..calldata
-                    .len() {
-                        let data = *calldata.at(i);
-                        proposal_calldata.append().write(data);
-                    };
+            for i in 0..calldata.len() {
+                let data = *calldata.at(i);
+                proposal_calldata.append().write(data);
+            };
 
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
@@ -239,7 +237,7 @@ pub mod DaoAA {
             id
         }
 
-        fn cast_vote(ref self: ContractState, proposal_id: u256, opt_vote_type: Option<UserVote>,) {
+        fn cast_vote(ref self: ContractState, proposal_id: u256, opt_vote_type: Option<UserVote>) {
             // TODO
             // Check if ERC20 minimal balance is needed
             // Check if ERC20 max balance is needed
@@ -255,7 +253,7 @@ pub mod DaoAA {
             assert(
                 !vote_state.user_has_voted.entry(caller).read()
                     && !self.is_multi_vote_available_per_token_balance.read(),
-                'CALLER HAS VOTED'
+                'CALLER HAS VOTED',
             );
 
             // Use balance for vote power
@@ -270,7 +268,7 @@ pub mod DaoAA {
             let max_votes = self.max_balance_per_vote.read();
             assert(
                 caller_balance > 0 && caller_balance >= self.minimal_balance_voting.read(),
-                'INSUFFICIENT VOTING FUNDS'
+                'INSUFFICIENT VOTING FUNDS',
             );
 
             let caller_votes = if caller_balance > max_votes && max_votes > 0 {
@@ -338,7 +336,9 @@ pub mod DaoAA {
 
             self
                 .emit(
-                    ProposalCanceled { id: proposal_id, owner: get_caller_address(), is_canceled: true }
+                    ProposalCanceled {
+                        id: proposal_id, owner: get_caller_address(), is_canceled: true,
+                    },
                 );
         }
     }
@@ -470,14 +470,14 @@ mod tests {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse
+        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
         EventsFilterTrait, cheat_caller_address, cheatcodes::events::Event, declare, spy_events,
-        cheat_block_timestamp
+        cheat_block_timestamp,
     };
     use starknet::{ContractAddress, contract_address_const};
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
@@ -487,6 +487,10 @@ mod tests {
 
     fn OWNER() -> ContractAddress {
         contract_address_const::<'OWNER'>()
+    }
+
+    fn CREATOR() -> ContractAddress {
+        contract_address_const::<'CREATOR'>()
     }
 
     fn deploy_token() -> ContractAddress {
@@ -517,6 +521,26 @@ mod tests {
         contract_address
     }
 
+    fn init_default_proposal(
+        proposal_dispatcher: IVoteProposalDispatcher, created_at: u64,
+    ) -> u256 {
+        cheat_block_timestamp(
+            proposal_dispatcher.contract_address, created_at, CheatSpan::TargetCalls(1),
+        );
+        cheat_caller_address(
+            proposal_dispatcher.contract_address, CREATOR(), CheatSpan::TargetCalls(1),
+        );
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default(),
+        };
+
+        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+        // created by 'CREATOR'
+        proposal_dispatcher.create_proposal(proposal_params, mock_calldata)
+    }
+
     /// TESTS
 
     #[test]
@@ -525,28 +549,18 @@ mod tests {
         let token_contract = deploy_token();
         let proposal_contract = deploy_dao(token_contract);
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
-        let caller = contract_address_const::<'CALLER_1'>();
-
-        cheat_caller_address(proposal_contract, caller, CheatSpan::TargetCalls(1));
-
-        let proposal_params = ProposalParams {
-            content: "My Proposal",
-            proposal_type: Default::default(),
-            proposal_automated_transaction: Default::default()
-        };
+        let caller = CREATOR();
 
         let created_at = starknet::get_block_timestamp();
         let end_at = created_at + SET_PROPOSAL_DURATION_IN_SECONDS;
-        cheat_block_timestamp(proposal_contract, created_at, CheatSpan::TargetCalls(1));
 
         let mut spy = spy_events();
 
-        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
-        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+        let proposal_id = init_default_proposal(proposal_dispatcher, created_at);
         assert(proposal_id > 0, 'No proposal created');
 
         let creation_event = super::DaoAA::Event::ProposalCreated(
-            ProposalCreated { id: proposal_id, owner: caller, created_at, end_at }
+            ProposalCreated { id: proposal_id, owner: caller, created_at, end_at },
         );
 
         spy.assert_emitted(@array![(proposal_contract, creation_event)]);
@@ -565,16 +579,7 @@ mod tests {
         let voter_balance = token_dispatcher.balance_of(voter);
         assert(voter_balance > 0, 'MINT FAILED');
 
-        cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(1));
-        let proposal_params = ProposalParams {
-            content: "My Proposal",
-            proposal_type: Default::default(),
-            proposal_automated_transaction: Default::default()
-        };
-
-        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
-        // created by 'CREATOR'
-        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+        let proposal_id = init_default_proposal(proposal_dispatcher, starknet::get_block_timestamp());
 
         let mut spy = spy_events();
         let voted_at = starknet::get_block_timestamp();
@@ -589,8 +594,8 @@ mod tests {
                 vote: Default::default(),
                 votes: voter_balance,
                 total_votes: voter_balance,
-                voted_at
-            }
+                voted_at,
+            },
         );
 
         spy.assert_emitted(@array![(proposal_contract, voted_event)]);
@@ -601,18 +606,11 @@ mod tests {
         // snforge test afk::dao::dao_aa::tests::test_proposal_cancellation_success --exact
         let token_contract = deploy_token();
         let proposal_contract = deploy_dao(token_contract);
-        let creator = contract_address_const::<'CREATOR'>();
-
-        cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(2));
-        let proposal_params = ProposalParams {
-            content: "My Proposal",
-            proposal_type: Default::default(),
-            proposal_automated_transaction: Default::default()
-        };
-        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+        let creator = CREATOR();
 
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
-        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, mock_calldata);
+        let proposal_id = init_default_proposal(proposal_dispatcher, starknet::get_block_timestamp());
+        cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(1));
         proposal_dispatcher.cancel_proposal(proposal_id);
 
         let proposal = proposal_dispatcher.get_proposal(proposal_id);
@@ -639,14 +637,37 @@ mod tests {
             token_contract_address: Option::Some(new_token_contract),
             minimal_balance_voting: Option::Some(minimal_balance_voting),
             max_balance_per_vote: Option::None,
-            minimal_balance_create_proposal: Option::None
+            minimal_balance_create_proposal: Option::None,
         };
 
         dao_dispatcher.update_config(config_params);
         let config_response = dao_dispatcher.get_config();
-        assert(config_response.is_only_dao_execution, 'UPDATE ERROR'); // should return true, unchanged
+        assert(
+            config_response.is_only_dao_execution, 'UPDATE ERROR',
+        ); // should return true, unchanged
         assert(config_response.token_contract_address == new_token_contract, 'TOKEN UPDATE ERROR');
-        assert(config_response.minimal_balance_voting == minimal_balance_voting, 'VOTING UPDATE ERROR');
+        assert(
+            config_response.minimal_balance_voting == minimal_balance_voting, 'VOTING UPDATE ERROR',
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: 'PROPOSAL HAS ENDED')]
+    fn test_proposal_should_panic_when_voted_on_upon_expiration() {
+        // snforge test
+        // afk::dao::dao_aa::tests::test_proposal_should_panic_when_voted_on_upon_expiration --exact
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let voter = OWNER();
+
+        let created_at = starknet::get_block_timestamp();
+        let vote_at = created_at + SET_PROPOSAL_DURATION_IN_SECONDS + 1; // expiry + 1.
+        let proposal_id = init_default_proposal(proposal_dispatcher, created_at);
+
+        cheat_block_timestamp(proposal_contract, vote_at, CheatSpan::TargetCalls(1));
+        cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
+        proposal_dispatcher.cast_vote(proposal_id, Option::None); // should panic
     }
 }
 
