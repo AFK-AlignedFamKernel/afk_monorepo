@@ -54,10 +54,10 @@ export const LoginModalProvider: React.FC<React.PropsWithChildren> = ({ children
           borderRadius: 20,
           marginLeft: 'auto',
           marginRight: 'auto',
-          marginBottom: 20,
+          // marginBottom: 20,
         }}
         childrenStyle={{
-          height: '100%',
+          // height: '100%',
           // flex: 1,
         }}
         modalTopOffset={0}

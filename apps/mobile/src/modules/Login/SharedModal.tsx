@@ -28,7 +28,7 @@ export const SharedAuthModalModule: React.FC<ISharedAuthModal> = ({
   return (
     <View style={{ 
       flex: 1,
-      height: '100%',
+      // height: '100%',
       // WebkitOverflowScrolling: 'touch',
       // flexDirection: 'column',
       // overflowX: 'hidden',
