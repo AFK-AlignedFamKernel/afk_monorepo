@@ -1,26 +1,26 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useAllProfiles, useSearch} from 'afk_nostr_sdk';
-import {useAuth, useContacts} from 'afk_nostr_sdk';
-import {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, Pressable, RefreshControl, View, Text} from 'react-native';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
+import { useAllProfiles, useSearch } from 'afk_nostr_sdk';
+import { useAuth, useContacts } from 'afk_nostr_sdk';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, View, Text } from 'react-native';
 
-import {AddPostIcon} from '../../assets/icons';
-import {BubbleUser} from '../../components/BubbleUser';
+import { AddPostIcon } from '../../assets/icons';
+import { BubbleUser } from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import {useStyles, useTheme} from '../../hooks';
-import {ChannelComponent} from '../../modules/ChannelCard';
-import {PostCard} from '../../modules/PostCard';
-import {VideoPostCard} from '../../modules/VideoPostCard';
-import {FeedScreenProps} from '../../types';
+import { useStyles, useTheme } from '../../hooks';
+import { ChannelComponent } from '../../modules/ChannelCard';
+import { PostCard } from '../../modules/PostCard';
+import { VideoPostCard } from '../../modules/VideoPostCard';
+import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 import { SORT_OPTIONS } from '../../types/nostr';
 
-export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
-  const {theme} = useTheme();
-  const {publicKey} = useAuth();
+export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
+  const { theme } = useTheme();
+  const { publicKey } = useAuth();
   const styles = useStyles(stylesheet);
-  const profiles = useAllProfiles({limit: 10});
-  const [activeSortBy, setSortBy] = useState<string | undefined>();
+  const profiles = useAllProfiles({ limit: 10 });
+  const [activeSortBy, setSortBy] = useState<string | undefined>("0");
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
@@ -34,17 +34,20 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     // 30311 as NDKKind,
   ]);
 
-  const contacts = useContacts({authors: [publicKey]});
+  const contacts = useContacts({ authors: [publicKey] });
   const notes = useSearch({
     kinds,
+    // search:search
     // limit: 20,
     // authors: []
   });
+
+  console.log("activeSortBy", activeSortBy);
   // const notes = useNotesFilter({
   //   kinds,
   //   limit: 20,
   // });
-  console.log('notes', notes);
+  // console.log('notes', notes);
 
   // Filter profiles based on the search query
   const profilesSearch =
@@ -60,34 +63,72 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
     console.log('flattenedPages', flattenedPages);
 
     console.log(flattenedPages, 'note pages');
-    if (!search || search.length === 0) {
-      setFeedData(flattenedPages as any);
-      return flattenedPages;
+    // if (!search || search.length === 0) {
+    //   setFeedData(flattenedPages as any);
+    //   return flattenedPages;
+    // }
+
+    const searchLower = search?.toLowerCase();
+    let filtered: any[] | undefined = [];
+    if (activeSortBy == "0") {
+      console.log('RECENT SORT',);
+      filtered = flattenedPages?.filter((item) =>
+        item?.content?.toLowerCase().includes(searchLower),
+      )
+        .sort((a, b) => {
+          const aCreated = a?.created_at || 0;
+          const bCreated = b?.created_at || 0;
+          return bCreated - aCreated; // Sort descending (most recent first)
+        }) ?? flattenedPages;
+
+      // filtered = flattenedPages?.filter((item) =>
+      //   item?.content?.toLowerCase().includes(searchLower),
+      // ) ?? flattenedPages;
+    }
+    else if (activeSortBy == "1") {
+      // TODO add trending notes
+      filtered = flattenedPages?.filter((item) =>
+        item?.content?.toLowerCase().includes(searchLower),
+      ) ?? flattenedPages;
+      console.log('search result is => ', filtered);
+      return filtered;
+    } else if (activeSortBy == '2' && contacts && contacts?.data) {
+      const forYouNotes =
+        notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
+      // console.log('something', forYouNotes);
+      setFeedData(forYouNotes as any);
     }
 
-    const searchLower = search.toLowerCase();
-    const filtered = flattenedPages?.filter((item) =>
-      item?.content?.toLowerCase().includes(searchLower),
-    );
+    if(searchLower &&searchLower?.length> 0 ) {
+      filtered = flattenedPages?.filter((item) =>
+        item?.content?.toLowerCase().includes(searchLower),
+      ) ?? flattenedPages;
+      console.log('search result is => ', filtered);
+    }
+    // return filtered;
+
     console.log('search result is => ', filtered);
     return filtered;
-  }, [notes.data?.pages, search]);
+  }, [notes.data?.pages, search, activeSortBy]);
   // Filter notes based on the search query
   useEffect(() => {
     const filtered = filteredNotes();
     console.log('Filtered notes:', filtered);
     setFeedData(filtered as any);
     // console.log('feed data is => ', filtered);
-  }, [notes.data?.pages]);
+  }, [notes.data?.pages, search, activeSortBy]);
 
   useEffect(() => {
     console.log(activeSortBy, 'contacts', contacts);
-    if (activeSortBy === '2' && contacts && contacts?.data) {
-      const forYouNotes =
-        notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
-      // console.log('something', forYouNotes);
-      setFeedData(forYouNotes as any);
-    }
+
+    const filtered = filteredNotes();
+    setFeedData(filtered as any);
+    // if (activeSortBy === '2' && contacts && contacts?.data) {
+    //   const forYouNotes =
+    //     notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
+    //   // console.log('something', forYouNotes);
+    //   setFeedData(forYouNotes as any);
+    // }
   }, [activeSortBy]);
 
   // const handleNavigate = (id: string) => {
@@ -114,7 +155,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
       )}
       {!notes?.isLoading ||
         (!notes?.isFetching && notes?.data?.pages?.length == 0 && (
-          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text
               style={{
                 color: theme.colors.text,
@@ -156,7 +197,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
         data={feedData}
         // data={filteredNotes}
         keyExtractor={(item) => item?.id}
-        renderItem={({item}) => {
+        renderItem={({ item }) => {
           if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
             return <ChannelComponent event={item} />;
           } else if (item.kind === NDKKind.ChannelMessage) {
@@ -185,7 +226,7 @@ export const Feed: React.FC<FeedScreenProps> = ({navigation}) => {
 
       <Pressable
         style={styles.createPostButton}
-        onPress={() => navigation.navigate('MainStack', {screen: 'CreateForm'})}
+        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
       </Pressable>
