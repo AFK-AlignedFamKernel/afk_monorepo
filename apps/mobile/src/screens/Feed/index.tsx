@@ -14,6 +14,7 @@ import { VideoPostCard } from '../../modules/VideoPostCard';
 import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 import { SORT_OPTIONS } from '../../types/nostr';
+import { RenderEventCard } from '../../modules/Studio';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -25,13 +26,13 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
-    NDKKind.ChannelCreation,
-    NDKKind.GroupChat,
     NDKKind.ChannelMessage,
     NDKKind.Metadata,
     NDKKind.VerticalVideo,
     NDKKind.HorizontalVideo,
-    // 30311 as NDKKind,
+    30311 as NDKKind,
+    NDKKind.ChannelCreation,
+    NDKKind.GroupChat,
   ]);
 
   const contacts = useContacts({ authors: [publicKey] });
@@ -131,13 +132,13 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     // }
   }, [activeSortBy]);
 
-  // const handleNavigate = (id: string) => {
-  //   navigation.navigate('WatchStream', {streamId: id});
-  // };
+  const handleNavigate = (id: string) => {
+    navigation.navigate('WatchStream', { streamId: id });
+  };
 
-  // const handleNavigateToStreamView = (id: string) => {
-  //   navigation.navigate('ViewStreamGuest', {streamId: id});
-  // };
+  const handleNavigateToStreamView = (id: string) => {
+    navigation.navigate('ViewStreamGuest', { streamId: id });
+  };
 
   return (
     <View style={styles.container}>
@@ -207,17 +208,23 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           } else if (item.kind === NDKKind.VerticalVideo || item.kind === NDKKind.HorizontalVideo) {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
-            return <PostCard event={item} isReplyView={true}/>;
+            return <PostCard event={item} isReplyView={true} />;
           }
-          // else if (item.kind === 30311) {
-          //   return <RenderEventCard
-          //     handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
-          //     streamKey={item?.identifier}
-          //     handleNavigation={() => handleNavigate(item?.identifier)}
-          //     pubKey={publicKey}
-          //     event={item}
-          //   />
-          // }
+          else if (item.kind === 30311) {
+
+            if (item?.identifier) {
+              return <RenderEventCard
+                handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
+                streamKey={item?.identifier}
+                handleNavigation={() => handleNavigate(item?.identifier)}
+                pubKey={publicKey}
+                event={item}
+              />
+            }
+            else {
+              return <></>
+            }
+          }
           return <></>;
         }}
         refreshControl={
