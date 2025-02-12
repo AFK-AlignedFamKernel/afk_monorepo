@@ -30,10 +30,12 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
   const queryClient = useQueryClient();
   const {mutateAsync} = useSendPrivateMessage();
   const roomIds = [item?.senderPublicKey, item?.receiverPublicKey];
+  console.log('roomIds', roomIds);
   //Use this to get Message sent between 2 pubKey
   const messagesSent = useRoomMessages({
     roomParticipants: roomIds,
   });
+  console.log('messagesSent', messagesSent);
   const styles = useStyles(stylesheet);
 
   const avatar = user?.avatar ? {uri: user.avatar} : require('../../../assets/pepe-logo.png');
@@ -81,7 +83,7 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
       <View style={styles.container}>
         <FlatList
           data={messagesSent.data?.pages.flat()}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => item?.id ?? index.toString()}
           renderItem={({item}: any) => <MessageCard publicKey={publicKey} item={item} />}
           inverted
           style={styles.list}
@@ -93,12 +95,12 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
 };
 
 const MessageCard = ({item, publicKey}: Omit<ChatProps, 'handleGoBack'> & {publicKey: string}) => {
-  const isUser = item.senderPublicKey === publicKey;
+  const isUser = item?.senderPublicKey === publicKey;
   const styles = useStyles(stylesheet);
 
   return (
     <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.otherMessage]}>
-      <Text style={styles.messageText}>{item.decryptedContent}</Text>
+      <Text style={styles.messageText}>{item?.decryptedContent}</Text>
     </View>
   );
 };
