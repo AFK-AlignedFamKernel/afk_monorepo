@@ -362,7 +362,7 @@ pub mod DaoAA {
             assert(
                 proposal.proposal_result == Default::default()
                     && starknet::get_block_timestamp() > proposal.end_at,
-                'CANNOT PROCESS PROPOSAL'
+                'CANNOT PROCESS PROPOSAL',
             );
 
             // Implement result logic
@@ -389,8 +389,8 @@ pub mod DaoAA {
             self
                 .emit(
                     ProposalResolved {
-                        id: proposal_id, owner: proposal.owner, result: proposal.proposal_result
-                    }
+                        id: proposal_id, owner: proposal.owner, result: proposal.proposal_result,
+                    },
                 );
             self.proposals.entry(proposal_id).write(Option::Some(proposal));
         }
@@ -516,7 +516,7 @@ pub mod DaoAA {
                 minimal_balance_voting: self.minimal_balance_voting.read(),
                 max_balance_per_vote: self.max_balance_per_vote.read(),
                 minimal_balance_create_proposal: self.minimal_balance_create_proposal.read(),
-                minimum_threshold_percentage: self.minimum_threshold_percentage.read()
+                minimum_threshold_percentage: self.minimum_threshold_percentage.read(),
             }
         }
     }
@@ -525,9 +525,9 @@ pub mod DaoAA {
 #[cfg(test)]
 mod tests {
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
+        Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse,
+        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
@@ -636,7 +636,7 @@ mod tests {
         assert(voter_balance > 0, 'MINT FAILED');
 
         let proposal_id = init_default_proposal(
-            proposal_dispatcher, starknet::get_block_timestamp()
+            proposal_dispatcher, starknet::get_block_timestamp(),
         );
 
         let mut spy = spy_events();
@@ -668,7 +668,7 @@ mod tests {
 
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
         let proposal_id = init_default_proposal(
-            proposal_dispatcher, starknet::get_block_timestamp()
+            proposal_dispatcher, starknet::get_block_timestamp(),
         );
         cheat_caller_address(proposal_contract, creator, CheatSpan::TargetCalls(1));
         proposal_dispatcher.cancel_proposal(proposal_id);
@@ -743,7 +743,7 @@ mod tests {
         let voter = OWNER();
 
         let proposal_id = init_default_proposal(
-            proposal_dispatcher, starknet::get_block_timestamp()
+            proposal_dispatcher, starknet::get_block_timestamp(),
         );
         cheat_caller_address(proposal_contract, CREATOR(), CheatSpan::TargetCalls(1));
         proposal_dispatcher.cancel_proposal(proposal_id);
@@ -761,5 +761,65 @@ mod tests {
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
         let _ = proposal_dispatcher.get_proposal(1);
     }
-}
 
+    #[test]
+    #[should_panic(expected: 'CANNOT PROCESS PROPOSAL')]
+    fn test_proposal_should_panic_when_processed_before_expiration() {
+        let proposal_contract = deploy_dao('token'.try_into().unwrap());
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let proposal_id = init_default_proposal(
+            proposal_dispatcher, starknet::get_block_timestamp(),
+        );
+        proposal_dispatcher.process_result(proposal_id);
+    }
+
+    #[test]
+    fn test_proposal_process_result_success() {
+        // snforge test afk::dao::dao_aa::tests::test_proposal_process_result_success --exact
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let voter_1 = contract_address_const::<'VOTER 1'>();
+        let voter_2 = contract_address_const::<'VOTER 2'>();
+        let voter_3 = contract_address_const::<'VOTER 3'>();
+        let voter_4 = contract_address_const::<'VOTER 4'>();
+
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
+
+        let mut spy = spy_events();
+
+        let voters = array![voter_1, voter_2, voter_3, voter_4];
+        // cast two yes, one abstention, and one no
+        // to prove abstention votes are not used when processing results at the moment,
+        // the percentage outcome for validation here should be 66% (2/3) and not 50% (2/4)
+        // so the proposal should pass
+        let mut votes = array![UserVote::Yes, UserVote::Abstention, UserVote::No, UserVote::Yes];
+
+        let created_at = starknet::get_block_timestamp();
+        let proposal_id = init_default_proposal(proposal_dispatcher, created_at);
+
+        let mint_amount = 100;
+        for voter in voters {
+            cheat_caller_address(token_contract, OWNER(), CheatSpan::TargetCalls(1));
+            // mint
+            let transferred = token_dispatcher.transfer(voter, mint_amount);
+            assert(transferred, 'TOKEN TRANSFER ERROR');
+            assert(token_dispatcher.balance_of(voter) == 100, 'BALANCE ERROR');
+            // cast vote
+            cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
+            proposal_dispatcher.cast_vote(proposal_id, votes.pop_front());
+        };
+
+        let current_time = created_at
+            + SET_PROPOSAL_DURATION_IN_SECONDS
+            + 1; // Proposal duration reached
+        cheat_block_timestamp(proposal_contract, current_time, CheatSpan::TargetCalls(1));
+        proposal_dispatcher.process_result(proposal_id);
+
+        let expected_event = super::DaoAA::Event::ProposalResolved(
+            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed }
+        );
+
+        spy.assert_emitted(@array![(proposal_contract, expected_event)]);
+    }
+}
