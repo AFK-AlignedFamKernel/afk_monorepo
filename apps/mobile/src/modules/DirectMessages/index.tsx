@@ -1,4 +1,4 @@
-import { useAuth, useIncomingMessageUsers, useMyGiftWrapMessages } from 'afk_nostr_sdk';
+import { useAuth, useIncomingMessageUsers, useMyGiftWrapMessages, useRoomMessages } from 'afk_nostr_sdk';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -10,6 +10,9 @@ import { useNostrAuth, useStyles, useTheme } from '../../hooks';
 import { ContactList } from '../Contacts/ContactList';
 import stylesheet from './styles';
 import TabSelector from '../../components/TabSelector';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import { MainStackNavigationProps } from '../../types';
 
 export const DirectMessages: React.FC = () => {
   const theme = useTheme();
@@ -24,6 +27,7 @@ export const DirectMessages: React.FC = () => {
   const { data, isPending, refetch } = useIncomingMessageUsers();
   const [isProcessingMessages, setIsProcessingMessages] = useState(false);
 
+  console.log("data", data)
   const [messagesData, setMessages] = useState<any>([]);
   useEffect(() => {
     const processMessages = async () => {
@@ -95,8 +99,11 @@ export const DirectMessages: React.FC = () => {
     modalizeRef.current?.open();
   };
 
+
+  const [isBack, setIsBack] = useState(false);
   const handleGoBack = () => {
     setSelectedConversation(null);
+    setIsBack(true);
   };
 
   // if (isPending) {
@@ -107,7 +114,39 @@ export const DirectMessages: React.FC = () => {
     console.log("refetch")
     refetch()
   }
+  // const queryClient = useQueryClient();
 
+  const roomIds = selectedConversation ? [selectedConversation?.senderPublicKey, selectedConversation?.receiverPublicKey] : [];
+  // console.log('roomIds', roomIds);
+  const messagesSent = useRoomMessages({
+    roomParticipants: roomIds ?? [],
+  });
+  // console.log('messagesSent', messagesSent.data?.pages.flat());
+
+  const messagesSentState = React.useMemo(() => {
+
+    if(roomIds.length === 0){
+      return [];
+    }
+    // if (isBack) {  
+    //   queryClient.setQueryData(['messagesSent'], { pages: [], pageParams: [] });
+    //   return [];
+    // }
+    // if (!selectedConversation) {
+    //   queryClient.setQueryData(['messagesSent'], { pages: [], pageParams: [] });
+    //   return [];
+    // }
+
+    if (isBack) {
+      return [];
+    }
+    if (selectedConversation) {
+      return messagesSent.data?.pages.flat() || [];
+    }
+    return [];
+  }, [selectedConversation, messagesSent.data?.pages, isBack, handleGoBack]);
+
+  const navigation = useNavigation<MainStackNavigationProps>();
   return (
     <>
       <Modalize ref={modalizeRef}>
@@ -116,9 +155,9 @@ export const DirectMessages: React.FC = () => {
       </Modalize>
 
       <Text>Direct messages to improve (WIP)</Text>
-      {publicKey &&
+      {/* {publicKey &&
         <Button onPress={handleRefresh}>Refresh</Button>
-      }
+      } */}
       {/* <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -144,7 +183,8 @@ export const DirectMessages: React.FC = () => {
         <View>
           <Text>Connect your Nostr account</Text>
           <Button onPress={() => {
-            handleCheckNostrAndSendConnectDialog()
+            navigation.navigate('Login')  
+            // handleCheckNostrAndSendConnectDialog()
           }}>Connect</Button>
         </View>
       }
@@ -171,8 +211,10 @@ export const DirectMessages: React.FC = () => {
         ''
       )}
 
+      {/* TODO fix Messages state of the older conversation selected
+Refetch and clean Decrypted message after handleGoBack */}
       {selectedConversation ? (
-        <Chat item={selectedConversation} handleGoBack={handleGoBack} />
+        <Chat item={selectedConversation} handleGoBack={handleGoBack} messagesSentParents={messagesSentState} />
       ) : (
         <View style={styles.container}>
           <FlatList
@@ -181,7 +223,10 @@ export const DirectMessages: React.FC = () => {
             renderItem={({ item }) => (
               <ConversationPreview
                 conversation={item}
-                onPressed={() => setSelectedConversation(item)}
+                onPressed={() => {
+                  setSelectedConversation(item)
+                  setIsBack(false)
+                }}
               />
             )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -199,15 +244,15 @@ export const DirectMessages: React.FC = () => {
           /> */}
         </View>
       )}
-      {/* {!selectedConversation && (
+      {!selectedConversation && (
         <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
           <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
         </Pressable>
-      )} */}
+      )}
 
-      <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
+      {/* <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
         <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
-      </Pressable>
+      </Pressable> */}
 
       <TabSelector
         activeTab={activeTab}
