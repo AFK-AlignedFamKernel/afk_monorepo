@@ -12,7 +12,7 @@ import {
 } from 'afk_nostr_sdk';
 // import { useAuth } from '../../store/auth';
 import { useAuth } from 'afk_nostr_sdk';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, View } from 'react-native';
 import Animated, {
@@ -35,6 +35,7 @@ import { getElapsedTimeStringFull } from '../../utils/timestamp';
 import { ContentWithClickableHashtags } from '../PostCard';
 
 import stylesheet from './styles';
+import { SliderImages } from './SliderImages';
 
 export type PostProps = {
   asComment?: boolean;
@@ -76,6 +77,35 @@ export const Post: React.FC<PostProps> = ({
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+
+  const regexLinkImg = `https:\/\/[^\s]+?\.(jpeg|png|jpg|JPG|JPEG|PNG)$`
+  const [imgUrls, setImageUrls] = useState<string[]>([]);
+
+  // console.log('imgUrls', imgUrls);
+
+  useEffect(() => {
+    if (event?.content) {
+
+      const regex = new RegExp(regexLinkImg, 'g');
+      const matches = event.content.match(regex);
+
+      if (matches) {
+        setImageUrls(matches);
+      }
+
+      const urls = event.content.split(/\s+/).filter(word => {
+        try {
+          const url = new URL(word);
+          return url.pathname.match(/\.(jpeg|jpg|png|gif)$/i);
+        } catch {
+          return false;
+        }
+      });
+      setImageUrls(urls);
+    }
+  }, [event?.content, event]);
+
 
   const scale = useSharedValue(1);
   const [isContentExpanded, setIsContentExpanded] = useState(false);
@@ -386,6 +416,10 @@ export const Post: React.FC<PostProps> = ({
                 },
               ]}
             />
+          )}
+
+          {imgUrls.length > 0 && (
+            <SliderImages imgUrls={imgUrls} />
           )}
         </Pressable>
       </View>
