@@ -36,6 +36,7 @@ import { ContentWithClickableHashtags } from '../PostCard';
 
 import stylesheet from './styles';
 import { SliderImages } from './SliderImages';
+import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
 
 export type PostProps = {
   asComment?: boolean;
@@ -106,6 +107,30 @@ export const Post: React.FC<PostProps> = ({
     }
   }, [event?.content, event]);
 
+
+  const regexLinkVideo = `https:\/\/[^\s]+?\.(mp4|MP4)$`
+
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (event?.content) {
+      const regex = new RegExp(regexLinkVideo, 'g');
+      const matches = event.content.match(regex);
+      if (matches) {
+        setVideoUrls(matches);
+      }
+
+      const urls = event.content.split(/\s+/).filter(word => {
+        try {
+          const url = new URL(word);
+          return url.pathname.match(/\.(mp4|MP4)$/i);
+        } catch {
+          return false;
+        }
+      });
+      setVideoUrls(urls);
+    }
+  }, [event?.content, event]);
 
   const scale = useSharedValue(1);
   const [isContentExpanded, setIsContentExpanded] = useState(false);
@@ -420,6 +445,16 @@ export const Post: React.FC<PostProps> = ({
 
           {imgUrls.length > 0 && (
             <SliderImages imgUrls={imgUrls} />
+          )}
+
+          {videoUrls.length > 0 && (
+            <MiniVideoPlayer
+              customStyle={{
+                height: 300,
+                width: '100%',
+              }}
+              uri={videoUrls[0]}>
+            </MiniVideoPlayer>
           )}
         </Pressable>
       </View>
