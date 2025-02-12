@@ -1,5 +1,5 @@
 import { useAuth, useIncomingMessageUsers, useMyGiftWrapMessages } from 'afk_nostr_sdk';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { AddPostIcon } from '../../assets/icons';
@@ -21,10 +21,75 @@ export const DirectMessages: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('messages');
 
-  const { data, isPending } = useIncomingMessageUsers();
+  const { data, isPending, refetch } = useIncomingMessageUsers();
+  const [isProcessingMessages, setIsProcessingMessages] = useState(false);
 
+  const [messagesData, setMessages] = useState<any>([]);
+  useEffect(() => {
+    const processMessages = async () => {
+      if (publicKey && !isProcessingMessages) {
+        setIsProcessingMessages(true);
+        try {
+          await refetch();
+        } catch (error) {
+          console.error('Error processing messages:', error);
+        } finally {
+          setIsProcessingMessages(false);
+        }
+      }
+    };
+
+    if (publicKey) {
+      processMessages();
+    }
+  }, [publicKey, refetch]);
+
+  // New useEffect to refetch data when publicKey changes
+  useEffect(() => {
+    if (publicKey) {
+      refetch();
+    }
+  }, [publicKey, refetch]);
+
+  // Handle reconnection after modal auth
+  useEffect(() => {
+    const handleReconnection = async () => {
+      if (publicKey && isProcessingMessages) {
+        try {
+          await refetch();
+          // setMessages(data?.pages.flat());
+
+        } catch (error) {
+          console.error('Error refreshing messages after reconnection:', error);
+        }
+      }
+    };
+
+    handleReconnection();
+  }, [publicKey, isProcessingMessages, refetch]);
+
+  useEffect(() => {
+    if (data && data?.pages?.flat().length > 0) {
+      setMessages(data?.pages.flat());
+    }
+  }, [data]);
+
+  const [isLoadedOneTime, setIsLoaderOnetTime] = useState(false);
   const giftMessages = useMyGiftWrapMessages();
   console.log('giftMessages', giftMessages?.data?.pages);
+
+  console.log("data", data)
+  useEffect(() => {
+
+    console.log("publicKey", publicKey)
+    refetch()
+
+    if (publicKey && !isLoadedOneTime) {
+      console.log("refetch")
+      refetch()
+      setIsLoaderOnetTime(true)
+    }
+  }, [publicKey, isLoadedOneTime])
 
   const onOpenMenu = () => {
     modalizeRef.current?.open();
@@ -38,6 +103,11 @@ export const DirectMessages: React.FC = () => {
   //   return <ActivityIndicator></ActivityIndicator>;
   // }
 
+  const handleRefresh = () => {
+    console.log("refetch")
+    refetch()
+  }
+
   return (
     <>
       <Modalize ref={modalizeRef}>
@@ -45,14 +115,16 @@ export const DirectMessages: React.FC = () => {
         {/* <ContactList onClose={() => modalizeRef.current?.close()} ></ContactList> */}
       </Modalize>
 
-
-      <ScrollView
+      <Text>Direct messages to improve (WIP)</Text>
+      {publicKey &&
+        <Button onPress={handleRefresh}>Refresh</Button>
+      }
+      {/* <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         horizontal
         style={styles.actionToggle}
       >
-
         <Button
           style={styles.toggleButton}
         >
@@ -66,7 +138,7 @@ export const DirectMessages: React.FC = () => {
           Contact
         </Button>
 
-      </ScrollView>
+      </ScrollView> */}
 
       {!publicKey &&
         <View>
@@ -82,6 +154,8 @@ export const DirectMessages: React.FC = () => {
 
       {activeTab === 'contacts' && <ContactList onClose={() => setActiveTab('messages')} />}
 
+
+      {/* {isPending && <ActivityIndicator></ActivityIndicator>} */}
       {data?.pages.flat().length === 0 ? (
         <View
           style={{
@@ -102,7 +176,7 @@ export const DirectMessages: React.FC = () => {
       ) : (
         <View style={styles.container}>
           <FlatList
-            data={data?.pages.flat()}
+            data={messagesData}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <ConversationPreview
@@ -112,13 +186,28 @@ export const DirectMessages: React.FC = () => {
             )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
+          {/* <FlatList
+            data={data?.pages.flat()}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <ConversationPreview
+                conversation={item}
+                onPressed={() => setSelectedConversation(item)}
+              />
+            )}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          /> */}
         </View>
       )}
-      {!selectedConversation && (
+      {/* {!selectedConversation && (
         <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
           <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
         </Pressable>
-      )}
+      )} */}
+
+      <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
+        <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
+      </Pressable>
 
       <TabSelector
         activeTab={activeTab}

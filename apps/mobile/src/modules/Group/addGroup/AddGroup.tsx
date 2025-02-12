@@ -43,6 +43,14 @@ export const CreateGroup: React.FC = () => {
         onSubmit={async (values) => {
           await handleCheckNostrAndSendConnectDialog();
 
+          if(values.groupName.length == 0) {
+            showToast({
+              type: 'error',
+              title: 'Group name is required',
+            });
+            return;
+          }
+
           mutate(
             {
               groupType: values.access as any,

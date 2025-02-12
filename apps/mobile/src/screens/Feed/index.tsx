@@ -7,7 +7,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, View, Text } fr
 import { AddPostIcon } from '../../assets/icons';
 import { BubbleUser } from '../../components/BubbleUser';
 import SearchComponent from '../../components/search';
-import { useStyles, useTheme } from '../../hooks';
+import { useNostrAuth, useStyles, useTheme } from '../../hooks';
 import { ChannelComponent } from '../../modules/ChannelCard';
 import { PostCard } from '../../modules/PostCard';
 import { VideoPostCard } from '../../modules/VideoPostCard';
@@ -15,6 +15,7 @@ import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 import { SORT_OPTIONS } from '../../types/nostr';
 import { RenderEventCard } from '../../modules/Studio';
+import { Button } from '../../components';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -139,6 +140,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const handleNavigateToStreamView = (id: string) => {
     navigation.navigate('ViewStreamGuest', { streamId: id });
   };
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
+
+  const handleConnect = async () => {
+    // navigation.navigate('MainStack', { screen: 'Settings' });
+    await handleCheckNostrAndSendConnectDialog()
+  };
 
   return (
     <View style={styles.container}>
@@ -153,6 +160,15 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       {notes?.isFetching && (
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
+      )}
+
+      {activeSortBy === "2" && !publicKey && (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>No users connected</Text>
+          <Button onPress={handleConnect}>
+            Connect
+          </Button>
+        </View>
       )}
       {!notes?.isLoading ||
         (!notes?.isFetching && notes?.data?.pages?.length == 0 && (
