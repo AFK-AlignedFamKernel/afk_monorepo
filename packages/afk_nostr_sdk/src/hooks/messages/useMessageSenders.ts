@@ -1,4 +1,4 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
+import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
 import {useInfiniteQuery} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
@@ -18,7 +18,9 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions) => {
 
   return useInfiniteQuery({
     queryKey: ['messageUsers', options?.authors],
+    // queryKey: ['messageUsers', options?.authors, publicKey],
     initialPageParam: 0,
+    // enabled: !!publicKey,
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
@@ -28,13 +30,13 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions) => {
     queryFn: async ({pageParam}) => {
       const [incomingGiftWraps, outgoingGiftWraps] = await Promise.all([
         ndk.fetchEvents({
-          kinds: [1059],
+          kinds: [1059 as NDKKind],
           '#p': [publicKey],
           since: pageParam || undefined,
           limit: options?.limit || 20,
         }),
         ndk.fetchEvents({
-          kinds: [1059],
+          kinds: [1059 as NDKKind],
           authors: [publicKey],
           since: pageParam || undefined,
           limit: options?.limit || 20,

@@ -54,7 +54,8 @@ export default ThemedStyleSheet((theme) => ({
   },
   formActionButton: {
     flex: 1,
-    backgroundColor: 'transparent',
+    // backgroundColor: 'transparent',
+    backgroundColor: theme.colors.primary,
     borderRadius: 0,
     marginTop: 20,
   },

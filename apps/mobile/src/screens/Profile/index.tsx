@@ -95,9 +95,9 @@ export const Profile: React.FC<ProfileScreenProps> = ({route}) => {
           if (!item) return <></>;
           if (ndkKinds.includes(NDKKind.Repost)) {
             const itemReposted = JSON.parse(item?.content);
-            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true} />;
+            return <PostCard key={item?.id} event={itemReposted} isRepostProps={true}  isReplyView={true}/>;
           }
-          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item?.id)} />;
+          return <PostCard key={item?.id} event={item} isBookmarked={isBookmarked(item?.id)} isReplyView={true}/>;
         }}
         refreshControl={
           <RefreshControl

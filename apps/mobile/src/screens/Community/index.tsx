@@ -15,7 +15,7 @@ export const Community: React.FC = () => {
   const styles = useStyles(stylesheet);
   const theme = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.TIPS);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.ALL_GROUP);
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {

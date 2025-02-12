@@ -146,7 +146,7 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   return (
     <View style={styles.addContactMainContainer}>
       <View style={styles.addContactContent}>
-        <View style={{ flex: 1 }}>
+        {/* <View style={{ flex: 1 }}>
           <Button
             style={[styles.formActionButton, styles.formCancelButton]}
             textStyle={styles.formCancelButtonText}
@@ -154,10 +154,10 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
           >
             Cancel
           </Button>
-        </View>
+        </View> */}
         <View style={styles.addContactForm}>
 
-          {isViewContact && (
+          {/* {isViewContact && (
             <ScrollView showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
             >
@@ -172,7 +172,7 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
             onPress={() => setIsViewContact(true)}
           >
             <Text style={styles.addContactTitle}>View contact</Text>
-          </Button>
+          </Button> */}
         </View>
         <View style={styles.addContactForm}>
           <Text style={styles.addContactTitle}>Add Contact</Text>

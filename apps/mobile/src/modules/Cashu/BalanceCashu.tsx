@@ -23,7 +23,7 @@ export const BalanceCashu = () => {
     connectCashMint,
     connectCashWallet,
     requestMintQuote,
-    generateMnemonic,
+    // generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     activeMintIndex,
     mintUrls,

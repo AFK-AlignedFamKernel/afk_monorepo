@@ -8,6 +8,7 @@ import {
   MeltQuoteResponse,
   MintActiveKeys,
   MintAllKeysets,
+  MintKeys,
   MintKeyset,
   MintQuoteResponse,
   Proof,
@@ -20,6 +21,7 @@ import {useMemo, useState} from 'react';
 
 import {useNostrContext} from '../../context';
 import {useAuth, useCashuStore} from '../../store';
+import { generateMnemonic } from 'bip39';
 
 export interface MintData {
   url: string;
@@ -33,13 +35,14 @@ export interface MintData {
 export interface ICashu {
   wallet: CashuWallet;
   mint: CashuMint;
+  activieMintIndex?:number;
   generateNewMnemonic: () => string;
   derivedSeedFromMnenomicAndSaved: (mnemonic: string) => Uint8Array;
-  // connectCashMint: (mintUrl: string) => Promise<{
-  //   mint: CashuMint;
-  //   keys: MintKeys[];
-  // }>;
-  // connectCashWallet: (cashuMint: CashuMint, keys?: MintKeys) => CashuWallet;
+  connectCashMint: (mintUrl: string) => Promise<{
+    mint: CashuMint;
+    keys: MintKeys[];
+  }>;
+  connectCashWallet: (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => Promise<CashuWallet>;
   requestMintQuote: (nb: number) => Promise<{
     request: MintQuoteResponse;
   }>;
@@ -107,6 +110,12 @@ export interface ICashu {
   proofs: Proof[];
   setProofs: React.Dispatch<React.SetStateAction<Proof[]>>;
   buildMintData: (url: string, alias: string) => Promise<MintData>;
+  mintUrls?: MintData[];
+  activeMintIndex?: number;
+  setActiveMintIndex: React.Dispatch<React.SetStateAction<number>>;
+  setMintUrls?: React.Dispatch<React.SetStateAction<MintData[]>>;
+  activeCurrency?: string;
+  setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const useCashu = (): ICashu => {
@@ -115,8 +124,11 @@ export const useCashu = (): ICashu => {
   const {setSeed, seed, setMnemonic} = useCashuStore();
 
   const [activeMint, setActiveMint] = useState<string>();
+  const [activeMintIndex, setActiveMintIndex] = useState<number>();
   const [activeUnit, setActiveUnit] = useState<string>();
+  const [activeCurrency, setActiveCurrency] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
+  const [mintUrls, setMintUrls] = useState<MintData[]>([]);
   const [proofs, setProofs] = useState<Proof[]>([]);
 
   const mint = useMemo(() => {
@@ -149,37 +161,43 @@ export const useCashu = (): ICashu => {
     return seedDerived;
   };
 
-  // const connectCashMint = async (mintUrl: string) => {
-  //   const mintCashu = new CashuMint(mintUrl);
-  //   setMint(mintCashu);
+  const connectCashMint = async (mintUrl: string) => {
+    const mintCashu = new CashuMint(mintUrl);
+    // setMint(mintCashu);
 
-  //   const keysRes = await mintCashu?.getKeys();
-  //   const keys = keysRes?.keysets;
-  //   console.log('keys', keys);
-  //   setMintKeys(keys);
+    const keysRes = await mintCashu?.getKeys();
+    const keys = keysRes?.keysets;
+    console.log('keys', keys);
+    // setMintKeys(keys);
 
-  //   const keyssets = await mintCashu?.getKeySets();
-  //   setMintAllKeys(keyssets);
+    const keyssets = await mintCashu?.getKeySets();
+    // setMintAllKeys(keyssets);
 
-  //   return {mint: mintCashu, keys};
-  // };
+    return {mint: mintCashu, keys};
+  };
 
-  // const getMintInfo = async (mintUrl: string) => {
-  //   const mintCashu = new CashuMint(mintUrl);
-  //   const info = await mintCashu.getInfo();
-  //   setMintInfo(info);
-  //   return info;
-  // };
+  const getMintInfo = async (mintUrl: string) => {
+    const mintCashu = new CashuMint(mintUrl);
+    const info = await mintCashu.getInfo();
+    // setMintInfo(info);
+    return info;
+  };
 
-  // const connectCashWallet = (cashuMint: CashuMint, keys?: MintKeys) => {
-  //   if (!mint) return undefined;
-  //   const wallet = new CashuWallet(cashuMint, {
-  //     mnemonicOrSeed: mnemonic ?? seed,
-  //     keys: keys ?? mintKeysset,
-  //   });
-  //   setWallet(wallet);
-  //   return wallet;
-  // };
+  /** TODO fixed connect cash wallet with mnemonic and keys */
+  const connectCashWallet = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
+    if (!mint) return undefined;
+
+    const mnemonic = generateMnemonic(128);
+    const mintKeysset = await mint?.getKeys();
+    const wallet = new CashuWallet(cashuMint, {
+      // mnemonicOrSeed: mnemonic ?? seed,
+      // mnemonicOrSeed: mnemonic,
+      // keys:keys
+      // keys: keys ?? mintKeysset,
+    });
+    // setWallet(wallet);
+    return wallet;
+  };
 
   const getKeys = async () => {
     const keys = await mint?.getKeys();
@@ -504,5 +522,13 @@ export const useCashu = (): ICashu => {
     proofs,
     setProofs,
     buildMintData,
+    activeMintIndex,
+    mintUrls,
+    connectCashMint,
+    connectCashWallet,
+    activeCurrency,
+    setActiveCurrency,
+    setActiveMintIndex,
+    setMintUrls
   };
 };
