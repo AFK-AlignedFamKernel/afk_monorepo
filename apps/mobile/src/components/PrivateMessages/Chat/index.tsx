@@ -30,12 +30,18 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user}) => {
   const queryClient = useQueryClient();
   const {mutateAsync} = useSendPrivateMessage();
   const roomIds = [item?.senderPublicKey, item?.receiverPublicKey];
-  console.log('roomIds', roomIds);
+  // console.log('roomIds', roomIds);
   //Use this to get Message sent between 2 pubKey
   const messagesSent = useRoomMessages({
     roomParticipants: roomIds,
   });
-  console.log('messagesSent', messagesSent);
+
+  React.useEffect(() => {
+    if (!item) {
+      queryClient.setQueryData(['messagesSent'], { pages: [], pageParams: [] });
+    }
+  }, [item, queryClient]);
+  // console.log('messagesSent', messagesSent);
   const styles = useStyles(stylesheet);
 
   const avatar = user?.avatar ? {uri: user.avatar} : require('../../../assets/pepe-logo.png');

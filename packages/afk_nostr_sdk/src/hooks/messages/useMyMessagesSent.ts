@@ -132,12 +132,12 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
             const roomSender = options.roomParticipants[0]
             const rommReceiver = options.roomParticipants[1]
 
-            console.log('roomSender', roomSender, senderPublicKey);
-            console.log('senderPublicKey', senderPublicKey);
-            console.log('receiverPublicKey', receiverPublicKey);
-            console.log('rommReceiver', rommReceiver, receiverPublicKey);
+            // console.log('roomSender', roomSender, senderPublicKey);
+            // console.log('senderPublicKey', senderPublicKey);
+            // console.log('receiverPublicKey', receiverPublicKey);
+            // console.log('rommReceiver', rommReceiver, receiverPublicKey);
             if (roomSender !== senderPublicKey || rommReceiver !== receiverPublicKey) {
-              console.log('not in the room');
+              // console.log('not in the room');
               return null;
             } else {
               //--> Return the decrypted message
