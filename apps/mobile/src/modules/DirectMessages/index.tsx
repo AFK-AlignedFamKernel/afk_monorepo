@@ -1,4 +1,4 @@
-import { useAuth, useIncomingMessageUsers, useMyGiftWrapMessages, useRoomMessages } from 'afk_nostr_sdk';
+import { useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useRoomMessages } from 'afk_nostr_sdk';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -125,7 +125,7 @@ export const DirectMessages: React.FC = () => {
 
   const messagesSentState = React.useMemo(() => {
 
-    if(roomIds.length === 0){
+    if (roomIds.length === 0) {
       return [];
     }
     // if (isBack) {  
@@ -146,6 +146,9 @@ export const DirectMessages: React.FC = () => {
     return [];
   }, [selectedConversation, messagesSent.data?.pages, isBack, handleGoBack]);
 
+
+  const contacts = useContacts();
+  // console.log('contacts', contacts);
   const navigation = useNavigation<MainStackNavigationProps>();
   return (
     <>
@@ -183,7 +186,7 @@ export const DirectMessages: React.FC = () => {
         <View>
           <Text>Connect your Nostr account</Text>
           <Button onPress={() => {
-            navigation.navigate('Login')  
+            navigation.navigate('Login')
             // handleCheckNostrAndSendConnectDialog()
           }}>Connect</Button>
         </View>
@@ -192,46 +195,69 @@ export const DirectMessages: React.FC = () => {
       {publicKey && isPending && !data &&
         <ActivityIndicator></ActivityIndicator>} */}
 
-      {activeTab === 'contacts' && <ContactList onClose={() => setActiveTab('messages')} />}
-
-
-      {/* {isPending && <ActivityIndicator></ActivityIndicator>} */}
-      {data?.pages.flat().length === 0 ? (
-        <View
-          style={{
-            height: 100,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+      {activeTab === 'followers' && (
+        <View>
+          <Text>Followers</Text>
+          <ScrollView showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
         >
-          <Text style={styles.name}>You dont have any message</Text>
+          {contacts.data?.flat().map((contact) => (
+            <View key={contact}>
+              <Text style={styles?.contactItem}>{contact}</Text>
+            </View>
+          ))}
+        </ScrollView>
         </View>
-      ) : (
-        ''
       )}
 
-      {/* TODO fix Messages state of the older conversation selected
+      {activeTab === 'contacts' &&
+        <ScrollView showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+        >
+         <ContactList onClose={() => setActiveTab('messages')} />
+        </ScrollView>
+      }
+
+      {activeTab === 'messages' && (
+        <View>
+          {/* {isPending && <ActivityIndicator></ActivityIndicator>} */}
+          {data?.pages.flat().length === 0 ? (
+            <View
+              style={{
+                height: 100,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={styles.name}>You dont have any message</Text>
+            </View>
+          ) : (
+            ''
+          )}
+
+
+          {/* TODO fix Messages state of the older conversation selected
 Refetch and clean Decrypted message after handleGoBack */}
-      {selectedConversation ? (
-        <Chat item={selectedConversation} handleGoBack={handleGoBack} messagesSentParents={messagesSentState} />
-      ) : (
-        <View style={styles.container}>
-          <FlatList
-            data={messagesData}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ConversationPreview
-                conversation={item}
-                onPressed={() => {
-                  setSelectedConversation(item)
-                  setIsBack(false)
-                }}
+          {selectedConversation ? (
+            <Chat item={selectedConversation} handleGoBack={handleGoBack} messagesSentParents={messagesSentState} />
+          ) : (
+            <View style={styles.container}>
+              <FlatList
+                data={messagesData}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <ConversationPreview
+                    conversation={item}
+                    onPressed={() => {
+                      setSelectedConversation(item)
+                      setIsBack(false)
+                    }}
+                  />
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
               />
-            )}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
-          {/* <FlatList
+              {/* <FlatList
             data={data?.pages.flat()}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
@@ -242,25 +268,25 @@ Refetch and clean Decrypted message after handleGoBack */}
             )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
           /> */}
+            </View>
+          )}
+
+          {/* <Text>Messages</Text> */}
         </View>
       )}
+
       {!selectedConversation && (
         <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
           <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
         </Pressable>
       )}
-
-      {/* <Pressable style={styles.messageNewUserButton} onPress={onOpenMenu}>
-        <AddPostIcon width={72} height={72} color={theme.theme.colors.primary} />
-      </Pressable> */}
-
       <TabSelector
         activeTab={activeTab}
         handleActiveTab={setActiveTab}
         buttons={[
           { tab: 'messages', title: 'Messages' },
           { tab: 'contacts', title: 'Contacts' },
-          // {tab: 'followers', title: 'Contacts'},
+          {tab: 'followers', title: 'Followers'},
         ]}
       />
       {/* {activeTab === 'contacts' && <DirectMessages />} */}

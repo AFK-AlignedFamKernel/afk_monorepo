@@ -32,4 +32,10 @@ export default ThemedStyleSheet((theme) => ({
     padding: 2,
     borderRadius: 0,
   },
+  contactItem: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
 }));
