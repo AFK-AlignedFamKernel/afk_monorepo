@@ -31,20 +31,21 @@ export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
     },
     queryFn: async ({pageParam}) => {
       console.log('search query', options?.search);
-      // const notes = await ndk.fetchEvents({
-      const notes = await ndk.subscribe({
+      const subscription = await ndk.subscribe({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors ?? [],
         search: options?.search,
-        // content: options?.search,
-        // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
-      console.log('notes subscription', notes);
 
-      setNotes([...notes]);
-      return [...notes];
-      // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
+      // Collect events from subscription
+      const events:any[] = [];
+      subscription.on('event', event => {
+        events.push(event);
+      });
+
+      setNotes(events);
+      return events;
     },
     placeholderData: {pages: [], pageParams: []},
   });

@@ -48,8 +48,8 @@ export const useCashuBalance = () => {
       const keyssets = await mint?.getKeySets();
       console.log('keyssets', keyssets);
 
-      proofs = proofs?.filter((p) => {
-        if (!proofsSpent?.includes(p) && keyssets?.keysets?.find((k) => k?.id == p?.id)) {
+      proofs = proofs?.filter((p:any) => {
+        if (!proofsSpent?.includes(p) && keyssets?.keysets?.find((k:any) => k?.id == p?.id)) {
           return p;
         }
       });
