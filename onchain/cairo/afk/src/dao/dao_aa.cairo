@@ -32,9 +32,9 @@ pub mod DaoAA {
     use afk::bip340::{Signature, SchnorrSignature};
     use afk::bip340;
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
+        IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
-        ConfigParams, ConfigResponse, ProposalCanceled,
+        ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled,
     };
     use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use afk::social::transfer::Transfer;
@@ -131,6 +131,7 @@ pub mod DaoAA {
         ProposalCreated: ProposalCreated,
         ProposalVoted: ProposalVoted,
         ProposalCanceled: ProposalCanceled,
+        ProposalResolved: ProposalResolved,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -221,8 +222,6 @@ pub mod DaoAA {
                 proposal_result_at: 0,
                 owner,
                 proposal_result_by: contract_address_const::<0x0>(),
-                is_executed: false,
-                is_canceled: false,
             };
 
             self.proposals.entry(id).write(Option::Some(proposal));
@@ -252,7 +251,7 @@ pub mod DaoAA {
             let voted_at = starknet::get_block_timestamp();
             let caller = get_caller_address();
             let proposal = self._get_proposal(proposal_id);
-            assert(!proposal.is_canceled && !proposal.is_executed, 'CANNOT VOTE ON PROPOSAL');
+            assert(proposal.proposal_result == Default::default(), 'CANNOT VOTE ON PROPOSAL');
             assert(voted_at < proposal.end_at, 'PROPOSAL HAS ENDED');
             let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
             assert(
@@ -276,14 +275,12 @@ pub mod DaoAA {
                 'INSUFFICIENT VOTING FUNDS',
             );
 
-            let caller_votes = if caller_balance > max_votes && max_votes > 0 {
+            let mut caller_votes = if caller_balance > max_votes && max_votes > 0 {
                 max_votes
             } else {
                 caller_balance
             };
 
-            let previous_vote_count = vote_state.no_of_votes.read();
-            vote_state.no_of_votes.write(previous_vote_count + caller_votes);
             let previous_voter_count = vote_state.voter_count.read();
             vote_state.voter_count.write(previous_voter_count + 1);
 
@@ -296,6 +293,20 @@ pub mod DaoAA {
             vote_state.user_has_voted.entry(caller).write(true);
             vote_state.voters_list.append().write(caller);
             self.total_voters.write(self.total_voters.read() + 1);
+
+            // NOTE: Config for abstention currently does nothing in this function
+            if vote_type == UserVote::Yes {
+                let (mut yes_votes, mut vote_point) = vote_state.yes_votes.read();
+                vote_state.yes_votes.write((yes_votes + 1, vote_point + caller_votes));
+            } else if vote_type == UserVote::No {
+                let (mut no_votes, mut vote_point) = vote_state.no_votes.read();
+                vote_state.no_votes.write((no_votes + 1, vote_point + caller_votes));
+            } else {
+                caller_votes = 0;
+            };
+
+            let previous_vote_count = vote_state.no_of_votes.read();
+            vote_state.no_of_votes.write(previous_vote_count + caller_votes);
 
             self
                 .emit(
@@ -334,9 +345,8 @@ pub mod DaoAA {
         fn cancel_proposal(ref self: ContractState, proposal_id: u256) {
             let mut proposal = self._get_proposal(proposal_id);
             assert(get_caller_address() == proposal.owner, 'UNAUTHORIZED CALLER');
-            assert(!proposal.is_canceled, 'PROPOSAL ALREADY CANCELED');
-            assert(!proposal.is_executed, 'PROPOSAL ALREADY EXECUTED');
-            proposal.is_canceled = true;
+            assert(proposal.proposal_result == Default::default(), 'CANNOT CANCEL PROPOSAL');
+            proposal.proposal_result = ProposalResult::Canceled;
             self.proposals.entry(proposal_id).write(Option::Some(proposal));
 
             self
@@ -345,6 +355,44 @@ pub mod DaoAA {
                         id: proposal_id, owner: get_caller_address(), is_canceled: true,
                     },
                 );
+        }
+
+        fn process_result(ref self: ContractState, proposal_id: u256) {
+            let mut proposal = self._get_proposal(proposal_id);
+            assert(
+                proposal.proposal_result == Default::default()
+                    && starknet::get_block_timestamp() > proposal.end_at,
+                'CANNOT PROCESS PROPOSAL'
+            );
+
+            // Implement result logic
+            // Implement logic, brings us back to the execute
+            // TODO: Implement execute in the future if Proposal is validated
+            // for now, we just process the yes and no votes, update proposal state and emit an
+            // event.
+            let mut vote_state = self.vote_state_by_proposal.entry(proposal_id);
+
+            let (yes_votes, _) = vote_state.yes_votes.read();
+            let (no_votes, _) = vote_state.no_votes.read();
+
+            // NOTE: The abstention votes are not used in this calculation
+            // do well to reconfirm. For now, we use total_votes as:
+            let total_votes = yes_votes + no_votes;
+            let valid_threshold_percentage = yes_votes * 100 / total_votes;
+
+            if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
+                proposal.proposal_result = ProposalResult::Passed;
+            } else {
+                proposal.proposal_result = ProposalResult::Failed;
+            }
+
+            self
+                .emit(
+                    ProposalResolved {
+                        id: proposal_id, owner: proposal.owner, result: proposal.proposal_result
+                    }
+                );
+            self.proposals.entry(proposal_id).write(Option::Some(proposal));
         }
     }
 
@@ -477,7 +525,7 @@ pub mod DaoAA {
 #[cfg(test)]
 mod tests {
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalParams, ProposalStatus, ProposalType, UserVote, VoteState,
+        IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
         IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse,
     };
@@ -626,7 +674,7 @@ mod tests {
         proposal_dispatcher.cancel_proposal(proposal_id);
 
         let proposal = proposal_dispatcher.get_proposal(proposal_id);
-        assert(proposal.is_canceled, 'CANCEL FAILED');
+        assert(proposal.proposal_result == ProposalResult::Canceled, 'CANCEL FAILED');
     }
 
     #[test]

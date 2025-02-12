@@ -75,8 +75,6 @@ pub struct Proposal {
     pub proposal_result_at: u64,
     pub owner: ContractAddress,
     pub proposal_result_by: ContractAddress,
-    pub is_executed: bool,
-    pub is_canceled: bool
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
@@ -113,6 +111,14 @@ pub struct ProposalCanceled {
     pub owner: ContractAddress,
     pub is_canceled: bool,
     // pub votes: u256, // subject to review
+}
+
+#[derive(Drop, Copy, starknet::Event)]
+pub struct ProposalResolved {
+    #[key]
+    pub id: u256,
+    pub owner: ContractAddress,
+    pub result: ProposalResult
 }
 
 #[derive(Drop, Copy, Serde)]
@@ -166,6 +172,7 @@ pub trait IVoteProposal<TContractState> {
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
     fn get_user_vote(self: @TContractState, proposal_id: u256, user: ContractAddress) -> UserVote;
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
+    fn process_result(ref self: TContractState, proposal_id: u256);
 }
 // Possible extracted Proposal Functions
 // Mint the token with a specific ratio
