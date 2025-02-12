@@ -35,19 +35,22 @@ import { getElapsedTimeStringFull } from '../../utils/timestamp';
 import { ContentWithClickableHashtags } from '../PostCard';
 
 import stylesheet from './styles';
+import { useIsDesktop } from '../../hooks/useIsDesktop';
 
 export type PostProps = {
   imgUrls?: string[];
 };
 
 export const SliderImages: React.FC<PostProps> = ({
- imgUrls
+  imgUrls
 }) => {
-  const styles = useStyles(stylesheet);
-  
+  const isDesktop = useIsDesktop()
+
+  // const styles = useStyles(stylesheet);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const slideOffset = useSharedValue(0);
-  
+
   const nextImage = () => {
     if (!imgUrls || currentIndex >= imgUrls.length - 1) return;
     slideOffset.value = withSpring(-1);
@@ -57,7 +60,7 @@ export const SliderImages: React.FC<PostProps> = ({
 
   const prevImage = () => {
     if (currentIndex <= 0) return;
-    slideOffset.value = withSpring(1); 
+    slideOffset.value = withSpring(1);
     setCurrentIndex(prev => prev - 1);
     slideOffset.value = withSpring(0);
   };
@@ -65,17 +68,20 @@ export const SliderImages: React.FC<PostProps> = ({
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        {translateX: withSpring(slideOffset.value * 300)}
+        { translateX: withSpring(slideOffset.value * 300) }
       ]
     };
   });
 
   if (!imgUrls?.length) return null;
 
+
   return (
     <View style={{
       width: '100%',
-      height: 300,
+      height: "100%",
+      minHeight: 300,
+      maxHeight: isDesktop ? 750 : 550,
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -84,7 +90,7 @@ export const SliderImages: React.FC<PostProps> = ({
         height: '100%',
       }, animatedStyle]}>
         <Image
-          source={{uri: imgUrls[currentIndex]}}
+          source={{ uri: imgUrls[currentIndex] }}
           style={{
             width: '100%',
             height: '100%',
@@ -94,7 +100,7 @@ export const SliderImages: React.FC<PostProps> = ({
       </Animated.View>
 
       {currentIndex > 0 && (
-        <Pressable 
+        <Pressable
           onPress={prevImage}
           style={{
             position: 'absolute',
@@ -105,7 +111,7 @@ export const SliderImages: React.FC<PostProps> = ({
             borderRadius: 20
           }}
         >
-          <Text style={{color: '#fff'}}>←</Text>
+          <Text style={{ color: '#fff' }}>←</Text>
         </Pressable>
       )}
 
@@ -113,7 +119,7 @@ export const SliderImages: React.FC<PostProps> = ({
         <Pressable
           onPress={nextImage}
           style={{
-            position: 'absolute', 
+            position: 'absolute',
             right: 10,
             top: '50%',
             padding: 10,
@@ -121,7 +127,7 @@ export const SliderImages: React.FC<PostProps> = ({
             borderRadius: 20
           }}
         >
-          <Text style={{color: '#fff'}}>→</Text>
+          <Text style={{ color: '#fff' }}>→</Text>
         </Pressable>
       )}
 
