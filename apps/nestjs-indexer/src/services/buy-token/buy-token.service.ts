@@ -42,14 +42,17 @@ export class BuyTokenService {
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
         // Calculate price based on liquidity and token supply
-        // Price = Liquidity in ETH / Total tokens in pool
-        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0);
-        const liquidityInQuoteToken= Number(newLiquidityRaised);
-        // const tokensInPool = Number(newTotalTokenHolded);
-        const tokensInPool = Number(initPoolSupply);
-        // Avoid division by zero
-        let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
-
+        // TODO better to do it with ETH per memecoin or Memecoin per ETH?
+        // 
+        // Price = ETH liquidity / Fixed token supply in pool
+        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0); // Fixed memecoin supply
+        const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
+        const tokensInPool = Number(initPoolSupply); // Fixed token supply
+        // Memecoin per ETH 
+        let priceBuy = tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;.
+        // ETH per Memecoin 
+        // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
+    
         // if (priceBuy < 0) {
         //   priceBuy = 0;
         // }

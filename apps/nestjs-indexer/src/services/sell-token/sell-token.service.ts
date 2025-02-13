@@ -67,12 +67,15 @@ export class SellTokenService {
         // const tokensInPool = Number(newTotalTokenHolded);
         const tokensInPool = Number(initPoolSupply);
         // Avoid division by zero
-        let priceHere = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+        // Memecoin per ETH
+        let priceAfterSell = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+        // ETH per Memecoin
+        // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
         // if (priceHere < 0) {
         //   priceHere = 0;
         // }
-        price = priceHere
+        price = priceAfterSell
         console.log("price calculation", price);
 
 
