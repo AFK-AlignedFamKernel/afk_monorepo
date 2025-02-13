@@ -44,33 +44,65 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 
   useEffect(() => {
     if (!launchesData) return;
-    const sortedTokens = [...launchesData];
+    const sortedLaunches = [...launchesData];
     switch (sortBy) {
       case 'recent':
-        sortedTokens.sort((a, b) => {
-          const dateA = new Date(a.created_at || 0);
-          const dateB = new Date(b.created_at || 0);
+        sortedLaunches.sort((a, b) => {
+          const dateA = new Date(a?.block_timestamp || 0);
+          const dateB = new Date(b?.block_timestamp || 0);
           return dateB.getTime() - dateA.getTime();
         });
         break;
       case 'oldest':
-        sortedTokens.sort((a, b) => {
-          const dateA = new Date(a.created_at || 0);
-          const dateB = new Date(b.created_at || 0);
+        sortedLaunches.sort((a, b) => {
+          const dateA = new Date(a?.block_timestamp || 0);
+          const dateB = new Date(b?.block_timestamp || 0);
           return dateA.getTime() - dateB.getTime();
         });
         break;
       case 'liquidity':
-        sortedTokens.sort((a, b) => {
-          const liquidityA = Number(a.liquidity_raised || 0);
-          const liquidityB = Number(b.liquidity_raised || 0);
+        sortedLaunches.sort((a, b) => {
+          const liquidityA = Number(a?.liquidity_raised || 0);
+          const liquidityB = Number(b?.liquidity_raised || 0);
           return liquidityB - liquidityA;
         });
         break;
     }
     // setTokens(sortedTokens);
-    setLaunches(sortedTokens);
-  }, [sortBy, tokens, launchesData, setTokens, setLaunches]);
+    setLaunches(sortedLaunches);
+  }, [sortBy, launchesData, setTokens, setLaunches]);
+
+
+  useEffect(() => {
+    if (!tokens) return;
+    const sortedTokens = [...tokens];
+    switch (sortBy) {
+      case 'recent':
+        sortedTokens.sort((a, b) => {
+          const dateA = new Date(a?.block_timestamp || 0);
+          const dateB = new Date(b?.block_timestamp || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        break;
+      case 'oldest':
+        sortedTokens.sort((a, b) => {
+          const dateA = new Date(a?.block_timestamp || 0);
+          const dateB = new Date(b?.block_timestamp || 0);
+          return dateA.getTime() - dateB.getTime();
+        });
+        break;
+      // case 'liquidity':
+      //   sortedTokens.sort((a, b) => {
+      //     const liquidityA = Number(a.liquidity_raised || 0);
+      //     const liquidityB = Number(b.liquidity_raised || 0);
+      //     return liquidityB - liquidityA;
+      //   });
+      //   break;
+    }
+    setTokens(sortedTokens);
+    // setLaunches(sortedTokens);
+  }, [sortBy, tokens, setTokens]);
+
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
