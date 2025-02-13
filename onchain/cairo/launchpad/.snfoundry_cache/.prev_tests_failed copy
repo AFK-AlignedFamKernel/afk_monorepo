@@ -1,0 +1,5 @@
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_set_protocol_fee_percent_non_admin
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_launch_token
+afk_launchpad::tests::liquidity_tests::liquidity_tests::test_add_liquidity_ekubo
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_coin_amount_by_quote_amount_for_buy_steps
+afk_launchpad::tests::launchpad_tests::launchpad_tests::test_get_coin_amount_by_quote_amount_for_buy_steps_exp

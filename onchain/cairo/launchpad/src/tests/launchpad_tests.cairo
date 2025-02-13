@@ -1338,6 +1338,9 @@ mod launchpad_tests {
                 is_unruggable: false,
             );
 
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        memecoin.approve(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
+
         launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear);
 
         let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
@@ -1356,6 +1359,32 @@ mod launchpad_tests {
         );
 
         spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
+    }
+
+    #[test]
+    #[should_panic()]
+    fn test_launch_token_panic_no_approve() {
+        let (_, erc20, launchpad) = request_fixture();
+        let mut spy = spy_events();
+        let starting_price = THRESHOLD_LIQUIDITY / DEFAULT_INITIAL_SUPPLY();
+        let slope = calculate_slope(DEFAULT_INITIAL_SUPPLY());
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        let token_address = launchpad
+            .create_token(
+                recipient: launchpad.contract_address,
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+                is_unruggable: false,
+            );
+
+        // Panic before dont approve allowance
+        // The user have received the token
+        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear);
+
     }
 
 
