@@ -21,9 +21,12 @@ export class SellTokenService {
         return;
       }
 
+
       const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
         { where: { memecoin_address: data.memecoinAddress } },
       );
+
+      let price = tokenLaunchRecord?.price ?? 0;
 
       if (!tokenLaunchRecord) {
         this.logger.warn(
@@ -39,6 +42,11 @@ export class SellTokenService {
         // Substract protocol fee
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
+        const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
+
+        if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
+          newLiquidityRaised = Number(maxLiquidityRaised);
+        }
         // TODO fix issue negative number
         // Check event fees etc
         if (newLiquidityRaised < 0) {
@@ -53,12 +61,27 @@ export class SellTokenService {
         if (newTotalTokenHolded < 0) {
           newTotalTokenHolded = 0;
         }
+
+        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0);
+        const liquidityInQuoteToken= Number(newLiquidityRaised);
+        // const tokensInPool = Number(newTotalTokenHolded);
+        const tokensInPool = Number(initPoolSupply);
+        // Avoid division by zero
+        let priceHere = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+
+        if (priceHere < 0) {
+          priceHere = 0;
+        }
+        price = priceHere
+
+
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
             current_supply: newSupply.toString(),
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
+            price:price?.toString()
           },
         });
       }
@@ -123,7 +146,7 @@ export class SellTokenService {
           owner_address: data.ownerAddress,
           last_price: data.lastPrice,
           quote_amount: data.quoteAmount,
-          price: data.price,
+          price: price?.toString(),
           amount: data.amount,
           protocol_fee: data.protocolFee,
           time_stamp: data.timestamp,

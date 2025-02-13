@@ -11,7 +11,7 @@ import { useToast } from '../../../hooks/modals';
 import { MainStackNavigationProps } from '../../../types';
 import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
 import { feltToAddress } from '../../../utils/format';
-import { Button } from '../..';
+import { Button, Icon } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
 import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
@@ -68,9 +68,30 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
   return (
     <View style={styles.container}>
-      {token?.block_timestamp && (
-        <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
-      )}
+
+      <View
+        style={{
+          display: "flex", flexDirection: "column",
+          gap: 10
+        }
+        }>
+        {token?.block_timestamp && (
+          <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
+        )}
+
+        {token?.is_launched &&
+          <View
+            style={{
+              display: "flex", flexDirection: "row",
+              gap: 10
+            }}
+          >
+            <Icon name="CheckIcon" size={15} />
+            <Text style={{ fontSize: 10, fontStyle: "italic" }}>Launched in Bonding curve</Text>
+          </View>
+        }
+      </View>
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
           <Text
@@ -116,7 +137,8 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         </View> */}
       </View>
 
-      {token?.owner_address &&
+      {
+        token?.owner_address &&
         account && account?.address == token?.owner_address && (
           <View>
             <Button
@@ -138,24 +160,26 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
               Add Liquidity
             </Button>
           </View>
-        )}
+        )
+      }
 
-      {!isViewDetailDisabled && (
-        <>
-          <Button
-            onPress={() => {
-              if (token && token?.memecoin_address) {
-                navigation.navigate('LaunchDetail', {
-                  coinAddress: token?.memecoin_address,
-                });
-              }
-            }}
-            style={styles.actionButton}
-          >
-            View token page
-          </Button>
+      {
+        !isViewDetailDisabled && (
+          <>
+            <Button
+              onPress={() => {
+                if (token && token?.memecoin_address) {
+                  navigation.navigate('LaunchDetail', {
+                    coinAddress: token?.memecoin_address,
+                  });
+                }
+              }}
+              style={styles.actionButton}
+            >
+              View token page
+            </Button>
 
-          {/* <Button
+            {/* <Button
             onPress={() => {
               if (token?.memecoin_address) {
                 showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
@@ -164,8 +188,9 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           >
             Add Liquidity
           </Button> */}
-        </>
-      )}
-    </View>
+          </>
+        )
+      }
+    </View >
   );
 };

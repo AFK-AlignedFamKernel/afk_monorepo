@@ -13,6 +13,8 @@ export class BuyTokenService {
         { where: { memecoin_address: data.memecoinAddress } },
       );
 
+      let price = tokenLaunchRecord?.price ?? 0;
+
       if (!tokenLaunchRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
@@ -46,11 +48,12 @@ export class BuyTokenService {
         // const tokensInPool = Number(newTotalTokenHolded);
         const tokensInPool = Number(initPoolSupply);
         // Avoid division by zero
-        let price = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+        let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
 
-        if (price < 0) {
-          price = 0;
+        if (priceBuy < 0) {
+          priceBuy = 0;
         }
+        price = priceBuy;
 
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
@@ -96,7 +99,7 @@ export class BuyTokenService {
           owner_address: data.ownerAddress,
           last_price: data.lastPrice,
           quote_amount: data.quoteAmount,
-          price: data.price,
+          price: price?.toString() ?? data.price,
           amount: data.amount,
           protocol_fee: data.protocolFee,
           time_stamp: data.timestamp,

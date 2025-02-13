@@ -21,7 +21,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           network: true,
           created_at: true,
           is_launched: true,
-          block_timestamp: true
+          block_timestamp: true,
         },
       });
 

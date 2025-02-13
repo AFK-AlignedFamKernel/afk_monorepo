@@ -27,6 +27,17 @@ export class TokenLaunchService {
           ? 'Exponential'
           : null;
 
+
+      // TODO: add this in the event
+      const initalPoolSupply = Number(data.totalSupply) / 5;
+      const initPoolSupply = Number(initalPoolSupply ?? 0);
+      const liquidityInQuoteToken = Number(0);
+      const tokensInPool = Number(initPoolSupply);
+      // Avoid division by zero
+      let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+      if (priceBuy < 0) {
+        priceBuy = 0;
+      }
       await this.prismaService.token_launch.create({
         data: {
           network: data.network,
@@ -36,16 +47,17 @@ export class TokenLaunchService {
           transaction_hash: data.transactionHash,
           memecoin_address: data.memecoinAddress,
           quote_token: data.quoteToken,
-          price: data.price,
+          price: priceBuy?.toString() ?? data.price,
           total_supply: data.totalSupply,
           current_supply: data.totalSupply,
           is_liquidity_added: false,
           threshold_liquidity: data.thresholdLiquidity,
           owner_address: data.ownerAddress,
           bonding_type: bondingType,
+          initial_pool_supply_dex: initPoolSupply?.toString(),
         },
       });
-      
+
       try {
         await this.prismaService.token_deploy.updateMany({
           where: {
@@ -56,7 +68,7 @@ export class TokenLaunchService {
           }
         });
       } catch (error) {
-        console.log("Errpr Update the Token model to launched",error)
+        console.log("Errpr Update the Token model to launched", error)
       }
     } catch (error) {
       this.logger.error(
