@@ -28,8 +28,8 @@ export class BuyTokenService {
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
+        console.log("newLiquidityRaised", newLiquidityRaised);
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
-
 
         if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
           newLiquidityRaised = Number(maxLiquidityRaised);
@@ -59,10 +59,19 @@ export class BuyTokenService {
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
             current_supply: newSupply.toString(),
+            // liquidity_raised: {
+            //   increment: Number(data.quoteAmount)
+            // },
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
             price: price?.toString()
           },
+          // update: {
+          //   current_supply: newSupply.toString(),
+          //   liquidity_raised: newLiquidityRaised.toString(),
+          //   total_token_holded: newTotalTokenHolded.toString(),
+          //   price: price?.toString()
+          // }
         });
       }
 

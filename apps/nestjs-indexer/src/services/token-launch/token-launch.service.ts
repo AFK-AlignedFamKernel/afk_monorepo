@@ -51,6 +51,7 @@ export class TokenLaunchService {
           total_supply: data.totalSupply,
           current_supply: data.totalSupply,
           is_liquidity_added: false,
+          liquidity_raised: "0",
           threshold_liquidity: data.thresholdLiquidity,
           owner_address: data.ownerAddress,
           bonding_type: bondingType,
