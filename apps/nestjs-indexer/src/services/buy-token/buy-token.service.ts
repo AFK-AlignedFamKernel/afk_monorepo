@@ -49,7 +49,7 @@ export class BuyTokenService {
         const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
         const tokensInPool = Number(initPoolSupply); // Fixed token supply
         // Memecoin per ETH 
-        let priceBuy = tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;.
+        let priceBuy = tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
         // ETH per Memecoin 
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
     
