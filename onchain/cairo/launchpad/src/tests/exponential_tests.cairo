@@ -65,6 +65,8 @@ mod exponential_tests {
             starting_price: 0_u256,
             protocol_fee_percent: 0_u256,
             creator_fee_percent: 0_u256,
+            creator_amount_received: 0_u256,
+            creator_fee_destination: OWNER(),
         };
 
         token_launch

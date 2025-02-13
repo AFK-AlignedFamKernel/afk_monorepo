@@ -113,4 +113,13 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_amount_to_paid_launch(ref self: TContractState, amount_to_paid_launch: u256);
     fn set_amount_to_paid_create_token(ref self: TContractState, amount_to_paid_create_token: u256);
     fn set_token_address_for_action(ref self: TContractState, token_address: ContractAddress);
+    fn set_is_fees_creator_sell_enabled(
+        ref self: TContractState, is_fees_creator_sell_enabled: bool
+    );
+    fn set_is_fees_creator_buy_enabled(
+        ref self: TContractState, is_fees_creator_buy_enabled: bool
+    );
+    fn set_is_fees_creator_enabled(
+        ref self: TContractState, is_fees_creator_enabled: bool
+    );
 }

@@ -175,6 +175,10 @@ pub mod LaunchpadMarketplace {
         amount_to_paid_create_token: u256,
         is_paid_create_token_enable: bool,
         is_custom_token_enable: bool,
+        // Creator fees and management
+        is_fees_creator_enabled: bool,
+        is_fees_creator_sell_enabled: bool,
+        is_fees_creator_buy_enabled: bool,
         // For launch token
         amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
@@ -272,9 +276,13 @@ pub mod LaunchpadMarketplace {
         // TODO AUDIT
         // Check fees implementation in buy an sell
         // Rounding and approximation can caused an issue
+
         self.is_fees_protocol_buy_enabled.write(true);
         self.is_fees_protocol_sell_enabled.write(true);
         self.is_fees_protocol_enabled.write(true);
+
+        // TODO V2
+        // self.is_fees_creator_enabled.write(false);
 
         let admins_fees_params = AdminsFeesParams {
             token_address_to_paid_launch: token_address,
@@ -372,6 +380,7 @@ pub mod LaunchpadMarketplace {
             self.is_default_init_supply.write(is_default_init_supply);
         }
 
+        // Protocol fees management
         fn set_is_fees_protocol_enabled(ref self: ContractState, is_fees_protocol_enabled: bool) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_enabled.write(is_fees_protocol_enabled);
@@ -391,6 +400,39 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_sell_enabled.write(is_fees_protocol_sell_enabled);
         }
+        // Creator fees management
+        // V2
+
+        fn set_is_fees_creator_enabled(
+            ref self: ContractState, is_fees_creator_enabled: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_creator_enabled.write(is_fees_creator_enabled);
+        }
+
+        fn set_is_fees_creator_sell_enabled(
+            ref self: ContractState, is_fees_creator_sell_enabled: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_creator_sell_enabled.write(is_fees_creator_sell_enabled);
+        }
+
+        fn set_is_fees_creator_buy_enabled(
+            ref self: ContractState, is_fees_creator_buy_enabled: bool
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_fees_creator_buy_enabled.write(is_fees_creator_buy_enabled);
+        }
+
+
+        fn set_creator_fee_percent(ref self: ContractState, creator_fee_percent: u256) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            assert(creator_fee_percent < MAX_FEE_CREATOR, errors::CREATOR_FEE_TOO_HIGH);
+            assert(creator_fee_percent > MIN_FEE_CREATOR, errors::CREATOR_FEE_TOO_LOW);
+            self.creator_fee_percent.write(creator_fee_percent);
+        }
+
+        // Fees manaamgent
 
         fn set_is_fees(ref self: ContractState, is_fees_protocol_enabled: bool) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -420,13 +462,6 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.unrug_liquidity_address.write(unrug_liquidity_address);
-        }
-
-        fn set_creator_fee_percent(ref self: ContractState, creator_fee_percent: u256) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            assert(creator_fee_percent < MAX_FEE_CREATOR, errors::CREATOR_FEE_TOO_HIGH);
-            assert(creator_fee_percent > MIN_FEE_CREATOR, errors::CREATOR_FEE_TOO_LOW);
-            self.creator_fee_percent.write(creator_fee_percent);
         }
 
         fn set_dollar_paid_coin_creation(ref self: ContractState, dollar_price: u256) {
@@ -640,9 +675,21 @@ pub mod LaunchpadMarketplace {
             let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
             // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
 
+            let mut creator_fee_amount = 0_u256;
             // TODO V2
             // add the Creator feed here setup by the user
-
+            // HIGH SECURITY RISK
+            // Security check to do
+            // Rounding and approximation of the percentage can lead to security vulnerabilities
+            if self.is_fees_creator_enabled.read() && self.is_fees_creator_buy_enabled.read() {
+                // TODO V2
+                // add the Creator feed here setup by the user
+                let creator_fee_percent = pool.creator_fee_percent;
+                // MODULAR USER MANAGEMENT
+                // let creator_fee_percent = pool.creator_fee_percent;
+                creator_fee_amount = remain_quote_to_liquidity * creator_fee_percent / BPS;
+                remain_quote_to_liquidity -= creator_fee_amount;
+            }
             // Calculate coin amount to receive
             // AUDIT
             // High security risk.
@@ -717,9 +764,14 @@ pub mod LaunchpadMarketplace {
 
                 // Add liquidity to DEX Ekubo
                 self._add_liquidity_ekubo(coin_address);
+
+                // TODO V2
+                // Send the creator fee amount received to the creator DAO address
+                // Gonna be a DAO AA later
                 pool.is_liquidity_launch = true;
             }
 
+            pool.creator_amount_received += creator_fee_amount;
             // Update pool state
             self.launched_coins.entry(coin_address).write(pool);
 
@@ -771,7 +823,9 @@ pub mod LaunchpadMarketplace {
             // Get percentage fees setup for protoocol
             let protocol_fee_percent = self.protocol_fee_percent.read();
             // TODO V2: used creator fees setup by admin/user
-            let creator_fee_percent = self.creator_fee_percent.read();
+            // HIGH SECURITY RISK
+            let creator_fee_percent = pool.creator_fee_percent;
+            // let creator_fee_percent = self.creator_fee_percent.read();
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
                     && protocol_fee_percent >= MIN_FEE_PROTOCOL,
@@ -803,6 +857,7 @@ pub mod LaunchpadMarketplace {
                 && self.is_fees_protocol_sell_enabled.read();
 
             let mut quote_fee_amount = 0_u256;
+            let mut creator_fee_amount = 0_u256;
             // println!("check fees");
 
             // Substract fees protocol from quote amount
@@ -811,6 +866,22 @@ pub mod LaunchpadMarketplace {
             if is_fees_enabled {
                 quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
                 quote_amount -= quote_fee_amount;
+            }
+            
+            // TODO V2
+            // add the Creator feed here setup by the user
+            // HIGH SECURITY RISK
+            // Security check to do
+            // Rounding and approximation of the percentage can lead to security vulnerabilities
+            if self.is_fees_creator_enabled.read() && self.is_fees_creator_sell_enabled.read()  {
+                // TODO V2
+                // add the Creator feed here setup by the user
+                let creator_fee_percent = self.creator_fee_percent.read();
+                // MODULAR USER MANAGEMENT
+                // let creator_fee_percent = pool.creator_fee_percent;
+
+                creator_fee_amount = quote_amount * creator_fee_percent / BPS;
+                quote_amount -= creator_fee_amount;
             }
 
             // AUDIT
@@ -825,6 +896,8 @@ pub mod LaunchpadMarketplace {
                 if is_fees_enabled {
                     quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
                     quote_amount -= quote_fee_amount;
+                    // creator_fee_amount = quote_amount * creator_fee_percent / BPS;
+                    // quote_amount -= creator_fee_amount;
                 }
             }
 
@@ -888,6 +961,11 @@ pub mod LaunchpadMarketplace {
                     };
             updated_pool.total_token_holded -= sell_amount;
             updated_pool.available_supply += sell_amount;
+
+            // TODO V2
+            // WHen graduated, send the creator fee amount received to the creator DAO address
+            // Gonna be a DAO AA later
+            updated_pool.creator_amount_received += creator_fee_amount;
 
             // Save updated state
             self.shares_by_users.entry(caller).entry(coin_address).write(share);
@@ -1144,8 +1222,9 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
-            // let launch_pool = self.launched_coins.read(coin_address);
-            // assert!(launch_pool.owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
+            let launch_pool = self.launched_coins.read(coin_address);
+            // assert(launch_pool.owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
+            assert(launch_pool.owner.is_zero(), errors::POOL_LAUNCHED);
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
             // Price of the token and the address is set by the admin
@@ -1159,6 +1238,21 @@ pub mod LaunchpadMarketplace {
                         caller, self.protocol_fee_destination.read(), amount_to_paid_launch
                     );
             }
+
+            // TODO V2
+            // - add the treasury DAO address here
+            // - Add the creator fee selected by the user and do the check
+            // HIGH SECURITY RISK
+            // Security check to do
+            // Rounding and approximation of the percentage can lead to security vulnerabilities
+
+            // let creator_fee_percent = input_creator_fee_percent;
+            let creator_fee_percent = self.creator_fee_percent.read();
+            // assert(
+            //     creator_fee_percent <= MAX_FEE_CREATOR
+            //         && creator_fee_percent >= MIN_FEE_CREATOR,
+            //     errors::CREATOR_FEE_OUT_OF_BOUNDS
+            // );
 
             // Set up bonding curve type
             let bond_type = match bonding_type {
@@ -1201,7 +1295,12 @@ pub mod LaunchpadMarketplace {
                 threshold_liquidity: self.threshold_liquidity.read(),
                 liquidity_type: Option::None,
                 protocol_fee_percent: self.protocol_fee_percent.read(),
-                creator_fee_percent: self.creator_fee_percent.read()
+                // TODO V2 add the creator fee selected by the user
+                creator_fee_percent: creator_fee_percent, 
+                creator_amount_received: 0_u256,
+                // V2
+                // Can also auto create a DAO AA address for the community to used and be safe with the treasury
+                creator_fee_destination: caller, // V2 selected by USER. 
             };
 
             // TODO Check approve
