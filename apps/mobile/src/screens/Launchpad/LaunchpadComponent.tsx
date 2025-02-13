@@ -1,6 +1,6 @@
 import { useAccount } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
-import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { Button } from '../../components';
 import Loading from '../../components/Loading';
@@ -32,12 +32,45 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
-  const { tokens: tokensStore, setTokens, setLaunches } = useLaunchpadStore();
-
+  const { tokens: tokensStore, setTokens, setLaunches, launches: launchesStore } = useLaunchpadStore();
+  const [showFilters, setShowFilters] = useState(true);
+  const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'liquidity'>('recent');
   const [tokenOrLaunch, setTokenOrLaunch] = useState<
     'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'
   >('LAUNCH');
 
+  console.log("launchesStore", launchesStore);
+  console.log("launchesData", launchesData);
+
+  useEffect(() => {
+    if (!launchesData) return;
+    const sortedTokens = [...launchesData];
+    switch (sortBy) {
+      case 'recent':
+        sortedTokens.sort((a, b) => {
+          const dateA = new Date(a.created_at || 0);
+          const dateB = new Date(b.created_at || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        break;
+      case 'oldest':
+        sortedTokens.sort((a, b) => {
+          const dateA = new Date(a.created_at || 0);
+          const dateB = new Date(b.created_at || 0);
+          return dateA.getTime() - dateB.getTime();
+        });
+        break;
+      case 'liquidity':
+        sortedTokens.sort((a, b) => {
+          const liquidityA = Number(a.liquidity_raised || 0);
+          const liquidityB = Number(b.liquidity_raised || 0);
+          return liquidityB - liquidityA;
+        });
+        break;
+    }
+    // setTokens(sortedTokens);
+    setLaunches(sortedTokens);
+  }, [sortBy, tokens, launchesData, setTokens, setLaunches]);
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
       setTokens(tokens);
@@ -70,7 +103,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
       )}
 
-      <ScrollView style={styles.actionToggle} horizontal showsHorizontalScrollIndicator={false}
+      <ScrollView
+        style={styles.actionToggle}
+        horizontal showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
         <Button
@@ -105,6 +140,75 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
       </ScrollView>
 
+
+
+      <View style={styles.filterContainer}>
+        <Button
+          style={[styles.filterButton, styles.filterAccordion]}
+          onPress={() => setShowFilters(!showFilters)}
+        >
+          <Text style={styles.filterButtonText}>Filter & Sort</Text>
+          <Text>{showFilters ? '▼' : '▶'}</Text>
+        </Button>
+
+
+        {showFilters && (
+          <ScrollView
+            // style={styles.filterOptions}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+          >
+            <TouchableOpacity
+              style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
+              onPress={() => {
+                setSortBy('recent');
+                const sorted = [...launchesData].sort((a, b) => {
+                  const timestampA = a?.block_timestamp || 0;
+                  const timestampB = b?.block_timestamp || 0;
+                  return Number(timestampB) - Number(timestampA);
+                });
+                setLaunches(sorted);
+              }}
+            >
+              <Text style={styles.filterOptionText}>Most Recent</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
+              onPress={() => {
+                setSortBy('oldest');
+                // const sorted = [...launchesData].sort((a, b) => a.block_timestamp - b.block_timestamp);
+                const sorted = [...launchesData].sort((a, b) => {
+                  const timestampA = a?.block_timestamp || 0;
+                  const timestampB = b?.block_timestamp || 0;
+                  return Number(timestampA) - Number(timestampB);
+                });
+
+                setLaunches(sorted);
+              }}
+            >
+              <Text style={styles.filterOptionText}>Oldest First</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
+              onPress={() => {
+                setSortBy('liquidity');
+                const sorted = [...launchesData].sort((a, b) => {
+                  const liqA = a?.liquidity_raised || 0;
+                  const liqB = b?.liquidity_raised || 0;
+                  return Number(liqB) - Number(liqA);
+                });
+                setLaunches(sorted);
+              }}
+            >
+              <Text style={styles.filterOptionText}>Highest Liquidity</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        )}
+      </View>
+
       {isLoading ? (
         <Loading />
       ) : (
@@ -117,7 +221,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           {tokenOrLaunch == 'LAUNCH' && (
             <FlatList
               contentContainerStyle={styles.flatListContent}
-              data={launchesData}
+              // data={launchesData}
+              data={launchesStore}
               keyExtractor={(item) => item.token_address}
               key={`flatlist-${isDesktop ? 3 : 1}`}
               numColumns={isDesktop ? 3 : 1}

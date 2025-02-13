@@ -28,7 +28,9 @@ export const launchpadStore = createStore<State & Action>((set, get) => ({
   userShare: undefined as unknown as UserShareProps,
   userShares: undefined as unknown as UserShareProps[],
   tokens: undefined as unknown as TokenDeployInterface[],
-  launches: undefined as unknown as LaunchDataMerged[],
+  launches: [] as LaunchDataMerged[],
+  myTokens: [] as TokenDeployInterface[],
+  myLaunches: [] as LaunchDataMerged[],
 
   setUserShare: (userShare) => {
     set({userShare});
@@ -42,10 +44,10 @@ export const launchpadStore = createStore<State & Action>((set, get) => ({
   setLaunches: (launches) => {
     set({launches});
   },
-  seyMyLaunches: (myLaunches) => {
+  setMyLaunches: (myLaunches: LaunchDataMerged[]) => {
     set({myLaunches});
   },
-  seyMyTokens: (myTokens) => {
+  setMyTokens: (myTokens: TokenDeployInterface[]) => {
     set({myTokens});
   },
 }));
