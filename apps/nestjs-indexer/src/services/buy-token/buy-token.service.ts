@@ -50,11 +50,12 @@ export class BuyTokenService {
         // Avoid division by zero
         let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
 
-        if (priceBuy < 0) {
-          priceBuy = 0;
-        }
+        // if (priceBuy < 0) {
+        //   priceBuy = 0;
+        // }
         price = priceBuy;
 
+        console.log("price calculation", price);
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
