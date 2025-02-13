@@ -1174,14 +1174,11 @@ pub mod LaunchpadMarketplace {
             Serde::serialize(@owner, ref calldata);
             Serde::serialize(@factory, ref calldata);
 
-            // println!("call token address");
-
             let (token_address, _) = deploy_syscall(
                 self.coin_class_hash.read(), contract_address_salt, calldata.span(), false
             )
                 .unwrap();
             // .unwrap_syscall();
-            // println!("create token address");
 
             let token = Token {
                 token_address: token_address,
@@ -1195,12 +1192,10 @@ pub mod LaunchpadMarketplace {
                 token_type: Option::None,
                 is_unruggable: is_unruggable
             };
-            //  println!("create token");
 
             self.token_created.entry(token_address).write(token.clone());
             let total_token = self.total_token.read();
             self.total_token.write(total_token + 1);
-            // println!("readclear token");
 
             self
                 .emit(
