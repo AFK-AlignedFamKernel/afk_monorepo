@@ -1146,6 +1146,8 @@ pub mod LaunchpadMarketplace {
         ) -> ContractAddress {
             let caller = get_caller_address();
 
+            // println!("caller: {:?}", caller);
+
             // TODO finish this
             // ADD TEST CASE for Paid create token
             let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
@@ -1172,11 +1174,14 @@ pub mod LaunchpadMarketplace {
             Serde::serialize(@owner, ref calldata);
             Serde::serialize(@factory, ref calldata);
 
+            // println!("call token address");
+
             let (token_address, _) = deploy_syscall(
                 self.coin_class_hash.read(), contract_address_salt, calldata.span(), false
             )
                 .unwrap();
             // .unwrap_syscall();
+            // println!("create token address");
 
             let token = Token {
                 token_address: token_address,
@@ -1190,10 +1195,12 @@ pub mod LaunchpadMarketplace {
                 token_type: Option::None,
                 is_unruggable: is_unruggable
             };
+            //  println!("create token");
 
             self.token_created.entry(token_address).write(token.clone());
             let total_token = self.total_token.read();
             self.total_token.write(total_token + 1);
+            // println!("readclear token");
 
             self
                 .emit(
@@ -1222,8 +1229,11 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
-            let launch_pool = self.launched_coins.read(coin_address);
-            // assert(launch_pool.owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
+            // TODO fix this
+            // HIGH SECURITY RISK
+            // let launch_pool = self.launched_coins.read(coin_address);
+            // println!("launch_pool: {:?}", launch_pool.owner);
+            // assert(self.launched_coins.read(coin_address).owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
             // assert(launch_pool.owner.is_zero(), errors::POOL_LAUNCHED);
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
@@ -1262,6 +1272,7 @@ pub mod LaunchpadMarketplace {
 
             // Get token parameters
             let token_to_use = self.default_token.read();
+
             let quote_token_address = token_to_use.token_address.clone();
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
@@ -1276,8 +1287,8 @@ pub mod LaunchpadMarketplace {
 
             // Create launch parameters
             let launch_token_pump = TokenLaunch {
-                owner: caller,
-                creator: caller,
+                owner: caller.clone()   ,
+                creator: caller.clone(),
                 token_address: coin_address,
                 total_supply,
                 available_supply: supply_distribution,
@@ -1298,9 +1309,7 @@ pub mod LaunchpadMarketplace {
                 // TODO V2 add the creator fee selected by the user
                 creator_fee_percent: creator_fee_percent, 
                 creator_amount_received: 0_u256,
-                // V2
-                // Can also auto create a DAO AA address for the community to used and be safe with the treasury
-                creator_fee_destination: caller, // V2 selected by USER. 
+                creator_fee_destination: caller.clone(), // V2 selected by USER. 
             };
 
             // TODO Check approve
