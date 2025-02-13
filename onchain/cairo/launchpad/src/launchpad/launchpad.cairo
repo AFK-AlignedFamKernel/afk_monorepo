@@ -1224,7 +1224,7 @@ pub mod LaunchpadMarketplace {
 
             let launch_pool = self.launched_coins.read(coin_address);
             // assert(launch_pool.owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
-            assert(launch_pool.owner.is_zero(), errors::POOL_LAUNCHED);
+            // assert(launch_pool.owner.is_zero(), errors::POOL_LAUNCHED);
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
             // Price of the token and the address is set by the admin
