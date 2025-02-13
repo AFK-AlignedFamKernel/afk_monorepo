@@ -25,9 +25,10 @@ export default ThemedStyleSheet((theme) => ({
   actionToggle: {
     flexDirection: 'row',
     gap: Spacing.xsmall,
-    marginBottom: Spacing.small,
+    // marginBottom: Spacing.small,
     height: '100%',
-    maxHeight: 100,
+    maxHeight: 130,
+    minHeight: 75,
   },
   activeToggle: {
     borderBottomWidth: 3,

@@ -15,6 +15,7 @@ import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
 import { useLaunchpadStore } from '../../store/launchpad';
 import stylesheet from './styles';
+import { TokenDeployInterface } from '../../types/keys';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -24,10 +25,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 }) => {
   const styles = useStyles(stylesheet);
   const account = useAccount();
-  const { launches: launchesData, isLoading, isFetching } = useCombinedTokenData();
+  const { launches: launchesData, isLoading, isFetching, tokens: tokensData, setTokens: setTokensData } = useCombinedTokenData();
   const { data: tokens } = useTokens();
-  console.log('tokens data', tokens);
-
   const { show: showModal } = useTokenCreatedModal();
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
@@ -39,8 +38,9 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
     'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'
   >('LAUNCH');
 
-  console.log("launchesStore", launchesStore);
-  console.log("launchesData", launchesData);
+  const [sortedTokens, setSortedTokens] = useState<TokenDeployInterface[]>([]);
+  // console.log("launchesStore", launchesStore);
+  // console.log("launchesData", launchesData);
 
   useEffect(() => {
     if (!launchesData) return;
@@ -74,8 +74,17 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 
 
   useEffect(() => {
-    if (!tokens) return;
-    const sortedTokens = [...tokens];
+
+
+    console.log("sort tokens by filter")
+    console.log('tokens data call', tokens);
+    console.log('tokensData', tokensData);
+    console.log('tokensStore', tokensStore);
+
+    //  if (!tokensStore) return;
+    // const sortedTokens = [...tokensStore];
+    if (!tokensData && !tokens?.data) return;
+    const sortedTokens = tokensData ? [...tokensData] : [...tokens?.data];
     switch (sortBy) {
       case 'recent':
         sortedTokens.sort((a, b) => {
@@ -99,14 +108,18 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       //   });
       //   break;
     }
+    console.log("sortedTokens", sortedTokens);
     setTokens(sortedTokens);
+    setTokensData(sortedTokens);
+    setSortedTokens(sortedTokens);
     // setLaunches(sortedTokens);
-  }, [sortBy, tokens, setTokens]);
+  }, [sortBy, tokens, setTokens, tokensData]);
 
   useEffect(() => {
     if (tokens?.length != tokensStore?.length) {
-      setTokens(tokens);
+      setTokens(tokens?.data);
       setLaunches(launchesData);
+      setTokensData(tokens?.data);
     }
     console.log('tokens', tokens);
     console.log('tokensStore', tokensStore);
@@ -268,7 +281,8 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
           {tokenOrLaunch == 'TOKEN' && (
             <FlatList
               contentContainerStyle={styles.flatListContent}
-              data={tokens?.data}
+              // data={tokens?.data}
+              data={sortedTokens && sortedTokens?.length > 0 ? sortedTokens : tokensStore && tokensStore?.length > 0 ? tokensStore : tokensData}
               // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
               keyExtractor={(item, i) => i.toString()}
               key={`flatlist-${isDesktop ? 3 : 1}`}
@@ -324,7 +338,7 @@ export function TokenDashboard({
 
   const { data: myTokens } = useMyTokensCreated(address);
   const { data: myLaunchs } = useMyLaunchCreated(address);
-
+  // const { tokens: myTokens, launches: myLaunchs } = useLaunchpadStore();
   const renderContent = () => {
     if (!address) {
       return (
@@ -377,5 +391,5 @@ export function TokenDashboard({
     );
   };
 
-  return <View style={{ marginTop: 14 }}>{renderContent()}</View>;
+  return renderContent();
 }

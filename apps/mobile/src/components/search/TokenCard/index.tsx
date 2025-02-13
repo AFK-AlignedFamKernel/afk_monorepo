@@ -18,6 +18,7 @@ import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
 import { AddLiquidityForm } from '../../AddLiquidityForm';
 import { useModal } from '../../../hooks/modals/useModal';
 import { useState } from 'react';
+import { getElapsedTimeStringFull } from '../../../utils/timestamp';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -67,6 +68,9 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
   return (
     <View style={styles.container}>
+      {token?.block_timestamp && (
+        <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
+      )}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
           <Text
