@@ -60,18 +60,23 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
     return dimensions.width >= 1024;
   }, [dimensions]);
 
-
-
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
 
   return (
     <View style={[styles.container, isDesktop && styles.containerDesktop]}>
-      {token?.created_at ? (
+      {token?.block_timestamp ? (
         <Text style={styles.creationTime}>
-          {getElapsedTimeStringFull(new Date(token.block_timestamp).getTime())}
+          {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}
         </Text>
       ) : null}
+
+      {token?.is_liquidity_launch &&
+        <View>
+          <Icon name="CheckIcon" size={15} />
+          <Text style={{ fontSize: 10, fontStyle: "italic" }}>Graduated</Text>
+        </View>
+      }
       <View style={styles.header}>
 
 

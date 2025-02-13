@@ -25,9 +25,10 @@ export default ThemedStyleSheet((theme) => ({
   actionToggle: {
     flexDirection: 'row',
     gap: Spacing.xsmall,
-    marginBottom: Spacing.small,
+    // marginBottom: Spacing.small,
     height: '100%',
-    maxHeight: 100,
+    maxHeight: 130,
+    minHeight: 75,
   },
   activeToggle: {
     borderBottomWidth: 3,
@@ -82,5 +83,47 @@ export default ThemedStyleSheet((theme) => ({
 
   buttonIndicator: {
     marginRight: Spacing.xsmall,
+  },
+
+  filterContainer: {
+    // flexDirection: 'row',
+    // gap: Spacing.small,
+    // alignItems: 'center',
+  },
+  filterButton: {
+    padding: Spacing.small,
+    borderRadius: 8,
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  filterAccordion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.small,
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    gap: Spacing.small,
+    alignItems: 'center',
+  },
+  filterOption: { 
+    padding: Spacing.small,
+    borderRadius: 8,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    // borderColor: theme.colors.border,
+    color: theme.colors.text,
+  },
+  activeFilter: {
+    backgroundColor: theme.colors.primary,
+  },  
+  filterOptionText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.text,
   },
 }));

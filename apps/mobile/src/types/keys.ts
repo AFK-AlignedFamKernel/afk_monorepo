@@ -13,7 +13,7 @@ export interface KeysUser {
 
 export interface LaunchDataMerged extends TokenLaunchInterface, TokenDeployInterface {}
 export interface TokenLaunchInterface {
-  owner: string;
+  owner?: string;
   token_address: string;
   price: Uint256;
   initial_key_price: Uint256;
@@ -29,6 +29,8 @@ export interface TokenLaunchInterface {
   slope?: Uint256;
   quote_token_address?: string;
   quote_token?: string;
+  is_launched?: boolean;
+  initial_pool_supply_dex?: string;
 }
 
 export interface UserShareInterface {
@@ -61,6 +63,8 @@ export interface TokenDeployInterface {
   slope?: Uint256;
   quote_token?: string;
   block_timestamp?: string;
+  is_launched?: boolean;
+  initial_pool_supply_dex?: string;
 }
 
 export interface TokenDeployIndexerInterface {
@@ -74,6 +78,8 @@ export interface TokenDeployIndexerInterface {
   liquidity_raised: Uint256;
   token_holded: Uint256;
   is_liquidity_launch: boolean;
+  is_launched?: boolean;
+  initial_pool_supply_dex?: string;
   quote_token?: string;
   threshold_liquidity?: Uint256;
   slope?: Uint256;

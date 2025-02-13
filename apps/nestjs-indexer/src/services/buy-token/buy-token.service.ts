@@ -5,13 +5,15 @@ import { BuyToken } from './interfaces';
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   async create(data: BuyToken) {
     try {
       const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
         { where: { memecoin_address: data.memecoinAddress } },
       );
+
+      let price = tokenLaunchRecord?.price ?? 0;
 
       if (!tokenLaunchRecord) {
         this.logger.warn(
@@ -26,9 +28,32 @@ export class BuyTokenService {
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
+        const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
+
+
+        if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
+          newLiquidityRaised = Number(maxLiquidityRaised);
+        }
+
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
           Number(data.amount);
+
+        // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
+
+        // Calculate price based on liquidity and token supply
+        // Price = Liquidity in ETH / Total tokens in pool
+        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0);
+        const liquidityInQuoteToken= Number(newLiquidityRaised);
+        // const tokensInPool = Number(newTotalTokenHolded);
+        const tokensInPool = Number(initPoolSupply);
+        // Avoid division by zero
+        let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+
+        if (priceBuy < 0) {
+          priceBuy = 0;
+        }
+        price = priceBuy;
 
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
@@ -36,6 +61,7 @@ export class BuyTokenService {
             current_supply: newSupply.toString(),
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
+            price: price?.toString()
           },
         });
       }
@@ -73,7 +99,7 @@ export class BuyTokenService {
           owner_address: data.ownerAddress,
           last_price: data.lastPrice,
           quote_amount: data.quoteAmount,
-          price: data.price,
+          price: price?.toString() ?? data.price,
           amount: data.amount,
           protocol_fee: data.protocolFee,
           time_stamp: data.timestamp,

@@ -48,6 +48,7 @@ model token_launch {
   cursor              BigInt?   @map("_cursor")
   time_stamp          DateTime? @db.Timestamp(6)
   created_at          DateTime? @default(now()) @db.Timestamp(6)
+  initial_pool_supply_dex String?
 }
 
 model unrugmeme_deploy {

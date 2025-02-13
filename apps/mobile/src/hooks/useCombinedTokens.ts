@@ -45,5 +45,7 @@ export const useCombinedTokenData = (token?: string, launch?: string) => {
     isLoading: isLoadingDeploy || isLoadingLaunch,
     isError: isErrorDeploy || isErrorLaunch,
     isFetching: launchIsFetching || tokenIsFetching,
+    setTokens,
+    setLaunches,
   };
 };
