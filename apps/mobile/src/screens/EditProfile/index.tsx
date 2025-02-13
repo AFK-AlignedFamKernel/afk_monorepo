@@ -1,21 +1,22 @@
-import {useQueryClient} from '@tanstack/react-query';
-import {useEditProfile, useProfile} from 'afk_nostr_sdk';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEditProfile, useProfile } from 'afk_nostr_sdk';
 // import {useAuth} from '../../store/auth';
-import {useAuth} from 'afk_nostr_sdk';
+import { useAuth } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
-import {Formik, FormikProps} from 'formik';
-import {useRef, useState} from 'react';
-import {ScrollView, TouchableOpacity, View} from 'react-native';
+import { Formik, FormikProps } from 'formik';
+import { useRef, useState } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
-import {Button, SquareInput, Text} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useFileUpload} from '../../hooks/api';
-import {useToast} from '../../hooks/modals';
-import {EditProfileScreenProps} from '../../types';
-import {ProfileHead} from '../Profile/Head';
+import { CopyIconStack } from '../../assets/icons';
+import { Button, SquareInput, Text } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useFileUpload } from '../../hooks/api';
+import { useToast } from '../../hooks/modals';
+import { EditProfileScreenProps } from '../../types';
+import { ProfileHead } from '../Profile/Head';
 import stylesheet from './styles';
+import { Hashtags } from './Hashtags';
 
 const UsernameInputLeft = (
   <Text weight="bold" color="inputPlaceholder">
@@ -34,29 +35,31 @@ type FormValues = {
   twitter: string;
   lud16?: string;
   lud06?: string;
+  tags?: string[];
 };
 
 export const EditProfile: React.FC<EditProfileScreenProps> = () => {
   const formikRef = useRef<FormikProps<FormValues>>(null);
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
   const [profilePhoto, setProfilePhoto] = useState<ImagePicker.ImagePickerAsset | undefined>();
   const [coverPhoto, setCoverPhoto] = useState<ImagePicker.ImagePickerAsset | undefined>();
 
   const publicKey = useAuth((state) => state.publicKey);
-  const profile = useProfile({publicKey});
+  const profile = useProfile({ publicKey });
   const fileUpload = useFileUpload();
   const editProfile = useEditProfile();
   const queryClient = useQueryClient();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
+  const [hashtagInput, setHashtagInput] = useState<string | undefined>();
   if (profile.isLoading) return null;
 
   const onPublicKeyCopyPress = async () => {
     await Clipboard.setStringAsync(publicKey);
-    showToast({type: 'info', title: 'Public Key Copied to clipboard'});
+    showToast({ type: 'info', title: 'Public Key Copied to clipboard' });
   };
 
   const handlePhotoSelect = async (type: 'profile' | 'cover') => {
@@ -110,7 +113,7 @@ export const EditProfile: React.FC<EditProfileScreenProps> = () => {
   };
 
   const onFormSubmit = async (values: FormValues) => {
-    let {image, banner} = values;
+    let { image, banner } = values;
 
     try {
       if (profilePhoto) {
@@ -134,13 +137,14 @@ export const EditProfile: React.FC<EditProfileScreenProps> = () => {
         twitter: values.twitter || undefined,
         lud06: values?.lud06 || undefined,
         lud16: values.lud16 || undefined,
+        // tags: values?.tags || undefined,
       });
 
-      queryClient.invalidateQueries({queryKey: ['profile', publicKey]});
+      queryClient.invalidateQueries({ queryKey: ['profile', publicKey] });
 
-      showToast({type: 'success', title: 'Profile updated successfully'});
+      showToast({ type: 'success', title: 'Profile updated successfully' });
     } catch (error) {
-      showToast({type: 'error', title: 'Failed to update profile'});
+      showToast({ type: 'error', title: 'Failed to update profile' });
     }
   };
 
@@ -150,12 +154,12 @@ export const EditProfile: React.FC<EditProfileScreenProps> = () => {
         onProfilePhotoUpload={onProfilePhotoUpload}
         onCoverPhotoUpload={onCoverPhotoUpload}
         profilePhoto={
-          (profilePhoto?.uri ? {uri: profilePhoto.uri} : undefined) ||
-          (profile.data?.image ? {uri: profile.data?.image} : undefined)
+          (profilePhoto?.uri ? { uri: profilePhoto.uri } : undefined) ||
+          (profile.data?.image ? { uri: profile.data?.image } : undefined)
         }
         coverPhoto={
-          (coverPhoto?.uri ? {uri: coverPhoto.uri} : undefined) ||
-          (profile.data?.banner ? {uri: profile.data?.banner} : undefined)
+          (coverPhoto?.uri ? { uri: coverPhoto.uri } : undefined) ||
+          (profile.data?.banner ? { uri: profile.data?.banner } : undefined)
         }
         buttons={
           <Button variant="secondary" small onPress={onSubmitPress}>
@@ -170,7 +174,7 @@ export const EditProfile: React.FC<EditProfileScreenProps> = () => {
         onSubmit={onFormSubmit}
         validate={validateForm}
       >
-        {({handleChange, handleBlur, values, errors}) => (
+        {({ handleChange, handleBlur, values, errors, setFieldValue }) => (
           <View style={styles.form}>
             <SquareInput
               placeholder="username"
@@ -256,6 +260,11 @@ export const EditProfile: React.FC<EditProfileScreenProps> = () => {
               value={values.twitter}
               error={errors.twitter}
             />
+
+
+            <View style={styles.gap} />
+            <Hashtags values={values} setFieldValue={setFieldValue} />
+
           </View>
         )}
       </Formik>

@@ -12,7 +12,7 @@ export const useEditProfile = () => {
 
   return useMutation({
     mutationKey: ['editProfile', ndk],
-    mutationFn: async (data: NDKUserProfile) => {
+    mutationFn: async (data: NDKUserProfile, tags?: string[]) => {
       try {
         const user = ndk.getUser({pubkey: publicKey});
         await user.fetchProfile();
