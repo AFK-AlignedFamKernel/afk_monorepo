@@ -5,7 +5,7 @@ import { BuyToken } from './interfaces';
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   async create(data: BuyToken) {
     try {
@@ -28,6 +28,7 @@ export class BuyTokenService {
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
+
         if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
           newLiquidityRaised = Number(maxLiquidityRaised);
         }
@@ -36,12 +37,28 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
           Number(data.amount);
 
+        // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
+
+        // Calculate price based on liquidity and token supply
+        // Price = Liquidity in ETH / Total tokens in pool
+        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0);
+        const liquidityInQuoteToken= Number(newLiquidityRaised);
+        // const tokensInPool = Number(newTotalTokenHolded);
+        const tokensInPool = Number(initPoolSupply);
+        // Avoid division by zero
+        let price = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+
+        if (price < 0) {
+          price = 0;
+        }
+
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
             current_supply: newSupply.toString(),
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
+            price: price?.toString()
           },
         });
       }
