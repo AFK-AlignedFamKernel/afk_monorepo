@@ -26,6 +26,12 @@ export class BuyTokenService {
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
+        const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
+
+        if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
+          newLiquidityRaised = Number(maxLiquidityRaised);
+        }
+
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
           Number(data.amount);
