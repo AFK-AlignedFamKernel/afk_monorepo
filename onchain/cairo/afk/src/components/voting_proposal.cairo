@@ -6,7 +6,7 @@ use starknet::ContractAddress;
 #[starknet::component]
 pub mod VoteComponent {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::voting_proposal::{
+    use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState
     };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
@@ -84,7 +84,7 @@ pub mod VoteComponent {
     #[embeddable_as(Vote)]
     impl VoteImpl<
         TContractState, +HasComponent<TContractState>
-    > of super::IVoteProposal<ComponentState<TContractState>> {
+    > of IVoteProposal<ComponentState<TContractState>> {
         fn create_proposal(ref self: ComponentState<TContractState>, proposal: Proposal) {
             let caller = get_caller_address();
             let proposal_id = self.total_proposal.read();
