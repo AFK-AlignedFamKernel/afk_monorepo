@@ -232,12 +232,12 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
         if (navigator.share) {
           await navigator.share({
             title: 'Share AFK Gift Link',
-            url: `/receive/ecash/${generatedEcash}`,
+            url: `/app/receive/ecash/${generatedEcash}`,
           });
         } else {
           // Fallback for browsers that don't support Web Share API
           const baseUrl = window.location.origin;
-          await navigator.clipboard.writeText(`${baseUrl}/receive/ecash/${generatedEcash}`);
+          await navigator.clipboard.writeText(`${baseUrl}/app/receive/ecash/${generatedEcash}`);
           const key = randomUUID();
           setShowModalToast(true);
           setModalToast({type: 'success', title: 'Link copied to clipboard.,', key});
