@@ -223,7 +223,7 @@ export const CashuView = () => {
       </Modal>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          {activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
+          {activeMintIndex && activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
           <View style={styles.actionsContainer}>
             <View style={styles.actionButtonsContainer}>
               <Button

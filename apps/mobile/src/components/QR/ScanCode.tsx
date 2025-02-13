@@ -394,3 +394,6 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
     </View>
   );
 };
+
+
+export default ScanQRCode;

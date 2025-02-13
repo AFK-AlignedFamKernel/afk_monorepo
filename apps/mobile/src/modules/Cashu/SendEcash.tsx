@@ -1,31 +1,31 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {GetInfoResponse, MintQuoteResponse} from '@cashu/cashu-ts';
-import {Picker} from '@react-native-picker/picker';
-import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import { GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
+import { Picker } from '@react-native-picker/picker';
+import { getProofs, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
+import { MintData } from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, useEffect, useState} from 'react';
-import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
-import {Text, TextInput} from 'react-native';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
-import {Button, Input} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {usePayment} from '../../hooks/usePayment';
-import {useCashuContext} from '../../providers/CashuProvider';
-import {UnitInfo} from './MintListCashu';
-import ScanCashuQRCode from './qr/ScanCode';
+import { CloseIcon, CopyIconStack, ScanQrIcon } from '../../assets/icons';
+import { Button, Input } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { usePayment } from '../../hooks/usePayment';
+import { useCashuContext } from '../../providers/CashuProvider';
+import { UnitInfo } from './MintListCashu';
+// import ScanCashuQRCode from './qr/';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
-
+import ScanQRCode from '../../components/QR/ScanCode';
 interface SendEcashProps {
   onClose: () => void;
 }
 
-export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
+export const SendEcash: React.FC<SendEcashProps> = ({ onClose }) => {
   type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
   const tabs = ['lightning', 'ecash', 'contact'] as const;
   const [activeTab, setActiveTab] = useState<TabType>('none');
@@ -34,7 +34,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     setActiveTab(tab);
   };
 
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+  const { ndkCashuWallet, ndkWallet } = useNostrContext();
   const {
     wallet,
     connectCashMint,
@@ -52,7 +52,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
   } = useCashuContext()!;
   const [ecash, setEcash] = useState<string | undefined>();
   const [invoice, setInvoice] = useState<string | undefined>();
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
 
   const styles = useStyles(stylesheet);
   // const [mintUrl, setMintUrl] = useState<string | undefined>("https://mint.minibits.cash/Bitcoin")
@@ -74,13 +74,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
   const [generatedEcash, setGenerateEcash] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>(String(0));
   const [invoiceMemo, setInvoiceMemo] = useState('');
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>();
 
-  const {showDialog, hideDialog} = useDialog();
-  const {handleGenerateEcash, handlePayInvoice} = usePayment();
+  const { showDialog, hideDialog } = useDialog();
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const handleChangeEcash = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -155,24 +155,29 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
     //   }
 
     // }
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
   const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
-  const [selectedMint, setSelectedMint] = useState<MintData>(mintUrls[activeMintIndex]);
+  const [selectedMint, setSelectedMint] = useState<MintData>(mintUrls && mintUrls[activeMintIndex ?? 0]);
   const [selectedCurrency, setSelectedCurrency] = useState('sat');
   // Load units and their balances for each mint
   useEffect(() => {
     const loadMintUnits = async () => {
       const newMintUnitsMap = new Map<string, UnitInfo[]>();
 
+      if (!mintUrls) return;
       for (const mint of mintUrls) {
         try {
-          const units = await getUnits(mint);
+          const units = await getUnits(mint?.url);
+
+          const proofs = await getProofs();
+
+          const convertedProofs = proofs ? JSON.parse(proofs) : [];
           // Get balance for each unit
           const unitsWithBalance = await Promise.all(
             units.map(async (unit) => {
-              const balance = await getUnitBalance(unit, mint);
+              const balance = await getUnitBalance(unit, mint, convertedProofs);
               return {
                 unit,
                 balance,
@@ -195,7 +200,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
 
   const handleOnChangeSelectedMint = (newSelection: string) => {
     console.log(newSelection);
-    const newSelectedMint = mintUrls.find((mint) => mint.url === newSelection);
+    const newSelectedMint = mintUrls && mintUrls.find((mint) => mint.url === newSelection);
     if (newSelectedMint) setSelectedMint(newSelectedMint);
   };
 
@@ -227,7 +232,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
           <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
               onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
             >
               <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
@@ -247,7 +252,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -260,7 +265,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   style={styles.input}
                 />
                 <View
-                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                  style={{ display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center' }}
                 >
                   <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
                     <Text style={styles.pasteButtonText}>PASTE</Text>
@@ -280,7 +285,13 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
               </>
             </View>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-              <ScanCashuQRCode onClose={handleCloseScanner} />
+              {/* <ScanCashuQRCode onClose={handleCloseScanner} /> */}
+              <ScanQRCode onClose={handleCloseScanner} onSuccess={() => {
+                showToast({
+                  title: 'QR code scanned',
+                  type: 'success',
+                } );
+              }} />
             </Modal>
           </>
         );
@@ -290,7 +301,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -311,7 +322,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
                   ]}
                   onValueChange={(newSelectedMint) => handleOnChangeSelectedMint(newSelectedMint)}
                 >
-                  {mintUrls.map((mintUrl) => (
+                  {mintUrls && mintUrls?.map((mintUrl) => (
                     <Picker.Item
                       key={mintUrl.url}
                       label={mintUrl.url}
@@ -391,7 +402,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>

@@ -71,7 +71,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         </Text>
       ) : null}
 
-      {token?.is_liquidity_launch &&
+      {token?.is_liquidity_added &&
         <View>
           <Icon name="CheckIcon" size={15} />
           <Text style={{ fontSize: 10, fontStyle: "italic" }}>Graduated</Text>

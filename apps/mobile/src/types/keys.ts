@@ -57,7 +57,8 @@ export interface TokenDeployInterface {
   created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
-  is_liquidity_launch: boolean;
+  is_liquidity_launch?: boolean;
+  is_liquidity_added?: boolean;
   token_quote: TokenQuoteBuyKeys;
   threshold_liquidity?: Uint256;
   slope?: Uint256;

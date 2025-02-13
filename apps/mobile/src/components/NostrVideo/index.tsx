@@ -29,8 +29,48 @@ const NostrVideo = ({item, shouldPlay}: {shouldPlay: boolean; item: NostrEvent})
     }
   }, [shouldPlay]);
 
+  useEffect(() => {
+    const checkViewability = async () => {
+      if (!video.current) return;
+
+      try {
+        const videoRef = video.current;
+        const measureResult = await new Promise((resolve) => {
+          resolve({ x: 0, y: 0, width: 0, height: 0 });
+        });
+
+        const { y, height } = measureResult as { x: number; y: number; width: number; height: number };
+        const windowHeight = window.innerHeight;
+        const isVisible = y >= 0 && y + height <= windowHeight;
+
+        if (isVisible) {
+          videoRef.playAsync();
+        } else {
+          videoRef.pauseAsync();
+          videoRef.setPositionAsync(0);
+        }
+      } catch (error) {
+        console.error('Error checking video viewability:', error);
+      }
+    };
+
+    checkViewability();
+  }, []);
+
   const extractVideoURL = (event: NostrEvent) => {
-    return event?.tags?.find((tag) => tag?.[0] === 'url')?.[1] || '';
+
+    const tags = event?.tags?.find((tag) => tag?.[0] === 'url' || tag?.[0] == "imeta" )?.[1] || '';
+
+    if (tags.includes('url:')) {
+      return tags.split('url:')[1].trim();
+    } else if (tags.includes('etc:')) {
+      return tags.split('etc:')[1].trim(); 
+    }
+    const urlMatch = tags.match(/(https?:\/\/[^\s]+\.(mp4|mov|avi|mkv|webm|gif))/i);
+    if (urlMatch) {
+      return urlMatch[0];
+    }
+    return tags
   };
 
   const handleProfile = () => {
@@ -58,6 +98,10 @@ const NostrVideo = ({item, shouldPlay}: {shouldPlay: boolean; item: NostrEvent})
     //todo: integrate hook
   };
 
+
+  // console.log("item",item)
+  const videoURL = extractVideoURL(item);
+  // console.log("uri", videoURL);
   return (
     <>
       <Pressable
@@ -68,11 +112,12 @@ const NostrVideo = ({item, shouldPlay}: {shouldPlay: boolean; item: NostrEvent})
         <View style={styles.videoContainer}>
           <Video
             ref={video}
-            source={{uri: extractVideoURL(item)}}
+            source={{uri: videoURL}}
             style={styles.video}
             isLooping
+            shouldPlay={true}
             resizeMode={ResizeMode.COVER}
-            useNativeControls={false}
+            // useNativeControls={false}
             onPlaybackStatusUpdate={(status) => setStatus(() => status)}
             videoStyle={styles.innerVideo}
           />

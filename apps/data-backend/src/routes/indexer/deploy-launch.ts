@@ -26,6 +26,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           bonding_type:true,
           total_token_holded:true,
           block_timestamp:true,
+          is_liquidity_added:true,
         },
       });
 
@@ -67,6 +68,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           bonding_type:true,
           total_token_holded:true,
           block_timestamp:true,
+          is_liquidity_added:true,
+
         },
       });
 
@@ -108,6 +111,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           bonding_type:true,
           total_token_holded:true,
           block_timestamp:true,
+          is_liquidity_added:true,
         },
       });
 
