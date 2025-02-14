@@ -1,3 +1,4 @@
+use starknet::account::Call;
 use starknet::storage::{
     Map, Vec // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
@@ -143,6 +144,13 @@ pub struct ConfigResponse {
     pub minimum_threshold_percentage: u64
 }
 
+#[starknet::storage_node]
+pub struct Calldata {
+    pub to: ContractAddress,
+    pub selector: felt252,
+    pub calldata: Vec<felt252>,
+    pub is_executed: bool
+}
 
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct VoteState {
@@ -166,7 +174,7 @@ pub struct VoteState {
 #[starknet::interface]
 pub trait IVoteProposal<TContractState> {
     fn create_proposal(
-        ref self: TContractState, proposal_params: ProposalParams, calldata: Array<felt252>
+        ref self: TContractState, proposal_params: ProposalParams, calldata: Call
     ) -> u256;
     fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
