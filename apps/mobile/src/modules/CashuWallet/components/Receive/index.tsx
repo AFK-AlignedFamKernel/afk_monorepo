@@ -1,37 +1,39 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import {MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
-import {ICashuInvoice} from 'afk_nostr_sdk';
+import { MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
+import { ICashuInvoice } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {randomUUID} from 'expo-crypto';
-import React, {useState} from 'react';
-import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
-import {Text, TextInput} from 'react-native';
+import { randomUUID } from 'expo-crypto';
+import React, { useState } from 'react';
+import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../../../assets/icons';
-import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
-import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
-import {ToastConfig} from '../../../../context/Toast/ToastContext';
-import {useStyles, useTheme} from '../../../../hooks';
-import {usePayment} from '../../../../hooks/usePayment';
+import { CloseIcon, CopyIconStack, ScanQrIcon } from '../../../../assets/icons';
+import { Button, GenerateQRCode, Input, ScanQRCode } from '../../../../components';
+import { AnimatedToast } from '../../../../context/Toast/AnimatedToast';
+import { ToastConfig } from '../../../../context/Toast/ToastContext';
+import { useStyles, useTheme } from '../../../../hooks';
+import { usePayment } from '../../../../hooks/usePayment';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
   useInvoicesStorage,
 } from '../../../../hooks/useStorageState';
-import {useCashuContext} from '../../../../providers/CashuProvider';
+import { useCashuContext } from '../../../../providers/CashuProvider';
 import stylesheet from './styles';
+import { useToast } from '../../../../hooks/modals';
 
 interface ReceiveProps {
   onClose: () => void;
 }
 
-export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
-  const {theme} = useTheme();
+export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const {handleReceiveEcash} = usePayment();
-  const {requestMintQuote} = useCashuContext()!;
+  const { showToast } = useToast();
+  const { handleReceiveEcash } = usePayment();
+  const { requestMintQuote } = useCashuContext()!;
 
   type TabType = 'lightning' | 'ecash' | 'none';
   const tabs = ['lightning', 'ecash'] as const;
@@ -47,9 +49,9 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
   const [showModalToast, setShowModalToast] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const {value: activeMint} = useActiveMintStorage();
-  const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
-  const {value: activeUnit} = useActiveUnitStorage();
+  const { value: activeMint } = useActiveMintStorage();
+  const { value: invoices, setValue: setInvoices } = useInvoicesStorage();
+  const { value: activeUnit } = useActiveUnitStorage();
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -84,7 +86,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
     } catch (error) {
       setShowModalToast(true);
       const key = randomUUID();
-      setModalToast({type: 'error', title: 'Error generating invoice.', key});
+      setModalToast({ type: 'error', title: 'Error generating invoice.', key });
     } finally {
       setIsGeneratingInvoice(false);
     }
@@ -109,7 +111,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
     }
     setShowModalToast(true);
     const key = randomUUID();
-    setModalToast({type: 'info', title: 'Copied to clipboard', key});
+    setModalToast({ type: 'info', title: 'Copied to clipboard', key });
   };
 
   const handlePaste = async () => {
@@ -133,13 +135,20 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
 
   const handleEcashPayment = async (ecash?: string) => {
     setIsProcessing(true);
+    console.log('handleEcashPayment', ecash);
+    showToast({ title: 'Handle receive ecash', type: 'info' });
+
     const response = await handleReceiveEcash(ecash);
+    console.log('response', response);
     setIsProcessing(false);
     if (!response) {
       const key = randomUUID();
-      setModalToast({type: 'error', title: 'Error processing payment.', key});
+      setModalToast({ type: 'error', title: 'Error processing payment.', key });
       setShowModalToast(true);
       return;
+    } else {
+      showToast({ title: 'Handle receive ecash', type: 'info' });
+
     }
     onClose();
   };
@@ -151,7 +160,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
           <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
               onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
             >
               <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
@@ -171,7 +180,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -200,7 +209,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
 
                 {quote?.request && isInvoiceGenerated ? (
                   <View
-                    style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}
+                    style={{ marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20 }}
                   >
                     <Text style={styles.text}>Invoice address</Text>
 
@@ -210,7 +219,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                       right={
                         <TouchableOpacity
                           onPress={() => handleCopy('lnbc')}
-                          style={{marginRight: 10}}
+                          style={{ marginRight: 10 }}
                         >
                           <CopyIconStack color={theme.colors.primary} />
                         </TouchableOpacity>
@@ -236,7 +245,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -249,7 +258,7 @@ export const Receive: React.FC<ReceiveProps> = ({onClose}) => {
                   style={styles.input}
                 />
                 <View
-                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                  style={{ display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center' }}
                 >
                   <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
                     <Text style={styles.pasteButtonText}>PASTE</Text>

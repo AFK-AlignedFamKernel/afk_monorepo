@@ -19,7 +19,7 @@ import {
 import PolyfillCrypto from 'react-native-webview-crypto';
 
 import { ChevronLeftIcon, ScanQrIcon } from '../../assets/icons';
-import { Button, IconButton, Modalize } from '../../components';
+import { Button, IconButton, Modalize, ScanQRCode } from '../../components';
 import { ContactsRow } from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
 import { useStyles, useTheme } from '../../hooks';
@@ -34,7 +34,7 @@ import { InvoicesListCashu } from './InvoicesListCashu';
 import { MintListCashu } from './MintListCashu';
 import { MnemonicCashu } from './MnemonicCashu';
 import { NoMintBanner } from './NoMintBanner';
-import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
+// import ScanCashuQRCode from './qr/ScanCode'; // Adjust the import path as needed
 import { ReceiveEcash } from './ReceiveEcash';
 import { SendEcash } from './SendEcash';
 import stylesheet from './styles';
@@ -214,8 +214,8 @@ export const CashuView = () => {
           <SendEcash onClose={() => setSendModalOpen(false)}></SendEcash>
         </View>
       </Modal>
-      <Modal animationType="fade" 
-      // transparent={true}
+      <Modal animationType="fade"
+        // transparent={true}
         visible={receiveModalOpen}>
         <View style={styles.modalBackdrop}>
           <ReceiveEcash onClose={() => setReceiveModalOpen(false)}></ReceiveEcash>
@@ -225,7 +225,9 @@ export const CashuView = () => {
         <ScrollView contentContainerStyle={styles.scrollView}>
           {activeMintIndex && activeMintIndex >= 0 ? <BalanceCashu /> : <NoMintBanner />}
           <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonsContainer}>
+            {/* <View style={styles.actionButtonsContainer}> */}
+            <ScrollView horizontal style={styles.actionButtonsContainer}>
+         
               <Button
                 onPress={onOpenSendModal}
                 style={styles.actionButton}
@@ -240,7 +242,17 @@ export const CashuView = () => {
               >
                 Receive
               </Button>
-            </View>
+
+              <Button
+                onPress={handleQRCodeClick}
+                style={styles.actionButton}
+                textStyle={styles.actionButtonText}
+              >
+                Scan <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+              </Button>
+          
+            </ScrollView>
+            {/* </View> */}
             <Text style={styles.orText}>or</Text>
             <View>
               <Button onPress={handleQRCodeClick} style={styles.qrButton}>
@@ -356,7 +368,9 @@ export const CashuView = () => {
         </ScrollView>
       </SafeAreaView>
       <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-        <ScanCashuQRCode onClose={handleCloseScanner} />
+        <ScanQRCode onClose={handleCloseScanner} onSuccess={
+          showToast({ title: 'Success', type: 'success' })
+        } />
       </Modal>
     </View>
   );

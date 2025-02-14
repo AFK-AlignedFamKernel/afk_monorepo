@@ -384,6 +384,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({ onClose }) => {
                     <Input
                       value={generatedEcash}
                       editable={false}
+                      maxLength={30}
                       right={
                         <TouchableOpacity onPress={() => handleCopy('ecash')}>
                           <CopyIconStack color={theme.colors.primary} />
