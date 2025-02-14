@@ -123,8 +123,8 @@ export const CashuView = () => {
   const { showDialog, hideDialog } = useDialog();
   const { showToast } = useToast();
 
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
-  const [showMore, setShowMore] = useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
+  const [showMore, setShowMore] = useState<boolean>(true);
 
   const [isScannerVisible, setIsScannerVisible] = useState(false);
 

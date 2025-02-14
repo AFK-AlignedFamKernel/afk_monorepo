@@ -271,8 +271,12 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({ onClose }) => {
                   >
                     <Text style={styles.text}>Invoice address</Text>
 
+
                     <Input
-                      value={quote?.request}
+                      style={{width: '80%'}}
+                      numberOfLines={1}
+                      // ellipsizeMode="middle"
+                      value={quote?.request ? `${quote.request.slice(0,15)}...${quote.request.slice(-15)}` : ''}
                       editable={false}
                       right={
                         <TouchableOpacity
