@@ -1,7 +1,7 @@
 import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 
 export default ThemedStyleSheet(
-  (theme, error: boolean, left: boolean, right: boolean, paddingRight = true) => ({
+  (theme, error: boolean, left: boolean, right: boolean, paddingRight = true, inputProps: TextInputProps) => ({
     container: {
       width: '100%',
     },
@@ -14,7 +14,7 @@ export default ThemedStyleSheet(
       backgroundColor: theme.colors.inputBackground,
       borderColor: theme.colors.inputBorder,
       height: 56,
-
+      ...inputProps,
       ...(error && {
         backgroundColor: theme.colors.errorLight,
         borderColor: theme.colors.errorDark,
