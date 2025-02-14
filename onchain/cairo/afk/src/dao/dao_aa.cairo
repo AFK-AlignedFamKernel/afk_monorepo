@@ -34,7 +34,7 @@ pub mod DaoAA {
     use afk::interfaces::voting::{
         IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
-        ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled,
+        ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled, Calldata,
     };
     use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
     use afk::social::transfer::Transfer;
@@ -101,7 +101,7 @@ pub mod DaoAA {
         minimum_threshold_percentage: u64,
         transfers: Map<u256, bool>,
         proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
-        proposals_calldata: Map<u256, Vec<felt252>>, // Map ProposalID => calldata
+        proposals_calldata: Map<u256, Calldata>, // Map ProposalID => calldata
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
@@ -197,9 +197,8 @@ pub mod DaoAA {
         // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance
         // Add TX Calldata for this proposal
         fn create_proposal(
-            ref self: ContractState, proposal_params: ProposalParams, calldata: Array<felt252>,
+            ref self: ContractState, proposal_params: ProposalParams, calldata: Call,
         ) -> u256 {
-            assert(calldata.len() > 0, 'EMPTY CALLDATA');
             let owner = get_caller_address();
             let minimal_balance = self.minimal_balance_create_proposal.read();
 
@@ -233,12 +232,13 @@ pub mod DaoAA {
             self.proposals.entry(id).write(Option::Some(proposal));
 
             let proposal_calldata = self.proposals_calldata.entry(id);
-            for i in 0
-                ..calldata
-                    .len() {
-                        let data = *calldata.at(i);
-                        proposal_calldata.append().write(data);
-                    };
+
+            proposal_calldata.to.write(calldata.to);
+            proposal_calldata.selector.write(calldata.selector);
+            proposal_calldata.is_executed.write(false);
+            for data in calldata.calldata {
+                proposal_calldata.calldata.append().write(*data);
+            };
 
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
@@ -545,7 +545,7 @@ mod tests {
     use afk::interfaces::voting::{
         Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
         ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved
+        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
@@ -554,6 +554,7 @@ mod tests {
         EventsFilterTrait, cheat_caller_address, cheatcodes::events::Event, declare, spy_events,
         cheat_block_timestamp,
     };
+    use starknet::account::Call;
     use starknet::{ContractAddress, contract_address_const};
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
 
@@ -610,10 +611,13 @@ mod tests {
             proposal_type: Default::default(),
             proposal_automated_transaction: Default::default(),
         };
-
-        let mock_calldata: Array<felt252> = array!['data 1', 'data 2'];
+        let calldata = Call {
+            to: contract_address_const::<'TO'>(),
+            selector: 'selector',
+            calldata: array!['data 1', 'data 2'].span()
+        };
         // created by 'CREATOR'
-        proposal_dispatcher.create_proposal(proposal_params, mock_calldata)
+        proposal_dispatcher.create_proposal(proposal_params, calldata)
     }
 
     /// TESTS
@@ -835,7 +839,7 @@ mod tests {
         proposal_dispatcher.process_result(proposal_id);
 
         let expected_event = super::DaoAA::Event::ProposalResolved(
-            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed }
+            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed },
         );
 
         spy.assert_emitted(@array![(proposal_contract, expected_event)]);
