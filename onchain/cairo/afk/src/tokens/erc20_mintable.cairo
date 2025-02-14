@@ -85,7 +85,7 @@ pub mod ERC20Mintable {
         name: ByteArray,
         symbol: ByteArray,
         owner: ContractAddress,
-        initial_supply: u256
+        initial_supply: u256,
     ) {
         self.ownable.initializer(owner);
         self.erc20.initializer(name, symbol);
@@ -112,7 +112,7 @@ pub mod ERC20Mintable {
             self.erc20.burn(recipient, amount);
         }
         fn set_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
         ) {
             self._set_role(recipient, role, is_enable);
         }
@@ -124,14 +124,14 @@ pub mod ERC20Mintable {
     #[generate_trait]
     impl PrivateImpl of PrivateTrait {
         fn _set_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             assert!(
                 role == ADMIN_ROLE
                     || role == MINTER_ROLE // Think and Add others roles needed on the protocol
                     ,
-                "role not enable"
+                "role not enable",
             );
             if is_enable {
                 self.accesscontrol._grant_role(role, recipient);

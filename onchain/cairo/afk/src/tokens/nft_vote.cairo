@@ -35,7 +35,7 @@ pub mod ERC721VotesContract {
         #[substorage(v0)]
         pub src5: SRC5Component::Storage,
         #[substorage(v0)]
-        pub nonces: NoncesComponent::Storage
+        pub nonces: NoncesComponent::Storage,
     }
 
     #[event]
@@ -48,7 +48,7 @@ pub mod ERC721VotesContract {
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
-        NoncesEvent: NoncesComponent::Event
+        NoncesEvent: NoncesComponent::Event,
     }
 
     /// Required for hash computation.
@@ -72,7 +72,7 @@ pub mod ERC721VotesContract {
             ref self: ERC721Component::ComponentState<ContractState>,
             to: ContractAddress,
             token_id: u256,
-            auth: ContractAddress
+            auth: ContractAddress,
         ) {
             let mut contract_state = ERC721Component::HasComponent::get_contract_mut(ref self);
 

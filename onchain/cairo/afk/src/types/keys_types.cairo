@@ -1,6 +1,6 @@
 use starknet::{
-    ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
-    get_block_timestamp, get_contract_address,
+    ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+    get_contract_address, storage_access::StorageBaseAddress,
 };
 
 pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
@@ -16,7 +16,7 @@ pub struct TokenQuoteBuyKeys {
     pub initial_key_price: u256,
     pub price: u256,
     pub step_increase_linear: u256,
-    pub is_enable: bool
+    pub is_enable: bool,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -30,7 +30,7 @@ pub struct Keys {
     pub bonding_curve_type: Option<BondingType>,
     pub created_at: u64,
     pub token_quote: TokenQuoteBuyKeys,
-    pub nostr_public_key: u256
+    pub nostr_public_key: u256,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store)]
@@ -45,13 +45,13 @@ pub struct SharesKeys {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, //  PartialEq
+ Drop, starknet::Store //  PartialEq
 )]
 pub enum BondingType {
     Linear,
     Scoring, // Nostr data with Appchain connected to a Relayer
     Exponential,
-    Limited
+    Limited,
 }
 
 // Event
@@ -72,7 +72,7 @@ pub struct BuyKeys {
     pub amount: u256,
     pub price: u256,
     pub protocol_fee: u256,
-    pub creator_fee: u256
+    pub creator_fee: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -84,7 +84,7 @@ pub struct SellKeys {
     pub amount: u256,
     pub price: u256,
     pub protocol_fee: u256,
-    pub creator_fee: u256
+    pub creator_fee: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -102,7 +102,7 @@ pub struct KeysUpdated {
     #[key]
     user: ContractAddress,
     supply: u256,
-    price: u256
+    price: u256,
 }
 
 
@@ -118,7 +118,7 @@ pub fn get_current_price(key: @Keys, supply: u256, amount_to_buy: u256) -> u256 
 
 
 pub fn get_linear_price( // key: @Keys, 
-key: Keys, supply: u256, //  amount_to_buy: u256
+key: Keys, supply: u256 //  amount_to_buy: u256
 ) -> u256 {
     let step_increase_linear = key.token_quote.step_increase_linear.clone();
     let initial_key_price = key.token_quote.initial_key_price.clone();
@@ -140,7 +140,7 @@ pub impl KeysBondingImpl of KeysBonding {
                     _ => { get_linear_price(self, supply) },
                 }
             },
-            Option::None => { get_linear_price(self, supply) }
+            Option::None => { get_linear_price(self, supply) },
         }
     }
 }

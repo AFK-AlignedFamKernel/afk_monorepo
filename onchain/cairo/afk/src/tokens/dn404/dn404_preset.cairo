@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod DN404Preset {
     use DN404Component::DN404HooksTrait;
-    use crate::tokens::dn404::dn404_component::{IDN404, DN404Component, DN404Options};
+    use crate::tokens::dn404::dn404_component::{DN404Component, DN404Options, IDN404};
     use openzeppelin::access::ownable::OwnableComponent;
     use starknet::ContractAddress;
 
@@ -53,14 +53,14 @@ pub mod DN404Preset {
         self
             .dn404
             .initializer(
-                name, symbol, decimals, initial_token_supply, initial_supply_owner, mirror, options
+                name, symbol, decimals, initial_token_supply, initial_supply_owner, mirror, options,
             );
         self.ownable.initializer(initial_supply_owner);
         self.base_uri.write(base_uri);
     }
 
     impl DN404HooksImpl of DN404HooksTrait<ContractState> {
-        fn token_uri(self: @DN404Component::ComponentState<ContractState>, id: u256,) -> ByteArray {
+        fn token_uri(self: @DN404Component::ComponentState<ContractState>, id: u256) -> ByteArray {
             let contract_state = DN404Component::HasComponent::get_contract(self);
             format!("{}/{}", contract_state.base_uri.read(), id)
         }
@@ -69,7 +69,7 @@ pub mod DN404Preset {
             ref self: DN404Component::ComponentState<ContractState>,
             from: ContractAddress,
             to: ContractAddress,
-            ids: Array<u256>
+            ids: Array<u256>,
         ) {}
     }
 }

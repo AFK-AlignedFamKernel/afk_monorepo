@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod DN404MirrorPreset {
-    use crate::tokens::dn404::dn404_mirror_component::{IDN404Mirror, DN404MirrorComponent};
+    use crate::tokens::dn404::dn404_mirror_component::{DN404MirrorComponent, IDN404Mirror};
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::ContractAddress;
 
@@ -31,7 +31,7 @@ pub mod DN404MirrorPreset {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, deployer: ContractAddress,) {
+    fn constructor(ref self: ContractState, deployer: ContractAddress) {
         self.dn404_mirror.initializer(deployer);
     }
 }

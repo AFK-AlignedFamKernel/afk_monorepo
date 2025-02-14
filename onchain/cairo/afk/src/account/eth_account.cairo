@@ -19,7 +19,7 @@ mod EthAccount {
         #[substorage(v0)]
         eth_account: EthAccountComponent::Storage,
         #[substorage(v0)]
-        src5: SRC5Component::Storage
+        src5: SRC5Component::Storage,
     }
 
     #[event]
@@ -28,7 +28,7 @@ mod EthAccount {
         #[flat]
         EthAccountEvent: EthAccountComponent::Event,
         #[flat]
-        SRC5Event: SRC5Component::Event
+        SRC5Event: SRC5Component::Event,
     }
 
     #[constructor]

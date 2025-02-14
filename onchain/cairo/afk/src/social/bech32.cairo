@@ -24,7 +24,7 @@ use core::traits::{Into, TryInto};
 
 fn polymod(values: Array<u8>) -> u32 {
     let generator = array![
-        0x3b6a57b2_u32, 0x26508e6d_u32, 0x1ea119fa_u32, 0x3d4233dd_u32, 0x2a1462b3_u32
+        0x3b6a57b2_u32, 0x26508e6d_u32, 0x1ea119fa_u32, 0x3d4233dd_u32, 0x2a1462b3_u32,
     ];
     let generator = generator.span();
 
@@ -175,7 +175,7 @@ mod tests {
         assert(encode(@"abcd", @"\x00\x00", 90) == "abcd1qqqqzclr2u", 'errorc bech32');
         assert(encode(@"abcd", @"\x00\x00\x00\x00", 90) == "abcd1qqqqqqqgf3j03", 'error bech32');
         assert(
-            encode(@"abcdef", @"\x00\x00\x00\x00", 90) == "abcdef1qqqqqqqex27k2", 'error bech32'
+            encode(@"abcdef", @"\x00\x00\x00\x00", 90) == "abcdef1qqqqqqqex27k2", 'error bech32',
         );
     }
 }

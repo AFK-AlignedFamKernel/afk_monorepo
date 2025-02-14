@@ -2,18 +2,18 @@
 mod dn404_presets_test {
     use core::num::traits::Zero;
     use crate::tokens::dn404::dn404_component::{
-        DN404Options, IDN404Dispatcher, IDN404DispatcherTrait
+        DN404Options, IDN404Dispatcher, IDN404DispatcherTrait,
     };
     use crate::tokens::dn404::dn404_mirror_component::{
-        DN404MirrorComponent, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait
+        DN404MirrorComponent, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait,
     };
     use crate::tokens::dn404::dn404_mirror_preset::DN404MirrorPreset;
     use crate::tokens::dn404::dn404_preset::DN404Preset;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events, EventSpy, EventSpyTrait, EventSpyAssertionsTrait,
-        Event
+        ContractClass, ContractClassTrait, DeclareResultTrait, Event, EventSpy,
+        EventSpyAssertionsTrait, EventSpyTrait, declare, spy_events, start_cheat_caller_address,
+        stop_cheat_caller_address,
     };
     use starknet::{ContractAddress, get_caller_address};
 
@@ -95,8 +95,8 @@ mod dn404_presets_test {
                 1000000,
                 OWNER(),
                 mirror.contract_address,
-                options
-            )
+                options,
+            ),
         };
 
         (dn404, mirror)
@@ -195,12 +195,12 @@ mod dn404_presets_test {
                         DN404MirrorPreset::Event::DN404MirrorEvent(
                             DN404MirrorComponent::Event::Transfer(
                                 DN404MirrorComponent::TransferEvent {
-                                    from: SENDER(), to: RECIPIENT(), id: 1
-                                }
-                            )
-                        )
-                    )
-                ]
+                                    from: SENDER(), to: RECIPIENT(), id: 1,
+                                },
+                            ),
+                        ),
+                    ),
+                ],
             );
     }
 
@@ -252,22 +252,22 @@ mod dn404_presets_test {
                         DN404MirrorPreset::Event::DN404MirrorEvent(
                             DN404MirrorComponent::Event::Transfer(
                                 DN404MirrorComponent::TransferEvent {
-                                    from: RECIPIENT(), to: Zero::zero(), id: token1_id
-                                }
-                            )
-                        )
+                                    from: RECIPIENT(), to: Zero::zero(), id: token1_id,
+                                },
+                            ),
+                        ),
                     ),
                     (
                         mirror.contract_address,
                         DN404MirrorPreset::Event::DN404MirrorEvent(
                             DN404MirrorComponent::Event::Transfer(
                                 DN404MirrorComponent::TransferEvent {
-                                    from: RECIPIENT(), to: Zero::zero(), id: token2_id
-                                }
-                            )
-                        )
-                    )
-                ]
+                                    from: RECIPIENT(), to: Zero::zero(), id: token2_id,
+                                },
+                            ),
+                        ),
+                    ),
+                ],
             );
 
         // Verify NFTs were burned
@@ -292,22 +292,22 @@ mod dn404_presets_test {
                         DN404MirrorPreset::Event::DN404MirrorEvent(
                             DN404MirrorComponent::Event::Transfer(
                                 DN404MirrorComponent::TransferEvent {
-                                    from: Zero::zero(), to: SENDER(), id: token1_id
-                                }
-                            )
-                        )
+                                    from: Zero::zero(), to: SENDER(), id: token1_id,
+                                },
+                            ),
+                        ),
                     ),
                     (
                         mirror.contract_address,
                         DN404MirrorPreset::Event::DN404MirrorEvent(
                             DN404MirrorComponent::Event::Transfer(
                                 DN404MirrorComponent::TransferEvent {
-                                    from: Zero::zero(), to: SENDER(), id: token2_id
-                                }
-                            )
-                        )
-                    )
-                ]
+                                    from: Zero::zero(), to: SENDER(), id: token2_id,
+                                },
+                            ),
+                        ),
+                    ),
+                ],
             );
 
         // Verify the same token IDs were reused

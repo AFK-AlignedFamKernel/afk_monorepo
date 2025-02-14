@@ -23,7 +23,7 @@ mod StakingRewards {
         ref self: ContractState,
         owner: ContractAddress,
         staking_token: ContractAddress,
-        reward_token: ContractAddress
+        reward_token: ContractAddress,
     ) {
         self.staking._initializer(owner, staking_token, reward_token);
     }

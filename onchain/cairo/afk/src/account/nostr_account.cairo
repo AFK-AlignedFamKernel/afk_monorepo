@@ -2,7 +2,7 @@ use afk::bip340::SchnorrSignature;
 // contract_address_const};
 use afk::social::profile::NostrProfile;
 use afk::social::request::{
-    SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage, NostrEventBasic
+    NostrEventBasic, SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage,
 };
 use afk::social::transfer::Transfer;
 use starknet::account::Call;
@@ -18,7 +18,7 @@ pub trait INostrAccount<TContractState> {
 
     fn sign_message(ref self: TContractState, message: ByteArray) -> SchnorrSignature;
     fn sign_nostr_event(
-        ref self: TContractState, nostr_event: UnsignedSocialRequestMessage
+        ref self: TContractState, nostr_event: UnsignedSocialRequestMessage,
     ) -> SchnorrSignature;
     fn generate_nostr_signature_based_on_inputs(
         ref self: TContractState, created_at: u64, kind: u16, content: ByteArray, tags: ByteArray,
@@ -47,22 +47,22 @@ pub trait ISRC6<TState> {
 #[starknet::contract(account)]
 pub mod NostrAccount {
     use afk::bip340::{
-        verify, verify_sig, sign, generate_keypair, SchnorrSignature,
-        encodeUnsignedSocialRequestMessage, Signature
+        SchnorrSignature, Signature, encodeUnsignedSocialRequestMessage, generate_keypair, sign,
+        verify, verify_sig,
     };
     use afk::bip340;
 
-    use afk::pedersen::{pedersen_commit, verify_commitment, hash_to_curve};
+    use afk::pedersen::{hash_to_curve, pedersen_commit, verify_commitment};
 
     use afk::social::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, UnsignedSocialRequest,
-        UnsignedSocialRequestMessage, NostrEventBasic
+        Encode, NostrEventBasic, SocialRequest, SocialRequestImpl, SocialRequestTrait,
+        UnsignedSocialRequest, UnsignedSocialRequestMessage,
     };
     use afk::social::transfer::Transfer;
 
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::byte_array::ByteArrayTrait;
     use core::ec::stark_curve::GEN_X;
@@ -70,16 +70,16 @@ pub mod NostrAccount {
     use core::ec::stark_curve::ORDER;
     use core::ec::{EcPoint, ec_point_unwrap};
     use core::ecdsa::check_ecdsa_signature;
-    use core::hash::{HashStateTrait, HashStateExTrait,};
+    use core::hash::{HashStateExTrait, HashStateTrait};
     use core::num::traits::Zero;
     use core::poseidon::PoseidonTrait;
     use starknet::SyscallResultTrait;
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
+    use starknet::{secp256_trait::{Secp256PointTrait, Secp256Trait}, secp256k1::{Secp256k1Point}};
     use super::ISRC6;
     use super::{INostrAccountDispatcher, INostrAccountDispatcherTrait};
 
@@ -100,7 +100,7 @@ pub mod NostrAccount {
         transfers: Map<u256, bool>,
         nostr_accounts_public_keys: Map<u256, u256>,
         nostr_accounts_private_keys: Map<u256, u256>,
-        vrf_contract_address: ContractAddress
+        vrf_contract_address: ContractAddress,
     }
 
     #[event]
@@ -125,7 +125,7 @@ pub mod NostrAccount {
     fn constructor(
         ref self: ContractState, // public_key: u256,
         public_key: ContractAddress,
-        vrf_contract_address: ContractAddress
+        vrf_contract_address: ContractAddress,
     ) {
         // self.public_key.write(public_key);
         self.starknet_address.write(public_key);
@@ -166,7 +166,7 @@ pub mod NostrAccount {
         }
 
         fn set_vrf_contract_address(
-            ref self: ContractState, vrf_contract_address: ContractAddress
+            ref self: ContractState, vrf_contract_address: ContractAddress,
         ) {
             if !self.starknet_address.read().is_zero() {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
@@ -180,8 +180,12 @@ pub mod NostrAccount {
                 assert!(get_caller_address() == self.starknet_address.read(), "invalid caller");
             }
             let (private_key, public_key_point, public_key_x) = generate_keypair(
-                self.vrf_contract_address.read()
+                self.vrf_contract_address.read(),
             );
+            // debug
+            let pu256: u256 = private_key.try_into().unwrap();
+            assert(pu256 > 0, 'P_KEY NOT GENERATED');
+            assert(pu256 == 0, 'GOT HERE IN INIT');
 
             // // Get caller's signature to use as encryption key
             // let caller = get_caller_address();
@@ -197,7 +201,7 @@ pub mod NostrAccount {
             // Store encrypted private key - can only be decrypted by caller's signature
             // self.encrypted_private_key.write(encrypted_private_key.try_into().unwrap());
             self.private_key.write(private_key.try_into().unwrap());
-            self.nostr_public_key.write(public_key_x);
+            // self.nostr_public_key.write(public_key_x);
         }
 
         fn sign_message(ref self: ContractState, message: ByteArray) -> SchnorrSignature {
@@ -225,7 +229,7 @@ pub mod NostrAccount {
         }
 
         fn sign_nostr_event(
-            ref self: ContractState, nostr_event: UnsignedSocialRequestMessage
+            ref self: ContractState, nostr_event: UnsignedSocialRequestMessage,
         ) -> SchnorrSignature {
             let private_key = self.private_key.read();
             println!("private_key: {}", private_key);
@@ -243,7 +247,11 @@ pub mod NostrAccount {
         }
 
         fn generate_nostr_signature_based_on_inputs(
-            ref self: ContractState, created_at: u64, kind: u16, content: ByteArray, tags: ByteArray
+            ref self: ContractState,
+            created_at: u64,
+            kind: u16,
+            content: ByteArray,
+            tags: ByteArray,
         ) -> SchnorrSignature {
             assert!(!self.private_key.read().is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
@@ -265,7 +273,11 @@ pub mod NostrAccount {
         }
 
         fn generate_nostr_event(
-            ref self: ContractState, created_at: u64, kind: u16, content: ByteArray, tags: ByteArray
+            ref self: ContractState,
+            created_at: u64,
+            kind: u16,
+            content: ByteArray,
+            tags: ByteArray,
         ) -> NostrEventBasic {
             assert!(!self.private_key.read().is_zero(), "account not initialized");
             if !self.starknet_address.read().is_zero() {
@@ -344,7 +356,7 @@ pub mod NostrAccount {
         }
 
         fn is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Array<felt252>
+            self: @ContractState, hash: felt252, signature: Array<felt252>,
         ) -> felt252 {
             self._is_valid_signature(hash, signature.span())
         }
@@ -353,7 +365,7 @@ pub mod NostrAccount {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn _is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Span<felt252>
+            self: @ContractState, hash: felt252, signature: Span<felt252>,
         ) -> felt252 {
             let is_valid_length = signature.len() == 2_u32;
             // assert(is_valid_length, 'Account: Incorrect tx signature');
@@ -364,7 +376,7 @@ pub mod NostrAccount {
 
             let account_address: felt252 = self.starknet_address.read().try_into().unwrap();
             let is_valid = check_ecdsa_signature(
-                hash, account_address, *signature.at(0_u32), *signature.at(1_u32)
+                hash, account_address, *signature.at(0_u32), *signature.at(1_u32),
             );
             if is_valid {
                 return starknet::VALIDATED;
@@ -374,7 +386,7 @@ pub mod NostrAccount {
         }
 
         fn _is_valid_signature_nostr(
-            self: @ContractState, hash: felt252, signature: Span<felt252>
+            self: @ContractState, hash: felt252, signature: Span<felt252>,
         ) -> felt252 {
             let mut signature = signature;
             let r: u256 = Serde::deserialize(ref signature).expect('invalid signature format');
@@ -397,11 +409,14 @@ pub mod NostrAccount {
 }
 #[cfg(test)]
 mod tests {
-    use afk::bip340::{Signature, SchnorrSignature};
+    use afk::account::vrf::{
+        IVrfProvider, IVrfProviderDispatcher, IVrfProviderDispatcherTrait, PublicKey, Source,
+    };
+    use afk::bip340::{SchnorrSignature, Signature};
     use afk::social::profile::NostrProfile;
 
     use afk::social::request::{
-        SocialRequest, Encode, UnsignedSocialRequest, ConvertToBytes, UnsignedSocialRequestMessage
+        ConvertToBytes, Encode, SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage,
     };
     use afk::social::transfer::Transfer;
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
@@ -415,14 +430,16 @@ mod tests {
         // cheat_signature_global,
         stop_cheat_transaction_hash_global,
         stop_cheat_signature_global, start_cheat_caller_address_global, stop_cheat_caller_address,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp,
+        stop_cheat_caller_address_global, start_cheat_block_timestamp, start_cheat_max_fee_global,
     };
+    use stark_vrf::ecvrf::{ECVRF, ECVRFImpl, Point, Proof};
     use starknet::{
-        ContractAddress, get_caller_address, get_contract_address, contract_address_const, VALIDATED
+        ContractAddress, VALIDATED, contract_address_const, get_caller_address,
+        get_contract_address,
     };
     use super::{
         INostrAccountDispatcher, INostrAccountDispatcherTrait, INostrAccountSafeDispatcher,
-        INostrAccountSafeDispatcherTrait
+        INostrAccountSafeDispatcherTrait,
     };
     use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     // Sepolia
@@ -446,7 +463,7 @@ mod tests {
     }
 
     fn deploy_account(
-        class: @ContractClass, public_key: ContractAddress, vrf_contract_address: ContractAddress
+        class: @ContractClass, public_key: ContractAddress, vrf_contract_address: ContractAddress,
     ) -> INostrAccountDispatcher {
         let mut calldata = array![];
         public_key.serialize(ref calldata);
@@ -481,7 +498,7 @@ mod tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -507,7 +524,7 @@ mod tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: @ContractClass, account_class: @ContractClass
+        erc20_class: @ContractClass, account_class: @ContractClass,
     ) -> (
         SocialRequest<Transfer>,
         INostrAccountDispatcher,
@@ -541,11 +558,11 @@ mod tests {
             token: erc20.symbol(),
             token_address: erc20.contract_address,
             joyboy: NostrProfile {
-                public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"]
+                public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"],
             },
             // recipient: NostrProfile { public_key: recipient_public_key, relays: array![] },
             recipient: NostrProfile { public_key: joyboy_public_key, relays: array![] },
-            recipient_address: recipient.contract_address
+            recipient_address: recipient.contract_address,
         };
 
         // for test data see: https://replit.com/@maciejka/WanIndolentKilobyte-2
@@ -559,7 +576,7 @@ mod tests {
             sig: SchnorrSignature {
                 r: 0x3570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            }
+            },
         };
 
         let unsigned_request = UnsignedSocialRequestMessage {
@@ -578,7 +595,7 @@ mod tests {
         INostrAccountDispatcher,
         INostrAccountDispatcher,
         IERC20Dispatcher,
-        UnsignedSocialRequestMessage
+        UnsignedSocialRequestMessage,
     ) {
         let erc20_class = declare_erc20();
         let account_class = declare_account();
@@ -602,16 +619,64 @@ mod tests {
         // let public_key: u256 = 45;
         let public_key: ContractAddress = OWNER();
         start_cheat_caller_address_global(public_key);
-        let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        start_cheat_max_fee_global(3);
+        let vrf_contract_address = deploy_vrf_provider();
+        let account = deploy_account(declare_account(), public_key, vrf_contract_address);
+        let random_1: felt252 =
+            3042615537642092157765244596574080379853344885882130234426970954981799921730;
+        let random_2: felt252 =
+            1311752165268976831044962987258525346209973127793474116047585191195507462127;
+        submit_random(vrf_contract_address, random_1); // uncomment the lines in submit random
+        println!("Submitted first random");
         account.init_nostr_account();
+        println!("init complete");
 
         let message = "Hello, world!";
-
+        submit_random(vrf_contract_address, random_2);
         let signature = account.sign_message(message);
         // let is_valid = verify_sig(account.nostr_point_public_key.read(), message, signature,
-    // VRF_CONTRACT_ADDRESS());
-    // assert!(is_valid, "signature is not valid");
-    // assert!(account.get_public_key() == public_key, "wrong public_key");
+        // VRF_CONTRACT_ADDRESS());
+        // assert!(is_valid, "signature is not valid");
+        // assert!(account.get_public_key() == public_key, "wrong public_key");
+        println!("Got here");
+    }
+
+    pub fn deploy_vrf_provider() -> ContractAddress {
+        let mut constructor_calldata = array![];
+        let public_key = PublicKey {
+            x: 0x66da5d53168d591c55d4c05f3681663ac51bcdccd5ca09e366b71b0c40ccff4,
+            y: 0x6d3eb29920bf55195e5ec76f69e247c0942c7ef85f6640896c058ec75ca2232,
+        };
+
+        public_key.serialize(ref constructor_calldata);
+
+        let contract = declare("VrfProvider").unwrap().contract_class();
+        let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
+        contract_address
+    }
+
+    pub fn proof() -> Proof {
+        Proof {
+            gamma: Point {
+                x: 0xf010d3727eb8aee76c7bc81f399805f4c2c39708451d933ef4d7f909248a6d,
+                y: 0x18a8fab3c58608505953d0fa0376ab454907d6e88db83702a36294faa937ac8,
+            },
+            c: 0x10e06538fdb8d943ecbf03e519500e258a83248d5a457ff2803c54c583f6302,
+            s: 0x150f672c657e116cd3966b74a2320e600c853801612b56f3a9cb31063f763c6,
+            sqrt_ratio_hint: 0x8b09cf018201f7702d638b23d3cd10f577f7973369e79e5974ab33c1d64e01,
+        }
+    }
+
+    const SEED: felt252 = 0x334b8c0ea68406b183b5affd81ce11bec1a0807d3fd68a54ee75ec148053b09;
+    // const SEED_2: felt252 = 0x334b8c0ea68406b183b5affd81ce11bec1a0807d3fd68a54ee75ec148053b09;
+
+    fn submit_random(vrf_contract: ContractAddress, random: felt252) {
+        let vrf_dispatcher = IVrfProviderDispatcher { contract_address: vrf_contract };
+        // vrf_dispatcher.submit_random(SEED, random);
+    // println!("End of submit random reached.");
+    // debug
+    // let seed = vrf_dispatcher.get_seed_value(SEED);
+    // println!("Current seed value: {}", seed);
     }
 
     #[test]
@@ -619,17 +684,25 @@ mod tests {
     fn test_sign_nostr_event() {
         let public_key: ContractAddress = OWNER();
         start_cheat_caller_address_global(public_key);
+        start_cheat_max_fee_global(1000000);
         let account = deploy_account(declare_account(), public_key, VRF_CONTRACT_ADDRESS());
+        // this
+        let vrf_dispatcher = IVrfProviderDispatcher { contract_address: VRF_CONTRACT_ADDRESS() };
+        let pk = vrf_dispatcher.get_public_key();
+        println!("vrf public key x: {}", pk.x);
+        println!("vrf public key y: {}", pk.y);
+        vrf_dispatcher.request_random(public_key, Source::Nonce(public_key));
+        vrf_dispatcher.submit_random(SEED, proof());
         account.init_nostr_account();
 
         let erc20_class = declare_erc20();
         let account_class = declare_account();
 
         let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(
-            erc20_class, account_class
+            erc20_class, account_class,
         );
 
-        let request = UnsignedSocialRequestMessage { ..unsigned_request, };
+        let request = UnsignedSocialRequestMessage { ..unsigned_request };
         let signature = account.sign_nostr_event(request);
         // let signature = account.sign_message(message);
 
@@ -651,7 +724,7 @@ mod tests {
         let account_class = declare_account();
 
         let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(
-            erc20_class, account_class
+            erc20_class, account_class,
         );
 
         let created_at = 1716285235_u64;
@@ -682,7 +755,7 @@ mod tests {
         let account_class = declare_account();
 
         let (request, sender, _, _, unsigned_request) = request_fixture_custom_classes(
-            erc20_class, account_class
+            erc20_class, account_class,
         );
 
         let created_at = 1716285235_u64;

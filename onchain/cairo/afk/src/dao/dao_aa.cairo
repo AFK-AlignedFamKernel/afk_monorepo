@@ -29,14 +29,14 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod DaoAA {
-    use afk::bip340::{Signature, SchnorrSignature};
+    use afk::bip340::{SchnorrSignature, Signature};
     use afk::bip340;
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
-        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
-        ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled,
+        ConfigParams, ConfigResponse, IVoteProposal, Proposal, ProposalCanceled, ProposalCreated,
+        ProposalParams, ProposalResolved, ProposalResult, ProposalType, ProposalVoted,
+        SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, UserVote, VoteState,
     };
-    use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
+    use afk::social::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use afk::social::transfer::Transfer;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
@@ -51,12 +51,12 @@ pub mod DaoAA {
     use starknet::account::Call;
 
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapWriteAccess, Vec, MutableVecTrait,
+        Map, MutableVecTrait, StorageMapWriteAccess, StoragePathEntry, StoragePointerReadAccess,
+        StoragePointerWriteAccess, Vec,
     };
     use starknet::{
-        get_caller_address, get_contract_address, get_tx_info, ContractAddress,
-        contract_address_const,
+        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
+        get_tx_info,
     };
     use super::ISRC6;
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
@@ -525,16 +525,16 @@ pub mod DaoAA {
 #[cfg(test)]
 mod tests {
     use afk::interfaces::voting::{
-        Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
-        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved
+        ConfigParams, ConfigResponse, IVoteProposalDispatcher, IVoteProposalDispatcherTrait,
+        Proposal, ProposalCreated, ProposalParams, ProposalResolved, ProposalResult, ProposalType,
+        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote, VoteState,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
-        EventsFilterTrait, cheat_caller_address, cheatcodes::events::Event, declare, spy_events,
-        cheat_block_timestamp,
+        EventsFilterTrait, cheat_block_timestamp, cheat_caller_address, cheatcodes::events::Event,
+        declare, spy_events,
     };
     use starknet::{ContractAddress, contract_address_const};
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
@@ -817,7 +817,7 @@ mod tests {
         proposal_dispatcher.process_result(proposal_id);
 
         let expected_event = super::DaoAA::Event::ProposalResolved(
-            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed }
+            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed },
         );
 
         spy.assert_emitted(@array![(proposal_contract, expected_event)]);

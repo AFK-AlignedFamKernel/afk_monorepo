@@ -48,6 +48,7 @@ pub mod components {
 
 pub mod account {
     pub mod nostr_account;
+    pub mod vrf;
 }
 
 pub mod tokens {

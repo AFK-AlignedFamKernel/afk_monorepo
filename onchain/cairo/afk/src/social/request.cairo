@@ -1,4 +1,4 @@
-use afk::bip340::{Signature, SchnorrSignature};
+use afk::bip340::{SchnorrSignature, Signature};
 use afk::bip340;
 use afk::utils::{compute_sha256_byte_array};
 use core::fmt::Display;
@@ -22,7 +22,7 @@ pub struct SocialRequest<C> {
     pub kind: u16,
     pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
     pub content: C,
-    pub sig: SchnorrSignature
+    pub sig: SchnorrSignature,
 }
 
 
@@ -33,7 +33,7 @@ pub struct NostrEventBasic {
     pub kind: u16,
     pub tags: ByteArray, // we don't need to look inside the tags(at least for now)
     pub content: ByteArray,
-    pub sig: SchnorrSignature
+    pub sig: SchnorrSignature,
 }
 
 #[derive(Debug, Drop, Serde, Clone)]
@@ -69,7 +69,7 @@ pub impl SocialRequestImpl<C, +Encode<C>> of SocialRequestTrait<C> {
             self.created_at,
             self.kind,
             self.tags,
-            self.content.encode()
+            self.content.encode(),
         );
 
         let [x0, x1, x2, x3, x4, x5, x6, x7] = compute_sha256_byte_array(id);
@@ -95,7 +95,7 @@ pub impl SocialRequestImpl<C, +Encode<C>> of SocialRequestTrait<C> {
                         + x5.into() * TWO_POW_64
                         + x6.into() * TWO_POW_32
                         + x7.into(),
-                }
+                },
             )
         } else {
             Option::None
@@ -124,8 +124,8 @@ mod tests {
             content: "abc",
             sig: SchnorrSignature {
                 r: 0xd6891392ca5384da7b3e471380c9927a66a71c3cf9f3e6cd4d69813fd5258274_u256,
-                s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256
-            }
+                s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256,
+            },
         };
 
         assert!(r.verify().is_some());
@@ -141,8 +141,8 @@ mod tests {
             content: "nprofile1qys8wumn8ghj7un9d3shjtn2daukymme9e3k7mtdw4hxjare9e3k7mgqyzzxqw6wxqyyqqmv4rxgz2l0ej8zgrqfkuupycuatnwcannad6ayqx7zdcy send 1 USDC to nprofile1qqs2sa3zk4a49umxg4lgvlsaenrqaf33ejkffd78f2cgy4xy38h393s2w22mm",
             sig: SchnorrSignature {
                 r: 0x4fda18c929f820f7f93f310f4fa9a8f2efcdd544539f4ce24fe2daf4f68d0b2d_u256,
-                s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256
-            }
+                s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256,
+            },
         };
 
         assert!(r.verify().is_some());
@@ -158,8 +158,8 @@ mod tests {
             content: "joyboy",
             sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
-                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
-            }
+                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256,
+            },
         };
 
         assert!(r.verify().is_some());
@@ -177,8 +177,8 @@ mod tests {
             content: "joyboy",
             sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
-                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
-            }
+                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256,
+            },
         };
 
         assert!(r.verify().is_none());
@@ -197,8 +197,8 @@ mod tests {
             content: "",
             sig: SchnorrSignature {
                 r: 0x4fda18c929f820f7f93f310f4fa9a8f2efcdd544539f4ce24fe2daf4f68d0b2d_u256,
-                s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256
-            }
+                s: 0x279537893013f5849a716ac48e89ab4f8ce94871986326494c7311fc956639c3_u256,
+            },
         };
 
         assert!(r.verify().is_none());
@@ -216,8 +216,8 @@ mod tests {
             content: "abc",
             sig: SchnorrSignature {
                 r: 0xd6891392ca5384da7b3e471380c9927a66a71c3cf9f3e6cd4d69813fd5258274_u256,
-                s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256
-            }
+                s: 0x39cd462e61f6e4a7a677989da9fe6625c45979f6e23513bd8eaa81aa5c38c693_u256,
+            },
         };
 
         assert!(r.verify().is_none());
@@ -234,8 +234,8 @@ mod tests {
             content: "joyboy",
             sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
-                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
-            }
+                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256,
+            },
         };
 
         assert!(r.verify().is_none());
@@ -252,8 +252,8 @@ mod tests {
             content: "joyboy",
             sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8822_u256,
-                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256
-            }
+                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8e_u256,
+            },
         };
 
         assert!(r.verify().is_none());
@@ -270,8 +270,8 @@ mod tests {
             content: "joyboy",
             sig: SchnorrSignature {
                 r: 0x206e086fe298bf0733b0b22316721636ae7d8ce025c76baf83b8a31efaec8821_u256,
-                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8a_u256
-            }
+                s: 0x494452ba56fd465a0d69baa1ff4af9efcb1d0af8f107473ce33877d7a1034a8a_u256,
+            },
         };
 
         assert!(r.verify().is_none());

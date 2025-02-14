@@ -1,6 +1,6 @@
 // from alexandria
 
-use core::integer::{u32_wrapping_add, BoundedInt};
+use core::integer::{BoundedInt, u32_wrapping_add};
 
 fn ch(x: u32, y: u32, z: u32) -> u32 {
     (x & y) ^ ((x ^ BoundedInt::<u32>::max().into()) & z)
@@ -124,7 +124,7 @@ fn compression(w: Span<u32>, i: usize, k: Span<u32>, mut h: Span<u32>) -> Span<u
     let s1 = bsig1(*h[4]);
     let ch = ch(*h[4], *h[5], *h[6]);
     let temp1 = u32_wrapping_add(
-        u32_wrapping_add(u32_wrapping_add(u32_wrapping_add(*h[7], s1), ch), *k[i]), *w[i]
+        u32_wrapping_add(u32_wrapping_add(u32_wrapping_add(*h[7], s1), ch), *k[i]), *w[i],
     );
     let s0 = bsig0(*h[0]);
     let maj = maj(*h[0], *h[1], *h[2]);
@@ -154,7 +154,7 @@ fn create_message_schedule(data: Span<u32>, i: usize) -> Span<u32> {
         let s0 = ssig0(*result[i - 15]);
         let s1 = ssig1(*result[i - 2]);
         let res = u32_wrapping_add(
-            u32_wrapping_add(u32_wrapping_add(*result[i - 16], s0), *result[i - 7]), s1
+            u32_wrapping_add(u32_wrapping_add(*result[i - 16], s0), *result[i - 7]), s1,
         );
         result.append(res);
         i += 1;
@@ -186,7 +186,7 @@ fn get_h() -> Array<u32> {
         0x510e527f,
         0x9b05688c,
         0x1f83d9ab,
-        0x5be0cd19
+        0x5be0cd19,
     ]
 }
 
@@ -255,6 +255,6 @@ fn get_k() -> Array<u32> {
         0x90befffa,
         0xa4506ceb,
         0xbef9a3f7,
-        0xc67178f2
+        0xc67178f2,
     ]
 }

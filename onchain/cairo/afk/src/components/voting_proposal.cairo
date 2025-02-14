@@ -1,4 +1,4 @@
-use afk::types::defi_types::{TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent};
+use afk::types::defi_types::{DepositUser, MintDepositEvent, TokenPermitted, WithdrawDepositEvent};
 use starknet::ContractAddress;
 
 // TODO
@@ -7,10 +7,10 @@ use starknet::ContractAddress;
 pub mod VoteComponent {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState
+        IVoteProposal, Proposal, ProposalStatus, ProposalType, UserVote, VoteState,
     };
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
+    use afk::types::constants::{ADMIN_ROLE, MINTER_ROLE};
     use core::num::traits::Zero;
 
     use openzeppelin::access::accesscontrol::AccessControlComponent;
@@ -26,10 +26,10 @@ pub mod VoteComponent {
     };
 
     use starknet::{
-        ContractAddress, get_caller_address, contract_address_const, get_block_timestamp,
-        get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
-    use super::{DepositUser, TokenPermitted, MintDepositEvent, WithdrawDepositEvent};
+    use super::{DepositUser, MintDepositEvent, TokenPermitted, WithdrawDepositEvent};
 
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
@@ -60,7 +60,7 @@ pub mod VoteComponent {
     fn constructor(
         ref self: ComponentState<TContractState>,
         token_address: ContractAddress,
-        admin: ContractAddress
+        admin: ContractAddress,
     ) {
         // Give MINTER role to the Vault for the token used
         self.total_proposal.write(0);
@@ -83,7 +83,7 @@ pub mod VoteComponent {
 
     #[embeddable_as(Vote)]
     impl VoteImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of IVoteProposal<ComponentState<TContractState>> {
         fn create_proposal(ref self: ComponentState<TContractState>, proposal: Proposal) {
             let caller = get_caller_address();
@@ -99,7 +99,7 @@ pub mod VoteComponent {
         }
 
         fn cast_vote_type(
-            ref self: ComponentState<TContractState>, proposal_id: u256, vote: UserVote
+            ref self: ComponentState<TContractState>, proposal_id: u256, vote: UserVote,
         ) {
             let caller = get_caller_address();
             self.vote_by_proposal.entry(proposal_id).write(vote);
@@ -126,7 +126,7 @@ pub mod VoteComponent {
         }
 
         fn get_vote_state(
-            ref self: ComponentState<TContractState>, proposal_id: u256
+            ref self: ComponentState<TContractState>, proposal_id: u256,
         ) -> VoteState {
             let caller = get_caller_address();
             self.vote_by_proposal.read(proposal_id)
@@ -138,7 +138,7 @@ pub mod VoteComponent {
         }
 
         fn get_user_vote(
-            ref self: ComponentState<TContractState>, proposal_id: u256, user: ContractAddress
+            ref self: ComponentState<TContractState>, proposal_id: u256, user: ContractAddress,
         ) -> UserVote {
             let caller = get_caller_address();
             self.vote_by_proposal.read(proposal_id)

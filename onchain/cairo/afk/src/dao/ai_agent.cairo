@@ -29,18 +29,18 @@ pub mod NostrDAOAccount {
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
     use super::ISRC6;
 
     use super::super::request::{
-        SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature
+        Encode, Signature, SocialRequest, SocialRequestImpl, SocialRequestTrait,
     };
     use super::super::transfer::Transfer;
     use super::{INostrDAOAccountDispatcher, INostrDAOAccountDispatcherTrait};
@@ -60,7 +60,7 @@ pub mod NostrDAOAccount {
     #[derive(Drop, starknet::Event)]
     struct AccountCreated {
         #[key]
-        public_key: u256
+        public_key: u256,
     }
 
     #[constructor]
@@ -82,12 +82,12 @@ pub mod NostrDAOAccount {
             assert!(erc20.symbol() == request.content.token, "wrong token");
 
             let recipient = INostrDAOAccountDispatcher {
-                contract_address: request.content.recipient_address
+                contract_address: request.content.recipient_address,
             };
 
             assert!(
                 recipient.get_public_key() == request.content.recipient.public_key,
-                "wrong recipient"
+                "wrong recipient",
             );
 
             if let Option::Some(id) = request.verify() {
@@ -124,7 +124,7 @@ pub mod NostrDAOAccount {
         }
 
         fn is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Array<felt252>
+            self: @ContractState, hash: felt252, signature: Array<felt252>,
         ) -> felt252 {
             self._is_valid_signature(hash, signature.span())
         }
@@ -133,7 +133,7 @@ pub mod NostrDAOAccount {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn _is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Span<felt252>
+            self: @ContractState, hash: felt252, signature: Span<felt252>,
         ) -> felt252 {
             let public_key = self.public_key.read();
 

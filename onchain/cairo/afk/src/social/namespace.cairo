@@ -1,8 +1,8 @@
 use core::fmt::Display;
 use core::to_byte_array::FormatAsByteArray;
-use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
+use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
 use super::request::ConvertToBytes;
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
+use super::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
 
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
@@ -13,7 +13,7 @@ type AddressId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct LinkedStarknetAddress {
-    pub starknet_address: ContractAddress
+    pub starknet_address: ContractAddress,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -53,19 +53,19 @@ pub enum LinkedResult {
 pub trait INamespace<TContractState> {
     // Getters
     fn get_nostr_by_sn_default(
-        self: @TContractState, nostr_public_key: NostrPublicKey
+        self: @TContractState, nostr_public_key: NostrPublicKey,
     ) -> ContractAddress;
 
     fn get_sn_by_nostr_default(
-        self: @TContractState, starknet_address: ContractAddress
+        self: @TContractState, starknet_address: ContractAddress,
     ) -> NostrPublicKey;
     // Admin
     fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
     // User
     fn linked_nostr_default_account(
-        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>
+        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
     );
     // // External call protocol
 // fn protocol_linked_nostr_default_account(
@@ -77,7 +77,7 @@ pub trait INamespace<TContractState> {
 
 #[starknet::contract]
 pub mod Namespace {
-    use afk::bip340::{Signature, SchnorrSignature};
+    use afk::bip340::{SchnorrSignature, Signature};
     use afk::bip340;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
@@ -87,15 +87,15 @@ pub mod Namespace {
 
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{
-        get_block_timestamp, get_caller_address, get_contract_address, get_tx_info, ContractAddress
+        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
     };
-    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
+    use super::super::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use super::{
-        LinkedWalletProfileDefault, LinkedResult, INamespace, NostrPublicKey,
-        LinkedStarknetAddressEncodeImpl, LinkedStarknetAddress, OPERATOR_ROLE, ADMIN_ROLE
+        ADMIN_ROLE, INamespace, LinkedResult, LinkedStarknetAddress,
+        LinkedStarknetAddressEncodeImpl, LinkedWalletProfileDefault, NostrPublicKey, OPERATOR_ROLE,
     };
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -168,14 +168,14 @@ pub mod Namespace {
         // Admin
         // Add OPERATOR role to the Deposit escrow
         fn set_control_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             assert!(
                 role == ADMIN_ROLE
                     || role == OPERATOR_ROLE // Think and Add others roles needed on the protocol
                     ,
-                "role not enable"
+                "role not enable",
             );
             if is_enable {
                 self.accesscontrol._grant_role(role, recipient);
@@ -186,14 +186,14 @@ pub mod Namespace {
 
         // Getters
         fn get_nostr_by_sn_default(
-            self: @ContractState, nostr_public_key: NostrPublicKey
+            self: @ContractState, nostr_public_key: NostrPublicKey,
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_public_key)
         }
 
 
         fn get_sn_by_nostr_default(
-            self: @ContractState, starknet_address: ContractAddress
+            self: @ContractState, starknet_address: ContractAddress,
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
@@ -204,7 +204,7 @@ pub mod Namespace {
         // User request with a Nostr event
 
         fn linked_nostr_default_account(
-            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>
+            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
         ) {
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
@@ -217,7 +217,7 @@ pub mod Namespace {
                 .emit(
                     LinkedDefaultStarknetAddressEvent {
                         nostr_address: request.public_key, starknet_address,
-                    }
+                    },
                 );
         }
         // Protocol request with OPERATOR_ROLE
@@ -246,20 +246,21 @@ mod tests {
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy, DeclareResultTrait, Event,
+        ContractClass, ContractClassTrait, DeclareResultTrait, Event, EventSpy,
+        EventSpyAssertionsTrait, declare, spy_events, start_cheat_block_timestamp,
         start_cheat_caller_address, start_cheat_caller_address_global,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp, EventSpyAssertionsTrait,
+        stop_cheat_caller_address_global,
     };
     use starknet::{
-        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
-        contract_address_const,
+        ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
 
-    use super::super::request::{SocialRequest, Encode};
+    use super::super::request::{Encode, SocialRequest};
     use super::super::transfer::Transfer;
     use super::{
-        LinkedWalletProfileDefault, AddressId, LinkedResult, INamespace, NostrPublicKey,
-        LinkedStarknetAddress
+        AddressId, INamespace, LinkedResult, LinkedStarknetAddress, LinkedWalletProfileDefault,
+        NostrPublicKey,
     };
     use super::{INamespaceDispatcher, INamespaceDispatcherTrait};
 
@@ -278,13 +279,13 @@ mod tests {
     }
 
     fn request_fixture_custom_classes(
-        namespace_class: ContractClass
+        namespace_class: ContractClass,
     ) -> (
         SocialRequest<LinkedStarknetAddress>,
         NostrPublicKey,
         ContractAddress,
         INamespaceDispatcher,
-        SocialRequest<LinkedStarknetAddress>
+        SocialRequest<LinkedStarknetAddress>,
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
         // just for testing, do not use for anything else
@@ -306,7 +307,7 @@ mod tests {
         // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
 
         let linked_wallet = LinkedStarknetAddress {
-            starknet_address: sender_address.try_into().unwrap()
+            starknet_address: sender_address.try_into().unwrap(),
         };
 
         // @TODO format the content and get the correct signature
@@ -321,11 +322,11 @@ mod tests {
                 s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
                 // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
-            }
+            },
         };
 
         let linked_wallet_not_caller = LinkedStarknetAddress {
-            starknet_address: recipient_address_user.try_into().unwrap()
+            starknet_address: recipient_address_user.try_into().unwrap(),
         };
 
         // @TODO format the content and get the correct signature
@@ -338,7 +339,7 @@ mod tests {
             sig: SchnorrSignature {
                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            }
+            },
         };
 
         (
@@ -346,7 +347,7 @@ mod tests {
             recipient_public_key,
             sender_address,
             namespace,
-            fail_request_linked_wallet_to_caller
+            fail_request_linked_wallet_to_caller,
         )
     }
 
@@ -355,7 +356,7 @@ mod tests {
         NostrPublicKey,
         ContractAddress,
         INamespaceDispatcher,
-        SocialRequest<LinkedStarknetAddress>
+        SocialRequest<LinkedStarknetAddress>,
     ) {
         let namespace_class = declare_namespace();
         request_fixture_custom_classes(namespace_class)

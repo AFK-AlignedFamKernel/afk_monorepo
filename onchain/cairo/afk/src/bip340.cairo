@@ -1,4 +1,5 @@
-use afk::utils::{shl, shr, compute_sha256_byte_array};
+use afk::account::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait, Source};
+use afk::utils::{compute_sha256_byte_array, shl, shr};
 use core::byte_array::ByteArrayTrait;
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
@@ -12,10 +13,11 @@ use core::traits::Into;
 //! bip340 implementation
 
 use starknet::{ContractAddress, get_caller_address};
-use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
+use starknet::{secp256_trait::{Secp256PointTrait, Secp256Trait}, secp256k1::{Secp256k1Point}};
 use super::social::{
-    request::{SocialRequest, ConvertToBytes, UnsignedSocialRequest, UnsignedSocialRequestMessage},
-    transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress
+    deposit::Claim, namespace::LinkedStarknetAddress,
+    request::{ConvertToBytes, SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage},
+    transfer::Transfer,
 };
 
 
@@ -25,17 +27,32 @@ const TWO_POW_96: u128 = 0x1000000000000000000000000;
 
 const p: u256 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
 
-#[starknet::interface]
-pub trait IVrfProvider<TContractState> {
-    fn request_random(self: @TContractState, caller: ContractAddress, source: Source);
-    fn consume_random(ref self: TContractState, source: Source) -> felt252;
+// #[starknet::interface]
+// pub trait IVrfProvider<TContractState> {
+//     fn request_random(self: @TContractState, caller: ContractAddress, source: Source);
+//     fn consume_random(ref self: TContractState, source: Source) -> felt252;
+//     fn submit_random(ref self: TContractState, seed: felt252, proof: Proof);
+// }
+
+#[derive(Copy, Drop, Serde)]
+pub struct Point {
+    pub x: felt252,
+    pub y: felt252,
 }
 
-#[derive(Drop, Copy, Clone, Serde)]
-pub enum Source {
-    Nonce: ContractAddress,
-    Salt: felt252,
+#[derive(Clone, Drop, Serde)]
+pub struct Proof {
+    pub gamma: Point,
+    pub c: felt252,
+    pub s: felt252,
+    pub sqrt_ratio_hint: felt252,
 }
+
+// #[derive(Drop, Copy, Clone, Serde)]
+// pub enum Source {
+//     Nonce: ContractAddress,
+//     Salt: felt252,
+// }
 
 /// Represents a Schnorr signature
 #[derive(Drop, Serde, Copy, Debug)]
@@ -47,7 +64,7 @@ pub struct SchnorrSignature {
 #[derive(Copy, Drop, Debug, Serde)]
 pub struct Signature {
     pub r: u256,
-    pub s: u256
+    pub s: u256,
 }
 
 impl PartialEqImpl of PartialEq<EcPoint> {
@@ -151,7 +168,7 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
         match Secp256Trait::<Secp256k1Point>::secp256_ec_get_point_from_x_syscall(px, false)
             .unwrap_syscall() {
         Option::Some(P) => P,
-        Option::None => { return false; }
+        Option::None => { return false; },
     };
 
     // e = int(hashBIP0340/challenge(bytes(rx) || bytes(px) || m)) mod n.
@@ -237,7 +254,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
 }
 
 pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
-    request: SocialRequest<C>
+    request: SocialRequest<C>,
 ) -> ByteArray {
     let mut ba: ByteArray = "";
 
@@ -275,7 +292,7 @@ pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>
 
 
 pub fn encodeUnsignedSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
-    request: UnsignedSocialRequest<C>
+    request: UnsignedSocialRequest<C>,
 ) -> ByteArray {
     let mut ba: ByteArray = "";
 
@@ -343,7 +360,7 @@ pub fn encodeUnsignedSocialRequestMessage(request: UnsignedSocialRequestMessage)
 // Highly senstive data
 // Take care of the result
 pub fn generate_keypair(
-    vrf_contract_address: ContractAddress
+    vrf_contract_address: ContractAddress,
 ) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point, u256) {
     // vrf address
     let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
@@ -394,7 +411,7 @@ fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) ->
 }
 
 pub fn sign(
-    private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress
+    private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress,
 ) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point(vrf_contract_address);
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
@@ -416,7 +433,7 @@ pub fn verify_sig(
     public_key: Secp256k1Point,
     message: ByteArray,
     signature: SchnorrSignature,
-    vrf_contract_address: ContractAddress
+    vrf_contract_address: ContractAddress,
 ) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.r, public_key, message);
@@ -444,16 +461,23 @@ pub fn verify_sig(
 
 #[cfg(test)]
 mod tests {
+    // use super::{IVrfProvider, IVrfProviderDispatcher};
+    use afk::account::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait};
     use core::byte_array::ByteArrayTrait;
     use core::clone::Clone;
     use core::option::OptionTrait;
+
+    use core::poseidon::poseidon_hash_span;
     use core::traits::Into;
+    use snforge_std::cheatcodes::execution_info::max_fee::{cheat_max_fee, start_cheat_max_fee};
+    use snforge_std::{CheatSpan, cheat_caller_address, map_entry_address, start_mock_call, store};
+    use stark_vrf::ecvrf::{ECVRF, ECVRFImpl, Point, Proof};
     use starknet::SyscallResultTrait;
-    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}, ContractAddress};
+    use starknet::contract_address_const;
+    use starknet::{ContractAddress, secp256_trait::{Secp256Trait}, secp256k1::{Secp256k1Point}};
     use super::Secp256PointTrait;
-    use super::{IVrfProvider, IVrfProviderDispatcher};
     // use super::*;
-    use super::{verify, verify_sig, sign, generate_keypair};
+    use super::{generate_keypair, sign, verify, verify_sig};
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
             let mut ba = Default::default();
@@ -702,11 +726,11 @@ mod tests {
     #[test]
     fn test_20() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap(),
         };
 
         let (private_key, public_key_point, public_key_x) = generate_keypair(
-            vrf_provider.contract_address
+            vrf_provider.contract_address,
         );
 
         println!("private_key: {}", private_key);
@@ -719,7 +743,7 @@ mod tests {
 
         // Verify signature
         let is_valid = verify_sig(
-            public_key_point, message, signature, vrf_provider.contract_address
+            public_key_point, message, signature, vrf_provider.contract_address,
         );
 
         assert!(is_valid);
@@ -729,25 +753,74 @@ mod tests {
     #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap(),
         };
 
+        // store(
+        //     contract_address,
+        //     map_entry_address(
+        //         selector!("mapping"), // storage variable name
+        //          array!['some_key'].span(), // map key
+        //     ),
+        //     array!['some_other_value'].span()
+        // );
+        let val: felt252 = 4567263;
+        // let storage_entry = map_entry_address(
+        //     selector!("VrfProvider_random"), array!['seed'].span()
+        // );
+        // let storage_key = array![val].span();
+        // store(vrf_provider.contract_address, storage_entry, storage_key);
+        // cheat_max_fee(vrf_provider.contract_address, 3, CheatSpan;
+
+        // let return_data: felt252 = compute_random(); // returned by starkvrf's computation
+        // say
+        let return_data: felt252 = 0x4; // check out the consume_random() below.
+        start_mock_call(vrf_provider.contract_address, selector!("consume_random"), return_data);
+
         let (private_key, public_key_point, public_key_x) = generate_keypair(
-            vrf_provider.contract_address
+            vrf_provider.contract_address,
         );
+
+        println!("return data: {}", return_data);
 
         // Message to sign
         let message: ByteArray = "I love Cairo";
 
         // Sign message
         let private_key_u256: u256 = private_key.into();
+        println!("Private key: {}", private_key_u256);
+        assert(private_key_u256 > 0, 'PRIVATE KEY IS ZERO');
         let signature = sign(private_key_u256, message.clone(), vrf_provider.contract_address);
 
         // Verify signature
         let is_valid = verify_sig(
-            public_key_point, message, signature, vrf_provider.contract_address
+            public_key_point, message, signature, vrf_provider.contract_address,
         );
 
         assert!(is_valid);
+    }
+
+    /// This is the implementation of the actual random generator
+    fn compute_random() -> felt252 {
+        let proof = proof();
+        let mut beta = ArrayTrait::new();
+        beta.append(3);
+        let Point { x, y } = proof.gamma;
+        beta.append(x);
+        beta.append(y);
+        beta.append(0);
+        poseidon_hash_span(beta.span())
+    }
+
+    pub fn proof() -> Proof {
+        Proof {
+            gamma: Point {
+                x: 0xf010d3727eb8aee76c7bc81f399805f4c2c39708451d933ef4d7f909248a6d,
+                y: 0x18a8fab3c58608505953d0fa0376ab454907d6e88db83702a36294faa937ac8,
+            },
+            c: 0x10e06538fdb8d943ecbf03e519500e258a83248d5a457ff2803c54c583f6302,
+            s: 0x150f672c657e116cd3966b74a2320e600c853801612b56f3a9cb31063f763c6,
+            sqrt_ratio_hint: 0x8b09cf018201f7702d638b23d3cd10f577f7973369e79e5974ab33c1d64e01,
+        }
     }
 }

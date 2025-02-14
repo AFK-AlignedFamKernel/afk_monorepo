@@ -1,8 +1,8 @@
 use core::ec::stark_curve::GEN_X;
 use core::ec::stark_curve::GEN_Y;
-use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
-use core::fmt::{Display, Formatter, Error};
-use core::hash::{HashStateTrait, HashStateExTrait,};
+use core::ec::{EcPoint, EcPointTrait, NonZeroEcPoint, ec_point_unwrap};
+use core::fmt::{Display, Error, Formatter};
+use core::hash::{HashStateExTrait, HashStateTrait};
 use core::poseidon::PoseidonTrait;
 
 pub impl EcPointDisplay of Display<EcPoint> {
@@ -47,7 +47,7 @@ pub fn hash_to_curve() -> Option<EcPoint> {
             // If the point is on the curve, return it
             Option::Some(point) => { break Option::Some(point); },
             // If the point is not on the curve, try again
-            Option::None(_) => { counter += 1; }
+            Option::None(_) => { counter += 1; },
         }
     }
 }
@@ -57,11 +57,11 @@ mod tests {
     // use super::*;
     use core::ec::stark_curve::GEN_X;
     use core::ec::stark_curve::GEN_Y;
-    use core::ec::{EcPoint, EcPointTrait, ec_point_unwrap, NonZeroEcPoint};
-    use core::fmt::{Display, Formatter, Error};
-    use core::hash::{HashStateTrait, HashStateExTrait,};
+    use core::ec::{EcPoint, EcPointTrait, NonZeroEcPoint, ec_point_unwrap};
+    use core::fmt::{Display, Error, Formatter};
+    use core::hash::{HashStateExTrait, HashStateTrait};
     use core::poseidon::PoseidonTrait;
-    use super::{pedersen_commit, verify_commitment, hash_to_curve};
+    use super::{hash_to_curve, pedersen_commit, verify_commitment};
 
     #[test]
     fn test_pedersen_commit() {

@@ -9,7 +9,7 @@ pub struct Transfer {
     pub token_address: ContractAddress,
     pub joyboy: NostrProfile,
     pub recipient: NostrProfile,
-    pub recipient_address: ContractAddress
+    pub recipient_address: ContractAddress,
 }
 
 fn len(f: felt252) -> usize {
@@ -28,7 +28,11 @@ impl TransferEncodeImpl of Encode<Transfer> {
         // assuming token is no longer than 16 bytes
         token.append_word(*self.token, len(*self.token));
         @format!(
-            "{} send {} {} to {}", self.joyboy.encode(), self.amount, token, self.recipient.encode()
+            "{} send {} {} to {}",
+            self.joyboy.encode(),
+            self.amount,
+            token,
+            self.recipient.encode(),
         )
     }
 }
@@ -107,12 +111,12 @@ mod tests {
     fn encode() {
         let joyboy = NostrProfile {
             public_key: 0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40,
-            relays: array!["wss://relay.joyboy.community.com"]
+            relays: array!["wss://relay.joyboy.community.com"],
         };
 
         let recipient = NostrProfile {
             public_key: 0xa87622b57b52f366457e867e1dccc60ea631ccac94b7c74ab08254c489ef12c6,
-            relays: array![]
+            relays: array![],
         };
 
         let request = Transfer {
