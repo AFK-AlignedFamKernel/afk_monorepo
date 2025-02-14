@@ -32,6 +32,26 @@ export const useInternalAccount = () => {
   const [isFirstLoadDone, setIsFirstLoadDone] = useState(false);
   const {setIsSeedCashuStorage} = useCashuStore();
 
+  const handlePasskey = async (publicKey?: string) => {
+    try {
+      const passkeyToGenerate = DEFAULT_PASSKEY_VALUES;
+      passkeyToGenerate.publicKey = publicKey;
+      showToast({title: 'Passkey in process', type: 'info'});
+
+      const result = await PasskeyManager.generatePasskeyAndSave(passkeyToGenerate);
+      if (!result) {
+        showToast({title: 'Passkey issue.', type: 'error'});
+        // return router.push("/onboarding")
+        return undefined;
+      } else {
+        showToast({title: 'Passkey generated', type: 'success'});
+
+        return result;
+      }
+    } catch (error) {
+      
+    }
+  };
   const handleGeneratePasskey = async (publicKey?: string) => {
     try {
       const isWalletSetup = await PasskeyManager.getIsWalletSetup();
@@ -40,20 +60,14 @@ export const useInternalAccount = () => {
       // if (isWalletSetup) return;
 
       if (isWalletSetup && isWalletSetup == 'true') {
-        // const result = await PasskeyManager.getDecryptedPrivateKey()
-        // if (!result) {
-        //   showToast({ title: "Authentication issue.", type: "error" })
 
-        //   // return router.push("/onboarding")
+        const passkeyToGenerate = DEFAULT_PASSKEY_VALUES;
+        passkeyToGenerate.publicKey = publicKey;
+        // showToast({title: 'Passkey in process', type: 'info'});
 
-        // } else {
-        //   const { secretKey, mnemonic, publicKey, strkPrivateKey } = result
-        //   console.log("result", result)
-        //   showToast({ title: "Authentication succeed.", type: "success" })
-
-        //   setIsConnected(true)
-        // }
-        return undefined;
+        const result = await handlePasskey(publicKey)
+        
+        return result;
       } else if (!isWalletSetup) {
         const passkeyToGenerate = DEFAULT_PASSKEY_VALUES;
         passkeyToGenerate.publicKey = publicKey;
@@ -128,9 +142,14 @@ export const useInternalAccount = () => {
     try {
       console.log('handleGenerateNostrWallet');
 
-      if (passkey) {
+      if (passkey && passkey != null) {
+        console.log('passkey exist', passkey);
         const res = await NostrKeyManager.getOrCreateKeyPair(passkey);
         console.log('res', res);
+        if(!res) {
+          showToast({title: 'Nostr wallet generation failed.', type: 'error'});
+          return undefined;
+        }
         const {secretKey, mnemonic, publicKey} = res;
         showToast({title: 'Nostr wallet generated successfully.', type: 'success'});
         resultNostr.secretKey = secretKey;
@@ -144,7 +163,8 @@ export const useInternalAccount = () => {
         console.log('resultNostrValue', resultNostrValue);
         setIsConnected(true);
         return resultNostr;
-      } else if (!passkey) {
+      } else if (!passkey || passkey == null) {
+        console.log('passkey not exist');
         const result = await PasskeyManager.generatePasskeyAndSave(DEFAULT_PASSKEY_VALUES);
         if (!result) {
           showToast({title: 'Passkey issue.', type: 'error'});

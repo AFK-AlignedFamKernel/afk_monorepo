@@ -7,13 +7,13 @@ import {
   useCreateTokenEvent,
   useDeleteTokenEvents,
 } from 'afk_nostr_sdk';
-import {EventMarker} from 'afk_nostr_sdk/src/hooks/cashu/useCreateSpendingEvent';
 import {useState} from 'react';
 
 import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
 import {useGetTokensByProofs} from './useGetTokensByProof';
 import {useProofsStorage, useTransactionsStorage, useWalletIdStorage} from './useStorageState';
+import { EventMarker } from '../../../../packages/afk_nostr_sdk/src/hooks/cashu/useCreateSpendingEvent';
 
 export const usePayment = () => {
   const {showToast} = useToast();
@@ -35,10 +35,14 @@ export const usePayment = () => {
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
+      console.log('no wallet');
       return undefined;
     } else if (proofs) {
       try {
+      console.log('proofs', proofs);
+
         const response = await meltTokens(pInvoice, proofs);
+        console.log('response', response);
         if (response) {
           const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} = response;
           setProofsFilter(selectedProofs);
@@ -85,9 +89,11 @@ export const usePayment = () => {
           return undefined;
         }
       } catch (error) {
+        console.log('error', error);
         return undefined;
       }
     } else {
+      console.log('no proofs');
       // no proofs = no balance
       return undefined;
     }
@@ -187,13 +193,15 @@ export const usePayment = () => {
 
   const handleReceiveEcash = async (ecashToken?: string) => {
     try {
+      console.log('handleReceiveEcash', ecashToken);
       if (!ecashToken) {
         return undefined;
       }
       const decodedToken = getDecodedToken(ecashToken);
-
+      console.log('decodedToken', decodedToken);
+      console.log('wallet', wallet);
       const receiveEcashProofs = await wallet?.receive(decodedToken);
-
+      console.log('receiveEcashProofs', receiveEcashProofs);
       if (receiveEcashProofs?.length > 0) {
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
         if (privateKey && publicKey) {
@@ -228,6 +236,7 @@ export const usePayment = () => {
       }
       return undefined;
     } catch (e) {
+      console.log('handleReceiveEcash error', e);
       return undefined;
     }
   };

@@ -108,6 +108,12 @@ pub mod DaoAA {
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>, // 
         starknet_address: felt252,
+        proposals_call_external:Map<u256, Vec<Call>>, // Map ProposalID => calldata
+
+        tx_to_execute: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
+        tx_executed: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
+        tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
+        tx_call_executed: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -382,6 +388,18 @@ pub mod DaoAA {
 
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 proposal.proposal_result = ProposalResult::Passed;
+                // let proposal_calldata = self.proposals_calldata.entry(proposal_id);
+                
+                // let tx_to_execute = self.tx_to_execute.read(proposal_id);
+                // for i in 0
+                //     ..proposal_calldata
+                //         .len() {
+                //             let data = *calldata.at(i);
+                //             tx_to_execute.append().write(data);
+                //         };
+                //         tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
+                        
+
             } else {
                 proposal.proposal_result = ProposalResult::Failed;
             }

@@ -276,7 +276,12 @@ export const SendEcash: React.FC<SendEcashProps> = ({ onClose }) => {
                 </View>
 
                 <Button
-                  onPress={() => handlePayInvoice(invoice)}
+                  disabled={!invoice}
+                  onPress={() => {
+                    if (invoice) {
+                      handlePayInvoice(invoice);
+                    }
+                  }}
                   style={styles.modalActionButton}
                   textStyle={styles.modalActionButtonText}
                 >
@@ -290,7 +295,7 @@ export const SendEcash: React.FC<SendEcashProps> = ({ onClose }) => {
                 showToast({
                   title: 'QR code scanned',
                   type: 'success',
-                } );
+                });
               }} />
             </Modal>
           </>
@@ -380,16 +385,35 @@ export const SendEcash: React.FC<SendEcashProps> = ({ onClose }) => {
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
-
+{/* 
+                    <TouchableOpacity onPress={() => handleCopy('ecash')}>
+                      <Text>Copy</Text>
+                      <CopyIconStack color={theme.colors.primary} />
+                    </TouchableOpacity> */}
                     <Input
-                      value={generatedEcash}
+                      value={generatedEcash ? `${generatedEcash.slice(0, 5)}...${generatedEcash.slice(generatedEcash.length - 5)}` : ''}
+                      style={{ width: '80%' }}
+                      inputStyle={{ width: '80%' }}
+                      containerStyle={{ width: '80%' }}
                       editable={false}
+                      maxLength={30}
+                      numberOfLines={1}
+                      left={
+                        <TouchableOpacity onPress={() => handleCopy('ecash')}>
+                          <CopyIconStack color={theme.colors.primary} />
+                        </TouchableOpacity>
+                      }
                       right={
                         <TouchableOpacity onPress={() => handleCopy('ecash')}>
                           <CopyIconStack color={theme.colors.primary} />
                         </TouchableOpacity>
                       }
                     />
+                    <Button onPress={() => handleCopy('ecash')}>
+
+                      <Text>Copy</Text>
+                      <CopyIconStack color={theme.colors.primary} />
+                    </Button>
                   </View>
                 )}
               </>

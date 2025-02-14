@@ -1,28 +1,28 @@
 import '../../../applyGlobalPolyfills';
 
-import {getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
-import {addProofs, ICashuInvoice, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
+import { addProofs, ICashuInvoice, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {ChangeEvent, useState} from 'react';
-import {Modal, SafeAreaView, TouchableOpacity, View} from 'react-native';
-import {Text, TextInput} from 'react-native';
+import React, { ChangeEvent, useState } from 'react';
+import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon} from '../../assets/icons';
-import {Button, Input} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {useCashuContext} from '../../providers/CashuProvider';
-import {SelectedTab} from '../../types/tab';
-import {getInvoices, storeInvoices} from '../../utils/storage_cashu';
-import GenerateQRCode from './qr/GenerateQRCode'; // Import the QR code component
-import ScanCashuQRCode from './qr/ScanCode';
+import { CloseIcon, CopyIconStack, ScanQrIcon } from '../../assets/icons';
+import { Button, GenerateQRCode, Input, ScanQRCode } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { useCashuContext } from '../../providers/CashuProvider';
+import { SelectedTab } from '../../types/tab';
+import { getInvoices, storeInvoices } from '../../utils/storage_cashu';
+// import GenerateQRCode from './qr/GenerateQRCode'; // Import the QR code component
+// import ScanCashuQRCode from './qr/ScanCode';
 import stylesheet from './styles';
 
 interface ReceiveEcashProps {
   onClose: () => void;
 }
 
-export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
+export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({ onClose }) => {
   type TabType = 'lightning' | 'ecash' | 'none';
   const tabs = ['lightning', 'ecash'] as const;
   const [activeTab, setActiveTab] = useState<TabType>('none');
@@ -31,7 +31,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
     setActiveTab(tab);
   };
 
-  const {ndkCashuWallet, ndkWallet} = useNostrContext();
+  const { ndkCashuWallet, ndkWallet } = useNostrContext();
   const {
     wallet,
     connectCashMint,
@@ -47,7 +47,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
     activeCurrency,
   } = useCashuContext();
   const [ecash, setEcash] = useState<string | undefined>();
-  const {isSeedCashuStorage, setIsSeedCashuStorage} = useCashuStore();
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
 
   const styles = useStyles(stylesheet);
 
@@ -67,12 +67,12 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
   const [generatedInvoice, setGeneratedInvoice] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [invoiceMemo, setInvoiceMemo] = useState('');
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const [newSeed, setNewSeed] = useState<string | undefined>();
 
-  const {showDialog, hideDialog} = useDialog();
+  const { showDialog, hideDialog } = useDialog();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LIGHTNING_NETWORK_WALLET,
@@ -138,10 +138,37 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
         await Clipboard.setStringAsync(ecash);
       }
     }
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
   const handleReceiveEcash = async () => {
+    console.log('handleReceiveEcash', ecash);
+    showToast({ title: 'Handle receive ecash', type: 'info' });
+
+    try {
+      console.log('ecash', ecash);
+      if (!ecash) {
+        return;
+      }
+      const encoded = getDecodedToken(ecash);
+      console.log('encoded', encoded);
+
+      console.log('wallet', wallet);
+
+      const response = await wallet?.receive(encoded);
+      console.log('response', response);
+
+      if (response) {
+        showToast({ title: 'ecash payment received', type: 'success' });
+        await addProofs(response);
+      }
+    } catch (e) {
+      console.log('handleReceiveEcash error', e);
+    }
+  };
+
+
+  const handleReceiveEcashWithLink = async () => {
     try {
       if (!ecash) {
         return;
@@ -153,13 +180,14 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
       console.log('response', response);
 
       if (response) {
-        showToast({title: 'ecash payment received', type: 'success'});
+        showToast({ title: 'ecash payment received', type: 'success' });
         await addProofs(response);
       }
     } catch (e) {
       console.log('handleReceiveEcash error', e);
     }
   };
+
 
   const handlePaste = async () => {
     try {
@@ -182,6 +210,11 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
     setIsScannerVisible(false);
   };
 
+  const handleScanSuccess = () => {
+    // setEcash(data);
+    showToast({ title: 'Success', type: 'success' });
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'none':
@@ -189,7 +222,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
           <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
               onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
             >
               <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
@@ -209,7 +242,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -234,17 +267,21 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
 
                 {quote?.request && (
                   <View
-                    style={{marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20}}
+                    style={{ marginVertical: 3, display: 'flex', flexDirection: 'column', gap: 20 }}
                   >
                     <Text style={styles.text}>Invoice address</Text>
 
+
                     <Input
-                      value={quote?.request}
+                      style={{width: '80%'}}
+                      numberOfLines={1}
+                      // ellipsizeMode="middle"
+                      value={quote?.request ? `${quote.request.slice(0,15)}...${quote.request.slice(-15)}` : ''}
                       editable={false}
                       right={
                         <TouchableOpacity
                           onPress={() => handleCopy('lnbc')}
-                          style={{marginRight: 10}}
+                          style={{ marginRight: 10 }}
                         >
                           <CopyIconStack color={theme.colors.primary} />
                         </TouchableOpacity>
@@ -264,7 +301,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -277,7 +314,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                   style={styles.input}
                 />
                 <View
-                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                  style={{ display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center' }}
                 >
                   <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
                     <Text style={styles.pasteButtonText}>PASTE</Text>
@@ -304,7 +341,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                       right={
                         <TouchableOpacity
                           onPress={() => handleCopy('ecash')}
-                          style={{marginRight: 10}}
+                          style={{ marginRight: 10 }}
                         >
                           <CopyIconStack color={theme.colors.primary} />
                         </TouchableOpacity>
@@ -322,7 +359,10 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({onClose}) => {
                 </Button>
               </>
               <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
-                <ScanCashuQRCode onClose={handleCloseScanner} />
+                <ScanQRCode
+                  onClose={handleCloseScanner}
+                  onSuccess={handleScanSuccess}
+                />
               </Modal>
             </View>
           </>

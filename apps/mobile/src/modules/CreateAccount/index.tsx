@@ -59,6 +59,11 @@ export const CreateAccountModule: React.FC<ISignup> = ({
     // const res = await handleGenerateWallet(passkey);
     // console.log('res handleGenerateWallet', res);
 
+    if (!passkey) {
+      showToast({type: 'error', title: 'Passkey issue.'});
+      return;
+    }
+
     const resNostr = await handleGenerateNostrWallet(passkey);
     console.log('resNostr handleGenerateNostrWallet', resNostr);
 

@@ -342,21 +342,13 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
   //   screen: 'Portfolio',
   //   tab: SelectedTab.PORTFOLIO,
   // },
-  {
-    title: 'Lightning',
-    screen: 'Lightning',
-    tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
-  },
+
   {
     title: 'Tips',
     screen: 'Tips',
     tab: SelectedTab.TIPS,
   },
-  {
-    title: 'BTC Fi',
-    screen: 'BTCVault',
-    tab: SelectedTab.BTC_FI_VAULT,
-  },
+
   {
     title: 'Swap',
     screen: 'Swap',
@@ -372,6 +364,16 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
     screen: 'Ramp',
     tab: SelectedTab.ONRAMP_OFFRAMP,
   },
+  // {
+  //   title: 'BTC Fi',
+  //   screen: 'BTCVault',
+  //   tab: SelectedTab.BTC_FI_VAULT,
+  // },
+  // {
+  //   title: 'Lightning',
+  //   screen: 'Lightning',
+  //   tab: SelectedTab.LIGHTNING_NETWORK_WALLET,
+  // },
 ];
 
 export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
