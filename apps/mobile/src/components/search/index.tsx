@@ -1,7 +1,7 @@
 import { NDKKind } from '@nostr-dev-kit/ndk';
 // Import useSearch
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { useStyles, useWindowDimensions } from '../../hooks';
@@ -69,21 +69,28 @@ const SearchComponent: React.FC<ISearchComponent> = ({
   return (
     <View style={isDesktop ? styles.container : styles.containerMobile}>
       <View style={styles.rowContainer}>
-        {SORT_OPTIONS.map((option, index) => (
-          <Pressable
-            key={option.value}
-            style={[
-              styles.button,
-              (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
-                activeSortBy?.toLowerCase() === option.value?.toLowerCase() ||
-                activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
-            ]}
-            onPress={() => handleSortChange(option.value?.toString())}
+        <ScrollView horizontal
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          style={styles.sortContainer}
+        >
+          {SORT_OPTIONS.map((option, index) => (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.button,
+                (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
+                  activeSortBy?.toLowerCase() === option.value?.toLowerCase() ||
+                  activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
+              ]}
+              onPress={() => handleSortChange(option.value?.toString())}
             // onPress={() => handleSortChange(index?.toString())}
-          >
-            <Text style={styles.buttonText}>{option.label}</Text>
-          </Pressable>
-        ))}
+            >
+              <Text style={styles.buttonText}>{option.label}</Text>
+            </Pressable>
+          ))}
+
+        </ScrollView>
         {!isDesktop ? (
           <Pressable onPress={() => setIsOpenFilter(true)} style={{ marginLeft: 'auto' }}>
             <Svg width="32" height="32" viewBox="0 0 24 24">
@@ -92,6 +99,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
           </Pressable>
         ) : null}
       </View>
+
       <View style={styles.searchContainer}>
         <View style={isDesktop ? styles.searchInputContainer : styles.searchInputContainerMobile}>
           <Icon name={'SearchIcon'} size={20} color={'textPrimary'} style={styles.searchIcon} />

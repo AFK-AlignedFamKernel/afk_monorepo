@@ -117,7 +117,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       //   item?.content?.toLowerCase().includes(searchLower),
       // ) ?? flattenedPages;
     }
-    else if (activeSortBy == SORT_OPTION_EVENT_NOSTR.TRENDING?.toString() 
+    else if (activeSortBy == SORT_OPTION_EVENT_NOSTR.TRENDING?.toString()
       // || activeSortBy == "1"
     ) {
       console.log('TRENDING SORT');
@@ -169,12 +169,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     }
     else if (
       // activeSortBy == "3" ||
-       activeSortBy == SORT_OPTION_EVENT_NOSTR.INTERESTS?.toString()) {
+      activeSortBy == SORT_OPTION_EVENT_NOSTR.INTERESTS?.toString()) {
       console.log('INTERESTS SORT');
       // TODO add interests notes
-      filtered = flattenedPages?.filter((item) =>
-        item?.content?.toLowerCase().includes(searchLower) || item?.tags?.some((tag: string) => tag[1]?.match(/^#(.*)$/)),
-      ) ?? flattenedPages;
+      // filtered = flattenedPages?.filter((item) =>
+      //   item?.content?.toLowerCase().includes(searchLower) || item?.tags?.some((tag: string) => tag[1]?.match(/^#(.*)$/)),
+      // ) ?? flattenedPages;
     }
     if (searchLower && searchLower?.length > 0) {
       filtered = flattenedPages?.filter((item) =>
@@ -248,17 +248,29 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       )}
 
 
-      {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() || forYouNotes?.length == 0 && !notesForYou?.isFetching 
-      && notesForYou?.data?.pages?.length == 0
-      && !notesForYou?.isFetching
-      && (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>No users connected</Text>
-          <Button onPress={handleConnect}>
-            Connect
-          </Button>
-        </View>
-      )}
+      {
+        publicKey &&
+        activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() || forYouNotes?.length == 0 && !notesForYou?.isFetching
+        && notesForYou?.data?.pages?.length == 0
+        && !notesForYou?.isFetching
+        && (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text
+              style={{
+                color: theme.colors.text,
+              }}
+            >
+              No notes found
+            </Text>
+            <Text
+              style={{
+                color: theme.colors.text,
+              }}
+            >
+              Try to refresh the page or contact the support please!
+            </Text>
+          </View>
+        )}
       {!notes?.isLoading ||
         (!notes?.isFetching && notes?.data?.pages?.length == 0 && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
