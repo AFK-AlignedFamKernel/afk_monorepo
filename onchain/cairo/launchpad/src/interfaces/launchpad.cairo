@@ -37,7 +37,11 @@ pub trait ILaunchpadMarketplace<TContractState> {
     ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
-        ref self: TContractState, coin_address: ContractAddress, bonding_type: BondingType, creator_fee_percent: u256, creator_fee_destination: ContractAddress
+        ref self: TContractState,
+        coin_address: ContractAddress,
+        bonding_type: BondingType,
+        creator_fee_percent: u256,
+        creator_fee_destination: ContractAddress
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
@@ -118,10 +122,9 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_is_fees_creator_sell_enabled(
         ref self: TContractState, is_fees_creator_sell_enabled: bool
     );
-    fn set_is_fees_creator_buy_enabled(
-        ref self: TContractState, is_fees_creator_buy_enabled: bool
-    );
-    fn set_is_fees_creator_enabled(
-        ref self: TContractState, is_fees_creator_enabled: bool
+    fn set_is_fees_creator_buy_enabled(ref self: TContractState, is_fees_creator_buy_enabled: bool);
+    fn set_is_fees_creator_enabled(ref self: TContractState, is_fees_creator_enabled: bool);
+    fn set_is_creator_fee_sent_before_graduated(
+        ref self: TContractState, is_creator_fee_sent_before_graduated: bool
     );
 }

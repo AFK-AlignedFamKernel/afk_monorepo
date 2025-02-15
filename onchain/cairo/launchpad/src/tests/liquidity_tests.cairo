@@ -62,7 +62,7 @@ mod liquidity_tests {
     fn RECEIVER_ADDRESS() -> ContractAddress {
         'receiver'.try_into().unwrap()
     }
-    
+
     const RATIO_SUPPLY_LAUNCH: u256 = 5;
     const LIQUIDITY_SUPPLY: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
     const BUYABLE: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;

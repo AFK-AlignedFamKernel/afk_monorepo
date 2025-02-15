@@ -1100,7 +1100,13 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
         let amount_first_buy = 1_u256;
 
         run_buy_by_amount(
@@ -1159,7 +1165,13 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Exponential, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                token_address,
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
         let amount_first_buy = 1_u256;
 
         run_buy_by_amount(
@@ -1203,7 +1215,7 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential, 
+                bonding_type: BondingType::Exponential,
                 creator_fee_percent: MID_FEE_CREATOR,
                 creator_fee_destination: RECEIVER_ADDRESS()
             );
@@ -1312,7 +1324,12 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
 
         launchpad
-            .launch_token(coin_address: erc20.contract_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+            .launch_token(
+                coin_address: erc20.contract_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
     }
 
     #[test]
@@ -1332,7 +1349,13 @@ mod launchpad_tests {
                 is_unruggable: false
             );
 
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                coin_address: token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
     }
 
     #[test]
@@ -1357,7 +1380,13 @@ mod launchpad_tests {
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         memecoin.approve(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
 
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                coin_address: token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
 
         let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
             CreateLaunch {
@@ -1399,8 +1428,13 @@ mod launchpad_tests {
 
         // Panic before dont approve allowance
         // The user have received the token
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
-
+        launchpad
+            .launch_token(
+                coin_address: token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
     }
 
 

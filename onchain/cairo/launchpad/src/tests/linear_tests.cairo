@@ -65,6 +65,7 @@ mod linear_tests {
             creator_fee_percent: 0_u256,
             creator_amount_received: 0_u256,
             creator_fee_destination: OWNER(),
+            creator_amount_distributed: 0_u256,
         };
 
         token_launch
