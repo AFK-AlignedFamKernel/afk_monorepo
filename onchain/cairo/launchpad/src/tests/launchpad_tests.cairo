@@ -1297,9 +1297,7 @@ mod launchpad_tests {
     }
 
     #[test]
-    // #[fork("Mainnet")]
     #[should_panic()]
-    // #[should_panic(expected: (errors::NO_SUPPLY_PROVIDED,))]
     fn test_launch_token_with_no_supply_provided() {
         let (_, _, launchpad) = request_fixture();
 
@@ -1319,7 +1317,6 @@ mod launchpad_tests {
     }
 
     #[test]
-    // #[fork("Mainnet")]
     fn test_launch_token() {
         let (_, erc20, launchpad) = request_fixture();
         let mut spy = spy_events();
@@ -1412,7 +1409,6 @@ mod launchpad_tests {
     }
 
     #[test]
-    // #[fork("Mainnet")]
     fn test_get_coin_launch() {
         let (_, erc20, launchpad) = request_fixture();
 
