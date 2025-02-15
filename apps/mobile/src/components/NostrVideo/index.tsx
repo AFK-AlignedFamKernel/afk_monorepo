@@ -1,4 +1,4 @@
-import { NostrEvent } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NostrEvent } from '@nostr-dev-kit/ndk';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth, useBookmark, useProfile, useReact, useReactions, useReplyNotes, useRepost } from 'afk_nostr_sdk';
 import { ResizeMode, Video } from 'expo-av';
@@ -30,7 +30,7 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
   const queryClient = useQueryClient();
   const scale = useSharedValue(1);
   const userReaction = useReactions({ authors: [publicKey], noteId: item?.id });
-  const repostMutation = useRepost({ event: item });
+  const repostMutation = useRepost({ event: item as NDKEvent });
   const { show: showTipModal } = useTipModal();
 
   const { bookmarkNote, removeBookmark } = useBookmark(publicKey);
@@ -121,10 +121,11 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
     await handleCheckNostrAndSendConnectDialog();
 
     await react.mutateAsync(
-      { event: item, type: isLiked ? 'dislike' : 'like' },
+      { event: item as NDKEvent, type: isLiked ? 'dislike' : 'like' },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
+          if(!item?.id) return;
+          queryClient.invalidateQueries({ queryKey: ['reactions', item?.id] });
 
           // scale.value = withSequence(
           //   withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
@@ -151,9 +152,9 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
       // @TODO fix
       await handleCheckNostrAndSendConnectDialog();
 
-      const reposted= await repostMutation.mutateAsync();
-      
-      if(reposted) {
+      const reposted = await repostMutation.mutateAsync();
+
+      if (reposted) {
         showToast({ title: 'Post reposted successfully', type: 'success' });
       }
     } catch (error) {
@@ -164,6 +165,8 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
 
   const handleBookmark = async () => {
     if (!item) return;
+
+    if(!item?.id) return;
     try {
       await handleCheckNostrAndSendConnectDialog();
 
@@ -171,12 +174,12 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
         await removeBookmark({ eventId: item?.id });
         showToast({ title: 'Post removed from bookmarks', type: 'success' });
       } else {
-        await bookmarkNote({ event: item });
+        await bookmarkNote({ event: item  as NDKEvent});
         showToast({ title: 'Post bookmarked successfully', type: 'success' });
       }
       // Invalidate the queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['search', { authors: [event.pubkey] }] });
-      queryClient.invalidateQueries({ queryKey: ['bookmarksWithNotes', event.pubkey] });
+      queryClient.invalidateQueries({ queryKey: ['search', { authors: [item?.pubkey] }] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarksWithNotes', item?.pubkey] });
       setNoteBookmarked((prev) => !prev);
     } catch (error) {
       console.error('Bookmark error:', error);
@@ -227,15 +230,14 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
         <TouchableOpacity style={{ width: 15 }} onPress={handleBookmark}>
           <BookmarkIcon width={15} height={20} color="white" />
         </TouchableOpacity>
-
         <TouchableOpacity
-                onPress={() => {
-                  if (!event) return;
-                  showTipModal(event);
-                }}
-              >
-                <Icon name="GiftIcon" size={15} title="Tip" />
-              </TouchableOpacity>
+          onPress={() => {
+            if (!item) return;
+            showTipModal(item as NDKEvent);
+          }}
+        >
+          <Icon name="GiftIcon" size={15} title="Tip" />
+        </TouchableOpacity>
       </View>
     </>
   );
