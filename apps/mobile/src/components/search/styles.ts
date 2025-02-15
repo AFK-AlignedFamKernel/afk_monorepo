@@ -23,6 +23,13 @@ export default ThemedStyleSheet((theme) => ({
     overflowX: 'auto',
   },
   rowContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap', // Allow wrapping if items overflow
+    gap: 10,
+  },
+  sortContainer: {
+    width: '80%',
     flexDirection: 'row',
     flexWrap: 'wrap', // Allow wrapping if items overflow
     gap: 10,

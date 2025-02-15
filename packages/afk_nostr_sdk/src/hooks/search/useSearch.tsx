@@ -10,6 +10,7 @@ export type UseSearch = {
   kinds?: NDKKind[];
   sortBy?: string;
   limit?: number;
+  isWithouthReply?:boolean;
 };
 
 export const useSearch = (options?: UseSearch) => {
@@ -17,7 +18,7 @@ export const useSearch = (options?: UseSearch) => {
 
   return useInfiniteQuery({
     initialPageParam: 0,
-    queryKey: ['search', options?.authors, options?.search, options?.kind, options?.kinds, ndk],
+    queryKey: ['search', options?.authors, options?.search, options?.kind, options?.kinds, options?.isWithouthReply, ndk],
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
 

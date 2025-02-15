@@ -14,6 +14,8 @@ import {usePayment} from '../../hooks/usePayment';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import stylesheet from './styles';
+import { useNavigation } from '@react-navigation/native';
+import { MainStackNavigationProps, MainStackParams } from '../../types';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -38,6 +40,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
 
+  const navigation = useNavigation<MainStackNavigationProps>();
   // Web-specific refs and state
   const videoRef = useRef<VideoElementRef | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -312,7 +315,15 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
           ) : null}
           {renderCamera()}
           {Platform.OS === 'web' && !webPermissionGranted ? (
-            <Text style={styles.waitingText}>Waiting for permissions...</Text>
+            <View 
+            style={styles.waitingContainer}
+            >
+              <Button onPress={() => {
+                // navigation.goBack();
+                handleScannerClose()
+                }}>Cancel</Button>
+              <Text style={styles.waitingText}>Waiting for permissions...</Text>
+            </View>
           ) : null}
           {Platform.OS !== 'web' || webPermissionGranted ? (
             <TouchableOpacity onPress={handleScannerClose}>
@@ -394,3 +405,6 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
     </View>
   );
 };
+
+
+export default ScanQRCode;

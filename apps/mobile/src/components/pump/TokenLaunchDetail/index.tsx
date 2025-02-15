@@ -206,10 +206,10 @@ export const TokenLaunchDetail: React.FC<LaunchCoinProps> = ({
 
         <View style={styles.divider} />
 
-        {launch?.is_liquidity_launch && (
+        {launch?.is_liquidity_added && (
           <View style={styles.detailRow}>
             <Text style={styles.label}>Is launched in DEX</Text>
-            <Text style={styles.value}>{Number(launch?.is_liquidity_launch).toLocaleString()}</Text>
+            {/* <Text style={styles.value}>{Number(launch?.is_liquidity_launch).toLocaleString()}</Text> */}
           </View>
         )}
 
