@@ -155,7 +155,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             || [...followers]?.flat()?.some((n) => item?.pubkey === n?.pubkey)
         }
         ) ?? [];
-      console.log('forYouNotes', forYouNotes);
+      // console.log('forYouNotes', forYouNotes);
 
       forYouNotes =
         notes?.data?.pages?.flat().map((item) =>
@@ -180,7 +180,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       filtered = flattenedPages?.filter((item) =>
         item?.content?.toLowerCase().includes(searchLower),
       ) ?? flattenedPages;
-      console.log('search result is => ', filtered);
+      // console.log('search result is => ', filtered);
     }
     // return filtered;
     // setFeedData(filtered as any);
@@ -188,7 +188,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       index === self.findIndex((n) => n.id === note.id)
     ) as any);
 
-    console.log('filtered notes => ', filtered);
+    // console.log('filtered notes => ', filtered);
     return filtered;
   }, [notes.data?.pages, search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
   // Filter notes based on the search query
@@ -239,6 +239,19 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       )}
 
       {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>No users connected</Text>
+          <Button onPress={handleConnect}>
+            Connect
+          </Button>
+        </View>
+      )}
+
+
+      {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() || forYouNotes?.length == 0 && !notesForYou?.isFetching 
+      && notesForYou?.data?.pages?.length == 0
+      && !notesForYou?.isFetching
+      && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text>No users connected</Text>
           <Button onPress={handleConnect}>
@@ -323,8 +336,8 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
         }
         onEndReached={() => {
-          if (activeSortBy === "2") {
-            // forYouNotes.fetchNextPage();
+          if (activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()) {
+            notesForYou.fetchNextPage();
           } else {
             notes.fetchNextPage();
           }
