@@ -75,10 +75,11 @@ const SearchComponent: React.FC<ISearchComponent> = ({
             style={[
               styles.button,
               (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
+                activeSortBy?.toLowerCase() === option.value?.toLowerCase() ||
                 activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
             ]}
-            // onPress={() => handleSortChange(option.label)}
-            onPress={() => handleSortChange(index?.toString())}
+            onPress={() => handleSortChange(option.value?.toString())}
+            // onPress={() => handleSortChange(index?.toString())}
           >
             <Text style={styles.buttonText}>{option.label}</Text>
           </Pressable>
