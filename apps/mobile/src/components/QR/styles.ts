@@ -185,4 +185,14 @@ export default ThemedStyleSheet((theme) => ({
     bottom: 10,
     zIndex: 10000,
   },
+  waitingContainer:{
+    backgroundColor: theme.colors.surface,
+    padding: 20,
+    borderRadius: 10,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'column',
+  }
 }));

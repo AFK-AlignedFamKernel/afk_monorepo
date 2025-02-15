@@ -12,6 +12,7 @@ export default ThemedStyleSheet(() => ({
     height: '100%',
   },
   innerVideo: {
+    width: Dimensions.get('window').width,
     height: Dimensions.get('window').height - 60,
   },
   actionsContainer: {

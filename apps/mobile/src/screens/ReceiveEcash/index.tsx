@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getDecodedToken, Token} from '@cashu/cashu-ts';
-import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
-import {getRandomBytes, randomUUID} from 'expo-crypto';
-import {useEffect, useState} from 'react';
-import {ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { getDecodedToken, Token } from '@cashu/cashu-ts';
+import { addProofs, useAuth, useCreateWalletEvent } from 'afk_nostr_sdk';
+import { getRandomBytes, randomUUID } from 'expo-crypto';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {InfoIcon} from '../../assets/icons';
-import {Button, TextButton} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {usePayment} from '../../hooks/usePayment';
+import { InfoIcon } from '../../assets/icons';
+import { Button, TextButton } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { usePayment } from '../../hooks/usePayment';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
@@ -18,42 +18,52 @@ import {
   usePrivKeySignerStorage,
   useWalletIdStorage,
 } from '../../hooks/useStorageState';
-import {useCashuContext} from '../../providers/CashuProvider';
-import {ReceiveEcashScreenProps} from '../../types';
+import { useCashuContext } from '../../providers/CashuProvider';
+import { ReceiveEcashScreenProps } from '../../types';
 import stylesheet from './styles';
 
-export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, route}) => {
+export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({ navigation, route }) => {
   const styles = useStyles(stylesheet);
-  const {theme} = useTheme();
-  const {showToast} = useToast();
+  const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [tokenInfo, setTokenInfo] = useState<Token>();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const {token} = route.params;
+  const { token } = route.params;
 
-  const {publicKey, privateKey} = useAuth();
+  const { publicKey, privateKey } = useAuth();
 
-  const {handleReceiveEcash} = usePayment();
-  const {mints, setMints, setActiveMint, buildMintData, setActiveUnit} = useCashuContext()!;
-  const {value: mintsStorage, setValue: setMintsStorage} = useMintStorage();
-  const {setValue: setActiveMintStorage} = useActiveMintStorage();
-  const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
-  const {setValue: setPrivKey} = usePrivKeySignerStorage();
-  const {setValue: setWalletId} = useWalletIdStorage();
+  const { handleReceiveEcash } = usePayment();
+  const { mints, setMints, setActiveMint, buildMintData, setActiveUnit, wallet } = useCashuContext()!;
+  const { value: mintsStorage, setValue: setMintsStorage } = useMintStorage();
+  const { setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  const { setValue: setPrivKey } = usePrivKeySignerStorage();
+  const { setValue: setWalletId } = useWalletIdStorage();
 
-  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
+  const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   const [trigger, setTrigger] = useState(false);
 
   useEffect(() => {
-    if (!trigger) {
+    if (token) {
+      const decodedToken = getDecodedToken(token);
+      setTokenInfo(decodedToken);
+      if (decodedToken && mintsStorage.length === 0) {
+        const mintUrl = decodedToken.mint;
+        console.log('mintUrl', mintUrl);
+        handleAddMint(mintUrl);
+      }
+    }
+    if (!trigger && token) {
       setTrigger(true);
     } else {
       const decodedToken = getDecodedToken(token);
       setTokenInfo(decodedToken);
       if (decodedToken && mintsStorage.length === 0) {
         const mintUrl = decodedToken.mint;
+        console.log('mintUrl', mintUrl);
         handleAddMint(mintUrl);
       }
     }
@@ -88,15 +98,45 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
     }
   };
 
+
+  const handleReceiveEcashToken = async () => {
+    try {
+      if (!token) {
+        return;
+      }
+      const response = await handleReceiveEcash(token);
+      // const encoded = getDecodedToken(token);
+      // console.log('encoded', encoded);
+
+      // console.log('wallet', wallet);
+
+      // const response = await wallet?.receive(encoded);
+      // console.log('response', response);
+
+      // if (response) {
+      //   showToast({ title: 'ecash payment received', type: 'success' });
+      //   await addProofs(response);
+      // }
+
+      return response;
+    } catch (e) {
+      console.log('handleReceiveEcash error', e);
+      return undefined;
+    }
+  };
+
+
   const handleReceive = async () => {
     setIsProcessing(true);
     const mintUrl = tokenInfo?.mint;
     if (mintUrl) {
       const mintAlreadyConfigured = mintsStorage?.some((mint) => mint.url === mintUrl) || false;
+      console.log('mintAlreadyConfigured', mintAlreadyConfigured);
       if (!mintAlreadyConfigured) {
-        showToast({type: 'info', title: 'Configuring mint...', timeout: 3000});
+        showToast({ type: 'info', title: 'Configuring mint...', timeout: 3000 });
 
         const data = await buildMintData(mintUrl, '');
+        console.log('data', data);
         setActiveMint(mintUrl);
         setActiveMintStorage(mintUrl);
         setActiveUnit(tokenInfo.unit || data.units[0]);
@@ -104,18 +144,21 @@ export const ReceiveEcash: React.FC<ReceiveEcashScreenProps> = ({navigation, rou
         const currentMints = mintsStorage ?? [];
         setMints([...currentMints, data]);
         setMintsStorage([...currentMints, data]);
-        showToast({type: 'info', title: 'Mint configured!', timeout: 3000});
+        showToast({ type: 'info', title: 'Mint configured!', timeout: 3000 });
       }
-      showToast({type: 'info', title: 'Receiving ecash...', timeout: 3000});
-      const response = await handleReceiveEcash(token);
+      console.log('token', token);
+      showToast({ type: 'info', title: 'Receiving ecash...', timeout: 3000 });
+      const response = await handleReceiveEcashToken();
+      // const response = await handleReceiveEcash(token);
+      console.log('response', response);
       if (!response) {
-        showToast({type: 'error', title: 'Error processing payment.', timeout: 3000});
+        showToast({ type: 'error', title: 'Error processing payment.', timeout: 3000 });
       } else {
         setIsProcessing(false);
         navigation.navigate('Wallet');
       }
     } else {
-      showToast({type: 'error', title: 'No mint found.', timeout: 2000});
+      showToast({ type: 'error', title: 'No mint found.', timeout: 2000 });
       setIsProcessing(false);
     }
   };

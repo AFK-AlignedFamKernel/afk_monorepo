@@ -13,7 +13,7 @@ import { PostCard } from '../../modules/PostCard';
 import { VideoPostCard } from '../../modules/VideoPostCard';
 import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
-import { SORT_OPTIONS } from '../../types/nostr';
+import { SORT_OPTIONS, SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
 import { RenderEventCard } from '../../modules/Studio';
 import { Button } from '../../components';
 
@@ -23,7 +23,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { ndk } = useNostrContext();
   const styles = useStyles(stylesheet);
   const profiles = useAllProfiles({ limit: 10 });
-  const [activeSortBy, setSortBy] = useState<string | undefined>("0");
+  const [activeSortBy, setSortBy] = useState<string | undefined>(SORT_OPTION_EVENT_NOSTR.TIME?.toString());
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
@@ -45,10 +45,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     limit: 50,
     // getNextPageParam: (lastPage, allPages) => {
     //   if (!lastPage?.length) return undefined;
-      
+
     //   // Get timestamp of oldest note in current page
     //   const oldestTimestamp = Math.min(...lastPage.map(note => note.created_at));
-      
+
     //   // Only fetch next page if:
     //   // 1. We have notes in current page
     //   // 2. Oldest note is not too old (e.g. within last 30 days)
@@ -91,7 +91,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     // if (!notes.data?.pages || flattenedPages?.length == 0) return [];
     if (!notes.data?.pages || flattenedPages?.length == 0) return [];
 
-    console.log('flattenedPages', flattenedPages);
+    // console.log('flattenedPages', flattenedPages);
     // console.log(flattenedPages, 'note pages');
     // if (!search || search.length === 0) {
     //   setFeedData(flattenedPages as any);
@@ -99,7 +99,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     // }
     const searchLower = search?.toLowerCase();
     let filtered: any[] | undefined = [];
-    if (activeSortBy == "0") {
+    if (
+      // activeSortBy == "0" || 
+      activeSortBy == SORT_OPTION_EVENT_NOSTR.TIME?.toString()
+    ) {
       console.log('RECENT SORT',);
       filtered = flattenedPages?.filter((item) =>
         item?.content?.toLowerCase().includes(searchLower),
@@ -114,14 +117,21 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       //   item?.content?.toLowerCase().includes(searchLower),
       // ) ?? flattenedPages;
     }
-    else if (activeSortBy == "1") {
+    else if (activeSortBy == SORT_OPTION_EVENT_NOSTR.TRENDING?.toString()
+      // || activeSortBy == "1"
+    ) {
       console.log('TRENDING SORT');
       // TODO add trending notes
       filtered = flattenedPages?.filter((item) =>
         item?.content?.toLowerCase().includes(searchLower),
       ) ?? flattenedPages;
       return filtered;
-    } else if (activeSortBy == '2' && contacts && contacts?.data) {
+    } else if (
+      // activeSortBy == '2' || 
+      activeSortBy == SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()
+      && contacts && contacts?.data
+
+    ) {
 
       // const profileNdk = new NDKUserProfile({publicKey});
       const user = ndk.getUser({ pubkey: publicKey });
@@ -129,8 +139,8 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       // const followers = profile?.data?.followers;
       const followers = await user?.follows();
-      console.log("followers", followers);
-      console.log("contacts", contacts?.data);
+      // console.log("followers", followers);
+      // console.log("contacts", contacts?.data);
 
       setFollowersPubkey([...followers].map((n) => n?.pubkey) || []);
       // let forYouNotes =
@@ -145,7 +155,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
             || [...followers]?.flat()?.some((n) => item?.pubkey === n?.pubkey)
         }
         ) ?? [];
-      console.log('forYouNotes', forYouNotes);
+      // console.log('forYouNotes', forYouNotes);
 
       forYouNotes =
         notes?.data?.pages?.flat().map((item) =>
@@ -157,26 +167,28 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       setFeedData(forYouNotes as any);
       // setForYouNotes(forYouNotes as any);
     }
-    else if(activeSortBy == "3"){
+    else if (
+      // activeSortBy == "3" ||
+      activeSortBy == SORT_OPTION_EVENT_NOSTR.INTERESTS?.toString()) {
       console.log('INTERESTS SORT');
       // TODO add interests notes
-      filtered = flattenedPages?.filter((item) =>
-        item?.content?.toLowerCase().includes(searchLower) || item?.tags?.some((tag: string) => tag[1]?.match(/^#(.*)$/)),
-      ) ?? flattenedPages;
+      // filtered = flattenedPages?.filter((item) =>
+      //   item?.content?.toLowerCase().includes(searchLower) || item?.tags?.some((tag: string) => tag[1]?.match(/^#(.*)$/)),
+      // ) ?? flattenedPages;
     }
     if (searchLower && searchLower?.length > 0) {
       filtered = flattenedPages?.filter((item) =>
         item?.content?.toLowerCase().includes(searchLower),
       ) ?? flattenedPages;
-      console.log('search result is => ', filtered);
+      // console.log('search result is => ', filtered);
     }
     // return filtered;
     // setFeedData(filtered as any);
-    setFeedData(filtered?.filter((note, index, self) => 
+    setFeedData(filtered?.filter((note, index, self) =>
       index === self.findIndex((n) => n.id === note.id)
     ) as any);
 
-    console.log('filtered notes => ', filtered);
+    // console.log('filtered notes => ', filtered);
     return filtered;
   }, [notes.data?.pages, search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
   // Filter notes based on the search query
@@ -187,14 +199,14 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     // console.log('feed data is => ', filtered);
   }, [notes.data?.pages, search, activeSortBy]);
 
-  useEffect(()  => {
+  useEffect(() => {
     // const filtered = filteredNotes();
     // setFeedData(filtered as any);
     // filteredNotes();
-    if(publicKey && contacts?.data?.length && contacts?.data?.length > 0 || followersPubkey?.length && followersPubkey?.length > 0){
+    if (publicKey && contacts?.data?.length && contacts?.data?.length > 0 || followersPubkey?.length && followersPubkey?.length > 0) {
       setForYouNotes(notesForYou?.data?.pages?.flat() as any);
     }
-  },[followersPubkey, contacts, notesForYou, publicKey])
+  }, [followersPubkey, contacts, notesForYou, publicKey])
 
 
   const handleNavigate = (id: string) => {
@@ -226,7 +238,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
       )}
 
-      {activeSortBy === "2" && !publicKey && (
+      {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text>No users connected</Text>
           <Button onPress={handleConnect}>
@@ -234,6 +246,31 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           </Button>
         </View>
       )}
+
+
+      {
+        publicKey &&
+        activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() || forYouNotes?.length == 0 && !notesForYou?.isFetching
+        && notesForYou?.data?.pages?.length == 0
+        && !notesForYou?.isFetching
+        && (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text
+              style={{
+                color: theme.colors.text,
+              }}
+            >
+              No notes found
+            </Text>
+            <Text
+              style={{
+                color: theme.colors.text,
+              }}
+            >
+              Try to refresh the page or contact the support please!
+            </Text>
+          </View>
+        )}
       {!notes?.isLoading ||
         (!notes?.isFetching && notes?.data?.pages?.length == 0 && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -275,7 +312,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         //   </>
         // }
         contentContainerStyle={styles.flatListContent}
-        data={activeSortBy === "2" ? forYouNotes : feedData}
+        data={activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() ? forYouNotes : feedData}
         // data={filteredNotes}
         keyExtractor={(item) => item?.id}
         renderItem={({ item }) => {
@@ -311,13 +348,13 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
           <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
         }
         onEndReached={() => {
-          if (activeSortBy === "2") {
-            // forYouNotes.fetchNextPage();
+          if (activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()) {
+            notesForYou.fetchNextPage();
           } else {
             notes.fetchNextPage();
           }
         }}
-        // onEndReached={() => notes.fetchNextPage()}
+      // onEndReached={() => notes.fetchNextPage()}
       />
 
       <Pressable
