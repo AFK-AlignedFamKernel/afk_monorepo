@@ -221,7 +221,7 @@ pub mod LaunchpadMarketplace {
         LiquidityCanBeAdded: LiquidityCanBeAdded,
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
-        CreatorFeeDistributed:CreatorFeeDistributed,
+        CreatorFeeDistributed: CreatorFeeDistributed,
         // MemecoinCreated: MemecoinCreated,
         // MemecoinLaunched: MemecoinLaunched,
         #[flat]
@@ -1096,48 +1096,51 @@ pub mod LaunchpadMarketplace {
         }
 
 
-              // Distribute the remain token to received to the DAO address and Creator
-            //   reset the amount to distribute
-            // Check if user can receive the fee now
+        // Distribute the remain token to received to the DAO address and Creator
+        //   reset the amount to distribute
+        // Check if user can receive the fee now
 
-              fn distribute_creator_fee(ref self: ContractState, coin_address: ContractAddress) {
-                let caller = get_contract_address();
-                // Verify if liquidity launch
-                let mut launch = self.launched_coins.read(coin_address);
+        fn distribute_creator_fee(ref self: ContractState, coin_address: ContractAddress) {
+            let caller = get_contract_address();
+            // Verify if liquidity launch
+            let mut launch = self.launched_coins.read(coin_address);
 
+            let is_creator_fee_sent_before_graduated = self
+                .is_creator_fee_sent_before_graduated
+                .read();
 
-                let is_creator_fee_sent_before_graduated = self.is_creator_fee_sent_before_graduated.read();
+            assert(
+                !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == false,
+                errors::CREATOR_CANT_BE_DISTRIBUTED
+            );
 
-                assert(!is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == false, errors::CREATOR_CANT_BE_DISTRIBUTED);
+            assert(launch.creator_amount_to_distribute > 0_u256, errors::NO_FEE_RECEIVED);
+            let quote_token = IERC20Dispatcher {
+                contract_address: launch.token_quote.token_address
+            };
 
-                assert(launch.creator_amount_to_distribute > 0_u256, errors::NO_FEE_RECEIVED);
-                let quote_token = IERC20Dispatcher { contract_address: launch.token_quote.token_address };
-
+            let creator_fee_amount = launch.creator_amount_received;
+            let creator_fee_distributed = launch.creator_amount_distributed;
+            let creator_fee_to_distribute = launch.creator_amount_to_distribute;
+            if !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == true {
                 let creator_fee_amount = launch.creator_amount_received;
-                let creator_fee_distributed = launch.creator_amount_distributed;
-                let creator_fee_to_distribute =launch.creator_amount_to_distribute;
-                if !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == true {
-                    let creator_fee_amount = launch.creator_amount_received;
-                    quote_token.transfer(launch.creator_fee_destination, creator_fee_amount);
-                    launch.creator_amount_received = 0_u256;
-                    launch.creator_amount_distributed += creator_fee_to_distribute;
-                    launch.creator_amount_to_distribute = 0_u256;
-                }
-                self.launched_coins.entry(coin_address).write(launch);
-    
-                self
-                    .emit(
-                        CreatorFeeDistributed {
-                            token_address: quote_token.contract_address,
-                            amount: creator_fee_amount,
-                            creator_fee_destination: launch.creator_fee_destination,
-                            memecoin_address: coin_address,
-                        }
-                    );
+                quote_token.transfer(launch.creator_fee_destination, creator_fee_amount);
+                launch.creator_amount_received = 0_u256;
+                launch.creator_amount_distributed += creator_fee_to_distribute;
+                launch.creator_amount_to_distribute = 0_u256;
             }
-    
-        
-    
+            self.launched_coins.entry(coin_address).write(launch);
+
+            self
+                .emit(
+                    CreatorFeeDistributed {
+                        token_address: quote_token.contract_address,
+                        amount: creator_fee_amount,
+                        creator_fee_destination: launch.creator_fee_destination,
+                        memecoin_address: coin_address,
+                    }
+                );
+        }
 
 
         // Claim call for a friend
