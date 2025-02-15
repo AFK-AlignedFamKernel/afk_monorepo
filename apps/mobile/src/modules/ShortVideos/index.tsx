@@ -13,7 +13,7 @@ const ShortVideosModule = () => {
   const styles = useStyles(stylesheet);
   const { theme } = useTheme();
   const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
-  const { height: WINDOW_HEIGHT } = Dimensions.get('window');
+  const { height: WINDOW_HEIGHT, width: WINDOW_WIDTH } = Dimensions.get('window');
 
   const viewabilityConfig = {
     itemVisiblePercentThreshold: 50,
@@ -55,7 +55,7 @@ const ShortVideosModule = () => {
           style={styles.list}
           data={videosEvents}
           renderItem={({ item, index }) => (
-            <View style={[styles.videoContainer, { height: WINDOW_HEIGHT }]}>
+            <View style={[styles.videoContainer, { height: WINDOW_HEIGHT, width: WINDOW_WIDTH }]}>
               <NostrVideo item={item}
                 shouldPlay={index === currentViewableItemIndex}
                 // shouldPlay={true}
