@@ -392,6 +392,7 @@ pub mod DaoAA {
             let total_votes = yes_votes + no_votes;
             let valid_threshold_percentage = yes_votes * 100 / total_votes;
 
+            let executables_count = self.executables_count.read();
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 proposal.proposal_result = ProposalResult::Passed;
                 let proposal_tx = self.proposal_tx.entry(proposal_id).read();
