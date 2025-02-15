@@ -31,11 +31,13 @@ pub trait ILaunchpadMarketplace<TContractState> {
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool,
-        bonding_type: BondingType
+        bonding_type: BondingType,
+        creator_fee_percent: u256,
+        creator_fee_destination: ContractAddress
     ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
-        ref self: TContractState, coin_address: ContractAddress, bonding_type: BondingType
+        ref self: TContractState, coin_address: ContractAddress, bonding_type: BondingType, creator_fee_percent: u256, creator_fee_destination: ContractAddress
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,

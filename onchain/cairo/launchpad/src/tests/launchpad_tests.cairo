@@ -110,6 +110,11 @@ mod launchpad_tests {
     // fn THRESHOLD_LIQUIDITY() -> u256 {
     //     10_u256 * pow_256(10, 18)
     // }
+
+    fn RECEIVER_ADDRESS() -> ContractAddress {
+        'receiver'.try_into().unwrap()
+    }
+
     fn FACTORY_ADDRESS() -> ContractAddress {
         0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc.try_into().unwrap()
     }
@@ -507,7 +512,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -596,7 +603,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -732,7 +741,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -804,7 +815,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -891,7 +904,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -978,7 +993,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1083,7 +1100,7 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
         let amount_first_buy = 1_u256;
 
         run_buy_by_amount(
@@ -1142,7 +1159,7 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Exponential);
+        launchpad.launch_token(token_address, bonding_type: BondingType::Exponential, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
         let amount_first_buy = 1_u256;
 
         run_buy_by_amount(
@@ -1186,7 +1203,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential, 
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("test token_address {:?}", token_address);
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1293,7 +1312,7 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
 
         launchpad
-            .launch_token(coin_address: erc20.contract_address, bonding_type: BondingType::Linear);
+            .launch_token(coin_address: erc20.contract_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
     }
 
     #[test]
@@ -1313,7 +1332,7 @@ mod launchpad_tests {
                 is_unruggable: false
             );
 
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
     }
 
     #[test]
@@ -1338,7 +1357,7 @@ mod launchpad_tests {
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         memecoin.approve(launchpad.contract_address, DEFAULT_INITIAL_SUPPLY());
 
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
 
         let expected_launch_token_event = LaunchpadEvent::CreateLaunch(
             CreateLaunch {
@@ -1380,7 +1399,7 @@ mod launchpad_tests {
 
         // Panic before dont approve allowance
         // The user have received the token
-        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(coin_address: token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
 
     }
 
@@ -1421,7 +1440,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let launched_token = launchpad.get_coin_launch(token_address);
@@ -1451,7 +1472,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         let memecoin = IERC20Dispatcher { contract_address: token_address };
         stop_cheat_caller_address(launchpad.contract_address);
@@ -1482,7 +1505,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1512,7 +1537,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1558,7 +1585,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1667,7 +1696,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -1792,7 +1823,9 @@ mod launchpad_tests {
                     initial_supply: *init_supplies.at(i),
                     contract_address_salt: SALT(),
                     is_unruggable: false,
-                    bonding_type: BondingType::Linear
+                    bonding_type: BondingType::Linear,
+                    creator_fee_percent: MID_FEE_CREATOR,
+                    creator_fee_destination: RECEIVER_ADDRESS()
                 );
 
             token_addresses.append(token_address);
@@ -1874,7 +1907,9 @@ mod launchpad_tests {
                     initial_supply: *init_supplies.at(i),
                     contract_address_salt: SALT(),
                     is_unruggable: false,
-                    bonding_type: BondingType::Exponential
+                    bonding_type: BondingType::Exponential,
+                    creator_fee_percent: MID_FEE_CREATOR,
+                    creator_fee_destination: RECEIVER_ADDRESS()
                 );
 
             token_addresses.append(token_address);
@@ -2192,7 +2227,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         // let token_address = default_token.token_address;
@@ -2241,7 +2278,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         // let token_address = default_token.token_address;
@@ -2285,7 +2324,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };
@@ -2336,7 +2377,9 @@ mod launchpad_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Exponential
+                bonding_type: BondingType::Exponential,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
 
         let memecoin = IERC20Dispatcher { contract_address: token_address };

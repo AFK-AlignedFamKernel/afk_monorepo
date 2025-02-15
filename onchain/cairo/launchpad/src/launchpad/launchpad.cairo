@@ -582,7 +582,9 @@ pub mod LaunchpadMarketplace {
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool,
-            bonding_type: BondingType
+            bonding_type: BondingType,
+            creator_fee_percent: u256,
+            creator_fee_destination: ContractAddress,
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -599,7 +601,7 @@ pub mod LaunchpadMarketplace {
                 );
             self
                 ._launch_token(
-                    token_address, caller, contract_address, false, Option::Some(bonding_type)
+                    token_address, caller, contract_address, false, Option::Some(bonding_type), creator_fee_percent, creator_fee_destination
                 );
             token_address
         }
@@ -609,7 +611,7 @@ pub mod LaunchpadMarketplace {
         // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
         // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn launch_token(
-            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType
+            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType, creator_fee_percent: u256, creator_fee_destination: ContractAddress
         ) {
             let caller = get_caller_address();
             let contract_address = get_contract_address();
@@ -622,7 +624,9 @@ pub mod LaunchpadMarketplace {
                     caller,
                     contract_address,
                     is_unruggable,
-                    Option::Some(bonding_type)
+                    Option::Some(bonding_type),
+                    creator_fee_percent,
+                    creator_fee_destination
                 );
         }
 
@@ -824,7 +828,7 @@ pub mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             // TODO V2: used creator fees setup by admin/user
             // HIGH SECURITY RISK
-            let creator_fee_percent = pool.creator_fee_percent;
+            let creator_fee_percent=0_u256;
             // let creator_fee_percent = self.creator_fee_percent.read();
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
@@ -858,6 +862,7 @@ pub mod LaunchpadMarketplace {
 
             let mut quote_fee_amount = 0_u256;
             let mut creator_fee_amount = 0_u256;
+            let mut creator_fee_percent = 0_u256;
             // println!("check fees");
 
             // Substract fees protocol from quote amount
@@ -876,7 +881,7 @@ pub mod LaunchpadMarketplace {
             if self.is_fees_creator_enabled.read() && self.is_fees_creator_sell_enabled.read()  {
                 // TODO V2
                 // add the Creator feed here setup by the user
-                let creator_fee_percent = self.creator_fee_percent.read();
+                creator_fee_percent = pool.creator_fee_percent;
                 // MODULAR USER MANAGEMENT
                 // let creator_fee_percent = pool.creator_fee_percent;
 
@@ -1219,7 +1224,9 @@ pub mod LaunchpadMarketplace {
             caller: ContractAddress,
             creator: ContractAddress,
             is_unruggable: bool,
-            bonding_type: Option<BondingType>
+            bonding_type: Option<BondingType>,
+            creator_fee_percent: u256,
+            creator_fee_destination: ContractAddress,
         ) {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
@@ -1252,12 +1259,13 @@ pub mod LaunchpadMarketplace {
             // Rounding and approximation of the percentage can lead to security vulnerabilities
 
             // let creator_fee_percent = input_creator_fee_percent;
-            let creator_fee_percent = self.creator_fee_percent.read();
-            // assert(
-            //     creator_fee_percent <= MAX_FEE_CREATOR
-            //         && creator_fee_percent >= MIN_FEE_CREATOR,
-            //     errors::CREATOR_FEE_OUT_OF_BOUNDS
-            // );
+            // let creator_fee_percent = self.creator_fee_percent.read();
+            
+            assert(
+                creator_fee_percent <= MAX_FEE_CREATOR
+                    && creator_fee_percent >= MIN_FEE_CREATOR,
+                errors::CREATOR_FEE_OUT_OF_BOUNDS
+            );
 
             // Set up bonding curve type
             let bond_type = match bonding_type {
@@ -1304,7 +1312,7 @@ pub mod LaunchpadMarketplace {
                 // TODO V2 add the creator fee selected by the user
                 creator_fee_percent: creator_fee_percent, 
                 creator_amount_received: 0_u256,
-                creator_fee_destination: caller.clone(), // V2 selected by USER. 
+                creator_fee_destination: creator_fee_destination, // V2 selected by USER. 
             };
 
             // TODO Check approve
