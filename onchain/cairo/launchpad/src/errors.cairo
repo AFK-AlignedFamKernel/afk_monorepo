@@ -21,3 +21,4 @@ pub const CREATOR_FEE_OUT_OF_BOUNDS: felt252 = 'Creator fee out';
 pub const PROTOCOL_FEE_OUT_OF_BOUNDS: felt252 = 'Protocol fee out';
 pub const CREATOR_FEE_NOT_ENABLED: felt252 = 'Creator fee not enabled';
 pub const POOL_LAUNCHED: felt252 = 'Pool launched';
+pub const CREATOR_CANT_BE_DISTRIBUTED: felt252 = 'Fee cant be distributed';

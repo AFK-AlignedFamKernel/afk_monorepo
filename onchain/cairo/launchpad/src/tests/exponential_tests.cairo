@@ -68,6 +68,7 @@ mod exponential_tests {
             creator_amount_received: 0_u256,
             creator_fee_destination: OWNER(),
             creator_amount_distributed: 0_u256,
+            creator_amount_to_distribute: 0_u256,
         };
 
         token_launch

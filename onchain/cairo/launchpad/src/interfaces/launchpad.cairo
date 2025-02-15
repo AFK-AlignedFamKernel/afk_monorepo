@@ -127,4 +127,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_is_creator_fee_sent_before_graduated(
         ref self: TContractState, is_creator_fee_sent_before_graduated: bool
     );
+
+    fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
 }
