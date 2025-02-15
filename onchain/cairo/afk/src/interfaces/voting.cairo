@@ -181,6 +181,8 @@ pub trait IVoteProposal<TContractState> {
     fn get_user_vote(self: @TContractState, proposal_id: u256, user: ContractAddress) -> UserVote;
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
     fn process_result(ref self: TContractState, proposal_id: u256);
+    // debugging
+    fn is_executable(ref self: TContractState, calldata: Call) -> bool;
 }
 // Possible extracted Proposal Functions
 // Mint the token with a specific ratio
