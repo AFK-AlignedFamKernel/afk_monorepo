@@ -108,6 +108,10 @@ pub mod DaoAA {
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>, // 
         starknet_address: felt252,
+        executable_calls: Map<
+            (ContractAddress, felt252), Vec<Vec<felt252>>
+        >, // Map (target_contract, selector) => (selector, calldata). Here validate that the selector and calldata actually belong to the value 
+        executables_count: u64,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -230,6 +234,7 @@ pub mod DaoAA {
             proposal_calldata.to.write(calldata.to);
             proposal_calldata.selector.write(calldata.selector);
             proposal_calldata.is_executed.write(false);
+
             for data in calldata.calldata {
                 proposal_calldata.calldata.append().write(*data);
             };
@@ -382,6 +387,19 @@ pub mod DaoAA {
 
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 proposal.proposal_result = ProposalResult::Passed;
+                let proposal_calldata = self.proposals_calldata.entry(proposal_id);
+                let target_contract = proposal_calldata.to.read();
+                let selector = proposal_calldata.selector.read();
+
+                let vec = self.executable_calls.entry((target_contract, selector));
+                let executables_count = self.executables_count.read();
+                for i in 0
+                    ..proposal_calldata
+                        .calldata
+                        .len() {
+                            vec.append().append().write(proposal_calldata.calldata.at(i).read());
+                        };
+                self.executables_count.write(executables_count + 1);
             } else {
                 proposal.proposal_result = ProposalResult::Failed;
             }

@@ -149,7 +149,7 @@ pub struct Calldata {
     pub to: ContractAddress,
     pub selector: felt252,
     pub calldata: Vec<felt252>,
-    pub is_executed: bool
+    pub is_executed: bool,
 }
 
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
