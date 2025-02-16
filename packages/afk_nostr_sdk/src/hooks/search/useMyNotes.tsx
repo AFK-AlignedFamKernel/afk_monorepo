@@ -24,7 +24,7 @@ export const useMyNotes = (options?: UseSearch) => {
       if (!lastPage?.length) return undefined;
 
       const lastNote = lastPage[lastPage.length - 1];
-      console.log('lastNote', lastNote);
+      console.log('created_at', lastNote.created_at);
       const pageParam = lastNote.created_at - 1;
       console.log('pageParam', pageParam);
 
@@ -37,7 +37,7 @@ export const useMyNotes = (options?: UseSearch) => {
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors ?? [publicKey],
         search: options?.search,
-        until: pageParam || Math.round(Date.now() / 1000),
+        // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 10,
       });
       // console.log('notes', notes);

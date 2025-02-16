@@ -58,6 +58,9 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   //     : search.data?.pages?.flat();
 
   const getData = useMemo(() => {
+
+    console.log('reload search.data', search.data)
+    console.log('search.data?.pages', search.data?.pages)
     return ndkKinds.includes(NDKKind.BookmarkList) || ndkKinds.includes(NDKKind.BookmarkSet)
       ? bookmarksWithNotes?.data?.map((bookmark) => bookmark?.notes)?.flat() || []
       : search.data?.pages?.flat();
@@ -70,7 +73,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
         onEndReached={() => {
           console.log('fetching next page')
           search?.fetchNextPage()
-          search?.refetch()
+          // search?.refetch()
 
         }
         }
