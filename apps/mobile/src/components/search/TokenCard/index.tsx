@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAccount } from '@starknet-react/core';
 import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { CopyIconStack } from '../../../assets/icons';
 import { useStyles, useTheme } from '../../../hooks';
@@ -11,7 +11,7 @@ import { useToast } from '../../../hooks/modals';
 import { MainStackNavigationProps } from '../../../types';
 import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
 import { feltToAddress } from '../../../utils/format';
-import { Button, Icon } from '../..';
+import { Button, Icon, Modal } from '../..';
 import { Text } from '../../Text';
 import stylesheet from './styles';
 import { useLaunchToken } from '../../../hooks/launchpad/useLaunchToken';
@@ -66,9 +66,71 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   return (
     <View style={styles.container}>
 
+      {isModalVisible && (
+        <Modal
+        >
+          <View>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add Token Metadata</Text>
+              
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Title</Text>
+                <TextInput 
+                  style={styles.input}
+                  placeholder="Enter title"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Description</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Enter description" 
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Media</Text>
+                <View style={styles.mediaUpload}>
+                  <TouchableOpacity 
+                    style={styles.uploadButton}
+                    onPress={() => {
+                      // Handle media upload
+                    }}
+                  >
+                    <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.buttonGroup}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.submitButton}
+                  onPress={() => {
+                    // Handle form submission
+                    setIsModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            </View>
+        </Modal>
+      )}
       <View
         style={{
           display: "flex", flexDirection: "column",
@@ -139,7 +201,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
       {
         token?.owner_address &&
-        account && account?.address == token?.owner_address && (
+        account && account?.address == token?.owner_address && !token?.is_launched && (
           <View>
             <Button
               onPress={() => {
@@ -158,6 +220,16 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
               }}
             >
               Add Liquidity
+            </Button>
+
+            <Button
+              onPress={() => {
+                if (token?.memecoin_address) {
+                  setIsModalVisible(true);
+                }
+              }}
+            >
+              Add Metadata
             </Button>
           </View>
         )
