@@ -104,8 +104,8 @@ const FilterMenu: React.FC<IFilterMenuProps> = ({
             </View> */}
 
             <Text style={styles.sectionTitle}>Filter By Type</Text>
-            <ScrollView>
-              <View style={styles.container}>
+            <ScrollView style={styles.containerSort}>
+              {/* <View style={styles.containerSort}> */}
                 {NDK_KIND_OPTIONS.map((option) => (
                   <Pressable
                     key={option.value}
@@ -115,13 +115,13 @@ const FilterMenu: React.FC<IFilterMenuProps> = ({
                     <Text style={styles.buttonText}>{option.label}</Text>
                   </Pressable>
                 ))}
-              </View>
+              {/* </View> */}
             </ScrollView>
 
           </ScrollView>
-          <Pressable onPress={onClose} style={styles.closeButton}>
+          {/* <Pressable onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Close</Text>
-          </Pressable>
+          </Pressable> */}
         </View>
       </View>
     </Modal>
