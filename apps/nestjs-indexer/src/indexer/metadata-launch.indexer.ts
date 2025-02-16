@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { hash, uint256, validateAndParseAddress } from 'starknet';
+import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -30,6 +30,24 @@ export class MetadataLaunchIndexer {
       this.handleEvents.bind(this),
     );
   }
+
+  private isValidChar = (char: string): boolean => {
+    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()]+$/.test(char);
+  };
+
+  private cleanString = (str: string): string => {
+    return str
+      .split('')
+      .filter((char) => this.isValidChar(char))
+      .join('')
+      .trim();
+  };
+
+
+  private isNumeric = (str: string): boolean => {
+    return /^\d+$/.test(str);
+  };
+
 
   private async handleEvents(
     header: starknet.IBlockHeader,
@@ -71,66 +89,43 @@ export class MetadataLaunchIndexer {
 
     const transferId = `${transactionHash}_${event.index}`;
 
-    const [, callerFelt, tokenAddressFelt] = event.keys;
-
-    const ownerAddress = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(callerFelt).toString(16)}`,
-    ) as ContractAddress;
+    const [, tokenAddressFelt] = event.keys;
 
     const tokenAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(tokenAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
     const [
-      amountLow,
-      amountHigh,
-      priceLow,
-      priceHigh,
-      protocolFeeLow,
-      protocolFeeHigh,
-      lastPriceLow,
-      lastPriceHigh,
-      timestampFelt,
-      quoteAmountLow,
-      quoteAmountHigh,
+      urlFelt,
+      nostrEventIdLow,
+      nostrEventIdHigh,
+      timestampFelt
     ] = event.data;
 
-    const amountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(amountLow),
-      high: FieldElement.toBigInt(amountHigh),
-    });
-    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+    let i = 1;
+    
+    let url = '';
+    while (i < event.data.length) {
+      const part = event.data[i];
+      const decodedPart = shortString.decodeShortString(
+        FieldElement.toBigInt(part).toString(),
+      );
 
-    const priceRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(priceLow),
-      high: FieldElement.toBigInt(priceHigh),
-    });
-    const price = formatUnits(priceRaw, constants.DECIMALS);
+      if (this.isNumeric(decodedPart)) {
+        i++;
+        break;
+      }
 
-    const protocolFeeRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(protocolFeeLow),
-      high: FieldElement.toBigInt(protocolFeeHigh),
-    });
-    const protocolFee = formatUnits(
-      protocolFeeRaw,
-      constants.DECIMALS,
-    ).toString();
+      url= decodedPart;
+      i++;
+    }
 
-    const lastPriceRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(lastPriceLow),
-      high: FieldElement.toBigInt(lastPriceHigh),
-    });
-    const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
+    url = this.cleanString(url);
 
-    const quoteAmountRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(quoteAmountLow),
-      high: FieldElement.toBigInt(quoteAmountHigh),
+    const nostrEventId = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(nostrEventIdLow),
+      high: FieldElement.toBigInt(nostrEventIdHigh),
     });
-    const quoteAmount = formatUnits(
-      quoteAmountRaw,
-      constants.DECIMALS,
-    ).toString();
-
     const timestamp = new Date(
       Number(FieldElement.toBigInt(timestampFelt)) * 1000,
     );
@@ -142,13 +137,9 @@ export class MetadataLaunchIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      ownerAddress,
       memecoinAddress: tokenAddress,
-      amount: Number(amount),
-      price,
-      protocolFee,
-      lastPrice,
-      quoteAmount,
+      nostrEventId,
+      url: url,
       timestamp,
       transactionType: 'buy',
     };

@@ -6,14 +6,9 @@ export interface MetadataLaunch {
   blockTimestamp: Date;
   transactionHash: string;
   memecoinAddress: string;
-  ownerAddress: string;
+  ownerAddress?: string;
   url?: string;
   nostr_event_id?: string;
-  lastPrice: string;
-  quoteAmount: string;
-  price: string;
-  amount: number;
-  protocolFee: string;
   timestamp: Date;
   transactionType: string;
 }
