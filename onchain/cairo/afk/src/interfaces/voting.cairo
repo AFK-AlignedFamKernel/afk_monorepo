@@ -174,7 +174,7 @@ pub struct VoteState {
 #[starknet::interface]
 pub trait IVoteProposal<TContractState> {
     fn create_proposal(
-        ref self: TContractState, proposal_params: ProposalParams, calldata: Call
+        ref self: TContractState, proposal_params: ProposalParams, calldata: Array<Call>
     ) -> u256;
     fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
