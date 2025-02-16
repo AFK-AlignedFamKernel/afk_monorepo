@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAccount } from '@starknet-react/core';
 import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import { ImageSourcePropType, Image, Pressable, TextInput, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, Image, Pressable, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
 
 import { CopyIconStack, GalleryIcon, VideoIcon } from '../../../assets/icons';
 import { useStyles, useTheme, useWaitConnection } from '../../../hooks';
@@ -182,7 +182,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
       {isModalVisible && (
         <Modal
         >
-          <View>
+          <ScrollView>
 
             <Button
               onPress={() => handleClose()}
@@ -271,7 +271,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </ScrollView>
         </Modal>
       )}
 
