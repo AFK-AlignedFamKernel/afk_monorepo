@@ -59,6 +59,10 @@ mod liquidity_tests {
     // const THRESHOLD_LIQUIDITY: u256 = 10;
     // const THRESHOLD_LIQUIDITY: u256 = 10_000;
 
+    fn RECEIVER_ADDRESS() -> ContractAddress {
+        'receiver'.try_into().unwrap()
+    }
+
     const RATIO_SUPPLY_LAUNCH: u256 = 5;
     const LIQUIDITY_SUPPLY: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
     const BUYABLE: u256 = INITIAL_SUPPLY_DEFAULT / RATIO_SUPPLY_LAUNCH;
@@ -363,7 +367,9 @@ mod liquidity_tests {
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
                 is_unruggable: false,
-                bonding_type: BondingType::Linear
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(

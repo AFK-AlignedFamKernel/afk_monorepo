@@ -91,6 +91,13 @@ pub struct TokenLaunch {
     pub starting_price: u256,
     pub protocol_fee_percent: u256,
     pub creator_fee_percent: u256,
+    // TODO V2
+    pub creator_amount_received: u256,
+    pub creator_fee_destination: ContractAddress,
+    pub creator_amount_distributed: u256,
+    pub creator_amount_to_distribute: u256,
+    // TODO V2
+// pub address_treasury_dao:ContractAddress,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -133,6 +140,14 @@ pub struct MetadataLaunch {
 }
 
 
+#[derive(Drop, starknet::Event)]
+pub struct CreatorFeeDistributed {
+    #[key]
+    pub token_address: ContractAddress,
+    pub amount: u256,
+    pub creator_fee_destination: ContractAddress,
+    pub memecoin_address: ContractAddress,
+}
 // Struct for Liquidity Ekubo and more
 
 #[derive(Copy, Drop, Serde)]
