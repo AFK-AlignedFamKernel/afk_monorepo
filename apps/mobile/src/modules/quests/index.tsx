@@ -10,7 +10,7 @@ import {TOKENSMINT} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {WalletOnboarding} from '../Onboard/wallet';
 import {MainStackNavigationProps} from '../../types';
-import {SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET} from '../../types/tab';
+import {SelectedTab, TABS_NAMESERVICE, TABS_ONBOARDING_WALLET, TABS_QUESTS} from '../../types/tab';
 import {CashuWalletView} from '../CashuWallet';
 import {LightningNetworkWalletView} from '../Lightning';
 import stylesheet from './styles';
@@ -53,11 +53,11 @@ export const QuestsComponent: React.FC = () => {
             <FormComponent />
           </View>
         );
-      case SelectedTab.DYNAMIC_ALL:
+      case SelectedTab.ALL_QUESTS:
         console.log('Rendering All Names tab, count:', names.length);
         return (
           <View style={styles.content}>
-            <Text style={styles.text}>All Claimed Names</Text>
+            <Text style={styles.text}>All quests</Text>
             {isLoading ? (
               <ActivityIndicator size="large" />
             ) : names.length === 0 ? (
@@ -71,14 +71,14 @@ export const QuestsComponent: React.FC = () => {
         const ownedNames = names.filter(
           (name) => name.owner.toLowerCase() === account?.address?.toLowerCase(),
         );
-        console.log('Rendering Your Names tab:', {
+        console.log('Rendering Your Quests tab:', {
           accountAddress: account?.address,
           ownedNamesCount: ownedNames.length,
           ownedNames,
         });
         return (
           <View style={styles.content}>
-            <Text style={styles.text}>Your Names</Text>
+            <Text style={styles.text}>Your quest claimed</Text>
             {isLoading ? (
               <ActivityIndicator size="large" />
             ) : names.length === 0 ? (
@@ -100,7 +100,7 @@ export const QuestsComponent: React.FC = () => {
           <TabSelector
             activeTab={selectedTab}
             handleActiveTab={handleTabSelected}
-            buttons={TABS_NAMESERVICE}
+            buttons={TABS_QUESTS}
             addScreenNavigation={false}
           />
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>

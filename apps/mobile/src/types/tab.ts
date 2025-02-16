@@ -54,6 +54,8 @@ export enum SelectedTab {
   DYNAMIC_OWNED = 'DYNAMIC_OWNED',
   DYNAMIC_ALL = 'DYNAMIC_ALL',
   QUESTS = 'QUESTS',
+  QUEST_FORM = 'QUEST_FORM',
+  ALL_QUESTS = 'ALL_QUESTS',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -587,4 +589,23 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   //   tab: SelectedTab.MESSAGES
 
   // },
+];
+
+
+export const TABS_QUESTS: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Quest',
+    screen: 'Quest',
+    tab: SelectedTab.QUESTS,
+  },
+  {
+    title: 'All Quests',
+    screen: 'All',
+    tab: SelectedTab.DYNAMIC_ALL,
+  },
+  {
+    title: 'Your Quests',
+    screen: 'Owned',
+    tab: SelectedTab.DYNAMIC_OWNED,
+  },
 ];

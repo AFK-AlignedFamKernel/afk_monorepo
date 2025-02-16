@@ -66,9 +66,9 @@ export const FormComponent: React.FC = () => {
     return true;
   };
 
-  const handleBuy = async () => {
+  const handleClaim = async () => {
     if (!isVerified) {
-      showToast({title: 'Please verify name first', type: 'info'});
+      showToast({title: 'Please verify quest requirements first', type: 'info'});
       return;
     }
 
@@ -111,7 +111,7 @@ export const FormComponent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Buy Nameservice</Text>
+      <Text style={styles.title}>Quest</Text>
 
       <View style={styles.faucetContainer}>
         <Text style={styles.faucetText}>
@@ -120,24 +120,16 @@ export const FormComponent: React.FC = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <SquareInput
-          style={styles.input}
-          placeholder="Enter name to register"
-          onChangeText={(text) => {
-            setUsername(text);
-            setIsVerified(false);
-          }}
-          value={username}
-        />
+       <Text>Check your quest</Text>
       </View>
 
       <View style={styles.buttonContainer}>
         <Button style={styles.button} onPress={handleVerify} disabled={isVerifying || !username}>
-          {isVerifying ? 'Verifying...' : 'Verify name'}
+          {isVerifying ? 'Verifying...' : 'Verify quest requirements'}
         </Button>
 
-        <Button style={styles.button} onPress={handleBuy} disabled={!isVerified || isLoading}>
-          {isLoading ? 'Buying...' : 'Buy nameservice'}
+        <Button style={styles.button} onPress={handleClaim} disabled={!isVerified || isLoading}>
+          {isLoading ? 'Claiming...' : 'Claim Quest'}
         </Button>
       </View>
     </View>
