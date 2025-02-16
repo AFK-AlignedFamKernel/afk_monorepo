@@ -8,12 +8,9 @@ import { byteArray } from 'starknet';
 
 export type DeployTokenFormValues = {
   coin_address: string;
-  recipient?: string;
-  contract_address_salt: string | undefined;
-  is_unruggable?: boolean;
-  bonding_type?: BondingType;
   metadata?: string | undefined;
   image?: string | undefined;
+  url?: string | undefined;
   nostr_event_id?: string | undefined;
 };
 
@@ -28,7 +25,7 @@ export const useMetadataLaunch = () => {
 
       console.log('deployCall');
 
-      const urlMetadata= byteArray.byteArrayFromString(data.metadata ?? 'LFG')
+      const urlMetadata= byteArray.byteArrayFromString(data.url ? 'LFG')
       const urlImage= byteArray.byteArrayFromString(data.image ?? 'LFG')
       const nostrEventId= byteArray.byteArrayFromString(data.nostr_event_id ?? 'LFG')
       
@@ -42,7 +39,6 @@ export const useMetadataLaunch = () => {
         entrypoint: 'add_metadata',
         calldata: CallData.compile({
           coin_address: data.coin_address,
-          owner: data?.recipient ?? account?.address,
           metadata: metadataLaunch,
         }),
       };

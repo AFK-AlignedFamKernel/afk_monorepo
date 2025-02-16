@@ -19,6 +19,8 @@ import { AddLiquidityForm } from '../../AddLiquidityForm';
 import { useModal } from '../../../hooks/modals/useModal';
 import { useState } from 'react';
 import { getElapsedTimeStringFull } from '../../../utils/timestamp';
+import { useMetadataLaunch } from '../../../hooks/launchpad/useMetadataLaunch';
+import { FormMetadata } from './form-metadata';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -54,6 +56,8 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
+
+  const { addMetadata } = useMetadataLaunch();
   const { handleLaunchCoin } = useLaunchToken();
   const { show: showModal } = useModal();
 
@@ -67,69 +71,107 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isExpandedSymbol, setIsExpandedSymbol] = useState<boolean>(false)
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+
+  const [metadata, setMetadata] = useState<{
+    url: string;
+    nostr_event_id: string;
+  }>({
+    url: '',
+    nostr_event_id: '',
+  });
+  const handleAddMetadata = async () => {
+    if (!token?.memecoin_address) return;
+
+    if (!account) {
+      showToast({ type: 'error', title: 'Please connect your account' });
+      return;
+    };
+
+
+    // upload image/video to IPFS
+
+    // const image = await uploadImageToIPFS(image);
+
+    let url = '';
+    let nostr_event_id = 0;
+
+    await addMetadata(account, {
+      coin_address: token?.memecoin_address,
+      url,
+      nostr_event_id: nostr_event_id?.toString()
+    });
+  }
+
   return (
     <View style={styles.container}>
 
       {isModalVisible && (
-        <Modal
-        >
-          <View>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Add Token Metadata</Text>
-              
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Title</Text>
-                <TextInput 
-                  style={styles.input}
-                  placeholder="Enter title"
-                />
-              </View>
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Enter description" 
-                  multiline
-                  numberOfLines={4}
-                />
-              </View>
+        <FormMetadata
+          token={token}
+          launch={launch}
+          imageProps={imageProps}
+          name={name}
+          profileProps={profileProps}
+          isModalVisibleProps={isModalVisible}
+          setIsModalVisibleProps={setIsModalVisible}
+          isButtonOpenVisible={true}
+        />
+        // <Modal
+        // >
+        //   <View>
+        //     <View style={styles.modalContent}>
+        //       <Text style={styles.modalTitle}>Add Token Metadata</Text>
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Media</Text>
-                <View style={styles.mediaUpload}>
-                  <TouchableOpacity 
-                    style={styles.uploadButton}
-                    onPress={() => {
-                      // Handle media upload
-                    }}
-                  >
-                    <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
 
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity 
-                  style={styles.cancelButton}
-                  onPress={() => setIsModalVisible(false)}
-                >
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
+        //       <View style={styles.formGroup}>
+        //         <Text style={styles.label}>Description</Text>
+        //         <TextInput
+        //           style={[styles.input, styles.textArea]}
+        //           placeholder="Nostr event id"
+        //           multiline
+        //           numberOfLines={4}
+        //           value={metadata.nostr_event_id}
+        //           onChangeText={(text) => setMetadata({ ...metadata, nostr_event_id: text })}
+        //         />
+        //       </View>
 
-                <TouchableOpacity 
-                  style={styles.submitButton}
-                  onPress={() => {
-                    // Handle form submission
-                    setIsModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            </View>
-        </Modal>
+        //       <View style={styles.formGroup}>
+        //         <Text style={styles.label}>Media</Text>
+        //         <View style={styles.mediaUpload}>
+        //           <TouchableOpacity
+        //             style={styles.uploadButton}
+        //             onPress={() => {
+        //               // Handle media upload
+        //             }}
+        //           >
+        //             <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
+        //           </TouchableOpacity>
+        //         </View>
+        //       </View>
+
+        //       <View style={styles.buttonGroup}>
+        //         <TouchableOpacity
+        //           style={styles.cancelButton}
+        //           onPress={() => setIsModalVisible(false)}
+        //         >
+        //           <Text style={styles.buttonText}>Cancel</Text>
+        //         </TouchableOpacity>
+
+        //         <TouchableOpacity
+        //           style={styles.submitButton}
+        //           onPress={() => {
+        //             // Handle form submission
+        //             // setIsModalVisible(false);
+        //           }}
+        //         >
+        //           <Text style={styles.buttonText}>Submit</Text>
+        //         </TouchableOpacity>
+        //       </View>
+        //     </View>
+        //   </View>
+        // </Modal>
       )}
       <View
         style={{

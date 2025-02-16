@@ -143,4 +143,23 @@ export default (theme: any) =>
     textArea: {
       height: 100,
     },
+    mediaButtons: {
+      flexDirection: 'row',
+      paddingHorizontal: Spacing.pagePadding,
+      paddingVertical: Spacing.small,
+      gap: Spacing.large,
+      alignItems: 'center',
+    },
+    imageContainer: {
+      padding: Spacing.pagePadding,
+    },
+    image: {
+      width: '100%',
+      resizeMode: 'cover',
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    videoContainer: {
+      padding: Spacing.pagePadding,
+    },
   });
