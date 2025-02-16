@@ -1,9 +1,9 @@
-import {LAUNCHPAD_ADDRESS} from 'common';
-import {AccountInterface, cairo, CairoCustomEnum, CallData, constants} from 'starknet';
+import { LAUNCHPAD_ADDRESS } from 'common';
+import { AccountInterface, cairo, CairoCustomEnum, CallData, constants, uint256 } from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
-import {formatFloatToUint256} from '../../utils/format';
-import {BondingType} from '../../types/keys';
+import { formatFloatToUint256 } from '../../utils/format';
+import { BondingType } from '../../types/keys';
 import { byteArray } from 'starknet';
 
 export type DeployTokenFormValues = {
@@ -25,16 +25,17 @@ export const useMetadataLaunch = () => {
 
       console.log('deployCall');
 
-      const urlMetadata= byteArray.byteArrayFromString(data.url ? 'LFG')
-      const urlImage= byteArray.byteArrayFromString(data.image ?? 'LFG')
-      const nostrEventId= byteArray.byteArrayFromString(data.nostr_event_id ?? 'LFG')
-      
-      const metadataLaunch = CallData.compile({
+      const urlMetadata = byteArray.byteArrayFromString(data.url ? data.url : 'LFG');
+      // const nostrEventId= byteArray.byteArrayFromString(data.nostr_event_id ?? 'LFG')
+      const nostrEventIdUint = uint256.bnToUint256(`0x${data.nostr_event_id}`); // Recipient nostr pubkey
+
+
+      const metadataLaunch = {
         token_address: data.coin_address,
         url: urlMetadata,
-        nostr_event_id: nostrEventId,
-      })
-      const metadataCall     = {
+        nostr_event_id: nostrEventIdUint
+      };
+      const metadataCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'add_metadata',
         calldata: CallData.compile({

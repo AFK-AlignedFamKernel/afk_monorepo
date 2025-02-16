@@ -6,7 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import { ImageSourcePropType, Image, Pressable, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { CopyIconStack, GalleryIcon, VideoIcon } from '../../../assets/icons';
-import { useStyles, useTheme } from '../../../hooks';
+import { useStyles, useTheme, useWaitConnection } from '../../../hooks';
 import { useToast } from '../../../hooks/modals';
 import { MainStackNavigationProps } from '../../../types';
 import { TokenDeployInterface, TokenLaunchInterface } from '../../../types/keys';
@@ -68,6 +68,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
   const { addMetadata } = useMetadataLaunch();
   const { handleLaunchCoin } = useLaunchToken();
   const { show: showModal } = useModal();
+  const waitConnection = useWaitConnection();
 
   const handleCopy = async () => {
     if (!token?.memecoin_address) return;
@@ -142,6 +143,8 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
 
     if (!account) {
+    const waitConnection = useWaitConnection();
+
       showToast({ type: 'error', title: 'Please connect your account' });
       return;
     };
