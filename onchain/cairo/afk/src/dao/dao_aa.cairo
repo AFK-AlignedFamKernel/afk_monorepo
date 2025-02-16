@@ -43,11 +43,14 @@ pub mod DaoAA {
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::ecdsa::check_ecdsa_signature;
+    use core::hash::{HashStateExTrait, HashStateTrait};
     use core::num::traits::Zero;
+    use core::poseidon::{PoseidonTrait, poseidon_hash_span};
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
+    use openzeppelin::utils::cryptography::snip12::StructHash;
     use starknet::account::Call;
 
     use starknet::storage::{
@@ -104,16 +107,15 @@ pub mod DaoAA {
         proposals_calldata: Map<u256, Calldata>, // Map ProposalID => calldata
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
+        executable_tx: Map<felt252, bool>, // Map Hashed Call => executable
+        proposal_tx: Map<
+            u256, felt252
+        >, // Map Proposal ID => Hashed Call (for one call, multicall excluded)
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>, // 
         starknet_address: felt252,
-        proposals_call_external:Map<u256, Vec<Call>>, // Map ProposalID => calldata
-
-        tx_to_execute: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
-        tx_executed: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
-        tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
-        tx_call_executed: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
+        executables_count: u64,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -229,6 +231,7 @@ pub mod DaoAA {
                 proposal_result_by: contract_address_const::<0x0>(),
             };
 
+            // check
             self.proposals.entry(id).write(Option::Some(proposal));
 
             let proposal_calldata = self.proposals_calldata.entry(id);
@@ -236,10 +239,13 @@ pub mod DaoAA {
             proposal_calldata.to.write(calldata.to);
             proposal_calldata.selector.write(calldata.selector);
             proposal_calldata.is_executed.write(false);
+
             for data in calldata.calldata {
                 proposal_calldata.calldata.append().write(*data);
             };
+            // end check.
 
+            self.proposal_tx.entry(id).write(calldata.hash_struct());
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
 
@@ -386,20 +392,12 @@ pub mod DaoAA {
             let total_votes = yes_votes + no_votes;
             let valid_threshold_percentage = yes_votes * 100 / total_votes;
 
+            let executables_count = self.executables_count.read();
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 proposal.proposal_result = ProposalResult::Passed;
-                // let proposal_calldata = self.proposals_calldata.entry(proposal_id);
-                
-                // let tx_to_execute = self.tx_to_execute.read(proposal_id);
-                // for i in 0
-                //     ..proposal_calldata
-                //         .len() {
-                //             let data = *calldata.at(i);
-                //             tx_to_execute.append().write(data);
-                //         };
-                //         tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
-                        
-
+                let proposal_tx = self.proposal_tx.entry(proposal_id).read();
+                self.executable_tx.entry(proposal_tx).write(true);
+                self.executables_count.write(executables_count + 1);
             } else {
                 proposal.proposal_result = ProposalResult::Failed;
             }
@@ -411,6 +409,22 @@ pub mod DaoAA {
                     },
                 );
             self.proposals.entry(proposal_id).write(Option::Some(proposal));
+        }
+
+        fn is_executable(ref self: ContractState, calldata: Call) -> bool {
+            self.executable_tx.entry(calldata.hash_struct()).read()
+        }
+    }
+
+    pub impl CallStructHash of StructHash<Call> {
+        fn hash_struct(self: @Call) -> felt252 {
+            let hash_state = PoseidonTrait::new();
+            hash_state
+                .update_with('AFK_DAO')
+                .update_with(*self.to)
+                .update_with(*self.selector)
+                .update_with(poseidon_hash_span(*self.calldata))
+                .finalize()
         }
     }
 
@@ -617,7 +631,9 @@ mod tests {
             calldata: array!['data 1', 'data 2'].span()
         };
         // created by 'CREATOR'
-        proposal_dispatcher.create_proposal(proposal_params, calldata)
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, calldata);
+        assert(!proposal_dispatcher.is_executable(calldata), '');
+        proposal_id
     }
 
     /// TESTS
@@ -843,5 +859,12 @@ mod tests {
         );
 
         spy.assert_emitted(@array![(proposal_contract, expected_event)]);
+        let calldata = Call {
+            to: contract_address_const::<'TO'>(),
+            selector: 'selector',
+            calldata: array!['data 1', 'data 2'].span()
+        };
+        // the creating call should be executable
+        assert(proposal_dispatcher.is_executable(calldata), 'NOT EXECUTABLE');
     }
 }
