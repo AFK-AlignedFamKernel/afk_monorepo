@@ -12,6 +12,7 @@ import { launchBot } from './services/telegram-app';
 import declareRoutes from './router';
 import fastifySession from '@fastify/session';
 import fastifyOauth2 from '@fastify/oauth2';
+import fastifyMultipart from '@fastify/multipart';
 
 // Type declarations
 declare module 'fastify' {
@@ -82,6 +83,19 @@ async function buildServer() {
   fastify.register(fastifySession, {
     secret: JWT_SECRET,
     cookie: { secure: process.env.NODE_ENV == 'production' ? true : false }, // Set to true in production
+  });
+
+  fastify.register(fastifyMultipart, {
+    // limits: {
+    //   fieldNameSize: 100, // Max field name size in bytes
+    //   fieldSize: 100,     // Max field value size in bytes
+    //   fields: 10,         // Max number of non-file fields
+    //   fileSize: 1000000,  // For multipart forms, the max file size in bytes
+    //   files: 1,           // Max number of file fields
+    //   headerPairs: 2000,  // Max number of header key=>value pairs
+    //   parts: 1000         // For multipart forms, the max number of parts (fields + files)
+    //   // fileSize: 1024 * 1024 * 15, // 15MB
+    // },
   });
 
   // Register routes

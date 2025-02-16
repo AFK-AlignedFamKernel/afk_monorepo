@@ -85,4 +85,81 @@ export default (theme: any) =>
       fontSize: 16,
       fontWeight: '600',
     },
+    modalContent: {
+      backgroundColor: theme.colors.cardBg,
+      padding: 20,
+      borderRadius: 16,
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+    },
+    formGroup: {
+      marginBottom: 20,
+    },
+
+    input: {
+      backgroundColor: theme.colors.cardBg,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
+    buttonGroup: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    cancelButton: {
+      backgroundColor: theme.colors.primary,
+      padding: Spacing.medium,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    submitButton: {
+      backgroundColor: theme.colors.primary,
+      padding: Spacing.medium,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: '#FFFFFF',
+    },
+    uploadButton: {
+      backgroundColor: theme.colors.primary,
+      padding: Spacing.medium,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    uploadButtonText: {
+      color: '#FFFFFF',
+    },
+    mediaUpload: {
+      marginBottom: 20,
+    },
+    mediaUploadText: {
+      color: '#FFFFFF',
+    },
+    textArea: {
+      height: 100,
+    },
+    mediaButtons: {
+      flexDirection: 'row',
+      paddingHorizontal: Spacing.pagePadding,
+      paddingVertical: Spacing.small,
+      gap: Spacing.large,
+      alignItems: 'center',
+    },
+    imageContainer: {
+      padding: Spacing.pagePadding,
+    },
+    image: {
+      width: '100%',
+      resizeMode: 'cover',
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    videoContainer: {
+      padding: Spacing.pagePadding,
+    },
   });

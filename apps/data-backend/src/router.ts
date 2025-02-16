@@ -19,6 +19,7 @@ import unrugRoutes from './routes/indexer/unruggable';
 import twitterRoutes from './routes/auth/twitter';
 import routesShareUserRoutes from './routes/indexer/share-user';
 import tipServiceRoute from "./routes/indexer/tip";
+import uploadFile from "./routes/upload/upload-file";
 // import getOtp from "./routes/otp/getOtp";
 // import verifyOtp from "./routes/otp/verifyOtp";
 // import type { Account } from 'starknet'
@@ -29,6 +30,9 @@ function declareRoutes(
   // deployer: Account,
   // twilio_services: ServiceContext
 ) {
+
+  // fastify.register(require('@fastify/multipart'));  
+
   fastify.register(buyCoinRoute);
   fastify.register(deployLaunchRoute);
   fastify.register(deployTokenRoute);
@@ -48,6 +52,7 @@ function declareRoutes(
   fastify.register(tipServiceRoute);
   fastify.register(twitterRoutes);
   fastify.register(routesShareUserRoutes);
+  fastify.register(uploadFile);
 
   // fastify.register(getOtp, twilio_services?.verifications);
   // fastify.register(verifyOtp, deployer, twilio_services?.verificationChecks);
