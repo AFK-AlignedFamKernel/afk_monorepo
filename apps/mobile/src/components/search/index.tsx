@@ -68,65 +68,70 @@ const SearchComponent: React.FC<ISearchComponent> = ({
 
   return (
     <View style={isDesktop ? styles.container : styles.containerMobile}>
-      <View style={styles.rowContainer}>
-        <ScrollView horizontal
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          style={styles.sortContainer}
-        >
-          {SORT_OPTIONS.map((option, index) => (
-            <Pressable
-              key={option.value}
-              style={[
-                styles.button,
-                (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
-                  activeSortBy?.toLowerCase() === option.value?.toLowerCase() ||
-                  activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
-              ]}
-              onPress={() => handleSortChange(option.value?.toString())}
-            // onPress={() => handleSortChange(index?.toString())}
-            >
-              <Text style={styles.buttonText}>{option.label}</Text>
+      <ScrollView
+      >
+        <View style={styles.rowContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            style={styles.sortContainer}
+          >
+            {SORT_OPTIONS.map((option, index) => (
+              <Pressable
+                key={option.value}
+                style={[
+                  styles.button,
+                  (activeSortBy?.toLowerCase() === option.label.toLowerCase() ||
+                    activeSortBy?.toLowerCase() === option.value?.toLowerCase() ||
+                    activeSortBy?.toLowerCase() === index?.toString()) && styles.activeButton,
+                ]}
+                onPress={() => handleSortChange(option.value?.toString())}
+              // onPress={() => handleSortChange(index?.toString())}
+              >
+                <Text style={styles.buttonText}>{option.label}</Text>
+              </Pressable>
+            ))}
+
+          </ScrollView>
+          {!isDesktop ? (
+            <Pressable onPress={() => setIsOpenFilter(true)} style={{ marginLeft: 'auto' }}>
+              <Svg width="32" height="32" viewBox="0 0 24 24">
+                <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
+              </Svg>
             </Pressable>
-          ))}
+          ) : null}
+        </View>
 
-        </ScrollView>
-        {!isDesktop ? (
-          <Pressable onPress={() => setIsOpenFilter(true)} style={{ marginLeft: 'auto' }}>
-            <Svg width="32" height="32" viewBox="0 0 24 24">
-              <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
-            </Svg>
-          </Pressable>
-        ) : null}
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={isDesktop ? styles.searchInputContainer : styles.searchInputContainerMobile}>
-          <Icon name={'SearchIcon'} size={20} color={'textPrimary'} style={styles.searchIcon} />
-          <TextInput
-            style={isDesktop ? styles.input : styles.inputMobile}
-            value={debouncedQuery}
-            onChangeText={handleChangeText}
-            placeholder="Search"
-            clearButtonMode="always"
+        <View style={styles.searchContainer}>
+          <View style={isDesktop ? styles.searchInputContainer : styles.searchInputContainerMobile}>
+            <Icon name={'SearchIcon'} size={20} color={'textPrimary'} style={styles.searchIcon} />
+            <TextInput
+              style={isDesktop ? styles.input : styles.inputMobile}
+              value={debouncedQuery}
+              onChangeText={handleChangeText}
+              placeholder="Search"
+              clearButtonMode="always"
+            />
+          </View>
+          {isDesktop ? (
+            <Pressable onPress={() => setIsOpenFilter(true)}>
+              <Svg width="32" height="32" viewBox="0 0 24 24">
+                <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
+              </Svg>
+            </Pressable>
+          ) : null}
+          <FilterMenu
+            visible={isOpenFilter}
+            onClose={() => setIsOpenFilter(false)}
+            kinds={kinds}
+            setKinds={setKinds}
+            onSortChange={handleSortChange}
+            activeSortBy={activeSortBy}
           />
         </View>
-        {isDesktop ? (
-          <Pressable onPress={() => setIsOpenFilter(true)}>
-            <Svg width="32" height="32" viewBox="0 0 24 24">
-              <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
-            </Svg>
-          </Pressable>
-        ) : null}
-        <FilterMenu
-          visible={isOpenFilter}
-          onClose={() => setIsOpenFilter(false)}
-          kinds={kinds}
-          setKinds={setKinds}
-          onSortChange={handleSortChange}
-          activeSortBy={activeSortBy}
-        />
-      </View>
+      </ScrollView>
+
     </View>
   );
 };

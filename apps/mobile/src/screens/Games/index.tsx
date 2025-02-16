@@ -11,6 +11,7 @@ import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
 import {SlinksMap} from '../Slink/SlinksMap';
 import stylesheet from './styles';
 import {NameserviceComponent} from '../../modules/nameservice';
+import {QuestsComponent} from '../../modules/quests';
 import {IconButton} from '../../components';
 
 export const Games: React.FC<GameSreenProps> = ({navigation}) => {
@@ -91,6 +92,12 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
               {selectedTab == SelectedTab.NAMESERVICE && (
                 <View>
                   <NameserviceComponent></NameserviceComponent>
+                </View>
+              )}
+
+              {selectedTab == SelectedTab.QUESTS && (
+                <View>
+                  <QuestsComponent></QuestsComponent>
                 </View>
               )}
 

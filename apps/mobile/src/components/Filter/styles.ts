@@ -24,6 +24,22 @@ export default ThemedStyleSheet((theme) => ({
     // columnGap: 12, // Horizontal gap between columns
     // alignItems: 'center',
   },
+  containerSort: {
+    padding: Spacing.pagePadding,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+    display: 'flex',
+    height: '70%',
+    // gridTemplateRows: 'repeat(2, 1fr)', // Creates 2 equal-height rows
+    // rowGap: 12, // Vertical gap between rows
+    // columnGap: 12, // Horizontal gap between columns
+    // alignItems: 'center',
+  },
   // container: {
   //   padding: Spacing.pagePadding,
   //   backgroundColor: theme.colors.surface,

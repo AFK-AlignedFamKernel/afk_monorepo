@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { useAccount } from 'wagmi';
 
 import { useStyles, useWaitConnection } from '../../../hooks';
 import { useGetShares } from '../../../hooks/api/indexer/useUserShare';
-import { useWalletModal } from '../../../hooks/modals';
+import { useToast, useWalletModal } from '../../../hooks/modals';
 import { TokenStatsInterface, UserShareInterface } from '../../../types/keys';
 import Loading from '../../Loading';
 import { Text } from '../../Text';
 import stylesheet from './styles';
+import { Button } from '../../Button';
+import { useClaimToken } from '../../../hooks/launchpad/useClaimToken';
+import { useAccount } from '@starknet-react/core';
 
 export type UserShareProps = {
   loading: boolean;
@@ -21,6 +23,8 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
   const styles = useStyles(stylesheet);
   const [stats, setStats] = useState<TokenStatsInterface | undefined>();
 
+  // const { signer } = useAccount();
+  const { claimToken } = useClaimToken();
   const account = useAccount();
   const {
     data: sharesData,
@@ -28,6 +32,7 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
     refetch,
   } = useGetShares(coinAddress, account?.address);
 
+  const {showToast} = useToast();
   const waitConnection = useWaitConnection();
   const walletModal = useWalletModal();
   const onConnect = async () => {
@@ -38,6 +43,30 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
       if (!result) return;
     }
   };
+
+  const handleClaim = async () => {
+    console.log('Claiming...');
+
+    if (!account.address || !account || !account.account) {
+      await onConnect();
+      return;
+    }
+
+    const tx = await claimToken(account?.account, {coin_address: coinAddress});
+
+    if(tx) {
+      showToast({
+        title: 'Claimed',
+        type:"success"
+      });
+    } else {
+      showToast({
+        title: 'Error when claiming',
+        type:"error"
+      });
+
+    }
+  }
   // console.log('sharesData', sharesData);
   // useEffect(() => {
   //   setShares(sharesData);
@@ -58,11 +87,11 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
             </Text>
             <Text fontSize={14}>
               {Number(share?.data?.amount_owned)}
-              {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
-              {/* {Number(share?.total_buy) - Number(share?.total_sell)} */}
             </Text>
           </View>
-
+          <View>
+            <Button onPress={() => handleClaim()}>Claim</Button>
+          </View>
           {/* <View style={styles.borderBottom}>
             <Text fontSize={14} weight="semiBold">
               Total sell
