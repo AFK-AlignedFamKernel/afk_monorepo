@@ -191,7 +191,8 @@ export const Post: React.FC<PostProps> = ({
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    navigation.navigate('PostDetail', { postId: event?.id, post: event });
+    // navigation.navigate('PostDetail', { postId: event?.id, post: event });
+    navigation.navigate('PostDetail', { postId: event?.id });
   };
 
   const handleToReplyView = () => {
@@ -270,7 +271,8 @@ export const Post: React.FC<PostProps> = ({
     if (!event) return;
     const origin = window.location.origin;
     // const url = `https://nostr.com/note/${event.id}`;
-    const url = `${origin}/app/post/?id=${event.id}`;
+    // const url = `${origin}/app/post/?id=${event.id}`;
+    const url = `${origin}/app/post/${event.id}`;
     console.log('url', url);
 
     const message = `Check out this note: ${url}`;

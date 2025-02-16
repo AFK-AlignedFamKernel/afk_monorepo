@@ -430,9 +430,9 @@ const linking = {
           EditProfile: 'app/edit-profile',
           CreatePost: 'app/create-post',
           PostDetail: {
-            path: 'app/post/:id',
+            path: 'app/post/:postId',
             parse: {
-              id: (id: string) => `${id}`,
+              postId: (postId: string) => postId,
             },
           },
           ChannelDetail: {
