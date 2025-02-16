@@ -245,8 +245,6 @@ pub mod DaoAA {
             self.proposals.entry(id).write(Option::Some(proposal));
 
             self._resolve_proposal_calldata(id, calldata);
-
-            self.proposal_tx.entry(id).write(calldata.hash_struct());
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
 
@@ -393,7 +391,6 @@ pub mod DaoAA {
             let total_votes = yes_votes + no_votes;
             let valid_threshold_percentage = yes_votes * 100 / total_votes;
 
-            let executables_count = self.executables_count.read();
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 let mut executables_count = self.executables_count.read() + 1;
                 proposal.proposal_result = ProposalResult::Passed;
@@ -417,7 +414,6 @@ pub mod DaoAA {
                             if tx_count > current_max_tx_count {
                                 self.current_max_tx_count.write(tx_count);
                             }
-                            // might be removed, check.
                             self.max_executable_clone.entry(proposal_tx).write(tx_count);
                             executables_count += 1;
                         };
@@ -590,11 +586,7 @@ pub mod DaoAA {
 
         fn _resolve_proposal_calldata(ref self: ContractState, id: u256, calldata: Array<Call>) {
             let proposal_calldata = self.proposals_calldata.entry(id);
-            // for each calldaata
-            //     proposal_tx: Map<
-            //     u256, Vec<felt252>
-            // >,
-            // proposals_calldata: Map<u256, Vec<Calldata>>
+
             for data in calldata {
                 proposal_calldata.append().to.write(data.to);
                 proposal_calldata.append().selector.write(data.selector);
@@ -607,16 +599,6 @@ pub mod DaoAA {
 
                 self.proposal_tx.entry(id).append().write(data.hash_struct());
             };
-            // proposal_calldata.to.write(calldata.to);
-        // proposal_calldata.selector.write(calldata.selector);
-        // proposal_calldata.is_executed.write(false);
-
-            // for data in calldata.calldata {
-        //     proposal_calldata.calldata.append().write(*data);
-        // };
-        // // end check.
-
-            // self.proposal_tx.entry(id).write(calldata.hash_struct());
         }
     }
 }
@@ -640,7 +622,7 @@ mod tests {
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
 
 
-    /// UTILIY FUNCTIONS
+    /// UTILITY FUNCTIONS
 
     fn OWNER() -> ContractAddress {
         contract_address_const::<'OWNER'>()
