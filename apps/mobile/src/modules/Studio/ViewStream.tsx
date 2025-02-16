@@ -30,6 +30,8 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
     eventId: streamKey,
   });
 
+  console.log('eventData', eventData);
+
   const renderStreamContent = () => {
     if (!eventData) {
       return (

@@ -42,8 +42,8 @@ type Event = {
 
 export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) => {
   const { publicKey } = useAuth();
-  const { data, isFetching, refetch, isPending } = useGetLiveEvents({
-    limit: 100,
+  const { data, isFetching, refetch, isPending, isLoading } = useGetLiveEvents({
+    limit: 20,
   });
 
   const { theme } = useTheme();
@@ -83,6 +83,17 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
   //     </View>
   //   );
   // }
+
+  if (isFetching) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.scrollContent}>
+          <Text style={styles.headerText}>Stream Studio Events</Text>
+          <ActivityIndicator></ActivityIndicator>;
+        </SafeAreaView>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -329,6 +340,7 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
   const { showToast } = useToast();
   const { publicKey } = useAuth();
 
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const { createEvent } = useLiveActivity();
 
   const styles = useStyles(styleSheet);
@@ -343,7 +355,15 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
     // startDate: new Date(),
     // endDate: new Date(),
   });
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
+
+    const isConnected = await handleCheckNostrAndSendConnectDialog();
+
+    if (!isConnected) {
+      showToast({ title: 'Must be connected to Nostr', type: 'error' });
+      return;
+    }
+
     if (newEvent.title && newEvent.status && newEvent.summary) {
       createEvent.mutate(
         {
@@ -378,6 +398,7 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
       );
     }
   };
+
   return (
     <View style={styles.modalOverlay}>
       <View style={styles.modalView}>

@@ -20,29 +20,29 @@ export const useMyNotes = (options?: UseSearch) => {
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['search', options?.authors, options?.search, options?.kind, options?.kinds, ndk],
-    getNextPageParam: (lastPage: any, allPages) => {
+    getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
 
-      const lastNote = lastPage[lastPage.length - 1];
-      // console.log('created_at', lastNote.created_at);
-      const pageParam = lastNote.created_at - 1;
-      // console.log('pageParam', pageParam);
+      const pageParam = lastPage[lastPage.length - 1].created_at - 1;
 
+      if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
-      // console.log('search query', options?.search);
-      // console.log('pageParam', pageParam);
+      console.log('search query', options?.search);
+      // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors ?? [publicKey],
         search: options?.search,
+        // content: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
-        limit: options?.limit ?? 10,
+        limit: options?.limit ?? 30,
       });
-      // console.log('notes', notes);
+      console.log('notes', notes);
 
       return [...notes];
+      // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
     placeholderData: {pages: [], pageParams: []},
   });
