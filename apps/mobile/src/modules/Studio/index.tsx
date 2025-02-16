@@ -329,6 +329,7 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
   const { showToast } = useToast();
   const { publicKey } = useAuth();
 
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const { createEvent } = useLiveActivity();
 
   const styles = useStyles(styleSheet);
@@ -343,7 +344,15 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
     // startDate: new Date(),
     // endDate: new Date(),
   });
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
+
+    const isConnected = await handleCheckNostrAndSendConnectDialog();
+
+    if (!isConnected) {
+      showToast({ title: 'Must be connected to Nostr', type: 'error' });
+      return;
+    }
+
     if (newEvent.title && newEvent.status && newEvent.summary) {
       createEvent.mutate(
         {

@@ -24,15 +24,15 @@ export const useMyNotes = (options?: UseSearch) => {
       if (!lastPage?.length) return undefined;
 
       const lastNote = lastPage[lastPage.length - 1];
-      console.log('created_at', lastNote.created_at);
+      // console.log('created_at', lastNote.created_at);
       const pageParam = lastNote.created_at - 1;
-      console.log('pageParam', pageParam);
+      // console.log('pageParam', pageParam);
 
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
-      console.log('search query', options?.search);
-      console.log('pageParam', pageParam);
+      // console.log('search query', options?.search);
+      // console.log('pageParam', pageParam);
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
         authors: options?.authors ?? [publicKey],
