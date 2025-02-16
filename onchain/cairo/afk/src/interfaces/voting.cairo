@@ -76,6 +76,9 @@ pub struct Proposal {
     pub proposal_result_at: u64,
     pub owner: ContractAddress,
     pub proposal_result_by: ContractAddress,
+    pub is_multiple_calldata: bool,
+    pub is_recurrent_tx_call:bool, // V2
+    // pub is_recurrence_timing:Map<u32, u64>
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
@@ -152,6 +155,14 @@ pub struct Calldata {
     pub is_executed: bool,
 }
 
+
+#[starknet::storage_node]
+pub struct CallProposal {
+    pub to: ContractAddress,
+    pub selector: felt252,
+    pub calldata: Vec<felt252>,
+    pub is_executed: bool,
+}
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 // pub struct VoteState {
 //     pub votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
@@ -175,6 +186,9 @@ pub struct VoteState {
 pub trait IVoteProposal<TContractState> {
     fn create_proposal(
         ref self: TContractState, proposal_params: ProposalParams, calldata: Call
+    ) -> u256;
+    fn create_proposal_with_calldatas(
+        ref self: TContractState, proposal_params: ProposalParams, calldatas: Span<Call>
     ) -> u256;
     fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;

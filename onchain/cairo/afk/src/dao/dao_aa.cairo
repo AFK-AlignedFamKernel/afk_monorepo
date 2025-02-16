@@ -45,7 +45,10 @@ pub mod DaoAA {
     use core::ecdsa::check_ecdsa_signature;
     use core::hash::{HashStateExTrait, HashStateTrait};
     use core::num::traits::Zero;
+    use core::traits::Into;
     use core::poseidon::{PoseidonTrait, poseidon_hash_span};
+    use core::array::SpanTrait;
+
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::introspection::src5::SRC5Component;
@@ -54,8 +57,12 @@ pub mod DaoAA {
     use starknet::account::Call;
 
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapWriteAccess, Vec, MutableVecTrait,
+        Map, 
+        // StorageMapReadAccess, StorageMapWriteAccess,
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, 
+      Vec, MutableVecTrait, 
+        // StorageMapReadAccess,
+        // StorageSpanWriteAccess,StorageSpanReadAccess,
     };
     use starknet::{
         get_caller_address, get_contract_address, get_tx_info, ContractAddress,
@@ -105,6 +112,11 @@ pub mod DaoAA {
         transfers: Map<u256, bool>,
         proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
         proposals_calldata: Map<u256, Calldata>, // Map ProposalID => calldata
+        // proposals_calldatas: Map<u256, Span<Calldata>>, // Map ProposalID => calldata
+        // proposals_calldatas: Map<u256, Vec<Call>>, // Map ProposalID => calldata
+        // proposals_calldatas: Map::<(u256, u32), Calldata>,
+        proposals_calldatas: Map::<u256, Map<u32, Calldata>>,
+        total_proposal_calldatas: Map<u256, u32>,
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
         executable_tx: Map<felt252, bool>, // Map Hashed Call => executable
@@ -229,6 +241,8 @@ pub mod DaoAA {
                 proposal_result_at: 0,
                 owner,
                 proposal_result_by: contract_address_const::<0x0>(),
+                is_multiple_calldata: false,
+                is_recurrent_tx_call:false // V2
             };
 
             // check
@@ -251,6 +265,93 @@ pub mod DaoAA {
 
             id
         }
+
+
+        fn create_proposal_with_calldatas(
+            ref self: ContractState, proposal_params: ProposalParams, calldatas: Span<Call>,
+        ) -> u256 {
+            let owner = get_caller_address();
+            let minimal_balance = self.minimal_balance_create_proposal.read();
+
+            if minimal_balance > 0 {
+                let vote_token_dispatcher = IERC20Dispatcher {
+                    contract_address: self.token_contract_address.read(),
+                };
+                assert(
+                    vote_token_dispatcher.balance_of(owner) > minimal_balance,
+                    'INSUFFICIENT CREATION FUNDS',
+                );
+            }
+
+            let id = self.total_proposal.read() + 1;
+            let created_at = starknet::get_block_timestamp();
+            let end_at = starknet::get_block_timestamp() + SET_PROPOSAL_DURATION_IN_SECONDS;
+
+            let proposal = Proposal {
+                id,
+                created_at,
+                end_at,
+                is_whitelisted: false,
+                proposal_params,
+                proposal_status: Default::default(),
+                proposal_result: Default::default(),
+                proposal_result_at: 0,
+                owner,
+                proposal_result_by: contract_address_const::<0x0>(),
+                is_multiple_calldata: true,
+                is_recurrent_tx_call:false // V2
+            };
+
+            // check
+            self.proposals.entry(id).write(Option::Some(proposal));
+
+            // let proposal_calldata = self.proposals_calldata.entry(id);
+            // let proposal_calldatas = self.proposals_calldatas.entry(id);
+            let mut total_proposal_calldatas = 0;
+          
+            // Add calldatas to the proposal
+            let mut executables_count = self.executables_count.read();
+            // let mut proposal_calldatas = self.proposals_calldatas.entry((id, total_proposal_calldatas)).read();
+
+            // let map_call= Map::<(u256, u32), Call>::new();
+            // for calldata in calldatas {
+            //     let call = Call {
+            //         to: *calldata.to,
+            //         selector: *calldata.selector,
+            //         calldata: *calldata.calldata,
+            //     };
+
+            //     // self.__execute__(call);
+            //     // let proposal_tx = self.proposal_tx.entry(id).read();
+            //     // self.proposal_tx.entry(id).write(calldata.hash_struct());
+            //     // proposal_calldatas.append().write(call);
+            //     // proposal_calldatas.append(call);
+            //     // self.proposals_calldatas.entry((id, total_proposal_calldatas)).write(call);
+            //     // // map_call.entry((id, total_proposal_calldatas)).write(call);
+            //     // total_proposal_calldatas = total_proposal_calldatas + 1;
+            // }
+            // for data in calldatas {
+            //     proposal_calldatas.append().write(data);
+            // }
+
+            // proposal_calldata.to.write(calldata.to);
+            // proposal_calldata.selector.write(calldata.selector);
+            // proposal_calldata.is_executed.write(false);
+
+            // for data in calldata.calldata {
+            //     proposal_calldata.calldata.append().write(*data);
+            // };
+            // end check.
+
+            // self.proposal_tx.entry(id).write(calldata.hash_struct());
+            self.total_proposal.write(id);
+            self.total_proposal_calldatas.entry(id).write(total_proposal_calldatas);
+            self.executables_count.write(executables_count + 1);
+            self.emit(ProposalCreated { id, owner, created_at, end_at });
+
+            id
+        }
+
 
         fn cast_vote(ref self: ContractState, proposal_id: u256, opt_vote_type: Option<UserVote>) {
             // TODO
@@ -395,9 +496,33 @@ pub mod DaoAA {
             let executables_count = self.executables_count.read();
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
                 proposal.proposal_result = ProposalResult::Passed;
-                let proposal_tx = self.proposal_tx.entry(proposal_id).read();
-                self.executable_tx.entry(proposal_tx).write(true);
-                self.executables_count.write(executables_count + 1);
+
+                if proposal.is_multiple_calldata {
+
+                    let index = 0;
+                    let total_proposal_calldatas = self.total_proposal_calldatas.entry(proposal_id).read();
+                    // Loop through the calldatas and saved them as executable
+                    // let proposal_calldatas = self.proposals_calldatas.entry((proposal_id));
+
+                    for index in 0..total_proposal_calldatas {
+                        // let mut call_proposal = self.proposals_calldatas.entry(proposal_id.clone()).entry(index);
+                        // let call = Call {
+                        //     to: call_proposal.to,
+                        //     selector: call_proposal.selector,
+                        //     calldata: call_proposal.calldata,
+                        // };
+                        // for data in call_proposal.calldata {
+                        //     let proposal_tx = self.proposal_tx.entry(proposal_id).read();
+                        //     self.executable_tx.entry(proposal_tx).write(true);
+                        //     self.executables_count.write(executables_count + 1);
+                        // }
+                    }
+                } else {
+                    let proposal_tx = self.proposal_tx.entry(proposal_id).read();
+                    self.executable_tx.entry(proposal_tx).write(true);
+                    self.executables_count.write(executables_count + 1);
+                }
+              
             } else {
                 proposal.proposal_result = ProposalResult::Failed;
             }
