@@ -19,7 +19,7 @@ export enum SelectedTab {
   LAUNCH_HOLDERS,
   LAUNCH_TX,
   LIGHTNING_NETWORK_WALLET,
-  GROUP,
+  GROUP,  
   ALL_GROUP,
   GROUP_MESSAGE,
   PIXEL_PEACE,
@@ -53,6 +53,9 @@ export enum SelectedTab {
   GRAPH = 'GRAPH',
   DYNAMIC_OWNED = 'DYNAMIC_OWNED',
   DYNAMIC_ALL = 'DYNAMIC_ALL',
+  QUESTS = 'QUESTS',
+  QUEST_FORM = 'QUEST_FORM',
+  ALL_QUESTS = 'ALL_QUESTS',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -529,6 +532,12 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
     screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
   },
+  // {
+  //   title: 'Quests',
+  //   description: 'Quests for communities',
+  //   screen: 'Quests',
+  //   tab: SelectedTab.QUESTS,
+  // },
   {
     title: 'Nameservice',
     description: 'AFK nameservice to mint your own name.afk',
@@ -580,4 +589,23 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   //   tab: SelectedTab.MESSAGES
 
   // },
+];
+
+
+export const TABS_QUESTS: {screen?: string; title: string; tab: SelectedTab}[] = [
+  {
+    title: 'Quest',
+    screen: 'Quest',
+    tab: SelectedTab.QUESTS,
+  },
+  {
+    title: 'All Quests',
+    screen: 'All',
+    tab: SelectedTab.DYNAMIC_ALL,
+  },
+  {
+    title: 'Your Quests',
+    screen: 'Owned',
+    tab: SelectedTab.DYNAMIC_OWNED,
+  },
 ];
