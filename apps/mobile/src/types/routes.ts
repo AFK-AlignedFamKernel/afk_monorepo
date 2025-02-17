@@ -26,6 +26,8 @@ export type AuthStackParams = {
     publicKey: string;
   };
   Community: undefined;
+  RecordedStream: { streamId: string };
+
 };
 
 export type MainStackParams = {
@@ -76,7 +78,7 @@ export type MainStackParams = {
   WalletBTC: undefined;
   StreamStudio: undefined;
   WatchStream: { streamId: string };
-  ViewStreamGuest: { streamId: string };
+  ViewStreamGuest: { streamId: string, recordingUrl?: string };
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
@@ -91,6 +93,7 @@ export type MainStackParams = {
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
+  RecordedStream: { streamId: string, recordingUrl?: string };
 };
 
 
@@ -393,6 +396,11 @@ export type ViewStreamGuest = CompositeScreenProps<
 >;
 export type NameserviceScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Nameservice'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type RecordedStream = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'RecordedStream'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

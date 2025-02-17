@@ -11,13 +11,17 @@ import {useToast} from '../../../hooks/modals';
 import stylesheet from './styles';
 import {useStreamCanvas} from './useCanvas';
 import {useWebStream} from './useWebStream';
+import { Button } from '../../../components';
+import { ViewerVideoView } from '../StreamVideoPlayer';
 
 interface PreStreamProps {
   streamKey: string;
   startStream: () => void;
   navigateToStream: () => void;
+  navigateToRecord: () => void;
   socketRef: React.MutableRefObject<Socket | null>;
   streamingUrl?: string;
+  recordingUrl?: string;
 }
 
 export interface IWebStreamProps {
@@ -28,6 +32,8 @@ export interface IWebStreamProps {
   toggleChat: () => void;
   navigateToPreStream?: () => void;
   streamingUrl?: string;
+  navigateToRecord?: () => void;
+  recordingUrl?: string;
 }
 
 export function WebStreamCompositionComponent({
@@ -35,8 +41,10 @@ export function WebStreamCompositionComponent({
   streamKey,
   streamerUserId,
   socketRef,
+  recordingUrl,
 }: IWebStreamProps) {
   const [showStream, setShowStream] = useState(false);
+  const [showRecord, setShowRecord] = useState(false);
 
   const isStreamer = true;
 
@@ -59,9 +67,11 @@ export function WebStreamCompositionComponent({
       <PreStreamComponent
         socketRef={socketRef}
         navigateToStream={() => setShowStream(true)}
+        navigateToRecord={() => setShowRecord(true)}
         startStream={startStream}
         streamKey={streamKey}
         streamingUrl={streamingUrl}
+        recordingUrl={recordingUrl}
       />
     );
   }
@@ -75,11 +85,13 @@ export function WebStreamCompositionComponent({
       socketRef={socketRef}
       streamKey={streamKey}
       streamingUrl={streamingUrl}
+      navigateToRecord={() => setShowRecord(true)}
+      recordingUrl={recordingUrl}
     />
   );
 }
 
-export function PreStreamComponent({streamKey, navigateToStream}: PreStreamProps) {
+export function PreStreamComponent({streamKey, navigateToStream, navigateToRecord, recordingUrl}: PreStreamProps) {
   const queryClient = useQueryClient();
   const styles = useStyles(stylesheet);
   const toast = useToast();
@@ -115,18 +127,27 @@ export function PreStreamComponent({streamKey, navigateToStream}: PreStreamProps
     );
   };
 
+
   return (
     <View style={styles.stream_container}>
       <View style={styles.canvas_container}>
         <Text style={styles.buttonText}>Stream Status: {event?.status}</Text>
 
         {event?.status === 'ended' ? (
-          <Pressable
-            style={[styles.button, styles.buttonPrimary]}
-            onPress={() => navigateToStream()}
-          >
-            <Text style={styles.buttonText}>Proceed to Stream</Text>
-          </Pressable>
+          <View>
+            <Pressable
+              style={[styles.button, styles.buttonPrimary]}
+              onPress={() => navigateToStream()}
+            >
+              <Text style={styles.buttonText}>Proceed to Stream</Text>
+
+
+            {recordingUrl && (
+              <ViewerVideoView playbackUrl={recordingUrl || ''} />
+            )}
+            </Pressable>
+            {/* <Button onPress={() => navigateToRecord()} ><Text>View record</Text></Button> */}
+          </View>
         ) : (
           <Pressable style={[styles.button, styles.buttonPrimary]} onPress={handleStartStream}>
             <Text style={styles.buttonText}>Proceed to Stream</Text>
@@ -143,6 +164,8 @@ export function WebStreamComponent({
   streamerUserId,
   socketRef,
   navigateToPreStream,
+  navigateToRecord,
+  recordingUrl,
 }: IWebStreamProps) {
   const toast = useToast();
   const {data: event} = useGetSingleEvent({
@@ -187,6 +210,7 @@ export function WebStreamComponent({
         status: 'ended',
         shouldMarkDelete: false,
         streamingUrl: `${CLOUDFARE_BUCKET_URL}/livestream/${streamKey}/stream.m3u8`,
+        recordingUrl: `${CLOUDFARE_BUCKET_URL}/livestream/${streamKey}/stream.m3u8`,
       },
       {
         onSuccess() {
@@ -218,6 +242,7 @@ export function WebStreamComponent({
           </View>
         </View>
       )}
+      
       <View style={styles.canvas_container}>
         <View ref={containerRef} style={styles.canvasContainer}>
           <canvas

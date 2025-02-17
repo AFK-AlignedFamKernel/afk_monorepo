@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
 
 import {Spacing} from '../../../styles';
 
@@ -152,6 +152,8 @@ export default (theme: any) =>
     },
     imageContainer: {
       padding: Spacing.pagePadding,
+      width: Dimensions.get('window').width * 0.2,
+      height: Dimensions.get('window').height * 0.2,
     },
     image: {
       width: '100%',

@@ -175,7 +175,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
       {isButtonOpenVisible && (
         <Pressable onPress={() => handleOpen()}>
-          <Text>Add Metadata</Text>
+          <Text>Open </Text>
         </Pressable>
       )}
 

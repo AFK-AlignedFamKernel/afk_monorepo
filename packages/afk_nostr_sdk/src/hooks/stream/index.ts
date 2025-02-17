@@ -435,8 +435,7 @@ export const useEditEvent = () => {
 // Helper function to parse event data
 const parseLiveEventData = (event: NDKEvent): LiveEventData | null => {
   if (!event) return null;
-
-  console.log('event', event);
+  // console.log('event', event);
   const identifier = event.tags.find((t) => t[0] === 'd')?.[1] || '';
   const status = (event.tags.find((t) => t[0] === 'status')?.[1] || 'planned') as LiveEventStatus;
   const participants = event.tags
