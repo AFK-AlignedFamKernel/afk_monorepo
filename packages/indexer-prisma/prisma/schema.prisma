@@ -49,6 +49,7 @@ model token_launch {
   time_stamp          DateTime? @db.Timestamp(6)
   created_at          DateTime? @default(now()) @db.Timestamp(6)
   initial_pool_supply_dex String?
+  market_cap String?
 }
 
 model unrugmeme_deploy {
@@ -238,3 +239,22 @@ model candlesticks {
   @@index([timestamp])
   @@index([interval_minutes])
 }
+
+model token_metadata {
+  transaction_hash String    @id
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  contract_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  memecoin_address String?
+  url    String?
+  nostr_id             String?
+  name             String?
+  symbol           String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+}
+

@@ -37,6 +37,18 @@ function getConfig() {
       r2Secret: process.env.CLOUDFARE_R2_SECRET || '',
       r2Domain: process.env.CLOUDFARE_R2_DOMAIN || '',
     },
+    pinata: {
+      jwt: process.env.PINATA_JWT || '',
+      ipfsGateway: process.env.IPFS_GATEWAY || '',
+      uploadGatewayUrl: process.env.PINATA_UPLOAD_GATEWAY_URL || '',
+      pinataSignUrl: process.env.PINATA_PINATA_SIGN_URL || '',
+      uploadUrl: process.env.PINATA_UPLOAD_URL || '',
+      apiKey: process.env.PINATA_API_KEY || '',
+      apiSecret: process.env.PINATA_API_SECRET || '',
+      apiUrl: process.env.PINATA_API_URL || '',
+      apiVersion: process.env.PINATA_API_VERSION || '',
+      apiTimeout: process.env.PINATA_API_TIMEOUT || '',
+    },
   } as const;
 
   if (process.env.NODE_ENV === 'development') {
@@ -58,6 +70,18 @@ function getConfig() {
         r2Access: rawConfig.cloudfare.r2Access || 'ACCESS_xxxxxx',
         r2Secret: rawConfig.cloudfare.r2Secret || 'SECRET_xxxxxx',
         r2Domain: rawConfig.cloudfare.r2Domain || 'DOMAIN_xxxxxx',
+      },
+      pinata: {
+        jwt: rawConfig.pinata.jwt || 'JWT_xxxxxx',
+        ipfsGateway: rawConfig.pinata.ipfsGateway || 'URL_xxxxxx',
+        uploadGatewayUrl: rawConfig.pinata.uploadGatewayUrl || 'URL_xxxxxx',
+        pinataSignUrl: rawConfig.pinata.pinataSignUrl || 'URL_xxxxxx',
+        uploadUrl: rawConfig.pinata.uploadUrl || 'URL_xxxxxx',
+        apiKey: rawConfig.pinata.apiKey || 'KEY_xxxxxx',
+        apiSecret: rawConfig.pinata.apiSecret || 'SECRET_xxxxxx',
+        apiUrl: rawConfig.pinata.apiUrl || 'URL_xxxxxx',
+        apiVersion: rawConfig.pinata.apiVersion || 'VERSION_xxxxxx',
+        apiTimeout: rawConfig.pinata.apiTimeout || 'TIMEOUT_xxxxxx',
       },
     };
   }

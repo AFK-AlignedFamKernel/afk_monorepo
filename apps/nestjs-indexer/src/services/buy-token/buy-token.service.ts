@@ -6,7 +6,7 @@ import { CandlestickService } from '../candlestick/candlesticks.service';
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-
+  
   constructor(
     private readonly prismaService: PrismaService,
     private readonly candlestickService: CandlestickService,
@@ -14,17 +14,20 @@ export class BuyTokenService {
 
   async create(data: BuyToken) {
     try {
-      const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
-        { where: { memecoin_address: data.memecoinAddress } },
-      );
+      await this.prismaService.$transaction(async (prisma) => {
+        const tokenLaunchRecord = await prisma.token_launch.findFirst({
+          where: { memecoin_address: data.memecoinAddress },
+        });
 
-      let price = tokenLaunchRecord?.price ?? 0;
+        let price = tokenLaunchRecord?.price ?? 0;
 
-      if (!tokenLaunchRecord) {
-        this.logger.warn(
-          `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
-        );
-      } else {
+        if (!tokenLaunchRecord) {
+          this.logger.warn(
+            `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
+          );
+          return;
+        }
+
         const newSupply =
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
@@ -56,7 +59,7 @@ export class BuyTokenService {
         const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
         const tokensInPool = Number(initPoolSupply); // Fixed token supply
         // Memecoin per ETH
-        let priceBuy =
+        const priceBuy =
           tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
         // ETH per Memecoin
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
@@ -85,47 +88,60 @@ export class BuyTokenService {
           //   price: price?.toString()
           // }
         });
-      }
 
-      await this.prismaService.shares_token_user.upsert({
-        where: {
-          id: `${data.ownerAddress}_${data.memecoinAddress}`,
-          owner: data.ownerAddress,
-          token_address: data.memecoinAddress,
-        },
-        update: {
-          amount_owned: {
-            increment: data.amount,
+        const sharesTokenUser = await prisma.shares_token_user.findUnique({
+          where: {
+            id: `${data.ownerAddress}_${data.memecoinAddress}`,
           },
-        },
-        create: {
-          id: `${data.ownerAddress}_${data.memecoinAddress}`,
-          owner: data.ownerAddress,
-          token_address: data.memecoinAddress,
-          amount_owned: data.amount,
-        },
-      });
+        });
 
-      await this.prismaService.token_transactions.upsert({
-        where: { transfer_id: data.transferId },
-        update: {},
-        create: {
-          transfer_id: data.transferId,
-          network: data.network,
-          block_hash: data.blockHash,
-          block_number: data.blockNumber,
-          block_timestamp: data.blockTimestamp,
-          transaction_hash: data.transactionHash,
-          memecoin_address: data.memecoinAddress,
-          owner_address: data.ownerAddress,
-          last_price: data.lastPrice,
-          quote_amount: data.quoteAmount,
-          price: price?.toString() ?? data.price,
-          amount: data.amount,
-          protocol_fee: data.protocolFee,
-          time_stamp: data.timestamp,
-          transaction_type: data.transactionType,
-        },
+        let newAmountOwned = sharesTokenUser
+          ? Number(sharesTokenUser.amount_owned) + Number(data.amount)
+          : Number(data.amount);
+
+        if (newAmountOwned > newTotalTokenHolded) {
+          this.logger.warn(
+            `Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded}). Adjusting amount owned to total token held.`,
+          );
+          newAmountOwned = newTotalTokenHolded;
+        }
+
+        await prisma.shares_token_user.upsert({
+          where: {
+            id: `${data.ownerAddress}_${data.memecoinAddress}`,
+          },
+          update: {
+            amount_owned: newAmountOwned.toString(),
+          },
+          create: {
+            id: `${data.ownerAddress}_${data.memecoinAddress}`,
+            owner: data.ownerAddress,
+            token_address: data.memecoinAddress,
+            amount_owned: data.amount.toString(),
+          },
+        });
+
+        await prisma.token_transactions.upsert({
+          where: { transfer_id: data.transferId },
+          update: {},
+          create: {
+            transfer_id: data.transferId,
+            network: data.network,
+            block_hash: data.blockHash,
+            block_number: data.blockNumber,
+            block_timestamp: data.blockTimestamp,
+            transaction_hash: data.transactionHash,
+            memecoin_address: data.memecoinAddress,
+            owner_address: data.ownerAddress,
+            last_price: data.lastPrice,
+            quote_amount: data.quoteAmount,
+            price: price?.toString() ?? data.price,
+            amount: data.amount,
+            protocol_fee: data.protocolFee,
+            time_stamp: data.timestamp,
+            transaction_type: data.transactionType,
+          },
+        });
       });
 
       await this.candlestickService.generateCandles(data.memecoinAddress, 5);
@@ -134,6 +150,7 @@ export class BuyTokenService {
         `Error creating buy token record: ${error.message}`,
         error.stack,
       );
+      throw error;
     }
   }
 }

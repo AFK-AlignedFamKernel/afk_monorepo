@@ -11,7 +11,7 @@ import { useWebStream } from './stream/useWebStream';
 import { ViewerVideoView } from './StreamVideoPlayer';
 import stylesheet from './styles';
 
-export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
+export const RecordedStream: React.FC<ViewStreamGuest> = ({ route }) => {
   const { publicKey } = useAuth();
   const isStreamer = false;
   const streamKey = route?.params.streamId; // Stream Key will be the event Id
@@ -31,6 +31,7 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
   });
 
   console.log('eventData', eventData);
+
   const renderStreamContent = () => {
     if (!eventData) {
       return (
@@ -79,7 +80,7 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.recordingUrl || eventData.streamingUrl || ''} />
+              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>STREAM ENDED</Text>
