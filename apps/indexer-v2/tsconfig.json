@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "ESNext",
+      "moduleResolution": "Bundler",
+      "declaration": true,
+      "sourceMap": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "skipLibCheck": true,
+      "outDir": "dist",
+      "declarationDir": "dist",
+      "noEmit": false,
+      "rootDir": "src",
+      "types": ["node"],
+    },
+    "include": ["src/"]
+  }
