@@ -8,13 +8,13 @@ import {BackIcon} from '../../assets/icons';
 import {useSocketContext} from '../../context/SocketContext';
 import {useStyles} from '../../hooks';
 import {useToast} from '../../hooks/modals';
-import {WatchStream} from '../../types';
+import {RecordedStream} from '../../types';
 import {LiveChatView} from './LiveChat';
 import StreamCompositionComponent from './stream';
 import {useWebStream} from './stream/useWebStream';
 import stylesheet from './styles';
 
-export const SingleStreamModuleView: React.FC<WatchStream> = ({navigation, route}) => {
+export const ScreenRecordStream: React.FC<RecordedStream> = ({navigation, route}) => {
   const {publicKey} = useAuth();
 
   const streamKey = route?.params.streamId; //Stream Key will be the event Id
@@ -66,9 +66,9 @@ export const SingleStreamModuleView: React.FC<WatchStream> = ({navigation, route
         socketRef={socketRef}
         streamKey={streamKey}
         streamerUserId={streamerUserId}
-        isStreamer={isStreamer}
-        // recordingUrl={recordingUrl}
+        isStreamer
         toggleChat={() => setIsChatOpen(!isChatOpen)}
+        recordingUrl={}
       />
 
       {isChatOpen && (
