@@ -182,6 +182,7 @@ pub mod LaunchpadMarketplace {
         // Stats
         total_token: u64,
         total_launch: u64,
+        is_coin_launched: Map::<ContractAddress, bool>,
         // TODO check edge case supply for Bonding curve
         // HIGH SECURITY RISK
         // EDGE CASE SUPPLY AND THRESHOLD
@@ -1144,8 +1145,10 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
-            // let launch_pool = self.launched_coins.read(coin_address);
-            // assert!(launch_pool.owner.is_zero(), errors::POOL_COIN_ALREADY_LAUNCHED);
+
+            let is_coin_launched = self.is_coin_launched.read(coin_address);
+            assert(!is_coin_launched, errors::POOL_COIN_ALREADY_LAUNCHED);
+
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
             // Price of the token and the address is set by the admin
@@ -1221,6 +1224,9 @@ pub mod LaunchpadMarketplace {
             // Store launch data
             self.launched_coins.entry(coin_address).write(launch_token_pump.clone());
 
+            // add bool to true when launch one time
+            // prevent reinit the launch pool
+            self.is_coin_launched.entry(coin_address).write(true);
             let total_launch = self.total_launch.read();
             self.total_launch.write(total_launch + 1);
             self.array_launched_coins.entry(total_launch).write(launch_token_pump);

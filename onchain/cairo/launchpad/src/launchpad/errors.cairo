@@ -46,3 +46,4 @@ pub const NO_AVAILABLE_SUPPLY: felt252 = 'No available supply';
 pub const SUPPLY_ABOVE_TOTAL_OWNED: felt252 = 'Supply above total';
 pub const EXTERNAL_CONTRACT_NOT_SETUP: felt252 = 'External address Zero';
 pub const NOT_CLAIMABLE: felt252 = 'Not claimable';
+pub const POOL_COIN_ALREADY_LAUNCHED: felt252 = 'Pool already launched';
