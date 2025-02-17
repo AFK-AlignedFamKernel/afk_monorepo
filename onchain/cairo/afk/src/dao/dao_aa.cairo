@@ -20,10 +20,12 @@ pub trait IDaoAA<TContractState> {
 }
 
 #[starknet::interface]
-pub trait ISRC6<TState> {
-    fn __execute__(self: @TState, calls: Array<Call>) -> Array<Span<felt252>>;
-    fn __validate__(self: @TState, calls: Array<Call>) -> felt252;
-    fn is_valid_signature(self: @TState, hash: felt252, signature: Array<felt252>) -> felt252;
+pub trait ISRC6<TContractState> {
+    fn __execute__(ref self: TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
+    fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
+    fn is_valid_signature(
+        self: @TContractState, hash: felt252, signature: Array<felt252>
+    ) -> felt252;
 }
 
 
@@ -167,6 +169,7 @@ pub mod DaoAA {
         owner: ContractAddress,
         token_contract_address: ContractAddress,
         public_key: u256,
+        starknet_address: felt252
     ) {
         // self.public_key.write(public_key);
         self.owner.write(owner);
@@ -175,6 +178,7 @@ pub mod DaoAA {
         self.is_only_dao_execution.write(true);
         self.minimum_threshold_percentage.write(60);
         // TODO: init self.starknet_address here
+        self.starknet_address.write(starknet_address);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -448,25 +452,50 @@ pub mod DaoAA {
         }
     }
 
-    pub impl CallStructHash of StructHash<Call> {
-        fn hash_struct(self: @Call) -> felt252 {
-            let hash_state = PoseidonTrait::new();
-            hash_state
-                .update_with('AFK_DAO')
-                .update_with(*self.to)
-                .update_with(*self.selector)
-                .update_with(poseidon_hash_span(*self.calldata))
-                .finalize()
-        }
-    }
-
     #[abi(embed_v0)]
     impl ISRC6Impl of ISRC6<ContractState> {
         //  TODO
         // Verify the TX is automated of the proposal is valid for this calldata
         // CENSORED the owner/signature for a real AA Autonomous for DAO and agents
-        fn __execute__(self: @ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
+
+        // TODO, security issue.
+        fn __execute__(ref self: ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
             assert!(get_caller_address().is_zero(), "invalid caller");
+
+            // Verify calls before executing
+            for i in 0
+                ..calls
+                    .len() {
+                        // iterate through the max_executable_clone for each tx.
+                        let current_call = *calls.at(i);
+                        let current_call_hash = current_call.hash_struct();
+                        let max_tx_count = self
+                            .max_executable_clone
+                            .entry(current_call_hash)
+                            .read();
+                        let mut tx_count = 1;
+                        let mut is_executable = false;
+                        while tx_count <= max_tx_count {
+                            is_executable = self
+                                .executable_tx
+                                .entry((current_call_hash, tx_count))
+                                .read();
+                            if is_executable {
+                                // mark the call as executed (now as a non-executable)
+                                self
+                                    .executable_tx
+                                    .entry((current_call_hash, tx_count))
+                                    .write(false);
+                                break;
+                            }
+                            tx_count += 1;
+                        };
+                        assert!(is_executable, "EXECUTION ERR: ONE CALL CHECK FAILED.");
+                        self.executed_count.write(self.executed_count.read() + 1);
+                        // TODO
+                    // currently there's no way to set a Proposal as executed because this task
+                    // will require the proposals id. In that case, it must be done manually.
+                    };
 
             // Check tx version
             let tx_info = get_tx_info().unbox();
@@ -601,6 +630,18 @@ pub mod DaoAA {
             };
         }
     }
+
+    pub impl CallStructHash of StructHash<Call> {
+        fn hash_struct(self: @Call) -> felt252 {
+            let hash_state = PoseidonTrait::new();
+            hash_state
+                .update_with('AFK_DAO')
+                .update_with(*self.to)
+                .update_with(*self.selector)
+                .update_with(poseidon_hash_span(*self.calldata))
+                .finalize()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -653,6 +694,7 @@ mod tests {
         constructor_calldata.append_serde(owner);
         constructor_calldata.append_serde(token_contract_address);
         constructor_calldata.append_serde(public_key);
+        constructor_calldata.append_serde('STARKNET ADDRESS');
 
         let contract = declare("DaoAA").unwrap().contract_class();
         let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
