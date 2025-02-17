@@ -93,7 +93,7 @@ export type MainStackParams = {
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
-  RecordedStream: { streamId: string };
+  RecordedStream: { streamId: string, recordingUrl?: string };
 };
 
 

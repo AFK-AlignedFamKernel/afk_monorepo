@@ -18,6 +18,7 @@ export const ScreenRecordStream: React.FC<RecordedStream> = ({navigation, route}
   const {publicKey} = useAuth();
 
   const streamKey = route?.params.streamId; //Stream Key will be the event Id
+  const recordingUrl = route?.params.recordingUrl;
   const streamerUserId = publicKey;
 
   const {socketRef, isConnected} = useSocketContext();
@@ -68,7 +69,7 @@ export const ScreenRecordStream: React.FC<RecordedStream> = ({navigation, route}
         streamerUserId={streamerUserId}
         isStreamer
         toggleChat={() => setIsChatOpen(!isChatOpen)}
-        recordingUrl={}
+        recordingUrl={route?.params.recordingUrl}
       />
 
       {isChatOpen && (
