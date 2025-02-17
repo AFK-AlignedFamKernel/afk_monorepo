@@ -1145,6 +1145,9 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
+            // check if token is created by the launchpad to prevent malicious erc20
+            assert(!token.creator.is_zero(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
+            // assert(token.creator == get_contract_address(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
 
             let is_coin_launched = self.is_coin_launched.read(coin_address);
             assert(!is_coin_launched, errors::POOL_COIN_ALREADY_LAUNCHED);
