@@ -222,3 +222,19 @@ model IndexerStats {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model candlesticks {
+  id              Int       @id @default(autoincrement())
+  token_address   String    
+  interval_minutes Int      
+  open            Decimal   @db.Decimal(30, 18)
+  close           Decimal   @db.Decimal(30, 18) 
+  high            Decimal   @db.Decimal(30, 18) 
+  low             Decimal   @db.Decimal(30, 18)
+  timestamp       DateTime  
+  created_at      DateTime? @default(now()) @db.Timestamp(6) 
+
+  @@index([token_address])
+  @@index([timestamp])
+  @@index([interval_minutes])
+}

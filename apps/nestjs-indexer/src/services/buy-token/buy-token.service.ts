@@ -1,11 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BuyToken } from './interfaces';
+import { CandlestickService } from '../candlestick/candlesticks.service';
 
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-  constructor(private readonly prismaService: PrismaService) { }
+
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly candlestickService: CandlestickService,
+  ) {}
 
   async create(data: BuyToken) {
     try {
@@ -28,7 +33,7 @@ export class BuyTokenService {
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
-        console.log("newLiquidityRaised", newLiquidityRaised);
+        console.log('newLiquidityRaised', newLiquidityRaised);
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
         if (Number(newLiquidityRaised) > Number(maxLiquidityRaised)) {
@@ -43,22 +48,25 @@ export class BuyTokenService {
 
         // Calculate price based on liquidity and token supply
         // TODO better to do it with ETH per memecoin or Memecoin per ETH?
-        // 
+        //
         // Price = ETH liquidity / Fixed token supply in pool
-        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0); // Fixed memecoin supply
+        const initPoolSupply = Number(
+          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
+        ); // Fixed memecoin supply
         const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
         const tokensInPool = Number(initPoolSupply); // Fixed token supply
-        // Memecoin per ETH 
-        let priceBuy = tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
-        // ETH per Memecoin 
+        // Memecoin per ETH
+        let priceBuy =
+          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
+        // ETH per Memecoin
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
-    
+
         // if (priceBuy < 0) {
         //   priceBuy = 0;
         // }
         price = priceBuy;
 
-        console.log("price calculation", price);
+        console.log('price calculation', price);
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
@@ -68,7 +76,7 @@ export class BuyTokenService {
             // },
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
-            price: price?.toString()
+            price: price?.toString(),
           },
           // update: {
           //   current_supply: newSupply.toString(),
@@ -119,6 +127,8 @@ export class BuyTokenService {
           transaction_type: data.transactionType,
         },
       });
+
+      await this.candlestickService.generateCandles(data.memecoinAddress, 5);
     } catch (error) {
       this.logger.error(
         `Error creating buy token record: ${error.message}`,
