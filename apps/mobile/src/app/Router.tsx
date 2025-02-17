@@ -69,6 +69,7 @@ import { Community } from '../screens/Community';
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
+import { ScreenRecordStream } from '../modules/Studio/ScreenRecord';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -323,7 +324,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="StreamStudio" component={StudioModuleView} />
       <MainStack.Screen name="WatchStream" component={SingleStreamModuleView} />
       <MainStack.Screen name="ViewStreamGuest" component={ViewStreamModuleView} />
-
+      <MainStack.Screen name="RecordedStream" component={ScreenRecordStream} />
       <MainStack.Screen name="SocialPayment" component={SocialPaymentView} />
       <MainStack.Screen name="Login" component={LoginNostr} />
       <MainStack.Screen name="CreateAccount" component={CreateAccount} />

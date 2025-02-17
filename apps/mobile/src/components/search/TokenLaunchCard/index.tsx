@@ -95,7 +95,7 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             ellipsizeMode="tail"
             style={styles.tokenSymbol}>{token.symbol}</Text> : null}
         </TouchableOpacity>
-        <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text>
+        {/* <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text> */}
       </View>
       <View style={styles.divider} />
       {token?.threshold_liquidity && (

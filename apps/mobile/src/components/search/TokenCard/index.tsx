@@ -55,6 +55,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
+  const [isOpenAdmin, setIsOpenAdmin] = useState<boolean>(false);
 
 
   const { addMetadata } = useMetadataLaunch();
@@ -241,38 +242,56 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         </View> */}
       </View>
 
+
+
+
       {
         token?.owner_address &&
         account && account?.address == token?.owner_address && !token?.is_launched && (
           <View>
+
             <Button
               onPress={() => {
-                handleLaunchCoin(account, token?.memecoin_address);
+                setIsOpenAdmin(!isOpenAdmin);
               }}
             >
-              Launch your coin
+              Open admin
             </Button>
+
+            {isOpenAdmin && (
+
+              <>
+                <Button
+                  onPress={() => {
+                    handleLaunchCoin(account, token?.memecoin_address);
+                  }}
+                >
+                  Launch your coin
+                </Button>
+                <Button
+                  onPress={() => {
+                    if (token?.memecoin_address) {
+                      showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
+                    }
+                  }}
+                >
+                  Add Liquidity
+                </Button>
+
+                <Button
+                  onPress={() => {
+                    if (token?.memecoin_address) {
+                      setIsModalVisible(true);
+                    }
+                  }}
+                >
+                  Add Metadata
+                </Button>
+              </>
+            )}
 
             {/* <AddLiquidityForm tokenAddress={token?.memecoin_address} /> */}
-            <Button
-              onPress={() => {
-                if (token?.memecoin_address) {
-                  showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
-                }
-              }}
-            >
-              Add Liquidity
-            </Button>
 
-            <Button
-              onPress={() => {
-                if (token?.memecoin_address) {
-                  setIsModalVisible(true);
-                }
-              }}
-            >
-              Add Metadata
-            </Button>
           </View>
         )
       }
