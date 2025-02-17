@@ -13,6 +13,7 @@ pub trait IDaoAA<TContractState> {
     fn get_token_contract_address(self: @TContractState) -> ContractAddress;
     fn update_config(ref self: TContractState, config_params: ConfigParams);
     fn get_config(self: @TContractState) -> ConfigResponse;
+    fn set_public_key(ref self: TContractState, public_key: u256);
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
@@ -71,6 +72,8 @@ pub mod DaoAA {
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
+    pub const ISRC6_ID: felt252 = 0x2ceccef7f994940b3962a6c67e0ba4fcd37df7d131417c604f91e03caecc1cd;
+
     // AccessControl
     #[abi(embed_v0)]
     impl AccessControlImpl =
@@ -83,6 +86,7 @@ pub mod DaoAA {
     // SRC5
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
+    impl SRC5InternalImpl = SRC5Component::InternalImpl<ContractState>;
 
     // // Timelock Mixin
     // #[abi(embed_v0)]
@@ -179,6 +183,7 @@ pub mod DaoAA {
         self.minimum_threshold_percentage.write(60);
         // TODO: init self.starknet_address here
         self.starknet_address.write(starknet_address);
+        self.src5.register_interface(ISRC6_ID);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -201,6 +206,11 @@ pub mod DaoAA {
 
         fn get_config(self: @ContractState) -> ConfigResponse {
             self._get_config()
+        }
+
+        fn set_public_key(ref self: ContractState, public_key: u256) {
+            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
+            self.public_key.write(public_key);
         }
     }
 
