@@ -54,7 +54,7 @@ export class BuyTokenService {
         const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
         const tokensInPool = Number(initPoolSupply); // Fixed token supply
         // Memecoin per ETH
-        let priceBuy =
+        const priceBuy =
           tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
         // ETH per Memecoin
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
@@ -90,15 +90,15 @@ export class BuyTokenService {
           },
         });
 
-        const newAmountOwned = sharesTokenUser
+        let newAmountOwned = sharesTokenUser
           ? Number(sharesTokenUser.amount_owned) + Number(data.amount)
           : Number(data.amount);
 
         if (newAmountOwned > newTotalTokenHolded) {
-          this.logger.error(
-            `Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded})`,
+          this.logger.warn(
+            `Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded}). Adjusting amount owned to total token held.`,
           );
-          throw new Error('Amount owned exceeds total token held');
+          newAmountOwned = newTotalTokenHolded;
         }
 
         await prisma.shares_token_user.upsert({
