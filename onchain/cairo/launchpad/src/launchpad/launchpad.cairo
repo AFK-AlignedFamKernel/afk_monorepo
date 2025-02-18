@@ -1023,10 +1023,12 @@ pub mod LaunchpadMarketplace {
 
             // Update the pool with the last data
             // Liquidity raised, available supply and total token holded
+            // AUDIT HIGH SECURITY FIXED to VERIFY
+            // Change accounting with the total liquidity
             updated_pool
                 .liquidity_raised =
-                    if updated_pool.liquidity_raised >= quote_amount {
-                        updated_pool.liquidity_raised - quote_amount
+                    if updated_pool.liquidity_raised >= quote_amount_total {
+                        updated_pool.liquidity_raised - quote_amount_total
                     } else {
                         0_u256
                     };

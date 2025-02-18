@@ -802,7 +802,7 @@ mod launchpad_tests {
     }
     #[test]
     #[fork("Mainnet")]
-    fn launchpad_end_to_end() {
+    fn test_launchpad_end_to_end() {
         println!("launchpad_end_to_end");
         let (sender_address, erc20, launchpad) = request_fixture();
         // start_cheat_caller_address_global(sender_address);
