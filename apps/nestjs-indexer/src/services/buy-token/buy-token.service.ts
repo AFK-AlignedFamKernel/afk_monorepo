@@ -7,7 +7,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-  
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly candlestickService: CandlestickService,

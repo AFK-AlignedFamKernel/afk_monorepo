@@ -172,7 +172,7 @@ export class SellTokenService {
         },
       });
 
-      this.eventEmitter.emit('candlestickService.generate', {
+      this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
         interval: 5,
       });
