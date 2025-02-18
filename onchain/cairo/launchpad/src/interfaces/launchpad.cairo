@@ -129,4 +129,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     );
 
     fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
+    fn set_admin(ref self: TContractState, admin: ContractAddress);
+    fn set_role_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
+    fn set_revoke_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
 }
