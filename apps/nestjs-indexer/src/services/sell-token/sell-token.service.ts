@@ -93,6 +93,11 @@ export class SellTokenService {
         price = priceAfterSell;
         console.log('price calculation', price);
 
+        const marketCap = (
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+          price
+        ).toString();
+
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
           data: {
@@ -100,6 +105,7 @@ export class SellTokenService {
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
             price: price?.toString(),
+            market_cap: marketCap,
           },
         });
       }

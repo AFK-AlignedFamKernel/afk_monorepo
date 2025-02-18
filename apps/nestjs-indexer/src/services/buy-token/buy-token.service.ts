@@ -37,11 +37,18 @@ export class BuyTokenService {
           return;
         }
 
-        const newSupply =
+        let newSupply =
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
           Number(data.quoteAmount);
+
+        if (newSupply < 0) {
+          this.logger.warn(
+            `Buy amount ${data.amount} would exceed remaining supply ${tokenLaunchRecord.current_supply}. Setting supply to 0.`,
+          );
+          newSupply = 0;
+        }
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
@@ -77,6 +84,10 @@ export class BuyTokenService {
         //   priceBuy = 0;
         // }
         price = priceBuy;
+        const marketCap = (
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+          price
+        ).toString();
 
         console.log('price calculation', price);
         await this.prismaService.token_launch.update({
@@ -89,6 +100,7 @@ export class BuyTokenService {
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
             price: price?.toString(),
+            market_cap: marketCap,
           },
           // update: {
           //   current_supply: newSupply.toString(),
