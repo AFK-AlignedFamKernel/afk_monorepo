@@ -24,6 +24,7 @@ export class MetadataLaunchService {
 
         await this.prismaService.token_metadata.create({
           data: {
+            memecoin_address: data.memecoinAddress,
             transaction_hash: data.transactionHash,
             network: data.network,
             block_hash: data.blockHash,
@@ -35,7 +36,7 @@ export class MetadataLaunchService {
           },
         });
 
-        this.prismaService.token_deploy.updateMany({
+       await this.prismaService.token_deploy.updateMany({
           where: { memecoin_address: data.memecoinAddress },
           data: {
             url: data?.url,
@@ -51,7 +52,7 @@ export class MetadataLaunchService {
             nostr_id: data.nostr_event_id,
           },
         });
-        this.prismaService.token_deploy.updateMany({
+        await this.prismaService.token_deploy.updateMany({
           where: { memecoin_address: data.memecoinAddress },
           data: {
             url: data?.url,
