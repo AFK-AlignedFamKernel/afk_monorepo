@@ -44,6 +44,9 @@ mod launchpad_tests {
     use starknet::syscalls::call_contract_syscall;
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
 
+    use afk_launchpad::types::launchpad_types::{
+        MINTER_ROLE, ADMIN_ROLE
+    };
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
     //     100_000_000
@@ -2052,7 +2055,51 @@ mod launchpad_tests {
 
     #[test]
     #[should_panic()]
-    // #[should_panic(expected: (errors::PROTOCOL_FEE_TOO_LOW,))]
+    fn test_role_set_role_address_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_role_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
+    fn test_role_revoke_role_address_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_revoke_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
+    fn test_role_set_admin_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_admin(ALICE());
+    }
+
+    #[test]
+    fn test_role_set_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_admin(ALICE());
+    }
+
+    #[test]
+    fn test_role_set_role_address() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_role_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    fn test_role_revoke_role_address() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_revoke_address(ALICE(), MINTER_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
     fn test_set_protocol_fee_percent_too_low() {
         let (_, _, launchpad) = request_fixture();
 
