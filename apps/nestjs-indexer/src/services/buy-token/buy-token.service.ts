@@ -1,11 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BuyToken } from './interfaces';
+import { CandlestickService } from '../candlestick/candlesticks.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BuyTokenService {
   private readonly logger = new Logger(BuyTokenService.name);
-  constructor(private readonly prismaService: PrismaService) {}
+
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly candlestickService: CandlestickService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {
+    this.eventEmitter.on('candlestick.generate', async (data) => {
+      await this.candlestickService.generateCandles(
+        data.memecoinAddress,
+        data.interval,
+      );
+    });
+  }
 
   async create(data: BuyToken) {
     try {
@@ -23,11 +37,18 @@ export class BuyTokenService {
           return;
         }
 
-        const newSupply =
+        let newSupply =
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
           Number(data.quoteAmount);
+
+        if (newSupply < 0) {
+          this.logger.warn(
+            `Buy amount ${data.amount} would exceed remaining supply ${tokenLaunchRecord.current_supply}. Setting supply to 0.`,
+          );
+          newSupply = 0;
+        }
 
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
@@ -63,6 +84,10 @@ export class BuyTokenService {
         //   priceBuy = 0;
         // }
         price = priceBuy;
+        const marketCap = (
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+          price
+        ).toString();
 
         console.log('price calculation', price);
         await this.prismaService.token_launch.update({
@@ -75,6 +100,7 @@ export class BuyTokenService {
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
             price: price?.toString(),
+            market_cap: marketCap,
           },
           // update: {
           //   current_supply: newSupply.toString(),
@@ -137,6 +163,11 @@ export class BuyTokenService {
             transaction_type: data.transactionType,
           },
         });
+      });
+
+      this.eventEmitter.emit('candlestick.generate', {
+        memecoinAddress: data.memecoinAddress,
+        interval: 5,
       });
     } catch (error) {
       this.logger.error(
