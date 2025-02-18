@@ -1108,10 +1108,10 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
         let amount_first_buy = 1_u256;
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
     }
 
 
@@ -1145,7 +1145,7 @@ mod launchpad_tests {
         stop_cheat_caller_address(memecoin.contract_address);
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_new.contract_address, bonding_type: BondingType::Linear);
+        launchpad.launch_token(token_new.contract_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
     }
 
 
