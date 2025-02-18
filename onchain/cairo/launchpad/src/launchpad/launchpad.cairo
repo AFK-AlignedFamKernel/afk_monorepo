@@ -382,7 +382,6 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, is_fees_protocol_buy_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
@@ -502,6 +501,22 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.amount_to_paid_create_token.write(amount_to_paid_create_token);
+        }
+
+        // Role admin
+        fn set_admin(ref self: ContractState, admin: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        }
+
+        fn set_role_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._grant_role(role, contract_address);
+        }
+
+        fn set_revoke_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._revoke_role(role, contract_address);
         }
 
         // User call
@@ -880,12 +895,10 @@ pub mod LaunchpadMarketplace {
 
             // Update the pool with the last data
             // Liquidity raised, available supply and total token holded
-            // AUDIT HIGH SECURITY FIXED to VERIFY
-            // Change accounting with the total liquidity
             updated_pool
                 .liquidity_raised =
-                    if updated_pool.liquidity_raised >= quote_amount_total {
-                        updated_pool.liquidity_raised - quote_amount_total
+                    if updated_pool.liquidity_raised >= quote_amount {
+                        updated_pool.liquidity_raised - quote_amount
                     } else {
                         0_u256
                     };
