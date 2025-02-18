@@ -5,7 +5,7 @@ const connectionString =
   "postgres://postgres:postgres@localhost:5432/postgres";
 
 export default {
-  schema: "./lib/schema.ts",
+  schema: "./src/lib/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {

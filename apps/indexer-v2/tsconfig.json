@@ -1,19 +1,23 @@
 {
     "compilerOptions": {
       "target": "ESNext",
-      "module": "ESNext",
-      "moduleResolution": "Bundler",
+      "allowJs": true,
       "declaration": true,
       "sourceMap": true,
-      "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,
       "strict": true,
       "skipLibCheck": true,
-      "outDir": "dist",
-      "declarationDir": "dist",
-      "noEmit": false,
-      "rootDir": "src",
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"]
+      },
+      "lib": ["ES2023"],
+      "noEmit": true,
       "types": ["node"],
+      "moduleResolution": "Bundler",
+      "module": "NodeNext",
+      "esModuleInterop": true
     },
-    "include": ["src/"]
+    "include": ["src/**/*", ".apibara/**/*", "**/.js", "**/.ts"],
+    "exclude": ["node_modules"]
   }

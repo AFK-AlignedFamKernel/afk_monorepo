@@ -1,22 +1,16 @@
+const {defineIndexer} = require("@apibara/indexer");
+const {StarknetStream} = require("@apibara/starknet")
+const {useLogger} = require("@apibara/indexer/plugins")
+const {hash} = require("starknet");
+import { db } from "./lib/db.js";
+import { starknetUsdcTransfers } from "./lib/schema.js";
 
-import { defineIndexer } from "@apibara/indexer";
-import { StarknetStream } from "@apibara/starknet";
-import { useLogger } from "@apibara/indexer/plugins";
-import { hash } from "starknet";
-// const {defineIndexer} = require("@apibara/indexer");
-// const {StarknetStream} = require("@apibara/starknet")
-// const {useLogger} = require("@apibara/indexer/plugins")
-// // import { hash } from "starknet";
-// const {hash} = require("starknet");
-// import { db } from "./lib/db.js";
-// import { starknetUsdcTransfers } from "./lib/schema.js";
-
-const PAIR_CREATED = hash.getSelectorFromName("PairCreated") as `0x${string}`;
-const SWAP = hash.getSelectorFromName("Swap") as `0x${string}`;
-const shortAddress = (addr?: string) =>
+const DAO_CREATED = hash.getSelectorFromName("DaoAACreated")
+const SWAP = hash.getSelectorFromName("Swap")
+const shortAddress = (addr) =>
   addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
 
-export default function (runtimeConfig: any) {
+export default function (runtimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl: "https://starknet.preview.apibara.org",
     finality: "accepted",
@@ -25,8 +19,8 @@ export default function (runtimeConfig: any) {
       events: [
         {
           address:
-            "0x00dad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd",
-          keys: [PAIR_CREATED],
+            "0x00dad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd", // DAO Factory to deploy
+          keys: [DAO_CREATED],
         },
       ],
     },
@@ -74,10 +68,10 @@ export default function (runtimeConfig: any) {
         const blockNumber = block.header.blockNumber;
         const blockTimestamp = block.header.timestamp;
 
-        // await db.insert(starknetUsdcTransfers).values({ 
-        //   hash: txHash,
-        //   number: Number(blockNumber)
-        // });
+        await db.insert(starknetUsdcTransfers).values({ 
+          hash: txHash,
+          number: Number(blockNumber)
+        });
       }
     },
   });
