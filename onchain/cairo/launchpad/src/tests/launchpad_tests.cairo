@@ -44,6 +44,9 @@ mod launchpad_tests {
     use starknet::syscalls::call_contract_syscall;
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
 
+    use afk_launchpad::types::launchpad_types::{
+        MINTER_ROLE, ADMIN_ROLE
+    };
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
     //     100_000_000
@@ -181,6 +184,15 @@ mod launchpad_tests {
     fn SYMBOL() -> ByteArray {
         let symbol: ByteArray = "symbol";
         symbol
+    }
+
+
+    fn SYMBOL_FELT() -> felt252 {
+        'symbol'.try_into().unwrap()
+    }
+
+    fn NAME_FELT() -> felt252 {
+        'name'.try_into().unwrap()
     }
 
     // Math
@@ -782,7 +794,7 @@ mod launchpad_tests {
     }
     #[test]
     #[fork("Mainnet")]
-    fn launchpad_end_to_end() {
+    fn test_launchpad_end_to_end() {
         println!("launchpad_end_to_end");
         let (sender_address, erc20, launchpad) = request_fixture();
         // start_cheat_caller_address_global(sender_address);
@@ -1086,6 +1098,40 @@ mod launchpad_tests {
         let amount_first_buy = 1_u256;
 
         launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+    }
+
+
+    #[test]
+    #[should_panic]
+    fn launch_token_not_from_launchpad_panic() {
+        println!("launch_token_not_from_launchpad_panic");
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        let erc20_class = declare_erc20();
+        let token_new = deploy_erc20(
+            *erc20_class,
+            name: NAME_FELT(),
+            symbol: SYMBOL_FELT(),
+            initial_supply: DEFAULT_INITIAL_SUPPLY(),
+            recipient: sender_address,
+        );
+
+        // start_cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let memecoin = IERC20Dispatcher { contract_address: token_new.contract_address };
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
+
+        let total_supply = memecoin.total_supply();
+        memecoin.approve(launchpad.contract_address, total_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.launch_token(token_new.contract_address, bonding_type: BondingType::Linear);
     }
 
 
@@ -2009,7 +2055,51 @@ mod launchpad_tests {
 
     #[test]
     #[should_panic()]
-    // #[should_panic(expected: (errors::PROTOCOL_FEE_TOO_LOW,))]
+    fn test_role_set_role_address_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_role_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
+    fn test_role_revoke_role_address_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_revoke_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
+    fn test_role_set_admin_panic() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, ALICE());
+        launchpad.set_admin(ALICE());
+    }
+
+    #[test]
+    fn test_role_set_admin() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_admin(ALICE());
+    }
+
+    #[test]
+    fn test_role_set_role_address() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_role_address(ALICE(), ADMIN_ROLE);
+    }
+
+    #[test]
+    fn test_role_revoke_role_address() {
+        let (_, _, launchpad) = request_fixture();
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        launchpad.set_revoke_address(ALICE(), MINTER_ROLE);
+    }
+
+    #[test]
+    #[should_panic()]
     fn test_set_protocol_fee_percent_too_low() {
         let (_, _, launchpad) = request_fixture();
 

@@ -113,4 +113,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_amount_to_paid_launch(ref self: TContractState, amount_to_paid_launch: u256);
     fn set_amount_to_paid_create_token(ref self: TContractState, amount_to_paid_create_token: u256);
     fn set_token_address_for_action(ref self: TContractState, token_address: ContractAddress);
+    fn set_admin(ref self: TContractState, admin: ContractAddress);
+    fn set_role_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
+    fn set_revoke_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
 }

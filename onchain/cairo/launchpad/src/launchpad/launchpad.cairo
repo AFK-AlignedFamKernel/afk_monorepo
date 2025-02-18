@@ -382,7 +382,6 @@ pub mod LaunchpadMarketplace {
             ref self: ContractState, is_fees_protocol_buy_enabled: bool
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-
             self.is_fees_protocol_buy_enabled.write(is_fees_protocol_buy_enabled);
         }
 
@@ -502,6 +501,22 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.amount_to_paid_create_token.write(amount_to_paid_create_token);
+        }
+
+        // Role admin
+        fn set_admin(ref self: ContractState, admin: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        }
+
+        fn set_role_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._grant_role(role, contract_address);
+        }
+
+        fn set_revoke_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.accesscontrol._revoke_role(role, contract_address);
         }
 
         // User call
@@ -1145,6 +1160,9 @@ pub mod LaunchpadMarketplace {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
 
+            // check if token is created by the launchpad to prevent malicious erc20
+            assert(!token.creator.is_zero(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
+            // assert(token.creator == get_contract_address(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
 
             let is_coin_launched = self.is_coin_launched.read(coin_address);
             assert(!is_coin_launched, errors::POOL_COIN_ALREADY_LAUNCHED);
