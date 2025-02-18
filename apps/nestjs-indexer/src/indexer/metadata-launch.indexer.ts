@@ -32,10 +32,11 @@ export class MetadataLaunchIndexer {
   }
 
   private isValidChar = (char: string): boolean => {
-    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()]+$/.test(char);
+    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()/:]+$/.test(char);
   };
 
   private cleanString = (str: string): string => {
+    console.log("str", str);
     return str
       .split('')
       .filter((char) => this.isValidChar(char))
@@ -45,6 +46,7 @@ export class MetadataLaunchIndexer {
 
 
   private isNumeric = (str: string): boolean => {
+    console.log("str", str);
     return /^\d+$/.test(str);
   };
 
@@ -117,11 +119,12 @@ export class MetadataLaunchIndexer {
         break;
       }
 
-      url= decodedPart;
+      url+= decodedPart;
       i++;
     }
 
     url = this.cleanString(url);
+    console.log("url", url);
 
     // const nostrEventId = uint256.uint256ToBN({
     //   low: FieldElement.toBigInt(nostrEventIdLow),

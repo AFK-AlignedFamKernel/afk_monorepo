@@ -13,6 +13,9 @@ export class MetadataLaunchService {
         { where: { memecoin_address: data.memecoinAddress } },
       );
 
+      console.log("tokenMetadataRecord", tokenMetadataRecord);
+
+      console.log("data", data);
 
       if (!tokenMetadataRecord) {
         this.logger.warn(

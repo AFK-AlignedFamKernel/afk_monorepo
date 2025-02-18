@@ -105,7 +105,8 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
   }
 
 
-  console.log("token", token)
+  // console.log("token", token)
+  console.log("url metadata", token?.url)
 
   return (
     <View style={styles.container}>
