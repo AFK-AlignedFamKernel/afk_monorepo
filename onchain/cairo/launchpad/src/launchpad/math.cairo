@@ -81,7 +81,7 @@ pub fn dynamic_scale_u128_to_u256(value: u128, e: u8) -> u256 {
     } else if e == 96 {
         value.into() * pow_256(2, 96) // Multiply by 2^96
     } else if e == 64 {
-        value.into() * pow_256(2, 96) // Multiply by 2^64
+        value.into() * pow_256(2, 64) // Multiply by 2^64
     } else {
         value.into()
     };
