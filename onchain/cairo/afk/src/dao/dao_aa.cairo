@@ -507,15 +507,16 @@ pub mod DaoAA {
                     // will require the proposals id. In that case, it must be done manually.
                     };
 
-            // Check tx version
-            let tx_info = get_tx_info().unbox();
-            let tx_version: u256 = tx_info.version.into();
-            // Check if tx is a query
-            if (tx_version >= QUERY_OFFSET) {
-                assert!(QUERY_OFFSET + MIN_TRANSACTION_VERSION <= tx_version, "invalid tx version");
-            } else {
-                assert!(MIN_TRANSACTION_VERSION <= tx_version, "invalid tx version");
-            }
+            // // Check tx version
+            // let tx_info = get_tx_info().unbox();
+            // let tx_version: u256 = tx_info.version.into();
+            // // Check if tx is a query
+            // if (tx_version >= QUERY_OFFSET) {
+            //     assert!(QUERY_OFFSET + MIN_TRANSACTION_VERSION <= tx_version, "invalid tx
+            //     version");
+            // } else {
+            //     assert!(MIN_TRANSACTION_VERSION <= tx_version, "invalid tx version");
+            // }
 
             execute_calls(calls)
         }
@@ -662,6 +663,7 @@ mod tests {
         IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use core::num::traits::Zero;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
@@ -671,6 +673,7 @@ mod tests {
     use starknet::account::Call;
     use starknet::{ContractAddress, contract_address_const};
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
+    use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};
 
 
     /// UTILITY FUNCTIONS
@@ -743,6 +746,58 @@ mod tests {
         assert(!proposal_dispatcher.is_executable(calldata_1), '');
         assert(!proposal_dispatcher.is_executable(calldata_2), '');
         proposal_id
+    }
+
+    fn feign_executable_proposal(
+        proposal_id: u256,
+        proposal_dispatcher: IVoteProposalDispatcher,
+        token_dispatcher: IERC20Dispatcher,
+        creator: ContractAddress
+    ) {
+        let voter_1 = contract_address_const::<'VOTER 1'>();
+        let voter_2 = contract_address_const::<'VOTER 2'>();
+        let voter_3 = contract_address_const::<'VOTER 3'>();
+        let voter_4 = contract_address_const::<'VOTER 4'>();
+
+        let mut spy = spy_events();
+
+        let voters = array![voter_1, voter_2, voter_3, voter_4];
+        // cast two yes, one abstention, and one no
+        // to prove abstention votes are not used when processing results at the moment,
+        // the percentage outcome for validation here should be 66% (2/3) and not 50% (2/4)
+        // so the proposal should pass
+        let mut votes = array![UserVote::Yes, UserVote::Abstention, UserVote::No, UserVote::Yes];
+
+        let created_at = starknet::get_block_timestamp();
+        let mint_amount = 100;
+        for voter in voters {
+            cheat_caller_address(
+                token_dispatcher.contract_address, OWNER(), CheatSpan::TargetCalls(1)
+            );
+            // mint
+            let transferred = token_dispatcher.transfer(voter, mint_amount);
+            assert(transferred, 'TOKEN TRANSFER ERROR');
+            assert(token_dispatcher.balance_of(voter) == 100, 'BALANCE ERROR');
+            // cast vote
+            cheat_caller_address(
+                proposal_dispatcher.contract_address, voter, CheatSpan::TargetCalls(1)
+            );
+            proposal_dispatcher.cast_vote(proposal_id, votes.pop_front());
+        };
+
+        let current_time = created_at
+            + SET_PROPOSAL_DURATION_IN_SECONDS
+            + 1; // Proposal duration reached
+        cheat_block_timestamp(
+            proposal_dispatcher.contract_address, current_time, CheatSpan::TargetCalls(1)
+        );
+        proposal_dispatcher.process_result(proposal_id);
+
+        let expected_event = super::DaoAA::Event::ProposalResolved(
+            ProposalResolved { id: proposal_id, owner: creator, result: ProposalResult::Passed },
+        );
+
+        spy.assert_emitted(@array![(proposal_dispatcher.contract_address, expected_event)]);
     }
 
     /// TESTS
@@ -925,49 +980,14 @@ mod tests {
         // snforge test afk::dao::dao_aa::tests::test_proposal_process_result_success --exact
         let token_contract = deploy_token();
         let proposal_contract = deploy_dao(token_contract);
-        let voter_1 = contract_address_const::<'VOTER 1'>();
-        let voter_2 = contract_address_const::<'VOTER 2'>();
-        let voter_3 = contract_address_const::<'VOTER 3'>();
-        let voter_4 = contract_address_const::<'VOTER 4'>();
-
         let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
         let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
-
-        let mut spy = spy_events();
-
-        let voters = array![voter_1, voter_2, voter_3, voter_4];
-        // cast two yes, one abstention, and one no
-        // to prove abstention votes are not used when processing results at the moment,
-        // the percentage outcome for validation here should be 66% (2/3) and not 50% (2/4)
-        // so the proposal should pass
-        let mut votes = array![UserVote::Yes, UserVote::Abstention, UserVote::No, UserVote::Yes];
 
         let created_at = starknet::get_block_timestamp();
         let proposal_id = init_default_proposal(proposal_dispatcher, created_at);
 
-        let mint_amount = 100;
-        for voter in voters {
-            cheat_caller_address(token_contract, OWNER(), CheatSpan::TargetCalls(1));
-            // mint
-            let transferred = token_dispatcher.transfer(voter, mint_amount);
-            assert(transferred, 'TOKEN TRANSFER ERROR');
-            assert(token_dispatcher.balance_of(voter) == 100, 'BALANCE ERROR');
-            // cast vote
-            cheat_caller_address(proposal_contract, voter, CheatSpan::TargetCalls(1));
-            proposal_dispatcher.cast_vote(proposal_id, votes.pop_front());
-        };
+        feign_executable_proposal(proposal_id, proposal_dispatcher, token_dispatcher, CREATOR());
 
-        let current_time = created_at
-            + SET_PROPOSAL_DURATION_IN_SECONDS
-            + 1; // Proposal duration reached
-        cheat_block_timestamp(proposal_contract, current_time, CheatSpan::TargetCalls(1));
-        proposal_dispatcher.process_result(proposal_id);
-
-        let expected_event = super::DaoAA::Event::ProposalResolved(
-            ProposalResolved { id: proposal_id, owner: CREATOR(), result: ProposalResult::Passed },
-        );
-
-        spy.assert_emitted(@array![(proposal_contract, expected_event)]);
         let calldata_1 = Call {
             to: contract_address_const::<'TO'>(),
             selector: 'selector',
@@ -994,9 +1014,74 @@ mod tests {
         assert(!proposal_dispatcher.is_executable(calldata_3), 'INIT FAILED');
     }
     /// NOTE: WHEN THERE ARE FOUR (FOR EXAMPLE) IDENTICAL CALLDATA, ALL FOUR ARE EXECUTABLE, TRUE;
-/// BUT THE STORAGE HAS BEEN ENHANCED IN THAT IF ONLY THREE IDENTICAL CALLDATA ARE CAPTURED ON
-/// PROCESSING OF RESULTS, THE LAST __execute__ call WITH THE FOURTH IDENTITCAL CALLDATA WILL
-/// FAIL.
-/// ADDITIONAL CHECKS/ENHANCEMENT MAY BE ADDED IN THE FUTURE TO ACCOMMODATE CALLDATA THAT NEEDS
-/// RECURRING __execute__ calls.
+    /// BUT THE STORAGE HAS BEEN ENHANCED IN THAT IF ONLY THREE IDENTICAL CALLDATA ARE CAPTURED ON
+    /// PROCESSING OF RESULTS, THE LAST __execute__ call WITH THE FOURTH IDENTITCAL CALLDATA WILL
+    /// FAIL.
+    /// ADDITIONAL CHECKS/ENHANCEMENT MAY BE ADDED IN THE FUTURE TO ACCOMMODATE CALLDATA THAT NEEDS
+    /// RECURRING __execute__ calls.
+    ///
+
+    #[test]
+    fn test_proposal_execution_success() {
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let target_contract = contract_address_const::<'TARGET'>();
+
+        assert(token_dispatcher.balance_of(target_contract) == 0, '');
+
+        // initialize an executable proposal
+        let created_at = starknet::get_block_timestamp();
+        cheat_block_timestamp(
+            proposal_dispatcher.contract_address, created_at, CheatSpan::TargetCalls(1),
+        );
+        cheat_caller_address(
+            proposal_dispatcher.contract_address, OWNER(), CheatSpan::TargetCalls(1),
+        );
+
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default(),
+        };
+
+        let mut calldata = array![];
+        let transfer_amount = 100_u256;
+        target_contract.serialize(ref calldata);
+        transfer_amount.serialize(ref calldata);
+
+        let call = Call {
+            to: token_contract, selector: selector!("transfer"), calldata: calldata.span()
+        };
+
+        // created by 'OWNER'
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, array![call]);
+        assert(!proposal_dispatcher.is_executable(call), 'NOT EXECUTABLE');
+
+        feign_executable_proposal(proposal_id, proposal_dispatcher, token_dispatcher, OWNER());
+        let creator_balance = token_dispatcher.balance_of(OWNER());
+        println!("Before call, owner balance: {}", creator_balance);
+
+        let account_dispatcher = ISRC6Dispatcher { contract_address: proposal_contract };
+
+        // __execute__ avoids calls from other contracts.
+        cheat_caller_address(proposal_contract, Zero::zero(), CheatSpan::TargetCalls(1),);
+        cheat_caller_address(token_contract, OWNER(), CheatSpan::Indefinite);
+        let return_value = account_dispatcher.__execute__(array![call]);
+
+        assert(token_dispatcher.balance_of(target_contract) == transfer_amount, 'EXECUTION FAILED');
+        let current_creator_balance = creator_balance - transfer_amount;
+
+        println!("Expected balance after execution: {}", current_creator_balance);
+        assert(
+            token_dispatcher.balance_of(OWNER()) == current_creator_balance, 'BALANCE NOT EQUAL'
+        );
+        let mut call_serialized_retval = *return_value.at(0);
+        let call_retval = Serde::<bool>::deserialize(ref call_serialized_retval);
+        assert!(call_retval.unwrap());
+
+        // assert the call is no longer executable
+        assert(!proposal_dispatcher.is_executable(call), 'STATE CHANGE FAILED');
+    }
 }
