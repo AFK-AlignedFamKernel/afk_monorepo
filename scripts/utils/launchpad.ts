@@ -134,7 +134,7 @@ export const createLaunchpad = async (
 
       if(declareResponse?.transaction_hash) {
         console.log("wait declare response")
-        // await provider.waitForTransaction(declareResponse?.transaction_hash);
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
         console.log("DeclareResponse.class_hash", declareResponse.class_hash);
       }
 

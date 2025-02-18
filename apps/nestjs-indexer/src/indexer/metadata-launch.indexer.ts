@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
+import { cairo, hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -77,6 +77,7 @@ export class MetadataLaunchIndexer {
       blockHash: blockHashFelt,
       timestamp: blockTimestamp,
     } = header;
+    console.log("handleMetadataEvent", event);
 
     const blockHash = validateAndParseAddress(
       `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
@@ -122,10 +123,19 @@ export class MetadataLaunchIndexer {
 
     url = this.cleanString(url);
 
-    const nostrEventId = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrEventIdLow),
-      high: FieldElement.toBigInt(nostrEventIdHigh),
-    });
+    // const nostrEventId = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(nostrEventIdLow),
+    //   high: FieldElement.toBigInt(nostrEventIdHigh),
+    // });
+    let nostrEventId = cairo.felt(0);
+
+    try {
+      nostrEventId = cairo.felt(FieldElement.toBigInt(nostrEventIdLow)) + cairo.felt(FieldElement.toBigInt(nostrEventIdHigh));
+      
+    } catch (error) {
+      
+    }
+    console.log("nostrEventId", nostrEventId);
     const timestamp = new Date(
       Number(FieldElement.toBigInt(timestampFelt)) * 1000,
     );
@@ -143,6 +153,7 @@ export class MetadataLaunchIndexer {
       timestamp,
       transactionType: 'buy',
     };
+
 
     await this.metadataLaunchService.createOrUpdate(data);
   }

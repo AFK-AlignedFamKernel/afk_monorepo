@@ -23,7 +23,7 @@ export interface TokenLaunchInterface {
   created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
-  is_liquidity_launch: boolean;
+  is_liquidity_launch?: boolean;
   token_quote: TokenQuoteBuyKeys;
   threshold_liquidity?: Uint256;
   slope?: Uint256;
@@ -66,6 +66,9 @@ export interface TokenDeployInterface {
   block_timestamp?: string;
   is_launched?: boolean;
   initial_pool_supply_dex?: string;
+  url?: string;
+  nostr_id?: string;
+  description?: string;
 }
 
 export interface TokenDeployIndexerInterface {
@@ -78,7 +81,7 @@ export interface TokenDeployIndexerInterface {
   created_at: string;
   liquidity_raised: Uint256;
   token_holded: Uint256;
-  is_liquidity_launch: boolean;
+  is_liquidity_launch?: boolean;
   is_launched?: boolean;
   initial_pool_supply_dex?: string;
   quote_token?: string;

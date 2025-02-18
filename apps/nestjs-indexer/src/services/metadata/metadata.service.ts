@@ -31,6 +31,14 @@ export class MetadataLaunchService {
             nostr_id: data.nostr_event_id,
           },
         });
+
+        this.prismaService.token_deploy.updateMany({
+          where: { memecoin_address: data.memecoinAddress },
+          data: {
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
+          },
+        });
       } else {
 
         await this.prismaService.token_metadata.update({
@@ -38,6 +46,13 @@ export class MetadataLaunchService {
           data: {
             url: data.url,
             nostr_id: data.nostr_event_id,
+          },
+        });
+        this.prismaService.token_deploy.updateMany({
+          where: { memecoin_address: data.memecoinAddress },
+          data: {
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
           },
         });
       }

@@ -22,7 +22,22 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           created_at: true,
           is_launched: true,
           block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
+
         },
+        // orderBy: {
+        //   block_timestamp: 'desc'
+        // },
+        // include: {
+        //   token_metadata: {
+        //     select: {
+        //       url: true,
+        //       nostr_id: true
+        //     }
+        //   }
+        // }
       });
 
       reply.status(HTTPStatus.OK).send({
@@ -58,7 +73,10 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           network: true,
           created_at: true,
           is_launched: true,
-          block_timestamp: true
+          block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
         },
       });
 
@@ -95,7 +113,10 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           network: true,
           created_at: true,
           is_launched: true,
-          block_timestamp: true
+          block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
         },
       });
 

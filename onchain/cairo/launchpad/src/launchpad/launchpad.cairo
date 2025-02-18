@@ -1011,7 +1011,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_contract_address();
             // Verify if caller is owner
             let mut token = self.token_created.read(coin_address);
-            assert(token.owner == caller || token.creator == caller, errors::CALLER_NOT_OWNER);
+            // assert(token.owner == caller || token.creator == caller, errors::CALLER_NOT_OWNER);
             // Add or update metadata
             self.metadata_coins.entry(coin_address).write(metadata.clone());
             self

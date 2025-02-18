@@ -165,7 +165,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
     await addMetadata(account, {
       coin_address: token?.memecoin_address ?? launch?.token_address ?? '',
-      url,
+      url: imageUrl,
       nostr_event_id: nostr_event_id?.toString()
     });
   }
