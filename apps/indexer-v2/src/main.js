@@ -19,7 +19,7 @@ export default function (runtimeConfig) {
       events: [
         {
           address:
-            "0x00dad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd", // DAO Factory to deploy
+            "0x67abfcaab98916c954c6a82260f61f566488dd72d94a6b1fb6be0cd2462703e", // DAO Factory to deploy
           keys: [DAO_CREATED],
         },
       ],
