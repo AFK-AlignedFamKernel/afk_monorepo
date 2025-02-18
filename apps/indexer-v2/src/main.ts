@@ -11,7 +11,7 @@ import { hash } from "starknet";
 // import { db } from "./lib/db.js";
 // import { starknetUsdcTransfers } from "./lib/schema.js";
 
-const PAIR_CREATED = hash.getSelectorFromName("PairCreated") as `0x${string}`;
+const DAO_AA_CREATED = hash.getSelectorFromName("DaoAACreated") as `0x${string}`;
 const SWAP = hash.getSelectorFromName("Swap") as `0x${string}`;
 const shortAddress = (addr?: string) =>
   addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
@@ -26,7 +26,7 @@ export default function (runtimeConfig: any) {
         {
           address:
             "0x00dad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd",
-          keys: [PAIR_CREATED],
+          keys: [DAO_AA_CREATED],
         },
       ],
     },
