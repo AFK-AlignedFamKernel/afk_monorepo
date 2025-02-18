@@ -228,6 +228,11 @@ export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
 
 
 
+export const DAO_FACTORY_ADDRESS = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x67abfcaab98916c954c6a82260f61f566488dd72d94a6b1fb6be0cd2462703e",
+  [constants.StarknetChainId.SN_MAIN]: "",
+};
 
 
 
