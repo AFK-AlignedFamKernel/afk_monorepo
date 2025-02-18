@@ -22,3 +22,4 @@ pub const PROTOCOL_FEE_OUT_OF_BOUNDS: felt252 = 'Protocol fee out';
 pub const CREATOR_FEE_NOT_ENABLED: felt252 = 'Creator fee not enabled';
 pub const POOL_LAUNCHED: felt252 = 'Pool launched';
 pub const CREATOR_CANT_BE_DISTRIBUTED: felt252 = 'Fee cant be distributed';
+pub const TOKEN_NOT_CREATED_BY_LAUNCHPAD: felt252 = 'Token not created by launchpad';

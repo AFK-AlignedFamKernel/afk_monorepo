@@ -149,7 +149,7 @@ pub struct Calldata {
     pub to: ContractAddress,
     pub selector: felt252,
     pub calldata: Vec<felt252>,
-    pub is_executed: bool
+    pub is_executed: bool,
 }
 
 // #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
@@ -174,13 +174,15 @@ pub struct VoteState {
 #[starknet::interface]
 pub trait IVoteProposal<TContractState> {
     fn create_proposal(
-        ref self: TContractState, proposal_params: ProposalParams, calldata: Call
+        ref self: TContractState, proposal_params: ProposalParams, calldata: Array<Call>
     ) -> u256;
     fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
     fn get_user_vote(self: @TContractState, proposal_id: u256, user: ContractAddress) -> UserVote;
     fn cancel_proposal(ref self: TContractState, proposal_id: u256);
     fn process_result(ref self: TContractState, proposal_id: u256);
+    // debugging
+    fn is_executable(ref self: TContractState, calldata: Call) -> bool;
 }
 // Possible extracted Proposal Functions
 // Mint the token with a specific ratio

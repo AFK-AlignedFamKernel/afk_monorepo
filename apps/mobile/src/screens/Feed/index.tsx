@@ -71,7 +71,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
     authors: [...contacts?.data?.map((c) => c) || [], ...followersPubkey]
   });
   const [forYouNotes, setForYouNotes] = useState<NDKEvent[]>([]);
-  console.log("activeSortBy", activeSortBy);
+  // console.log("activeSortBy", activeSortBy);
   // console.log("profile", profile);
   // console.log("publicKey", publicKey);
   // const notes = useNotesFilter({

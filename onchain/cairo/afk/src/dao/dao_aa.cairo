@@ -20,10 +20,12 @@ pub trait IDaoAA<TContractState> {
 }
 
 #[starknet::interface]
-pub trait ISRC6<TState> {
-    fn __execute__(self: @TState, calls: Array<Call>) -> Array<Span<felt252>>;
-    fn __validate__(self: @TState, calls: Array<Call>) -> felt252;
-    fn is_valid_signature(self: @TState, hash: felt252, signature: Array<felt252>) -> felt252;
+pub trait ISRC6<TContractState> {
+    fn __execute__(ref self: TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
+    fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
+    fn is_valid_signature(
+        self: @TContractState, hash: felt252, signature: Array<felt252>
+    ) -> felt252;
 }
 
 
@@ -43,11 +45,14 @@ pub mod DaoAA {
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::ecdsa::check_ecdsa_signature;
+    use core::hash::{HashStateExTrait, HashStateTrait};
     use core::num::traits::Zero;
+    use core::poseidon::{PoseidonTrait, poseidon_hash_span};
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
+    use openzeppelin::utils::cryptography::snip12::StructHash;
     use starknet::account::Call;
 
     use starknet::storage::{
@@ -101,19 +106,25 @@ pub mod DaoAA {
         minimum_threshold_percentage: u64,
         transfers: Map<u256, bool>,
         proposals: Map<u256, Option<Proposal>>, // Map ProposalID => Proposal
-        proposals_calldata: Map<u256, Calldata>, // Map ProposalID => calldata
+        proposals_calldata: Map<u256, Vec<Calldata>>, // Map ProposalID => calldata
         proposal_by_user: Map<ContractAddress, u256>,
         total_proposal: u256,
+        executable_tx: Map<
+            (felt252, u64), bool
+        >, // Map (Hashed Call, executable_count) => executable, for extra security.
+        proposal_tx: Map<
+            u256, Vec<felt252>
+        >, // Map Proposal ID => Hashed Call (for one call, multicall excluded)
         vote_state_by_proposal: Map<u256, VoteState>, // Map ProposalID => VoteState
         // vote_by_proposal: Map<u256, Proposal>,
         tx_data_per_proposal: Map<u256, Span<felt252>>, // 
         starknet_address: felt252,
-        proposals_call_external:Map<u256, Vec<Call>>, // Map ProposalID => calldata
-
-        tx_to_execute: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
-        tx_executed: Map<u256, Span<felt252>>, // Map ProposalID => TX to execute
-        tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
-        tx_call_executed: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
+        executables_count: u64,
+        executed_count: u64, // for __execute__ security.
+        max_executable_clone: Map<
+            felt252, u64
+        >, // variable for optimized iteration. stores the highest
+        current_max_tx_count: u64, // optimized for get iteration
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -158,6 +169,7 @@ pub mod DaoAA {
         owner: ContractAddress,
         token_contract_address: ContractAddress,
         public_key: u256,
+        starknet_address: felt252
     ) {
         // self.public_key.write(public_key);
         self.owner.write(owner);
@@ -166,6 +178,7 @@ pub mod DaoAA {
         self.is_only_dao_execution.write(true);
         self.minimum_threshold_percentage.write(60);
         // TODO: init self.starknet_address here
+        self.starknet_address.write(starknet_address);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -197,10 +210,13 @@ pub mod DaoAA {
         // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance
         // Add TX Calldata for this proposal
         fn create_proposal(
-            ref self: ContractState, proposal_params: ProposalParams, calldata: Call,
+            ref self: ContractState, proposal_params: ProposalParams, calldata: Array<Call>,
         ) -> u256 {
             let owner = get_caller_address();
             let minimal_balance = self.minimal_balance_create_proposal.read();
+
+            // for now, proposals cannot be created without a calldata
+            assert(calldata.len() > 0, 'NO CALLDATA PRESENT');
 
             if minimal_balance > 0 {
                 let vote_token_dispatcher = IERC20Dispatcher {
@@ -229,17 +245,10 @@ pub mod DaoAA {
                 proposal_result_by: contract_address_const::<0x0>(),
             };
 
+            // check
             self.proposals.entry(id).write(Option::Some(proposal));
 
-            let proposal_calldata = self.proposals_calldata.entry(id);
-
-            proposal_calldata.to.write(calldata.to);
-            proposal_calldata.selector.write(calldata.selector);
-            proposal_calldata.is_executed.write(false);
-            for data in calldata.calldata {
-                proposal_calldata.calldata.append().write(*data);
-            };
-
+            self._resolve_proposal_calldata(id, calldata);
             self.total_proposal.write(id);
             self.emit(ProposalCreated { id, owner, created_at, end_at });
 
@@ -387,19 +396,34 @@ pub mod DaoAA {
             let valid_threshold_percentage = yes_votes * 100 / total_votes;
 
             if valid_threshold_percentage >= self.minimum_threshold_percentage.read() {
+                let mut executables_count = self.executables_count.read() + 1;
                 proposal.proposal_result = ProposalResult::Passed;
-                // let proposal_calldata = self.proposals_calldata.entry(proposal_id);
-                
-                // let tx_to_execute = self.tx_to_execute.read(proposal_id);
-                // for i in 0
-                //     ..proposal_calldata
-                //         .len() {
-                //             let data = *calldata.at(i);
-                //             tx_to_execute.append().write(data);
-                //         };
-                //         tx_call_to_execute: Map<u256, Span<Call>>, // Map ProposalID => TX to execute
-                        
 
+                let proposal_txs = self.proposal_tx.entry(proposal_id);
+
+                // extract list of txs for the given proposal
+                for i in 0
+                    ..proposal_txs
+                        .len() {
+                            let proposal_tx = proposal_txs.at(i).read();
+                            // further optimized.
+                            // situation where different proposals have the same calldata to
+                            // execute.
+                            let mut tx_count = self.max_executable_clone.entry(proposal_tx).read()
+                                + 1;
+
+                            self.executable_tx.entry((proposal_tx, tx_count)).write(true);
+                            let mut current_max_tx_count = self.current_max_tx_count.read();
+                            // update the current max if the new tx_count is > current_max_tx_count
+                            if tx_count > current_max_tx_count {
+                                self.current_max_tx_count.write(tx_count);
+                            }
+                            self.max_executable_clone.entry(proposal_tx).write(tx_count);
+                            executables_count += 1;
+                        };
+
+                // update the number of executables adequately
+                self.executables_count.write(executables_count);
             } else {
                 proposal.proposal_result = ProposalResult::Failed;
             }
@@ -412,6 +436,20 @@ pub mod DaoAA {
                 );
             self.proposals.entry(proposal_id).write(Option::Some(proposal));
         }
+
+        fn is_executable(ref self: ContractState, calldata: Call) -> bool {
+            let mut is_executable = false;
+            let calldata_hash = calldata.hash_struct();
+            let max_executable_clone = self.max_executable_clone.entry(calldata_hash).read() + 1;
+            for i in 0
+                ..max_executable_clone {
+                    if self.executable_tx.entry((calldata_hash, i)).read() {
+                        is_executable = true;
+                        break;
+                    }
+                };
+            is_executable
+        }
     }
 
     #[abi(embed_v0)]
@@ -419,8 +457,45 @@ pub mod DaoAA {
         //  TODO
         // Verify the TX is automated of the proposal is valid for this calldata
         // CENSORED the owner/signature for a real AA Autonomous for DAO and agents
-        fn __execute__(self: @ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
+
+        // TODO, security issue.
+        fn __execute__(ref self: ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
             assert!(get_caller_address().is_zero(), "invalid caller");
+
+            // Verify calls before executing
+            for i in 0
+                ..calls
+                    .len() {
+                        // iterate through the max_executable_clone for each tx.
+                        let current_call = *calls.at(i);
+                        let current_call_hash = current_call.hash_struct();
+                        let max_tx_count = self
+                            .max_executable_clone
+                            .entry(current_call_hash)
+                            .read();
+                        let mut tx_count = 1;
+                        let mut is_executable = false;
+                        while tx_count <= max_tx_count {
+                            is_executable = self
+                                .executable_tx
+                                .entry((current_call_hash, tx_count))
+                                .read();
+                            if is_executable {
+                                // mark the call as executed (now as a non-executable)
+                                self
+                                    .executable_tx
+                                    .entry((current_call_hash, tx_count))
+                                    .write(false);
+                                break;
+                            }
+                            tx_count += 1;
+                        };
+                        assert!(is_executable, "EXECUTION ERR: ONE CALL CHECK FAILED.");
+                        self.executed_count.write(self.executed_count.read() + 1);
+                        // TODO
+                    // currently there's no way to set a Proposal as executed because this task
+                    // will require the proposals id. In that case, it must be done manually.
+                    };
 
             // Check tx version
             let tx_info = get_tx_info().unbox();
@@ -537,6 +612,35 @@ pub mod DaoAA {
                 minimum_threshold_percentage: self.minimum_threshold_percentage.read(),
             }
         }
+
+        fn _resolve_proposal_calldata(ref self: ContractState, id: u256, calldata: Array<Call>) {
+            let proposal_calldata = self.proposals_calldata.entry(id);
+
+            for data in calldata {
+                proposal_calldata.append().to.write(data.to);
+                proposal_calldata.append().selector.write(data.selector);
+                proposal_calldata.append().is_executed.write(false);
+
+                for call in data
+                    .calldata {
+                        proposal_calldata.append().calldata.append().write(*call);
+                    };
+
+                self.proposal_tx.entry(id).append().write(data.hash_struct());
+            };
+        }
+    }
+
+    pub impl CallStructHash of StructHash<Call> {
+        fn hash_struct(self: @Call) -> felt252 {
+            let hash_state = PoseidonTrait::new();
+            hash_state
+                .update_with('AFK_DAO')
+                .update_with(*self.to)
+                .update_with(*self.selector)
+                .update_with(poseidon_hash_span(*self.calldata))
+                .finalize()
+        }
     }
 }
 
@@ -559,7 +663,7 @@ mod tests {
     use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
 
 
-    /// UTILIY FUNCTIONS
+    /// UTILITY FUNCTIONS
 
     fn OWNER() -> ContractAddress {
         contract_address_const::<'OWNER'>()
@@ -590,6 +694,7 @@ mod tests {
         constructor_calldata.append_serde(owner);
         constructor_calldata.append_serde(token_contract_address);
         constructor_calldata.append_serde(public_key);
+        constructor_calldata.append_serde('STARKNET ADDRESS');
 
         let contract = declare("DaoAA").unwrap().contract_class();
         let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
@@ -611,13 +716,23 @@ mod tests {
             proposal_type: Default::default(),
             proposal_automated_transaction: Default::default(),
         };
-        let calldata = Call {
+        let calldata_1 = Call {
             to: contract_address_const::<'TO'>(),
             selector: 'selector',
             calldata: array!['data 1', 'data 2'].span()
         };
+
+        let calldata_2 = Call {
+            to: contract_address_const::<'ANOTHER'>(),
+            selector: 'another selector',
+            calldata: array!['data 3', 'data 4', 'data 5'].span()
+        };
         // created by 'CREATOR'
-        proposal_dispatcher.create_proposal(proposal_params, calldata)
+        let proposal_id = proposal_dispatcher
+            .create_proposal(proposal_params, array![calldata_1, calldata_2]);
+        assert(!proposal_dispatcher.is_executable(calldata_1), '');
+        assert(!proposal_dispatcher.is_executable(calldata_2), '');
+        proposal_id
     }
 
     /// TESTS
@@ -843,5 +958,35 @@ mod tests {
         );
 
         spy.assert_emitted(@array![(proposal_contract, expected_event)]);
+        let calldata_1 = Call {
+            to: contract_address_const::<'TO'>(),
+            selector: 'selector',
+            calldata: array!['data 1', 'data 2'].span()
+        };
+
+        let calldata_2 = Call {
+            to: contract_address_const::<'ANOTHER'>(),
+            selector: 'another selector',
+            calldata: array!['data 3', 'data 4', 'data 5'].span()
+        };
+
+        // non-existent calldata
+        let calldata_3 = Call {
+            to: contract_address_const::<'TO'>(),
+            selector: 'another selector',
+            calldata: array!['data 3', 'data 5'].span()
+        };
+        // the creating call should be executable
+        assert(proposal_dispatcher.is_executable(calldata_1), '1 NOT EXECUTABLE');
+        assert(proposal_dispatcher.is_executable(calldata_2), '2 NOT EXECUTABLE');
+
+        // this should not be executable. it doesn't even exist.
+        assert(!proposal_dispatcher.is_executable(calldata_3), 'INIT FAILED');
     }
+    /// NOTE: WHEN THERE ARE FOUR (FOR EXAMPLE) IDENTICAL CALLDATA, ALL FOUR ARE EXECUTABLE, TRUE;
+/// BUT THE STORAGE HAS BEEN ENHANCED IN THAT IF ONLY THREE IDENTICAL CALLDATA ARE CAPTURED ON
+/// PROCESSING OF RESULTS, THE LAST __execute__ call WITH THE FOURTH IDENTITCAL CALLDATA WILL
+/// FAIL.
+/// ADDITIONAL CHECKS/ENHANCEMENT MAY BE ADDED IN THE FUTURE TO ACCOMMODATE CALLDATA THAT NEEDS
+/// RECURRING __execute__ calls.
 }

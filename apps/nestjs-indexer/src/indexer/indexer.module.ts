@@ -14,6 +14,8 @@ import { LiquidityAddedModule } from 'src/services/liquidity-added/liquidity-add
 import { LiquidityAddedIndexer } from './liquidity-added.indexer';
 import { TipServiceModule } from '../services/tip-service/tipServiceModule';
 import { TipServiceIndexer } from './tip-service.indexer';
+import { MetadataLaunchIndexer } from './metadata-launch.indexer';
+import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { TipServiceIndexer } from './tip-service.indexer';
     NameServiceModule,
     LiquidityAddedModule,
     TipServiceModule,
+    MetadataLaunchModule,
   ],
   providers: [
     TokenLaunchIndexer,
@@ -34,6 +37,7 @@ import { TipServiceIndexer } from './tip-service.indexer';
     IndexerService,
     LiquidityAddedIndexer,
     TipServiceIndexer,
+    MetadataLaunchIndexer,
   ],
   exports: [
     TokenLaunchIndexer,
@@ -43,6 +47,7 @@ import { TipServiceIndexer } from './tip-service.indexer';
     NameServiceIndexer,
     LiquidityAddedIndexer,
     TipServiceIndexer,
+    MetadataLaunchIndexer,
   ],
 })
 export class IndexerModule {}

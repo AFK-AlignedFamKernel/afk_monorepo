@@ -4,6 +4,14 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
   },
+  containerLoading: {
+    flex: 1,
+    height: '100%',
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     flex: 1,
     backgroundColor: theme.colors.surface,

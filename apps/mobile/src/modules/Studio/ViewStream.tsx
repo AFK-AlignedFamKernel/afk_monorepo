@@ -30,6 +30,7 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
     eventId: streamKey,
   });
 
+  console.log('eventData', eventData);
   const renderStreamContent = () => {
     if (!eventData) {
       return (
@@ -78,7 +79,7 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              <ViewerVideoView playbackUrl={eventData.recordingUrl || eventData.streamingUrl || ''} />
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>STREAM ENDED</Text>

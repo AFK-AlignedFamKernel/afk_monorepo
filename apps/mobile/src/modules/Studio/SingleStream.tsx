@@ -66,7 +66,8 @@ export const SingleStreamModuleView: React.FC<WatchStream> = ({navigation, route
         socketRef={socketRef}
         streamKey={streamKey}
         streamerUserId={streamerUserId}
-        isStreamer
+        isStreamer={isStreamer}
+        // recordingUrl={recordingUrl}
         toggleChat={() => setIsChatOpen(!isChatOpen)}
       />
 

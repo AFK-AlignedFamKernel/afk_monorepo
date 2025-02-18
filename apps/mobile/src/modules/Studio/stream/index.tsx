@@ -13,6 +13,7 @@ export default function StreamCompositionComponent({
   socketRef,
   streamKey,
   streamerUserId,
+  recordingUrl,
 }: IWebStreamProps) {
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -48,6 +49,7 @@ export default function StreamCompositionComponent({
         socketRef={socketRef}
         streamKey={streamKey}
         isStreamer={isStreamer}
+        recordingUrl={recordingUrl}
         toggleChat={toggleChat}
       />
     );

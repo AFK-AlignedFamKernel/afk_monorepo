@@ -188,6 +188,15 @@ mod launchpad_tests {
         symbol
     }
 
+
+    fn SYMBOL_FELT() -> felt252 {
+        'symbol'.try_into().unwrap()
+    }
+
+    fn NAME_FELT() -> felt252 {
+        'name'.try_into().unwrap()
+    }
+
     // Math
     fn pow_256(self: u256, mut exponent: u8) -> u256 {
         if self.is_zero() {
@@ -1058,6 +1067,87 @@ mod launchpad_tests {
             launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
         );
     }
+
+    #[test]
+    #[should_panic]
+    fn multi_launch_token_panic() {
+        println!("multi_launch_token_panic");
+        let (sender_address, erc20, launchpad) = request_fixture();
+        // start_cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let token_address = launchpad
+            .create_token(
+                recipient: OWNER(),
+                // owner: OWNER(),
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+                is_unruggable: false,
+            );
+        // println!("test token_address {:?}", token_address);
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
+
+        let balance_contract = memecoin.balance_of(launchpad.contract_address);
+        println!("test balance_contract {:?}", balance_contract);
+
+        let total_supply = memecoin.total_supply();
+        // println!(" memecoin total_supply {:?}", total_supply);
+        memecoin.approve(launchpad.contract_address, total_supply);
+
+        // let allowance = memecoin.allowance(sender_address, launchpad.contract_address);
+        // println!("test allowance meme coin{}", allowance);
+        // memecoin.transfer(launchpad.contract_address, total_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
+
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+        let amount_first_buy = 1_u256;
+
+        launchpad.launch_token(token_address, bonding_type: BondingType::Linear);
+    }
+
+
+    #[test]
+    #[should_panic]
+    fn launch_token_not_from_launchpad_panic() {
+        println!("launch_token_not_from_launchpad_panic");
+        let (sender_address, erc20, launchpad) = request_fixture();
+
+        let erc20_class = declare_erc20();
+        let token_new = deploy_erc20(
+            *erc20_class,
+            name: NAME_FELT(),
+            symbol: SYMBOL_FELT(),
+            initial_supply: DEFAULT_INITIAL_SUPPLY(),
+            recipient: sender_address,
+        );
+
+        // start_cheat_caller_address_global(sender_address);
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let default_token = launchpad.get_default_token();
+        assert(default_token.token_address == erc20.contract_address, 'no default token');
+        assert(default_token.starting_price == INITIAL_KEY_PRICE, 'no init price');
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        let memecoin = IERC20Dispatcher { contract_address: token_new.contract_address };
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
+
+        let total_supply = memecoin.total_supply();
+        memecoin.approve(launchpad.contract_address, total_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        launchpad.launch_token(token_new.contract_address, bonding_type: BondingType::Linear);
+    }
+
 
     #[test]
     #[fork("Mainnet")]

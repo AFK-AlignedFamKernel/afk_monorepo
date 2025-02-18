@@ -1,43 +1,45 @@
-import {useQueryClient} from '@tanstack/react-query';
-import {useNote, useReplyNotes, useSendNote} from 'afk_nostr_sdk';
-import {useState} from 'react';
-import {FlatList, RefreshControl, View} from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
+import { useState } from 'react';
+import { FlatList, RefreshControl, View, Text, ActivityIndicator } from 'react-native';
 
-import {Divider, Header, IconButton, Input, KeyboardFixedView} from '../../components';
-import {useNostrAuth, useStyles} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {Post} from '../../modules/Post';
-import {PostDetailScreenProps} from '../../types';
+import { Divider, Header, IconButton, Input, KeyboardFixedView } from '../../components';
+import { useNostrAuth, useStyles } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { Post } from '../../modules/Post';
+import { PostDetailScreenProps } from '../../types';
 import stylesheet from './styles';
 import { InputArea } from '../../components/InputArea';
 
-export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route}) => {
-  const {postId, post} = route.params;
+export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route }) => {
+  const { postId, post } = route.params;
+  console.log('postId', postId);
+  console.log('route.path', route.path);
 
   const styles = useStyles(stylesheet);
 
   const [comment, setComment] = useState('');
-  const {handleCheckNostrAndSendConnectDialog} = useNostrAuth();
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
 
   const sendNote = useSendNote();
-  const {data: note = post} = useNote({noteId: postId});
-  const comments = useReplyNotes({noteId: note?.id});
+  const { data: note = post } = useNote({ noteId: postId });
+  const comments = useReplyNotes({ noteId: note?.id });
   const queryClient = useQueryClient();
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
   const handleSendComment = async () => {
     if (!comment || comment?.trim().length == 0) {
-      showToast({type: 'error', title: 'Please write your comment'});
+      showToast({ type: 'error', title: 'Please write your comment' });
       return;
     }
     await handleCheckNostrAndSendConnectDialog();
 
     sendNote.mutate(
-      {content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']]},
+      { content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']] },
       {
         onSuccess() {
-          showToast({type: 'success', title: 'Comment sent successfully'});
-          queryClient.invalidateQueries({queryKey: ['replyNotes', note?.id]});
+          showToast({ type: 'success', title: 'Comment sent successfully' });
+          queryClient.invalidateQueries({ queryKey: ['replyNotes', note?.id] });
           setComment('');
         },
         onError() {
@@ -50,13 +52,43 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
     );
   };
 
+
+  if (!postId) {
+    return (
+      <View style={styles.container}>
+        <Header
+          showLogo={false}
+          left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack} />}
+        />
+        <View>
+          <Text>Post not found</Text>
+        </View>
+      </View>
+    )
+  }
+
+  if (note?.id !== postId) {
+    return (
+
+      <View style={styles.containerLoading}>
+        {/* <Header
+          showLogo={false}
+          left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack} />}
+        // right={<IconButton icon="MoreHorizontalIcon" size={24} />}
+        // title="Conversation"
+        /> */}
+
+        <ActivityIndicator></ActivityIndicator>
+      </View>
+    )
+  }
   return (
     <View style={styles.container}>
       <Header
         showLogo={false}
         left={<IconButton icon="ChevronLeftIcon" size={24} onPress={navigation.goBack} />}
-        // right={<IconButton icon="MoreHorizontalIcon" size={24} />}
-        // title="Conversation"
+      // right={<IconButton icon="MoreHorizontalIcon" size={24} />}
+      // title="Conversation"
       />
 
       <Divider />
@@ -76,7 +108,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
             </>
           }
           ItemSeparatorComponent={() => <Divider />}
-          renderItem={({item}) => (
+          renderItem={({ item }) => (
             <View style={styles.comment}>
               <Post asComment event={item} />
             </View>
@@ -88,7 +120,7 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({navigation, route})
         />
       </View>
 
-      <KeyboardFixedView containerProps={{style: styles.commentInputContainer}}>
+      <KeyboardFixedView containerProps={{ style: styles.commentInputContainer }}>
         <Divider />
 
         <View style={styles.commentInputContent}>

@@ -53,3 +53,4 @@ pub const POOL_LAUNCHED: felt252 = 'Pool launched';
 pub const CREATOR_CANT_BE_DISTRIBUTED: felt252 = 'Fee cant be distributed';
 pub const NO_FEE_TO_DISTRIBUTE: felt252 = 'No fee to distribute';
 pub const NO_FEE_RECEIVED: felt252 = 'No fee received';
+pub const TOKEN_NOT_CREATED_BY_LAUNCHPAD: felt252 = 'Token not created by launchpad';

@@ -27,6 +27,7 @@ pub mod afk_id {
 
 pub mod dao {
     pub mod dao_aa;
+    pub mod dao_factory;
 }
 pub mod defi {
     pub mod vault;

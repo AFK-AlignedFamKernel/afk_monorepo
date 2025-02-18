@@ -5,13 +5,15 @@ import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     flexDirection: 'row',
+    // flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.background,
     color: theme.colors.textPrimary,
     marginHorizontal: 32,
+    gap: 10,
     marginVertical: 30,
-    overflowX: 'auto',
+    // overflowX: 'auto',
   },
   containerMobile: {
     flexDirection: 'column',
@@ -23,7 +25,8 @@ export default ThemedStyleSheet((theme) => ({
     overflowX: 'auto',
   },
   rowContainer: {
-    width: '100%',
+    // width: '100%',
+    width: '80%',
     flexDirection: 'row',
     flexWrap: 'wrap', // Allow wrapping if items overflow
     gap: 10,
@@ -40,6 +43,7 @@ export default ThemedStyleSheet((theme) => ({
     gap: 15,
     backgroundColor: theme.colors.background,
     color: theme.colors.textPrimary,
+    justifyContent: "space-between",
   },
   searchInputContainer: {
     position: 'relative',

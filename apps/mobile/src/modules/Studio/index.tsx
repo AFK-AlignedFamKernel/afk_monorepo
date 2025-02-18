@@ -38,14 +38,20 @@ type Event = {
     role: 'Host' | 'Speaker' | 'Participant';
     pubkey: string;
   }[];
+  recordingUrl?: string;
+  streamingUrl?: string;
 };
 
 export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) => {
   const { publicKey } = useAuth();
-  const { data, isFetching, refetch, isPending } = useGetLiveEvents({
-    limit: 100,
+  const { data, isFetching, refetch, isPending, isLoading } = useGetLiveEvents({
+    limit: 20,
   });
 
+  console.log('data', data);
+  console.log('isFetching ', isFetching);
+  console.log('isPending ', isPending);
+  console.log('isLoading ', isLoading);
   const { theme } = useTheme();
   const styles = useStyles(styleSheet);
 
@@ -55,11 +61,15 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
     navigation.navigate('WatchStream', { streamId: id });
   };
 
-  const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', { streamId: id });
+  const handleNavigateToStreamView = (id: string, recordingUrl?: string) => {
+    navigation.navigate('ViewStreamGuest', { streamId: id, recordingUrl: recordingUrl });
   };
 
-  if (isPending) {
+  const handleNavigateToRecordView = (id: string) => {
+    navigation.navigate('RecordedStream', { streamId: id });
+  };
+
+  if (isPending && isFetching) {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.scrollContent}>
@@ -83,6 +93,17 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
   //     </View>
   //   );
   // }
+
+  if (isFetching && !isPending) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.scrollContent}>
+          <Text style={styles.headerText}>Stream Studio Events</Text>
+          <ActivityIndicator></ActivityIndicator>;
+        </SafeAreaView>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -137,10 +158,11 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
           data={data?.pages.flat()}
           renderItem={({ item }) => (
             <RenderEventCard
-              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier)}
+              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier, item.recordingUrl)}
               streamKey={item.identifier}
               handleNavigation={() => handleNavigate(item.identifier)}
               pubKey={publicKey}
+              recordingUrl={item.recordingUrl}
               event={item}
             />
           )}
@@ -172,12 +194,14 @@ export const RenderEventCard = ({
   handleNavigation,
   streamKey,
   handleNavigateToStreamView,
+  recordingUrl,
 }: {
   event: Event;
   pubKey: string;
   handleNavigation: () => void;
   handleNavigateToStreamView: () => void;
   streamKey: string;
+  recordingUrl?: string;
 }) => {
   const isStreamer = false;
   const { socketRef, isConnected } = useSocketContext();
@@ -329,6 +353,7 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
   const { showToast } = useToast();
   const { publicKey } = useAuth();
 
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const { createEvent } = useLiveActivity();
 
   const styles = useStyles(styleSheet);
@@ -343,7 +368,15 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
     // startDate: new Date(),
     // endDate: new Date(),
   });
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
+
+    const isConnected = await handleCheckNostrAndSendConnectDialog();
+
+    if (!isConnected) {
+      showToast({ title: 'Must be connected to Nostr', type: 'error' });
+      return;
+    }
+
     if (newEvent.title && newEvent.status && newEvent.summary) {
       createEvent.mutate(
         {
@@ -378,6 +411,7 @@ function CreateEventModal({ handleModal }: { handleModal: () => void }) {
       );
     }
   };
+
   return (
     <View style={styles.modalOverlay}>
       <View style={styles.modalView}>

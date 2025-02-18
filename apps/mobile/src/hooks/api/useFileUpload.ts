@@ -44,6 +44,11 @@ export const useFileUpload = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+      // return ApiInstance.post('/file', formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      // });
     },
   });
 };
