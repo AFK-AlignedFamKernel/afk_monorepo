@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BuyToken } from './interfaces';
 import { CandlestickService } from '../candlestick/candlesticks.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BuyTokenService {
@@ -10,7 +11,15 @@ export class BuyTokenService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly candlestickService: CandlestickService,
-  ) {}
+    private readonly eventEmitter: EventEmitter2,
+  ) {
+    this.eventEmitter.on('candlestick.generate', async (data) => {
+      await this.candlestickService.generateCandles(
+        data.memecoinAddress,
+        data.interval,
+      );
+    });
+  }
 
   async create(data: BuyToken) {
     try {
@@ -144,7 +153,10 @@ export class BuyTokenService {
         });
       });
 
-      await this.candlestickService.generateCandles(data.memecoinAddress, 5);
+      this.eventEmitter.emit('candlestick.generate', {
+        memecoinAddress: data.memecoinAddress,
+        interval: 5,
+      });
     } catch (error) {
       this.logger.error(
         `Error creating buy token record: ${error.message}`,
