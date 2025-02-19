@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { hash, shortString, uint256, validateAndParseAddress } from 'starknet';
+import { cairo, hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -32,10 +32,11 @@ export class MetadataLaunchIndexer {
   }
 
   private isValidChar = (char: string): boolean => {
-    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()]+$/.test(char);
+    return /^[a-zA-Z0-9\s\-_.!@#$%^&*()/:]+$/.test(char);
   };
 
   private cleanString = (str: string): string => {
+    console.log("str", str);
     return str
       .split('')
       .filter((char) => this.isValidChar(char))
@@ -45,6 +46,7 @@ export class MetadataLaunchIndexer {
 
 
   private isNumeric = (str: string): boolean => {
+    console.log("str", str);
     return /^\d+$/.test(str);
   };
 
@@ -77,6 +79,7 @@ export class MetadataLaunchIndexer {
       blockHash: blockHashFelt,
       timestamp: blockTimestamp,
     } = header;
+    console.log("handleMetadataEvent", event);
 
     const blockHash = validateAndParseAddress(
       `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
@@ -105,27 +108,42 @@ export class MetadataLaunchIndexer {
     let i = 1;
     
     let url = '';
-    while (i < event.data.length) {
-      const part = event.data[i];
-      const decodedPart = shortString.decodeShortString(
-        FieldElement.toBigInt(part).toString(),
-      );
-
-      if (this.isNumeric(decodedPart)) {
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+  
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+  
+        url+= decodedPart;
         i++;
-        break;
       }
-
-      url= decodedPart;
-      i++;
+  
+      url = this.cleanString(url);
+      console.log("url", url);     
+    } catch (error) {
+      console.log("error bytearray", error);
     }
+ 
 
-    url = this.cleanString(url);
+    // const nostrEventId = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(nostrEventIdLow),
+    //   high: FieldElement.toBigInt(nostrEventIdHigh),
+    // });
+    let nostrEventId = cairo.felt(0);
 
-    const nostrEventId = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrEventIdLow),
-      high: FieldElement.toBigInt(nostrEventIdHigh),
-    });
+    try {
+      nostrEventId = cairo.felt(FieldElement.toBigInt(nostrEventIdLow)) + cairo.felt(FieldElement.toBigInt(nostrEventIdHigh));
+      
+    } catch (error) {
+      
+    }
+    console.log("nostrEventId", nostrEventId);
     const timestamp = new Date(
       Number(FieldElement.toBigInt(timestampFelt)) * 1000,
     );
@@ -143,6 +161,7 @@ export class MetadataLaunchIndexer {
       timestamp,
       transactionType: 'buy',
     };
+
 
     await this.metadataLaunchService.createOrUpdate(data);
   }

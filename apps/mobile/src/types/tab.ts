@@ -56,6 +56,7 @@ export enum SelectedTab {
   QUESTS = 'QUESTS',
   QUEST_FORM = 'QUEST_FORM',
   ALL_QUESTS = 'ALL_QUESTS',
+  DAO_COMMUNITY = 'DAO_COMMUNITY',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -519,7 +520,7 @@ export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[
   // },
 ];
 
-export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
+export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab, insideRouting?:string}[] = [
   {
     title: 'Pump',
     description: 'Launch your token to be trade and pumped',
@@ -529,8 +530,16 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   {
     title: 'Pixel Peace',
     description: 'Pixel Game for communities',
-    screen: 'PixelPeace',
+    // screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
+  },
+  {
+    title: 'DAO Community',
+    description: 'DAO Community for communities',
+    // screen: 'PixelPeace',
+    screen: 'DAO',
+    insideRouting: 'MainStack',
+    tab: SelectedTab.DAO_COMMUNITY,
   },
   // {
   //   title: 'Quests',
@@ -541,7 +550,7 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   {
     title: 'Nameservice',
     description: 'AFK nameservice to mint your own name.afk',
-    screen: 'AFK Nameservice',
+    // screen: 'AFK Nameservice',
     tab: SelectedTab.NAMESERVICE,
   },
   // {
@@ -552,7 +561,7 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   {
     title: 'Keys',
     description: 'Launch your own keys as a Starknet user linked to your profile',
-    screen: 'KeysMarketplace',
+    // screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
   },
   // {

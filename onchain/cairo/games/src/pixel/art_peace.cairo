@@ -943,6 +943,24 @@ pub mod ArtPeace {
         //     self.emit(FactionLeft { faction_id, user: caller });
         // }
 
+        fn get_shield_price_by_time(ref self: ContractState, time: u64) -> u256 {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            let shield_price = shield_params.cost_per_second;
+
+            let time_casted:u256 = time.try_into().unwrap();
+            // let time_casted = starknet::uint256(time);
+            let shield_price_by_time = shield_price * time_casted;
+            shield_price_by_time
+        }
+
+        fn get_token_address_paid_shield(ref self: ContractState) -> starknet::ContractAddress {
+            let shield_type = self.shield_type.read();
+            let shield_params = self.admin_shield_params.entry(shield_type.clone()).read();
+            let shield_token_address = shield_params.buy_token_address;
+            shield_token_address
+        }
+
         fn join_chain_faction(ref self: ContractState, faction_id: u32) {
             self.check_game_running();
             assert(faction_id != 0, 'Faction 0 is not joinable');

@@ -15,7 +15,7 @@ import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { useCombinedTokenData } from '../../hooks/useCombinedTokens';
 import { useLaunchpadStore } from '../../store/launchpad';
 import stylesheet from './styles';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
+import { LaunchDataMerged, TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
@@ -385,6 +385,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                 isDesktop={isDesktop}
                 isFetching={isFetching}
                 tokenOrLaunch={tokenOrLaunch}
+                sortBy={sortBy}
               />
             )}
 
@@ -395,6 +396,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                 isDesktop={isDesktop}
                 isFetching={isFetching}
                 tokenOrLaunch={tokenOrLaunch}
+                sortBy={sortBy}
               />
             )}
           </>
@@ -411,17 +413,82 @@ export function TokenDashboard({
   isFetching,
   address,
   onConnect,
+  sortBy,
 }: {
   tokenOrLaunch: any;
   isDesktop: boolean;
   isFetching: boolean;
   address: any;
   onConnect: () => void;
+  sortBy?: string;
 }) {
   const styles = useStyles(stylesheet);
 
   const { data: myTokens } = useMyTokensCreated(address);
   const { data: myLaunchs } = useMyLaunchCreated(address);
+
+  const [sortedMyTokens, setSortedMyTokens] = useState<TokenDeployInterface[]>([]);
+  const [sortedMyLaunchs, setSortedMyLaunchs] = useState<LaunchDataMerged[]>([]);
+
+  console.log("sortBy", sortBy);
+  console.log("sortedMyTokens", sortedMyTokens);
+  console.log("sortedMyLaunchs", sortedMyLaunchs);
+  useEffect(() => {
+    console.log("myTokens", myTokens);
+    console.log("myLaunchs", myLaunchs);
+
+    if (!myTokens || !myLaunchs) return;
+
+    const sortedMyTokens = myTokens?.data;
+    const sortedMyLaunchs = myLaunchs?.data;
+
+
+    if (tokenOrLaunch == 'MY_DASHBOARD') {
+      switch (sortBy) {
+        case 'recent':
+          sortedMyTokens.sort((a: any, b: any) => {
+            const dateA = new Date(a?.block_timestamp || 0);
+            const dateB = new Date(b?.block_timestamp || 0);
+            return dateB.getTime() - dateA.getTime();
+          });
+          break;
+        case 'oldest':
+          sortedMyTokens.sort((a: any, b: any) => {
+            const dateA = new Date(a?.block_timestamp || 0);
+            const dateB = new Date(b?.block_timestamp || 0);
+            return dateA.getTime() - dateB.getTime();
+          });
+          break;
+        // case 'liquidity':
+        //   sortedTokens.sort((a, b) => {
+        //     const liquidityA = Number(a.liquidity_raised || 0);
+        //     const liquidityB = Number(b.liquidity_raised || 0);
+        //     return liquidityB - liquidityA;
+        //   });
+        //   break;
+      }
+    } else if (tokenOrLaunch == 'MY_LAUNCH_TOKEN') {
+      switch (sortBy) {
+        case 'recent':
+          sortedMyLaunchs.sort((a: any, b: any) => {
+            const dateA = new Date(a?.block_timestamp || 0);
+            const dateB = new Date(b?.block_timestamp || 0);
+            return dateB.getTime() - dateA.getTime();
+          });
+          break;
+        case 'oldest':
+          sortedMyLaunchs.sort((a: any, b: any) => {
+            const dateA = new Date(a?.block_timestamp || 0);
+            const dateB = new Date(b?.block_timestamp || 0);
+            return dateA.getTime() - dateB.getTime();
+          });
+          break;
+      }
+    }
+
+    setSortedMyTokens(sortedMyTokens);
+    setSortedMyLaunchs(sortedMyLaunchs);
+  }, [myTokens, myLaunchs, sortBy, tokenOrLaunch]);
   // const { tokens: myTokens, launches: myLaunchs } = useLaunchpadStore();
   const renderContent = () => {
     if (!address) {
@@ -441,9 +508,10 @@ export function TokenDashboard({
       );
     }
 
-    const data = tokenOrLaunch === 'MY_DASHBOARD' ? myTokens : myLaunchs;
+    // const data = tokenOrLaunch === 'MY_DASHBOARD' ? myTokens : myLaunchs;
+    const data = tokenOrLaunch === 'MY_DASHBOARD' ? sortedMyTokens : sortedMyLaunchs;
 
-    if (!data || data?.data?.length === 0) {
+    if (!data || data?.length === 0) {
       return (
         <View
           style={{
@@ -457,22 +525,42 @@ export function TokenDashboard({
       );
     }
 
-    return (
-      <FlatList
-        contentContainerStyle={styles.flatListContent}
-        data={data?.data}
-        keyExtractor={(item, i) => i.toString()}
-        key={`flatlist-${isDesktop ? 3 : 1}`}
-        numColumns={isDesktop ? 3 : 1}
-        renderItem={({ item, index }) => {
-          if (tokenOrLaunch === 'MY_DASHBOARD') {
+    if (tokenOrLaunch == 'MY_DASHBOARD') {
+      return (
+        <FlatList
+          contentContainerStyle={styles.flatListContent}
+          data={sortedMyTokens}
+          keyExtractor={(item, i) => i.toString()}
+          key={`flatlist-${isDesktop ? 3 : 1}`}
+          numColumns={isDesktop ? 3 : 1}
+          renderItem={({ item, index }) => {
             return <TokenCard key={index} token={item} isTokenOnly={true} />;
-          }
-          return <TokenLaunchCard key={item.token_address} token={item} />;
-        }}
-        refreshControl={<RefreshControl refreshing={isFetching} />}
-      />
-    );
+          }}
+          refreshControl={<RefreshControl refreshing={isFetching} />}
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          contentContainerStyle={styles.flatListContent}
+          data={sortedMyLaunchs}
+          keyExtractor={(item, i) => i.toString()}
+          key={`flatlist-${isDesktop ? 3 : 1}`}
+          numColumns={isDesktop ? 3 : 1}
+          renderItem={({ item, index }) => {
+            return <TokenLaunchCard key={index} token={item} />;
+          }}
+          // renderItem={({ item, index }) => {
+
+          //   return <TokenLaunchCard key={item?.token_address} token={item} />;
+          // }}
+          refreshControl={<RefreshControl refreshing={isFetching} />}
+        />
+      );
+
+    }
+
+
   };
 
   return renderContent();

@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAccount } from '@starknet-react/core';
 import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import { ImageSourcePropType, TextInput, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, TextInput, TouchableOpacity, View, Image } from 'react-native';
 
 import { CopyIconStack } from '../../../assets/icons';
 import { useStyles, useTheme } from '../../../hooks';
@@ -104,6 +104,10 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
     });
   }
 
+
+  // console.log("token", token)
+  // console.log("url metadata", token?.url)
+
   return (
     <View style={styles.container}>
 
@@ -119,60 +123,6 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           setIsModalVisibleProps={setIsModalVisible}
           isButtonOpenVisible={true}
         />
-        // <Modal
-        // >
-        //   <View>
-        //     <View style={styles.modalContent}>
-        //       <Text style={styles.modalTitle}>Add Token Metadata</Text>
-
-
-        //       <View style={styles.formGroup}>
-        //         <Text style={styles.label}>Description</Text>
-        //         <TextInput
-        //           style={[styles.input, styles.textArea]}
-        //           placeholder="Nostr event id"
-        //           multiline
-        //           numberOfLines={4}
-        //           value={metadata.nostr_event_id}
-        //           onChangeText={(text) => setMetadata({ ...metadata, nostr_event_id: text })}
-        //         />
-        //       </View>
-
-        //       <View style={styles.formGroup}>
-        //         <Text style={styles.label}>Media</Text>
-        //         <View style={styles.mediaUpload}>
-        //           <TouchableOpacity
-        //             style={styles.uploadButton}
-        //             onPress={() => {
-        //               // Handle media upload
-        //             }}
-        //           >
-        //             <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
-        //           </TouchableOpacity>
-        //         </View>
-        //       </View>
-
-        //       <View style={styles.buttonGroup}>
-        //         <TouchableOpacity
-        //           style={styles.cancelButton}
-        //           onPress={() => setIsModalVisible(false)}
-        //         >
-        //           <Text style={styles.buttonText}>Cancel</Text>
-        //         </TouchableOpacity>
-
-        //         <TouchableOpacity
-        //           style={styles.submitButton}
-        //           onPress={() => {
-        //             // Handle form submission
-        //             // setIsModalVisible(false);
-        //           }}
-        //         >
-        //           <Text style={styles.buttonText}>Submit</Text>
-        //         </TouchableOpacity>
-        //       </View>
-        //     </View>
-        //   </View>
-        // </Modal>
       )}
       <View
         style={{
@@ -207,6 +157,25 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             {token?.name || 'Unnamed Token'}
           </Text>
         </TouchableOpacity>
+
+
+        {token?.url && (
+          <View>
+            <Image
+              source={{ uri: token?.url }}
+              style={{ width: 100, height: 100 }}
+            />
+
+          </View>
+        )}
+
+        {token?.description &&
+          <Text>{token?.description}</Text>
+        }
+
+        {token?.nostr_id &&
+          <Text>{token?.nostr_id}</Text>
+        }
         <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
           <Text
             numberOfLines={isExpandedSymbol ? undefined : 1}
@@ -247,7 +216,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
       {
         token?.owner_address &&
-        account && account?.address == token?.owner_address && !token?.is_launched && (
+        account && account?.address == token?.owner_address && (
           <View>
 
             <Button
@@ -295,6 +264,42 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           </View>
         )
       }
+
+      {
+        token?.owner_address &&
+        account && account?.address == token?.owner_address && !token?.is_launched && (
+          <View>
+
+
+            {isOpenAdmin && (
+
+              <>
+                <Button
+                  onPress={() => {
+                    handleLaunchCoin(account, token?.memecoin_address);
+                  }}
+                >
+                  Launch your coin
+                </Button>
+                <Button
+                  onPress={() => {
+                    if (token?.memecoin_address) {
+                      showModal(<AddLiquidityForm tokenAddress={token.memecoin_address} />);
+                    }
+                  }}
+                >
+                  Add Liquidity
+                </Button>
+
+              </>
+            )}
+
+            {/* <AddLiquidityForm tokenAddress={token?.memecoin_address} /> */}
+
+          </View>
+        )
+      }
+
 
       {
         !isViewDetailDisabled && (

@@ -13,6 +13,9 @@ export class MetadataLaunchService {
         { where: { memecoin_address: data.memecoinAddress } },
       );
 
+      console.log("tokenMetadataRecord", tokenMetadataRecord);
+
+      console.log("data", data);
 
       if (!tokenMetadataRecord) {
         this.logger.warn(
@@ -21,6 +24,7 @@ export class MetadataLaunchService {
 
         await this.prismaService.token_metadata.create({
           data: {
+            memecoin_address: data.memecoinAddress,
             transaction_hash: data.transactionHash,
             network: data.network,
             block_hash: data.blockHash,
@@ -31,6 +35,14 @@ export class MetadataLaunchService {
             nostr_id: data.nostr_event_id,
           },
         });
+
+       await this.prismaService.token_deploy.updateMany({
+          where: { memecoin_address: data.memecoinAddress },
+          data: {
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
+          },
+        });
       } else {
 
         await this.prismaService.token_metadata.update({
@@ -38,6 +50,13 @@ export class MetadataLaunchService {
           data: {
             url: data.url,
             nostr_id: data.nostr_event_id,
+          },
+        });
+        await this.prismaService.token_deploy.updateMany({
+          where: { memecoin_address: data.memecoinAddress },
+          data: {
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
           },
         });
       }
