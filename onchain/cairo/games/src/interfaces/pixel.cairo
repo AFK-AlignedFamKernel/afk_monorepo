@@ -257,6 +257,10 @@ pub trait IArtPeace<TContractState> {
     );
     fn activate_pixel_shield(ref self: TContractState);
     fn disable_pixel_shield(ref self: TContractState);
+
+
+    fn get_shield_price_by_time(ref self: TContractState, time: u64) -> u256;
+    fn get_token_address_paid_shield(ref self: TContractState) -> starknet::ContractAddress;
 }
 
 

@@ -11,9 +11,9 @@ import NFTSelector from './NFTSelector.js';
 import TemplateCreationOverlay from './TemplateCreationOverlay.js';
 import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction } from "afk_sdk";
-import { ART_PEACE_ADDRESS} from "common"
+import { ART_PEACE_ADDRESS, TOKENS_ADDRESS } from "common"
 import MetadataView from './metadata/Metadata';
-import { byteArray,CallData, cairo } from 'starknet';
+import { byteArray, CallData, cairo, constants } from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -87,7 +87,7 @@ const CanvasContainer = (props) => {
     props.setShieldSelectionEnd(clampedPosition);
     props.setIsShieldSelecting(true);
 
-    const position = clampedPosition.y  * width + clampedPosition.x;
+    const position = clampedPosition.y * width + clampedPosition.x;
 
     const getPixelInfoEndpoint = await fetchWrapper(
       `get-pixel-info?position=${position.toString()}`,
@@ -97,8 +97,8 @@ const CanvasContainer = (props) => {
       return;
     }
     const paddedAddress = '0x0' + props.address.slice(2);
-        // Check if the pixel address matches the logged-in user's address
-    if (getPixelInfoEndpoint.data === paddedAddress ) {
+    // Check if the pixel address matches the logged-in user's address
+    if (getPixelInfoEndpoint.data === paddedAddress) {
       props.updateSelectedShieldPixels(position, maxPixels);
     } else {
       console.log("This pixel doesn't belong to the logged-in user")
@@ -351,68 +351,152 @@ const CanvasContainer = (props) => {
     if (!props.address || !props.artPeaceContract || !props.account) return;
 
     //Check for wallet or account
-    const callProps = (data, entry) =>  props.wallet ?
+    const callProps = (data, entry) => props.wallet ?
 
-    [{
-      // calldata:data,
-      calldata: data,
-      contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-      entry_point: entry
-    }]
-    :
-    [{
-      calldata:data,
-      contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-      entrypoint: entry
-    }]
+      [{
+        // calldata:data,
+        calldata: data,
+        contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        entry_point: entry
+      }]
+      :
+      [{
+        calldata: data,
+        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        entrypoint: entry
+      }]
 
-   
+    console.log("props.isShieldMode", props.isShieldMode);
+
 
 
     //Check if the user adds a metadata.
     if (metaData.twitter || metaData.nostr || metaData.ips) {
 
       const metadata = {
-        pos: position, 
-        ipfs: byteArray.byteArrayFromString(metaData.ips), 
+        pos: position,
+        ipfs: byteArray.byteArrayFromString(metaData.ips),
         nostr_event_id: metaData.nostr,
         owner: props.account.address,
         contract: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'] || "" // Contract address
       };
-
-
       const urlByteArray = byteArray.byteArrayFromString(metaData.url ?? "");
-      console.log("urlByteArray", urlByteArray);
-
+      // console.log("urlByteArray", urlByteArray);
       const nostrEventIdByteArray = byteArray.byteArrayFromString(metaData.nostr ?? 0);
-
-
       const nostrEventIdFelt = cairo.felt(BigInt(metaData.nostr ?? 0));
-      console.log("nostrEventIdFelt", nostrEventIdFelt);
-
+      // console.log("nostrEventIdFelt", nostrEventIdFelt);
       const positionUint256 = cairo.uint256(position);
-      console.log("positionUint256", positionUint256);
+      // console.log("positionUint256", positionUint256);
 
-      // const urlByteArray = byteArray.byteArrayFromString(metaData.url);
-      return mutatePlacePixel({
-        account: props.account,
-        wallet: props.wallet,
-        
-        callProps: callProps(CallData.compile({position, color, now, metaPos:positionUint256 ?? metadata.pos, ipfs:urlByteArray,  nostr:nostrEventIdFelt ?? metadata.nostr_event_id,  owner: metadata.owner, contract: metadata.contract}), "place_pixel_with_metadata")
-      }, {
-        onError(err) {
-          console.log(err);
-          setShowMetaDataForm(false);
-        },
-        onSuccess(data) {
-          console.log(data, "Success")
-        }
-      })
+
+      console.log("props.isShieldMode", props.isShieldMode);
+      if (props?.isShieldMode) {
+        // const     positionUint256 = cairo.uint256(props.selectedShieldPixels);
+
+        const metadataCall = {
+          contractAddress: metadata.contract,
+          entrypoint: 'place_pixel_with_metadata',
+          calldata: CallData.compile({
+            position: positionUint256,
+            color: color,
+            now: now,
+            metaPos: positionUint256,
+            ipfs: urlByteArray,
+            nostr: nostrEventIdFelt,
+            owner: metadata.owner,
+            contract: metadata.contract
+          }),
+        };
+
+        /** TODO get how much paid for the shield */
+        // const paidByTime = await props?.account?.invoke(metadataCall)
+
+        /** ADD APPROVE CALLDATA */
+
+
+        const shielPixel = {
+          contractAddress: metadata.contract,
+          entrypoint: 'place_pixel_shield',
+          calldata: CallData.compile({
+            position: positionUint256,
+            time: now,
+          }),
+        };
+        const callMetadata = CallData.compile({ position, color, now, metaPos: positionUint256 ?? metadata.pos, ipfs: urlByteArray, nostr: nostrEventIdFelt ?? metadata.nostr_event_id, owner: metadata.owner, contract: metadata.contract })
+
+        const tx = await props?.account?.execute([metadataCall, shielPixel])
+
+        console.log("tx", tx);
+
+        return;
+      } else {
+
+        // const urlByteArray = byteArray.byteArrayFromString(metaData.url);
+        return mutatePlacePixel({
+          account: props.account,
+          wallet: props.wallet,
+
+          callProps: callProps(CallData.compile({ position, color, now, metaPos: positionUint256 ?? metadata.pos, ipfs: urlByteArray, nostr: nostrEventIdFelt ?? metadata.nostr_event_id, owner: metadata.owner, contract: metadata.contract }), "place_pixel_with_metadata")
+        }, {
+          onError(err) {
+            console.log(err);
+            setShowMetaDataForm(false);
+          },
+          onSuccess(data) {
+            console.log(data, "Success")
+          }
+        })
+      }
+
+
     }
+
+    console.log("props.isShieldMode", props.isShieldMode);
+    if (props?.isShieldMode) {
+      // const     positionUint256 = cairo.uint256(props.selectedShieldPixels);
+
+
+      /** TODO get how much paid for the shield */
+      // const paidByTime = await props?.account?.invoke(metadataCall)
+
+
+      // get token address to paid
+
+      const tokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK 
+      console.log("tokenAddress", tokenAddress);
+
+
+      const amountUint = cairo.uint256(1)
+      /** ADD APPROVE CALLDATA */
+
+      const approveCall = {
+
+        contractAddress: tokenAddress,
+        entrypoint: 'approve',
+        calldata: CallData.compile({
+          amount: amountUint,
+          spender: props?.artPeaceContract ?? ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        }),
+      }
+
+
+      const shielPixel = {
+        contractAddress: props?.artPeaceContract ?? ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
+        entrypoint: 'place_pixel_shield',
+        calldata: CallData.compile({
+          position: positionUint256,
+          time: now,
+        }),
+      };
+      // const callMetadata = CallData.compile({ position, color, now, metaPos: positionUint256 ?? metadata.pos, ipfs: urlByteArray, nostr: nostrEventIdFelt ?? metadata.nostr_event_id, owner: metadata.owner, contract: metadata.contract })
+
+      props?.account?.execute([approveCall, shielPixel])
+    }
+
     mutatePlacePixel({
       account: props.account,
       wallet: props.wallet,
-      callProps: callProps([position, color, now],"place_pixel")
+      callProps: callProps([position, color, now], "place_pixel")
     }, {
       onError(err) {
         console.log(err)
@@ -476,7 +560,7 @@ const CanvasContainer = (props) => {
     // if (!devnetMode) {
     props.setSelectedColorId(-1);
     props.colorPixel(position, colorId);
-   await placePixelCall(position, colorId, timestamp);
+    await placePixelCall(position, colorId, timestamp);
 
     props.clearPixelSelection();
     props.setLastPlacedTime(timestamp * 1000);
@@ -662,7 +746,7 @@ const CanvasContainer = (props) => {
 
   return (
     <>
-      <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips:"", nostr:"", twitter:""})]} showMeta={showMetadataForm} />
+      <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips: "", nostr: "", twitter: "" })]} showMeta={showMetadataForm} />
       <div
         ref={canvasContainerRef}
         className="CanvasContainer"
