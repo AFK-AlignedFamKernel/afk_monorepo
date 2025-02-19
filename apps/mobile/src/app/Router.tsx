@@ -70,6 +70,7 @@ import { Community } from '../screens/Community';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
 import { ScreenRecordStream } from '../modules/Studio/ScreenRecord';
+import { DAOScreen } from '../screens/DAO';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -343,6 +344,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Nameservice" component={NameserviceScreen} />
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
       <MainStack.Screen name="Community" component={Community} />
+      <MainStack.Screen name="DAO" component={DAOScreen} />
 
     </MainStack.Navigator>
   );
@@ -484,7 +486,14 @@ const linking = {
               token: (token: string) => `${token}`,
             },
           },
-          Community: 'app/community'
+          Community: 'app/community',
+          DAO: 'app/dao',
+          // DAODetail: {
+          //   path: 'app/dao/:daoId',
+          //   parse: {
+          //     daoId: (daoId: string) => `${daoId}`,
+          //   },
+          // },
         },
       },
     },

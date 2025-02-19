@@ -3,7 +3,7 @@
 import '@rainbow-me/rainbowkit/styles.css';
 
 import {ChakraProvider, ColorModeProvider} from '@chakra-ui/react';
-import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
+// import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {Chain} from 'viem';
 import {createConfig, http} from 'wagmi';
@@ -48,15 +48,15 @@ export const config = createConfig({
   multiInjectedProviderDiscovery: false,
 });
 
-const configRainbow = getDefaultConfig({
-  appName: 'My RainbowKit App',
-  projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, sepolia],
-  transports: {
-    [mainnet.id]: http('https://eth-mainnet.g.alchemy.com/v2/...'),
-    [sepolia.id]: http('https://eth-sepolia.g.alchemy.com/v2/...'),
-  },
-});
+// const configRainbow = getDefaultConfig({
+//   appName: 'My RainbowKit App',
+//   projectId: 'YOUR_PROJECT_ID',
+//   chains: [mainnet, sepolia],
+//   transports: {
+//     [mainnet.id]: http('https://eth-mainnet.g.alchemy.com/v2/...'),
+//     [sepolia.id]: http('https://eth-sepolia.g.alchemy.com/v2/...'),
+//   },
+// });
 
 const queryClient = new QueryClient();
 
@@ -71,11 +71,13 @@ export default function Providers({children}: {children: React.ReactNode}) {
           }}
         >
           <StarknetProvider>
-            <WagmiProvider config={config} reconnectOnMount={false}>
+            {/* <WagmiProvider config={config} reconnectOnMount={false}> */}
               <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider>{children}</RainbowKitProvider>
+                {/* <RainbowKitProvider> */}
+                  {children}
+                  {/* </RainbowKitProvider> */}
               </QueryClientProvider>
-            </WagmiProvider>
+            {/* </WagmiProvider> */}
           </StarknetProvider>
         </ColorModeProvider>
       </ChakraProvider>

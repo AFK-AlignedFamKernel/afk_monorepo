@@ -242,14 +242,14 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
                       </Pressable>
                     )}
                   </View>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.uploadButton}
                     onPress={() => {
                       // Handle media upload
                     }}
                   >
                     <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
 

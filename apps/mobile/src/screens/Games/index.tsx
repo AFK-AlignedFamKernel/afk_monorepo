@@ -13,6 +13,7 @@ import stylesheet from './styles';
 import { NameserviceComponent } from '../../modules/nameservice';
 import { QuestsComponent } from '../../modules/quests';
 import { IconButton } from '../../components';
+import { DAOComponent } from '../../modules/DAO';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -24,10 +25,13 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
     return dimensions.width >= 1024;
   }, [dimensions]);
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
+  const handleTabSelected = (tab: string | SelectedTab, screen?: string, insideRouting?:string) => {
     setSelectedTab(tab as any);
-    if (screen) {
+    if (screen && !insideRouting) {
       navigation.navigate(screen as any);
+      setSelectedTab(undefined);
+    } else if(screen && insideRouting) {
+      navigation.navigate(insideRouting as any, { screen: screen });
       setSelectedTab(undefined);
     }
   };
@@ -49,7 +53,7 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
           {CONSOLE_TABS_MENU.map((option) => (
             <Pressable
               style={[styles.menuItem, { borderRadius: isDesktop ? 20 : 15 }]}
-              onPress={() => handleTabSelected(option?.tab, option?.screen)}
+              onPress={() => handleTabSelected(option?.tab, option?.screen, option?.insideRouting)}
             >
               <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
               <Text style={[styles.description, { fontSize: isDesktop ? 20 : 12 }]}>
@@ -93,6 +97,18 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                   />
                   <Text style={styles.mainTitle}>Fun Pump</Text>
                   <LaunchpadComponent isButtonInstantiateEnable={true}></LaunchpadComponent>
+                </View>
+              )}
+
+              {selectedTab == SelectedTab.DAO_COMMUNITY && (
+                <View>
+                  <IconButton
+                    icon="AnchorBack"
+                    size={25}
+                    onPress={handleGoBack}
+                    style={styles.backButton}
+                  />
+                  <DAOComponent></DAOComponent>
                 </View>
               )}
 

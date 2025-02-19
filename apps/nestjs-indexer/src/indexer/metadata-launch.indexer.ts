@@ -108,23 +108,28 @@ export class MetadataLaunchIndexer {
     let i = 1;
     
     let url = '';
-    while (i < event.data.length) {
-      const part = event.data[i];
-      const decodedPart = shortString.decodeShortString(
-        FieldElement.toBigInt(part).toString(),
-      );
-
-      if (this.isNumeric(decodedPart)) {
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+  
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+  
+        url+= decodedPart;
         i++;
-        break;
       }
-
-      url+= decodedPart;
-      i++;
+  
+      url = this.cleanString(url);
+      console.log("url", url);     
+    } catch (error) {
+      console.log("error bytearray", error);
     }
-
-    url = this.cleanString(url);
-    console.log("url", url);
+ 
 
     // const nostrEventId = uint256.uint256ToBN({
     //   low: FieldElement.toBigInt(nostrEventIdLow),

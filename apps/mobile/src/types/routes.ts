@@ -94,6 +94,8 @@ export type MainStackParams = {
   Console: undefined;
   Community: undefined;
   RecordedStream: { streamId: string, recordingUrl?: string };
+  DAO: undefined;
+  DAODetail: { daoId: string };
 };
 
 
@@ -131,6 +133,8 @@ export type HomeBottomStackParams = {
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
+  DAO: undefined;
+  DAODetail: { daoId: string };
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -423,6 +427,12 @@ export type ConsoleScreenProps = CompositeScreenProps<
 
 export type CommunityScreenProps = CompositeScreenProps<
   NativeStackScreenProps<AuthStackParams | HomeBottomStackParams | MainStackParams, 'Community'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+
+export type DAOScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'DAO'>,
   NativeStackScreenProps<RootStackParams>
 >;
 
