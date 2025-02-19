@@ -106,7 +106,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
 
   // console.log("token", token)
-  console.log("url metadata", token?.url)
+  // console.log("url metadata", token?.url)
 
   return (
     <View style={styles.container}>
@@ -123,60 +123,6 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           setIsModalVisibleProps={setIsModalVisible}
           isButtonOpenVisible={true}
         />
-        // <Modal
-        // >
-        //   <View>
-        //     <View style={styles.modalContent}>
-        //       <Text style={styles.modalTitle}>Add Token Metadata</Text>
-
-
-        //       <View style={styles.formGroup}>
-        //         <Text style={styles.label}>Description</Text>
-        //         <TextInput
-        //           style={[styles.input, styles.textArea]}
-        //           placeholder="Nostr event id"
-        //           multiline
-        //           numberOfLines={4}
-        //           value={metadata.nostr_event_id}
-        //           onChangeText={(text) => setMetadata({ ...metadata, nostr_event_id: text })}
-        //         />
-        //       </View>
-
-        //       <View style={styles.formGroup}>
-        //         <Text style={styles.label}>Media</Text>
-        //         <View style={styles.mediaUpload}>
-        //           <TouchableOpacity
-        //             style={styles.uploadButton}
-        //             onPress={() => {
-        //               // Handle media upload
-        //             }}
-        //           >
-        //             <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
-        //           </TouchableOpacity>
-        //         </View>
-        //       </View>
-
-        //       <View style={styles.buttonGroup}>
-        //         <TouchableOpacity
-        //           style={styles.cancelButton}
-        //           onPress={() => setIsModalVisible(false)}
-        //         >
-        //           <Text style={styles.buttonText}>Cancel</Text>
-        //         </TouchableOpacity>
-
-        //         <TouchableOpacity
-        //           style={styles.submitButton}
-        //           onPress={() => {
-        //             // Handle form submission
-        //             // setIsModalVisible(false);
-        //           }}
-        //         >
-        //           <Text style={styles.buttonText}>Submit</Text>
-        //         </TouchableOpacity>
-        //       </View>
-        //     </View>
-        //   </View>
-        // </Modal>
       )}
       <View
         style={{
