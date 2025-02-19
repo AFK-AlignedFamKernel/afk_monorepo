@@ -86,7 +86,12 @@ pub mod DaoFactory {
             // track instances
             self.dao_aa_list.entry((creator, contract_address)).write(self.dao_class_hash.read());
 
-            self.emit(DaoAACreated { creator, contract_address, token_contract_address, starknet_address });
+            self
+                .emit(
+                    DaoAACreated {
+                        creator, contract_address, token_contract_address, starknet_address
+                    }
+                );
 
             contract_address
         }
@@ -153,7 +158,12 @@ mod tests {
         assert(contract > contract_address_const::<0x0>(), 'CREATION FAILED');
 
         let creation_event = super::DaoFactory::Event::DaoAACreated(
-            super::DaoFactory::DaoAACreated { creator: CREATOR(), contract_address: contract, token_contract_address: contract_address_const::<'TOKEN'>(), starknet_address: 'STRK TOKEN' }
+            super::DaoFactory::DaoAACreated {
+                creator: CREATOR(),
+                contract_address: contract,
+                token_contract_address: contract_address_const::<'TOKEN'>(),
+                starknet_address: 'STRK TOKEN'
+            }
         );
 
         spy.assert_emitted(@array![(dao_factory_contract, creation_event)]);
