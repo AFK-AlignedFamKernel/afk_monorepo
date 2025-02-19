@@ -85,8 +85,9 @@ pub struct TokenLaunch {
     pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
     pub starting_price: u256,
-    pub protocol_fee_percent: u256,
-    pub creator_fee_percent: u256,
+    pub protocol_fee_percent: u256, // TODO V2
+    pub creator_fee_percent: u256
+
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
