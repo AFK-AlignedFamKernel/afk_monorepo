@@ -488,12 +488,12 @@ const linking = {
           },
           Community: 'app/community',
           DAO: 'app/dao',
-          DAODetail: {
-            path: 'app/dao/:daoId',
-            parse: {
-              daoId: (daoId: string) => `${daoId}`,
-            },
-          },
+          // DAODetail: {
+          //   path: 'app/dao/:daoId',
+          //   parse: {
+          //     daoId: (daoId: string) => `${daoId}`,
+          //   },
+          // },
         },
       },
     },

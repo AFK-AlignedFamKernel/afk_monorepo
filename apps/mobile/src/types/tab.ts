@@ -56,6 +56,7 @@ export enum SelectedTab {
   QUESTS = 'QUESTS',
   QUEST_FORM = 'QUEST_FORM',
   ALL_QUESTS = 'ALL_QUESTS',
+  DAO_COMMUNITY = 'DAO_COMMUNITY',
 }
 
 export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
@@ -519,7 +520,7 @@ export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[
   // },
 ];
 
-export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
+export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab, insideRouting?:string}[] = [
   {
     title: 'Pump',
     description: 'Launch your token to be trade and pumped',
@@ -531,6 +532,14 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
     description: 'Pixel Game for communities',
     // screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
+  },
+  {
+    title: 'DAO Community',
+    description: 'DAO Community for communities',
+    // screen: 'PixelPeace',
+    screen: 'DAO',
+    insideRouting: 'MainStack',
+    tab: SelectedTab.DAO_COMMUNITY,
   },
   // {
   //   title: 'Quests',
