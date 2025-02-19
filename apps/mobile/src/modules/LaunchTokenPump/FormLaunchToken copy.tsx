@@ -57,10 +57,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
     initialSupply: undefined,
     contract_address_salt: new Date().getTime()?.toString(),
     recipient: account?.address,
-    is_unruggable:false,
-    creator_fee_percent: 0,
-    creator_fee_destination: account?.address,
-
+    is_unruggable:false
   };
 
   const onSubmitPress = (type: TypeCreate) => {

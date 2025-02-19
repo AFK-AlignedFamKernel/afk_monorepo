@@ -1,9 +1,9 @@
-import {LAUNCHPAD_ADDRESS} from 'common';
-import {AccountInterface, cairo, CairoCustomEnum, CallData, constants} from 'starknet';
+import { LAUNCHPAD_ADDRESS } from 'common';
+import { AccountInterface, cairo, CairoCustomEnum, CallData, constants } from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
-import {formatFloatToUint256} from '../../utils/format';
-import {BondingType} from '../../types/keys';
+import { formatFloatToUint256 } from '../../utils/format';
+import { BondingType } from '../../types/keys';
 import { byteArray } from 'starknet';
 
 export type DeployTokenFormValues = {
@@ -14,6 +14,8 @@ export type DeployTokenFormValues = {
   contract_address_salt: string | undefined;
   is_unruggable?: boolean;
   bonding_type?: BondingType;
+  creator_fee_percent?: number;
+  creator_fee_destination?: string;
 };
 
 export const useCreateToken = () => {
@@ -29,14 +31,14 @@ export const useCreateToken = () => {
 
       let initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
       console.log('initial supply', initial_supply);
-
+    ;
       // if(Number.isNaN(initial_supply) && Number.isInteger(data?.initialSupply)){
       //   initial_supply = cairo.uint256(data?.initialSupply)
       // }
       console.log('initial supply', initial_supply);
 
-      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
-      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+      const nameByteArray = byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray = byteArray.byteArrayFromString(data.symbol ?? 'LFG')
       console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
       console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       const deployCall = {
@@ -56,6 +58,7 @@ export const useCreateToken = () => {
           // contract_address_salt: new Date().getTime(),
           // is_unruggable: false,
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
+
           // bonding_type:bondingEnum
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
           // contract_address_salt:cairo.felt(Math.random())
@@ -86,7 +89,7 @@ export const useCreateToken = () => {
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
       // let bondingEnum = new CairoCustomEnum({Exponential: 1});
-      let bondingEnum = new CairoCustomEnum({Linear: {}});
+      let bondingEnum = new CairoCustomEnum({ Linear: {} });
       // let bondingEnum = new CairoCustomEnum({Linear: 0});
       // let bondingEnum = new CairoCustomEnum({Exponential: {}});
       console.log('[DEBUG] bondingEnum', bondingEnum);
@@ -96,19 +99,24 @@ export const useCreateToken = () => {
         if (data.bonding_type === BondingType.Linear) {
           console.log('[DEBUG] bondingEnum linear', data.bonding_type);
           // bondingEnum = new CairoCustomEnum({Linear: 0});
-          bondingEnum = new CairoCustomEnum({Linear: {}});
+          bondingEnum = new CairoCustomEnum({ Linear: {} });
         } else if (data.bonding_type === BondingType.Exponential) {
           console.log('[DEBUG] bondingEnum exp', data.bonding_type);
           // bondingEnum = new CairoCustomEnum({Exponential: 1});
           // bondingEnum = new CairoCustomEnum({Exponential: 3});
-          bondingEnum = new CairoCustomEnum({Exponential: {}});
+          bondingEnum = new CairoCustomEnum({ Exponential: {} });
         }
       }
       console.log('[DEBUG] bondingEnum updt', bondingEnum);
 
-      const nameByteArray= byteArray.byteArrayFromString(data.name ?? 'LFG')
-      const symbolByteArray= byteArray.byteArrayFromString(data.symbol ?? 'LFG')
-      
+      let creator_fee_percent = formatFloatToUint256(data?.creator_fee_percent ?? 0);
+      console.log('creator fee percent', creator_fee_percent);
+
+      let creator_fee_destination = cairo.felt(data?.creator_fee_destination ?? account?.address)
+
+      const nameByteArray = byteArray.byteArrayFromString(data.name ?? 'LFG')
+      const symbolByteArray = byteArray.byteArrayFromString(data.symbol ?? 'LFG')
+
       console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
       console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
@@ -128,6 +136,8 @@ export const useCreateToken = () => {
           // is_unruggable: data?.is_unruggable
           is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
+          creator_fee_percent: creator_fee_percent,
+          creator_fee_destination: creator_fee_destination,
         }),
       };
 
