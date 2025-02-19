@@ -26,6 +26,7 @@ export const useMetadataLaunch = () => {
       console.log('deployCall');
 
       const urlMetadata = byteArray.byteArrayFromString(data.url ? data.url : 'LFG');
+      console.log("urlMetadata", urlMetadata);
       // const nostrEventId= byteArray.byteArrayFromString(data.nostr_event_id ?? 'LFG')
       const nostrEventIdUint = uint256.bnToUint256(`0x${data.nostr_event_id}`); // Recipient nostr pubkey
 

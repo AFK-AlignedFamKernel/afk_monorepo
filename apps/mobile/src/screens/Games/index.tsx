@@ -1,20 +1,20 @@
-import {useMemo, useState} from 'react';
-import {KeyboardAvoidingView, Pressable, ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {PixelPeace} from '../../modules/PixelPeace';
-import {GameSreenProps} from '../../types';
-import {SelectedTab, CONSOLE_TABS_MENU} from '../../types/tab';
-import {AllKeysComponent} from '../KeysMarketplace/AllKeysComponent';
-import {LaunchpadComponent} from '../Launchpad/LaunchpadComponent';
-import {SlinksMap} from '../Slink/SlinksMap';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { PixelPeace } from '../../modules/PixelPeace';
+import { GameSreenProps } from '../../types';
+import { SelectedTab, CONSOLE_TABS_MENU } from '../../types/tab';
+import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
+import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
+import { SlinksMap } from '../Slink/SlinksMap';
 import stylesheet from './styles';
-import {NameserviceComponent} from '../../modules/nameservice';
-import {QuestsComponent} from '../../modules/quests';
-import {IconButton} from '../../components';
+import { NameserviceComponent } from '../../modules/nameservice';
+import { QuestsComponent } from '../../modules/quests';
+import { IconButton } from '../../components';
 
-export const Games: React.FC<GameSreenProps> = ({navigation}) => {
+export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(undefined);
@@ -28,6 +28,7 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
     setSelectedTab(tab as any);
     if (screen) {
       navigation.navigate(screen as any);
+      setSelectedTab(undefined);
     }
   };
 
@@ -41,17 +42,17 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
         <ScrollView
           contentContainerStyle={[
             styles.content,
-            {maxWidth: isDesktop ? '80%' : '100%', gap: isDesktop ? 30 : 15},
+            { maxWidth: isDesktop ? '80%' : '100%', gap: isDesktop ? 30 : 15 },
           ]}
           showsVerticalScrollIndicator={false}
         >
           {CONSOLE_TABS_MENU.map((option) => (
             <Pressable
-              style={[styles.menuItem, {borderRadius: isDesktop ? 20 : 15}]}
-              onPress={() => handleTabSelected(option.tab)}
+              style={[styles.menuItem, { borderRadius: isDesktop ? 20 : 15 }]}
+              onPress={() => handleTabSelected(option?.tab, option?.screen)}
             >
-              <Text style={[styles.title, {fontSize: isDesktop ? 20 : 18}]}>{option.title}</Text>
-              <Text style={[styles.description, {fontSize: isDesktop ? 20 : 12}]}>
+              <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
+              <Text style={[styles.description, { fontSize: isDesktop ? 20 : 12 }]}>
                 {option.description}
               </Text>
             </Pressable>
@@ -66,15 +67,21 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
             >
               {selectedTab == SelectedTab.PIXEL_PEACE && (
                 <>
+                  <IconButton
+                    icon="AnchorBack"
+                    size={25}
+                    onPress={handleGoBack}
+                    style={styles.backButton}
+                  />
                   <PixelPeace></PixelPeace>
                 </>
               )}
 
-              {selectedTab == SelectedTab.SLINK && (
+              {/* {selectedTab == SelectedTab.SLINK && (
                 <>
                   <SlinksMap></SlinksMap>
                 </>
-              )}
+              )} */}
 
               {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
                 <View>
@@ -91,12 +98,24 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
 
               {selectedTab == SelectedTab.NAMESERVICE && (
                 <View>
+                  <IconButton
+                    icon="AnchorBack"
+                    size={25}
+                    onPress={handleGoBack}
+                    style={styles.backButton}
+                  />
                   <NameserviceComponent></NameserviceComponent>
                 </View>
               )}
 
               {selectedTab == SelectedTab.QUESTS && (
                 <View>
+                  <IconButton
+                    icon="AnchorBack"
+                    size={25}
+                    onPress={handleGoBack}
+                    style={styles.backButton}
+                  />
                   <QuestsComponent></QuestsComponent>
                 </View>
               )}
@@ -110,6 +129,12 @@ export const Games: React.FC<GameSreenProps> = ({navigation}) => {
                       borderColor: theme.theme?.colors?.shadow,
                     }}
                   >
+                    <IconButton
+                      icon="AnchorBack"
+                      size={25}
+                      onPress={handleGoBack}
+                      style={styles.backButton}
+                    />
                     <Text style={styles.text}>Key pass for Starknet user</Text>
                     <Text style={styles.text}>
                       {' '}

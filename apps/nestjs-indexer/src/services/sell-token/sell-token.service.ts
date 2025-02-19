@@ -1,11 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SellToken } from './interfaces';
+import { CandlestickService } from '../candlestick/candlesticks.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class SellTokenService {
   private readonly logger = new Logger(SellTokenService.name);
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly candlestickService: CandlestickService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {
+    this.eventEmitter.on('candlestick.generate', async (data) => {
+      await this.candlestickService.generateCandles(
+        data.memecoinAddress,
+        data.interval,
+      );
+    });
+  }
 
   async create(data: SellToken) {
     try {
@@ -20,7 +33,6 @@ export class SellTokenService {
         );
         return;
       }
-
 
       const tokenLaunchRecord = await this.prismaService.token_launch.findFirst(
         { where: { memecoin_address: data.memecoinAddress } },
@@ -62,22 +74,29 @@ export class SellTokenService {
           newTotalTokenHolded = 0;
         }
 
-        const initPoolSupply = Number(tokenLaunchRecord?.initial_pool_supply_dex ?? 0);
-        const liquidityInQuoteToken= Number(newLiquidityRaised);
+        const initPoolSupply = Number(
+          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
+        );
+        const liquidityInQuoteToken = Number(newLiquidityRaised);
         // const tokensInPool = Number(newTotalTokenHolded);
         const tokensInPool = Number(initPoolSupply);
         // Avoid division by zero
         // Memecoin per ETH
-        let priceAfterSell = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+        const priceAfterSell =
+          tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
         // ETH per Memecoin
         // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
         // if (priceHere < 0) {
         //   priceHere = 0;
         // }
-        price = priceAfterSell
-        console.log("price calculation", price);
+        price = priceAfterSell;
+        console.log('price calculation', price);
 
+        const marketCap = (
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+          price
+        ).toString();
 
         await this.prismaService.token_launch.update({
           where: { transaction_hash: tokenLaunchRecord.transaction_hash },
@@ -85,7 +104,8 @@ export class SellTokenService {
             current_supply: newSupply.toString(),
             liquidity_raised: newLiquidityRaised.toString(),
             total_token_holded: newTotalTokenHolded.toString(),
-            price:price?.toString()
+            price: price?.toString(),
+            market_cap: marketCap,
           },
         });
       }
@@ -156,6 +176,11 @@ export class SellTokenService {
           time_stamp: data.timestamp,
           transaction_type: data.transactionType,
         },
+      });
+
+      this.eventEmitter.emit('candlestick.generate', {
+        memecoinAddress: data.memecoinAddress,
+        interval: 5,
       });
     } catch (error) {
       this.logger.error(

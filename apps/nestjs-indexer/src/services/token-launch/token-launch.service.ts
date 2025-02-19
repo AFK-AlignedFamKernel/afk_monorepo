@@ -5,7 +5,7 @@ import { TokenLaunch } from './interfaces';
 @Injectable()
 export class TokenLaunchService {
   private readonly logger = new Logger(TokenLaunchService.name);
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: TokenLaunch) {
     try {
@@ -21,12 +21,12 @@ export class TokenLaunchService {
         return;
       }
 
-      const bondingType = data.bondingType === '0'
-        ? 'Linear'
-        : data.bondingType === '1'
-          ? 'Exponential'
-          : null;
-
+      const bondingType =
+        data.bondingType === '0'
+          ? 'Linear'
+          : data.bondingType === '1'
+            ? 'Exponential'
+            : null;
 
       // TODO: add this in the event
       const initalPoolSupply = Number(data.totalSupply) / 5;
@@ -34,10 +34,12 @@ export class TokenLaunchService {
       const liquidityInQuoteToken = Number(0);
       const tokensInPool = Number(initPoolSupply);
       // Avoid division by zero
-      let priceBuy = tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+      let priceBuy =
+        tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
       if (priceBuy < 0) {
         priceBuy = 0;
       }
+
       await this.prismaService.token_launch.create({
         data: {
           network: data.network,
@@ -51,25 +53,26 @@ export class TokenLaunchService {
           total_supply: data.totalSupply,
           current_supply: data.totalSupply,
           is_liquidity_added: false,
-          liquidity_raised: "0",
+          liquidity_raised: '0',
           threshold_liquidity: data.thresholdLiquidity,
           owner_address: data.ownerAddress,
           bonding_type: bondingType,
           initial_pool_supply_dex: initPoolSupply?.toString(),
+          market_cap: '0',
         },
       });
 
       try {
         await this.prismaService.token_deploy.updateMany({
           where: {
-            memecoin_address: data.memecoinAddress
+            memecoin_address: data.memecoinAddress,
           },
           data: {
-            is_launched: true
-          }
+            is_launched: true,
+          },
         });
       } catch (error) {
-        console.log("Errpr Update the Token model to launched", error)
+        console.log('Errpr Update the Token model to launched', error);
       }
     } catch (error) {
       this.logger.error(
