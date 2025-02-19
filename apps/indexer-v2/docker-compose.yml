@@ -1,0 +1,26 @@
+version: "3"
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg14-latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+
+  dao-indexer:
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - POSTGRES_CONNECTION_STRING=${POSTGRES_CONNECTION_STRING}
+    image: quay.io/apibara/sink-postgres:latest
+    command: 'run ./src/main.ts --allow-env-from-env --allow-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
+    volumes:
+      - ./src:/app
+    depends_on:
+      - postgres
+    restart: on-failure
+
+volumes:
+  timescaledb_data:
