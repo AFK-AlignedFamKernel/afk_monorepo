@@ -152,6 +152,7 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./node_modules/common
 COPY --from=base /app/packages/prisma-db ./node_modules/prisma-db
 COPY --from=base /app/packages/indexer-prisma ./node_modules/indexer-prisma
+COPY --from=base /app/apps/data-backend/node_modules ./apps/data-backend/node_modules
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
