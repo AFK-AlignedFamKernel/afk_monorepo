@@ -13,7 +13,7 @@ import TemplateOverlay from './TemplateOverlay.js';
 import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS} from "common"
 import MetadataView from './metadata/Metadata';
-import { byteArray,CallData } from 'starknet';
+import { byteArray,CallData, cairo } from 'starknet';
 
 const CanvasContainer = (props) => {
 
@@ -380,10 +380,25 @@ const CanvasContainer = (props) => {
         contract: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'] || "" // Contract address
       };
 
+
+      const urlByteArray = byteArray.byteArrayFromString(metaData.url ?? "");
+      console.log("urlByteArray", urlByteArray);
+
+      const nostrEventIdByteArray = byteArray.byteArrayFromString(metaData.nostr ?? 0);
+
+
+      const nostrEventIdFelt = cairo.felt(BigInt(metaData.nostr ?? 0));
+      console.log("nostrEventIdFelt", nostrEventIdFelt);
+
+      const positionUint256 = cairo.uint256(position);
+      console.log("positionUint256", positionUint256);
+
+      // const urlByteArray = byteArray.byteArrayFromString(metaData.url);
       return mutatePlacePixel({
         account: props.account,
         wallet: props.wallet,
-        callProps: callProps(CallData.compile({position, color, now, metaPos:metadata.pos, ipfs:metadata.ipfs,  nostr:metadata.nostr_event_id,  owner: metadata.owner, contract: metadata.contract}), "place_pixel_with_metadata")
+        
+        callProps: callProps(CallData.compile({position, color, now, metaPos:positionUint256 ?? metadata.pos, ipfs:urlByteArray,  nostr:nostrEventIdFelt ?? metadata.nostr_event_id,  owner: metadata.owner, contract: metadata.contract}), "place_pixel_with_metadata")
       }, {
         onError(err) {
           console.log(err);
