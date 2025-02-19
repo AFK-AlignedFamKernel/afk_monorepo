@@ -472,6 +472,7 @@ pub mod DaoAA {
         fn __execute__(ref self: ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
             assert!(get_caller_address().is_zero(), "invalid caller");
 
+            let mut verified_calls: Array<(felt252, u64)> = array![];
             // Verify calls before executing
             for i in 0
                 ..calls
@@ -492,16 +493,17 @@ pub mod DaoAA {
                                 .read();
                             if is_executable {
                                 // mark the call as executed (now as a non-executable)
-                                self
-                                    .executable_tx
-                                    .entry((current_call_hash, tx_count))
-                                    .write(false);
+                                // not yet, add to list of verified calls
+                                // self
+                                //     .executable_tx
+                                //     .entry((current_call_hash, tx_count))
+                                //     .write(false);
+                                verified_calls.append((current_call_hash, tx_count));
                                 break;
                             }
                             tx_count += 1;
                         };
-                        assert!(is_executable, "EXECUTION ERR: ONE CALL CHECK FAILED.");
-                        self.executed_count.write(self.executed_count.read() + 1);
+                        assert(is_executable, 'CALL VALIDATION ERROR');
                         // TODO
                     // currently there's no way to set a Proposal as executed because this task
                     // will require the proposals id. In that case, it must be done manually.
@@ -518,7 +520,15 @@ pub mod DaoAA {
             //     assert!(MIN_TRANSACTION_VERSION <= tx_version, "invalid tx version");
             // }
 
-            execute_calls(calls)
+            let executed_calls = execute_calls(calls);
+
+            // mark all as executed.
+            for verified_call in verified_calls {
+                self.executable_tx.entry(verified_call).write(false);
+                self.executed_count.write(self.executed_count.read() + 1);
+            };
+
+            executed_calls
         }
 
         //  TODO
@@ -588,7 +598,7 @@ pub mod DaoAA {
 
         fn _update_config(ref self: ContractState, config_params: ConfigParams) {
             // Updates all possible proposal configuration for
-            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED');
+            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
             if let Option::Some(var) = config_params.is_admin_bypass_available {
                 self.is_admin_bypass_available.write(var);
             }
@@ -1083,5 +1093,136 @@ mod tests {
 
         // assert the call is no longer executable
         assert(!proposal_dispatcher.is_executable(call), 'STATE CHANGE FAILED');
+    }
+
+    #[test]
+    #[should_panic(expected: 'CALL VALIDATION ERROR')]
+    fn test_proposal_should_panic_on_invalid_call_execution() {
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let target_contract = contract_address_const::<'TARGET'>();
+
+        // initialize an executable proposal
+        let created_at = starknet::get_block_timestamp();
+        cheat_block_timestamp(
+            proposal_dispatcher.contract_address, created_at, CheatSpan::TargetCalls(1),
+        );
+        cheat_caller_address(
+            proposal_dispatcher.contract_address, OWNER(), CheatSpan::TargetCalls(1),
+        );
+
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default(),
+        };
+
+        let mut calldata = array![];
+        let transfer_amount = 100_u256;
+        target_contract.serialize(ref calldata);
+        transfer_amount.serialize(ref calldata);
+
+        let call = Call {
+            to: token_contract, selector: selector!("transfer"), calldata: calldata.span()
+        };
+
+        // created by 'OWNER'
+        let proposal_id = proposal_dispatcher.create_proposal(proposal_params, array![call]);
+
+        feign_executable_proposal(proposal_id, proposal_dispatcher, token_dispatcher, OWNER());
+        let creator_balance = token_dispatcher.balance_of(OWNER());
+        println!("Before call, owner balance: {}", creator_balance);
+
+        let account_dispatcher = ISRC6Dispatcher { contract_address: proposal_contract };
+
+        // __execute__ avoids calls from other contracts.
+        cheat_caller_address(proposal_contract, Zero::zero(), CheatSpan::TargetCalls(1));
+        cheat_caller_address(token_contract, OWNER(), CheatSpan::Indefinite);
+        let _ = account_dispatcher.__execute__(array![call]);
+
+        assert(token_dispatcher.balance_of(target_contract) == transfer_amount, 'EXECUTION FAILED');
+
+        // execute the same call. should panic because the call has already been executed.
+        cheat_caller_address(proposal_contract, Zero::zero(), CheatSpan::TargetCalls(1));
+        let _ = account_dispatcher.__execute__(array![call]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_proposal_call_storage_not_updated_on_execution_failure() {
+        let token_contract = deploy_token();
+        let proposal_contract = deploy_dao(token_contract);
+        let proposal_dispatcher = IVoteProposalDispatcher { contract_address: proposal_contract };
+        let token_dispatcher = IERC20Dispatcher { contract_address: token_contract };
+
+        ///
+        let created_at = starknet::get_block_timestamp();
+        cheat_caller_address(proposal_contract, CREATOR(), CheatSpan::TargetCalls(1),);
+        let proposal_params = ProposalParams {
+            content: "My Proposal",
+            proposal_type: Default::default(),
+            proposal_automated_transaction: Default::default(),
+        };
+        let calldata_1 = Call {
+            to: token_contract,
+            selector: selector!("balance_of"),
+            calldata: array!['data 1', 'data 2'].span()
+        };
+
+        let calldata_2 = Call {
+            to: token_contract,
+            selector: selector!("balance_of"),
+            calldata: array!['data 3', 'data 4', 'data 5'].span()
+        };
+        // created by 'CREATOR'
+        let proposal_id = proposal_dispatcher
+            .create_proposal(proposal_params, array![calldata_1, calldata_2]);
+        assert(!proposal_dispatcher.is_executable(calldata_1), '');
+        assert(!proposal_dispatcher.is_executable(calldata_2), '');
+        ///
+
+        feign_executable_proposal(proposal_id, proposal_dispatcher, token_dispatcher, CREATOR());
+        let account_dispatcher = ISRC6Dispatcher { contract_address: proposal_contract };
+        // assert these two are executable
+        assert(proposal_dispatcher.is_executable(calldata_1), 'CALLDATA 1 NOT EXECUTABLE');
+        assert(proposal_dispatcher.is_executable(calldata_2), 'CALLDATA 2 NOT EXECUTABLE');
+
+        cheat_caller_address(proposal_contract, Zero::zero(), CheatSpan::TargetCalls(1));
+        account_dispatcher.__execute__(array![calldata_1, calldata_2]);
+
+        assert(proposal_dispatcher.is_executable(calldata_1), 'UDATE ERROR')
+    }
+
+    #[test]
+    #[should_panic(expected: 'UNAUTHORIZED CALLER')]
+    fn test_proposal_should_panic_on_config_update_unauthorized_caller() {
+        let token_contract = contract_address_const::<'init'>();
+        let proposal_contract = deploy_dao(token_contract);
+        let dao_dispatcher = IDaoAADispatcher { contract_address: proposal_contract };
+
+        let old_token_contract = dao_dispatcher.get_token_contract_address();
+        assert(token_contract == old_token_contract, '');
+        let new_token_contract = contract_address_const::<'new'>();
+        let minimal_balance_voting = 5000;
+
+        // change just two values. This change will be made by an unauthorized caller
+        cheat_caller_address(proposal_contract, CREATOR(), CheatSpan::TargetCalls(1));
+        let config_params = ConfigParams {
+            is_admin_bypass_available: Option::None,
+            // note: default is true, set in constructor. But we don't wish to change it.
+            is_only_dao_execution: Option::None,
+            token_contract_address: Option::Some(new_token_contract),
+            minimal_balance_voting: Option::Some(minimal_balance_voting),
+            max_balance_per_vote: Option::None,
+            minimal_balance_create_proposal: Option::None,
+            minimum_threshold_percentage: Option::None // 60 init in the contructor
+        };
+
+        dao_dispatcher.update_config(config_params); // should panic.
     }
 }

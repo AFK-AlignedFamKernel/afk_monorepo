@@ -25,7 +25,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "**/.ts",
+    "**/*.ts",
     ".apibara/types"
   ],
   "exclude": [

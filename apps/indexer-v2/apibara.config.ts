@@ -3,7 +3,6 @@ import { defineConfig } from 'apibara/config';
 
 export default defineConfig({
   runtimeConfig: {
-    streamUrl: 'https://starknet.preview.apibara.org',
     pgLiteDBPath: 'memory://persistence',
   },
   presets: {
