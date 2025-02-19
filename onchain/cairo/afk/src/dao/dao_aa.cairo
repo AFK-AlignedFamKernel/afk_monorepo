@@ -129,6 +129,7 @@ pub mod DaoAA {
             felt252, u64
         >, // variable for optimized iteration. stores the highest
         current_max_tx_count: u64, // optimized for get iteration
+        blacklisted_callers: Map<ContractAddress, bool>,
         // votes_by_proposal: Map<u256, u256>, // Maps proposal ID to vote count
         // here
         // user_votes: Map<
@@ -470,7 +471,11 @@ pub mod DaoAA {
 
         // TODO, security issue.
         fn __execute__(ref self: ContractState, calls: Array<Call>) -> Array<Span<felt252>> {
-            assert!(get_caller_address().is_zero(), "invalid caller");
+            let caller = get_caller_address();
+            assert(
+                !self.blacklisted_callers.entry(caller).read() && caller.is_non_zero(),
+                'CALLER UNAUTHORIZED'
+            );
 
             let mut verified_calls: Array<(felt252, u64)> = array![];
             // Verify calls before executing
@@ -502,6 +507,9 @@ pub mod DaoAA {
                                 break;
                             }
                             tx_count += 1;
+                        };
+                        if !is_executable {
+                            self.blacklisted_callers.entry(caller).write(true);
                         };
                         assert(is_executable, 'CALL VALIDATION ERROR');
                         // TODO
