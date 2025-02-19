@@ -1,13 +1,12 @@
-import type { Config } from "drizzle-kit";
+import type { Config } from 'drizzle-kit';
 
 const connectionString =
-  process.env.POSTGRES_CONNECTION_STRING ??
-  "postgres://postgres:postgres@localhost:5432/postgres";
+  process.env.POSTGRES_CONNECTION_STRING ?? 'postgres://postgres:postgres@localhost:5434/indexer';
 
 export default {
-  schema: "./src/lib/schema.ts",
-  out: "./drizzle",
-  dialect: "postgresql",
+  schema: './lib/schema.ts',
+  out: './.drizzle',
+  dialect: 'postgresql',
   dbCredentials: {
     url: connectionString,
   },
