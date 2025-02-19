@@ -31,11 +31,17 @@ pub trait ILaunchpadMarketplace<TContractState> {
         initial_supply: u256,
         contract_address_salt: felt252,
         is_unruggable: bool,
-        bonding_type: BondingType
+        bonding_type: BondingType,
+        creator_fee_percent: u256,
+        creator_fee_destination: ContractAddress
     ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
-        ref self: TContractState, coin_address: ContractAddress, bonding_type: BondingType
+        ref self: TContractState,
+        coin_address: ContractAddress,
+        bonding_type: BondingType,
+        creator_fee_percent: u256,
+        creator_fee_destination: ContractAddress
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
@@ -113,6 +119,16 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_amount_to_paid_launch(ref self: TContractState, amount_to_paid_launch: u256);
     fn set_amount_to_paid_create_token(ref self: TContractState, amount_to_paid_create_token: u256);
     fn set_token_address_for_action(ref self: TContractState, token_address: ContractAddress);
+    fn set_is_fees_creator_sell_enabled(
+        ref self: TContractState, is_fees_creator_sell_enabled: bool
+    );
+    fn set_is_fees_creator_buy_enabled(ref self: TContractState, is_fees_creator_buy_enabled: bool);
+    fn set_is_fees_creator_enabled(ref self: TContractState, is_fees_creator_enabled: bool);
+    fn set_is_creator_fee_sent_before_graduated(
+        ref self: TContractState, is_creator_fee_sent_before_graduated: bool
+    );
+
+    fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
     fn set_admin(ref self: TContractState, admin: ContractAddress);
     fn set_role_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
     fn set_revoke_address(ref self: TContractState, contract_address: ContractAddress, role:felt252);
