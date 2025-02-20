@@ -1142,8 +1142,7 @@ pub mod LaunchpadMarketplace {
             let creator_fee_distributed = launch.creator_amount_distributed;
             let creator_fee_to_distribute = launch.creator_amount_to_distribute;
             if !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == true {
-                let creator_fee_amount = launch.creator_amount_received;
-                quote_token.transfer(launch.creator_fee_destination, creator_fee_amount);
+                quote_token.transfer(launch.creator_fee_destination, creator_fee_to_distribute);
                 launch.creator_amount_received = 0_u256;
                 launch.creator_amount_distributed += creator_fee_to_distribute;
                 launch.creator_amount_to_distribute = 0_u256;
