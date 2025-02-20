@@ -1,5 +1,6 @@
 import './metadataForm.css'
 type IProps = {
+    isModal?:boolean;
     showMeta: boolean;
     closeMeta: () => void;
     handleOpen:()=>void;
@@ -8,7 +9,7 @@ type IProps = {
     formData
 }
 
-export default function MetadataForm({ showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
+export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target

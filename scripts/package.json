@@ -20,6 +20,7 @@
     "deploy:chain_faction": "ts-node ./run/pixel/create_all_chain_faction.ts",
     "deploy:shield_setup": "ts-node ./run/pixel/shield_setup.ts",
     "deploy:dao_factory": "ts-node ./deploy/dao_factory.ts",
+    "deploy:quests_canva": "ts-node ./run/pixel/create_all_chain_faction.ts",
     "get_hash": "ts-node ./run/utils/get_hash.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",

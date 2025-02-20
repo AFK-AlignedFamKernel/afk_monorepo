@@ -13,6 +13,7 @@ pub struct AdminsFeesParams {
     pub is_auction_time_reset: bool
 }
 
+
 #[derive(Drop, Copy, Serde, starknet::Store, PartialEq)]
 pub struct PixelShield {
     pub pos: u128,
@@ -490,3 +491,27 @@ pub struct InitParams {
     pub daily_quests_count: u32,
     pub devmode: bool,
 }
+
+#[derive(Drop, Copy, Serde, starknet::Event)]
+pub struct AdminsFeesParamsEvent {
+    pub is_shield_pixel_activated: bool,
+    pub price_by_time_seconds: u256,
+    pub shield_type: PixelShieldType,
+    pub token_address: ContractAddress,
+    pub auction_time_reset_price: u64,
+    pub is_auction_time_reset: bool
+}
+
+#[derive(Drop, Copy, Serde, starknet::Event)]
+pub struct ShieldAdminParamsEvent {
+    pub timestamp: u64,
+    pub shield_type: PixelShieldType,
+    pub until: u64,
+    pub amount_to_paid: u256,
+    pub cost_per_second: u256,
+    pub cost_per_minute: u256,
+    pub to_address: starknet::ContractAddress,
+    pub buy_token_address: starknet::ContractAddress,
+}
+
+

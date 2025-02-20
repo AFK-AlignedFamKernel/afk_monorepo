@@ -12,8 +12,8 @@ import {
 import { formatFloatToUint256 } from "common"
 import ercAbi from "../contracts/erc20.json"
 
-
 import EraserIcon from '../resources/icons/Eraser.png';
+import MetadataForm from '../canvas/metadata/Metadata';
 
 const PixelSelector = (props) => {
   const { chain } = useNetwork()
@@ -203,6 +203,12 @@ const PixelSelector = (props) => {
                 : ""
 
             }
+
+            <div onClick={() => props.setShowMetadataForm(!props?.showMetadataForm)} className='Button__primary Text__large'>
+              <p className='PixelSelector__text'>{props?.showMetadataForm ? "Hide Metadata Form" : "Show Metadata Form"}</p>
+            </div>
+
+            {props?.showMetadataForm && <MetadataForm isModal={true} showMeta={props?.showMetadataForm} closeMeta={() => props?.setShowMetadataForm(false)} handleOpen={() => props?.setShowMetadataForm(true)} selectorMode={props?.selectorMode} formData={props?.metaData} setFormData={props?.setMetadata} />}
 
           </div>
         </div>

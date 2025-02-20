@@ -32,6 +32,8 @@ go run main.go
 
 go run ./cmd/backend/backend.go
 
+go run ./cmd/consumer/consumer.go
+
 ```
 
 ## Build

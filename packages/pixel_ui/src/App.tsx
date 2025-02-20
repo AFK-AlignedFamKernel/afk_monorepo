@@ -725,6 +725,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [nftPosition, setNftPosition] = useState(null);
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
+  const [showMetadataForm, setShowMetaDataForm] = useState(false);
+  const [metaData, setMetadata] = useState({
+    twitter: '',
+    nostr: '',
+    ips: ''
+  })
 
 
   // Account
@@ -1002,6 +1008,10 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 isShieldMode={isShieldMode}
                 registerShieldArea={registerShieldArea}
                 selectedShieldPixels={selectedShieldPixels}
+                showMetadataForm={showMetadataForm}
+                setShowMetadataForm={setShowMetaDataForm}
+                metaData={metaData}
+                setMetadata={setMetadata}
               />
             )}
             {isFooterSplit && !footerExpanded && (

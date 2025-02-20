@@ -746,7 +746,7 @@ const CanvasContainer = (props) => {
 
   return (
     <>
-      <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips: "", nostr: "", twitter: "" })]} showMeta={showMetadataForm} />
+      {/* <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips: "", nostr: "", twitter: "" })]} showMeta={showMetadataForm} /> */}
       <div
         ref={canvasContainerRef}
         className="CanvasContainer"
