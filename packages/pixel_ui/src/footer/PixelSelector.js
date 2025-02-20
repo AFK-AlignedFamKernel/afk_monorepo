@@ -23,6 +23,8 @@ const PixelSelector = (props) => {
     // address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
     address: chain.nativeCurrency.address
   })
+
+  console.log("props.metadata", props?.metadata)
   //Pixel Call Hook
   const { mutate: mutatePlaceShield } = useContractAction();
   const shieldPixelFn = async () => {
@@ -218,7 +220,10 @@ const PixelSelector = (props) => {
               <p className='PixelSelector__text'>{props?.showMetadataForm ? "Hide Metadata Form" : "Show Metadata Form"}</p>
             </div>
 
-            {props?.showMetadataForm && <MetadataForm isModal={true} showMeta={props?.showMetadataForm} closeMeta={() => props?.setShowMetadataForm(false)} handleOpen={() => props?.setShowMetadataForm(true)} selectorMode={props?.selectorMode} formData={props?.metaData} setFormData={props?.setMetadata} />}
+            {props?.showMetadataForm && <MetadataForm
+              isModal={true} showMeta={props?.showMetadataForm} closeMeta={() => props?.setShowMetadataForm(false)} handleOpen={() => props?.setShowMetadataForm(true)} selectorMode={props?.selectorMode}
+              formData={props?.metaData}
+              setFormData={props?.setMetadata} />}
 
           </div>
         </div>

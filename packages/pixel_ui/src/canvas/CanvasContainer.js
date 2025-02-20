@@ -363,9 +363,11 @@ const CanvasContainer = (props) => {
           now: now
         })
       };
+      console.log("props?.metadata", props?.metadata)
 
       // Handle metadata if provided
       if (props?.metadata?.twitter || props?.metadata?.nostr || props?.metadata?.ips) {
+
         const metadata = {
           pos: position,
           ipfs: props?.metadata?.ips ? byteArray.byteArrayFromString(props?.metadata?.ips) : [],

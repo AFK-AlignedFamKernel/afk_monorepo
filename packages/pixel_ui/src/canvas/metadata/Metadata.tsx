@@ -6,11 +6,13 @@ type IProps = {
     handleOpen:()=>void;
     selectorMode:boolean;
     setFormData:any;
-    formData
+    formData:any;
+    metadata:any;
+    setMetadata:any;
 }
 
 export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
-
+    console.log("formData", formData)
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setFormData(prevData => ({
