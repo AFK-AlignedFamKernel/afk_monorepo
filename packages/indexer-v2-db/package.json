@@ -1,0 +1,23 @@
+{
+  "name": "indexer-v2-db",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "drizzle-kit generate && tsc",
+    "lint": "biome check .",
+    "lint:fix": "pnpm lint --write",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.37.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.2",
+    "drizzle-kit": "^0.29.0",
+    "typescript": "^5.6.3"
+  }
+}

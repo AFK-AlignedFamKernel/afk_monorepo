@@ -20,9 +20,8 @@
     "@apibara/protocol": "2.0.0-beta.40",
     "@apibara/starknet": "2.0.0-beta.40",
     "apibara": "2.0.0-beta.40",
-    "drizzle-orm": "^0.37.0",
     "indexer-v2": "link:",
-    "pg": "^8.13.1",
+    "indexer-v2-db": "workspace:*",
     "starknet": "^6.11.0",
     "viem": "^2.22.9",
     "@electric-sql/pglite": "^0.2.14"
@@ -31,7 +30,6 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.5.2",
     "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.29.0",
     "typescript": "^5.7.3",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.6.0"
