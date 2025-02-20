@@ -4,8 +4,8 @@ import { drizzleStorage, useDrizzleStorage } from '@apibara/plugin-drizzle';
 import { StarknetStream } from '@apibara/starknet';
 import { hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
-import { db } from '../lib/db';
-import { daoCreation } from '../lib/schema';
+import { db } from 'indexer-v2-db';
+import { daoCreation } from 'indexer-v2-db/schema';
 
 const DAO_AA_CREATED = hash.getSelectorFromName('DaoAACreated') as `0x${string}`;
 const PROPOSAL_CREATED = hash.getSelectorFromName('ProposalCreated') as `0x${string}`;

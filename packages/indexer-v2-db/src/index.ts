@@ -4,7 +4,7 @@ import pg from 'pg';
 import * as schema from './schema';
 
 const connectionString =
-  process.env.POSTGRES_CONNECTION_STRING ?? 'postgres://postgres:postgres@localhost:5434/postgres';
+  process.env.INDEXER_V2_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5435/postgres';
 
 const pool = new pg.Pool({
   connectionString,
