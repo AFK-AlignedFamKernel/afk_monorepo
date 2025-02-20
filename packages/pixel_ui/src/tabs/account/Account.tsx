@@ -1,9 +1,9 @@
 import React from 'react';
 import { constants } from 'starknet';
+import { useAccount, useConnect } from '@starknet-react/core';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
-import { useWalletStore } from 'afk_react_sdk';
 import BeggarRankImg from '../../resources/ranks/Beggar.png';
 import OwlRankImg from '../../resources/ranks/Owl.png';
 import CrownRankImg from '../../resources/ranks/Crown.png';
@@ -18,27 +18,8 @@ interface AccountProps {
 }
 
 const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
-  const {
-    // Core wallet state
-    connected,
-    address,
-    queryAddress,
-    isSessionable,
-    usingSessionKeys,
-    isLoading,
-    error,
-
-    // Account metadata
-    username,
-    pixelCount,
-    accountRank,
-
-    // Actions
-    connectWallet,
-    disconnectWallet,
-    startSession,
-    updateAccountMetadata
-  } = useWalletStore();
+  const { address, account, isConnected, status } = useAccount();
+  const { connect, connectors, disconnect } = useConnect();
 
   const connectorLogo = (name: string) => {
     switch (name) {
@@ -72,18 +53,16 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
 
   const addressShort = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
 
-  // Get rank image based on account rank
+  // Get rank image based on pixel count
   const getRankImage = () => {
-    switch (accountRank) {
-      case 'Alpha Wolf':
-        return WolfRankImg;
-      case 'Degen Artist':
-        return CrownRankImg;
-      case 'Pixel Wizard':
-        return OwlRankImg;
-      default:
-        return BeggarRankImg;
+    if (pixelCount >= 500) {
+      return WolfRankImg;
+    } else if (pixelCount >= 250) {
+      return CrownRankImg;
+    } else if (pixelCount >= 50) {
+      return OwlRankImg;
     }
+    return BeggarRankImg;
   };
 
   // Get rank background based on pixel count
@@ -106,28 +85,42 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
     };
   };
 
+  // Placeholder for metadata that would normally come from your backend
+  const [pixelCount, setPixelCount] = React.useState(0);
+  const [username, setUsername] = React.useState('');
+
+  // Fetch user data when connected
+  React.useEffect(() => {
+    if (address) {
+      // Replace these with your actual API calls
+      fetch(`/api/get-pixel-count?address=${address}`)
+        .then(res => res.json())
+        .then(data => setPixelCount(data.count));
+      
+      fetch(`/api/get-username?address=${address}`)
+        .then(res => res.json())
+        .then(data => setUsername(data.username));
+    }
+  }, [address]);
+
   return (
     <BasicTab
       title='Account'
-      queryAddress={queryAddress}
+      queryAddress={address ? address.toLowerCase().slice(2).padStart(64, '0') : '0'}
       setActiveTab={setActiveTab}
     >
-      {!connected ? (
+      {!isConnected ? (
         <div className="Account__login-container">
           <div className="Account__login">
-            <div
-              className={`Text__medium Button__primary Account__login__button ${isLoading ? 'disabled' : ''}`}
-              onClick={async () => {
-                try {
-                  await connectWallet();
-                } catch (error) {
-                  console.error('Failed to connect wallet:', error);
-                  // Error will be shown through the error state from useWalletStore
-                }
-              }}
-            >
-              {isLoading ? 'Connecting...' : 'Starknet Login'}
-            </div>
+            {connectors.map((connector) => (
+              <div
+                key={connector.id}
+                className={`Text__medium Button__primary Account__login__button ${status === 'connecting' ? 'disabled' : ''}`}
+                onClick={() => connect({ connector })}
+              >
+                {status === 'connecting' ? 'Connecting...' : `Connect ${connectorName(connector.id)}`}
+              </div>
+            ))}
           </div>
           <div className="Account__wallet__noconnectors">
             <p className="Text__small">
@@ -179,7 +172,10 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
                     alt="rank"
                   />
                   <p className="Text__small Account__rank__text">
-                    {accountRank}
+                    {pixelCount >= 500 ? 'Alpha Wolf' :
+                     pixelCount >= 250 ? 'Degen Artist' :
+                     pixelCount >= 50 ? 'Pixel Wizard' :
+                     'Art Beggar'}
                   </p>
                 </div>
               </div>
@@ -212,47 +208,25 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
           <div className="Account__disconnect__button__separator"></div>
           
           <div className="Account__footer">
-            <div className="Account__kudos">
-              {!usingSessionKeys && isSessionable ? (
-                <p className="Text__small Account__kudos__label">
-                  Tired of approving each pixel? Start a session!
-                </p>
-              ) : (
-                <p className="Text__small Account__kudos__label">
-                  Session active
-                </p>
-              )}
-            </div>
-            <div>
-              {!usingSessionKeys && isSessionable && (
-                <div
-                  className="Text__small Button__primary"
-                  style={{ marginBottom: '0.3rem' }}
-                  onClick={() => startSession()}
-                >
-                  Start session
-                </div>
-              )}
-              <div
-                className="Text__small Button__primary Account__disconnect__button"
-                onClick={() => disconnectWallet()}
-              >
-                Logout
-              </div>
+            <div
+              className="Text__small Button__primary Account__disconnect__button"
+              onClick={() => disconnect()}
+            >
+              Logout
             </div>
           </div>
         </div>
       )}
 
-      {error && (
+      {status === 'error' && (
         <div className="Account__error">
-          <p className="Text__small">{error}</p>
+          <p className="Text__small">Failed to connect wallet</p>
         </div>
       )}
 
-      {isLoading && (
+      {status === 'connecting' && (
         <div className="Account__loading">
-          <p className="Text__small">Loading...</p>
+          <p className="Text__small">Connecting...</p>
         </div>
       )}
     </BasicTab>

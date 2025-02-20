@@ -21,7 +21,6 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
-import {  useQueryAddressEffect, useWalletStore, useConnectArgent, useAutoConnect,  } from 'afk_react_sdk';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -66,52 +65,15 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   });
 
   //--> Starknet wallet
-  useQueryAddressEffect()
-  useAutoConnect()
-
-  //--> Connect Argent
-  useConnectArgent()
-
-  const {
-    connectWallet,
-    startSession,
-    account,
-    wallet,
-    address,
-    queryAddress,
-    setConnected,
-    isSessionable,
-    disconnectWallet,
-    usingSessionKeys
-  } = useWalletStore()
-
-  const {account:accountWallet} = useAccount()
-
-  // console.log("accountWallet", accountWallet)
- 
-
-
-
+  const { address, account, isConnected } = useAccount();
   const { chain } = useNetwork();
-  // const [queryAddress, setQueryAddress] = useState('0');
-  // const [connected, setConnected] = useState(false); // TODO: change to only devnet
-  // useEffect(() => {
-  //   if (devnetMode) {
-  //     if (connected) {
-  //       setQueryAddress(
-  //         '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-  //       );
-  //     } else {
-  //       setQueryAddress('0');
-  //     }
-  //   } else {
-  //     if (!address) {
-  //       setQueryAddress('0');
-  //     } else {
-  //       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-  //     }
-  //   }
-  // }, [address, connected]);
+  const { connectors } = useConnect();
+
+  // Format query address from the actual address
+  const queryAddress = React.useMemo(() => {
+    if (!address) return '0';
+    return address.toLowerCase().slice(2).padStart(64, '0');
+  }, [address]);
 
   // Contracts
   // TODO: Pull addrs from api?
@@ -305,22 +267,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
       setShieldedAreas([]);
     }
   };
-
-  // const updateSelectedShieldPixels = (start, end) => {
-  //   const startX = Math.min(start.x, end.x);
-  //   const startY = Math.min(start.y, end.y);
-  //   const endX = Math.max(start.x, end.x);
-  //   const endY = Math.max(start.y, end.y);
-
-  //   const newSelectedPixels = [];
-  //   for (let y = startY; y <= endY; y++) {
-  //     for (let x = startX; x <= endX; x++) {
-  //       const position = y * width + x;
-  //       newSelectedPixels.push(position);
-  //     }
-  //   }
-  //   setSelectedShieldPixels(newSelectedPixels);
-  // };
  
   const updateSelectedShieldPixels = (position, maxPixels) => {
     setSelectedShieldPixels((prevPixels:any[]) => {
@@ -734,11 +680,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   })
 
 
-  // Account
-  const { connectors } = useConnect();
-
-  // console.log("account?.address", account?.address)
-
   // Tabs
   const [showExtraPixelsPanel, setShowExtraPixelsPanel] = useState(false);
 
@@ -792,8 +733,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           colorPixel={colorPixel}
           address={address}
           account={account}
-          accountWallet={accountWallet}
-          wallet={wallet}
+          accountWallet={account}
+          wallet={account}
           artPeaceContract={artPeaceContract}
           colors={colors}
           canvasRef={canvasRef}
@@ -875,14 +816,14 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             address={address}
             queryAddress={queryAddress}
             account={account}
-            wallet={wallet}
+            wallet={account}
             chain={chain}
             clearAll={clearAll}
-            setConnected={setConnected}
+            setConnected={isConnected}
             artPeaceContract={artPeaceContract}
             usernameContract={usernameContract}
             canvasNftContract={canvasNftContract}
-            usingSessionKeys={usingSessionKeys}
+            usingSessionKeys={isConnected}
             setNotificationMessage={setNotificationMessage}
             colors={colors}
             activeTab={activeTab}
@@ -957,19 +898,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             setUserFactions={setUserFactions}
             latestMintedTokenId={latestMintedTokenId}
             setLatestMintedTokenId={setLatestMintedTokenId}
-            connectWallet={connectWallet}
             connectors={connectors}
             currentDay={currentDay}
             gameEnded={gameEnded}
             isLastDay={isLastDay}
             endTimestamp={endTimestamp}
             host={host}
-
-            startSession={startSession}
-            isSessionable={isSessionable}
-            disconnectWallet={disconnectWallet}
-            estimateInvokeFee={estimateInvokeFee}
-
           />
         </div>
         <div className='App__footer'>
@@ -1006,7 +940,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 isMobile={isMobile}
                 clearAll={clearAll}
                 account={account}
-                wallet={wallet}
+                wallet={account}
                 toggleShieldMode={toggleShieldMode}
                 isShieldMode={isShieldMode}
                 registerShieldArea={registerShieldArea}
