@@ -1,4 +1,3 @@
-
 import { create } from 'zustand'
 import { connect, disconnect, connect as nextConnect, StarknetWindowObject } from 'starknetkit-next';
 import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
@@ -21,6 +20,11 @@ interface WalletState {
     sessionRequest: any | null
     accountSessionSignature: any | null
     dappKey: { privateKey: Uint8Array, publicKey: string } | null
+    metadata: {
+        twitter: string;
+        nostr: string;
+        ipfs: string;
+    };
     
   
     setWallet: (wallet: any) => void
@@ -35,6 +39,7 @@ interface WalletState {
     setSessionRequest: (sessionRequest: any) => void
     setAccountSessionSignature: (accountSessionSignature: any) => void
     setDappKey: (dappKey: { publicKey: string, privateKey }) => void
+    setMetadata: (metadata: { twitter: string; nostr: string; ipfs: string; }) => void
 
     disconnectWallet: (devnetMode?: boolean) => void
     connectWallet: (provider: any, devnetMode?: boolean) => Promise<void>
@@ -75,6 +80,11 @@ const canSession = (wallet) => {
         sessionRequest: null,
         accountSessionSignature: null,
         dappKey: null,
+        metadata: {
+            twitter: '',
+            nostr: '',
+            ipfs: ''
+        },
   
         setWallet: (wallet) => set({ wallet }),
         setConnectorData: (connectorData) => set({ connectorData }),
@@ -88,8 +98,9 @@ const canSession = (wallet) => {
         setSessionRequest: (sessionRequest) => set({ sessionRequest }),
         setAccountSessionSignature: (accountSessionSignature) => set({ accountSessionSignature }),
         setDappKey: (dappKey) => set({ dappKey }),
+        setMetadata: (metadata) => set({ metadata }),
   
-        connectWallet: async (provider, devnetMode = false) => {
+        connectWallet: async (devnetMode = false) => {
         if (devnetMode) {
              set({ connected: true });
             return;
@@ -107,32 +118,49 @@ const canSession = (wallet) => {
           }
         });
   
-        if (wallet && connectorData && connector) {
-
-          const new_account = await connector.account(provider);
-
-          console.log(new_account, "sjsjsj")
-
-  
-          set({
-            wallet,
-            connectorData:{account:connectorData?.account,chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString(): undefined},
-            connector,
-            connected: true,
-            account: new_account,
-            address: connectorData?.account,
-            isSessionable: canSession(wallet)
-          });
-          
+        if (!wallet || !connectorData || !connector) {
+          console.error('Wallet connection failed - missing wallet data');
+          throw new Error('Wallet connection failed');
         }
+  
+        const new_account = await connector?.account(provider);
+        
+        if (!new_account) {
+          console.error('Account creation failed');
+          throw new Error('Account creation failed');
+        }
+  
+        console.log('Connected wallet:', {
+          wallet,
+          account: new_account,
+          address: connectorData?.account
+        });
+  
+        set({
+          wallet,
+          connectorData: {
+            account: connectorData?.account,
+            chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString() : undefined
+          },
+          connector,
+          connected: true,
+          account: new_account,
+          address: connectorData?.account,
+          queryAddress: connectorData?.account ? connectorData.account.toLowerCase().slice(2).padStart(64, '0') : '0',
+          isSessionable: canSession(wallet)
+        });
       } catch (error) {
         console.error('Wallet connection error:', error);
-        // Optionally handle connection errors
         set({ 
-          connected: false, 
+          wallet: null,
           connectorData: null,
+          connector: null,
+          connected: false, 
+          account: null,
+          address: null,
           queryAddress: '0' 
         });
+        throw error;
       }
     },
     startSession: async () => {
@@ -251,7 +279,7 @@ const canSession = (wallet) => {
               icons: []
             }
           });
-          const new_account = await connector.account(provider);
+          const new_account = await connector?.account(provider);
           setAccount(new_account)
           setConnector(connector);
           setWallet(connectedWallet)

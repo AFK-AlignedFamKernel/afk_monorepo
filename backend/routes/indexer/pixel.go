@@ -224,6 +224,7 @@ func revertPixelShieldPlacedEvent(event IndexerEvent) {
 func processBasicPixelPlacedEvent(event IndexerEvent) {
 	address := event.Event.Keys[1][2:] // Remove 0x prefix
 	timestampHex := event.Event.Data[0]
+	fmt.Println("placePixel")
 	timestamp, err := strconv.ParseInt(timestampHex, 0, 64)
 	if err != nil {
 		PrintIndexerError("processBasicPixelPlacedEvent", "Error converting timestamp hex to int", address, timestampHex)

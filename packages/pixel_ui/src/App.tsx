@@ -4,6 +4,7 @@ import {
   useContract,
   useNetwork,
   useConnect,
+  useAccount,
 } from '@starknet-react/core';
 import './App.css';
 import CanvasContainer from './canvas/CanvasContainer.js';
@@ -20,7 +21,7 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
-import {  useQueryAddressEffect, useWalletStore, useConnectArgent, useAutoConnect,  } from 'afk_react_sdk';
+import { useWalletStore } from './hooks/useWalletStore';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -55,62 +56,25 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [footerExpanded, setFooterExpanded] = useState(false);
   const [modal, setModal] = useState(null);
 
-  const getDeviceTypeInfo = () => {
-    return {
-      isDesktopOrLaptop: isDesktopOrLaptop,
-      isBigScreen: isBigScreen,
-      isTabletOrMobile: isTabletOrMobile,
-      isPortrait: isPortrait,
-      isRetina: isRetina,
-      isMobile: isMobile
-    };
-  };
+  const getDeviceTypeInfo = () => ({
+    isDesktopOrLaptop,
+    isBigScreen,
+    isTabletOrMobile,
+    isPortrait,
+    isRetina,
+    isMobile
+  });
 
   //--> Starknet wallet
-  useQueryAddressEffect()
-  useAutoConnect()
-
-  //--> Connect Argent
-  useConnectArgent()
-
-  const {
-    connectWallet,
-    startSession,
-    account,
-    wallet,
-    address,
-    queryAddress,
-    setConnected,
-    isSessionable,
-    disconnectWallet,
-    usingSessionKeys
-  } = useWalletStore()
-
-
- 
-
-
-
+  const { address, account, isConnected } = useAccount();
   const { chain } = useNetwork();
-  // const [queryAddress, setQueryAddress] = useState('0');
-  // const [connected, setConnected] = useState(false); // TODO: change to only devnet
-  // useEffect(() => {
-  //   if (devnetMode) {
-  //     if (connected) {
-  //       setQueryAddress(
-  //         '0328ced46664355fc4b885ae7011af202313056a7e3d44827fb24c9d3206aaa0'
-  //       );
-  //     } else {
-  //       setQueryAddress('0');
-  //     }
-  //   } else {
-  //     if (!address) {
-  //       setQueryAddress('0');
-  //     } else {
-  //       setQueryAddress(address.slice(2).toLowerCase().padStart(64, '0'));
-  //     }
-  //   }
-  // }, [address, connected]);
+  const { connectors } = useConnect();
+
+  // Format query address from the actual address
+  const queryAddress = React.useMemo(() => {
+    if (!address) return '0';
+    return address.toLowerCase().slice(2).padStart(64, '0');
+  }, [address]);
 
   // Contracts
   // TODO: Pull addrs from api?
@@ -272,12 +236,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     calldata
   }) => {
     try {
-      const { suggestedMaxFee } = await account.estimateInvokeFee({
+      const res = await account?.estimateInvokeFee({
         contractAddress: contractAddress,
         entrypoint: entrypoint,
         calldata: calldata
       });
-      return { suggestedMaxFee };
+      return { suggestedMaxFee: res?.suggestedMaxFee ?? BigInt(1000000000000000) };
     } catch (error) {
       console.error(error);
       return { suggestedMaxFee: BigInt(1000000000000000) };
@@ -304,22 +268,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
       setShieldedAreas([]);
     }
   };
-
-  // const updateSelectedShieldPixels = (start, end) => {
-  //   const startX = Math.min(start.x, end.x);
-  //   const startY = Math.min(start.y, end.y);
-  //   const endX = Math.max(start.x, end.x);
-  //   const endY = Math.max(start.y, end.y);
-
-  //   const newSelectedPixels = [];
-  //   for (let y = startY; y <= endY; y++) {
-  //     for (let x = startX; x <= endX; x++) {
-  //       const position = y * width + x;
-  //       newSelectedPixels.push(position);
-  //     }
-  //   }
-  //   setSelectedShieldPixels(newSelectedPixels);
-  // };
  
   const updateSelectedShieldPixels = (position, maxPixels) => {
     setSelectedShieldPixels((prevPixels:any[]) => {
@@ -386,7 +334,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [isExtraDeleteMode, setIsExtraDeleteMode] = React.useState(false);
 
   useEffect(() => {
-    const getLastPlacedPixel = `get-last-placed-time?address=${queryAddress}`;
+    const getLastPlacedPixel = `get-last-placed-time?address=${account?.address}`;
     async function fetchGetLastPlacedPixel() {
       try {
         const response = await fetchWrapper(getLastPlacedPixel);
@@ -401,7 +349,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
 
     fetchGetLastPlacedPixel();
-  }, [queryAddress]);
+  }, [account?.address]);
 
   const updateInterval = 1000; // 1 second
   // TODO: make this a config
@@ -725,11 +673,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [nftPosition, setNftPosition] = useState(null);
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
-
-
-  // Account
-  const { connectors } = useConnect();
-
+  const [showMetadataForm, setShowMetaDataForm] = useState(false);
 
   // Tabs
   const [showExtraPixelsPanel, setShowExtraPixelsPanel] = useState(false);
@@ -784,7 +728,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           colorPixel={colorPixel}
           address={address}
           account={account}
-          wallet={wallet}
+          accountWallet={account}
+          wallet={account}
           artPeaceContract={artPeaceContract}
           colors={colors}
           canvasRef={canvasRef}
@@ -844,6 +789,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setShieldedAreas={setShieldedAreas}
           updateSelectedShieldPixels={updateSelectedShieldPixels}
           selectedShieldPixels={selectedShieldPixels}
+          showMetadataForm={showMetadataForm}
+          setShowMetadataForm={setShowMetaDataForm}
         />
         {(!isMobile || activeTab === tabs[0]) && (
           <div className='App__logo--mobile_container'>
@@ -866,14 +813,14 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             address={address}
             queryAddress={queryAddress}
             account={account}
-            wallet={wallet}
+            wallet={account}
             chain={chain}
             clearAll={clearAll}
-            setConnected={setConnected}
+            setConnected={isConnected}
             artPeaceContract={artPeaceContract}
             usernameContract={usernameContract}
             canvasNftContract={canvasNftContract}
-            usingSessionKeys={usingSessionKeys}
+            usingSessionKeys={isConnected}
             setNotificationMessage={setNotificationMessage}
             colors={colors}
             activeTab={activeTab}
@@ -948,19 +895,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
             setUserFactions={setUserFactions}
             latestMintedTokenId={latestMintedTokenId}
             setLatestMintedTokenId={setLatestMintedTokenId}
-            connectWallet={connectWallet}
             connectors={connectors}
             currentDay={currentDay}
             gameEnded={gameEnded}
             isLastDay={isLastDay}
             endTimestamp={endTimestamp}
             host={host}
-
-            startSession={startSession}
-            isSessionable={isSessionable}
-            disconnectWallet={disconnectWallet}
-            estimateInvokeFee={estimateInvokeFee}
-
           />
         </div>
         <div className='App__footer'>
@@ -997,11 +937,13 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 isMobile={isMobile}
                 clearAll={clearAll}
                 account={account}
-                wallet={wallet}
+                wallet={account}
                 toggleShieldMode={toggleShieldMode}
                 isShieldMode={isShieldMode}
                 registerShieldArea={registerShieldArea}
                 selectedShieldPixels={selectedShieldPixels}
+                showMetadataForm={showMetadataForm}
+                setShowMetadataForm={setShowMetaDataForm}
               />
             )}
             {isFooterSplit && !footerExpanded && (

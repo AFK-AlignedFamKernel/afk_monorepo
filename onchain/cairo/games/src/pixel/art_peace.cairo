@@ -13,7 +13,7 @@ pub mod ArtPeace {
         ChainFactionJoined, FactionTemplateAdded, FactionTemplateRemoved, ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved, InitParams, MetadataPixel, PixelMetadataPlaced, PixelShield,
         PixelState, PixelShieldType, AdminsFeesParams, ShieldAdminParams, PixelShieldPlaced,
-        ADMIN_ROLE
+        ADMIN_ROLE, AdminsFeesParamsEvent, ShieldAdminParamsEvent
     };
     use afk_games::interfaces::pixel_template::{
         ITemplateVerifier, ITemplateStore, FactionTemplateMetadata, TemplateMetadata
@@ -158,6 +158,8 @@ pub mod ArtPeace {
         FactionTemplateRemoved: FactionTemplateRemoved,
         ChainFactionTemplateAdded: ChainFactionTemplateAdded,
         ChainFactionTemplateRemoved: ChainFactionTemplateRemoved,
+        AdminsFeesParamsEvent:AdminsFeesParamsEvent,
+        ShieldAdminParamsEvent:ShieldAdminParamsEvent,
         // TODO: Integrate template event
         #[flat]
         TemplateEvent: TemplateStoreComponent::Event,
@@ -290,6 +292,15 @@ pub mod ArtPeace {
 
         //access control
         self.accesscontrol._grant_role(ADMIN_ROLE, init_params.host);
+
+        // self.emit(AdminsFeesParamsEvent {
+        //     is_shield_pixel_activated: init_params.is_shield_pixel_activated,
+        //     price_by_time_seconds: init_params.price_by_time_seconds,
+        //     shield_type: init_params.shield_type,
+        //     token_address: init_params.token_address,
+        //     auction_time_reset_price: init_params.auction_time_reset_price,
+        //     is_auction_time_reset: init_params.is_auction_time_reset,
+        // });
     }
 
     #[generate_trait]
@@ -1394,6 +1405,16 @@ pub mod ArtPeace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.admin_shield_params.entry(shield_type).write(shield_params);
+            self.emit(ShieldAdminParamsEvent {
+                timestamp: starknet::get_block_timestamp(),
+                shield_type: shield_type,
+                until: shield_params.until,
+                amount_to_paid: shield_params.amount_to_paid,
+                cost_per_second: shield_params.cost_per_second,
+                cost_per_minute: shield_params.cost_per_minute,
+                to_address: shield_params.to_address,
+                buy_token_address: shield_params.buy_token_address,
+            });
         }
 
         fn set_shield_type_with_shield_params(

@@ -6,14 +6,16 @@ import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS } from "common"
 import { CallData, uint256, constants } from 'starknet';
 import {
+  useAccount,
   useContract,
   useNetwork,
 } from "@starknet-react/core";
 import { formatFloatToUint256 } from "common"
 import ercAbi from "../contracts/erc20.json"
-
+import { useWalletStore } from '../hooks/useWalletStore';
 
 import EraserIcon from '../resources/icons/Eraser.png';
+import MetadataForm from '../canvas/metadata/Metadata';
 
 const PixelSelector = (props) => {
   const { chain } = useNetwork()
@@ -22,6 +24,10 @@ const PixelSelector = (props) => {
     // address: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
     address: chain.nativeCurrency.address
   })
+
+  const { metadata, setMetadata } = useWalletStore();
+
+  // console.log("props.metadata", props?.metadata)
   //Pixel Call Hook
   const { mutate: mutatePlaceShield } = useContractAction();
   const shieldPixelFn = async () => {
@@ -91,12 +97,21 @@ const PixelSelector = (props) => {
   // Track when a placement is available
 
 
+  // const { account } = useAccount();
+
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
   const [placementMode, setPlacementMode] = useState(false);
   const [ended, setEnded] = useState(false);
 
   useEffect(() => {
-    if (props.queryAddress === '0' || !props.account?.address) {
+    if (
+      // props?.queryAddress === '0' ||
+      (!props.account?.address
+        // && !account?.address
+      )
+    ) {
+
+      // console.log("props?.queryAddress", props?.queryAddress)
       setPlacementTimer('Login to Play');
       return;
     }
@@ -203,6 +218,25 @@ const PixelSelector = (props) => {
                 : ""
 
             }
+
+            <div onClick={() => props.setShowMetadataForm(!props?.showMetadataForm)} className='Button__primary Text__large'>
+              <p className='PixelSelector__text'>{props?.showMetadataForm ? "Hide Metadata Form" : "Show Metadata Form"}</p>
+            </div>
+
+            {props?.showMetadataForm && (
+              <MetadataForm
+                isModal={true}
+                showMeta={props?.showMetadataForm}
+                closeMeta={() => {
+                  props?.setShowMetadataForm(false);
+                  setMetadata({ twitter: '', nostr: '', ipfs: '' });
+                }}
+                handleOpen={() => props?.setShowMetadataForm(true)}
+                selectorMode={props?.selectorMode}
+                formData={metadata}
+                setFormData={setMetadata}
+              />
+            )}
 
           </div>
         </div>

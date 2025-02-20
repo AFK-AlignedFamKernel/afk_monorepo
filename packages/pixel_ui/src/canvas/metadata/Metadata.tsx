@@ -1,48 +1,58 @@
 import './metadataForm.css'
 type IProps = {
+    isModal?: boolean;
     showMeta: boolean;
     closeMeta: () => void;
-    handleOpen:()=>void;
-    selectorMode:boolean;
-    setFormData:any;
-    formData
+    handleOpen: () => void;
+    selectorMode: boolean;
+    formData: {
+        twitter: string;
+        nostr: string;
+        ipfs: string;
+    };
+    setFormData: (data: { twitter: string; nostr: string; ipfs: string; }) => void;
 }
 
-export default function MetadataForm({ showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
-
+export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen, selectorMode, formData, setFormData }: IProps) {
+    // console.log("formData", formData)
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData(prevData => ({
-            ...prevData,
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
             [name]: value
-        }))
+        });
     }
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        console.log('Form submitted', formData);
-        closeMeta()
+        e.preventDefault();
+        // Clear the form data
+        setFormData({ twitter: '', nostr: '', ipfs: '' });
+        closeMeta();
     }
 
     return (
         <div className="metadata-form-container">
-            {selectorMode &&
-            <div className="open">
-                <button
-                    onClick={handleOpen}
-                    type="button"
-                    className="metadata-form-submit"
-                >
-                    Add Metadata
-                </button>
-            </div>
-            }
+
             <div className={`metadata-form ${showMeta ? 'open' : ''}`}>
+                {isModal && selectorMode &&
+                    <div className="open">
+                        <button
+                            onClick={handleOpen}
+                            type="button"
+                            className="metadata-form-submit"
+                        >
+                            Add Metadata
+                        </button>
+                    </div>
+                }
                 <form onSubmit={handleSubmit} className="metadata-form-content">
                     <button
                         type="button"
                         className="metadata-form-close"
-                        onClick={() => closeMeta()}
+                        onClick={() => {
+                            setFormData({ twitter: '', nostr: '', ipfs: '' });
+                            closeMeta();
+                        }}
                     >
                         ✕
                     </button>
@@ -70,12 +80,12 @@ export default function MetadataForm({ showMeta, closeMeta, handleOpen, selector
                         />
                     </div>
                     <div className="metadata-form-field">
-                        <label htmlFor="ips">IPS URL</label>
+                        <label htmlFor="ipfs">IPS URL</label>
                         <input
                             type="url"
-                            id="ips"
-                            name="ips"
-                            value={formData.ips}
+                            id="ipfs"
+                            name="ipfs"
+                            value={formData.ipfs}
                             onChange={handleInputChange}
                             placeholder="https://example.com"
                         />
@@ -84,7 +94,7 @@ export default function MetadataForm({ showMeta, closeMeta, handleOpen, selector
                         type="submit"
                         className="metadata-form-submit"
                     >
-                     Clear Metadata
+                        Clear Metadata
                     </button>
                 </form>
             </div>

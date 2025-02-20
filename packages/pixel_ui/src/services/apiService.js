@@ -16,9 +16,10 @@ export const fetchWrapper = async (url, options = {}) => {
     return await response.json();
   } catch (err) {
     console.log(`Error while fetching ${url}:`, err);
-    throw err; // Re-throw the error for further handling if needed
+    return undefined;
+    // throw err; // Re-throw the error for further handling if needed
   } finally {
-    controller.abort(); // Ensure the request is aborted after completion or error
+    // controller.abort(); // Ensure the request is aborted after completion or error
   }
 };
 

@@ -23,7 +23,7 @@ export const TimerInjector = ({children, props, isLastDay, endTimestamp}) => {
         const result = await getTodaysStartTime();
         setStartTimeApiState((prevState) => ({
           ...prevState,
-          data: result.data,
+          data: result?.data,
           loading: false,
         }));
       } catch (error) {
@@ -44,7 +44,7 @@ export const TimerInjector = ({children, props, isLastDay, endTimestamp}) => {
     if (devnetMode) return;
     if (!props.address || !props.artPeaceContract) return;
     // TODO: Check valid inputs & expand calldata
-    setCalls(props.artPeaceContract.populateTransaction['increase_day_index']());
+    setCalls(props?.artPeaceContract?.populateTransaction['increase_day_index']());
   };
 
   useEffect(() => {

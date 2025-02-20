@@ -158,6 +158,36 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
           </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
+          <Text
+            numberOfLines={isExpandedSymbol ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.priceTag}>
+          {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
+        </View>
+
+        <View style={styles.addressContainer}>
+          <TouchableOpacity onPress={handleCopy}>
+            <CopyIconStack color={theme.colors.primary} />
+            <Text
+              // onPress={handleCopy} 
+              numberOfLines={1}
+              ellipsizeMode="middle"
+
+              style={{
+                // color: '#808080', 
+                flex: 1, flexWrap: 'wrap', width: "50%"
+              }}>
+              {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
+            </Text>
+
+          </TouchableOpacity>
+
+        </View>
+
 
         {token?.url && (
           <View>
@@ -176,27 +206,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         {token?.nostr_id &&
           <Text>{token?.nostr_id}</Text>
         }
-        <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
-          <Text
-            numberOfLines={isExpandedSymbol ? undefined : 1}
-            ellipsizeMode="tail"
-            style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
-        </TouchableOpacity>
-        <View style={styles.addressContainer}>
-          <TouchableOpacity onPress={handleCopy}>
 
-            <Text
-              // onPress={handleCopy} 
-              numberOfLines={1} ellipsizeMode="middle" style={{ color: '#808080', flex: 1 }}>
-              {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
-            </Text>
-          </TouchableOpacity>
-
-          <CopyIconStack color={theme.colors.primary} />
-        </View>
-        <View style={styles.priceTag}>
-          {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
-        </View>
       </View>
 
       <View style={styles.statsGrid}>
