@@ -1,4 +1,3 @@
-
 import { create } from 'zustand'
 import { connect, disconnect, connect as nextConnect, StarknetWindowObject } from 'starknetkit-next';
 import { buildSessionAccount, createSessionRequest, openSession } from '@argent/x-sessions';
@@ -89,7 +88,7 @@ const canSession = (wallet) => {
         setAccountSessionSignature: (accountSessionSignature) => set({ accountSessionSignature }),
         setDappKey: (dappKey) => set({ dappKey }),
   
-        connectWallet: async (provider, devnetMode = false) => {
+        connectWallet: async (devnetMode = false) => {
         if (devnetMode) {
              set({ connected: true });
             return;
@@ -107,32 +106,49 @@ const canSession = (wallet) => {
           }
         });
   
-        if (wallet && connectorData && connector) {
-
-          const new_account = await connector.account(provider);
-
-          console.log(new_account, "sjsjsj")
-
-  
-          set({
-            wallet,
-            connectorData:{account:connectorData?.account,chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString(): undefined},
-            connector,
-            connected: true,
-            account: new_account,
-            address: connectorData?.account,
-            isSessionable: canSession(wallet)
-          });
-          
+        if (!wallet || !connectorData || !connector) {
+          console.error('Wallet connection failed - missing wallet data');
+          throw new Error('Wallet connection failed');
         }
+  
+        const new_account = await connector.account(provider);
+        
+        if (!new_account) {
+          console.error('Account creation failed');
+          throw new Error('Account creation failed');
+        }
+  
+        console.log('Connected wallet:', {
+          wallet,
+          account: new_account,
+          address: connectorData?.account
+        });
+  
+        set({
+          wallet,
+          connectorData: {
+            account: connectorData?.account,
+            chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString() : undefined
+          },
+          connector,
+          connected: true,
+          account: new_account,
+          address: connectorData?.account,
+          queryAddress: connectorData?.account ? connectorData.account.toLowerCase().slice(2).padStart(64, '0') : '0',
+          isSessionable: canSession(wallet)
+        });
       } catch (error) {
         console.error('Wallet connection error:', error);
-        // Optionally handle connection errors
         set({ 
-          connected: false, 
+          wallet: null,
           connectorData: null,
+          connector: null,
+          connected: false, 
+          account: null,
+          address: null,
           queryAddress: '0' 
         });
+        throw error;
       }
     },
     startSession: async () => {

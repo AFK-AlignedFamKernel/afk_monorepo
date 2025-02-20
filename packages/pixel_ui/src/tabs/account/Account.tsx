@@ -116,10 +116,17 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
         <div className="Account__login-container">
           <div className="Account__login">
             <div
-              className="Text__medium Button__primary Account__login__button"
-              onClick={() => connectWallet()}
+              className={`Text__medium Button__primary Account__login__button ${isLoading ? 'disabled' : ''}`}
+              onClick={async () => {
+                try {
+                  await connectWallet();
+                } catch (error) {
+                  console.error('Failed to connect wallet:', error);
+                  // Error will be shown through the error state from useWalletStore
+                }
+              }}
             >
-              Starknet Login
+              {isLoading ? 'Connecting...' : 'Starknet Login'}
             </div>
           </div>
           <div className="Account__wallet__noconnectors">

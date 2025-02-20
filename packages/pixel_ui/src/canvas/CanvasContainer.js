@@ -345,20 +345,13 @@ const CanvasContainer = (props) => {
 
 
   const placePixelCall = async (position, color, now) => {
-    if (!props.address || !props.artPeaceContract || !props.account) {
+    if (!props.address || !props.artPeaceContract) {
       console.error('Missing required parameters for transaction');
       return;
     }
 
     try {
       let calls = [];
-
-      // Convert numbers to proper format for Starknet
-      const positionBN = cairo.uint256(BigInt(position));
-      // const colorBN = cairo.felt(BigInt(color));
-
-      const colorBN = cairo.uint256(BigInt(color));
-      // const nowBN = cairo.felt(BigInt(now));
 
       // Basic pixel placement call
       const pixelCall = {
@@ -367,8 +360,6 @@ const CanvasContainer = (props) => {
         calldata: CallData.compile({
           position: position,
           color: color,
-          // position: positionBN,
-          // color: colorBN,
           now: now
         })
       };
@@ -379,7 +370,7 @@ const CanvasContainer = (props) => {
           pos: position,
           ipfs: props?.metadata?.ips ? byteArray.byteArrayFromString(props?.metadata?.ips) : [],
           nostr_event_id: props?.metadata?.nostr || '0',
-          owner: props.account.address,
+          owner: props.address,
           contract: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]
         };
 
@@ -389,10 +380,10 @@ const CanvasContainer = (props) => {
           contractAddress: metadata.contract,
           entrypoint: 'place_pixel_with_metadata',
           calldata: CallData.compile({
-            position: positionBN,
-            color: colorBN,
+            position: position,
+            color: color,
             now: now,
-            metaPos: positionBN,
+            metaPos: position,
             ipfs: metadata.ipfs,
             nostr: nostrEventIdFelt,
             owner: metadata.owner,
@@ -425,8 +416,8 @@ const CanvasContainer = (props) => {
           contractAddress: props.artPeaceContract,
           entrypoint: 'place_pixel_shield',
           calldata: CallData.compile({
-            position: positionBN,
-            time: nowBN
+            position: position,
+            time: now
           })
         };
 
@@ -436,13 +427,13 @@ const CanvasContainer = (props) => {
       // Execute all transactions
       console.log('Executing calls:', calls);
 
-      if (props.account) {
-        const tx = await props.account.execute(calls);
+      // Use the starknet-react account for transaction execution
+      if (props.accountWallet) {
+        const tx = await props.accountWallet.execute(calls);
         console.log('Transaction submitted:', tx);
-
         return tx;
       } else {
-        console.log('No account found');
+        console.error('No Starknet account connected');
         return;
       }
     } catch (error) {

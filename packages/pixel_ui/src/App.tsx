@@ -792,6 +792,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           colorPixel={colorPixel}
           address={address}
           account={account}
+          accountWallet={accountWallet}
           wallet={wallet}
           artPeaceContract={artPeaceContract}
           colors={colors}
