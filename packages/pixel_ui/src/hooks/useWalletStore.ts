@@ -123,7 +123,7 @@ const canSession = (wallet) => {
           throw new Error('Wallet connection failed');
         }
   
-        const new_account = await connector.account(provider);
+        const new_account = await connector?.account(provider);
         
         if (!new_account) {
           console.error('Account creation failed');
@@ -279,7 +279,7 @@ const canSession = (wallet) => {
               icons: []
             }
           });
-          const new_account = await connector.account(provider);
+          const new_account = await connector?.account(provider);
           setAccount(new_account)
           setConnector(connector);
           setWallet(connectedWallet)

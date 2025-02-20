@@ -1,6 +1,6 @@
 import React from 'react';
 import { constants } from 'starknet';
-import { useAccount, useConnect } from '@starknet-react/core';
+import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
@@ -19,7 +19,8 @@ interface AccountProps {
 
 const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
   const { address, account, isConnected, status } = useAccount();
-  const { connect, connectors, disconnect } = useConnect();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
   const connectorLogo = (name: string) => {
     switch (name) {
@@ -168,7 +169,7 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
                 <div className="Account__rank__inner">
                   <img
                     className="Account__rank__img"
-                    src={getRankImage()}
+                    src={getRankImage()?.src}
                     alt="rank"
                   />
                   <p className="Text__small Account__rank__text">
@@ -218,11 +219,11 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
         </div>
       )}
 
-      {status === 'error' && (
+      {/* {status === 'error' && (
         <div className="Account__error">
           <p className="Text__small">Failed to connect wallet</p>
         </div>
-      )}
+      )} */}
 
       {status === 'connecting' && (
         <div className="Account__loading">
