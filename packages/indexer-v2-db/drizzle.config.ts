@@ -4,7 +4,7 @@ const connectionString =
   process.env.POSTGRES_CONNECTION_STRING ?? 'postgres://postgres:postgres@localhost:5434/indexer';
 
 export default {
-  schema: './lib/schema.ts',
+  schema: './src/schema.ts',
   out: './.drizzle',
   dialect: 'postgresql',
   dbCredentials: {

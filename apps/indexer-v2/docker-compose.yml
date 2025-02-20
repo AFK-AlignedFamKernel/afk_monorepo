@@ -13,9 +13,9 @@ services:
   dao-indexer:
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN}
-      - POSTGRES_CONNECTION_STRING=${POSTGRES_CONNECTION_STRING}
+      - INDEXER_V2_DATABASE_URL=${INDEXER_V2_DATABASE_URL}
     image: quay.io/apibara/sink-postgres:latest
-    command: 'run ./src/main.ts --allow-env-from-env --allow-env AUTH_TOKEN,POSTGRES_CONNECTION_STRING -A ${AUTH_TOKEN}'
+    command: 'run ./src/main.ts --allow-env-from-env --allow-env AUTH_TOKEN,INDEXER_V2_DATABASE_URL -A ${AUTH_TOKEN}'
     volumes:
       - ./src:/app
     depends_on:
