@@ -94,6 +94,7 @@ pub mod LaunchpadMarketplace {
     const SLIPPAGE_THRESHOLD: u256 = 100; //1%
 
     // TODO  Used in V2 and be choose by user
+    const ZERO_FEE_AMOUNT: u256 = 0; //1%
     const MIN_FEE_CREATOR: u256 = 100; //1%
     const MID_FEE_CREATOR: u256 = 1000; //10%
     const MAX_FEE_CREATOR: u256 = 5000; //50%
@@ -1390,7 +1391,7 @@ pub mod LaunchpadMarketplace {
             // let creator_fee_percent = self.creator_fee_percent.read();
 
             assert(
-                creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
+                creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= ZERO_FEE_AMOUNT,
                 errors::CREATOR_FEE_OUT_OF_BOUNDS
             );
 
