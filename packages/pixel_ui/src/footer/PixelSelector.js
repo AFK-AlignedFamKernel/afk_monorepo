@@ -12,6 +12,7 @@ import {
 } from "@starknet-react/core";
 import { formatFloatToUint256 } from "common"
 import ercAbi from "../contracts/erc20.json"
+import { useWalletStore } from '../hooks/useWalletStore';
 
 import EraserIcon from '../resources/icons/Eraser.png';
 import MetadataForm from '../canvas/metadata/Metadata';
@@ -24,7 +25,9 @@ const PixelSelector = (props) => {
     address: chain.nativeCurrency.address
   })
 
-  console.log("props.metadata", props?.metadata)
+  const { metadata, setMetadata } = useWalletStore();
+
+  // console.log("props.metadata", props?.metadata)
   //Pixel Call Hook
   const { mutate: mutatePlaceShield } = useContractAction();
   const shieldPixelFn = async () => {
@@ -220,10 +223,20 @@ const PixelSelector = (props) => {
               <p className='PixelSelector__text'>{props?.showMetadataForm ? "Hide Metadata Form" : "Show Metadata Form"}</p>
             </div>
 
-            {props?.showMetadataForm && <MetadataForm
-              isModal={true} showMeta={props?.showMetadataForm} closeMeta={() => props?.setShowMetadataForm(false)} handleOpen={() => props?.setShowMetadataForm(true)} selectorMode={props?.selectorMode}
-              formData={props?.metaData}
-              setFormData={props?.setMetadata} />}
+            {props?.showMetadataForm && (
+              <MetadataForm
+                isModal={true}
+                showMeta={props?.showMetadataForm}
+                closeMeta={() => {
+                  props?.setShowMetadataForm(false);
+                  setMetadata({ twitter: '', nostr: '', ips: '' });
+                }}
+                handleOpen={() => props?.setShowMetadataForm(true)}
+                selectorMode={props?.selectorMode}
+                formData={metadata}
+                setFormData={setMetadata}
+              />
+            )}
 
           </div>
         </div>

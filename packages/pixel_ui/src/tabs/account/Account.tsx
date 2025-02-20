@@ -119,36 +119,36 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
                 onClick={() => connect({ connector })}
               >
                 {status === 'connecting' ? 'Connecting...' : `Connect ${connectorName(connector.id)}`}
-              </div>
+            </div>
             ))}
           </div>
           <div className="Account__wallet__noconnectors">
             <p className="Text__small">
-              Please install a Starknet wallet extension
-            </p>
-            <div
+                    Please install a Starknet wallet extension
+                  </p>
+                  <div
               className="Text__medium Button__primary Account__walletlogin__button"
-              onClick={() =>
-                window.open(
-                  'https://www.argent.xyz/argent-x/',
-                  '_blank',
-                  'noreferrer'
-                )
-              }
-            >
-              Argent X
-            </div>
-            <div
+                    onClick={() =>
+                      window.open(
+                        'https://www.argent.xyz/argent-x/',
+                        '_blank',
+                        'noreferrer'
+                      )
+                    }
+                  >
+                    Argent X
+                  </div>
+                  <div
               className="Text__medium Button__primary Account__walletlogin__button"
-              onClick={() =>
-                window.open(
-                  'https://braavos.app/download-braavos-wallet/',
-                  '_blank',
-                  'noreferrer'
-                )
-              }
-            >
-              Braavos
+                    onClick={() =>
+                      window.open(
+                        'https://braavos.app/download-braavos-wallet/',
+                        '_blank',
+                        'noreferrer'
+                      )
+                    }
+                  >
+                    Braavos
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
           <div className="Account__item Account__item__user">
             <p className="Text__small Account__item__label">Username</p>
             <p className="Text__small Account__item__text">{username || 'Not set'}</p>
-          </div>
+            </div>
 
           <div className="Account__item Account__item__separator">
             <p className="Text__medium Account__item__label">Rank</p>
@@ -211,8 +211,8 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
             <div
               className="Text__small Button__primary Account__disconnect__button"
               onClick={() => disconnect()}
-            >
-              Logout
+              >
+                Logout
             </div>
           </div>
         </div>

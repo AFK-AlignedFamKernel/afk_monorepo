@@ -21,6 +21,7 @@ import canvas_nft_abi from './contracts/canvas_nft.abi.json';
 import NotificationPanel from './tabs/NotificationPanel.js';
 import ModalPanel from './ui/ModalPanel.js';
 import useMediaQuery from './hooks/useMediaQuery';
+import { useWalletStore } from './hooks/useWalletStore';
 
 const logoUrl = './assets/pepe-logo.png'
 const HamburgerUrl = './resources/icons/Hamburger.png';
@@ -673,12 +674,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [nftWidth, setNftWidth] = useState(null);
   const [nftHeight, setNftHeight] = useState(null);
   const [showMetadataForm, setShowMetaDataForm] = useState(false);
-  const [metaData, setMetadata] = useState({
-    twitter: '',
-    nostr: '',
-    ips: ''
-  })
-
 
   // Tabs
   const [showExtraPixelsPanel, setShowExtraPixelsPanel] = useState(false);
@@ -794,6 +789,8 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           setShieldedAreas={setShieldedAreas}
           updateSelectedShieldPixels={updateSelectedShieldPixels}
           selectedShieldPixels={selectedShieldPixels}
+          showMetadataForm={showMetadataForm}
+          setShowMetadataForm={setShowMetaDataForm}
         />
         {(!isMobile || activeTab === tabs[0]) && (
           <div className='App__logo--mobile_container'>
@@ -947,8 +944,6 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 selectedShieldPixels={selectedShieldPixels}
                 showMetadataForm={showMetadataForm}
                 setShowMetadataForm={setShowMetaDataForm}
-                metaData={metaData}
-                setMetadata={setMetadata}
               />
             )}
             {isFooterSplit && !footerExpanded && (

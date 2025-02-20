@@ -20,6 +20,11 @@ interface WalletState {
     sessionRequest: any | null
     accountSessionSignature: any | null
     dappKey: { privateKey: Uint8Array, publicKey: string } | null
+    metadata: {
+        twitter: string;
+        nostr: string;
+        ipfs: string;
+    };
     
   
     setWallet: (wallet: any) => void
@@ -34,6 +39,7 @@ interface WalletState {
     setSessionRequest: (sessionRequest: any) => void
     setAccountSessionSignature: (accountSessionSignature: any) => void
     setDappKey: (dappKey: { publicKey: string, privateKey }) => void
+    setMetadata: (metadata: { twitter: string; nostr: string; ips: string; }) => void
 
     disconnectWallet: (devnetMode?: boolean) => void
     connectWallet: (provider: any, devnetMode?: boolean) => Promise<void>
@@ -74,6 +80,11 @@ const canSession = (wallet) => {
         sessionRequest: null,
         accountSessionSignature: null,
         dappKey: null,
+        metadata: {
+            twitter: '',
+            nostr: '',
+            ipfs: ''
+        },
   
         setWallet: (wallet) => set({ wallet }),
         setConnectorData: (connectorData) => set({ connectorData }),
@@ -87,6 +98,7 @@ const canSession = (wallet) => {
         setSessionRequest: (sessionRequest) => set({ sessionRequest }),
         setAccountSessionSignature: (accountSessionSignature) => set({ accountSessionSignature }),
         setDappKey: (dappKey) => set({ dappKey }),
+        setMetadata: (metadata) => set({ metadata }),
   
         connectWallet: async (devnetMode = false) => {
         if (devnetMode) {

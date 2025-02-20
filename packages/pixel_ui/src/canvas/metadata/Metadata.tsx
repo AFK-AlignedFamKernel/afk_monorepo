@@ -5,26 +5,29 @@ type IProps = {
     closeMeta: () => void;
     handleOpen:()=>void;
     selectorMode:boolean;
-    setFormData:any;
-    formData:any;
-    metadata:any;
-    setMetadata:any;
+    formData: {
+        twitter: string;
+        nostr: string;
+        ipfs: string;
+    };
+    setFormData: (data: { twitter: string; nostr: string; ipfs: string; }) => void;
 }
 
-export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen, selectorMode,formData, setFormData }: IProps) {
-    console.log("formData", formData)
+export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen, selectorMode, formData, setFormData }: IProps) {
+    // console.log("formData", formData)
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData(prevData => ({
-            ...prevData,
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
             [name]: value
-        }))
+        });
     }
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        console.log('Form submitted', formData);
-        closeMeta()
+        e.preventDefault();
+        // Clear the form data
+        setFormData({ twitter: '', nostr: '', ipfs: '' });
+        closeMeta();
     }
 
     return (
@@ -45,7 +48,10 @@ export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen,
                     <button
                         type="button"
                         className="metadata-form-close"
-                        onClick={() => closeMeta()}
+                        onClick={() => {
+                            setFormData({ twitter: '', nostr: '', ipfs: '' });
+                            closeMeta();
+                        }}
                     >
                         ✕
                     </button>
@@ -73,12 +79,12 @@ export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen,
                         />
                     </div>
                     <div className="metadata-form-field">
-                        <label htmlFor="ips">IPS URL</label>
+                        <label htmlFor="ipfs">IPS URL</label>
                         <input
                             type="url"
-                            id="ips"
-                            name="ips"
-                            value={formData.ips}
+                            id="ipfs"
+                            name="ipfs"
+                            value={formData.ipfs}
                             onChange={handleInputChange}
                             placeholder="https://example.com"
                         />
@@ -87,7 +93,7 @@ export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen,
                         type="submit"
                         className="metadata-form-submit"
                     >
-                     Clear Metadata
+                        Clear Metadata
                     </button>
                 </form>
             </div>

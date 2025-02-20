@@ -12,8 +12,10 @@ import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS, TOKENS_ADDRESS } from "common"
 import MetadataView from './metadata/Metadata';
 import { byteArray, CallData, cairo, constants } from 'starknet';
+import { useWalletStore } from '../hooks/useWalletStore';
 
 const CanvasContainer = (props) => {
+  // const { metadata } = useWalletStore();
 
   // TODO: Handle window resize
   const width = canvasConfig.canvas.width;
@@ -37,11 +39,6 @@ const CanvasContainer = (props) => {
 
   // Metadata states
   const [showMetadataForm, setShowMetaDataForm] = useState(false);
-  const [metaData, setMetadata] = useState({
-    twitter: '',
-    nostr: '',
-    ips: ''
-  })
 
   const clampToCanvas = useCallback((x, y) => {
     return {
@@ -343,6 +340,7 @@ const CanvasContainer = (props) => {
   //Pixel Call Hook
   const { mutate: mutatePlacePixel } = useContractAction()
 
+  const { metadata, setMetadata } = useWalletStore();
 
   const placePixelCall = async (position, color, now) => {
     if (!props.address || !props.artPeaceContract) {
@@ -353,6 +351,7 @@ const CanvasContainer = (props) => {
     try {
       let calls = [];
 
+      console.log("metadata", metadata)
       // Basic pixel placement call
       const pixelCall = {
         contractAddress: props?.contractAddress || ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
@@ -363,33 +362,41 @@ const CanvasContainer = (props) => {
           now: now
         })
       };
-      console.log("props?.metadata", props?.metadata)
 
       // Handle metadata if provided
-      if (props?.metadata?.twitter || props?.metadata?.nostr || props?.metadata?.ips) {
+      if (metadata?.twitter || metadata?.nostr || metadata?.ipfs) {
+        console.log("meta", metadata)
 
-        const metadata = {
+        console.log("add metadata call")
+        const urlByteArray= byteArray.byteArrayFromString(metadata?.ipfs ?? "")
+
+        const metadataPayload = {
           pos: position,
-          ipfs: props?.metadata?.ips ? byteArray.byteArrayFromString(props?.metadata?.ips) : [],
-          nostr_event_id: props?.metadata?.nostr || '0',
+          ipfs:urlByteArray,
+          nostr_event_id: cairo.uint256(metadata?.nostr ?? 0),
           owner: props.address,
           contract: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]
         };
 
-        const nostrEventIdFelt = cairo.felt(BigInt(metadata.nostr_event_id));
+        // const nostrEventIdFelt = cairo.felt(BigInt(metadataPayload.nostr_event_id));
+        // const nostrEventIdFelt = cairo.felt(Number(metadataPayload?.nostr_event_id) ?? 0);
+        // const nostrEventIdFelt = cairo.felt(Number(metadataPayload?.nostr_event_id) ?? 0);
 
         const metadataCall = {
-          contractAddress: metadata.contract,
+          contractAddress: metadataPayload.contract,
           entrypoint: 'place_pixel_with_metadata',
           calldata: CallData.compile({
             position: position,
             color: color,
             now: now,
-            metaPos: position,
-            ipfs: metadata.ipfs,
-            nostr: nostrEventIdFelt,
-            owner: metadata.owner,
-            contract: metadata.contract
+            metadata: {
+              metaPos: position,
+              ipfs: urlByteArray,
+              nostr: metadataPayload?.nostr_event_id,
+              owner: metadataPayload.owner,
+              contract: metadataPayload.contract
+            }
+
           })
         };
 
@@ -682,7 +689,16 @@ const CanvasContainer = (props) => {
 
   return (
     <>
-      {/* <MetadataView setFormData={setMetadata} formData={metaData} selectorMode={props.selectorMode} handleOpen={() => setShowMetaDataForm(true)} closeMeta={() => [setShowMetaDataForm(false), setMetadata({ ips: "", nostr: "", twitter: "" })]} showMeta={showMetadataForm} /> */}
+      <MetadataView
+        formData={metadata}
+        selectorMode={props.selectorMode}
+        handleOpen={() => props.setShowMetadataForm(true)}
+        closeMeta={() => {
+          props.setShowMetadataForm(false);
+          setMetadata({ twitter: '', nostr: '', ips: '' });
+        }}
+        showMeta={props.showMetadataForm}
+      />
       <div
         ref={canvasContainerRef}
         className="CanvasContainer"
