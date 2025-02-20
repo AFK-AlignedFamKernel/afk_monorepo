@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {constants} from 'starknet';
+import { constants } from 'starknet';
 import './Account.css';
 import BasicTab from '../BasicTab.js';
 import '../../utils/Styles.css';
@@ -24,7 +24,7 @@ const Account = (props) => {
   });
   const [accountRankImg, setAccountRankImg] = useState<any | null>(null);
 
-  const {isSessionable, usingSessionKeys} = props!;
+  const { isSessionable, usingSessionKeys } = props!;
 
 
   const [usernameSaved, setUsernameSaved] = useState(false);
@@ -60,7 +60,7 @@ const Account = (props) => {
   };
 
 
-  const connectorLogo = (name:string) => {
+  const connectorLogo = (name: string) => {
     switch (name) {
       case 'Argent':
       case 'ArgentX':
@@ -102,7 +102,7 @@ const Account = (props) => {
         ? `${props.address.slice(0, 6)}...${props.address.slice(-4)}`
         : ''
     );
-  }, [props.address]);
+  }, [props?.address]);
 
 
 
@@ -111,7 +111,7 @@ const Account = (props) => {
   useEffect(() => {
     const fetchAwards = async () => {
       try {
-        const getAwardsUrl = `${backendUrl}/get-user-rewards?address=${props.queryAddress}`;
+        const getAwardsUrl = `${backendUrl}/get-user-rewards?address=${props?.queryAddress}`;
         const response = await fetch(getAwardsUrl);
         if (response.ok) {
           const result = await response.json();
@@ -135,7 +135,7 @@ const Account = (props) => {
         } else {
           console.error('Failed to fetch awards:', await response.text());
         }
-      } catch(e) {
+      } catch (e) {
         console.error('Failed to fetch awards:', e);
       }
     };
@@ -211,10 +211,10 @@ const Account = (props) => {
 
   useEffect(() => {
     if (!props.connectors) return;
-    if (devnetMode) {
-      setAvailableConnectors(props.connectors);
-      return;
-    }
+    // if (devnetMode) {
+    //   setAvailableConnectors(props.connectors);
+    //   return;
+    // }
     const checkIfAvailable = async () => {
       let availableConnectors: any[] = [];
       for (let i = 0; i < props.connectors.length; i++) {
@@ -385,15 +385,14 @@ const Account = (props) => {
 
   // TODO: Ethereum login
 
- 
 
   return (
     <BasicTab
       title='Account'
-      queryAddress={props.queryAddress}
+      queryAddress={props.account?.address}
       setActiveTab={props.setActiveTab}
     >
-        {props.queryAddress === '0' && (
+      {props?.account?.address === '0' && (
         <div
           style={{
             display: 'flex',
@@ -471,8 +470,8 @@ const Account = (props) => {
           </div>
         </div>
       )}
-  
-      {props.queryAddress !== '0' && (
+
+      {props?.account?.address !== '0' && (
         <div>
           <h2 className='Text__medium Heading__sub Account__subheader'>Info</h2>
           {usernameSaved && !isEditing ? (

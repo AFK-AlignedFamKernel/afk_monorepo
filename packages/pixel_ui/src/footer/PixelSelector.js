@@ -6,6 +6,7 @@ import { useContractAction } from "afk_sdk";
 import { ART_PEACE_ADDRESS } from "common"
 import { CallData, uint256, constants } from 'starknet';
 import {
+  useAccount,
   useContract,
   useNetwork,
 } from "@starknet-react/core";
@@ -91,12 +92,21 @@ const PixelSelector = (props) => {
   // Track when a placement is available
 
 
+  // const { account } = useAccount();
+
   const [placementTimer, setPlacementTimer] = useState('XX:XX');
   const [placementMode, setPlacementMode] = useState(false);
   const [ended, setEnded] = useState(false);
 
   useEffect(() => {
-    if (props.queryAddress === '0' || !props.account?.address) {
+    if (
+      // props?.queryAddress === '0' ||
+      (!props.account?.address
+        // && !account?.address
+      )
+    ) {
+
+      console.log("props?.queryAddress", props?.queryAddress)
       setPlacementTimer('Login to Play');
       return;
     }

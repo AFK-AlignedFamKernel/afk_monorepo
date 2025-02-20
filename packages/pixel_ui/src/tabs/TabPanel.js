@@ -253,7 +253,7 @@ const TabPanel = (props) => {
             {props.activeTab === 'Account' && (
               <div>
                 <Account
-                  address={props.address}
+                  address={props.account?.address}
                   account={props.account}
                   usingSessionKeys={props.usingSessionKeys}
                   estimateInvokeFee={props.estimateInvokeFee}

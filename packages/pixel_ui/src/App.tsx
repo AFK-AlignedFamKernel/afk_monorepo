@@ -4,6 +4,7 @@ import {
   useContract,
   useNetwork,
   useConnect,
+  useAccount,
 } from '@starknet-react/core';
 import './App.css';
 import CanvasContainer from './canvas/CanvasContainer.js';
@@ -87,6 +88,9 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   } = useWalletStore()
 
 
+  const {account:accountWallet} = useAccount()
+
+  console.log("accountWallet", accountWallet)
  
 
 
@@ -386,7 +390,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   const [isExtraDeleteMode, setIsExtraDeleteMode] = React.useState(false);
 
   useEffect(() => {
-    const getLastPlacedPixel = `get-last-placed-time?address=${queryAddress}`;
+    const getLastPlacedPixel = `get-last-placed-time?address=${account?.address}`;
     async function fetchGetLastPlacedPixel() {
       try {
         const response = await fetchWrapper(getLastPlacedPixel);
@@ -401,7 +405,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     }
 
     fetchGetLastPlacedPixel();
-  }, [queryAddress]);
+  }, [account?.address]);
 
   const updateInterval = 1000; // 1 second
   // TODO: make this a config
@@ -736,6 +740,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
   // Account
   const { connectors } = useConnect();
 
+  console.log("account?.address", account?.address)
 
   // Tabs
   const [showExtraPixelsPanel, setShowExtraPixelsPanel] = useState(false);
@@ -788,7 +793,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
         <CanvasContainer
           estimateInvokeFee={estimateInvokeFee}
           colorPixel={colorPixel}
-          address={address}
+          address={account?.address}
           account={account}
           wallet={wallet}
           artPeaceContract={artPeaceContract}
@@ -870,7 +875,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
           <TabPanel
             colorPixel={colorPixel}
             address={address}
-            queryAddress={queryAddress}
+            queryAddress={account?.address}
             account={account}
             wallet={wallet}
             chain={chain}
@@ -994,7 +999,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
                 setBasePixelUp={setBasePixelUp}
                 lastPlacedTime={lastPlacedTime}
                 basePixelTimer={basePixelTimer}
-                queryAddress={queryAddress}
+                queryAddress={account?.address}
                 address={address}
                 setActiveTab={setActiveTab}
                 isEraserMode={isEraserMode}
