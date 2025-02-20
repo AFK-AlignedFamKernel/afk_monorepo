@@ -1,10 +1,10 @@
 import './metadataForm.css'
 type IProps = {
-    isModal?:boolean;
+    isModal?: boolean;
     showMeta: boolean;
     closeMeta: () => void;
-    handleOpen:()=>void;
-    selectorMode:boolean;
+    handleOpen: () => void;
+    selectorMode: boolean;
     formData: {
         twitter: string;
         nostr: string;
@@ -32,18 +32,19 @@ export default function MetadataForm({ isModal, showMeta, closeMeta, handleOpen,
 
     return (
         <div className="metadata-form-container">
-            {selectorMode &&
-            <div className="open">
-                <button
-                    onClick={handleOpen}
-                    type="button"
-                    className="metadata-form-submit"
-                >
-                    Add Metadata
-                </button>
-            </div>
-            }
+
             <div className={`metadata-form ${showMeta ? 'open' : ''}`}>
+                {isModal && selectorMode &&
+                    <div className="open">
+                        <button
+                            onClick={handleOpen}
+                            type="button"
+                            className="metadata-form-submit"
+                        >
+                            Add Metadata
+                        </button>
+                    </div>
+                }
                 <form onSubmit={handleSubmit} className="metadata-form-content">
                     <button
                         type="button"
