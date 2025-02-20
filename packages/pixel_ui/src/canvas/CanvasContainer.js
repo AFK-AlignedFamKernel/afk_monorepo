@@ -1,5 +1,3 @@
-
-
 import './CanvasContainer.css';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -347,157 +345,110 @@ const CanvasContainer = (props) => {
 
 
   const placePixelCall = async (position, color, now) => {
-    let calls = [];
-
-    let pixelCall = {
-      contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-      entrypoint: 'place_pixel',
-      calldata: CallData.compile({ position, color, now }),
+    if (!props.address || !props.artPeaceContract || !props.account) {
+      console.error('Missing required parameters for transaction');
+      return;
     }
-    calls.push(pixelCall);
 
-    // if (devnetMode) return;
-    // if (!props.address || !props.artPeaceContract) return;
-    if (!props.address || !props.artPeaceContract || !props.account) return;
+    try {
+      let calls = [];
 
-    //Check for wallet or account
-    const callProps = (data, entry) => props.wallet ?
+      // Convert numbers to proper format for Starknet
+      const positionBN = cairo.uint256(BigInt(position));
+      // const colorBN = cairo.felt(BigInt(color));
 
-      [{
-        // calldata:data,
-        calldata: data,
-        contract_address: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        entry_point: entry
-      }]
-      :
-      [{
-        calldata: data,
-        contractAddress: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        entrypoint: entry
-      }]
+      const colorBN = cairo.uint256(BigInt(color));
+      // const nowBN = cairo.felt(BigInt(now));
 
-    console.log("props.isShieldMode", props.isShieldMode);
-
-
-
-    //Check if the user adds a metadata.
-    if (props?.metadata?.twitter || props?.metadata?.nostr || props?.metadata?.ips) {
-
-      const metadata = {
-        pos: position,
-        ipfs: byteArray.byteArrayFromString(props?.metadata?.ips),
-        nostr_event_id: props?.metadata?.nostr,
-        owner: props.account.address,
-        contract: ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'] || "" // Contract address
-      };
-      const urlByteArray = byteArray.byteArrayFromString(metaData.url ?? "");
-      // console.log("urlByteArray", urlByteArray);
-      const nostrEventIdByteArray = byteArray.byteArrayFromString(metaData.nostr ?? 0);
-      const nostrEventIdFelt = cairo.felt(BigInt(metaData.nostr ?? 0));
-      // console.log("nostrEventIdFelt", nostrEventIdFelt);
-      const positionUint256 = cairo.uint256(position);
-      // console.log("positionUint256", positionUint256);
-
-      const metadataCall = {
-        contractAddress: metadata.contract,
-        entrypoint: 'place_pixel_with_metadata',
+      // Basic pixel placement call
+      const pixelCall = {
+        contractAddress: props?.contractAddress || ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+        entrypoint: 'place_pixel',
         calldata: CallData.compile({
-          position: positionUint256,
+          position: position,
           color: color,
-          now: now,
-          metaPos: positionUint256,
-          ipfs: urlByteArray,
-          nostr: nostrEventIdFelt,
-          owner: metadata.owner,
-          contract: metadata.contract
-        }),
+          // position: positionBN,
+          // color: colorBN,
+          now: now
+        })
       };
 
-      // calls.push(metadataCall);
+      // Handle metadata if provided
+      if (props?.metadata?.twitter || props?.metadata?.nostr || props?.metadata?.ips) {
+        const metadata = {
+          pos: position,
+          ipfs: props?.metadata?.ips ? byteArray.byteArrayFromString(props?.metadata?.ips) : [],
+          nostr_event_id: props?.metadata?.nostr || '0',
+          owner: props.account.address,
+          contract: ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]
+        };
 
-      // else {
+        const nostrEventIdFelt = cairo.felt(BigInt(metadata.nostr_event_id));
 
-      //     // const urlByteArray = byteArray.byteArrayFromString(metaData.url);
-      //     return mutatePlacePixel({
-      //       account: props.account,
-      //       wallet: props.wallet,
+        const metadataCall = {
+          contractAddress: metadata.contract,
+          entrypoint: 'place_pixel_with_metadata',
+          calldata: CallData.compile({
+            position: positionBN,
+            color: colorBN,
+            now: now,
+            metaPos: positionBN,
+            ipfs: metadata.ipfs,
+            nostr: nostrEventIdFelt,
+            owner: metadata.owner,
+            contract: metadata.contract
+          })
+        };
 
-      //       callProps: callProps(CallData.compile({ position, color, now, metaPos: positionUint256 ?? metadata.pos, ipfs: urlByteArray, nostr: nostrEventIdFelt ?? metadata.nostr_event_id, owner: metadata.owner, contract: metadata.contract }), "place_pixel_with_metadata")
-      //     }, {
-      //       onError(err) {
-      //         console.log(err);
-      //         setShowMetaDataForm(false);
-      //       },
-      //       onSuccess(data) {
-      //         console.log(data, "Success")
-      //       }
-      //     })
-      //   }
-
-
-    }
-
-    console.log("props.isShieldMode", props.isShieldMode);
-    if (props?.isShieldMode) {
-      // const     positionUint256 = cairo.uint256(props.selectedShieldPixels);
-
-
-      /** TODO get how much paid for the shield */
-      // const paidByTime = await props?.account?.invoke(metadataCall)
-
-
-      // get token address to paid
-
-      const tokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK
-      console.log("tokenAddress", tokenAddress);
-
-
-      const amountUint = cairo.uint256(1)
-      /** ADD APPROVE CALLDATA */
-
-      const approveCall = {
-
-        contractAddress: tokenAddress,
-        entrypoint: 'approve',
-        calldata: CallData.compile({
-          amount: amountUint,
-          spender: props?.artPeaceContract ?? ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        }),
+        calls.push(metadataCall);
+      } else {
+        calls.push(pixelCall);
       }
 
+      // Handle shield mode if active
+      if (props?.isShieldMode && props.selectedShieldPixels?.length > 0) {
+        const tokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
+        const amountUint = cairo.uint256(BigInt(1));
 
-      const shielPixel = {
-        contractAddress: props?.artPeaceContract ?? ART_PEACE_ADDRESS?.['0x534e5f5345504f4c4941'],
-        entrypoint: 'place_pixel_shield',
-        calldata: CallData.compile({
-          position: positionUint256,
-          time: now,
-        }),
-      };
+        // Add approve call for shield
+        const approveCall = {
+          contractAddress: tokenAddress,
+          entrypoint: 'approve',
+          calldata: CallData.compile({
+            amount: amountUint,
+            spender: props.artPeaceContract
+          })
+        };
 
-      // calls.push(approveCall)
-      // calls.push(shielPixel)
-      // const callMetadata = CallData.compile({ position, color, now, metaPos: positionUint256 ?? metadata.pos, ipfs: urlByteArray, nostr: nostrEventIdFelt ?? metadata.nostr_event_id, owner: metadata.owner, contract: metadata.contract })
+        // Add shield pixel call
+        const shieldPixel = {
+          contractAddress: props.artPeaceContract,
+          entrypoint: 'place_pixel_shield',
+          calldata: CallData.compile({
+            position: positionBN,
+            time: nowBN
+          })
+        };
 
-      // props?.account?.execute([approveCall, shielPixel])
+        calls.push(approveCall, shieldPixel);
+      }
+
+      // Execute all transactions
+      console.log('Executing calls:', calls);
+
+      if (props.account) {
+        const tx = await props.account.execute(calls);
+        console.log('Transaction submitted:', tx);
+
+        return tx;
+      } else {
+        console.log('No account found');
+        return;
+      }
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      throw error;
     }
-
-    console.log("calls", calls);
-    const tx = await props?.account?.execute(calls)
-
-    // mutatePlacePixel({
-    //   account: props.account,
-    //   wallet: props.wallet,
-    //   callProps: callProps([position, color, now], "place_pixel")
-    // }, {
-    //   onError(err) {
-    //     console.log(err)
-    //     setShowMetaDataForm(false)
-    //   },
-    //   onSuccess(data) {
-    //     console.log(data, "Success")
-    //   }
-    // })
   };
 
 

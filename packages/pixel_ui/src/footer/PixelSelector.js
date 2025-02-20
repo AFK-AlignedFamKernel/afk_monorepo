@@ -106,7 +106,7 @@ const PixelSelector = (props) => {
       )
     ) {
 
-      console.log("props?.queryAddress", props?.queryAddress)
+      // console.log("props?.queryAddress", props?.queryAddress)
       setPlacementTimer('Login to Play');
       return;
     }

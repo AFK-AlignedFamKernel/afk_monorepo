@@ -53,35 +53,20 @@ const initArgentTMA = () => {
 
 // Define the types for the store
 interface WalletState {
-  // Core wallet state
   wallet: StarknetWindowObject | null;
   connectorData: any | null;
   connector: any | null;
   connected: boolean;
   isTelegram: boolean;
-  
-  // Account state
   account: any | null;
   isSessionable: boolean;
   queryAddress: string;
   address: string | null;
-  
-  // Session state
   usingSessionKeys: boolean;
   sessionRequest: any | null;
   accountSessionSignature: any | null;
   dappKey: { privateKey: Uint8Array; publicKey: string } | null;
 
-  // Account metadata
-  username: string;
-  pixelCount: number;
-  accountRank: string;
-  
-  // UI state
-  isLoading: boolean;
-  error: string | null;
-
-  // Core setters
   setWallet: (wallet: any) => void;
   setIsTelegram: (isTelegram: boolean) => void;
   setConnectorData: (connectorData: any) => void;
@@ -91,27 +76,14 @@ interface WalletState {
   setIsSessionable: (isSessionable: boolean) => void;
   setQueryAddress: (queryAddress: string) => void;
   setAddress: (address: string) => void;
-  
-  // Session setters
   setUsingSessionKeys: (usingSessionKeys: boolean) => void;
   setSessionRequest: (sessionRequest: any) => void;
   setAccountSessionSignature: (accountSessionSignature: any) => void;
   setDappKey: (dappKey: { publicKey: string; privateKey: Uint8Array }) => void;
 
-  // Metadata setters
-  setUsername: (username: string) => void;
-  setPixelCount: (count: number) => void;
-  setAccountRank: (rank: string) => void;
-
-  // Core actions
   disconnectWallet: (devnetMode?: boolean) => void;
   connectWallet: (provider: any, devnetMode?: boolean) => Promise<void>;
   startSession: (provider: any) => Promise<void>;
-  
-  // Account actions
-  updateAccountMetadata: () => Promise<void>;
-  claimUsername: (username: string) => Promise<void>;
-  changeUsername: (username: string) => Promise<void>;
 }
 
 const canSession = (wallet: any) => {
@@ -132,7 +104,6 @@ const canSession = (wallet: any) => {
 };
 
 export const useWalletStore = create<WalletState>()((set, get) => ({
-  // Initial state
   wallet: null,
   connectorData: null,
   connector: null,
@@ -146,11 +117,6 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
   accountSessionSignature: null,
   dappKey: null,
   isTelegram: false,
-  username: '',
-  pixelCount: 0,
-  accountRank: '',
-  isLoading: false,
-  error: null,
 
   setWallet: (wallet) => set({ wallet }),
   setConnectorData: (connectorData) => set({ connectorData }),
@@ -165,127 +131,123 @@ export const useWalletStore = create<WalletState>()((set, get) => ({
   setAccountSessionSignature: (accountSessionSignature) => set({ accountSessionSignature }),
   setDappKey: (dappKey) => set({ dappKey }),
   setIsTelegram: (isTelegram) => set({ isTelegram }),
-  setUsername: (username) => set({ username }),
-  setPixelCount: (count) => set({ pixelCount: count }),
-  setAccountRank: (rank) => set({ accountRank: rank }),
 
   connectWallet: async (provider, devnetMode = false) => {
     const state = get();
-    set({ isLoading: true, error: null });
+
+    if (devnetMode) {
+      set({ connected: true });
+      return;
+    }
+
+    //If in telegram context
+    if (state?.isTelegram) {
+      const argentTMA = initArgentTMA();
+      console.log("argentTma", argentTMA)
+      if (!argentTMA) return;
+      try {
+        const res = await argentTMA.connect()
+
+        if (!res) {
+          // Not connected
+          // setConnected(false);
+          return;
+        }
+
+        const { account, callbackData } = res;
+
+        if (account.getSessionStatus() !== 'VALID') {
+          // Session has expired or scope (allowed methods) has changed
+          // setAccount(account);
+          // setConnected(false);
+          return;
+        }
+
+        // const chainId = await account?.getChainId();
+        // setConnectorData({
+        //   account: account.address,
+        //   chainId: chainId ? BigInt(chainId).toString() : undefined,
+        // });
+
+        // setAccount(account);
+        // setConnected(true);
+        // await connectArgent()
+        // await argentTMA.requestConnection({
+        //   callbackData: 'custom_callback_data',
+        //   approvalRequests: [
+        //     // {
+        //     //   tokenAddress: '0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7',
+        //     //   amount: BigInt(1000000000000000000).toString(),
+        //     //   spender: 'spender_address',
+        //     // }
+        //   ],
+        // });
+
+        // await argentTMA.requestConnection("custom_callback", [
+        //   // {
+        //   //   token: {
+        //   //     // Token address that you need approved
+        //   //     address: "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
+        //   //     name: "Ethereum",
+        //   //     symbol: "ETH",
+        //   //     decimals: 18,
+        //   //   },
+        //   //   amount: BigInt(100000).toString(),
+        //   //   // Your dapp contract
+        //   //   spender: "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+        //   // },
+        // ]);
+
+        // await argentTMA.requestConnection({
+        //   callbackData: '',
+        //   approvalRequests: [],
+        // });
+
+
+      } catch (error) {
+        console.log(error, 'err');
+      }
+    }
 
     try {
-      if (devnetMode) {
-        set({ connected: true });
-        return;
-      }
-
-      if (state.isTelegram) {
-        const argentTMA = initArgentTMA();
-        if (!argentTMA) {
-          throw new Error('Failed to initialize Argent TMA');
-        }
-        const res = await argentTMA.connect();
-        if (!res || !res.account) {
-          throw new Error('Failed to connect via Argent TMA');
-        }
-        const { account } = res;
-        set({ 
-          account,
-          connected: true,
-          address: account.address,
-          queryAddress: account.address.slice(2).toLowerCase().padStart(64, '0')
-        });
-        return;
-      }
-
       const { wallet, connectorData, connector } = await nextConnect({
         modalMode: 'alwaysAsk',
         webWalletUrl: process.env.NEXT_PUBLIC_ARGENT_WEBWALLET_URL,
         argentMobileOptions: {
           dappName: 'Afk/lfg',
           url: window.location.hostname,
-          chainId: process.env.NEXT_PUBLIC_CHAIN_ID || process.env.EXPO_PUBLIC_CHAIN_ID || '',
+          chainId:
+            process.env.NEXT_PUBLIC_CHAIN_ID || process.env.EXPO_PUBLIC_CHAIN_ID || ('' as any),
           icons: [],
         },
       });
 
-      if (!wallet || !connectorData || !connector) {
-        throw new Error('Failed to connect wallet');
+      if (wallet && connectorData && connector) {
+        const new_account = await connector.account(provider);
+
+        set({
+          wallet,
+          connectorData: {
+            account: connectorData?.account,
+            chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString() : undefined,
+          },
+          connector,
+          connected: true,
+          account: new_account,
+          address: connectorData?.account,
+          isSessionable: canSession(wallet),
+        });
       }
-
-      const new_account = await connector.account(provider);
-      
-      set({
-        wallet,
-        connectorData: {
-          account: connectorData.account,
-          chainId: connectorData.chainId ? BigInt(connectorData.chainId).toString() : undefined,
-        },
-        connector,
-        connected: true,
-        account: new_account,
-        address: connectorData.account,
-        queryAddress: connectorData.account.slice(2).toLowerCase().padStart(64, '0'),
-        isSessionable: canSession(wallet),
-      });
-
-      // Update account metadata after successful connection
-      await get().updateAccountMetadata();
-
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to connect wallet',
+      console.error('Wallet connection error:', error);
+      // Optionally handle connection errors
+      set({
         connected: false,
         connectorData: null,
-        queryAddress: '0'
+        queryAddress: '0',
       });
-    } finally {
-      set({ isLoading: false });
     }
   },
-
-  // New account actions
-  updateAccountMetadata: async () => {
-    const state = get();
-    if (!state.address) return;
-
-    try {
-      set({ isLoading: true, error: null });
-      
-      // Fetch account metadata from backend
-      const [usernameRes, pixelCountRes] = await Promise.all([
-        fetch(`${backendUrl}/get-username?address=${state.address}`),
-        fetch(`${backendUrl}/get-pixel-count?address=${state.address}`)
-      ]);
-
-      const [usernameData, pixelCountData] = await Promise.all([
-        usernameRes.json(),
-        pixelCountRes.json()
-      ]);
-
-      // Update account rank based on pixel count
-      let rank = 'Art Beggar';
-      if (pixelCountData.data >= 500) {
-        rank = 'Alpha Wolf';
-      } else if (pixelCountData.data >= 250) {
-        rank = 'Degen Artist';
-      } else if (pixelCountData.data >= 50) {
-        rank = 'Pixel Wizard';
-      }
-
-      set({
-        username: usernameData.data || '',
-        pixelCount: pixelCountData.data || 0,
-        accountRank: rank
-      });
-
-    } catch (error) {
-      set({ error: 'Failed to update account metadata' });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
   startSession: async () => {
     const { wallet, address, connectorData } = get();
 
