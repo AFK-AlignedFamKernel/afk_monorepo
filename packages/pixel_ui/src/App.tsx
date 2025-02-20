@@ -236,7 +236,7 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     calldata
   }) => {
     try {
-      const { suggestedMaxFee } = await account.estimateInvokeFee({
+      const { suggestedMaxFee } = await account?.estimateInvokeFee({
         contractAddress: contractAddress,
         entrypoint: entrypoint,
         calldata: calldata
