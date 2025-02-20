@@ -15,9 +15,12 @@ interface AccountProps {
   setActiveTab: (tab: string) => void;
   setModal: (modal: any) => void;
   gameEnded: boolean;
+  usingSessionKeys: boolean;
+  isSessionable: boolean;
+  startSession?: () => void;
 }
 
-const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
+const Account = ({ setActiveTab, setModal, gameEnded, usingSessionKeys, isSessionable, startSession }: AccountProps) => {
   const { address, account, isConnected, status } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
@@ -209,6 +212,15 @@ const Account = ({ setActiveTab, setModal, gameEnded }: AccountProps) => {
           <div className="Account__disconnect__button__separator"></div>
           
           <div className="Account__footer">
+          {startSession && (
+                <div
+                  className='Text__small Button__primary Button__disabled'
+                  style={{ marginBottom: '0.3rem', backgroundColor: '#f00' }}
+                  onClick={() => startSession()}
+                >
+                  Start session
+                </div>
+              )}
             <div
               className="Text__small Button__primary Account__disconnect__button"
               onClick={() => disconnect()}
