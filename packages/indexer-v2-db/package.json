@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./schema": "./dist/schema.js"
+  },
   "scripts": {
     "build": "drizzle-kit generate && tsc",
     "lint": "biome check .",
