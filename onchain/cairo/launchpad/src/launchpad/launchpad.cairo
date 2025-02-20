@@ -1121,10 +1121,6 @@ pub mod LaunchpadMarketplace {
                 .is_creator_fee_sent_before_graduated
                 .read();
 
-            assert(
-                !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == false,
-                errors::CREATOR_CANT_BE_DISTRIBUTED
-            );
 
             assert(launch.creator_amount_to_distribute > 0_u256, errors::NO_FEE_RECEIVED);
             let quote_token = IERC20Dispatcher {
@@ -1134,13 +1130,14 @@ pub mod LaunchpadMarketplace {
             let creator_fee_amount = launch.creator_amount_received;
             let creator_fee_distributed = launch.creator_amount_distributed;
             let creator_fee_to_distribute = launch.creator_amount_to_distribute;
+
             if !is_creator_fee_sent_before_graduated && launch.is_liquidity_launch == true {
                 quote_token.transfer(launch.creator_fee_destination, creator_fee_to_distribute);
                 launch.creator_amount_received = 0_u256;
                 launch.creator_amount_distributed += creator_fee_to_distribute;
                 launch.creator_amount_to_distribute = 0_u256;
+                self.launched_coins.entry(coin_address).write(launch);
             }
-            self.launched_coins.entry(coin_address).write(launch);
 
             self
                 .emit(
