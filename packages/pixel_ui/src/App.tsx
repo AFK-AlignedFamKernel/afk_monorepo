@@ -236,12 +236,12 @@ function App({ contractAddress, usernameAddress, nftCanvasAddress }: IApp) {
     calldata
   }) => {
     try {
-      const { suggestedMaxFee } = await account?.estimateInvokeFee({
+      const res = await account?.estimateInvokeFee({
         contractAddress: contractAddress,
         entrypoint: entrypoint,
         calldata: calldata
       });
-      return { suggestedMaxFee };
+      return { suggestedMaxFee: res?.suggestedMaxFee ?? BigInt(1000000000000000) };
     } catch (error) {
       console.error(error);
       return { suggestedMaxFee: BigInt(1000000000000000) };

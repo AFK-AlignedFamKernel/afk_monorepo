@@ -229,7 +229,7 @@ const PixelSelector = (props) => {
                 showMeta={props?.showMetadataForm}
                 closeMeta={() => {
                   props?.setShowMetadataForm(false);
-                  setMetadata({ twitter: '', nostr: '', ips: '' });
+                  setMetadata({ twitter: '', nostr: '', ipfs: '' });
                 }}
                 handleOpen={() => props?.setShowMetadataForm(true)}
                 selectorMode={props?.selectorMode}

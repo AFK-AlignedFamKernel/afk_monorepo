@@ -39,7 +39,7 @@ interface WalletState {
     setSessionRequest: (sessionRequest: any) => void
     setAccountSessionSignature: (accountSessionSignature: any) => void
     setDappKey: (dappKey: { publicKey: string, privateKey }) => void
-    setMetadata: (metadata: { twitter: string; nostr: string; ips: string; }) => void
+    setMetadata: (metadata: { twitter: string; nostr: string; ipfs: string; }) => void
 
     disconnectWallet: (devnetMode?: boolean) => void
     connectWallet: (provider: any, devnetMode?: boolean) => Promise<void>
