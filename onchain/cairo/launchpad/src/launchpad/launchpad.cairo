@@ -163,7 +163,6 @@ pub mod LaunchpadMarketplace {
         liquidity_raised_amount_in_dollar: u256,
         protocol_fee_percent: u256,
         creator_fee_percent: u256,
-        is_fees_protocol: bool,
         step_increase_linear: u256,
         // Admins params fees
         is_fees_protocol_sell_enabled: bool,
@@ -898,7 +897,16 @@ pub mod LaunchpadMarketplace {
                 pool.clone(), coin_address, sell_amount, true, false
             );
             let mut quote_amount = quote_amount_total.clone();
-
+            // AUDIT
+            // Validate against liquidity and balance constraints
+            // High security check to do.
+            // Approximation and rounding issue can cause to enter this check
+            // We maybe do something wrong to enter this check
+            // println!("check liq raised and quote amount");
+            if pool.liquidity_raised < quote_amount {
+                // println!("pool.liquidity_raised < quote_amount");
+                quote_amount = pool.liquidity_raised;
+            }
             // AUDIT
             // HIGH RISK SECURITY
             // Rounding and approximation of the Linear and Exponential bonding curve can occurs
@@ -911,7 +919,7 @@ pub mod LaunchpadMarketplace {
             // let creator_fee_amount = sell_amount * creator_fee_percent / BPS;
 
             // Handle protocol fees if enabled
-            let is_fees_enabled = self.is_fees_protocol_enabled.read()
+            let is_fees_protocol_enabled = self.is_fees_protocol_enabled.read()
                 && self.is_fees_protocol_sell_enabled.read();
 
             let mut quote_fee_amount = 0_u256;
@@ -922,7 +930,7 @@ pub mod LaunchpadMarketplace {
             // Substract fees protocol from quote amount
             // AUDIT
             // High security check to do: rounding, approximation, balance of contract
-            if is_fees_enabled {
+            if is_fees_protocol_enabled {
                 quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
                 quote_amount -= quote_fee_amount;
             }
@@ -962,28 +970,13 @@ pub mod LaunchpadMarketplace {
                 }
             }
 
-            // AUDIT
-            // Validate against liquidity and balance constraints
-            // High security check to do.
-            // Approximation and rounding issue can cause to enter this check
-            // We maybe do something wrong to enter this check
-            // println!("check liq raised and quote amount");
-            if pool.liquidity_raised < quote_amount {
-                // println!("pool.liquidity_raised < quote_amount");
-                quote_amount = pool.liquidity_raised;
-                if is_fees_enabled {
-                    quote_fee_amount = quote_amount * protocol_fee_percent / BPS;
-                    quote_amount -= quote_fee_amount;
-                    // creator_fee_amount = quote_amount * creator_fee_percent / BPS;
-                // quote_amount -= creator_fee_amount;
-                }
-            }
+         
 
             // println!("quote_amount: {}", quote_amount.clone());
             assert(pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
             // Transfer protocol fees to the address
-            if is_fees_enabled && quote_fee_amount > 0 {
+            if is_fees_protocol_enabled && quote_fee_amount > 0 {
                 quote_token.transfer(self.protocol_fee_destination.read(), quote_fee_amount);
             }
 
