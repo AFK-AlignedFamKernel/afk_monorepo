@@ -194,6 +194,18 @@ pub fn is_valid_stark_signature(
     }
 }
 
+// pub fn sqrt(y: u256) -> u256 {
+//     let mut z = (y + 1) / 2;
+//     let mut x = y;
+
+//     while z < x {
+//         x = z;
+//         z = (y / z + z) / 2;
+//     };
+
+//     x
+// }
+
 pub fn sqrt(y: u256) -> u256 {
     let mut z = (y + 1) / 2;
     let mut x = y;
@@ -204,4 +216,64 @@ pub fn sqrt(y: u256) -> u256 {
     };
 
     x
+}
+
+// Verify if the result is correct by checking x * x <= y < (x + 1) * (x + 1)
+// This ensures we get the floor of the square root
+pub fn verify_sqrt(y: u256, x: u256) -> bool {
+    let x_squared = x * x;
+    let x_plus_1_squared = (x + 1) * (x + 1);
+    x_squared <= y && y < x_plus_1_squared
+}
+
+#[cfg(test)]
+mod utils_tests {
+    use super::{sqrt, verify_sqrt};
+
+    #[test]
+    fn test_verify_sqrt() {
+    let test_cases = array![0, 1, 2, 3, 4, 9, 15, 16, 17, 24, 25, 26];
+    let mut i = 0;
+    loop {
+        if i >= test_cases.len() {
+            break;
+        }
+        let y = *test_cases[i];
+        let x = sqrt(y);
+            assert(verify_sqrt(y, x), 'Invalid sqrt result');
+            i += 1;
+        }
+    }
+
+    #[test]
+    fn test_sqrt() {
+        let y = 1000000000000000000_u256;
+        let sqrt_y = sqrt(y);
+        // assert(sqrt_y == 1000000000000000000_u256, 'sqrt_y issue 1');
+    }
+
+    #[test]
+    fn test_sqrt_2() {
+        let y = 4;
+        let sqrt_y = sqrt(y);
+        assert(sqrt_y == 2, 'sqrt_y is not 2');
+
+        let y = 9;
+        let sqrt_y = sqrt(y);
+        assert(sqrt_y == 3, 'sqrt_y is not 3');
+
+        let y = 16;
+        let sqrt_y = sqrt(y);
+        assert(sqrt_y == 4, 'sqrt_y is not 4');
+
+        // Test large number
+        let y = 1000000000000000000000000;
+        let sqrt_y = sqrt(y);
+        assert(sqrt_y == 1000000000000, 'sqrt_y issue');
+
+        // Test zero
+        let y = 0;
+        let sqrt_y = sqrt(y);
+        assert(sqrt_y == 0, 'sqrt_y is not 0');
+    }
 }

@@ -64,4 +64,5 @@ pub mod tests {
     pub mod linear_tests;
     pub mod liquidity_tests;
     pub mod unrug_tests;
+    pub mod end_to_end_tests;
 }
