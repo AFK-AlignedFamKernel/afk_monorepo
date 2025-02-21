@@ -11,7 +11,6 @@ use afk_launchpad::types::launchpad_types::{
 };
 use starknet::ClassHash;
 use starknet::ContractAddress;
-
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
     use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
@@ -34,11 +33,15 @@ pub mod LaunchpadMarketplace {
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
-    use afk_launchpad::utils::{sqrt};
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
 
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
+    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher, dispatcher};
+    // use ekubo::interfaces::mathlib::{IMathLib, dispatcher};
+    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
+    use ekubo::interfaces::mathlib::{IMathLibLibraryDispatcher, IMathLib};
+
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
     };
@@ -59,11 +62,14 @@ pub mod LaunchpadMarketplace {
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
     // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
-    use starknet::syscalls::deploy_syscall;
+    use starknet::syscalls::{library_call_syscall, deploy_syscall};
+
+    use starknet::{SyscallResultTrait};
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
+
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE, ADMIN_ROLE,
         BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch, SetJediswapNFTRouterV2,
@@ -74,7 +80,11 @@ pub mod LaunchpadMarketplace {
         CreatorFeeDistributed
         // MemecoinCreated, MemecoinLaunched
     };
-    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+
+    use afk_launchpad::utils::{sqrt};
+    // use cubit::f128::math::ops::{ sqrt};
+    // use cubit::f128::types::fixed::{Fixed, FixedTrait, FixedPrint, ONE_u128, ONE};
+
 
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
@@ -109,10 +119,13 @@ pub mod LaunchpadMarketplace {
 
     // Unrug params
     const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
+
+
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
     // fn _validate_transaction_size(amount: u256) {
     //     assert(amount <= MAX_TRANSACTION_AMOUNT, 'transaction too large');
     // }
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
@@ -337,6 +350,15 @@ pub mod LaunchpadMarketplace {
         }
     }
 
+    pub fn dispatcher() -> IMathLibLibraryDispatcher {
+        IMathLibLibraryDispatcher {
+            class_hash: 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+                .try_into()
+                .unwrap()
+        }
+    }
+
+    // pub const CLASS_HASH_MATH_LIB: ClassHash = 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3;
     // Public functions inside an impl block
     // Create token
     // Launch token with Bonding curve type: Linear, Exponential, more to come
@@ -1507,13 +1529,60 @@ pub mod LaunchpadMarketplace {
             // V2 need to be more flexible here for the user.
             // Add more test case
             let tick_spacing = 5928;
+
+
+            // Calculate initial tick price
+
+            // let math_lib = dispatcher();
+            // let math_lib:IMathLibLibraryDispatcher = dispatcher();
+
+
+            // Compute sqrt root with the correct placed of token0 and token1
+
+            // TODO test sqrt
+            let x_y = launch.initial_pool_supply.clone() / launch.liquidity_raised.clone();
+
+            // Cubit repo Fixed doesnt work (report issue)
+            // let x_y_fixed = Fixed::from_integer(x_y);
+
+            // TODO test sqrt
+            // Verified fixed i128
+            // https://docs.ekubo.org/integration-guides/reference/math-1-pager
+            let sqrt_ratio = sqrt(x_y);
+            // let sqrt_price = math_lib.sqrt(x_y);
+
+            // Convert to a tick value
+            // let initial_tick =   IMathLibLibraryDispatcher {
+            //     class_hash: 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+            //         .try_into()
+            //         .unwrap()
+            // }.tick_to_sqrt_ratio(sqrt_ratio);
+
+            let mut call_data: Array<felt252> = array![];
+            Serde::serialize(@sqrt_ratio, ref call_data);
+    
+            let mut res = library_call_syscall(
+                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap(), selector!("sqrt_ratio_to_tick"), call_data.span(),
+            )
+                .unwrap_syscall();
+    
+            let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
+            // TODO
+            // Ensure the tick is align with the tick spacing
+            // let aligned_tick = math_lib.align_tick(tick, tick_spacing);
+
+            // TODO 
+            // Adjust bound spacing
+            // Based on the range choose
+
+            // TODO 
+            // verify the bound spacing is correct
+
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: tick_spacing,
-                starting_price: calculate_starting_price_launch(
-                    launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
-                ),
+                starting_price: initial_tick,
                 bound: bound_spacing,
             };
 
