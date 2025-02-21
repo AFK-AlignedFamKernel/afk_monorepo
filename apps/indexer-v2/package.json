@@ -4,14 +4,13 @@
   "private": true,
   "scripts": {
     "build": "apibara build",
+    "build:db": "pnpm -w run build:indexer-v2-db",
+    "build:all": "pnpm -w run build:indexer-v2-db && apibara build",
     "dev": "apibara dev",
-    "start": "apibara start --indexer dao-factory",
+    "start": "apibara start",
     "lint": "biome check .",
     "lint:fix": "pnpm lint --write",
-    "test": "vitest",
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:studio": "drizzle-kit studio"
+    "test": "vitest"
   },
   "dependencies": {
     "@apibara/evm": "2.0.1-beta.30",
