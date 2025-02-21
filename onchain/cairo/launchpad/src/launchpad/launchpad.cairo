@@ -1540,12 +1540,15 @@ pub mod LaunchpadMarketplace {
             let (token0, token1) = sort_tokens(coin_address, launch.token_quote.token_address.clone());
 
             // Audit edge case related to difference between threshold and total supply
-            let mut x_y = launch.initial_pool_supply.clone() / launch.liquidity_raised.clone();
+            let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone()) * pow_256(10, 18);
             let is_token1_quote = launch.token_quote.token_address == token1;
+            println!("is_token1_quote {}",is_token1_quote.clone());
+            println!("x_y {}",x_y.clone());
+
             // TODO FIX
             // Audit edge case related to difference between threshold and total supply
-            if is_token1_quote {
-                x_y = launch.liquidity_raised.clone() / launch.initial_pool_supply.clone();
+            if is_token1_quote == true {
+                x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) * pow_256(10, 18);
             }
             // Cubit repo Fixed doesnt work (report issue)
             // let x_y_fixed = Fixed::from_integer(x_y);
@@ -1553,7 +1556,14 @@ pub mod LaunchpadMarketplace {
             // TODO test sqrt
             // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
-            let sqrt_ratio = sqrt(x_y);
+            let mut sqrt_ratio = sqrt(x_y);
+            println!("sqrt_ratio {}",sqrt_ratio.clone());
+
+            if sqrt_ratio <= 0_u256 {
+                println!("sqrt_ratio <= 0");
+                sqrt_ratio = 1_u256;
+            }
+            println!("sqrt_ratio {}",sqrt_ratio.clone());
 
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
