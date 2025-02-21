@@ -1532,39 +1532,39 @@ pub mod LaunchpadMarketplace {
 
 
             // Calculate initial tick price
-
-            // let math_lib = dispatcher();
-            // let math_lib:IMathLibLibraryDispatcher = dispatcher();
-
-
             // Compute sqrt root with the correct placed of token0 and token1
 
             // TODO test sqrt
-            let x_y = launch.initial_pool_supply.clone() / launch.liquidity_raised.clone();
 
+            // Sort token for calculation
+            let (token0, token1) = sort_tokens(coin_address, launch.token_quote.token_address.clone());
+
+            // Audit edge case related to difference between threshold and total supply
+            let mut x_y = launch.initial_pool_supply.clone() / launch.liquidity_raised.clone();
+            let is_token1_quote = launch.token_quote.token_address == token1;
+            // TODO FIX
+            // Audit edge case related to difference between threshold and total supply
+            if is_token1_quote {
+                x_y = launch.liquidity_raised.clone() / launch.initial_pool_supply.clone();
+            }
             // Cubit repo Fixed doesnt work (report issue)
             // let x_y_fixed = Fixed::from_integer(x_y);
 
             // TODO test sqrt
-            // Verified fixed i128
+            // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
             let sqrt_ratio = sqrt(x_y);
-            // let sqrt_price = math_lib.sqrt(x_y);
 
             // Convert to a tick value
-            // let initial_tick =   IMathLibLibraryDispatcher {
-            //     class_hash: 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
-            //         .try_into()
-            //         .unwrap()
-            // }.tick_to_sqrt_ratio(sqrt_ratio);
-
             let mut call_data: Array<felt252> = array![];
             Serde::serialize(@sqrt_ratio, ref call_data);
+
+            // let class_hash:ClassHash = 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+            let class_hash:ClassHash = 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
     
             let mut res = library_call_syscall(
-                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap(), selector!("sqrt_ratio_to_tick"), call_data.span(),
-            )
-                .unwrap_syscall();
+                class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
+            ).unwrap_syscall();
     
             let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
             // TODO
@@ -1574,10 +1574,9 @@ pub mod LaunchpadMarketplace {
             // TODO 
             // Adjust bound spacing
             // Based on the range choose
-
-            // TODO 
+            // Bounding space for Wide range or Concentrated range
             // verify the bound spacing is correct
-
+            // AUDIT
             let bound_spacing = tick_spacing * 2;
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000,
@@ -1587,7 +1586,6 @@ pub mod LaunchpadMarketplace {
             };
 
             // Calculate liquidity amounts
-            // AUDIT
             let lp_supply = launch.initial_pool_supply.clone();
             let mut lp_quote_supply = launch.liquidity_raised.clone();
 
