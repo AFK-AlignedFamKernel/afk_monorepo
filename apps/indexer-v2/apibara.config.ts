@@ -3,6 +3,10 @@ import { defineConfig } from 'apibara/config';
 
 export default defineConfig({
   runtimeConfig: {
+    streamUrl: 'https://starknet-sepolia.preview.apibara.org',
+    startingCursor: {
+      orderKey: 500_000,
+    },
     pgLiteDBPath: 'memory://persistence',
   },
   presets: {

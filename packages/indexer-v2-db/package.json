@@ -2,17 +2,18 @@
   "name": "indexer-v2-db",
   "version": "0.0.1",
   "private": true,
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema.js"
+    ".": "./dist/src/index.js",
+    "./schema": "./dist/src/schema.js"
   },
   "scripts": {
-    "build": "drizzle-kit generate && tsc",
+    "build": "tsc",
     "lint": "biome check .",
     "lint:fix": "pnpm lint --write",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:migrate:prod": "drizzle-kit migrate --config=./dist/drizzle-prod.config.js",
     "drizzle:studio": "drizzle-kit studio"
   },
   "dependencies": {
