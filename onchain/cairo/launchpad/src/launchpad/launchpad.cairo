@@ -1603,28 +1603,10 @@ pub mod LaunchpadMarketplace {
             println!("sqrt_ratio  fixed {}", sqrt_ratio.clone());
 
             // Simple sqrt unfixed
-
-            // Calculate the starting price based on the sorted tokens
-            // let starting_price = if is_token1_quote {
-            //     // If token1 is the quote, calculate price as quote per base
-            //     liquidity_raised * pow_256(10, 18) / init_pool_supply
-            // } else {
-            //     // If token0 is the quote, calculate price as base per quote
-            //     init_pool_supply * pow_256(10, 18) / liquidity_raised
-            // };
-
-            // let starting_price = i129 { sign: false, mag: 4600158 }; // 100quote/MEME
-
-            // if sqrt_ratio <= 0_u256 {
-            //     println!("sqrt_ratio <= 0");
-            //     sqrt_ratio = 1 * pow_256(10, 18);
-            // }
             println!("sqrt_ratio {}", sqrt_ratio.clone());
-            // Unfixed point sqrt_ratio
+            // Fixed point sqrt_ratio
             sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
             println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
-            // sqrt_ratio = sqrt_ratio * pow_256(10, 96);
-            // println!("sqrt_ratio {}",sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
@@ -1641,36 +1623,6 @@ pub mod LaunchpadMarketplace {
             };
 
             // Define the minimum and maximum sqrt ratios
-            // let min_sqrt_ratio = 1; // Corresponds to the smallest possible price
-            // let max_sqrt_ratio = pow_256(2, 128) - 1; // Corresponds to the largest possible
-            // price
-
-            // Convert sqrt ratios to ticks
-            // let min_tick = sqrt_ratio_to_tick(min_sqrt_ratio);
-            // let mut min_call_data: Array<felt252> = array![];
-            // Serde::serialize(@min_sqrt_ratio, ref min_call_data);
-
-            // let mut res = library_call_syscall(
-            //     class_hash, selector!("sqrt_ratio_to_tick"), min_call_data.span(),
-            // ).unwrap_syscall();
-
-            // let min_tick = Serde::<i129>::deserialize(ref res).unwrap();
-            // println!("min_tick {}",min_tick.mag.clone());
-
-            // let mut max_call_data: Array<felt252> = array![];
-            // Serde::serialize(@max_sqrt_ratio, ref max_call_data);
-
-            // let mut res = library_call_syscall(
-            //     class_hash, selector!("sqrt_ratio_to_tick"), max_call_data.span(),
-            // ).unwrap_syscall();
-
-            // let max_tick = Serde::<i129>::deserialize(ref res).unwrap();
-            // println!("max_tick {}",max_tick.mag.clone());
-
-            // // Ensure ticks are aligned with tick spacing
-            // let aligned_min_tick = align_tick(min_tick.mag, tick_spacing);
-            // let aligned_max_tick = align_tick(max_tick.mag, tick_spacing);
-
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
             Serde::serialize(@sqrt_ratio, ref call_data);
@@ -1753,7 +1705,7 @@ pub mod LaunchpadMarketplace {
             memecoin.approve(unrug_liquidity_address, lp_supply);
 
             // Launch on Ekubo
-            // TODO Audit unrug.caior
+            // TODO Audit unrug.cairo
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
 
             // Update launch state
