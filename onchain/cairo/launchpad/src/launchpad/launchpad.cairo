@@ -29,7 +29,7 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag
+        calculate_aligned_bound_mag, align_tick
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -82,8 +82,8 @@ pub mod LaunchpadMarketplace {
     };
 
     use afk_launchpad::utils::{sqrt};
-    // use cubit::f128::math::ops::{ sqrt};
-    // use cubit::f128::types::fixed::{Fixed, FixedTrait, FixedPrint, ONE_u128, ONE};
+    use cubit::f128::math::ops::{ sqrt as sqrt_cubit};
+    use cubit::f128::types::fixed::{Fixed, FixedTrait, FixedPrint, FixedTryIntoU128, ONE_u128, ONE};
 
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -1535,12 +1535,17 @@ pub mod LaunchpadMarketplace {
             // Compute sqrt root with the correct placed of token0 and token1
 
             // TODO test sqrt
-
             // Sort token for calculation
+            // Check in Unruggable
             let (token0, token1) = sort_tokens(coin_address, launch.token_quote.token_address.clone());
+            // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(), coin_address);
 
-            // Audit edge case related to difference between threshold and total supply
-            let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone()) * pow_256(10, 18);
+            // Audit
+            //  Edge case related to difference between threshold and total supply
+            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone()) * pow_256(10, 18);
+            let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone());
+            // Audit
+            // let mut x_y = (launch.initial_pool_supply.clone() * pow_256(10, 18) / launch.liquidity_raised.clone() * pow_256(10, 18)) / pow_256(10, 18);
             let is_token1_quote = launch.token_quote.token_address == token1;
             println!("is_token1_quote {}",is_token1_quote.clone());
             println!("x_y {}",x_y.clone());
@@ -1548,22 +1553,91 @@ pub mod LaunchpadMarketplace {
             // TODO FIX
             // Audit edge case related to difference between threshold and total supply
             if is_token1_quote == true {
-                x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) * pow_256(10, 18);
+                // x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) * pow_256(10, 18);
+                // x_y = (launch.liquidity_raised.clone() * pow_256(10, 18) / launch.initial_pool_supply.clone() * pow_256(10, 18)) / pow_256(10, 18);
+                x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone());
             }
-            // Cubit repo Fixed doesnt work (report issue)
-            // let x_y_fixed = Fixed::from_integer(x_y);
-
+   
             // TODO test sqrt
             // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
-            let mut sqrt_ratio = sqrt(x_y);
+            // Cubit repo Fixed doesnt work (report issue)
+
+            let x_y_felt:felt252 = x_y.try_into().unwrap();
+            println!("x_y_felt {}",x_y_felt.clone());
+
+            // let x_y_fixed = FixedTrait::from_unscaled_felt(x_y_felt);
+            let x_y_fixed = FixedTrait::from_felt(x_y_felt);
+            // let x_y_fixed = FixedTrait::from_u256(x_y);
+            println!("x_y_fixed {}",x_y_fixed.mag.clone());
+
+            let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
+            println!("sqrt_ratio_fixed_u128 {}",sqrt_ratio_fixed_u128.mag.clone());
+
+            // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
+            let mut sqrt_ratio_u128 = FixedTryIntoU128::try_into(sqrt_ratio_fixed_u128).unwrap();
+            println!("sqrt_ratio_u128 {}",sqrt_ratio_u128.clone());
+
+            // let mut sqrt_ratio = sqrt_ratio_u128.try_into().unwrap();
+            let mut sqrt_ratio = sqrt_ratio_fixed_u128.mag.try_into().unwrap();
+
+            // Simple sqrt unfixed
+            // Unfixed point sqrt_ratio
+            // let mut sqrt_ratio = sqrt(x_y);
             println!("sqrt_ratio {}",sqrt_ratio.clone());
 
             if sqrt_ratio <= 0_u256 {
                 println!("sqrt_ratio <= 0");
-                sqrt_ratio = 1_u256;
+                sqrt_ratio = 1 * pow_256(10, 18);
             }
             println!("sqrt_ratio {}",sqrt_ratio.clone());
+
+            // sqrt_ratio = sqrt_ratio * pow_256(10, 18);
+            println!("sqrt_ratio {}",sqrt_ratio.clone());
+
+            let min_sqrt_ratio_limit = 18446748437148339061;
+            if sqrt_ratio < min_sqrt_ratio_limit {
+                println!("sqrt_ratio < min_sqrt_ratio_limit");
+                sqrt_ratio = min_sqrt_ratio_limit;
+            }
+            println!("sqrt_ratio {}",sqrt_ratio.clone());
+
+            let max_sqrt_ratio_limit = 6277100250585753475930931601400621808602321654880405518632;
+            if sqrt_ratio > max_sqrt_ratio_limit {
+                println!("sqrt_ratio > max_sqrt_ratio_limit");
+                sqrt_ratio = max_sqrt_ratio_limit;
+            }
+
+            // Define the minimum and maximum sqrt ratios
+            // let min_sqrt_ratio = 1; // Corresponds to the smallest possible price
+            // let max_sqrt_ratio = pow_256(2, 128) - 1; // Corresponds to the largest possible price
+
+            // Convert sqrt ratios to ticks
+            // let min_tick = sqrt_ratio_to_tick(min_sqrt_ratio);
+            // let mut min_call_data: Array<felt252> = array![];
+            // Serde::serialize(@min_sqrt_ratio, ref min_call_data);
+          
+            // let mut res = library_call_syscall(
+            //     class_hash, selector!("sqrt_ratio_to_tick"), min_call_data.span(),
+            // ).unwrap_syscall();
+    
+            // let min_tick = Serde::<i129>::deserialize(ref res).unwrap();
+            // println!("min_tick {}",min_tick.mag.clone());
+     
+            // let mut max_call_data: Array<felt252> = array![];
+            // Serde::serialize(@max_sqrt_ratio, ref max_call_data);
+
+            // let mut res = library_call_syscall(
+            //     class_hash, selector!("sqrt_ratio_to_tick"), max_call_data.span(),
+            // ).unwrap_syscall();
+
+            // let max_tick = Serde::<i129>::deserialize(ref res).unwrap();
+            // println!("max_tick {}",max_tick.mag.clone());
+
+            // // Ensure ticks are aligned with tick spacing
+            // let aligned_min_tick = align_tick(min_tick.mag, tick_spacing);
+            // let aligned_max_tick = align_tick(max_tick.mag, tick_spacing);
+
 
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
@@ -1577,9 +1651,11 @@ pub mod LaunchpadMarketplace {
             ).unwrap_syscall();
     
             let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
+            println!("initial_tick {}",initial_tick.mag.clone());
             // TODO
             // Ensure the tick is align with the tick spacing
             // let aligned_tick = math_lib.align_tick(tick, tick_spacing);
+            // let aligned_tick = align_tick(initial_tick, tick_spacing);
 
             // TODO 
             // Adjust bound spacing
@@ -1587,7 +1663,12 @@ pub mod LaunchpadMarketplace {
             // Bounding space for Wide range or Concentrated range
             // verify the bound spacing is correct
             // AUDIT
-            let bound_spacing = tick_spacing * 2;
+            // let bound_spacing = initial_tick.mag * 2;
+
+            let bound_spacing = 88719042;
+            // let bound_spacing = tick_spacing * 88719042;
+            // let bound_spacing =  88719042;
+
             let pool_params = EkuboPoolParameters {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: tick_spacing,

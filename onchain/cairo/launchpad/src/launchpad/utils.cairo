@@ -80,6 +80,22 @@ pub fn get_next_tick_bounds(
     }
 }
 
+pub fn align_tick(tick: i128, tick_spacing: i128) -> i128 {
+    // Calculate the remainder of the tick divided by the tick spacing
+    let remainder = tick % tick_spacing;
+
+    // If the remainder is zero, the tick is already aligned
+    if remainder == 0 {
+        return tick;
+    }
+
+    // Calculate the aligned tick by subtracting the remainder
+    // This aligns the tick to the nearest lower multiple of tick_spacing
+    let aligned_tick = tick - remainder;
+
+    // Return the aligned tick
+    return aligned_tick;
+}
 
 pub fn unique_count<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>) -> u32 {
     let mut counter = 0;
