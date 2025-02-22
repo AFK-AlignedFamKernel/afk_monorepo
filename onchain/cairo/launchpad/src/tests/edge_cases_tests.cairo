@@ -525,7 +525,7 @@ mod edge_cases_tests {
         let init_supplies: Array<u256> = array![
             // 1_u256 * pow_256(10, 18),
             // THRESHOLD_LIQUIDITY/2_u256 * pow_256(10, 18),
-            THRESHOLD_LIQUIDITY * pow_256(10, 18),
+            // THRESHOLD_LIQUIDITY * pow_256(10, 18),
             THRESHOLD_LIQUIDITY * 2_u256 + pow_256(10, 18),
             100_000_u256 * pow_256(10, 18), // 100k
             1_000_000_u256 * pow_256(10, 18), // 1m

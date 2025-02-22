@@ -1,2 +1,2 @@
-afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end__with_different_supply_exp
-afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end__with_different_supply_linear
+afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end_linear_with_different_supply
+afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end_exp_with_different_supply
