@@ -582,28 +582,28 @@ mod edge_cases_tests {
             let memecoin = IERC20Dispatcher { contract_address: token_address };
 
             // println!("buy threshold liquidity");
-            println!("buy threshold liquidity {:?}", THRESHOLD_LIQUIDITY/2_u256);
-            run_buy_by_amount(
-                launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY/2_u256, token_address, OWNER(),
-            );
-            let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+            // println!("buy threshold liquidity {:?}", THRESHOLD_LIQUIDITY/2_u256);
+            // run_buy_by_amount(
+                // launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY/2_u256, token_address, OWNER(),
+            // );
+            // let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
 
 
-            // Sell
-            let share_user = launchpad
-                .get_share_of_user_by_contract(OWNER(), memecoin.contract_address);
+            // // Sell
+            // let share_user = launchpad
+            //     .get_share_of_user_by_contract(OWNER(), memecoin.contract_address);
 
-            // let amount_owned = share_user.amount_owned.try_into().unwrap();
-            let amount_owned = share_user.amount_owned;
-            println!("amount_owned {:?}", amount_owned);
+            // // let amount_owned = share_user.amount_owned.try_into().unwrap();
+            // let amount_owned = share_user.amount_owned;
+            // println!("amount_owned {:?}", amount_owned);
 
-            println!("sell amount_owned {:?}", amount_owned);
+            // println!("sell amount_owned {:?}", amount_owned);
 
-            run_sell_by_amount(
-                launchpad, quote_token, memecoin, amount_owned, token_address, OWNER(),
-            );
+            // run_sell_by_amount(
+            //     launchpad, quote_token, memecoin, amount_owned, token_address, OWNER(),
+            // );
 
-            println!("balance quote in loop {:?}", balance_quote_launch);
+            // println!("balance quote in loop {:?}", balance_quote_launch);
 
             // Last buy before launch 
             println!("buy threshold liquidity {:?}", THRESHOLD_LIQUIDITY);

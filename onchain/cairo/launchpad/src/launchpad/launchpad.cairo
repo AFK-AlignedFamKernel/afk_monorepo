@@ -1555,36 +1555,30 @@ pub mod LaunchpadMarketplace {
             println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
             //  Edge case related to difference between threshold and total supply
-            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone())
-            // * pow_256(10, 18);
-            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone());
-            // // Audit
-            // // let mut x_y = (launch.initial_pool_supply.clone() * pow_256(10, 18) /
-            // launch.liquidity_raised.clone() * pow_256(10, 18)) / pow_256(10, 18);
-            // let is_token1_quote = launch.token_quote.token_address == token1;
-            // println!("is_token1_quote {}",is_token1_quote.clone());
-            // println!("x_y {}",x_y.clone());
 
             // // TODO FIX
             // // Audit edge case related to difference between threshold and total supply
-            // if is_token1_quote == true {
-            //     // x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) *
-            //     pow_256(10, 18);
-            //     // x_y = (launch.liquidity_raised.clone() * pow_256(10, 18) /
-            //     launch.initial_pool_supply.clone() * pow_256(10, 18)) / pow_256(10, 18);
-            //     x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone());
-            // }
 
-            // 3. Calculate proper sqrt price ratio
+            // TODO: check if this is correct
+            // Adjust scale factor
+            // Initial pool need to be more than liquidity raised
+            // CHECK liquidity raised and initial pool supply to avoir division by zero, overflow, rounding or 0 value
             let mut x_y = if is_token1_quote {
                 // (launch.liquidity_raised ) / launch.initial_pool_supply
                 (launch.liquidity_raised * pow_256(10, 18)) / launch.initial_pool_supply
             } else {
+                // if launch.initial_pool_supply < launch.liquidity_raised {
+                //     (launch.initial_pool_supply) / launch.liquidity_raised
+                // } else {
+                //     (launch.initial_pool_supply * pow_256(10, 18)) / launch.liquidity_raised
+                // }
                 (launch.initial_pool_supply) / launch.liquidity_raised
                 // (launch.initial_pool_supply * pow_256(10, 18)) / launch.liquidity_raised
+
             };
 
             // TODO test sqrt
+            // 3. Calculate proper sqrt price ratio
             // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
             // Cubit repo Fixed doesnt work (report issue)
