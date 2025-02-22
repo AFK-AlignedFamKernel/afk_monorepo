@@ -19,7 +19,7 @@ RUN apk add --no-cache \
     libc6-compat && \
     npm install -g pnpm && \
     pnpm install && \
-    pnpm --filter nestjs-v2-indexer build:all
+    pnpm --filter indexer-v2 build:all
 
 WORKDIR /app
 
@@ -54,5 +54,4 @@ EXPOSE 3000
 
 # Command to start the application
 WORKDIR /app/apps/indexer-v2
-CMD npm run --prefix /app/node_modules/indexer-v2-db drizzle:migrate && \
-    node build/start.mjs start --indexer dao-factory
+CMD node build/start.mjs start --indexer dao-factory

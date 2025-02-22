@@ -20,7 +20,7 @@ In dev, we can run all indexers or chose one indexer to run.
 
 ```shell
 pnpm dev 
-pnpm dev -- --indexer index_name 
+pnpm dev --indexer index_name 
 ```
 
 ### Prod
@@ -28,5 +28,5 @@ pnpm dev -- --indexer index_name
 In production, we can only run one indexer at time.
 
 ```shell
-pnpm start -- --indexer index_name 
+pnpm start --indexer index_name 
 ```
