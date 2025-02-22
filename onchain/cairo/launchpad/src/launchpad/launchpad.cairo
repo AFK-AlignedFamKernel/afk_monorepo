@@ -29,22 +29,27 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag, align_tick
+        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
+        align_tick_with_max_tick_and_min_tick
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
+
+    use afk_launchpad::utils::{sqrt};
     use core::num::traits::Zero;
+    use cubit::f128::math::ops::{sqrt as sqrt_cubit};
+    use cubit::f128::types::fixed::{Fixed, FixedTrait, FixedPrint, FixedTryIntoU128, ONE_u128, ONE};
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
 
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
-    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher, dispatcher};
-    // use ekubo::interfaces::mathlib::{IMathLib, dispatcher};
-    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
-    use ekubo::interfaces::mathlib::{IMathLibLibraryDispatcher, IMathLib};
 
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
     };
+    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher, dispatcher};
+    // use ekubo::interfaces::mathlib::{IMathLib, dispatcher};
+    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
+    use ekubo::interfaces::mathlib::{IMathLibLibraryDispatcher, IMathLib};
     use ekubo::types::bounds::{Bounds};
     use ekubo::types::keys::PoolKey;
     use ekubo::types::{i129::i129};
@@ -63,12 +68,12 @@ pub mod LaunchpadMarketplace {
     // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
     use starknet::syscalls::{library_call_syscall, deploy_syscall};
-
-    use starknet::{SyscallResultTrait};
     use starknet::{
         ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
         contract_address_const, get_block_timestamp, get_contract_address, ClassHash
     };
+
+    use starknet::{SyscallResultTrait};
 
     use super::{
         StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE, ADMIN_ROLE,
@@ -80,10 +85,6 @@ pub mod LaunchpadMarketplace {
         CreatorFeeDistributed
         // MemecoinCreated, MemecoinLaunched
     };
-
-    use afk_launchpad::utils::{sqrt};
-    use cubit::f128::math::ops::{ sqrt as sqrt_cubit};
-    use cubit::f128::types::fixed::{Fixed, FixedTrait, FixedPrint, FixedTryIntoU128, ONE_u128, ONE};
 
 
     const MAX_SUPPLY: u256 = 100_000_000;
@@ -119,7 +120,6 @@ pub mod LaunchpadMarketplace {
 
     // Unrug params
     const DEFAULT_MIN_LOCKTIME: u64 = 15_721_200;
-
 
     // const MAX_TRANSACTION_AMOUNT: u256 = 1_000_000 * pow_256(10, 18);
     // fn _validate_transaction_size(amount: u256) {
@@ -358,7 +358,8 @@ pub mod LaunchpadMarketplace {
         }
     }
 
-    // pub const CLASS_HASH_MATH_LIB: ClassHash = 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3;
+    // pub const CLASS_HASH_MATH_LIB: ClassHash =
+    // 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3;
     // Public functions inside an impl block
     // Create token
     // Launch token with Bonding curve type: Linear, Exponential, more to come
@@ -576,12 +577,16 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol._grant_role(ADMIN_ROLE, admin);
         }
 
-        fn set_role_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+        fn set_role_address(
+            ref self: ContractState, contract_address: ContractAddress, role: felt252
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.accesscontrol._grant_role(role, contract_address);
         }
 
-        fn set_revoke_address(ref self: ContractState, contract_address: ContractAddress, role:felt252) {
+        fn set_revoke_address(
+            ref self: ContractState, contract_address: ContractAddress, role: felt252
+        ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.accesscontrol._revoke_role(role, contract_address);
         }
@@ -992,8 +997,6 @@ pub mod LaunchpadMarketplace {
                 }
             }
 
-         
-
             // println!("quote_amount: {}", quote_amount.clone());
             assert(pool.liquidity_raised >= quote_amount, errors::LIQUIDITY_BELOW_AMOUNT);
 
@@ -1371,7 +1374,8 @@ pub mod LaunchpadMarketplace {
 
             // check if token is created by the launchpad to prevent malicious erc20
             assert(!token.creator.is_zero(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
-            // assert(token.creator == get_contract_address(), errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
+            // assert(token.creator == get_contract_address(),
+            // errors::TOKEN_NOT_CREATED_BY_LAUNCHPAD);
 
             let is_coin_launched = self.is_coin_launched.read(coin_address);
             assert(!is_coin_launched, errors::POOL_COIN_ALREADY_LAUNCHED);
@@ -1528,8 +1532,8 @@ pub mod LaunchpadMarketplace {
             // HIGH SECURITY RISK
             // V2 need to be more flexible here for the user.
             // Add more test case
-            let tick_spacing = 5928;
-
+            // let tick_spacing = 5928;
+            let tick_spacing = 200;
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
@@ -1537,93 +1541,124 @@ pub mod LaunchpadMarketplace {
             // TODO test sqrt
             // Sort token for calculation
             // Check in Unruggable
-            let (token0, token1) = sort_tokens(coin_address, launch.token_quote.token_address.clone());
-            // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(), coin_address);
+            let (token0, token1) = sort_tokens(
+                coin_address, launch.token_quote.token_address.clone()
+            );
+            // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(),
+            // coin_address);
+            let is_token1_quote = launch.token_quote.token_address == token1;
 
+            println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
             //  Edge case related to difference between threshold and total supply
-            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone()) * pow_256(10, 18);
-            let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone());
-            // Audit
-            // let mut x_y = (launch.initial_pool_supply.clone() * pow_256(10, 18) / launch.liquidity_raised.clone() * pow_256(10, 18)) / pow_256(10, 18);
-            let is_token1_quote = launch.token_quote.token_address == token1;
-            println!("is_token1_quote {}",is_token1_quote.clone());
-            println!("x_y {}",x_y.clone());
+            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone())
+            // * pow_256(10, 18);
+            // let mut x_y = (launch.initial_pool_supply.clone() / launch.liquidity_raised.clone());
+            // // Audit
+            // // let mut x_y = (launch.initial_pool_supply.clone() * pow_256(10, 18) /
+            // launch.liquidity_raised.clone() * pow_256(10, 18)) / pow_256(10, 18);
+            // let is_token1_quote = launch.token_quote.token_address == token1;
+            // println!("is_token1_quote {}",is_token1_quote.clone());
+            // println!("x_y {}",x_y.clone());
 
-            // TODO FIX
-            // Audit edge case related to difference between threshold and total supply
-            if is_token1_quote == true {
-                // x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) * pow_256(10, 18);
-                // x_y = (launch.liquidity_raised.clone() * pow_256(10, 18) / launch.initial_pool_supply.clone() * pow_256(10, 18)) / pow_256(10, 18);
-                x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone());
-            }
-   
+            // // TODO FIX
+            // // Audit edge case related to difference between threshold and total supply
+            // if is_token1_quote == true {
+            //     // x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone()) *
+            //     pow_256(10, 18);
+            //     // x_y = (launch.liquidity_raised.clone() * pow_256(10, 18) /
+            //     launch.initial_pool_supply.clone() * pow_256(10, 18)) / pow_256(10, 18);
+            //     x_y = (launch.liquidity_raised.clone() / launch.initial_pool_supply.clone());
+            // }
+
+            // 3. Calculate proper sqrt price ratio
+            let mut x_y = if is_token1_quote {
+                // (launch.liquidity_raised ) / launch.initial_pool_supply
+                (launch.liquidity_raised * pow_256(10, 18)) / launch.initial_pool_supply
+            } else {
+                (launch.initial_pool_supply) / launch.liquidity_raised
+                // (launch.initial_pool_supply * pow_256(10, 18)) / launch.liquidity_raised
+            };
+
             // TODO test sqrt
             // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
             // Cubit repo Fixed doesnt work (report issue)
 
-            let x_y_felt:felt252 = x_y.try_into().unwrap();
-            println!("x_y_felt {}",x_y_felt.clone());
+            let x_y_felt: felt252 = x_y.try_into().unwrap();
+            println!("x_y_felt {}", x_y_felt.clone());
 
             // let x_y_fixed = FixedTrait::from_unscaled_felt(x_y_felt);
             let x_y_fixed = FixedTrait::from_felt(x_y_felt);
             // let x_y_fixed = FixedTrait::from_u256(x_y);
-            println!("x_y_fixed {}",x_y_fixed.mag.clone());
+            println!("x_y_fixed {}", x_y_fixed.mag.clone());
 
             let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
-            println!("sqrt_ratio_fixed_u128 {}",sqrt_ratio_fixed_u128.mag.clone());
+            println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
 
             // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
             let mut sqrt_ratio_u128 = FixedTryIntoU128::try_into(sqrt_ratio_fixed_u128).unwrap();
-            println!("sqrt_ratio_u128 {}",sqrt_ratio_u128.clone());
+            println!("sqrt_ratio_u128 {}", sqrt_ratio_u128.clone());
 
             // let mut sqrt_ratio = sqrt_ratio_u128.try_into().unwrap();
             let mut sqrt_ratio = sqrt_ratio_fixed_u128.mag.try_into().unwrap();
+            println!("sqrt_ratio  fixed {}", sqrt_ratio.clone());
 
             // Simple sqrt unfixed
+
+            // Calculate the starting price based on the sorted tokens
+            // let starting_price = if is_token1_quote {
+            //     // If token1 is the quote, calculate price as quote per base
+            //     liquidity_raised * pow_256(10, 18) / init_pool_supply
+            // } else {
+            //     // If token0 is the quote, calculate price as base per quote
+            //     init_pool_supply * pow_256(10, 18) / liquidity_raised
+            // };
+
+            // let starting_price = i129 { sign: false, mag: 4600158 }; // 100quote/MEME
+
+            // if sqrt_ratio <= 0_u256 {
+            //     println!("sqrt_ratio <= 0");
+            //     sqrt_ratio = 1 * pow_256(10, 18);
+            // }
+            println!("sqrt_ratio {}", sqrt_ratio.clone());
             // Unfixed point sqrt_ratio
-            // let mut sqrt_ratio = sqrt(x_y);
-            println!("sqrt_ratio {}",sqrt_ratio.clone());
+            sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+            println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
+            // sqrt_ratio = sqrt_ratio * pow_256(10, 96);
+            // println!("sqrt_ratio {}",sqrt_ratio.clone());
 
-            if sqrt_ratio <= 0_u256 {
-                println!("sqrt_ratio <= 0");
-                sqrt_ratio = 1 * pow_256(10, 18);
-            }
-            println!("sqrt_ratio {}",sqrt_ratio.clone());
+            let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
+            let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
-            // sqrt_ratio = sqrt_ratio * pow_256(10, 18);
-            println!("sqrt_ratio {}",sqrt_ratio.clone());
-
-            let min_sqrt_ratio_limit = 18446748437148339061;
-            if sqrt_ratio < min_sqrt_ratio_limit {
+            let sqrt_ratio = if sqrt_ratio < min_sqrt_ratio_limit {
                 println!("sqrt_ratio < min_sqrt_ratio_limit");
-                sqrt_ratio = min_sqrt_ratio_limit;
-            }
-            println!("sqrt_ratio {}",sqrt_ratio.clone());
-
-            let max_sqrt_ratio_limit = 6277100250585753475930931601400621808602321654880405518632;
-            if sqrt_ratio > max_sqrt_ratio_limit {
+                min_sqrt_ratio_limit
+            } else if sqrt_ratio > max_sqrt_ratio_limit {
                 println!("sqrt_ratio > max_sqrt_ratio_limit");
-                sqrt_ratio = max_sqrt_ratio_limit;
-            }
+                max_sqrt_ratio_limit
+            } else {
+                println!("sqrt_ratio is between min and max");
+                sqrt_ratio
+            };
 
             // Define the minimum and maximum sqrt ratios
             // let min_sqrt_ratio = 1; // Corresponds to the smallest possible price
-            // let max_sqrt_ratio = pow_256(2, 128) - 1; // Corresponds to the largest possible price
+            // let max_sqrt_ratio = pow_256(2, 128) - 1; // Corresponds to the largest possible
+            // price
 
             // Convert sqrt ratios to ticks
             // let min_tick = sqrt_ratio_to_tick(min_sqrt_ratio);
             // let mut min_call_data: Array<felt252> = array![];
             // Serde::serialize(@min_sqrt_ratio, ref min_call_data);
-          
+
             // let mut res = library_call_syscall(
             //     class_hash, selector!("sqrt_ratio_to_tick"), min_call_data.span(),
             // ).unwrap_syscall();
-    
+
             // let min_tick = Serde::<i129>::deserialize(ref res).unwrap();
             // println!("min_tick {}",min_tick.mag.clone());
-     
+
             // let mut max_call_data: Array<felt252> = array![];
             // Serde::serialize(@max_sqrt_ratio, ref max_call_data);
 
@@ -1638,26 +1673,29 @@ pub mod LaunchpadMarketplace {
             // let aligned_min_tick = align_tick(min_tick.mag, tick_spacing);
             // let aligned_max_tick = align_tick(max_tick.mag, tick_spacing);
 
-
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
             Serde::serialize(@sqrt_ratio, ref call_data);
 
-            // let class_hash:ClassHash = 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
-            let class_hash:ClassHash = 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
-    
+            // let class_hash:ClassHash =
+            // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+            let class_hash: ClassHash =
+                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+                .try_into()
+                .unwrap();
+
             let mut res = library_call_syscall(
                 class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
-            ).unwrap_syscall();
-    
+            )
+                .unwrap_syscall();
+
             let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
-            println!("initial_tick {}",initial_tick.mag.clone());
+            println!("initial_tick {}", initial_tick.mag.clone());
             // TODO
             // Ensure the tick is align with the tick spacing
-            // let aligned_tick = math_lib.align_tick(tick, tick_spacing);
             // let aligned_tick = align_tick(initial_tick, tick_spacing);
-
-            // TODO 
+            // println!("aligned_tick {}",aligned_tick.clone());
+            // TODO
             // Adjust bound spacing
             // Based on the range choose
             // Bounding space for Wide range or Concentrated range
@@ -1665,7 +1703,10 @@ pub mod LaunchpadMarketplace {
             // AUDIT
             // let bound_spacing = initial_tick.mag * 2;
 
+            // let bound_spacing = 887272;
             let bound_spacing = 88719042;
+            // let bound_spacing = 2000;
+            // let bound_spacing = MAX_TICK.try_into().unwrap();
             // let bound_spacing = tick_spacing * 88719042;
             // let bound_spacing =  88719042;
 
@@ -1673,6 +1714,7 @@ pub mod LaunchpadMarketplace {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: tick_spacing,
                 starting_price: initial_tick,
+                // starting_price: starting_price,
                 bound: bound_spacing,
             };
 

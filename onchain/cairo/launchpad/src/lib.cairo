@@ -59,10 +59,10 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
+    pub mod end_to_end_tests;
     pub mod exponential_tests;
     pub mod launchpad_tests;
     pub mod linear_tests;
     pub mod liquidity_tests;
     pub mod unrug_tests;
-    pub mod end_to_end_tests;
 }

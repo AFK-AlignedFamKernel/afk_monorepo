@@ -232,14 +232,14 @@ mod utils_tests {
 
     #[test]
     fn test_verify_sqrt() {
-    let test_cases = array![0, 1, 2, 3, 4, 9, 15, 16, 17, 24, 25, 26];
-    let mut i = 0;
-    loop {
-        if i >= test_cases.len() {
-            break;
-        }
-        let y = *test_cases[i];
-        let x = sqrt(y);
+        let test_cases = array![0, 1, 2, 3, 4, 9, 15, 16, 17, 24, 25, 26];
+        let mut i = 0;
+        loop {
+            if i >= test_cases.len() {
+                break;
+            }
+            let y = *test_cases[i];
+            let x = sqrt(y);
             assert(verify_sqrt(y, x), 'Invalid sqrt result');
             i += 1;
         }

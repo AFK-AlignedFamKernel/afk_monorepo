@@ -24,6 +24,8 @@ mod launchpad_tests {
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
         EkuboUnrugLaunchParameters
     };
+
+    use afk_launchpad::types::launchpad_types::{MINTER_ROLE, ADMIN_ROLE};
     use core::num::traits::Zero;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
@@ -43,10 +45,6 @@ mod launchpad_tests {
     };
     use starknet::syscalls::call_contract_syscall;
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
-
-    use afk_launchpad::types::launchpad_types::{
-        MINTER_ROLE, ADMIN_ROLE
-    };
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
     //     100_000_000
@@ -1111,10 +1109,22 @@ mod launchpad_tests {
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
         let amount_first_buy = 1_u256;
 
-        launchpad.launch_token(token_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                token_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
     }
 
 
@@ -1148,7 +1158,13 @@ mod launchpad_tests {
         stop_cheat_caller_address(memecoin.contract_address);
         start_cheat_caller_address(launchpad.contract_address, sender_address);
 
-        launchpad.launch_token(token_new.contract_address, bonding_type: BondingType::Linear, creator_fee_percent: MID_FEE_CREATOR, creator_fee_destination: RECEIVER_ADDRESS());
+        launchpad
+            .launch_token(
+                token_new.contract_address,
+                bonding_type: BondingType::Linear,
+                creator_fee_percent: MID_FEE_CREATOR,
+                creator_fee_destination: RECEIVER_ADDRESS()
+            );
     }
 
 

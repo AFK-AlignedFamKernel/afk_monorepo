@@ -5,8 +5,8 @@ mod unrug_tests {
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
-    use afk_launchpad::math::PercentageMath;
     use afk_launchpad::launchpad::utils::{calculate_aligned_bound_mag, sort_tokens};
+    use afk_launchpad::math::PercentageMath;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher,
     // IMemecoinDispatcherTrait};
@@ -438,7 +438,9 @@ mod unrug_tests {
             extension: 0.try_into().unwrap()
         };
         let pool_price = position_dispatcher.get_pool_price(pool_key);
-        println!("sqrt_ratio {:?}", pool_price.sqrt_ratio); // 340282366920938463463374607431768211456
+        println!(
+            "sqrt_ratio {:?}", pool_price.sqrt_ratio
+        ); // 340282366920938463463374607431768211456
         println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
         // No need to check +2% percent
     //     let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
