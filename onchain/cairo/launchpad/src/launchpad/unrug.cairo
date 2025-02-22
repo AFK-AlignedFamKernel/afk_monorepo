@@ -584,6 +584,8 @@ pub mod UnrugLiquidity {
                     // let min_tick = MIN_TICK.try_into().unwrap();
                     // let max_tick = MAX_TICK.try_into().unwrap();
 
+                    // TODO 
+                    // Check align ticks based on tick spacing and fee
                     let min_tick = MIN_TICK_U128.try_into().unwrap();
                     let max_tick = MAX_TICK_U128.try_into().unwrap();
                     println!("min_tick {}", min_tick.clone());
@@ -594,12 +596,6 @@ pub mod UnrugLiquidity {
                     let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
                         max_tick, launch_params.pool_params.tick_spacing
                     );
-                    // let aligned_min_tick = align_tick((-887272).try_into().unwrap(),
-                    // launch_params.pool_params.tick_spacing);
-                    // let aligned_max_tick = align_tick(887272.try_into().unwrap(),
-                    // launch_params.pool_params.tick_spacing);
-                    // Create bounds using the aligned ticks
-
                     println!("aligned_min_tick {}", aligned_min_tick.clone());
                     println!("aligned_max_tick {}", aligned_max_tick.clone());
                     println!("is_token1_quote {}", is_token1_quote);
@@ -642,7 +638,6 @@ pub mod UnrugLiquidity {
                             launch_params.lp_quote_supply,
                             bounds_full_range,
                             // full_range_bounds,
-                            // bounds_full_range,
                             // single_tick_bound,
                             launch_params.owner,
                         );
