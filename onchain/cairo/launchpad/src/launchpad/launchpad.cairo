@@ -1530,10 +1530,14 @@ pub mod LaunchpadMarketplace {
             // Set pool parameters
             // TODO audit
             // HIGH SECURITY RISK
-            // V2 need to be more flexible here for the user.
             // Add more test case
-            // let tick_spacing = 5928;
-            let tick_spacing = 200;
+
+            // Verify fee is correct
+            let fee_percent = 0xc49ba5e353f7d00000000000000000;
+            // TODO
+            // Verify tick spacing is correct based on the fee used
+            let tick_spacing = 5928;
+            // let tick_spacing = 200;
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
@@ -1711,7 +1715,7 @@ pub mod LaunchpadMarketplace {
             // let bound_spacing =  88719042;
 
             let pool_params = EkuboPoolParameters {
-                fee: 0xc49ba5e353f7d00000000000000000,
+                fee: fee_percent,
                 tick_spacing: tick_spacing,
                 starting_price: initial_tick,
                 // starting_price: starting_price,

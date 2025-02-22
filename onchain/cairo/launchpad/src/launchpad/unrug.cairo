@@ -911,6 +911,7 @@ pub mod UnrugLiquidity {
             // let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
 
+            println!("pool id {}", id.clone());
             id
         }
 

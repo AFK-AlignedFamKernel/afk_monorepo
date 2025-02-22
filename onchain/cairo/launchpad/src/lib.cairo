@@ -1,10 +1,7 @@
 pub mod bip340;
-
 pub mod errors;
-
 pub mod math;
 pub mod sha256;
-
 pub mod utils;
 
 pub mod launchpad {
@@ -65,4 +62,5 @@ pub mod tests {
     pub mod linear_tests;
     pub mod liquidity_tests;
     pub mod unrug_tests;
+    pub mod edge_cases_tests;
 }
