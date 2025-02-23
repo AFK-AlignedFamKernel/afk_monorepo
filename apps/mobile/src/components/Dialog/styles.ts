@@ -1,7 +1,7 @@
 import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
-  modal: {
+ modal: {
     padding: Spacing.large,
     height: '90vh', // 90% of the viewport height
     width: '70vw', // 70% of the viewport width
