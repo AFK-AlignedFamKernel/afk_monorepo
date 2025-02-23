@@ -1591,27 +1591,27 @@ pub mod LaunchpadMarketplace {
             // let x_y_fixed = FixedTrait::from_u256(x_y);
             println!("x_y_fixed {}", x_y_fixed.mag.clone());
 
-            let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
-            println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
+            // let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
+            // println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
 
             // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
-            let mut sqrt_ratio_u128 = FixedTryIntoU128::try_into(sqrt_ratio_fixed_u128).unwrap();
-            println!("sqrt_ratio_u128 {}", sqrt_ratio_u128.clone());
-
+            // let mut sqrt_ratio_u128 = FixedTryIntoU128::try_into(sqrt_ratio_fixed_u128).unwrap();
+            // println!("sqrt_ratio_u128 {}", sqrt_ratio_u128.clone());
             // let mut sqrt_ratio = sqrt_ratio_u128.try_into().unwrap();
-            let mut sqrt_ratio = sqrt_ratio_fixed_u128.mag.try_into().unwrap();
-            println!("sqrt_ratio  fixed {}", sqrt_ratio.clone());
+            // let mut sqrt_ratio = sqrt_ratio_fixed_u128.mag.try_into().unwrap();
+            // println!("sqrt_ratio  fixed {}", sqrt_ratio.clone());
 
             // Simple sqrt unfixed
-            println!("sqrt_ratio {}", sqrt_ratio.clone());
             // Fixed point sqrt_ratio
-            sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+            let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+            println!("sqrt_ratio {}", sqrt_ratio.clone());
+
             println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
-            let sqrt_ratio = if sqrt_ratio < min_sqrt_ratio_limit {
+            sqrt_ratio = if sqrt_ratio < min_sqrt_ratio_limit {
                 println!("sqrt_ratio < min_sqrt_ratio_limit");
                 min_sqrt_ratio_limit
             } else if sqrt_ratio > max_sqrt_ratio_limit {
