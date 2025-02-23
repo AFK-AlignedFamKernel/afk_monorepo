@@ -1536,8 +1536,8 @@ pub mod LaunchpadMarketplace {
             let fee_percent = 0xc49ba5e353f7d00000000000000000;
             // TODO
             // Verify tick spacing is correct based on the fee used
-            let tick_spacing = 5928;
-            // let tick_spacing = 200;
+            // let tick_spacing = 5928;
+            let tick_spacing = 200;
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
@@ -1604,7 +1604,7 @@ pub mod LaunchpadMarketplace {
             // Simple sqrt unfixed
             // Fixed point sqrt_ratio
             let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
-            println!("sqrt_ratio {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
             println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
 
@@ -1653,8 +1653,8 @@ pub mod LaunchpadMarketplace {
             // AUDIT
             // let bound_spacing = initial_tick.mag * 2;
 
-            // let bound_spacing = 887272;
-            let bound_spacing = 88719042;
+            let bound_spacing = 887272;
+            // let bound_spacing = 88719042;
             // let bound_spacing = 2000;
             // let bound_spacing = MAX_TICK.try_into().unwrap();
             // let bound_spacing = tick_spacing * 88719042;

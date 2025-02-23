@@ -696,8 +696,10 @@ mod edge_cases_tests {
 
             let fee = fee_percent.try_into().unwrap();
             let pool_key = PoolKey {
-                token0: token_address.clone(),
-                token1: erc20.contract_address.clone(),
+                // token0: token_address.clone(),
+                // token1: erc20.contract_address.clone(),
+                token0:token0.clone(),
+                token1:token1.clone(),
                 fee: fee.clone(),
                 tick_spacing: tick_spacing.try_into().unwrap(),
                 extension: 0.try_into().unwrap(),
@@ -735,7 +737,7 @@ mod edge_cases_tests {
             // let lp_meme_supply = total_supply / LIQUIDITY_RATIO;
             // let total_token_holded = total_supply / LIQUIDITY_RATIO;
             // println!("lp_meme_supply {:?}", lp_meme_supply);
-            println!("sqrt_ratio {:?}", pool_price.sqrt_ratio); // 340282366920938463463374607431768211456
+            println!("sqrt_ratio {:?}", pool_price.sqrt_ratio);
             println!("initial_tick mag {:?}", initial_tick.mag); 
             println!("initial_tick sign {:?}", initial_tick.sign);
             println!("tick mag {:?}", pool_price.tick.mag); 

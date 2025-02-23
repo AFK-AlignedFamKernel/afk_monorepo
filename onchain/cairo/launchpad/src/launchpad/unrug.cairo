@@ -569,6 +569,7 @@ pub mod UnrugLiquidity {
                     };
 
                     let is_token1_quote = launch_params.quote_address == token1;
+                    println!("is_token1_quote {:?}", is_token1_quote);
                     let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
@@ -599,7 +600,6 @@ pub mod UnrugLiquidity {
                     println!("aligned_min_tick {}", aligned_min_tick.clone());
                     println!("aligned_max_tick {}", aligned_max_tick.clone());
                     println!("is_token1_quote {}", is_token1_quote);
-
                     let bounds_full_range = if is_token1_quote {
                         Bounds {
                             lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
@@ -611,6 +611,17 @@ pub mod UnrugLiquidity {
                             upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
                         }
                     };
+                    // let bounds_full_range = if is_token1_quote {
+                    //     Bounds {
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //     }
+                    // } else {
+                    //     Bounds {
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //     }
+                    // };
 
                     let memecoin_balance = IERC20Dispatcher {
                         contract_address: launch_params.token_address
