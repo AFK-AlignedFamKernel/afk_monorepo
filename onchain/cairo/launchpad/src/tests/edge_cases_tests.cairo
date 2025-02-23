@@ -744,8 +744,8 @@ mod edge_cases_tests {
             println!("tick sign {:?}", pool_price.tick);
 
             // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");
-            // assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
-            assert(pool_price.tick == initial_tick, 'wrong tick');
+            assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
+            // assert(pool_price.tick == initial_tick, 'wrong tick');
 
             println!(
                 "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",

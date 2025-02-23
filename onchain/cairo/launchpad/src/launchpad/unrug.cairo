@@ -570,7 +570,7 @@ pub mod UnrugLiquidity {
 
                     let is_token1_quote = launch_params.quote_address == token1;
                     println!("is_token1_quote {:?}", is_token1_quote);
-                    let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
+                    let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
                         is_token1_quote
@@ -600,7 +600,7 @@ pub mod UnrugLiquidity {
                     println!("aligned_min_tick {}", aligned_min_tick.clone());
                     println!("aligned_max_tick {}", aligned_max_tick.clone());
                     println!("is_token1_quote {}", is_token1_quote);
-                    let bounds_full_range = if is_token1_quote {
+                    let full_range_bounds = if is_token1_quote {
                         Bounds {
                             lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
                             upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
@@ -647,8 +647,8 @@ pub mod UnrugLiquidity {
                             launch_params.quote_address,
                             launch_params.lp_supply,
                             launch_params.lp_quote_supply,
-                            bounds_full_range,
-                            // full_range_bounds,
+                            // full_range_bounds_initial,
+                            full_range_bounds,
                             // single_tick_bound,
                             launch_params.owner,
                         );
