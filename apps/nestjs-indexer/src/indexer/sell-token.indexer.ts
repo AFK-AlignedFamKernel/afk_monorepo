@@ -138,6 +138,7 @@ export class SellTokenIndexer {
 
     // TODO fix
     // New version upgrade with coin amount sell
+    
     if (coinAmountLow && coinAmountHigh) {
       coinAmountRaw = uint256.uint256ToBN({
         low: FieldElement.toBigInt(coinAmountLow),
