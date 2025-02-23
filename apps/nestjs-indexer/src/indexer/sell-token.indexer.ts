@@ -143,10 +143,7 @@ export class SellTokenIndexer {
         low: FieldElement.toBigInt(coinAmountLow),
         high: FieldElement.toBigInt(coinAmountHigh),
       });
-      coinAmount = formatUnits(
-        coinAmountRaw ?? quoteAmountRaw,
-        constants.DECIMALS,
-      ).toString();
+      coinAmount = formatUnits(coinAmountRaw, constants.DECIMALS).toString();
     }
 
     const timestamp = new Date(

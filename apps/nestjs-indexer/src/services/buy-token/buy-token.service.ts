@@ -26,6 +26,7 @@ export class BuyTokenService {
       await this.prismaService.$transaction(async (prisma) => {
         const tokenLaunchRecord = await prisma.token_launch.findFirst({
           where: { memecoin_address: data.memecoinAddress },
+          orderBy: { created_at: 'desc' },
         });
 
         let price = tokenLaunchRecord?.price ?? 0;

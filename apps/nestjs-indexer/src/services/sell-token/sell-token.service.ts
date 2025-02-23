@@ -51,7 +51,7 @@ export class SellTokenService {
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           Number(data.quoteAmount);
 
-        // Substract protocol fee
+        // Subtract protocol fee
         newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
@@ -68,8 +68,9 @@ export class SellTokenService {
         // Check event fees etc
         let newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
-          Number(data.coinAmount ?? data?.amount);
+          Number(data.amount);
 
+        // Ensure total token held does not go below zero
         if (newTotalTokenHolded < 0) {
           newTotalTokenHolded = 0;
         }
@@ -120,7 +121,7 @@ export class SellTokenService {
         update: {
           amount_owned: {
             // decrement: data.amount,
-            decrement: data.coinAmount ?? data?.amount,
+            decrement: data?.amount,
           },
           // amount_owned: {
           //   // decrement: data.amount,
@@ -131,7 +132,7 @@ export class SellTokenService {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
           owner: data.ownerAddress,
           token_address: data.memecoinAddress,
-          amount_owned: data.amount,
+          amount_owned: data.amount.toString(),
         },
       });
       // await this.prismaService.shares_token_user.upsert({
