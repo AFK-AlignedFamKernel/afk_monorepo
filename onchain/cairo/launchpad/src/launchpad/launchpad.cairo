@@ -277,9 +277,9 @@ pub mod LaunchpadMarketplace {
         // Still not test wisely
         // Rounding issues after fees can happens.
 
-        self.is_fees_protocol_buy_enabled.write(false);
-        self.is_fees_protocol_sell_enabled.write(false);
-        self.is_fees_protocol_enabled.write(false);
+        // self.is_fees_protocol_buy_enabled.write(false);
+        // self.is_fees_protocol_sell_enabled.write(false);
+        // self.is_fees_protocol_enabled.write(false);
 
         // TODO
         // Fees neabled by default
@@ -291,6 +291,9 @@ pub mod LaunchpadMarketplace {
         // self.is_fees_protocol_sell_enabled.write(false);
 
         self.is_creator_fee_sent_before_graduated.write(true);
+        self.is_fees_creator_enabled.write(true);
+        self.is_fees_creator_sell_enabled.write(true);
+        self.is_fees_creator_sell_enabled.write(true);
         // TODO AUDIT
         // Check fees implementation in buy an sell
         // Rounding and approximation can caused an issue
@@ -1564,18 +1567,14 @@ pub mod LaunchpadMarketplace {
             // Initial pool need to be more than liquidity raised
             // CHECK liquidity raised and initial pool supply to avoir division by zero, overflow, rounding or 0 value
             let mut x_y = if is_token1_quote {
-                // (launch.liquidity_raised ) / launch.initial_pool_supply
-                (launch.liquidity_raised * pow_256(10, 18)) / launch.initial_pool_supply
+                (launch.liquidity_raised ) / launch.initial_pool_supply
+                // (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply * pow_256(10, 18))
             } else {
-                // if launch.initial_pool_supply < launch.liquidity_raised {
-                //     (launch.initial_pool_supply) / launch.liquidity_raised
-                // } else {
-                //     (launch.initial_pool_supply * pow_256(10, 18)) / launch.liquidity_raised
-                // }
                 (launch.initial_pool_supply) / launch.liquidity_raised
-                // (launch.initial_pool_supply * pow_256(10, 18)) / launch.liquidity_raised
 
             };
+
+            println!("x_y {}", x_y.clone());
 
             // TODO test sqrt
             // 3. Calculate proper sqrt price ratio
@@ -1593,13 +1592,12 @@ pub mod LaunchpadMarketplace {
 
             // let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
             // println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
-
             // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
             // let mut sqrt_ratio_u128 = FixedTryIntoU128::try_into(sqrt_ratio_fixed_u128).unwrap();
             // println!("sqrt_ratio_u128 {}", sqrt_ratio_u128.clone());
-            // let mut sqrt_ratio = sqrt_ratio_u128.try_into().unwrap();
+            // let mut sqrt_ratio_fixed = sqrt_ratio_u128.try_into().unwrap();
             // let mut sqrt_ratio = sqrt_ratio_fixed_u128.mag.try_into().unwrap();
-            // println!("sqrt_ratio  fixed {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio  fixed {}", sqrt_ratio_fixed.clone());
 
             // Simple sqrt unfixed
             // Fixed point sqrt_ratio
@@ -1653,8 +1651,8 @@ pub mod LaunchpadMarketplace {
             // AUDIT
             // let bound_spacing = initial_tick.mag * 2;
 
-            let bound_spacing = 887272;
-            // let bound_spacing = 88719042;
+            // let bound_spacing = 887272;
+            let bound_spacing = 88719042;
             // let bound_spacing = 2000;
             // let bound_spacing = MAX_TICK.try_into().unwrap();
             // let bound_spacing = tick_spacing * 88719042;
