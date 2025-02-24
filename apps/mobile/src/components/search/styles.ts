@@ -13,6 +13,7 @@ export default ThemedStyleSheet((theme) => ({
     marginHorizontal: 32,
     gap: 10,
     marginVertical: 30,
+   
     // overflowX: 'auto',
   },
   containerMobile: {
@@ -64,8 +65,11 @@ export default ThemedStyleSheet((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     color: theme.colors.textPrimary,
-    opacity: 0.7
+    opacity: 0.7,
+marginRight:5,
+marginBottom:14
   },
+
   activeButton: {
     opacity: 1,
     backgroundColor: theme.colors.primary,

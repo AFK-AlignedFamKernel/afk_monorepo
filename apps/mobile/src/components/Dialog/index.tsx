@@ -9,7 +9,7 @@ import stylesheet from './styles';
 
 export type DialogProps = {
   title: string;
-
+  description: string;
   icon?: React.ReactNode;
   buttons: {
     label: string;
@@ -18,7 +18,7 @@ export type DialogProps = {
   }[];
 };
 
-export const Dialog: React.FC<DialogProps> = ({title, icon,  buttons}) => {
+export const Dialog: React.FC<DialogProps> = ({title, icon, description, buttons}) => {
   const styles = useStyles(stylesheet);
 
   return (
@@ -30,7 +30,9 @@ export const Dialog: React.FC<DialogProps> = ({title, icon,  buttons}) => {
           {title}
         </Text>
 
-       
+        <Text weight="semiBold" color="textSecondary" align="center" fontSize={15} lineHeight={20}>
+          {description}
+        </Text>
       </View>
 
       <View style={styles.buttons}>
