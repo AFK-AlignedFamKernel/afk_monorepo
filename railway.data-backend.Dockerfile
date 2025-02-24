@@ -113,8 +113,8 @@ RUN npm install -g pnpm
 
 # Copy the entire repository into the Docker container
 COPY . .
-
-
+# when building image on local machine, remove .env files
+RUN find . -name ".env" -type f | xargs rm -f
 
 # RUN apk add --no-cache openssl
 # Install all dependencies for the workspace, including common and data-backend

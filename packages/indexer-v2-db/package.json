@@ -2,10 +2,9 @@
   "name": "indexer-v2-db",
   "version": "0.0.1",
   "private": true,
-  "main": "dist/src/index.js",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./schema": "./dist/src/schema.js"
+    ".": "./dist/index.js",
+    "./schema": "./dist/schema.js"
   },
   "scripts": {
     "build": "tsc",

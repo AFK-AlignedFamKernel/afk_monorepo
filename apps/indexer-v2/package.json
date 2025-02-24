@@ -5,7 +5,7 @@
   "scripts": {
     "build": "apibara build",
     "build:db": "pnpm -w run build:indexer-v2-db",
-    "build:all": "pnpm -w run build:indexer-v2-db && apibara build",
+    "build:all": "pnpm build:db && pnpm build",
     "dev": "apibara dev",
     "start": "apibara start",
     "lint": "biome check .",
