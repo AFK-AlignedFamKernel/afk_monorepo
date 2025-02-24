@@ -40,6 +40,11 @@ export class SellTokenService {
 
       let price = tokenLaunchRecord?.price ?? 0;
 
+      const calculatedQuoteAmount = Number(data.amount) * Number(price);
+
+      const effectiveQuoteAmount =
+        calculatedQuoteAmount - Number(data?.protocolFee);
+
       if (!tokenLaunchRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
@@ -49,10 +54,7 @@ export class SellTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
-          Number(data.quoteAmount);
-
-        // Subtract protocol fee
-        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
+          effectiveQuoteAmount;
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -75,16 +77,11 @@ export class SellTokenService {
           newTotalTokenHolded = 0;
         }
 
-        const initPoolSupply = Number(
-          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
-        );
-        const liquidityInQuoteToken = Number(newLiquidityRaised);
-        // const tokensInPool = Number(newTotalTokenHolded);
-        const tokensInPool = Number(initPoolSupply);
-        // Avoid division by zero
         // Memecoin per ETH
         const priceAfterSell =
-          tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+          newLiquidityRaised > 0 && newSupply > 0
+            ? newLiquidityRaised / newSupply
+            : 0;
         // ETH per Memecoin
         // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 

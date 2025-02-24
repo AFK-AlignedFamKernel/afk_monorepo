@@ -31,6 +31,11 @@ export class BuyTokenService {
 
         let price = tokenLaunchRecord?.price ?? 0;
 
+        const calculatedQuoteAmount = Number(data.amount) * Number(price);
+
+        const effectiveQuoteAmount =
+          calculatedQuoteAmount - Number(data?.protocolFee);
+
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -42,7 +47,7 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
-          Number(data.quoteAmount);
+          effectiveQuoteAmount;
 
         if (newSupply < 0) {
           this.logger.warn(
@@ -70,14 +75,12 @@ export class BuyTokenService {
         // TODO better to do it with ETH per memecoin or Memecoin per ETH?
         //
         // Price = ETH liquidity / Fixed token supply in pool
-        const initPoolSupply = Number(
-          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
-        ); // Fixed memecoin supply
-        const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
-        const tokensInPool = Number(initPoolSupply); // Fixed token supply
+
         // Memecoin per ETH
         const priceBuy =
-          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
+          newLiquidityRaised > 0 && newSupply > 0
+            ? newLiquidityRaised / newSupply
+            : 0;
         // ETH per Memecoin
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
@@ -157,7 +160,7 @@ export class BuyTokenService {
             owner_address: data.ownerAddress,
             last_price: data.lastPrice,
             quote_amount: data.quoteAmount,
-            price: price?.toString() ?? data.price,
+            price: price?.toString(),
             amount: data.amount,
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
