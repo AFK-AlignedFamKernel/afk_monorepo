@@ -32,7 +32,6 @@ export class BuyTokenService {
         let price = tokenLaunchRecord?.price ?? 0;
 
         const calculatedQuoteAmount = Number(data.amount) * Number(price);
-
         const effectiveQuoteAmount =
           calculatedQuoteAmount - Number(data?.protocolFee);
 
@@ -56,8 +55,6 @@ export class BuyTokenService {
           newSupply = 0;
         }
 
-        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
-
         console.log('newLiquidityRaised', newLiquidityRaised);
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -75,12 +72,14 @@ export class BuyTokenService {
         // TODO better to do it with ETH per memecoin or Memecoin per ETH?
         //
         // Price = ETH liquidity / Fixed token supply in pool
-
+        const initPoolSupply = Number(
+          tokenLaunchRecord?.initial_pool_supply_dex,
+        ); // Fixed memecoin supply
+        const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
+        const tokensInPool = Number(initPoolSupply); // Fixed token supply
         // Memecoin per ETH
         const priceBuy =
-          newLiquidityRaised > 0 && newSupply > 0
-            ? newLiquidityRaised / newSupply
-            : 0;
+          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
         // ETH per Memecoin
         // let priceBuy = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
@@ -88,6 +87,7 @@ export class BuyTokenService {
         //   priceBuy = 0;
         // }
         price = priceBuy;
+
         const marketCap = (
           (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
           price
@@ -171,7 +171,7 @@ export class BuyTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(

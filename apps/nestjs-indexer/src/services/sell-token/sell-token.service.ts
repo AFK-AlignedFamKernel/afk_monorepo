@@ -77,11 +77,16 @@ export class SellTokenService {
           newTotalTokenHolded = 0;
         }
 
+        const initPoolSupply = Number(
+          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
+        );
+        const liquidityInQuoteToken = Number(newLiquidityRaised);
+        // const tokensInPool = Number(newTotalTokenHolded);
+        const tokensInPool = Number(initPoolSupply);
+        // Avoid division by zero
         // Memecoin per ETH
         const priceAfterSell =
-          newLiquidityRaised > 0 && newSupply > 0
-            ? newLiquidityRaised / newSupply
-            : 0;
+          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0; // Price in memecoin per ETH
         // ETH per Memecoin
         // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
@@ -178,7 +183,7 @@ export class SellTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(
