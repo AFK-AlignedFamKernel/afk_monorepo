@@ -40,6 +40,11 @@ export class SellTokenService {
 
       let price = tokenLaunchRecord?.price ?? 0;
 
+      const calculatedQuoteAmount = Number(data.amount) * Number(price);
+
+      const effectiveQuoteAmount =
+        calculatedQuoteAmount - Number(data?.protocolFee);
+
       if (!tokenLaunchRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
@@ -49,10 +54,7 @@ export class SellTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
-          Number(data.quoteAmount);
-
-        // Substract protocol fee
-        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
+          effectiveQuoteAmount;
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -68,8 +70,9 @@ export class SellTokenService {
         // Check event fees etc
         let newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
-          Number(data.coinAmount ?? data?.amount);
+          Number(data.amount);
 
+        // Ensure total token held does not go below zero
         if (newTotalTokenHolded < 0) {
           newTotalTokenHolded = 0;
         }
@@ -83,7 +86,7 @@ export class SellTokenService {
         // Avoid division by zero
         // Memecoin per ETH
         const priceAfterSell =
-          tokensInPool > 0 ? tokensInPool / liquidityInQuoteToken : 0; // Price in memecoin per ETH
+          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0; // Price in memecoin per ETH
         // ETH per Memecoin
         // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 
@@ -120,7 +123,7 @@ export class SellTokenService {
         update: {
           amount_owned: {
             // decrement: data.amount,
-            decrement: data.coinAmount ?? data?.amount,
+            decrement: data?.amount,
           },
           // amount_owned: {
           //   // decrement: data.amount,
@@ -131,7 +134,7 @@ export class SellTokenService {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
           owner: data.ownerAddress,
           token_address: data.memecoinAddress,
-          amount_owned: data.amount,
+          amount_owned: data.amount.toString(),
         },
       });
       // await this.prismaService.shares_token_user.upsert({
@@ -180,7 +183,7 @@ export class SellTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(

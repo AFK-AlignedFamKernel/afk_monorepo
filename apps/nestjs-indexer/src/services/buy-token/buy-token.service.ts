@@ -26,9 +26,14 @@ export class BuyTokenService {
       await this.prismaService.$transaction(async (prisma) => {
         const tokenLaunchRecord = await prisma.token_launch.findFirst({
           where: { memecoin_address: data.memecoinAddress },
+          orderBy: { created_at: 'desc' },
         });
 
         let price = tokenLaunchRecord?.price ?? 0;
+
+        const calculatedQuoteAmount = Number(data.amount) * Number(price);
+        const effectiveQuoteAmount =
+          calculatedQuoteAmount - Number(data?.protocolFee);
 
         if (!tokenLaunchRecord) {
           this.logger.warn(
@@ -41,7 +46,7 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
-          Number(data.quoteAmount);
+          effectiveQuoteAmount;
 
         if (newSupply < 0) {
           this.logger.warn(
@@ -49,8 +54,6 @@ export class BuyTokenService {
           );
           newSupply = 0;
         }
-
-        newLiquidityRaised = newLiquidityRaised - Number(data?.protocolFee);
 
         console.log('newLiquidityRaised', newLiquidityRaised);
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
@@ -70,7 +73,7 @@ export class BuyTokenService {
         //
         // Price = ETH liquidity / Fixed token supply in pool
         const initPoolSupply = Number(
-          tokenLaunchRecord?.initial_pool_supply_dex ?? 0,
+          tokenLaunchRecord?.initial_pool_supply_dex,
         ); // Fixed memecoin supply
         const liquidityInQuoteToken = Number(newLiquidityRaised); // ETH liquidity that increases on buy, decreases on sell
         const tokensInPool = Number(initPoolSupply); // Fixed token supply
@@ -84,6 +87,7 @@ export class BuyTokenService {
         //   priceBuy = 0;
         // }
         price = priceBuy;
+
         const marketCap = (
           (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
           price
@@ -156,7 +160,7 @@ export class BuyTokenService {
             owner_address: data.ownerAddress,
             last_price: data.lastPrice,
             quote_amount: data.quoteAmount,
-            price: price?.toString() ?? data.price,
+            price: price?.toString(),
             amount: data.amount,
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
@@ -167,7 +171,7 @@ export class BuyTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(

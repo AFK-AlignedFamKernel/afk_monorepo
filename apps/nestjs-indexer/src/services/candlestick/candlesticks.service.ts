@@ -14,94 +14,82 @@ export class CandlestickService {
    */
   async generateCandles(tokenAddress: string, intervalMinutes: number) {
     const intervalMs = intervalMinutes * 60 * 1000;
-    const priceData = await this.prismaService.token_transactions.findMany({
+
+    // Fetch all transactions for the given token address, ordered by timestamp
+    const transactions = await this.prismaService.token_transactions.findMany({
       where: { memecoin_address: tokenAddress },
       orderBy: { time_stamp: 'asc' },
     });
 
-    if (priceData.length === 0) {
-      this.logger.warn(`No price data found for token ${tokenAddress}`);
+    if (transactions.length === 0) {
+      this.logger.warn(`No transactions found for token ${tokenAddress}`);
       return;
     }
 
     const candles = [];
-    let currentIntervalStart = this.getIntervalStart(
-      priceData[0].time_stamp,
-      intervalMs,
-    );
-    let currentCandle = {
-      open: Number(priceData[0].price),
-      high: Number(priceData[0].price),
-      low: Number(priceData[0].price),
-      close: Number(priceData[0].price),
-      hasValidData: true,
-    };
+    let currentCandle = null;
 
-    for (const data of priceData) {
-      const price = Number(data.price);
-      const timestamp = data.time_stamp.getTime();
+    for (const transaction of transactions) {
+      const price = Number(transaction.price);
+      if (!this.isValidPrice(price)) continue;
 
-      if (timestamp >= currentIntervalStart + intervalMs) {
-        if (currentCandle.hasValidData) {
-          candles.push({
-            token_address: tokenAddress,
-            interval_minutes: intervalMinutes,
-            open: currentCandle.open,
-            close: currentCandle.close,
-            high: currentCandle.high,
-            low: currentCandle.low,
-            timestamp: new Date(currentIntervalStart),
-          });
+      const intervalStart = this.getIntervalStart(
+        transaction.time_stamp,
+        intervalMs,
+      );
+
+      if (
+        !currentCandle ||
+        currentCandle.timestamp.getTime() !== intervalStart
+      ) {
+        // If we have a current candle, push it to the candles array before starting a new one
+        if (currentCandle) {
+          candles.push(currentCandle);
         }
 
-        currentIntervalStart = this.getIntervalStart(
-          data.time_stamp,
-          intervalMs,
-        );
+        // Start a new candle
         currentCandle = {
+          token_address: tokenAddress,
+          interval_minutes: intervalMinutes,
           open: price,
           high: price,
           low: price,
           close: price,
-          hasValidData: this.isValidPrice(price),
+          timestamp: new Date(intervalStart),
         };
       } else {
-        if (this.isValidPrice(price)) {
-          if (!currentCandle.hasValidData) {
-            currentCandle = {
-              open: price,
-              high: price,
-              low: price,
-              close: price,
-              hasValidData: true,
-            };
-          } else {
-            currentCandle.high = Math.max(currentCandle.high, price);
-            currentCandle.low = Math.min(currentCandle.low, price);
-            currentCandle.close = price;
-          }
-        }
+        currentCandle.high = Math.max(currentCandle.high, price);
+        currentCandle.low = Math.min(currentCandle.low, price);
+        currentCandle.close = price;
       }
     }
 
-    if (currentCandle.hasValidData) {
-      candles.push({
-        token_address: tokenAddress,
-        interval_minutes: intervalMinutes,
-        open: currentCandle.open,
-        close: currentCandle.close,
-        high: currentCandle.high,
-        low: currentCandle.low,
-        timestamp: new Date(currentIntervalStart),
-      });
+    if (currentCandle) {
+      candles.push(currentCandle);
     }
 
     if (candles.length > 0) {
-      await this.prismaService.candlesticks.createMany({
-        data: candles,
-      });
+      for (const candle of candles) {
+        await this.prismaService.candlesticks.upsert({
+          where: {
+            token_address_interval_minutes_timestamp: {
+              token_address: candle.token_address,
+              interval_minutes: candle.interval_minutes,
+              timestamp: candle.timestamp,
+            },
+          },
+          update: {
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+          },
+          create: candle,
+        });
+      }
+
       this.logger.log(
-        `Generated ${candles.length} candles for token ${tokenAddress}`,
+        `Generated ${candles.length} candles for token ${tokenAddress} at ${intervalMinutes}m interval`,
       );
     }
   }
