@@ -3,12 +3,6 @@ mod edge_cases_tests {
     use afk_launchpad::interfaces::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use afk_launchpad::launchpad::utils::{
-        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
-        align_tick_with_max_tick_and_min_tick
-    };
-    use afk_launchpad::utils::{sqrt};
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
@@ -19,6 +13,11 @@ mod edge_cases_tests {
     // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
     use afk_launchpad::launchpad::math::{PercentageMath};
+    use afk_launchpad::launchpad::utils::{
+        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
+        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
+        align_tick_with_max_tick_and_min_tick
+    };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
@@ -30,7 +29,9 @@ mod edge_cases_tests {
     };
 
     use afk_launchpad::types::launchpad_types::{MINTER_ROLE, ADMIN_ROLE};
+    use afk_launchpad::utils::{sqrt};
     use core::num::traits::Zero;
+    use core::starknet::SyscallResultTrait;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
     use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
@@ -47,7 +48,6 @@ mod edge_cases_tests {
         stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
         EventSpyAssertionsTrait
     };
-    use core::starknet::SyscallResultTrait;
 
     use starknet::syscalls::{call_contract_syscall, library_call_syscall};
     use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
@@ -507,7 +507,8 @@ mod edge_cases_tests {
     //     //         quote_token_address: erc20.contract_address,
     //     //     }
     //     // );
-    //     // spy.assert_emitted(@array![(launchpad.contract_address, expected_launch_token_event)]);
+    //     // spy.assert_emitted(@array![(launchpad.contract_address,
+    //     expected_launch_token_event)]);
     //     let launched_token = launchpad.get_coin_launch(token_address);
     //     let default_supply = DEFAULT_INITIAL_SUPPLY();
     //     // assert(launched_token.owner == OWNER(), 'wrong owner');
@@ -525,7 +526,8 @@ mod edge_cases_tests {
     //     //     'wrong token holded'
     //     // );
     //     assert(
-    //         launched_token.token_quote.token_address == erc20.contract_address, 'wrong token quote'
+    //         launched_token.token_quote.token_address == erc20.contract_address, 'wrong token
+    //         quote'
     //     );
     // }
 
@@ -604,10 +606,14 @@ mod edge_cases_tests {
             // println!("buy threshold liquidity");
             // println!("buy threshold liquidity {:?}", THRESHOLD_LIQUIDITY/2_u256);
             run_buy_by_amount(
-                launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY/2_u256, token_address, OWNER(),
+                launchpad,
+                quote_token,
+                memecoin,
+                THRESHOLD_LIQUIDITY / 2_u256,
+                token_address,
+                OWNER(),
             );
             // let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-
 
             // // Sell
             let share_user = launchpad
@@ -624,7 +630,7 @@ mod edge_cases_tests {
 
             // println!("balance quote in loop {:?}", balance_quote_launch);
 
-            // Last buy before launch 
+            // Last buy before launch
 
             let mut liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
             println!("liquidity_raised before last {:?}", liquidity_raised);
@@ -643,7 +649,6 @@ mod edge_cases_tests {
                 init_supplies.at(i).clone()
             );
 
-
             liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
             println!("liquidity_raised {:?}", liquidity_raised);
 
@@ -660,28 +665,25 @@ mod edge_cases_tests {
             let bound_spacing = 88719042;
             // let bound_spacing = 887272;
 
-
             // let fee = fee_percent.try_into().unwrap();
-            let (token0, token1) = sort_tokens(
-                token_address, quote_token.contract_address.clone()
-            );
+            let (token0, token1) = sort_tokens(token_address, quote_token.contract_address.clone());
 
             let total_supply = memecoin.total_supply();
             let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
             let INITIAL_POOL_SUPPLY = total_supply / LIQUIDITY_RATIO;
-           
-           let launch = launchpad.get_coin_launch(token_address);
-            // TODO 
-            // edge case related to scaling factor 
+
+            let launch = launchpad.get_coin_launch(token_address);
+            // TODO
+            // edge case related to scaling factor
             let mut x_y = if is_token1_quote {
                 // TODO scaling factor?
                 // (THRESHOLD_LIQUIDITY ) / INITIAL_POOL_SUPPLY
-                (launch.liquidity_raised ) / launch.initial_pool_supply
-                // (THRESHOLD_LIQUIDITY * pow_256(10, 18)) / INITIAL_POOL_SUPPLY * pow_256(10, 18)
+                // (launch.liquidity_raised ) / launch.initial_pool_supply
+                (THRESHOLD_LIQUIDITY * pow_256(10, 18)) / (INITIAL_POOL_SUPPLY * pow_256(10, 18))
             } else {
                 // TODO scaling factor?
                 // INITIAL_POOL_SUPPLY / THRESHOLD_LIQUIDITY
-                (launch.initial_pool_supply ) / launch.liquidity_raised
+                (launch.initial_pool_supply) / launch.liquidity_raised
             };
 
             let sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
@@ -708,8 +710,8 @@ mod edge_cases_tests {
             let pool_key = PoolKey {
                 // token0: token_address.clone(),
                 // token1: erc20.contract_address.clone(),
-                token0:token0.clone(),
-                token1:token1.clone(),
+                token0: token0.clone(),
+                token1: token1.clone(),
                 fee: fee.clone(),
                 tick_spacing: tick_spacing.try_into().unwrap(),
                 extension: 0.try_into().unwrap(),
@@ -719,7 +721,7 @@ mod edge_cases_tests {
             let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
             let liquidity = core.get_pool_liquidity(pool_key);
             println!("pool liquidity {:?}", liquidity);
-            let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() }; 
+            let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
             let price = core.get_pool_price(pool_key);
             let pool_price = position_dispatcher.get_pool_price(pool_key);
 
@@ -727,32 +729,31 @@ mod edge_cases_tests {
                 .balance_of(EKUBO_POSITIONS());
 
             let reserve_memecoin = memecoin.balance_of(core.contract_address);
-    
+
             let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
                 .balance_of(EKUBO_POSITIONS());
-    
+
             println!("reserve_memecoin {:?}", reserve_memecoin);
             println!("reserve_quote {:?}", reserve_quote);
-    
+
             assert(
                 reserve_memecoin >= PercentageMath::percent_mul(INITIAL_POOL_SUPPLY, 9800),
                 'reserve too low meme'
             );
-    
+
             assert(
                 reserve_quote >= PercentageMath::percent_mul(THRESHOLD_LIQUIDITY, 9800),
                 'reserve too low quote'
             );
-        
-    
+
             // let lp_meme_supply = total_supply / LIQUIDITY_RATIO;
             // let total_token_holded = total_supply / LIQUIDITY_RATIO;
             // println!("lp_meme_supply {:?}", lp_meme_supply);
             println!("pool.sqrt_ratio {:?}", pool_price.sqrt_ratio);
             println!("sqrt_ratio {:?}", sqrt_ratio);
-            println!("initial_tick mag {:?}", initial_tick.mag); 
+            println!("initial_tick mag {:?}", initial_tick.mag);
             println!("initial_tick sign {:?}", initial_tick.sign);
-            println!("tick mag {:?}", pool_price.tick.mag); 
+            println!("tick mag {:?}", pool_price.tick.mag);
             println!("tick sign {:?}", pool_price.tick.sign);
 
             // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");

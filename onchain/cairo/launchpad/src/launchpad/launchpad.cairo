@@ -1564,14 +1564,20 @@ pub mod LaunchpadMarketplace {
 
             // TODO: check if this is correct
             // Adjust scale factor
+
+            let scale_factor = pow_256(10, 18);
             // Initial pool need to be more than liquidity raised
-            // CHECK liquidity raised and initial pool supply to avoir division by zero, overflow, rounding or 0 value
+            // CHECK liquidity raised and initial pool supply to avoir division by zero, overflow,
+            // rounding or 0 value
             let mut x_y = if is_token1_quote {
-                (launch.liquidity_raised ) / launch.initial_pool_supply
-                // (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply * pow_256(10, 18))
+                // (launch.liquidity_raised ) / launch.initial_pool_supply
+                // (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply *
+                // pow_256(10, 18))
+                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+                // scale_factor)
+                (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
             } else {
                 (launch.initial_pool_supply) / launch.liquidity_raised
-
             };
 
             println!("x_y {}", x_y.clone());
@@ -1601,6 +1607,13 @@ pub mod LaunchpadMarketplace {
 
             // Simple sqrt unfixed
             // Fixed point sqrt_ratio
+            println!("x_y before unscale {}", x_y.clone());
+            println!("is_token1_quote {}", is_token1_quote.clone());
+            if is_token1_quote {
+                x_y = x_y / scale_factor;
+            }
+            println!("x_y after unscale {}", x_y.clone());
+
             let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
@@ -1609,17 +1622,29 @@ pub mod LaunchpadMarketplace {
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
-            sqrt_ratio = if sqrt_ratio < min_sqrt_ratio_limit {
-                println!("sqrt_ratio < min_sqrt_ratio_limit");
-                min_sqrt_ratio_limit
-            } else if sqrt_ratio > max_sqrt_ratio_limit {
-                println!("sqrt_ratio > max_sqrt_ratio_limit");
-                max_sqrt_ratio_limit
-            } else {
-                println!("sqrt_ratio is between min and max");
-                sqrt_ratio
-            };
+            // Assert range for sqrt ratio order, magnitude and min max
 
+            // Unscale sqrt_ratio with the factor before using the sqrt function
+            // println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
+
+            // if is_token1_quote {
+            //     sqrt_ratio = sqrt_ratio / scale_factor;
+            // }
+            // println!("sqrt_ratio after unscale {}", sqrt_ratio.clone());
+
+            sqrt_ratio =
+                if sqrt_ratio < min_sqrt_ratio_limit {
+                    println!("sqrt_ratio < min_sqrt_ratio_limit");
+                    min_sqrt_ratio_limit
+                } else if sqrt_ratio > max_sqrt_ratio_limit {
+                    println!("sqrt_ratio > max_sqrt_ratio_limit");
+                    max_sqrt_ratio_limit
+                } else {
+                    println!("sqrt_ratio is between min and max");
+                    sqrt_ratio
+                };
+
+            println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
             // Define the minimum and maximum sqrt ratios
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];

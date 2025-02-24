@@ -570,7 +570,8 @@ pub mod UnrugLiquidity {
 
                     let is_token1_quote = launch_params.quote_address == token1;
                     println!("is_token1_quote {:?}", is_token1_quote);
-                    let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
+                    let (initial_tick, full_range_bounds_initial) =
+                        get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
                         is_token1_quote
@@ -585,7 +586,7 @@ pub mod UnrugLiquidity {
                     // let min_tick = MIN_TICK.try_into().unwrap();
                     // let max_tick = MAX_TICK.try_into().unwrap();
 
-                    // TODO 
+                    // TODO
                     // Check align ticks based on tick spacing and fee
                     let min_tick = MIN_TICK_U128.try_into().unwrap();
                     let max_tick = MAX_TICK_U128.try_into().unwrap();
@@ -613,13 +614,15 @@ pub mod UnrugLiquidity {
                     };
                     // let bounds_full_range = if is_token1_quote {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // } else {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // };
 
