@@ -5,8 +5,8 @@ mod unrug_tests {
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
+    use afk_launchpad::launchpad::utils::{calculate_aligned_bound_mag, sort_tokens};
     use afk_launchpad::math::PercentageMath;
-    // use afk_launchpad::launchpad::utils::{calculate_aligned_bound_mag};
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher,
     // IMemecoinDispatcherTrait};
@@ -32,7 +32,7 @@ mod unrug_tests {
         IERC20DispatcherTrait as IERC20DispatcherTraitEkubo
     };
     // use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
-    // use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
+    use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
     use ekubo::interfaces::token_registry::{ // ITokenRegistryDispatcher,
     // ITokenRegistryDispatcherTrait,
     };
@@ -427,6 +427,21 @@ mod unrug_tests {
             reserve_quote >= PercentageMath::percent_mul(lp_quote_supply, 9900),
             'reserve too low quote'
         );
+
+        let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
+        let (token0, token1) = sort_tokens(token_address, erc20.contract_address);
+        let pool_key: PoolKey = PoolKey {
+            token0: token0,
+            token1: token1,
+            fee: 0xc49ba5e353f7d00000000000000000,
+            tick_spacing: 5928,
+            extension: 0.try_into().unwrap()
+        };
+        let pool_price = position_dispatcher.get_pool_price(pool_key);
+        println!(
+            "sqrt_ratio {:?}", pool_price.sqrt_ratio
+        ); // 340282366920938463463374607431768211456
+        println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
         // No need to check +2% percent
     //     let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
     //     let liquidity = core.get_pool_liquidity(pool_key);

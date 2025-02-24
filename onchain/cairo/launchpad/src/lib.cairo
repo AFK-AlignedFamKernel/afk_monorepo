@@ -1,10 +1,7 @@
 pub mod bip340;
-
 pub mod errors;
-
 pub mod math;
 pub mod sha256;
-
 pub mod utils;
 
 pub mod launchpad {
@@ -59,6 +56,8 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
+    pub mod edge_cases_tests;
+    pub mod end_to_end_tests;
     pub mod exponential_tests;
     pub mod launchpad_tests;
     pub mod linear_tests;

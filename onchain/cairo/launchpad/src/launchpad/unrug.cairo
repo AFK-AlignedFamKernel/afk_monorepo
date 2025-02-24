@@ -24,6 +24,8 @@ pub mod UnrugLiquidity {
     };
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
+        align_tick, MIN_TICK, MAX_TICK, MIN_TICK_U128, MAX_TICK_U128,
+        align_tick_with_max_tick_and_min_tick, calculate_aligned_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -567,11 +569,62 @@ pub mod UnrugLiquidity {
                     };
 
                     let is_token1_quote = launch_params.quote_address == token1;
-                    let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
+                    println!("is_token1_quote {:?}", is_token1_quote);
+                    let (initial_tick, full_range_bounds_initial) =
+                        get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
                         is_token1_quote
                     );
+
+                    // Align the min and max ticks with the spacing
+                    // let aligned_min_tick = align_tick(MIN_TICK,
+                    // launch_params.pool_params.tick_spacing);
+                    // let aligned_max_tick = align_tick(MAX_TICK,
+                    // launch_params.pool_params.tick_spacing);
+
+                    // let min_tick = MIN_TICK.try_into().unwrap();
+                    // let max_tick = MAX_TICK.try_into().unwrap();
+
+                    // TODO
+                    // Check align ticks based on tick spacing and fee
+                    let min_tick = MIN_TICK_U128.try_into().unwrap();
+                    let max_tick = MAX_TICK_U128.try_into().unwrap();
+                    println!("min_tick {}", min_tick.clone());
+                    println!("max_tick {}", max_tick.clone());
+                    let aligned_min_tick = align_tick_with_max_tick_and_min_tick(
+                        min_tick, launch_params.pool_params.tick_spacing
+                    );
+                    let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
+                        max_tick, launch_params.pool_params.tick_spacing
+                    );
+                    println!("aligned_min_tick {}", aligned_min_tick.clone());
+                    println!("aligned_max_tick {}", aligned_max_tick.clone());
+                    println!("is_token1_quote {}", is_token1_quote);
+                    let full_range_bounds = if is_token1_quote {
+                        Bounds {
+                            lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+                            upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                        }
+                    } else {
+                        Bounds {
+                            lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+                            upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                        }
+                    };
+                    // let bounds_full_range = if is_token1_quote {
+                    //     Bounds {
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
+                    //     }
+                    // } else {
+                    //     Bounds {
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
+                    //     }
+                    // };
 
                     let memecoin_balance = IERC20Dispatcher {
                         contract_address: launch_params.token_address
@@ -597,6 +650,7 @@ pub mod UnrugLiquidity {
                             launch_params.quote_address,
                             launch_params.lp_supply,
                             launch_params.lp_quote_supply,
+                            // full_range_bounds_initial,
                             full_range_bounds,
                             // single_tick_bound,
                             launch_params.owner,
@@ -862,9 +916,11 @@ pub mod UnrugLiquidity {
                     owner, recipient: positions.contract_address, amount: lp_quote_supply
                 );
 
-            // println!("try mint and deposit");
+            println!("try mint and deposit");
+            // let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
 
+            println!("pool id {}", id.clone());
             id
         }
 

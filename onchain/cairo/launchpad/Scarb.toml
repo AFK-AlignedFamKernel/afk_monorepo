@@ -11,6 +11,7 @@ openzeppelin = { git = "https://github.com/openzeppelin/cairo-contracts", tag="v
 ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
 alexandria_storage = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+cubit = { git = "https://github.com/MSGhais/cubit", rev = "f59f90ce519dcc56de8daa318b4edbaa6e2afc2a" }
 
 [dev-dependencies]
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.30.0" }
@@ -31,7 +32,7 @@ allowed-libfuncs-list.name = "experimental"
 [[tool.snforge.fork]]
 name = "Mainnet"
 url = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
-block_id.number = "615925"
+block_id.number = "672259"
 
 [[tool.snforge.fork]]
 name = "Sepolia"

@@ -2,7 +2,22 @@ use core::num::traits::{Zero, One};
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 
+
 use starknet::ContractAddress;
+
+pub const MIN_TICK: i32 = -88722883;
+pub const MAX_TICK: i32 = 88722883;
+
+pub const MIN_TICK_U128: u128 = 88722883;
+pub const MAX_TICK_U128: u128 = 88722883;
+
+// Min and max sqrt ratio values from the Rust implementation
+// pub const MIN_SQRT_RATIO: u256 = 4295128739; // Simplified from 4363438787445
+// pub const MAX_SQRT_RATIO: u256 = 1461446703485210103287273052203988822378723970342;
+
+pub const MIN_SQRT_RATIO: u256 = 18446748437148339061;
+pub const MAX_SQRT_RATIO: u256 = 6277100250585753475930931601400621808602321654880405518632;
+
 // use integer::u256_from_felt252;
 pub fn sort_tokens(
     tokenA: ContractAddress, tokenB: ContractAddress
@@ -80,6 +95,39 @@ pub fn get_next_tick_bounds(
     }
 }
 
+pub fn align_tick(tick: i128, tick_spacing: i128) -> i128 {
+    // Calculate the remainder of the tick divided by the tick spacing
+    let remainder = tick % tick_spacing;
+
+    // If the remainder is zero, the tick is already aligned
+    if remainder == 0 {
+        return tick;
+    }
+
+    // Calculate the aligned tick by subtracting the remainder
+    // This aligns the tick to the nearest lower multiple of tick_spacing
+    let aligned_tick = tick - remainder;
+
+    // Return the aligned tick
+    return aligned_tick;
+}
+
+pub fn align_tick_with_max_tick_and_min_tick(tick: u128, tick_spacing: u128) -> u128 {
+    // Calculate the remainder of the tick divided by the tick spacing
+    let remainder = tick % tick_spacing;
+
+    // If the remainder is zero, the tick is already aligned
+    if remainder == 0 {
+        return tick;
+    }
+
+    // Calculate the aligned tick by subtracting the remainder
+    // This aligns the tick to the nearest lower multiple of tick_spacing
+    let aligned_tick = tick - remainder;
+
+    // Return the aligned tick
+    return aligned_tick;
+}
 
 pub fn unique_count<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>) -> u32 {
     let mut counter = 0;
@@ -121,7 +169,6 @@ pub fn contains<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>, value: 
     }
 }
 
-const MAX_TICK: u128 = 887272;
 
 pub fn calculate_aligned_bound_mag(
     starting_price: i129, multiplier: u128, tick_spacing: u128
@@ -133,8 +180,8 @@ pub fn calculate_aligned_bound_mag(
     let mut init_bound = starting_price.mag * multiplier;
 
     // Ensure bound doesn't exceed max tick
-    if init_bound > MAX_TICK {
-        init_bound = MAX_TICK;
+    if init_bound > MAX_TICK_U128 {
+        init_bound = MAX_TICK_U128;
     }
 
     // Round down to nearest tick spacing multiple
