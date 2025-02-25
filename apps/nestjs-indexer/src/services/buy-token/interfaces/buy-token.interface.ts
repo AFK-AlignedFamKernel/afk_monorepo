@@ -9,6 +9,7 @@ export interface BuyToken {
   ownerAddress: string;
   lastPrice: string;
   quoteAmount: string;
+  coinAmount?: string;
   price: string;
   amount: number;
   protocolFee: string;

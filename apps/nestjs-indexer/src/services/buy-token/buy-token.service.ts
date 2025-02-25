@@ -36,7 +36,6 @@ export class BuyTokenService {
           calculatedQuoteAmount;
           // calculatedQuoteAmount - Number(data?.protocolFee);
 
-
         const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
         const effectiveLiquidityRaisedAmount =
           calculatedLiquidityRaisedAmount;
