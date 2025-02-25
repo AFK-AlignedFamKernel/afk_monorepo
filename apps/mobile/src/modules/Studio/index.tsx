@@ -45,7 +45,7 @@ type Event = {
 export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) => {
   const { publicKey } = useAuth();
   const { data, isFetching, refetch, isPending, isLoading } = useGetLiveEvents({
-    limit: 20,
+    limit: 10,
   });
 
   console.log('data', data);
@@ -94,16 +94,6 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
   //   );
   // }
 
-  if (isFetching && !isPending) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.scrollContent}>
-          <Text style={styles.headerText}>Stream Studio Events</Text>
-          <ActivityIndicator></ActivityIndicator>;
-        </SafeAreaView>
-      </View>
-    )
-  }
 
   return (
     <View style={styles.container}>
@@ -133,6 +123,16 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
 
         } */}
 
+
+        {
+          isFetching && !isPending &&
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <Text style={styles.headerText}>Stream Studio Events</Text>
+              <ActivityIndicator></ActivityIndicator>;
+            </SafeAreaView>
+          </View>
+        }
         {data?.pages?.flat().length === 0 &&
           <View style={styles.container}>
             <SafeAreaView style={styles.scrollContent}>

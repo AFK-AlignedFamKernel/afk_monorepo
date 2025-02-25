@@ -4,8 +4,9 @@ const LOGO_SIZE = 170;
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    // height: '100%',
+    height: '100%',
     flex: 1,
+    backgroundColor: theme.colors.background, 
   },
 
   background: {

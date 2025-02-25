@@ -3,6 +3,7 @@ import { LoginNostrModule } from '.';
 import { CreateAccountModule } from '../CreateAccount';
 import { ImportKeysModule } from '../ImportKeys';
 import { View } from 'react-native';
+import { LoginNostrModuleComponent } from './LoginComponent';
 
 interface ISharedAuthModal {
   handleSuccess?: () => void;
@@ -28,14 +29,17 @@ export const SharedAuthModalModule: React.FC<ISharedAuthModal> = ({
   return (
     <View style={{ 
       flex: 1,
+      height: '100%',
       // height: '100%',
       // WebkitOverflowScrolling: 'touch',
       // flexDirection: 'column',
       // overflowX: 'hidden',
       // overflowY: 'auto',
-    }}>
+    }}
+    
+    >
       {currentModule === 'login' ? (
-        <LoginNostrModule
+        <LoginNostrModuleComponent
           handleSuccess={handleSuccess}
           handleNavigateCreateAccount={handleGoToCreateAccount}
           handleNavigateImportKeys={handleGoToImportKeys}
