@@ -1,11 +1,19 @@
 import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
-import { drizzleStorage, useDrizzleStorage } from '@apibara/plugin-drizzle';
-import { StarknetStream } from '@apibara/starknet';
+import { drizzleStorage } from '@apibara/plugin-drizzle';
+import { decodeEvent, StarknetStream } from '@apibara/starknet';
 import { hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
-import { daoCreation } from 'indexer-v2-db/schema';
+import { ABI as daoAAAbi } from './abi/daoAA.abi';
+import { ABI as daoFactoryAbi } from './abi/daoFactory.abi';
+import {
+  insertDaoCreation,
+  insertProposal,
+  updateProposalCancellation,
+  updateProposalResult,
+  upsertProposalVote,
+} from './db/dao.db';
 
 const DAO_AA_CREATED = hash.getSelectorFromName('DaoAACreated') as `0x${string}`;
 const PROPOSAL_CREATED = hash.getSelectorFromName('ProposalCreated') as `0x${string}`;
@@ -15,9 +23,9 @@ const PROPOSAL_RESOLVED = hash.getSelectorFromName('ProposalResolved') as `0x${s
 
 export default function (config: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
-    streamUrl: 'https://starknet-sepolia.preview.apibara.org',
+    streamUrl: config.streamUrl,
     startingCursor: {
-      orderKey: 500_000n,
+      orderKey: BigInt(config.startingCursor.orderKey),
     },
     filter: {
       events: [
@@ -28,9 +36,8 @@ export default function (config: ApibaraRuntimeConfig) {
       ],
     },
     plugins: [drizzleStorage({ db })],
-    async factory({ block: { events }, context }) {
+    async factory({ block: { events } }) {
       const logger = useLogger();
-      const { db } = useDrizzleStorage();
 
       if (events.length === 0) {
         return {};
@@ -47,14 +54,20 @@ export default function (config: ApibaraRuntimeConfig) {
       });
 
       const daoCreationData = events.map((event) => {
-        const daoAddress = event.keys[0];
-        const creator = event.data[0];
-        const tokenAddress = event.data[1];
-        const starknetAddress = event.data[2];
+        const decodedEvent = decodeEvent({
+          abi: daoFactoryAbi,
+          event,
+          eventName: 'afk::dao::dao_factory::DaoFactory::DaoAACreated',
+        });
+
+        const daoAddress = decodedEvent.args.contract_address;
+        const creator = decodedEvent.args.creator;
+        const tokenAddress = decodedEvent.args.token_contract_address;
+        const starknetAddress = decodedEvent.args.starknet_address.toString();
 
         return {
           number: event.eventIndex,
-          hash: event.address,
+          hash: event.transactionHash,
           contractAddress: daoAddress,
           creator,
           tokenAddress,
@@ -62,7 +75,7 @@ export default function (config: ApibaraRuntimeConfig) {
         };
       });
 
-      await db.insert(daoCreation).values(daoCreationData).onConflictDoNothing().execute();
+      await insertDaoCreation(daoCreationData);
 
       return {
         filter: {
@@ -72,7 +85,6 @@ export default function (config: ApibaraRuntimeConfig) {
     },
     async transform({ block }) {
       const logger = useLogger();
-      //const { db } = useDrizzleStorage();
       const { events, header } = block;
       logger.log(`Block number ${header?.blockNumber}`);
 
@@ -82,6 +94,61 @@ export default function (config: ApibaraRuntimeConfig) {
 
       for (const event of events) {
         logger.log(`Event ${event.eventIndex} tx=${event.transactionHash}`);
+
+        if (event.keys[0] === PROPOSAL_CREATED) {
+          const decodedEvent = decodeEvent({
+            abi: daoAAAbi,
+            event,
+            eventName: 'afk::interfaces::voting::ProposalCreated',
+          });
+
+          await insertProposal({
+            contractAddress: decodedEvent.address,
+            proposalId: decodedEvent.args.id,
+            creator: decodedEvent.args.owner,
+            createdAt: Number(decodedEvent.args.created_at),
+            endAt: Number(decodedEvent.args.end_at),
+          });
+        } else if (event.keys[0] === PROPOSAL_CANCELED) {
+          const decodedEvent = decodeEvent({
+            abi: daoAAAbi,
+            event,
+            eventName: 'afk::interfaces::voting::ProposalCanceled',
+          });
+
+          await updateProposalCancellation(
+            decodedEvent.address,
+            decodedEvent.args.owner,
+            decodedEvent.args.id,
+          );
+        } else if (event.keys[0] === PROPOSAL_RESOLVED) {
+          const decodedEvent = decodeEvent({
+            abi: daoAAAbi,
+            event,
+            eventName: 'afk::interfaces::voting::ProposalResolved',
+          });
+
+          await updateProposalResult(
+            decodedEvent.address,
+            decodedEvent.args.owner,
+            decodedEvent.args.id,
+            decodedEvent.args.result.toString(),
+          );
+        } else if (event.keys[0] === PROPOSAL_VOTED) {
+          const decodedEvent = decodeEvent({
+            abi: daoAAAbi,
+            event,
+            eventName: 'afk::interfaces::voting::ProposalVoted',
+          });
+
+          await upsertProposalVote({
+            contractAddress: decodedEvent.address,
+            proposalId: decodedEvent.args.id,
+            voter: decodedEvent.args.voter,
+            totalVotes: decodedEvent.args.total_votes,
+            votedAt: Number(decodedEvent.args.voted_at),
+          });
+        }
       }
     },
   });

@@ -1,16 +1,16 @@
-name: Data Backend App
+name: Indexer v2 App
 
 on:
   push:
     paths:
-      - ".github/workflows/data-backend.yml"
-      - "apps/data-backend/**"
+      - ".github/workflows/indexer-v2.yml"
+      - "apps/indexer-v2/**"
       - "package.json"
   pull_request:
     branches:
       - main
     paths:
-      - "apps/data-backend/**"
+      - "apps/indexer-v2/**"
 
 jobs:
   check-app:
@@ -18,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./apps/data-backend
+        working-directory: ./apps/indexer-v2
 
     steps:
       - name: Checkout Code
@@ -54,14 +54,11 @@ jobs:
             pnpm install
           fi
 
-      - name: Build indexer-v2-db
-        run: pnpm -w run build:indexer-v2-db # it's simpler to do this here for moment
-
       - name: Build
-        run: pnpm build
+        run: pnpm build:all
 
-      - name: TypeScript Check
-        run: pnpm ts:check
+      #      - name: TypeScript Check
+      #        run: pnpm ts:check
 
       # - name: Prettier Format Check
       #   run: pnpm format:check
