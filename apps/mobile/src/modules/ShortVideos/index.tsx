@@ -1,7 +1,7 @@
 import { NostrEvent } from '@nostr-dev-kit/ndk';
 import { useGetVideos } from 'afk_nostr_sdk';
 import React, { useMemo, useRef, useState } from 'react';
-import { Dimensions, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, RefreshControl, Text, View } from 'react-native';
 
 import { InfoIcon } from '../../assets/icons';
 import NostrVideo from '../../components/NostrVideo';
@@ -50,6 +50,9 @@ const ShortVideosModule = () => {
 
   return (
     <View style={[styles.container, { height: WINDOW_HEIGHT }]}>
+
+      {videos?.isFetching && <ActivityIndicator />}
+
       {videosEvents.length > 0 ? (
         <FlatList
           style={styles.list}
@@ -81,6 +84,9 @@ const ShortVideosModule = () => {
           onEndReached={() => {
             videos?.fetchNextPage();
           }}
+          refreshControl={
+            <RefreshControl refreshing={videos?.isFetching} onRefresh={() => videos?.refetch()} />
+          }
         />
       ) : (
         <View style={styles.noDataContainer}>
