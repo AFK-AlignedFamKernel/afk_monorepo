@@ -20,7 +20,7 @@ const ShortVideosModule = () => {
     minimumViewTime: 300,
   };
 
-  const videos = useGetVideos();
+  const videos = useGetVideos({limit: 10});
   const [videosEventsState, setVideosEvents] = useState<NostrEvent[]>(
     videos?.data?.pages?.flat() as NostrEvent[],
   );
@@ -78,6 +78,9 @@ const ShortVideosModule = () => {
           showsVerticalScrollIndicator={false}
           getItemLayout={getItemLayout}
           viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+          onEndReached={() => {
+            videos?.fetchNextPage();
+          }}
         />
       ) : (
         <View style={styles.noDataContainer}>

@@ -43,7 +43,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const contacts = useContacts({ authors: [publicKey] });
   const notes = useSearch({
     limit: 10,
-    since: 1000*60*60,
+    // since: 1000*60*60,
     // getNextPageParam: (lastPage, allPages) => {
     //   if (!lastPage?.length) return undefined;
 

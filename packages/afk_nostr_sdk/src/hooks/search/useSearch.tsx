@@ -44,8 +44,8 @@ export const useSearch = (options?: UseSearch) => {
 
       // Calculate the 'since' timestamp
       const sinceTimestamp = pageParam
-        ? pageParam - 1 * 60 * 60 :// Restart from pageParam minus 24 hours
-          Math.round(Date.now() / 1000) - 1 * 60 * 60; // Start from 24 hours ago
+        ? pageParam - 1 * 60 * 60 :// Restart from pageParam minus 1 hour
+          Math.round(Date.now() / 1000) - 1 * 60 * 60; // Start from 1 hour ago
 
       // const sinceTimestamp = pageParam
       // ? pageParam - 24 * 60 * 60 :// Restart from pageParam minus 24 hours
