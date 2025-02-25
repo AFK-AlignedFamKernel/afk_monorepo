@@ -41,7 +41,7 @@
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
     "starknet": "6.9.0",
-    "viem": "~2.21.60",
+    "viem": "~2.21.2",
     "wagmi": "^2.12.8",
     "zod": "^3.23.8",
     "zustand": "^4.5.2",
