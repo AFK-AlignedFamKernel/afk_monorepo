@@ -6,14 +6,13 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
-    padding: 20,
   },
   createTokenButton: {
     width: 200,
     borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 8,
-    marginBottom: 20,
+    margin: 20,
   },
   createTokenButtonText: {
     fontWeight: 'bold',
@@ -29,6 +28,7 @@ export default ThemedStyleSheet((theme) => ({
     height: '100%',
     maxHeight: 130,
     minHeight: 75,
+    marginLeft:20
   },
   activeToggle: {
     borderBottomWidth: 3,
@@ -105,7 +105,24 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     gap: Spacing.small,
   },
-  filterOptions: {
+
+  filterContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+    justifyItems: 'center',
+   
+},
+
+desktopFilterContent: {
+  padding: 40,
+},
+mobileFilterContent: {
+ padding: 4
+},
+
+filterOptions: {
     flexDirection: 'row',
     gap: Spacing.small,
     alignItems: 'center',
@@ -120,7 +137,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   activeFilter: {
     backgroundColor: theme.colors.primary,
-  },  
+  },
   filterOptionText: {
     fontSize: 12,
     fontWeight: 'bold',

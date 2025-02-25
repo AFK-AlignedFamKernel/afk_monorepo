@@ -142,6 +142,8 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                     style={{
                       paddingVertical: 5,
                       borderRadius: 5,
+                     
+                      gap: 2,
                       borderColor: theme.theme?.colors?.shadow,
                     }}
                   >
@@ -151,16 +153,18 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                       onPress={handleGoBack}
                       style={styles.backButton}
                     />
+                     <View style={{ paddingTop: 70, paddingHorizontal: 20 }}>
                     <Text style={styles.text}>Key pass for Starknet user</Text>
-                    <Text style={styles.text}>
+                      <Text style={styles.text}>
                       {' '}
                       Send the force and tip your friends and favorite content creator.
-                    </Text>
+                      </Text>
                     <Text style={styles.text}>
                       {' '}
                       Buy or sell the keys to get perks and rewards from them, linked to Nostr &
                       Starknet.
                     </Text>
+                    </View>
                   </View>
                   <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
                 </>

@@ -61,7 +61,7 @@ export default ThemedStyleSheet((theme) => ({
 
   contentContainer: {
     flex: 1,
-    height: '60%',
+    height: '100%',
     backgroundColor: theme.colors.surface,
   },
   content: {

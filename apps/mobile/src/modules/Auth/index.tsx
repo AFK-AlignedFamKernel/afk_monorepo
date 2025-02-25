@@ -44,9 +44,9 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
         </View>
 
         <View style={styles.contentContainer}>
-          <ScrollView>
+          <View>
             <View style={styles.content}>{children}</View>
-          </ScrollView>
+          </View>
         </View>
       </View>
      </KeyboardAvoidingView>

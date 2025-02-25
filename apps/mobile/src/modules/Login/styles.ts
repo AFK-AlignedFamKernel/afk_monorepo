@@ -275,7 +275,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   passwordLabel: {
     color: theme.colors.textPrimary,
-    marginTop: 40,
+    marginTop: 20,
     textAlign: 'left',
     width: '100%',
     maxWidth: 550,
@@ -334,7 +334,7 @@ export default ThemedStyleSheet((theme) => ({
     maxWidth: 556,
     width: '100%',
     marginTop: 40,
-    marginBottom: 40,
+    marginBottom: 10,
   },
   noAccountBtnContainer: {
     maxWidth: 556,

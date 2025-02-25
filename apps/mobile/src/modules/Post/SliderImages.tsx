@@ -88,12 +88,14 @@ export const SliderImages: React.FC<PostProps> = ({
       <Animated.View style={[{
         width: '100%',
         height: '100%',
+        maxHeight: '350px',
       }, animatedStyle]}>
         <Image
           source={{ uri: imgUrls[currentIndex] }}
           style={{
             width: '100%',
             height: '100%',
+            maxHeight: '350px',
             resizeMode: 'cover'
           }}
         />

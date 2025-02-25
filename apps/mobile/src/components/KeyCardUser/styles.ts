@@ -5,9 +5,19 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.surface,
     padding: Spacing.xsmall,
     borderRadius: 8,
-    gap: Spacing.xsmall,
+    gap: 20,
     overflowWrap: 'break-word',
-    width: 300,
+   padding: 20,
+  },
+  desktopContainer: {
+    // styles specific to desktop view
+    width: '50%', // example width for desktop
+    alignSelf: 'center',
+  },
+  mobileContainer: {
+    // styles specific to mobile view
+    width: '95%', // example width for mobile
+    alignSelf: 'center',
   },
   imageContainer: {
     // position: 'relative',

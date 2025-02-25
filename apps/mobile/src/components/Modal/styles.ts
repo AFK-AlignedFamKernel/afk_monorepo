@@ -16,9 +16,21 @@ export default ThemedStyleSheet((theme) => ({
   },
 
   modal: {
-    width: '100%',
     backgroundColor: theme.colors.surface,
     padding: Spacing.large,
     borderRadius: 24,
+    paddingHorizontal: Spacing.xlarge,
+    paddingVertical: Spacing.xxxlarge,
+  },
+
+  desktopModal: {
+    // styles specific to desktop view
+    width: '50%', // example width for desktop
+    alignSelf: 'center',
+  },
+  mobileModal: {
+    // styles specific to mobile view
+    width: '100%', // example width for mobile
+    alignSelf: 'center',
   },
 }));

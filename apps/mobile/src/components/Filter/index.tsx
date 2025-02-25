@@ -35,16 +35,8 @@ const NDK_KIND_OPTIONS = [
   { label: 'Video shorts', value: NDKKind.VerticalVideo },
 ];
 
-// const SORT_OPTIONS = [
-//   {label: 'Time', value: 'time'},
-//   {label: 'For You', value: 'forYou'},
-//   {label: 'Trending', value: 'trending'},
-// ];
-
 const SORT_OPTIONS = [
   { label: 'Time', value: SORT_OPTION_EVENT_NOSTR.TIME },
-  // {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
-  // {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
 ];
 
 const FilterMenu: React.FC<IFilterMenuProps> = ({
@@ -73,55 +65,29 @@ const FilterMenu: React.FC<IFilterMenuProps> = ({
 
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
-      {/* <Pressable onPress={onClose} style={styles.closeButton}>
-        <Text style={styles.closeButtonText}>Close</Text>
-      </Pressable> */}
       <View style={styles.modalContainer}>
-        {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity> */}
         <View style={containerStyle}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
           <ScrollView>
-            {/* 
-            <Text style={styles.sectionTitle}>Sort By</Text>
-            
-            <View style={styles.rowContainer}>
-              {SORT_OPTIONS.map((option) => (
+            <Text style={styles.sectionTitle}>Filter By Type</Text>
+            <View style={styles.containerSort}>
+              {NDK_KIND_OPTIONS.map((option) => (
                 <Pressable
                   key={option.value}
                   style={[
                     styles.button,
-                    activeSortBy === option.value.toString() && styles.activeButton,
+                    kinds.includes(option.value) && styles.activeButton,
+                    width > 768 ? styles.itemDesktop : styles.item,
                   ]}
-                  onPress={() => onSortChange(option.value.toString())}
+                  onPress={() => toggleKindSelection(option.value)}
                 >
                   <Text style={styles.buttonText}>{option.label}</Text>
                 </Pressable>
               ))}
-            </View> */}
-
-            <Text style={styles.sectionTitle}>Filter By Type</Text>
-            <ScrollView style={styles.containerSort}>
-              {/* <View style={styles.containerSort}> */}
-                {NDK_KIND_OPTIONS.map((option) => (
-                  <Pressable
-                    key={option.value}
-                    style={[styles.button, kinds.includes(option.value) && styles.activeButton]}
-                    onPress={() => toggleKindSelection(option.value)}
-                  >
-                    <Text style={styles.buttonText}>{option.label}</Text>
-                  </Pressable>
-                ))}
-              {/* </View> */}
-            </ScrollView>
-
+            </View>
           </ScrollView>
-          {/* <Pressable onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </Pressable> */}
         </View>
       </View>
     </Modal>

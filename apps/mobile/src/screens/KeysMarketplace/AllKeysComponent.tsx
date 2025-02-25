@@ -32,16 +32,16 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({
     <View style={styles.container}>
       {queryDataKeys?.isLoading && <ActivityIndicator></ActivityIndicator>}
 
+      <View style={styles.buttonContainer}>
       {isButtonInstantiateEnable && (
-        <Button
-          onPress={() => {
+         <Button onPress={() => {
             showKeyModal(publicKey as any, account?.address, KeyModalAction.INSTANTIATE);
             // setMenuOpen(false);
-          }}
-        >
-          <Text>Instantiate key</Text>
+          }}>
+           <Text>Instantiate key</Text>
         </Button>
       )}
+      </View>
 
       <FlatList
         contentContainerStyle={styles.flatListContent}
@@ -49,7 +49,7 @@ export const AllKeysComponent: React.FC<AllKeysComponentInterface> = ({
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         // keyExtractor={(item, i) => {`${item.owner + item?.created_at}`}}
         keyExtractor={(item, i) => i.toString()}
-        numColumns={isDesktop ? 3 : 1}
+        numColumns={isDesktop ? 2 : 1}
         renderItem={({item}) => {
           // console.log("key item", item)
           return (

@@ -9,6 +9,8 @@ export default ThemedStyleSheet((theme) => ({
   },
   text: {
     color: theme.colors.text,
+    marinBottom: Spacing.xxxlarge,
+    textAlign: 'center',
   },
 
   flatListContent: {
@@ -16,6 +18,16 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.medium,
   },
 
+  modalContent: {
+    paddingTop: '20%',
+    flexDirection: 'column',
+    gap: 30,
+  },
+  modalContents: {
+    paddingTop: '6%',
+    flexDirection: 'column',
+    gap: 30,
+  },
   separator: {
     height: 1,
     backgroundColor: theme.colors.divider,

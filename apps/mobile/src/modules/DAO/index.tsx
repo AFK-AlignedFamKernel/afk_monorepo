@@ -37,10 +37,10 @@ export const DAOComponent: React.FC = () => {
         <View>
           <Text style={styles.text}>Create DAO</Text>
           <Modal
-            style={{ height: "90%" }}
+            style={{ height: "80%" }}
           // style={styles.modal}
           >
-            <View>
+            <View style={styles.modalContent}>
 
 
               <Input>
@@ -57,15 +57,13 @@ export const DAOComponent: React.FC = () => {
         </View>
       )}
 
-      <Text style={styles.text}>DAO coming soon</Text>
-
-
-      <Button
-        onPress={handleFormCreateDao}
-      >
-        <Text>Create DAO</Text>
-
-      </Button>
+     <View style={styles.modalContents} >
+     <Text style={styles.text}>DAO coming soon</Text>
+<Button
+  onPress={handleFormCreateDao}
+>
+  <Text>Create DAO</Text>
+  </Button>  </View>
     </View>
   );
 };
