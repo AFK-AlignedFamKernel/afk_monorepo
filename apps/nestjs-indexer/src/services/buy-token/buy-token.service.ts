@@ -36,6 +36,7 @@ export class BuyTokenService {
           calculatedQuoteAmount;
           // calculatedQuoteAmount - Number(data?.protocolFee);
 
+
         const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
         const effectiveLiquidityRaisedAmount =
           calculatedLiquidityRaisedAmount;
@@ -69,7 +70,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.amount);
+          Number(data.quoteAmount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
