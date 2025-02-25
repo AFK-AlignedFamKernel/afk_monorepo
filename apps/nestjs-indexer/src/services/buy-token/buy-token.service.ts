@@ -31,10 +31,16 @@ export class BuyTokenService {
 
         let price = tokenLaunchRecord?.price ?? 0;
 
-        const calculatedQuoteAmount = Number(data.amount) * Number(price);
+        const calculatedQuoteAmount = Number(data.quoteAmount);
         const effectiveQuoteAmount =
-          calculatedQuoteAmount - Number(data?.protocolFee);
+          calculatedQuoteAmount;
+          // calculatedQuoteAmount - Number(data?.protocolFee);
 
+
+        const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
+        const effectiveLiquidityRaisedAmount =
+          calculatedLiquidityRaisedAmount;
+          // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -46,7 +52,7 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
-          effectiveQuoteAmount;
+          effectiveLiquidityRaisedAmount;
 
         if (newSupply < 0) {
           this.logger.warn(
@@ -64,7 +70,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.amount);
+          Number(data.quoteAmount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
@@ -88,8 +94,14 @@ export class BuyTokenService {
         // }
         price = priceBuy;
 
+        // const marketCap = (
+        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+        //   price
+        // ).toString();
+
+
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+          (Number(tokenLaunchRecord.total_supply ?? 0)) *
           price
         ).toString();
 

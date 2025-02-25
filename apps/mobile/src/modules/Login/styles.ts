@@ -233,6 +233,7 @@ export default ThemedStyleSheet((theme) => ({
 
   // login
   loginMethodsContainer: {
+    height: '100%',
     flexDirection: 'row',
     gap: 16,
     width: '100%',
@@ -241,7 +242,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   loginMethodsContainerDesktop: {
     flexWrap: 'nowrap',
-    height: '100%'
+    height: '100%',
   },
   loginMethodBtn: {
     borderRadius: 32,

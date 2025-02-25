@@ -164,7 +164,7 @@ export class SellTokenIndexer {
       price,
       protocolFee,
       lastPrice,
-      quoteAmount,
+      quoteAmount:Number(amount).toString(),
       timestamp,
       transactionType: 'sell',
       coinAmount: Number(coinAmount),

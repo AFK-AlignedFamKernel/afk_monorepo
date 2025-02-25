@@ -144,6 +144,7 @@ export class BuyTokenIndexer {
       ownerAddress,
       memecoinAddress: tokenAddress,
       amount: Number(amount),
+      coinAmount: Number(amount ).toString(),
       price,
       protocolFee,
       lastPrice,

@@ -237,7 +237,6 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
       </ScrollView>
 
 
-
       <View style={styles.filterContainer}>
         <Button
           style={[styles.filterButton, styles.filterAccordion]}
@@ -249,225 +248,234 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
 
 
         <View style={styles.filterContent}>
-  {isDesktop ? (
-    <View style={styles.desktopFilterContent}>
-      {showFilters && (
-        <View style={styles.filterOptions}>
-          <TouchableOpacity
-            style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
-            onPress={() => {
-              setSortBy('recent');
-              const sorted = [...launchesData].sort((a, b) => {
-                const timestampA = a?.block_timestamp || 0;
-                const timestampB = b?.block_timestamp || 0;
-                return Number(timestampB) - Number(timestampA);
-              });
-              setLaunches(sorted);
-            }}
-          >
-            <Text style={styles.filterOptionText}>Most Recent</Text>
-          </TouchableOpacity>
+          {isDesktop ? (
+            <View style={styles.desktopFilterContent}>
+              {showFilters && (
+                <View style={styles.filterOptions}>
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('recent');
+                      const sorted = [...launchesData].sort((a, b) => {
+                        const timestampA = a?.block_timestamp || 0;
+                        const timestampB = b?.block_timestamp || 0;
+                        return Number(timestampB) - Number(timestampA);
+                      });
+                      setLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Most Recent</Text>
+                  </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
-            onPress={() => {
-              setSortBy('oldest');
-              const sorted = [...launchesData].sort((a, b) => {
-                const timestampA = a?.block_timestamp || 0;
-                const timestampB = b?.block_timestamp || 0;
-                return Number(timestampA) - Number(timestampB);
-              });
-              setLaunches(sorted);
-            }}
-          >
-            <Text style={styles.filterOptionText}>Oldest First</Text>
-          </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('oldest');
+                      const sorted = [...launchesData].sort((a, b) => {
+                        const timestampA = a?.block_timestamp || 0;
+                        const timestampB = b?.block_timestamp || 0;
+                        return Number(timestampA) - Number(timestampB);
+                      });
+                      setLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Oldest First</Text>
+                  </TouchableOpacity>
 
-          {isLaunchedView && (
-            <View style={styles.filterOptions}>
-              <TouchableOpacity
-                style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
-                onPress={() => {
-                  setSortBy('liquidity');
-                  const sorted = [...launchesData].sort((a, b) => {
-                    const liqA = a?.liquidity_raised || 0;
-                    const liqB = b?.liquidity_raised || 0;
-                    return Number(liqB) - Number(liqA);
-                  });
-                  setLaunches(sorted);
-                  setSortedLaunches(sorted);
-                }}
-              >
-                <Text style={styles.filterOptionText}>Liquidity</Text>
-              </TouchableOpacity>
+                  {isLaunchedView && (
+                    <View style={styles.filterOptions}>
+                      <TouchableOpacity
+                        style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
+                        onPress={() => {
+                          setSortBy('liquidity');
+                          const sorted = [...launchesData].sort((a, b) => {
+                            const liqA = a?.liquidity_raised || 0;
+                            const liqB = b?.liquidity_raised || 0;
+                            return Number(liqB) - Number(liqA);
+                          });
+                          setLaunches(sorted);
+                          setSortedLaunches(sorted);
+                        }}
+                      >
+                        <Text style={styles.filterOptionText}>Liquidity</Text>
+                      </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
-                onPress={() => {
-                  setSortBy('graduated');
-                  const sorted = [...launchesData].filter((item) => {
-                    if (item?.is_liquidity_added) {
-                      return item;
-                    }
-                    return null;
-                  });
-                  setLaunches(sorted);
-                }}
-              >
-                <Text style={styles.filterOptionText}>Graduated</Text>
-              </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
+                        onPress={() => {
+                          setSortBy('graduated');
+                          const sorted = [...launchesData].filter((item) => {
+                            if (item?.is_liquidity_added) {
+                              return item;
+                            }
+                            return null;
+                          });
+                          setLaunches(sorted);
+                        }}
+                      >
+                        <Text style={styles.filterOptionText}>Graduated</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.mobileFilterContent}>
+              {showFilters && (
+                <View style={styles.filterOptions}>
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('recent');
+                      const sorted = [...launchesData].sort((a, b) => {
+                        const timestampA = a?.block_timestamp || 0;
+                        const timestampB = b?.block_timestamp || 0;
+                        return Number(timestampB) - Number(timestampA);
+                      });
+                      setLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Most Recent</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('oldest');
+                      const sorted = [...launchesData].sort((a, b) => {
+                        const timestampA = a?.block_timestamp || 0;
+                        const timestampB = b?.block_timestamp || 0;
+                        return Number(timestampA) - Number(timestampB);
+                      });
+                      setLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Oldest First</Text>
+                  </TouchableOpacity>
+
+                  {isLaunchedView && (
+                    <View style={styles.filterOptions}>
+                      <TouchableOpacity
+                        style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
+                        onPress={() => {
+                          setSortBy('liquidity');
+                          const sorted = [...launchesData].sort((a, b) => {
+                            const liqA = a?.liquidity_raised || 0;
+                            const liqB = b?.liquidity_raised || 0;
+                            return Number(liqB) - Number(liqA);
+                          });
+                          setLaunches(sorted);
+                          setSortedLaunches(sorted);
+                        }}
+                      >
+                        <Text style={styles.filterOptionText}>Liquidity</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
+                        onPress={() => {
+                          setSortBy('graduated');
+                          const sorted = [...launchesData].filter((item) => {
+                            if (item?.is_liquidity_added) {
+                              return item;
+                            }
+                            return null;
+                          });
+                          setLaunches(sorted);
+                        }}
+                      >
+                        <Text style={styles.filterOptionText}>Graduated</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           )}
         </View>
-      )}
-    </View>
-  ) : (
-    <View style={styles.mobileFilterContent}>
-      {showFilters && (
-        <View style={styles.filterOptions}>
-          <TouchableOpacity
-            style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
-            onPress={() => {
-              setSortBy('recent');
-              const sorted = [...launchesData].sort((a, b) => {
-                const timestampA = a?.block_timestamp || 0;
-                const timestampB = b?.block_timestamp || 0;
-                return Number(timestampB) - Number(timestampA);
-              });
-              setLaunches(sorted);
-            }}
-          >
-            <Text style={styles.filterOptionText}>Most Recent</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
-            onPress={() => {
-              setSortBy('oldest');
-              const sorted = [...launchesData].sort((a, b) => {
-                const timestampA = a?.block_timestamp || 0;
-                const timestampB = b?.block_timestamp || 0;
-                return Number(timestampA) - Number(timestampB);
-              });
-              setLaunches(sorted);
-            }}
-          >
-            <Text style={styles.filterOptionText}>Oldest First</Text>
-          </TouchableOpacity>
-
-          {isLaunchedView && (
-            <View style={styles.filterOptions}>
-              <TouchableOpacity
-                style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
-                onPress={() => {
-                  setSortBy('liquidity');
-                  const sorted = [...launchesData].sort((a, b) => {
-                    const liqA = a?.liquidity_raised || 0;
-                    const liqB = b?.liquidity_raised || 0;
-                    return Number(liqB) - Number(liqA);
-                  });
-                  setLaunches(sorted);
-                  setSortedLaunches(sorted);
-                }}
-              >
-                <Text style={styles.filterOptionText}>Liquidity</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
-                onPress={() => {
-                  setSortBy('graduated');
-                  const sorted = [...launchesData].filter((item) => {
-                    if (item?.is_liquidity_added) {
-                      return item;
-                    }
-                    return null;
-                  });
-                  setLaunches(sorted);
-                }}
-              >
-                <Text style={styles.filterOptionText}>Graduated</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )}
-    </View>
-  )}
-</View>
-      {
-        isLoading ? (
-          <Loading />
-        ) : (
-
-          // <ScrollView
-          //   showsVerticalScrollIndicator={false}
-          // >
-
-          <>
-            {tokenOrLaunch == 'LAUNCH' && (
-              <FlatList
-                contentContainerStyle={styles.flatListContent}
-                // data={launchesData}
-                // data={launchesStore}
-                data={sortedLaunches}
-                // data={launchesData}
-                // data={sortedLaunches && sortedLaunches?.length > 0 ? sortedLaunches : launchesStore && launchesStore?.length > 0 ? launchesStore : launchesData}
-                keyExtractor={(item) => item.token_address}
-                key={`flatlist-${isDesktop ? 3 : 1}`}
-                numColumns={isDesktop ? 3 : 1}
-                renderItem={({ item }) => {
-                  return <TokenLaunchCard key={item.token_address} token={item} />;
-                }}
-                refreshControl={<RefreshControl refreshing={isFetching} />}
-              />
-            )}
-
-            {tokenOrLaunch == 'TOKEN' && (
-              <FlatList
-                contentContainerStyle={styles.flatListContent}
-                // data={tokens?.data}
-                data={sortedTokens && sortedTokens?.length > 0 ? sortedTokens : tokensStore && tokensStore?.length > 0 ? tokensStore : tokensData}
-                // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
-                keyExtractor={(item, i) => i.toString()}
-                key={`flatlist-${isDesktop ? 3 : 1}`}
-                numColumns={isDesktop ? 3 : 1}
-                renderItem={({ item, index }) => {
-                  return <TokenCard key={index} token={item} isTokenOnly={true} />;
-                }}
-                refreshControl={<RefreshControl refreshing={isFetching} />}
-              />
-            )}
-
-            {tokenOrLaunch === 'MY_DASHBOARD' && (
-              <TokenDashboard
-                address={account.address}
-                onConnect={onConnect}
-                isDesktop={isDesktop}
-                isFetching={isFetching}
-                tokenOrLaunch={tokenOrLaunch}
-                sortBy={sortBy}
-              />
-            )}
-
-            {tokenOrLaunch === 'MY_LAUNCH_TOKEN' && (
-              <TokenDashboard
-                address={account.address}
-                onConnect={onConnect}
-                isDesktop={isDesktop}
-                isFetching={isFetching}
-                tokenOrLaunch={tokenOrLaunch}
-                sortBy={sortBy}
-              />
-            )}
-          </>
-          // </ScrollView>
-
-        )}
 
 
 
       </View>
+
+
+      <ScrollView>
+        {
+          isLoading ? (
+            <Loading />
+          ) : (
+
+            // <ScrollView
+            //   showsVerticalScrollIndicator={false}
+            // >
+
+            <ScrollView
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              style={{ flex: 1, padding: 5 }}
+            >
+              {tokenOrLaunch == 'LAUNCH' && (
+                <FlatList
+                  contentContainerStyle={styles.flatListContent}
+                  // data={launchesData}
+                  // data={launchesStore}
+                  data={sortedLaunches}
+                  // data={launchesData}
+                  // data={sortedLaunches && sortedLaunches?.length > 0 ? sortedLaunches : launchesStore && launchesStore?.length > 0 ? launchesStore : launchesData}
+                  keyExtractor={(item) => item.token_address}
+                  key={`flatlist-${isDesktop ? 3 : 1}`}
+                  numColumns={isDesktop ? 3 : 1}
+                  renderItem={({ item }) => {
+                    return <TokenLaunchCard key={item.token_address} token={item} />;
+                  }}
+                  refreshControl={<RefreshControl refreshing={isFetching} />}
+                />
+              )}
+
+              {tokenOrLaunch == 'TOKEN' && (
+                <FlatList
+                  contentContainerStyle={styles.flatListContent}
+                  // data={tokens?.data}
+                  data={sortedTokens && sortedTokens?.length > 0 ? sortedTokens : tokensStore && tokensStore?.length > 0 ? tokensStore : tokensData}
+                  // data={tokenOrLaunch == "TOKEN" ? tokens: tokens}
+                  keyExtractor={(item, i) => i.toString()}
+                  key={`flatlist-${isDesktop ? 3 : 1}`}
+                  numColumns={isDesktop ? 3 : 1}
+                  renderItem={({ item, index }) => {
+                    return <TokenCard key={index} token={item} isTokenOnly={true} />;
+                  }}
+                  refreshControl={<RefreshControl refreshing={isFetching} />}
+                />
+              )}
+
+              {tokenOrLaunch === 'MY_DASHBOARD' && (
+                <TokenDashboard
+                  address={account.address}
+                  onConnect={onConnect}
+                  isDesktop={isDesktop}
+                  isFetching={isFetching}
+                  tokenOrLaunch={tokenOrLaunch}
+                  sortBy={sortBy}
+                />
+              )}
+
+              {tokenOrLaunch === 'MY_LAUNCH_TOKEN' && (
+                <TokenDashboard
+                  address={account.address}
+                  onConnect={onConnect}
+                  isDesktop={isDesktop}
+                  isFetching={isFetching}
+                  tokenOrLaunch={tokenOrLaunch}
+                  sortBy={sortBy}
+                />
+              )}
+            </ScrollView>
+
+          )}
+      </ScrollView>
+
     </View >
   );
 };

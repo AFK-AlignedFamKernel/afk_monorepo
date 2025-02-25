@@ -1,12 +1,12 @@
 import { useAuth, useCashuStore, useNip07Extension } from 'afk_nostr_sdk';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, TextInput, View, Image, Text } from 'react-native';
+import { Platform, TextInput, View, Image, Text, ScrollView } from 'react-native';
 
 import { Button, Icon } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import { useDialog, useToast } from '../../hooks/modals';
-import { Auth } from '../../modules/Auth';
+import { Auth } from '../Auth';
 import { MainStackNavigationProps } from '../../types';
 import { getPublicKeyFromSecret } from '../../utils/keypair';
 import {
@@ -22,7 +22,6 @@ import { LoginStarknet } from './StarknetLogin';
 import stylesheet from './styles';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useCashuContext } from '../../providers/CashuProvider';
-import { LoginNostrModuleComponent } from './LoginComponent';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -32,7 +31,7 @@ interface ILoginNostr {
   handleNavigateCreateAccount?: () => void;
   handleNavigateImportKeys?: () => void;
 }
-export const LoginNostrModule: React.FC<ILoginNostr> = ({
+export const LoginNostrModuleComponent: React.FC<ILoginNostr> = ({
   isNavigationAfterLogin,
   navigationProps,
   handleSuccess,
@@ -224,17 +223,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
   // };
 
   return (
-    <Auth title="Log In"
-    // style={{
-    // height: '100%',
-    // }}
-    >
-      {/* <LoginNostrModuleComponent
-        handleSuccess={handleSuccess}
-        handleNavigateCreateAccount={handleNavigateCreateAccount}
-        handleNavigateImportKeys={handleNavigateImportKeys}
-        navigationProps={navigationProps}
-      /> */}
+    <ScrollView>
       <View
         style={[styles.loginMethodsContainer,
         styles.container,
@@ -255,7 +244,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             <Text>Nostr Extension</Text>
           </View>
         </Button>
-    
+        {/* <LoginStarknet
+          handleNavigation={() => navigationProps?.navigate('Feed')}
+          btnText={'Starknet Account'}
+          useCustomBtn
+        /> */}
       </View>
       <Text style={styles.passwordLabel}>Password</Text>
       <View style={styles.passwordInputContainer}>
@@ -293,6 +286,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           No account yet? Sign Up
         </TouchableOpacity>
       </View>
-    </Auth>
+    </ScrollView>
+
   );
 };

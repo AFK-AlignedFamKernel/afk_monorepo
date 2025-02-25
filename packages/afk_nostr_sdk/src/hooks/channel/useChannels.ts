@@ -6,6 +6,7 @@ import {useNostrContext} from '../../context/NostrContext';
 export type UseRootNotesOptions = {
   authors?: string[];
   search?: string;
+  limit?: number;
 };
 
 export const useChannels = (options?: UseRootNotesOptions) => {
@@ -28,7 +29,7 @@ export const useChannels = (options?: UseRootNotesOptions) => {
         authors: options?.authors,
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
-        limit: 20,
+        limit: options?.limit ?? 20,
       });
 
       console.log('notes', notes);

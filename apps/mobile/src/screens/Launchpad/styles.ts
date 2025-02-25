@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import { Spacing, ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -28,7 +28,7 @@ export default ThemedStyleSheet((theme) => ({
     height: '100%',
     maxHeight: 130,
     minHeight: 75,
-    marginLeft:20
+    marginLeft: 20
   },
   activeToggle: {
     borderBottomWidth: 3,
@@ -109,25 +109,25 @@ export default ThemedStyleSheet((theme) => ({
   filterContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: 5,
+    marginBottom: 20,
     justifyItems: 'center',
-   
-},
 
-desktopFilterContent: {
-  padding: 40,
-},
-mobileFilterContent: {
- padding: 4
-},
+  },
 
-filterOptions: {
+  desktopFilterContent: {
+    padding: 5,
+  },
+  mobileFilterContent: {
+    padding: 4
+  },
+
+  filterOptions: {
     flexDirection: 'row',
     gap: Spacing.small,
     alignItems: 'center',
   },
-  filterOption: { 
+  filterOption: {
     padding: Spacing.small,
     borderRadius: 8,
     backgroundColor: theme.colors.surface,

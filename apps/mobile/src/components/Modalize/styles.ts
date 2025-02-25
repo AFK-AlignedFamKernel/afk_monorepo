@@ -4,7 +4,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modal: {
-    //backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background,
     // width:Dimensions.get("window").width >= 1024 ? 300 : "100%",
     // flex: 1,
     // justifyContent: 'center',

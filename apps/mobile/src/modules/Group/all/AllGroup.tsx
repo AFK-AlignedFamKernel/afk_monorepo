@@ -23,7 +23,7 @@ import {MainStackNavigationProps} from '../../../types';
 import stylesheet from './styles';
 
 export default function AllGroupListComponent() {
-  const {data, isPending, isFetching, refetch, fetchNextPage} = useGetGroupList({});
+  const {data, isPending, isFetching, refetch, fetchNextPage} = useGetGroupList({limit: 10});
   const {mutate: addMember} = useAddPublicMember();
   const queryClient = useQueryClient();
   const {mutate: addPermission} = useAddPermissions();
@@ -98,6 +98,7 @@ export default function AllGroupListComponent() {
               });
             }}
             style={styles.groupItem}
+            
           >
             <View style={styles.groupInfo}>
               <Text style={styles.groupName}>{item.content || 'No Name'}</Text>
