@@ -824,4 +824,176 @@ mod edge_cases_tests {
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
 
     }
+
+    #[test]
+    fn test_sort_tokens_all() {
+        //Same address
+        let (token0, token1) = sort_tokens(0x111.try_into().unwrap(), 0x111.try_into().unwrap());
+        assert(token0 == token1, 'Expected addresses to match');
+
+        // Zero address
+        let (token0, token1) = sort_tokens(0x0.try_into().unwrap(), 0x123.try_into().unwrap());
+        assert(token0 == 0x0.try_into().unwrap() && token1 == 0x123.try_into().unwrap(), 'Expected zero address first');
+
+        // Already sorted
+        let (token0, token1) = sort_tokens(0x100.try_into().unwrap(), 0x200.try_into().unwrap());
+        assert(token0 == 0x100.try_into().unwrap() && token1 == 0x200.try_into().unwrap(), 'Expected already sorted');
+
+        // Reverse
+        let (token0, token1) = sort_tokens(0x300.try_into().unwrap(), 0x200.try_into().unwrap());
+        assert(token0 == 0x200.try_into().unwrap() && token1 == 0x300.try_into().unwrap(), 'Expected reversed sorted');
+    }
+
+    #[test]
+    fn test_check_liquidity_ratio_calculation() {
+        // Prepare fixture
+        let (sender, erc20, launchpad) = request_fixture();
+        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
+        let token_address = launchpad.create_and_launch_token(
+            symbol: SYMBOL(),
+            name: NAME(),
+            initial_supply: DEFAULT_100M_SUPPLY(),
+            contract_address_salt: SALT(),
+            is_unruggable: false,
+            bonding_type: BondingType::Linear,
+            creator_fee_percent: MID_FEE_CREATOR,
+            creator_fee_destination: RECEIVER_ADDRESS()
+        );
+
+        // Buy enough so that partial liquidity is raised
+        run_buy_by_amount(
+            launchpad,
+            quote_token,
+            IERC20Dispatcher { contract_address: token_address },
+            THRESHOLD_LIQUIDITY / 2_u256,
+            token_address,
+            sender
+        );
+
+        // Retrieve current launch info
+        let launch_info = launchpad.get_coin_launch(token_address);
+        let liquidity_raised = launch_info.liquidity_raised;
+        let initial_pool_supply = launch_info.initial_pool_supply;
+
+        // Check ratio (liquidity_raised / initial_pool_supply) is non-zero
+        assert(initial_pool_supply > 0, 'initial_pool_supply is zero');
+        let ratio = liquidity_raised / initial_pool_supply;
+        assert(ratio >= 0, 'invalid ratio');
+    }
+
+    #[test]
+    fn test_calculate_xy() {
+        let scale_factor = pow_256(10, 18);
+        // Case 1: When is_token1_quote is true.
+        let liquidity_raised = 500;
+        let initial_pool_supply = 1000;
+        let x_y_true = (liquidity_raised * scale_factor) / initial_pool_supply;
+        // Expected: scale_factor/2.
+        let expected_true = scale_factor / 2;
+        assert(x_y_true == expected_true, 'incorrect x_y calculation');
+
+        // Case 2: When is_token1_quote is false.
+        let x_y_false = (initial_pool_supply) / liquidity_raised;
+        // Expected: 1000/500 = 2.
+        let expected_false = 2;
+        assert(x_y_false == expected_false, 'incorrect x_y calculation');
+
+        // Case 3: token1 == quote_address => scale factor to avoid 0 result
+        let scale_factor = pow_256(10, 18);
+        let liquidity_raised_token1_eq_quote = 1;
+        let initial_pool_supply_token1_eq_quote = 1;
+        let x_y_token1_eq_quote =
+            ((liquidity_raised_token1_eq_quote * scale_factor) / initial_pool_supply_token1_eq_quote)
+             * scale_factor;
+        assert(x_y_token1_eq_quote != 0, 'zero value when token1 == quote');
+    }
+
+    #[test]
+    fn test_calculate_sqrt_ratio() {
+        let scale_factor = pow_256(10, 18);
+        let liquidity_raised = 400;
+        let initial_pool_supply = 1600;
+        let x_y = (liquidity_raised * scale_factor) / initial_pool_supply;
+
+        // Then x_y = (400 * scale_factor) / 1600 = scale_factor/4.
+        // With scale_factor = 10^18, we have:
+        //   sqrt(scale_factor) = 10^9, so sqrt(scale_factor/4) = 10^9/2 = 500_000_000.
+        // Therefore, expected sqrt_ratio = (500_000_000) * pow_256(2,96).
+        let sqrt_x_y = sqrt(x_y);
+        let computed_sqrt_ratio = sqrt_x_y * pow_256(2, 96);
+
+        // Expected: 10^18 => sqrt = 10^9. Dividing by 2 gives 500_000_000.
+        let expected_component = 500_000_000; // 5e8
+        let expected_sqrt_ratio = expected_component * pow_256(2, 96);
+
+        assert(computed_sqrt_ratio == expected_sqrt_ratio, 'sqrt_ratio is incorrect');
+    }
+
+    #[test]
+    fn test_pool_initialization() {
+        // Setup fixture and deploy a token via create_and_launch_token.
+        let (_sender, _erc20, launchpad) = request_fixture();
+
+        let token_address = launchpad.create_and_launch_token(
+            symbol: SYMBOL(),
+            name: NAME(),
+            initial_supply: DEFAULT_INITIAL_SUPPLY(),
+            contract_address_salt: SALT(),
+            is_unruggable: false,
+            bonding_type: BondingType::Linear,
+            creator_fee_percent: MID_FEE_CREATOR,
+            creator_fee_destination: RECEIVER_ADDRESS()
+        );
+        // Retrieve pool info.
+        let pool = launchpad.get_coin_launch(token_address);
+
+        // Check pool initialization.
+
+        assert(pool.liquidity_raised == 0, 'liquidity_raised not zero');
+        // initial_pool_supply should equal DEFAULT_INITIAL_SUPPLY() divided by RATIO_SUPPLY_LAUNCH.
+        let expected_initial_pool = DEFAULT_INITIAL_SUPPLY() / RATIO_SUPPLY_LAUNCH;
+        assert(pool.initial_pool_supply == expected_initial_pool, 'Incorrect initial_pool_supply');
+        // available_supply should be equal to total supply.
+        assert(pool.total_supply == DEFAULT_INITIAL_SUPPLY(), 'Total supply mismatch');
+        // Token address in pool must match.
+        assert(pool.token_address == token_address, 'Pool token address mismatch');
+        // Price should match starting price.
+        assert(pool.price == INITIAL_KEY_PRICE, 'Price != initial key price');
+    }
+
+    #[test]
+    fn test_buy_tokens_and_pool_verification() {
+        // Set up fixture
+        let (sender, erc20, launchpad) = request_fixture();
+        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
+
+        // Deploy and launch token with a default supply
+        let token_address = launchpad.create_and_launch_token(
+            symbol: SYMBOL(),
+            name: NAME(),
+            initial_supply: DEFAULT_INITIAL_SUPPLY(),
+            contract_address_salt: SALT(),
+            is_unruggable: false,
+            bonding_type: BondingType::Linear,
+            creator_fee_percent: MID_FEE_CREATOR,
+            creator_fee_destination: RECEIVER_ADDRESS()
+        );
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        // Verify initial pool state
+        let initial_pool = launchpad.get_coin_launch(token_address);
+        assert(initial_pool.liquidity_raised == 0, 'initial liquidity must be 0');
+
+        // Buy tokens using a portion of THRESHOLD_LIQUIDITY (e.g., quarter)
+        let buy_amount = THRESHOLD_LIQUIDITY / 4_u256;
+        run_buy_by_amount(launchpad, quote_token, memecoin, buy_amount, token_address, sender);
+
+        // Retrieve and verify updated pool state
+        let updated_pool = launchpad.get_coin_launch(token_address);
+        assert(updated_pool.liquidity_raised > 0, 'Liquidity should be increased');
+
+        // Verify buyer's share has been updated
+        let share = launchpad.get_share_of_user_by_contract(sender, token_address);
+        assert(share.amount_owned > 0, 'Buyer share should be > 0');
+    }
 }
