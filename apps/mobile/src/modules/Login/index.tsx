@@ -22,6 +22,7 @@ import { LoginStarknet } from './StarknetLogin';
 import stylesheet from './styles';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useCashuContext } from '../../providers/CashuProvider';
+import { LoginNostrModuleComponent } from './LoginComponent';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -228,6 +229,12 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
     // height: '100%',
     // }}
     >
+      {/* <LoginNostrModuleComponent
+        handleSuccess={handleSuccess}
+        handleNavigateCreateAccount={handleNavigateCreateAccount}
+        handleNavigateImportKeys={handleNavigateImportKeys}
+        navigationProps={navigationProps}
+      /> */}
       <View
         style={[styles.loginMethodsContainer,
         styles.container,
@@ -248,11 +255,7 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             <Text>Nostr Extension</Text>
           </View>
         </Button>
-        {/* <LoginStarknet
-          handleNavigation={() => navigationProps?.navigate('Feed')}
-          btnText={'Starknet Account'}
-          useCustomBtn
-        /> */}
+    
       </View>
       <Text style={styles.passwordLabel}>Password</Text>
       <View style={styles.passwordInputContainer}>
