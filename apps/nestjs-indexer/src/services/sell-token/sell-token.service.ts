@@ -21,6 +21,8 @@ export class SellTokenService {
   }
 
   async create(data: SellToken) {
+
+    console.log('sell token data', data);
     try {
       const sellTokenRecord =
         await this.prismaService.token_transactions.findUnique({
