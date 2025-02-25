@@ -101,7 +101,7 @@ export default ThemedStyleSheet((theme) => ({
   sendButton: {
     position: 'absolute',
     right: Spacing.pagePadding,
-    bottom: '110%',
+    bottom: '10%',
   },
   text: {
     color: theme.colors.text,

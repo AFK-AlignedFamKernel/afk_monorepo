@@ -45,7 +45,7 @@ export const KeysMarketplace: React.FC<KeysMarketplaceSreenProps> = () => {
     <View style={styles.container}>
       {/* <Header showLogo /> */}
       <Text style={styles.text}>Key pass for Starknet user</Text>
-      <Text style={{...styles.text, marginBottom: 1}}>
+      <Text style={{...styles.text, marginBottom: 1, textAlign: 'center'}}>
         {' '}
         Buy or sell the keys of content creator to get perks and rewards from them.
       </Text>

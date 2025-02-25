@@ -2,6 +2,7 @@ import {NDKEvent} from '@nostr-dev-kit/ndk';
 import {useAccount} from '@starknet-react/core';
 import {useProfile} from 'afk_nostr_sdk';
 import {forwardRef, useEffect, useState} from 'react';
+import {useWindowDimensions} from 'react-native';
 
 import {Modalize, Text} from '../../components';
 import {TokenSymbol} from '../../constants/tokens';
@@ -38,6 +39,9 @@ export type KeyModalProps = {
 export const KeyModal = forwardRef<Modalize, KeyModalProps>(
   ({event, hide: hideKeyModal, showSuccess, hideSuccess, starknetAddress, action}, ref) => {
     const styles = useStyles(stylesheet);
+    const { width } = useWindowDimensions();
+    const isDesktop = width >= 1024;
+
     const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
     const [amount, setAmount] = useState<string>('');
     const {data: profile} = useProfile({publicKey: event?.pubkey});
@@ -54,11 +58,11 @@ export const KeyModal = forwardRef<Modalize, KeyModalProps>(
     const {getAllKeys, getKeyByAddress} = useDataKeys();
     const {showDialog, hideDialog} = useDialog();
     const isActive = !!amount && !!token;
+
     useEffect(() => {
       const getKeyByUserConnected = async () => {
         if (!account?.address) return;
         const myOwnKey = await getKeyByAddress(account?.address);
-        // console.log('myOwnKey', myOwnKey);
         setMyKey(myOwnKey);
       };
 
@@ -77,34 +81,16 @@ export const KeyModal = forwardRef<Modalize, KeyModalProps>(
         title="KeyModal"
         ref={ref}
         disableScrollIfPossible={false}
-        modalStyle={styles.modal}
+        modalStyle={[styles.modal, isDesktop ? styles.desktopModal : styles.mobileModal]}
       >
         <FormInstantiateKey
-          //  show={showDialog}
           showSuccess={showSuccess}
           hide={hideDialog}
           hideSuccess={hideSuccess}
           event={event}
           action={action}
           starknetAddress={starknetAddress}
-        ></FormInstantiateKey>
-        {/* 
-        {!action || (action == KeyModalAction?.INSTANTIATE)
-          // || account?.address == starknetAddress &&
-          &&
-          <FormInstantiateKey
-            //  show={showDialog} 
-            showSuccess={showSuccess}
-            hide={hideDialog}
-            hideSuccess={hideSuccess}
-
-            event={event}
-            action={action}
-            starknetAddress={starknetAddress}
-
-          ></FormInstantiateKey>
-        } */}
-
+        />
         <Text
           weight="semiBold"
           color="inputPlaceholder"

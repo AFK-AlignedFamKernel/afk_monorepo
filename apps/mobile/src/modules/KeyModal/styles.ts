@@ -4,9 +4,21 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modal: {
-    paddingBottom: Spacing.xxlarge,
+    padding: 30,
+    width: '70%',
+    radius: 16,
+    margin: 'auto',
   },
-
+  desktopModal: {
+    width: '70%',
+    height: '100%', 
+    marginTop: 50,
+  },
+  mobileModal: {
+    width: '97%',
+    height: '100%', 
+    marginTop: 50,
+  },
   header: {
     width: '100%',
     marginBottom: Spacing.medium,

@@ -6,12 +6,21 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
+  
   },
-
+  buttonContainer: {
+    marginLeft: 50,
+    marginRight: 50,
+    marginBottom: 20,
+    marginTop: 30,
+  },
   flatListContent: {
     paddingHorizontal: Spacing.pagePadding,
     paddingVertical: Spacing.medium,
     gap: 3,
+  },
+  tabContainer: {
+    padding: 30,
   },
 
   separator: {

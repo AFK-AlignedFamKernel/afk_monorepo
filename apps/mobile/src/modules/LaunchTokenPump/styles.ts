@@ -18,4 +18,5 @@ export default ThemedStyleSheet((theme) => ({
   publicKeyInput: {
     color: theme.colors.primary,
   },
+
 }));

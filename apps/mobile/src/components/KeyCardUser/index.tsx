@@ -4,7 +4,7 @@ import {useAccount} from '@starknet-react/core';
 import {Fraction} from '@uniswap/sdk-core';
 import {useProfile} from 'afk_nostr_sdk';
 import {useState} from 'react';
-import {ImageSourcePropType, View} from 'react-native';
+import {ImageSourcePropType, View, useWindowDimensions} from 'react-native';
 
 import {useStyles, useWaitConnection} from '../../hooks';
 import {useBuyKeys} from '../../hooks/keys/useBuyKeys';
@@ -39,6 +39,8 @@ export const KeyCardUser: React.FC<StoryProps> = ({
   const account = useAccount();
 
   const styles = useStyles(stylesheet);
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
 
   const [amount, setAmount] = useState<number | undefined>();
 
@@ -109,7 +111,7 @@ export const KeyCardUser: React.FC<StoryProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDesktop ? styles.desktopContainer : styles.mobileContainer]}>
       <View>
         {keyUser?.owner && <Text>Owner: {feltToAddress(BigInt(keyUser.owner))}</Text>}
         {/*         
@@ -162,12 +164,12 @@ export const KeyCardUser: React.FC<StoryProps> = ({
         }}
         placeholder="Amount"
       />
-      <View style={{display: 'flex', flex: 1, flexDirection: 'row', gap: 3}}>
+      <View style={{display: 'flex', flex: 1, flexDirection: 'row', gap: 8}}>
         <Button onPress={buyKeys} style={{backgroundColor: 'green'}}>
           <Text>Buy</Text>
         </Button>
 
-        <Button onPress={sellKeys} style={{backgroundColor: 'red'}}>
+        <Button onPress={sellKeys} style={{backgroundColor: 'red', marginLeft: 10}}>
           Sell
         </Button>
       </View>
