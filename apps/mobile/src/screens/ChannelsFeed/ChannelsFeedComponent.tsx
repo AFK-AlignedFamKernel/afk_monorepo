@@ -16,7 +16,7 @@ export const ChannelsFeedComponent: React.FC<IChannelsFeedComponent> = ({isStory
   const styles = useStyles(stylesheet);
   const notes = useRootNotes();
   const profiles = useAllProfiles();
-  const channels = useChannels();
+  const channels = useChannels({limit: 10});
   const navigation = useNavigation<MainStackNavigationProps>();
 
   return (

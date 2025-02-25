@@ -42,7 +42,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const profile = useProfile({ publicKey });
   const contacts = useContacts({ authors: [publicKey] });
   const notes = useSearch({
-    limit: 50,
+    limit: 10,
     // getNextPageParam: (lastPage, allPages) => {
     //   if (!lastPage?.length) return undefined;
 
@@ -67,7 +67,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
   const notesForYou = useSearch({
     kinds,
-    limit: 50,
+    limit: 10,
     authors: [...contacts?.data?.map((c) => c) || [], ...followersPubkey]
   });
   const [forYouNotes, setForYouNotes] = useState<NDKEvent[]>([]);
@@ -349,6 +349,10 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         }
         onEndReached={() => {
           if (activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()) {
+            notesForYou.fetchNextPage();
+          }
+          else if (activeSortBy === SORT_OPTION_EVENT_NOSTR.TRENDING?.toString()) {
+            notes.fetchNextPage();
             notesForYou.fetchNextPage();
           } else {
             notes.fetchNextPage();

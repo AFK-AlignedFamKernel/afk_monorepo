@@ -37,6 +37,7 @@ export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
           GroupAdminDeleteGroup,
           NDKKind.GroupAdminEditMetadata,
         ],
+        limit: options.limit ?? 30,
         // authors: options?.pubKey ? [options.pubKey]: [],
         until: pageParam || Math.round(Date.now() / 1000),
       });
