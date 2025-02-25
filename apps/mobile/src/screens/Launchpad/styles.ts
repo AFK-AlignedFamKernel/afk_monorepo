@@ -20,7 +20,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   flatListContent: {
     paddingVertical: Spacing.large,
-    gap: Spacing.xxsmall
+    gap: Spacing.medium
   },
   actionToggle: {
     flexDirection: 'row',

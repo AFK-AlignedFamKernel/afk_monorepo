@@ -65,11 +65,19 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
 
   return (
     <View style={[styles.container, isDesktop && styles.containerDesktop]}>
-      {token?.block_timestamp ? (
-        <Text style={styles.creationTime}>
-          {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}
-        </Text>
-      ) : null}
+
+      <View style={styles.detailRow}>
+        {token?.block_timestamp ? (
+          <Text style={styles.creationTime}>
+            {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}
+          </Text>
+        ) : null}
+        {/* <View style={styles.priceTag}>
+          <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)}</Text>
+
+        </View> */}
+      </View>
+
 
       {token?.is_liquidity_added &&
         <View>
@@ -85,17 +93,20 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           <Text
             numberOfLines={isExpanded ? undefined : 1}
             ellipsizeMode="tail"
-            style={styles.tokenName}>{token?.name || 'Unnamed Token'}</Text>
+            style={styles.tokenName}>${token?.name || ""}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
           {token?.symbol ? <Text
-
             numberOfLines={isExpandedSymbol ? undefined : 1}
             ellipsizeMode="tail"
             style={styles.tokenSymbol}>{token.symbol}</Text> : null}
         </TouchableOpacity>
-        {/* <Text style={styles.price}>${Number(token?.price || 0).toFixed(4)}</Text> */}
+        {/* <View style={styles.priceTag}>
+          <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)} Meme/STRK</Text>
+
+        </View> */}
+        {/* <Text style={styles.price}>MC {Number(token?.market_cap || 0).toFixed(4)}</Text> */}
       </View>
       <View style={styles.divider} />
       {token?.threshold_liquidity && (
@@ -134,6 +145,13 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         <View style={styles.statContainer}>
           <Icon name="TokenHolderIcon" size={22} fill="black" />
           <Text style={styles.statValue}>{Number(token?.token_holded || 0).toLocaleString()}</Text>
+        </View>
+
+        <View style={styles.statContainer}>
+          <View style={styles.priceTag}>
+            <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)}</Text>
+
+          </View>
         </View>
       </View>
 
