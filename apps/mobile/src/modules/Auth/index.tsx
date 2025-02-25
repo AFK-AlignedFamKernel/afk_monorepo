@@ -43,11 +43,11 @@ export const Auth: React.FC<AuthProps> = ({title, children}) => {
           </View>
         </View>
 
-        <View style={styles.contentContainer}>
+        <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
           <View>
             <View style={styles.content}>{children}</View>
           </View>
-        </View>
+        </ScrollView>
       </View>
      </KeyboardAvoidingView>
   );
