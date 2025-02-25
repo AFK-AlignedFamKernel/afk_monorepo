@@ -146,13 +146,13 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
           <Icon name="TokenHolderIcon" size={22} fill="black" />
           <Text style={styles.statValue}>{Number(token?.token_holded || 0).toLocaleString()}</Text>
         </View>
-
+{/* 
         <View style={styles.statContainer}>
           <View style={styles.priceTag}>
             <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)}</Text>
 
           </View>
-        </View>
+        </View> */}
       </View>
 
       {!isViewDetailDisabled && (
