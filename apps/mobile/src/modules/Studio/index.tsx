@@ -128,7 +128,6 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
           isFetching && !isPending &&
           <View style={styles.container}>
             <SafeAreaView style={styles.scrollContent}>
-              <Text style={styles.headerText}>Stream Studio Events</Text>
               <ActivityIndicator></ActivityIndicator>;
             </SafeAreaView>
           </View>
