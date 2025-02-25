@@ -14,11 +14,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSharedValue } from 'react-native-reanimated';
 import { useTipModal, useToast } from '../../hooks/modals';
 import { Icon } from '../Icon';
+import { useIsDesktop } from '../../hooks/useIsDesktop';
 
 const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEvent }) => {
   const video = React.useRef<Video | null>(null);
   const [status, setStatus] = useState<any>(null);
   const styles = useStyles(stylesheet);
+  const isDesktop = useIsDesktop();
   const navigation = useNavigation<MainStackNavigationProps>();
   const { data: profile } = useProfile({ publicKey: item?.pubkey });
   const reactions = useReactions({ noteId: item?.id });
@@ -212,14 +214,13 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
           />
         </View>
       </Pressable>
-      <View style={styles.actionsContainer}>
+      <View style={[isDesktop ? styles.actionsContainer : styles.actionsContainerMobile]}>
         <TouchableOpacity onPress={() => handleProfilePress(item?.pubkey)}>
           <Avatar
             // size={asComment ? 40 : 50}
             size={40}
             source={profile?.image ? { uri: profile.image } : require('../../assets/degen-logo.png')}
           />
-          {/* <LikeIcon width={20} height={20} color="white" /> */}
         </TouchableOpacity>
         <TouchableOpacity onPress={handleLike}>
           <LikeIcon width={20} height={20} color="white" />

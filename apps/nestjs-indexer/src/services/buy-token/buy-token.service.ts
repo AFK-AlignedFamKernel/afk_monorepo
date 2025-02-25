@@ -22,6 +22,8 @@ export class BuyTokenService {
   }
 
   async create(data: BuyToken) {
+
+    console.log('buy token data', data);
     try {
       await this.prismaService.$transaction(async (prisma) => {
         const tokenLaunchRecord = await prisma.token_launch.findFirst({
@@ -133,8 +135,8 @@ export class BuyTokenService {
         });
 
         let newAmountOwned = sharesTokenUser
-          ? Number(sharesTokenUser.amount_owned) + Number(data.amount)
-          : Number(data.amount);
+          ? Number(sharesTokenUser.amount_owned) + Number(data.coinAmount)
+          : Number(data.coinAmount);
 
         if (newAmountOwned > newTotalTokenHolded) {
           this.logger.warn(
@@ -154,7 +156,7 @@ export class BuyTokenService {
             id: `${data.ownerAddress}_${data.memecoinAddress}`,
             owner: data.ownerAddress,
             token_address: data.memecoinAddress,
-            amount_owned: data.amount.toString(),
+            amount_owned: data.coinAmount.toString(),
           },
         });
 
@@ -173,7 +175,7 @@ export class BuyTokenService {
             last_price: data.lastPrice,
             quote_amount: data.quoteAmount,
             price: price?.toString(),
-            amount: data.amount,
+            amount: data.coinAmount,
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
             transaction_type: data.transactionType,

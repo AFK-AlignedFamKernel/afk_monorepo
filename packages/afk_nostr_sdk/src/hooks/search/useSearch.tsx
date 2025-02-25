@@ -1,7 +1,7 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
+import { useNostrContext } from '../../context/NostrContext';
 
 export type UseSearch = {
   authors?: string[];
@@ -10,11 +10,12 @@ export type UseSearch = {
   kinds?: NDKKind[];
   sortBy?: string;
   limit?: number;
-  isWithouthReply?:boolean;
+  isWithouthReply?: boolean;
+  since?: number;
 };
 
 export const useSearch = (options?: UseSearch) => {
-  const {ndk} = useNostrContext();
+  const { ndk } = useNostrContext();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -35,16 +36,20 @@ export const useSearch = (options?: UseSearch) => {
       // if (!pageParam || pageParam === lastPageParam) return undefined;
       // return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
       // console.log('search query', options?.search);
 
       // Calculate the 'since' timestamp (24 hours ago)
       // const sinceTimestamp = Math.round(Date.now() / 1000) - 24 * 60 * 60;
 
       // Calculate the 'since' timestamp
-      const sinceTimestamp = pageParam 
-        ? pageParam - 24 * 60 * 60 // Restart from pageParam minus 24 hours
-        : Math.round(Date.now() / 1000) - 24 * 60 * 60; // Start from 24 hours ago
+      const sinceTimestamp = pageParam
+        ? pageParam - 1 * 60 * 60 :// Restart from pageParam minus 1 hour
+          Math.round(Date.now() / 1000) - 1 * 60 * 60; // Start from 1 hour ago
+
+      // const sinceTimestamp = pageParam
+      // ? pageParam - 24 * 60 * 60 :// Restart from pageParam minus 24 hours
+      //   Math.round(Date.now() / 1000) - 24 * 60 * 60; // Start from 24 hours ago
 
       // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
@@ -61,7 +66,7 @@ export const useSearch = (options?: UseSearch) => {
       return [...notes];
       // return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 };
 

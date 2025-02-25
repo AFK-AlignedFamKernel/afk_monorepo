@@ -70,7 +70,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         break;
       case 'graduated':
         sortedLaunches.filter((item) => {
-          if (item?.is_liquidity_added) {
+          if (item?.is_liquidity_added && item?.is_liquidity_added === true) {
             return item;
           }
           return null;
@@ -247,7 +247,80 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
         </Button>
 
 
-        <View style={styles.filterContent}>
+        <View style={[isDesktop ? styles.desktopFilterContent : styles.mobileFilterContent]}>
+          {showFilters && (
+            <View style={styles.filterOptions}>
+              <TouchableOpacity
+                style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
+                onPress={() => {
+                  setSortBy('recent');
+                  const sorted = [...launchesData].sort((a, b) => {
+                    const timestampA = a?.block_timestamp || 0;
+                    const timestampB = b?.block_timestamp || 0;
+                    return Number(timestampB) - Number(timestampA);
+                  });
+                  setLaunches(sorted);
+                }}
+              >
+                <Text style={styles.filterOptionText}>Most Recent</Text>
+              </TouchableOpacity>
+
+
+              {isLaunchedView && (
+                <View style={styles.filterOptions}>
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('liquidity');
+                      const sorted = [...launchesData].sort((a, b) => {
+                        const liqA = a?.liquidity_raised || 0;
+                        const liqB = b?.liquidity_raised || 0;
+                        return Number(liqB) - Number(liqA);
+                      });
+                      setLaunches(sorted);
+                      setSortedLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Liquidity</Text>
+                  </TouchableOpacity>
+                  {/* 
+                  <TouchableOpacity
+                    style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
+                    onPress={() => {
+                      setSortBy('graduated');
+                      const sorted = [...launchesData].filter((item) => {
+                        if (item?.is_liquidity_added && item?.is_liquidity_launch) {
+                          return item;
+                        }
+                        return null;
+                      });
+                      setLaunches(sorted);
+                    }}
+                  >
+                    <Text style={styles.filterOptionText}>Graduated</Text>
+                  </TouchableOpacity> */}
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
+                onPress={() => {
+                  setSortBy('oldest');
+                  const sorted = [...launchesData].sort((a, b) => {
+                    const timestampA = a?.block_timestamp || 0;
+                    const timestampB = b?.block_timestamp || 0;
+                    return Number(timestampA) - Number(timestampB);
+                  });
+                  setLaunches(sorted);
+                }}
+              >
+                <Text style={styles.filterOptionText}>Oldest First</Text>
+              </TouchableOpacity>
+
+            </View>
+          )}
+        </View>
+        {/* <View style={styles.filterContent}>
           {isDesktop ? (
             <View style={styles.desktopFilterContent}>
               {showFilters && (
@@ -305,7 +378,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                         onPress={() => {
                           setSortBy('graduated');
                           const sorted = [...launchesData].filter((item) => {
-                            if (item?.is_liquidity_added) {
+                            if (item?.is_liquidity_added && item?.is_liquidity_added === true) {
                               return item;
                             }
                             return null;
@@ -321,79 +394,10 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
               )}
             </View>
           ) : (
-            <View style={styles.mobileFilterContent}>
-              {showFilters && (
-                <View style={styles.filterOptions}>
-                  <TouchableOpacity
-                    style={[styles.filterOption, sortBy === 'recent' && styles.activeFilter]}
-                    onPress={() => {
-                      setSortBy('recent');
-                      const sorted = [...launchesData].sort((a, b) => {
-                        const timestampA = a?.block_timestamp || 0;
-                        const timestampB = b?.block_timestamp || 0;
-                        return Number(timestampB) - Number(timestampA);
-                      });
-                      setLaunches(sorted);
-                    }}
-                  >
-                    <Text style={styles.filterOptionText}>Most Recent</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.filterOption, sortBy === 'oldest' && styles.activeFilter]}
-                    onPress={() => {
-                      setSortBy('oldest');
-                      const sorted = [...launchesData].sort((a, b) => {
-                        const timestampA = a?.block_timestamp || 0;
-                        const timestampB = b?.block_timestamp || 0;
-                        return Number(timestampA) - Number(timestampB);
-                      });
-                      setLaunches(sorted);
-                    }}
-                  >
-                    <Text style={styles.filterOptionText}>Oldest First</Text>
-                  </TouchableOpacity>
-
-                  {isLaunchedView && (
-                    <View style={styles.filterOptions}>
-                      <TouchableOpacity
-                        style={[styles.filterOption, sortBy === 'liquidity' && styles.activeFilter]}
-                        onPress={() => {
-                          setSortBy('liquidity');
-                          const sorted = [...launchesData].sort((a, b) => {
-                            const liqA = a?.liquidity_raised || 0;
-                            const liqB = b?.liquidity_raised || 0;
-                            return Number(liqB) - Number(liqA);
-                          });
-                          setLaunches(sorted);
-                          setSortedLaunches(sorted);
-                        }}
-                      >
-                        <Text style={styles.filterOptionText}>Liquidity</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[styles.filterOption, sortBy === 'graduated' && styles.activeFilter]}
-                        onPress={() => {
-                          setSortBy('graduated');
-                          const sorted = [...launchesData].filter((item) => {
-                            if (item?.is_liquidity_added) {
-                              return item;
-                            }
-                            return null;
-                          });
-                          setLaunches(sorted);
-                        }}
-                      >
-                        <Text style={styles.filterOptionText}>Graduated</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
+            <>
+            </>
           )}
-        </View>
+        </View> */}
 
 
 
@@ -503,12 +507,12 @@ export function TokenDashboard({
   const [sortedMyTokens, setSortedMyTokens] = useState<TokenDeployInterface[]>([]);
   const [sortedMyLaunchs, setSortedMyLaunchs] = useState<LaunchDataMerged[]>([]);
 
-  console.log("sortBy", sortBy);
-  console.log("sortedMyTokens", sortedMyTokens);
-  console.log("sortedMyLaunchs", sortedMyLaunchs);
+  // console.log("sortBy", sortBy);
+  // console.log("sortedMyTokens", sortedMyTokens);
+  // console.log("sortedMyLaunchs", sortedMyLaunchs);
   useEffect(() => {
-    console.log("myTokens", myTokens);
-    console.log("myLaunchs", myLaunchs);
+    // console.log("myTokens", myTokens);
+    // console.log("myLaunchs", myLaunchs);
 
     if (!myTokens || !myLaunchs) return;
 

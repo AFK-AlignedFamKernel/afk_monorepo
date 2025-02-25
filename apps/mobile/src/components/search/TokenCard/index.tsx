@@ -165,9 +165,13 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
         </TouchableOpacity>
 
-        <View style={styles.priceTag}>
-          {/* <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text> */}
+        {/* <View style={styles.priceTag}>
+          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
         </View>
+
+        <View style={styles.priceTag}>
+          <Text style={styles.text}>${Number(token?.market_cap || 0).toFixed(4)}</Text>
+        </View> */}
 
         <View style={styles.addressContainer}>
           <TouchableOpacity onPress={handleCopy}>

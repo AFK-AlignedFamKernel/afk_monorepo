@@ -87,14 +87,16 @@ export default (theme: any) =>
       fontSize: 14,
     },
     tokenName: {
-      fontSize: 16,
+      fontSize: 14,
       color: theme.colors.textPrimary,
-      fontWeight: 'medium',
+      // fontWeight: 100,
     },
     tokenSymbol: {
-      fontSize: 10,
-      color: theme.colors.grayInput,
-      fontWeight: 'medium',
+      fontSize: 18,
+      color: theme.colors.textPrimary,
+      // fontWeight: 600,
+      fontFamily: 'italic',
+
     },
     addressContainer: {
       backgroundColor: '#2A2A2A',
@@ -137,5 +139,17 @@ export default (theme: any) =>
       fontWeight: 800,
       fontSize: 15,
       color: theme.colors.white,
+    },
+    priceTag: {
+      backgroundColor: '#2A2A2A',
+      paddingVertical: 4,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      alignSelf: 'flex-start',
+    },
+    text: {
+      color: theme.colors.text,
+      fontSize: 10,
+      // fontWeight: '600',
     },
   });
