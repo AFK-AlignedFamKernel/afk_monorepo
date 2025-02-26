@@ -1576,8 +1576,8 @@ pub mod LaunchpadMarketplace {
                 // pow_256(10, 18))
                 // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
                 // scale_factor)
-                // (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
-                (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
+                (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
+                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
             } else {
                 (launch.initial_pool_supply) / launch.liquidity_raised
             };
@@ -1729,6 +1729,7 @@ pub mod LaunchpadMarketplace {
 
             // Launch on Ekubo
             // TODO Audit unrug.cairo
+            // Bounds calculated from unrug using the sign
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
 
             // Update launch state

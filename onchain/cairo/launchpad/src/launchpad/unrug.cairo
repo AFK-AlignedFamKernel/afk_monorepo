@@ -685,8 +685,8 @@ pub mod UnrugLiquidity {
                     // TODO
 
                     // Unruggable init of bounds
-                    // let bound_to_use = full_range_bounds_initial;
-                    let bound_to_use = full_range_bounds;
+                    let bound_to_use = full_range_bounds_initial;
+                    // let bound_to_use = full_range_bounds;
 
                     // Verify tick spacing, fee, bounding_space, 
                     // initial_tick and and bounds calculated
