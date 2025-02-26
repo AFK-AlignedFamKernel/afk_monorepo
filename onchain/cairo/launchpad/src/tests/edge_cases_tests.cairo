@@ -533,14 +533,17 @@ mod edge_cases_tests {
 
     // Verify all supply edge cases possible for total supply of a token
     // Can variate with the threshold liquidity selected
-    // Check the range between both liq_raised, init_pool_supply that is 20% of the total_supply of the token
+    // Check the range between both liq_raised, init_pool_supply that is 20% of the total_supply of
+    // the token
     fn test_get_init_supplies() -> Array<u256> {
         let init_supplies: Array<u256> = array![
             // EDGE CASES TO CHECK
             // (THRESHOLD_LIQUIDITY ), // BREAKING = same supply as threshold liquidity
             // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING = double times the supply
-            (THRESHOLD_LIQUIDITY * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
-            (THRESHOLD_LIQUIDITY * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
+            (THRESHOLD_LIQUIDITY
+                * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
+            (THRESHOLD_LIQUIDITY
+                * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
             100_000_u256 * pow_256(10, 18), // 100k
             1_000_000_u256 * pow_256(10, 18), // 1m
             10_000_000_u256 * pow_256(10, 18), // 10m
@@ -556,14 +559,15 @@ mod edge_cases_tests {
 
         init_supplies
     }
-   // Assert balance
+    // Assert balance
     // Check LP on Ekubo
     // Default Params Ekubo launch
-    fn test_ekubo_lp(token_address: ContractAddress, 
-        quote_address:ContractAddress,
-        launchpad:ILaunchpadMarketplaceDispatcher,
-        supply: u256, ) {
-        
+    fn test_ekubo_lp(
+        token_address: ContractAddress,
+        quote_address: ContractAddress,
+        launchpad: ILaunchpadMarketplaceDispatcher,
+        supply: u256,
+    ) {
         // let (sender, erc20, launchpad) = request_fixture();
 
         let quote_token = IERC20Dispatcher { contract_address: quote_address };
@@ -589,7 +593,8 @@ mod edge_cases_tests {
         let scale_factor = pow_256(10, 18);
         let mut x_y = if is_token1_quote {
             // TODO scaling factor?
-            // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
+            // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+            // scale_factor)
             (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply)
         } else {
             // TODO scaling factor?
@@ -624,20 +629,17 @@ mod edge_cases_tests {
         println!("initial_tick_first {}", initial_tick_first.mag.clone());
         println!("initial_tick_first sign {}", initial_tick_first.sign.clone());
 
-        
-        let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick_first);
-
+        let bound_spacing: u128 = calculate_bound_mag(
+            fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick_first
+        );
 
         println!("bound_spacing {:?}", bound_spacing);
         let (initial_tick, full_bounds) = get_initial_tick_from_starting_price(
-            initial_tick_first,
-            bound_spacing,
-            is_token1_quote
+            initial_tick_first, bound_spacing, is_token1_quote
         );
 
         println!("initial_tick.mag {:?}", initial_tick.mag);
         println!("initial_tick.sign {:?}", initial_tick.sign);
-
 
         let fee = fee_percent.try_into().unwrap();
         let pool_key = PoolKey {
@@ -652,7 +654,7 @@ mod edge_cases_tests {
         let liquidity = core.get_pool_liquidity(pool_key);
         let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
         let price = core.get_pool_price(pool_key);
-    
+
         let pool_price = position_dispatcher.get_pool_price(pool_key);
 
         let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
@@ -683,7 +685,6 @@ mod edge_cases_tests {
         // tick spacing
         // bounding_space
         // bounds
-        
 
         // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");
         // assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
@@ -694,7 +695,6 @@ mod edge_cases_tests {
         println!("pool_price tick mag {:?}", pool_price.tick.mag);
         println!("pool_price tick sign {:?}", pool_price.tick.sign);
         println!("pool_price sqrt_ratio {:?}", pool_price.sqrt_ratio);
-
 
         // What is liquidity params in CORE?
         // println!("liquidity {:?}", liquidity);
@@ -808,14 +808,13 @@ mod edge_cases_tests {
             liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
             println!("liquidity_raised {:?}", liquidity_raised);
 
-
             println!("test_ekubo_lp");
 
             // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
             test_ekubo_lp(token_address, erc20.contract_address, launchpad, *init_supplies.at(i));
-          
+
             println!("test_ekubo_lp_end");
-         
+
             println!(
                 "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone()
@@ -877,10 +876,10 @@ mod edge_cases_tests {
             );
 
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
-            
+
             // // Sell
             let share_user = launchpad
-            .get_share_of_user_by_contract(sender.clone(), token_address.clone());
+                .get_share_of_user_by_contract(sender.clone(), token_address.clone());
 
             let amount_owned = share_user.amount_owned.try_into().unwrap();
             // let amount_owned = share_user.amount_owned;
@@ -913,7 +912,7 @@ mod edge_cases_tests {
 
             // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
             test_ekubo_lp(token_address, erc20.contract_address, launchpad, *init_supplies.at(i));
-          
+
             println!("exp test_ekubo_lp_end");
 
             i += 1;

@@ -588,9 +588,14 @@ pub mod UnrugLiquidity {
                     let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
                         max_tick, launch_params.pool_params.tick_spacing
                     );
-                    let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), starting_price);
-                    
-                    let aligned_bound_spacing= (aligned_min_tick / tick_spacing) * tick_spacing.try_into().unwrap();
+                    let bound_spacing: u128 = calculate_bound_mag(
+                        fee_percent.clone(),
+                        tick_spacing.clone().try_into().unwrap(),
+                        starting_price
+                    );
+
+                    let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
+                        * tick_spacing.try_into().unwrap();
                     println!("aligned_min_tick {}", aligned_min_tick.clone());
                     println!("aligned_max_tick {}", aligned_max_tick.clone());
                     println!("is_token1_quote {}", is_token1_quote);
@@ -602,7 +607,7 @@ pub mod UnrugLiquidity {
                     // launch_params.pool_params.tick_spacing);
                     // let aligned_max_tick = align_tick(MAX_TICK,
                     // launch_params.pool_params.tick_spacing);
-                    
+
                     // let (initial_tick, full_range_bounds_initial) =
                     //     get_initial_tick_from_starting_price(
                     //         starting_price,
@@ -610,12 +615,10 @@ pub mod UnrugLiquidity {
                     //         is_token1_quote
                     //     );
 
-
                     // Get initial tick and full range bounds_initial
-                    let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
-                        starting_price,
-                        aligned_bound_spacing.clone(),
-                        // aligned_max_tick,
+                    let (initial_tick, full_range_bounds_initial) =
+                        get_initial_tick_from_starting_price(
+                        starting_price, aligned_bound_spacing.clone(), // aligned_max_tick,
                         is_token1_quote
                     );
 
@@ -633,70 +636,68 @@ pub mod UnrugLiquidity {
 
                     // Get full range bounds
                     let full_range_bounds = Bounds {
-                        lower: i129 { 
-                            mag: aligned_bound_spacing, 
-                            sign: true 
-                    },
-                    upper: i129 { 
-                        mag: aligned_bound_spacing, 
-                        sign: false 
-                    }
-                };
+                        lower: i129 { mag: aligned_bound_spacing, sign: true },
+                        upper: i129 { mag: aligned_bound_spacing, sign: false }
+                    };
                     // let full_range_bounds = Bounds {
-                    //         lower: i129 { 
-                    //             mag: (aligned_min_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //             sign: true 
+                    //         lower: i129 {
+                    //             mag: (aligned_min_tick / tick_spacing) *
+                    //             tick_spacing.try_into().unwrap(), sign: true
                     //     },
-                    //     upper: i129 { 
-                    //         mag: (aligned_max_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //         sign: false 
+                    //     upper: i129 {
+                    //         mag: (aligned_max_tick / tick_spacing) *
+                    //         tick_spacing.try_into().unwrap(), sign: false
                     //     }
                     // };
                     // Create bounds ensuring they're multiples of tick spacing
                     // let full_range_bounds = if is_token1_quote {
                     //     Bounds {
-                    //         lower: i129 { 
-                    //             mag: (aligned_min_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //             sign: true 
+                    //         lower: i129 {
+                    //             mag: (aligned_min_tick / tick_spacing) *
+                    //             tick_spacing.try_into().unwrap(), sign: true
                     //     },
-                    //     upper: i129 { 
-                    //         mag: (aligned_max_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //         sign: false 
+                    //     upper: i129 {
+                    //         mag: (aligned_max_tick / tick_spacing) *
+                    //         tick_spacing.try_into().unwrap(), sign: false
                     //     }
                     // } else {
                     //     Bounds {
-                    //         lower: i129 { 
-                    //             mag: (aligned_min_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //             sign: false 
+                    //         lower: i129 {
+                    //             mag: (aligned_min_tick / tick_spacing) *
+                    //             tick_spacing.try_into().unwrap(), sign: false
                     //         },
-                    //         upper: i129 { 
-                    //             mag: (aligned_max_tick / tick_spacing) * tick_spacing.try_into().unwrap(), 
-                    //             sign: true 
+                    //         upper: i129 {
+                    //             mag: (aligned_max_tick / tick_spacing) *
+                    //             tick_spacing.try_into().unwrap(), sign: true
                     //         }
                     //     }
                     // };
                     // if is_token1_quote {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // } else {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // };
 
                     // println!("is_token1_quote {}", is_token1_quote);
                     // let full_range_bounds = if is_token1_quote {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // } else {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //         upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //         false }
                     //     }
                     // };
                     // let bounds_full_range = if is_token1_quote {
@@ -714,7 +715,8 @@ pub mod UnrugLiquidity {
                     // };
                     let memecoin_balance = IERC20Dispatcher {
                         contract_address: launch_params.token_address
-                    }.balance_of(launch_params.token_address);
+                    }
+                        .balance_of(launch_params.token_address);
 
                     // TODO check the initial_tick with the good sign used
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
@@ -738,7 +740,7 @@ pub mod UnrugLiquidity {
                     // let bound_to_use = full_range_bounds_initial;
                     let bound_to_use = full_range_bounds;
 
-                    // Verify tick spacing, fee, bounding_space, 
+                    // Verify tick spacing, fee, bounding_space,
                     // initial_tick and and bounds calculated
                     let id = self
                         ._supply_liquidity_ekubo(

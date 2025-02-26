@@ -283,10 +283,9 @@ mod utils_tests {
         init_supplies
     }
 
-      // Assert balance
+    // Assert balance
     // Check LP on Ekubo
     // Default Params Ekubo launch
- 
 
     fn run_buy_by_amount(
         launchpad: ILaunchpadMarketplaceDispatcher,

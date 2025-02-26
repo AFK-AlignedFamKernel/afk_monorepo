@@ -1577,7 +1577,8 @@ pub mod LaunchpadMarketplace {
                 // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
                 // scale_factor)
                 (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
-                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
+                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+            // scale_factor)
             } else {
                 (launch.initial_pool_supply) / launch.liquidity_raised
             };
@@ -1630,7 +1631,6 @@ pub mod LaunchpadMarketplace {
 
             // Assert range for sqrt ratio order, magnitude and min max
 
-        
             sqrt_ratio =
                 if sqrt_ratio < min_sqrt_ratio_limit {
                     println!("sqrt_ratio < min_sqrt_ratio_limit");
@@ -1676,8 +1676,11 @@ pub mod LaunchpadMarketplace {
             // let bound_spacing = initial_tick.mag * 2;
 
             // let bound_spacing = 887272;
-            let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick);
-            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2, tick_spacing.clone());
+            let bound_spacing: u128 = calculate_bound_mag(
+                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick
+            );
+            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2,
+            // tick_spacing.clone());
             // let bound_spacing = 88719042;
 
             let pool_params = EkuboPoolParameters {
