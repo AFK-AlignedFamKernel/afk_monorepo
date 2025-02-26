@@ -1555,6 +1555,8 @@ pub mod LaunchpadMarketplace {
             // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(),
             // coin_address);
             let is_token1_quote = launch.token_quote.token_address == token1;
+            // Undo
+            // let is_token1_quote = true;
 
             println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
@@ -1572,10 +1574,7 @@ pub mod LaunchpadMarketplace {
             // rounding or 0 value
             let mut x_y = if is_token1_quote {
                 // (launch.liquidity_raised ) / launch.initial_pool_supply
-                // (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply *
-                // pow_256(10, 18))
-                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
-                // scale_factor)
+            
                 (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
                 // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
             // scale_factor)
@@ -1590,14 +1589,12 @@ pub mod LaunchpadMarketplace {
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
             // Cubit repo Fixed doesnt work (report issue)
 
-            let x_y_felt: felt252 = x_y.try_into().unwrap();
-            println!("x_y_felt {}", x_y_felt.clone());
-
+            // let x_y_felt: felt252 = x_y.try_into().unwrap();
+            // println!("x_y_felt {}", x_y_felt.clone());
             // let x_y_fixed = FixedTrait::from_unscaled_felt(x_y_felt);
-            let x_y_fixed = FixedTrait::from_felt(x_y_felt);
+            // let x_y_fixed = FixedTrait::from_felt(x_y_felt);
             // let x_y_fixed = FixedTrait::from_u256(x_y);
-            println!("x_y_fixed {}", x_y_fixed.mag.clone());
-
+            // println!("x_y_fixed {}", x_y_fixed.mag.clone());
             // let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
             // println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
             // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
@@ -1614,7 +1611,10 @@ pub mod LaunchpadMarketplace {
             println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
 
             println!("is_token1_quote {}", is_token1_quote.clone());
+
+            // TODO 
             // Unscale sqrt_ratio with the factor before using the sqrt function
+            // correctly with the fixed decimals
 
             if is_token1_quote == true {
                 // x_y = x_y / scale_factor;
@@ -1631,6 +1631,8 @@ pub mod LaunchpadMarketplace {
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
             // Assert range for sqrt ratio order, magnitude and min max
+
+            println!("assert sqrt_ratio {}", sqrt_ratio.clone());
 
             sqrt_ratio =
                 if sqrt_ratio < min_sqrt_ratio_limit {
