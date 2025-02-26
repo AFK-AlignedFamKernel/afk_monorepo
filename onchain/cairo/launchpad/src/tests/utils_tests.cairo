@@ -262,7 +262,7 @@ mod utils_tests {
     }
 
 
-    fn test_get_init_supplies() -> Array<u256> {
+    pub fn test_get_init_supplies() -> Array<u256> {
         let init_supplies: Array<u256> = array![
             // 100_u256 + pow_256(10, 18),
             // 1_000_u256 + pow_256(10, 18),
@@ -283,6 +283,10 @@ mod utils_tests {
         init_supplies
     }
 
+      // Assert balance
+    // Check LP on Ekubo
+    // Default Params Ekubo launch
+ 
 
     fn run_buy_by_amount(
         launchpad: ILaunchpadMarketplaceDispatcher,

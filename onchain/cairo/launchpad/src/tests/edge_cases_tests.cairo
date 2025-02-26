@@ -16,7 +16,7 @@ mod edge_cases_tests {
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
-        align_tick_with_max_tick_and_min_tick
+        align_tick_with_max_tick_and_min_tick, calculate_bound_mag
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -531,19 +531,16 @@ mod edge_cases_tests {
     //     );
     // }
 
+    // Verify all supply edge cases possible for total supply of a token
+    // Can variate with the threshold liquidity selected
+    // Check the range between both liq_raised, init_pool_supply that is 20% of the total_supply of the token
     fn test_get_init_supplies() -> Array<u256> {
         let init_supplies: Array<u256> = array![
-            // 1_u256 * pow_256(10, 18),
-
             // EDGE CASES TO CHECK
-            // THRESHOLD_LIQUIDITY/2_u256 * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY / 10_000_u256) * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY / 100_u256),
-            // (THRESHOLD_LIQUIDITY / 10_u256) * pow_256(10, 18),
-            // THRESHOLD_LIQUIDITY * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING
-            (THRESHOLD_LIQUIDITY * 10_u256),
-            (THRESHOLD_LIQUIDITY * 100_u256),
+            // (THRESHOLD_LIQUIDITY ), // BREAKING = same supply as threshold liquidity
+            // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING = double times the supply
+            (THRESHOLD_LIQUIDITY * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
+            (THRESHOLD_LIQUIDITY * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
             100_000_u256 * pow_256(10, 18), // 100k
             1_000_000_u256 * pow_256(10, 18), // 1m
             10_000_000_u256 * pow_256(10, 18), // 10m
@@ -577,12 +574,10 @@ mod edge_cases_tests {
         let fee_percent = 0xc49ba5e353f7d00000000000000000;
         println!("fee {:?}", fee_percent);
 
-            // let tick_spacing = 5928;
-        let tick_spacing = 200;
+        let tick_spacing = 60_u128;
         println!("tick_spacing {:?}", tick_spacing);
 
         let (token0, token1) = sort_tokens(token_address, quote_token.contract_address.clone());
-
 
         let total_supply = memecoin.total_supply();
         let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
@@ -591,21 +586,21 @@ mod edge_cases_tests {
         println!("get launch");
         let launch = launchpad.get_coin_launch(token_address);
 
+        let scale_factor = pow_256(10, 18);
         let mut x_y = if is_token1_quote {
             // TODO scaling factor?
-            (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply * pow_256(10, 18))
+            (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
         } else {
             // TODO scaling factor?
             (launch.initial_pool_supply) / launch.liquidity_raised
         };
         println!("x_y {:?}", x_y);
 
-
         let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
         println!("sqrt_ratio {:?}", sqrt_ratio);
 
         if is_token1_quote {
-            sqrt_ratio = sqrt_ratio / pow_256(10, 18);
+            sqrt_ratio = sqrt_ratio / scale_factor;
             println!("sqrt_ratio unscale {:?}", sqrt_ratio);
         }
 
@@ -624,13 +619,27 @@ mod edge_cases_tests {
         )
             .unwrap_syscall();
 
-        let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
-        println!("initial_tick {}", initial_tick.mag.clone());
+        let initial_tick_first = Serde::<i129>::deserialize(ref res).unwrap();
+        println!("initial_tick_first {}", initial_tick_first.mag.clone());
+        println!("initial_tick_first sign {}", initial_tick_first.sign.clone());
+
+        
+        let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick_first);
+
+
+        println!("bound_spacing {:?}", bound_spacing);
+        let (initial_tick, full_bounds) = get_initial_tick_from_starting_price(
+            initial_tick_first,
+            bound_spacing,
+            is_token1_quote
+        );
+
+        println!("initial_tick.mag {:?}", initial_tick.mag);
+        println!("initial_tick.sign {:?}", initial_tick.sign);
+
 
         let fee = fee_percent.try_into().unwrap();
         let pool_key = PoolKey {
-            // token0: token_address.clone(),
-            // token1: erc20.contract_address.clone(),
             token0: token0.clone(),
             token1: token1.clone(),
             fee: fee.clone(),
@@ -640,9 +649,9 @@ mod edge_cases_tests {
 
         let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
         let liquidity = core.get_pool_liquidity(pool_key);
-        println!("pool liquidity {:?}", liquidity);
         let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
         let price = core.get_pool_price(pool_key);
+    
         let pool_price = position_dispatcher.get_pool_price(pool_key);
 
         let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
@@ -653,23 +662,20 @@ mod edge_cases_tests {
         let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
             .balance_of(EKUBO_POSITIONS());
 
-
         // TODO
         // Check balances
         println!("reserve_memecoin {:?}", reserve_memecoin);
         println!("reserve_quote {:?}", reserve_quote);
 
         assert(
-            reserve_memecoin >= PercentageMath::percent_mul(INITIAL_POOL_SUPPLY, 9800),
+            reserve_memecoin >= PercentageMath::percent_mul(launch.initial_pool_supply, 9800),
             'reserve too low meme'
         );
 
         assert(
-            reserve_quote >= PercentageMath::percent_mul(THRESHOLD_LIQUIDITY, 9800),
+            reserve_quote >= PercentageMath::percent_mul(launch.liquidity_raised, 9900),
             'reserve too low quote'
         );
-
-
         // TODO Check Ekubo LP
         // SQRT_RATIO
         // Initial tick
@@ -677,23 +683,31 @@ mod edge_cases_tests {
         // bounding_space
         // bounds
         
-        println!("pool.sqrt_ratio {:?}", pool_price.sqrt_ratio);
+        println!("pool liquidity {:?}", liquidity);
+       
+        println!("price sqrt_ratio {:?}", price.sqrt_ratio);
+        println!("price tick mag {:?}", price.tick.mag);
+        println!("pool_price sqrt_ratio {:?}", pool_price.sqrt_ratio);
         println!("sqrt_ratio {:?}", sqrt_ratio);
         println!("initial_tick mag {:?}", initial_tick.mag);
         println!("initial_tick sign {:?}", initial_tick.sign);
-        println!("tick mag {:?}", pool_price.tick.mag);
-        println!("tick sign {:?}", pool_price.tick.sign);
+        println!("pool_price tick mag {:?}", pool_price.tick.mag);
+        println!("price tick sign {:?}", price.tick.sign);
+        println!("price tick sign {:?}", price.tick.sign);
 
         // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");
-        assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
-        assert(pool_price.tick.mag == initial_tick.mag, 'wrong tick');
+        // assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
+        // assert(pool_price.tick.mag == initial_tick.mag, 'wrong tick');
+        // assert(pool_price.tick.sign == initial_tick.sign, 'wrong sign');
 
+        println!("liquidity {:?}", liquidity);
+        println!("launch.liquidity_raised {:?}", launch.liquidity_raised);
+        assert(liquidity == launch.liquidity_raised.try_into().unwrap(), 'wrong liquidity');
 
-
-        // let (sender, erc20, launchpad) = request_fixture();
-
-        // let mut token_addresses: Array<ContractAddress> = array![];
-        
+        assert(price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
+        assert(price.tick.mag == initial_tick.mag, 'wrong tick');
+        assert(price.tick.sign == initial_tick.sign, 'wrong sign');
+        // assert(pool_price.liquidity == launch.liquidity_raised, 'wrong liquidity');
     }
 
 

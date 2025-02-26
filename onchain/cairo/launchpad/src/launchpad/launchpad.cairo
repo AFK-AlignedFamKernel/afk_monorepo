@@ -1583,7 +1583,6 @@ pub mod LaunchpadMarketplace {
             };
 
             println!("x_y {}", x_y.clone());
-
             // TODO test sqrt
             // 3. Calculate proper sqrt price ratio
             // Verified fixed i128 with decimals
@@ -1624,7 +1623,7 @@ pub mod LaunchpadMarketplace {
             }
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
-            println!("sqrt_ratio : s{}", sqrt_ratio.clone());
+            println!("sqrt_ratio : {}", sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;

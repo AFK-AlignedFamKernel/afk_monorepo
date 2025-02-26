@@ -664,9 +664,9 @@ pub mod UnrugLiquidity {
                     let starting_price = launch_params.pool_params.starting_price;
                     let memecoin_balance = IERC20Dispatcher {
                         contract_address: launch_params.token_address
-                    }
-                        .balance_of(launch_params.token_address);
+                    }.balance_of(launch_params.token_address);
 
+                    // TODO check the initial_tick with the good sign used
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     // core.maybe_initialize_pool(:pool_key, initial_tick:starting_price);
 
@@ -674,6 +674,7 @@ pub mod UnrugLiquidity {
                     // BOUNDS_TICK_SPACING
                     // TODO used it or full_bounds
                     // Verify bound to use based on user params
+                    // Full range bounds or concentrated bounds
                     // Add single tick bound
                     // let single_tick_bound = get_next_tick_bounds(
                     //     launch_params.pool_params.starting_price,
@@ -683,6 +684,7 @@ pub mod UnrugLiquidity {
 
                     // TODO
 
+                    // Unruggable init of bounds
                     // let bound_to_use = full_range_bounds_initial;
                     let bound_to_use = full_range_bounds;
 
