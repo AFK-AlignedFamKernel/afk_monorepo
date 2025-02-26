@@ -1,4 +1,4 @@
-import {ThemedStyleSheet} from '../../styles';
+import { ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -9,5 +9,8 @@ export default ThemedStyleSheet((theme) => ({
     marginRight: 10,
     fontSize: 13,
     color: theme.colors.text,
+  },
+  icon: {
+    backgroundColor: 'transparent',
   },
 }));
