@@ -32,6 +32,12 @@ pub fn sort_tokens(
 pub fn get_initial_tick_from_starting_price(
     starting_price: i129, bound_mag: u128, is_token1_quote: bool
 ) -> (i129, Bounds) {
+
+    println!("get_initial_tick_from_starting_price", );
+    println!("is_token1_quote {}", is_token1_quote);
+    println!("starting_price sign {}", starting_price.sign);
+    println!("bound_mag {}", bound_mag);
+    
     let (initial_tick, bounds) = if is_token1_quote {
         // the price is always supplied in quote/meme. if token 1 is quote,
         // then the upper bound expressed in quote/meme is +inf
@@ -57,6 +63,33 @@ pub fn get_initial_tick_from_starting_price(
     (initial_tick, bounds)
 }
 
+pub fn get_initial_tick_from_starting_price_unrug(
+    starting_price: i129, bound_mag: u128, is_token1_quote: bool
+) -> (i129, Bounds) {
+    let (initial_tick, bounds) = if is_token1_quote {
+        // the price is always supplied in quote/meme. if token 1 is quote,
+        // then the upper bound expressed in quote/meme is +inf
+        // and the lower bound is the starting price.
+        (
+            i129 { sign: starting_price.sign, mag: starting_price.mag },
+            Bounds {
+                lower: i129 { sign: starting_price.sign, mag: starting_price.mag },
+                upper: i129 { sign: false, mag: bound_mag }
+            }
+        )
+    } else {
+        // The initial tick sign is reversed if the quote is token0.
+        // as the price provided was expressed in token1/token0.
+        (
+            i129 { sign: !starting_price.sign, mag: starting_price.mag },
+            Bounds {
+                lower: i129 { sign: true, mag: bound_mag },
+                upper: i129 { sign: !starting_price.sign, mag: starting_price.mag }
+            }
+        )
+    };
+    (initial_tick, bounds)
+}
 
 pub fn get_next_tick_bounds(
     starting_price: i129, tick_spacing: u128, is_token1_quote: bool

@@ -1677,11 +1677,8 @@ pub mod LaunchpadMarketplace {
 
             // let bound_spacing = 887272;
             let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick);
+            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2, tick_spacing.clone());
             // let bound_spacing = 88719042;
-            // let bound_spacing = 2000;
-            // let bound_spacing = MAX_TICK.try_into().unwrap();
-            // let bound_spacing = tick_spacing * 88719042;
-            // let bound_spacing =  88719042;
 
             let pool_params = EkuboPoolParameters {
                 fee: fee_percent,
