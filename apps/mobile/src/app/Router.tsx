@@ -27,10 +27,10 @@ import AuthSidebar from '../modules/Layout/auth-sidebar';
 import Sidebar from '../modules/Layout/sidebar';
 import { SocialPaymentView } from '../modules/SocialPayment';
 import { StudioModuleView } from '../modules/Studio';
+import { ScreenRecordStream } from '../modules/Studio/ScreenRecord';
 import { SingleStreamModuleView } from '../modules/Studio/SingleStream';
 import { ViewStreamModuleView } from '../modules/Studio/ViewStream';
 // Screens
-
 import { CreateAccount } from '../screens/Auth/nostr/CreateAccount';
 import { ImportKeys } from '../screens/Auth/nostr/ImportKeys';
 import { LoginNostr } from '../screens/Auth/nostr/LoginNostr';
@@ -38,9 +38,12 @@ import { SaveKeys } from '../screens/Auth/nostr/SaveKeys';
 import { CashuScreen } from '../screens/Cashu';
 import { ChannelDetail } from '../screens/ChannelDetail';
 import { ChannelsFeed } from '../screens/ChannelsFeed';
+import { Community } from '../screens/Community';
 import { CreateChannel } from '../screens/CreateChannel';
 import { CreateForm } from '../screens/CreateForm';
 import { CreatePost } from '../screens/CreatePost';
+import { DAOScreen } from '../screens/DAO';
+import { DaoPage } from '../screens/DaoPage';
 import { DappBrowserScreen } from '../screens/DappBrowser';
 import { Defi } from '../screens/Defi';
 import { EditProfile } from '../screens/EditProfile';
@@ -63,14 +66,9 @@ import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
 import { ThemedStyleSheet } from '../styles';
-import { Community } from '../screens/Community';
-
-
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
-import { ScreenRecordStream } from '../modules/Studio/ScreenRecord';
-import { DAOScreen } from '../screens/DAO';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -134,7 +132,6 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarInactiveTintColor: 'grey',
 
           tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="CommunityIcon" />,
-
         }}
       />
 
@@ -278,8 +275,7 @@ const MainNavigator: React.FC = () => {
       // initialRouteName="Feed"
       drawerContent={(props) => <Sidebar navigation={props?.navigation}></Sidebar>}
       screenOptions={({ navigation }) => ({
-        header: () =>
-          !isDesktop ? <Navbar navigation={navigation} showLogo={true} /> : null,
+        header: () => (!isDesktop ? <Navbar navigation={navigation} showLogo={true} /> : null),
         headerShown: !isDesktop,
         headerStyle: {
           backgroundColor: theme.theme.colors.background,
@@ -345,7 +341,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="ReceiveEcash" component={ReceiveEcash} />
       <MainStack.Screen name="Community" component={Community} />
       <MainStack.Screen name="DAO" component={DAOScreen} />
-
+      <MainStack.Screen name="DAOPage" component={DaoPage} />
     </MainStack.Navigator>
   );
 };
@@ -420,8 +416,8 @@ const linking = {
               Wallet: 'wallet',
               UserProfile: 'profile',
               Login: 'login',
-              Community: 'community'
-            }
+              Community: 'community',
+            },
           },
           Feed: 'app/feed',
           Profile: {
@@ -488,22 +484,17 @@ const linking = {
           },
           Community: 'app/community',
           DAO: 'app/dao',
-          // DAODetail: {
-          //   path: 'app/dao/:daoId',
-          //   parse: {
-          //     daoId: (daoId: string) => `${daoId}`,
-          //   },
-          // },
+          DAODetail: {
+            path: 'app/dao/:daoId',
+            parse: {
+              daoId: (daoId: string) => `${daoId}`,
+            },
+          },
         },
       },
     },
   },
 };
-
-
-
-
-
 
 const stylesheet = ThemedStyleSheet((theme) => ({
   sceneContainer: {
