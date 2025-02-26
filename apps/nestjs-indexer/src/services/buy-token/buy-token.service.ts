@@ -14,10 +14,7 @@ export class BuyTokenService {
     private readonly eventEmitter: EventEmitter2,
   ) {
     this.eventEmitter.on('candlestick.generate', async (data) => {
-      await this.candlestickService.generateCandles(
-        data.memecoinAddress,
-        data.interval,
-      );
+      await this.candlestickService.generateCandles(data.memecoinAddress);
     });
   }
 
@@ -31,16 +28,8 @@ export class BuyTokenService {
 
         let price = tokenLaunchRecord?.price ?? 0;
 
-        const calculatedQuoteAmount = Number(data.quoteAmount);
-        const effectiveQuoteAmount =
-          calculatedQuoteAmount;
-          // calculatedQuoteAmount - Number(data?.protocolFee);
+        const calculatedQuoteAmount = Number(data?.quoteAmount);
 
-
-        const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
-        const effectiveLiquidityRaisedAmount =
-          calculatedLiquidityRaisedAmount;
-          // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -52,7 +41,8 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
-          effectiveLiquidityRaisedAmount;
+          calculatedQuoteAmount -
+          Number(data?.protocolFee);
 
         if (newSupply < 0) {
           this.logger.warn(
@@ -70,7 +60,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.quoteAmount);
+          Number(data.amount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
@@ -94,14 +84,8 @@ export class BuyTokenService {
         // }
         price = priceBuy;
 
-        // const marketCap = (
-        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
-        //   price
-        // ).toString();
-
-
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0)) *
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
           price
         ).toString();
 
@@ -183,7 +167,7 @@ export class BuyTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 60,
+        interval: 5,
       });
     } catch (error) {
       this.logger.error(

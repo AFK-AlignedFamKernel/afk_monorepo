@@ -13,10 +13,7 @@ export class SellTokenService {
     private readonly eventEmitter: EventEmitter2,
   ) {
     this.eventEmitter.on('candlestick.generate', async (data) => {
-      await this.candlestickService.generateCandles(
-        data.memecoinAddress,
-        data.interval,
-      );
+      await this.candlestickService.generateCandles(data.memecoinAddress);
     });
   }
 
@@ -40,15 +37,7 @@ export class SellTokenService {
 
       let price = tokenLaunchRecord?.price ?? 0;
 
-      let coinAmount = Number(data.coinAmount);
-      let quoteAmount = Number(data.amount);
-
-      // const calculatedQuoteAmount = Number(data.amount) * Number(price);
-      const calculatedQuoteAmount = Number(data.quoteAmount);
-
-      const effectiveQuoteAmount =
-        calculatedQuoteAmount;
-      // calculatedQuoteAmount - Number(data?.protocolFee);
+      const calculatedQuoteAmount = Number(data.amount) * Number(price);
 
       if (!tokenLaunchRecord) {
         this.logger.warn(
@@ -56,10 +45,11 @@ export class SellTokenService {
         );
       } else {
         const newSupply =
-          Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.coinAmount);
+          Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
-          effectiveQuoteAmount;
+          calculatedQuoteAmount -
+          Number(data?.protocolFee);
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -75,7 +65,7 @@ export class SellTokenService {
         // Check event fees etc
         let newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
-          Number(data.coinAmount);
+          Number(data.amount);
 
         // Ensure total token held does not go below zero
         if (newTotalTokenHolded < 0) {
@@ -101,13 +91,8 @@ export class SellTokenService {
         price = priceAfterSell;
         console.log('price calculation', price);
 
-        // const marketCap = (
-        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
-        //   price
-        // ).toString();
-
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0)) *
+          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
           price
         ).toString();
 
@@ -133,7 +118,7 @@ export class SellTokenService {
         update: {
           amount_owned: {
             // decrement: data.amount,
-            decrement: data?.coinAmount,
+            decrement: data?.amount,
           },
           // amount_owned: {
           //   // decrement: data.amount,
@@ -144,7 +129,7 @@ export class SellTokenService {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
           owner: data.ownerAddress,
           token_address: data.memecoinAddress,
-          amount_owned: data.coinAmount.toString(),
+          amount_owned: data.amount.toString(),
         },
       });
       // await this.prismaService.shares_token_user.upsert({
@@ -193,7 +178,7 @@ export class SellTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 60,
+        interval: 5,
       });
     } catch (error) {
       this.logger.error(
