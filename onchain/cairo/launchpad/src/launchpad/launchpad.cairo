@@ -1619,7 +1619,8 @@ pub mod LaunchpadMarketplace {
             if is_token1_quote == true {
                 // x_y = x_y / scale_factor;
                 // sqrt_ratio= (sqrt_ratio / scale_factor) * pow_256(2, 96);
-                sqrt_ratio = sqrt_ratio / scale_factor;
+                sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
+                // sqrt_ratio = sqrt_ratio / scale_factor;
                 println!("sqrt_ratio unscaled {}", sqrt_ratio.clone());
             }
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
@@ -1676,6 +1677,7 @@ pub mod LaunchpadMarketplace {
             // let bound_spacing = initial_tick.mag * 2;
 
             // let bound_spacing = 887272;
+            // TODO check how used the correct tick spacing
             let bound_spacing: u128 = calculate_bound_mag(
                 fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick
             );

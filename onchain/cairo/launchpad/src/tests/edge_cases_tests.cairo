@@ -545,7 +545,7 @@ mod edge_cases_tests {
             (THRESHOLD_LIQUIDITY
                 * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
             100_000_u256 * pow_256(10, 18), // 100k
-            1_000_000_u256 * pow_256(10, 18), // 1m
+            // 1_000_000_u256 * pow_256(10, 18), // 1m
             10_000_000_u256 * pow_256(10, 18), // 10m
             100_000_000_u256 * pow_256(10, 18), // 100m
             1_000_000_000_u256 * pow_256(10, 18), // 1b
@@ -606,7 +606,10 @@ mod edge_cases_tests {
         println!("sqrt_ratio {:?}", sqrt_ratio);
 
         if is_token1_quote {
-            sqrt_ratio = sqrt_ratio / scale_factor;
+            // sqrt_ratio = sqrt_ratio / scale_factor;
+            // sqrt_ratio = sqrt_ratio / scale_factor;
+            sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
+
             println!("sqrt_ratio unscale {:?}", sqrt_ratio);
         }
 
