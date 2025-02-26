@@ -1,4 +1,4 @@
-import type {FastifyInstance} from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 import buyCoinRoute from './routes/indexer/buy-coin';
 import deployLaunchRoute from './routes/indexer/deploy-launch';
@@ -13,13 +13,14 @@ import getFunkitStripeCheckoutQuote from './routes/funkit/get_funkit_stripe_chec
 import getFunkitStripeCheckoutStatus from './routes/funkit/get_funkit_stripe_checkout_status';
 import createPaymentIntent from './routes/stripe/createPaymentIntent';
 import paymentSheet from './routes/stripe/paymentSheet';
-import {authRoutes} from './routes/auth';
+import { authRoutes } from './routes/auth';
 import nameserviceRoutes from './routes/indexer/nameservice/nameservice';
 import unrugRoutes from './routes/indexer/unruggable';
 import twitterRoutes from './routes/auth/twitter';
 import routesShareUserRoutes from './routes/indexer/share-user';
-import tipServiceRoute from "./routes/indexer/tip";
-import uploadFile from "./routes/upload/upload-file";
+import tipServiceRoute from './routes/indexer/tip';
+import uploadFile from './routes/upload/upload-file';
+import daoServiceRoute from './routes/indexer/dao';
 // import getOtp from "./routes/otp/getOtp";
 // import verifyOtp from "./routes/otp/verifyOtp";
 // import type { Account } from 'starknet'
@@ -30,8 +31,7 @@ function declareRoutes(
   // deployer: Account,
   // twilio_services: ServiceContext
 ) {
-
-  // fastify.register(require('@fastify/multipart'));  
+  // fastify.register(require('@fastify/multipart'));
 
   fastify.register(buyCoinRoute);
   fastify.register(deployLaunchRoute);
@@ -53,6 +53,7 @@ function declareRoutes(
   fastify.register(twitterRoutes);
   fastify.register(routesShareUserRoutes);
   fastify.register(uploadFile);
+  fastify.register(daoServiceRoute);
 
   // fastify.register(getOtp, twilio_services?.verifications);
   // fastify.register(verifyOtp, deployer, twilio_services?.verificationChecks);
