@@ -30,7 +30,7 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
-        align_tick_with_max_tick_and_min_tick
+        align_tick_with_max_tick_and_min_tick, calculate_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -1540,7 +1540,8 @@ pub mod LaunchpadMarketplace {
             // TODO
             // Verify tick spacing is correct based on the fee used
             // let tick_spacing = 5928;
-            let tick_spacing = 200;
+            // let tick_spacing:u128 = 60_u128;
+            let tick_spacing = 60_u128;
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
@@ -1575,7 +1576,8 @@ pub mod LaunchpadMarketplace {
                 // pow_256(10, 18))
                 // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
                 // scale_factor)
-                (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
+                // (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
+                (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply * scale_factor)
             } else {
                 (launch.initial_pool_supply) / launch.liquidity_raised
             };
@@ -1607,31 +1609,29 @@ pub mod LaunchpadMarketplace {
 
             // Simple sqrt unfixed
             // Fixed point sqrt_ratio
-            println!("x_y before unscale {}", x_y.clone());
-            println!("is_token1_quote {}", is_token1_quote.clone());
-            if is_token1_quote {
-                x_y = x_y / scale_factor;
-            }
-            println!("x_y after unscale {}", x_y.clone());
 
             let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+            println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
+
+            println!("is_token1_quote {}", is_token1_quote.clone());
+            // Unscale sqrt_ratio with the factor before using the sqrt function
+
+            if is_token1_quote == true {
+                // x_y = x_y / scale_factor;
+                // sqrt_ratio= (sqrt_ratio / scale_factor) * pow_256(2, 96);
+                sqrt_ratio = sqrt_ratio / scale_factor;
+                println!("sqrt_ratio unscaled {}", sqrt_ratio.clone());
+            }
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
-            println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
+            println!("sqrt_ratio : s{}", sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
             // Assert range for sqrt ratio order, magnitude and min max
 
-            // Unscale sqrt_ratio with the factor before using the sqrt function
-            // println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
-
-            // if is_token1_quote {
-            //     sqrt_ratio = sqrt_ratio / scale_factor;
-            // }
-            // println!("sqrt_ratio after unscale {}", sqrt_ratio.clone());
-
+        
             sqrt_ratio =
                 if sqrt_ratio < min_sqrt_ratio_limit {
                     println!("sqrt_ratio < min_sqrt_ratio_limit");
@@ -1677,7 +1677,8 @@ pub mod LaunchpadMarketplace {
             // let bound_spacing = initial_tick.mag * 2;
 
             // let bound_spacing = 887272;
-            let bound_spacing = 88719042;
+            let bound_spacing:u128 = calculate_bound_mag(fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick);
+            // let bound_spacing = 88719042;
             // let bound_spacing = 2000;
             // let bound_spacing = MAX_TICK.try_into().unwrap();
             // let bound_spacing = tick_spacing * 88719042;
