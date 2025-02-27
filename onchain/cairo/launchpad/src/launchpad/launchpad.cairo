@@ -996,7 +996,6 @@ pub mod LaunchpadMarketplace {
                     quote_token.transfer(pool.creator_fee_destination, creator_fee_amount);
                     pool.creator_amount_distributed += creator_fee_amount;
                 } else if creator_fee_amount > 0 && !is_creator_fee_sent_before_graduated {
-                    quote_token.transfer_from(caller, get_contract_address(), creator_fee_amount);
                     pool.creator_amount_to_distribute += creator_fee_amount;
                 }
             }
