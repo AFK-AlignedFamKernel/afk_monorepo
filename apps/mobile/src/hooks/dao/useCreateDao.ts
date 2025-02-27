@@ -1,8 +1,9 @@
 import { useAccount, useContract, useSendTransaction } from '@starknet-react/core';
 import { useAuth } from 'afk_nostr_sdk';
-import { ABI } from 'afk-abi/dist/abi/daoFactory';
 import { DAO_FACTORY_ADDRESS } from 'common';
 import { constants } from 'starknet';
+
+import { ABI } from '../abi/daoFactory';
 
 export const useCreateDao = () => {
   const { publicKey } = useAuth();
