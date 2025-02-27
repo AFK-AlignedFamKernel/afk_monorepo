@@ -732,7 +732,8 @@ pub mod LaunchpadMarketplace {
             if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
                 amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
                 remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
-                threshold -= amount_protocol_fee;
+                // AUDIT dont
+                // threshold -= amount_protocol_fee;
                 // Transfer protocol fee
                 let quote_token = IERC20Dispatcher {
                     contract_address: pool.token_quote.token_address
