@@ -35,6 +35,18 @@ pub trait ILaunchpadMarketplace<TContractState> {
         creator_fee_percent: u256,
         creator_fee_destination: ContractAddress
     ) -> ContractAddress;
+    fn create_and_launch_token_with_metadata(
+        ref self: TContractState,
+        symbol: ByteArray,
+        name: ByteArray,
+        initial_supply: u256,
+        contract_address_salt: felt252,
+        is_unruggable: bool,
+        bonding_type: BondingType,
+        creator_fee_percent: u256,
+        creator_fee_destination: ContractAddress,
+        metadata: MetadataLaunch
+    ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
         ref self: TContractState,
