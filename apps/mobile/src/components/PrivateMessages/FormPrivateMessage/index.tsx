@@ -2,7 +2,7 @@ import { NDKUser } from '@nostr-dev-kit/ndk';
 import { useQueryClient } from '@tanstack/react-query';
 import { Contact, getContacts, useSendPrivateMessage } from 'afk_nostr_sdk';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 import { useStyles } from '../../../hooks';
 import { useToast } from '../../../hooks/modals';
@@ -37,6 +37,8 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
   useEffect(() => {
     const fetchContacts = () => {
       const contactsData = getContacts();
@@ -59,6 +61,9 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
       return;
     }
 
+    setIsSendingMessage(true);
+    showToast({ title: 'Sending message...', type: 'info' });
+
     await sendPrivateMessage.mutateAsync(
       { receiverPublicKeyProps: receiverPublicKey, content: message },
       {
@@ -67,10 +72,12 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
           queryClient.invalidateQueries({
             queryKey: ['messagesSent'],
           });
+          setIsSendingMessage(false);
           handleClose && handleClose();
         },
         onError() {
           showToast({ title: 'Error sending message', type: 'error' });
+          setIsSendingMessage(false);
         },
       },
     );
@@ -105,7 +112,11 @@ export const FormPrivateMessage: React.FC<IFormPrivateMessage> = ({
             containerStyle={styles.commentInput}
             placeholder="Type your message"
           />
-          <IconButton icon="SendIcon" size={20} onPress={() => message && sendMessage(message)} />
+
+          {isSendingMessage && <ActivityIndicator />}
+          <IconButton icon="SendIcon" size={20} onPress={() => message && sendMessage(message)} 
+            disabled={isSendingMessage}
+          />
         </View>
       </KeyboardFixedView>
     </View>

@@ -36,8 +36,10 @@ export const useSendPrivateMessage = () => {
 
       const {relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content} = data;
 
+      console.log('receiverPublicKeyProps', receiverPublicKeyProps);
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
       const receiverPublicKey = fixPubKey(receiverPublicKeyProps);
+      console.log('receiverPublicKey', receiverPublicKey);
       /** NIP-4 - Encrypted Direct private message  */
 
       const eventDirectMessage = new NDKEvent(ndk);
@@ -63,6 +65,7 @@ export const useSendPrivateMessage = () => {
       // Generate random private key and conversion key
       const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
+      console.log('conversationKey', conversationKey);
       // Generate a random IV (initialization vector)
       const nonce = generateRandomBytes();
       /** Sealed event 13
@@ -75,11 +78,11 @@ export const useSendPrivateMessage = () => {
       eventSealed.kind = 13;
       // eventSealed.created_at = new Date().getTime()
       eventSealed.created_at = randomTimeUpTo2DaysInThePast().getTime();
-      const encryptedMessageSealed: string | undefined = v2.encrypt(
-        JSON.stringify(data?.content),
-        conversationKey,
-        nonce,
-      );
+      // const encryptedMessageSealed: string | undefined = v2.encrypt(
+      //   JSON.stringify(data?.content),
+      //   conversationKey,
+      //   nonce,
+      // );
       // Already encrypted
       // if (data?.isEncrypted && data?.encryptedMessage) {
       //   eventSealed.content = v2.encrypt(JSON.stringify(eventDirectMessage), conversationKey, nonce);
