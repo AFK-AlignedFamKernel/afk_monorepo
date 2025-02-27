@@ -18,6 +18,7 @@ export class SellTokenService {
   }
 
   async create(data: SellToken) {
+    console.log('sell token data', data);
     try {
       const sellTokenRecord =
         await this.prismaService.token_transactions.findUnique({
@@ -37,7 +38,14 @@ export class SellTokenService {
 
       let price = tokenLaunchRecord?.price ?? 0;
 
-      const calculatedQuoteAmount = Number(data.amount) * Number(price);
+      let coinAmount = Number(data.coinAmount);
+      let quoteAmount = Number(data.amount);
+
+      // const calculatedQuoteAmount = Number(data.amount) * Number(price);
+      const calculatedQuoteAmount = Number(data.quoteAmount);
+
+      const effectiveQuoteAmount = calculatedQuoteAmount;
+      // calculatedQuoteAmount - Number(data?.protocolFee);
 
       if (!tokenLaunchRecord) {
         this.logger.warn(
@@ -45,11 +53,11 @@ export class SellTokenService {
         );
       } else {
         const newSupply =
-          Number(tokenLaunchRecord.current_supply ?? 0) + Number(data.amount);
+          Number(tokenLaunchRecord.current_supply ?? 0) +
+          Number(data.coinAmount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
-          calculatedQuoteAmount -
-          Number(data?.protocolFee);
+          effectiveQuoteAmount;
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -65,7 +73,7 @@ export class SellTokenService {
         // Check event fees etc
         let newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
-          Number(data.amount);
+          Number(data.coinAmount);
 
         // Ensure total token held does not go below zero
         if (newTotalTokenHolded < 0) {
@@ -91,9 +99,13 @@ export class SellTokenService {
         price = priceAfterSell;
         console.log('price calculation', price);
 
+        // const marketCap = (
+        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+        //   price
+        // ).toString();
+
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
-          price
+          Number(tokenLaunchRecord.total_supply ?? 0) * price
         ).toString();
 
         await this.prismaService.token_launch.update({
@@ -118,7 +130,7 @@ export class SellTokenService {
         update: {
           amount_owned: {
             // decrement: data.amount,
-            decrement: data?.amount,
+            decrement: data?.coinAmount,
           },
           // amount_owned: {
           //   // decrement: data.amount,
@@ -129,7 +141,7 @@ export class SellTokenService {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
           owner: data.ownerAddress,
           token_address: data.memecoinAddress,
-          amount_owned: data.amount.toString(),
+          amount_owned: data.coinAmount.toString(),
         },
       });
       // await this.prismaService.shares_token_user.upsert({
@@ -178,7 +190,7 @@ export class SellTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(

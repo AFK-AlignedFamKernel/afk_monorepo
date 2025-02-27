@@ -19,6 +19,7 @@ export class BuyTokenService {
   }
 
   async create(data: BuyToken) {
+    console.log('buy token data', data);
     try {
       await this.prismaService.$transaction(async (prisma) => {
         const tokenLaunchRecord = await prisma.token_launch.findFirst({
@@ -28,8 +29,13 @@ export class BuyTokenService {
 
         let price = tokenLaunchRecord?.price ?? 0;
 
-        const calculatedQuoteAmount = Number(data?.quoteAmount);
+        const calculatedQuoteAmount = Number(data.quoteAmount);
+        const effectiveQuoteAmount = calculatedQuoteAmount;
+        // calculatedQuoteAmount - Number(data?.protocolFee);
 
+        const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
+        const effectiveLiquidityRaisedAmount = calculatedLiquidityRaisedAmount;
+        // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -41,8 +47,7 @@ export class BuyTokenService {
           Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
-          calculatedQuoteAmount -
-          Number(data?.protocolFee);
+          effectiveLiquidityRaisedAmount;
 
         if (newSupply < 0) {
           this.logger.warn(
@@ -60,7 +65,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.amount);
+          Number(data.quoteAmount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
@@ -84,9 +89,13 @@ export class BuyTokenService {
         // }
         price = priceBuy;
 
+        // const marketCap = (
+        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+        //   price
+        // ).toString();
+
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
-          price
+          Number(tokenLaunchRecord.total_supply ?? 0) * price
         ).toString();
 
         console.log('price calculation', price);
@@ -117,8 +126,8 @@ export class BuyTokenService {
         });
 
         let newAmountOwned = sharesTokenUser
-          ? Number(sharesTokenUser.amount_owned) + Number(data.amount)
-          : Number(data.amount);
+          ? Number(sharesTokenUser.amount_owned) + Number(data.coinAmount)
+          : Number(data.coinAmount);
 
         if (newAmountOwned > newTotalTokenHolded) {
           this.logger.warn(
@@ -138,7 +147,7 @@ export class BuyTokenService {
             id: `${data.ownerAddress}_${data.memecoinAddress}`,
             owner: data.ownerAddress,
             token_address: data.memecoinAddress,
-            amount_owned: data.amount.toString(),
+            amount_owned: data.coinAmount.toString(),
           },
         });
 
@@ -157,7 +166,7 @@ export class BuyTokenService {
             last_price: data.lastPrice,
             quote_amount: data.quoteAmount,
             price: price?.toString(),
-            amount: data.amount,
+            amount: data.coinAmount,
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
             transaction_type: data.transactionType,
@@ -167,7 +176,7 @@ export class BuyTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(
