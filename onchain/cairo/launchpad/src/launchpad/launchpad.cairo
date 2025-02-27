@@ -160,6 +160,8 @@ pub mod LaunchpadMarketplace {
         array_launched_coins: Map::<u64, TokenLaunch>,
         tokens_created: Map::<u64, Token>,
         launch_created: Map::<u64, TokenLaunch>,
+        // Owner of the token
+        owner_of_token: Map::<ContractAddress, ContractAddress>,
         // Admin params
         default_init_supply: u256,
         is_default_init_supply: bool,
@@ -665,6 +667,51 @@ pub mod LaunchpadMarketplace {
                     creator_fee_percent,
                     creator_fee_destination
                 );
+            token_address
+        }
+
+
+        // Create coin and launch with metadata in bonding curve
+        // Add metadata to the token directly in the contract
+        // Need to have the allowance of the total supply to be used
+        // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
+        // Threshold is setup by the admin and save in the pool struct (in case we change)
+        fn create_and_launch_token_with_metadata(
+            ref self: ContractState,
+            symbol: ByteArray,
+            name: ByteArray,
+            initial_supply: u256,
+            contract_address_salt: felt252,
+            is_unruggable: bool,
+            bonding_type: BondingType,
+            creator_fee_percent: u256,
+            creator_fee_destination: ContractAddress,
+            metadata: MetadataLaunch
+        ) -> ContractAddress {
+            let contract_address = get_contract_address();
+            let caller = get_caller_address();
+            let token_address = self
+                ._create_token(
+                    symbol,
+                    name,
+                    initial_supply,
+                    contract_address_salt,
+                    is_unruggable,
+                    contract_address, // Send supply to this address
+                    caller, // Owner of the address, Ownable access
+                    contract_address, // Factory address to set_launched and others stuff
+                );
+            self
+                ._launch_token(
+                    token_address,
+                    caller,
+                    contract_address,
+                    false,
+                    Option::Some(bonding_type),
+                    creator_fee_percent,
+                    creator_fee_destination
+                );
+            self.add_metadata(token_address, metadata);
             token_address
         }
 
@@ -1222,7 +1269,8 @@ pub mod LaunchpadMarketplace {
             let caller = get_contract_address();
             // Verify if caller is owner
             let mut token = self.token_created.read(coin_address);
-            // assert(token.owner == caller || token.creator == caller, errors::CALLER_NOT_OWNER);
+            let owner_of_token = self.owner_of_token.read(coin_address);
+            assert(owner_of_token == caller || token.creator == caller || token.owner == caller, errors::CALLER_NOT_OWNER);
             // Add or update metadata
             self.metadata_coins.entry(coin_address).write(metadata.clone());
             self
@@ -1345,6 +1393,9 @@ pub mod LaunchpadMarketplace {
             self.token_created.entry(token_address).write(token.clone());
             let total_token = self.total_token.read();
             self.total_token.write(total_token + 1);
+
+            // Set the owner of the token
+            self.owner_of_token.entry(token_address).write(caller);
 
             self
                 .emit(
