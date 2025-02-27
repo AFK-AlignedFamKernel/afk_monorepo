@@ -37,7 +37,6 @@ import {UserShare} from '../../components/LaunchPad/UserShare';
 import {useGetToken} from '../../hooks/api/indexer/useToken';
 import {numericValue} from '../../utils/format';
 import {useGetCandles} from '../../hooks/api/indexer/useGraph';
-import CandlestickChartComponent from '../../components/LaunchPad/CandleGraph';
 import ChartComponent from '../../components/LaunchPad/CandleGraph';
 
 interface LaunchDetailStyles {
