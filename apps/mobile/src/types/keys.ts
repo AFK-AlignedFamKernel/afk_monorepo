@@ -69,6 +69,7 @@ export interface TokenDeployInterface {
   url?: string;
   nostr_id?: string;
   description?: string;
+  market_cap?: number;
 }
 
 export interface TokenDeployIndexerInterface {

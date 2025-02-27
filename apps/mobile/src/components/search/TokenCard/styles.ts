@@ -21,13 +21,14 @@ export default (theme: any) =>
       marginBottom: 20,
     },
     tokenName: {
-      fontSize: 24,
+      fontSize: 18,
       // color: '#FFFFFF',
       color: theme.colors.text,
       fontWeight: 'bold',
+      fontFamily: 'italic',
     },
     symbolName: {
-      fontSize: 20,
+      fontSize: 22,
       // color: '#FFFFFF',
       color: theme.colors.text,
       // fontWeight: 'bold',
@@ -163,5 +164,15 @@ export default (theme: any) =>
     },
     videoContainer: {
       padding: Spacing.pagePadding,
+    },
+    text: {
+      color: theme.colors.text,
+      fontSize: 10,
+      // fontWeight: '600',
+    },
+    textBig: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: '600',
     },
   });

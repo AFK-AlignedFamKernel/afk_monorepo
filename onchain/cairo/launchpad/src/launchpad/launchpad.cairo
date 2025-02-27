@@ -30,7 +30,7 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
-        align_tick_with_max_tick_and_min_tick
+        align_tick_with_max_tick_and_min_tick, calculate_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -732,7 +732,8 @@ pub mod LaunchpadMarketplace {
             if self.is_fees_protocol_enabled.read() && self.is_fees_protocol_buy_enabled.read() {
                 amount_protocol_fee = quote_amount * protocol_fee_percent / BPS;
                 remain_quote_to_liquidity = quote_amount - amount_protocol_fee;
-                threshold -= amount_protocol_fee;
+                // AUDIT dont
+                // threshold -= amount_protocol_fee;
                 // Transfer protocol fee
                 let quote_token = IERC20Dispatcher {
                     contract_address: pool.token_quote.token_address
@@ -995,7 +996,6 @@ pub mod LaunchpadMarketplace {
                     quote_token.transfer(pool.creator_fee_destination, creator_fee_amount);
                     pool.creator_amount_distributed += creator_fee_amount;
                 } else if creator_fee_amount > 0 && !is_creator_fee_sent_before_graduated {
-                    quote_token.transfer_from(caller, get_contract_address(), creator_fee_amount);
                     pool.creator_amount_to_distribute += creator_fee_amount;
                 }
             }
@@ -1540,7 +1540,8 @@ pub mod LaunchpadMarketplace {
             // TODO
             // Verify tick spacing is correct based on the fee used
             // let tick_spacing = 5928;
-            let tick_spacing = 200;
+            // let tick_spacing:u128 = 60_u128;
+            let tick_spacing = 60_u128;
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
@@ -1554,6 +1555,8 @@ pub mod LaunchpadMarketplace {
             // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(),
             // coin_address);
             let is_token1_quote = launch.token_quote.token_address == token1;
+            // Undo
+            // let is_token1_quote = true;
 
             println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
@@ -1561,9 +1564,9 @@ pub mod LaunchpadMarketplace {
 
             // // TODO FIX
             // // Audit edge case related to difference between threshold and total supply
-
             // TODO: check if this is correct
             // Adjust scale factor
+            // Do a correct scaling
 
             let scale_factor = pow_256(10, 18);
             // Initial pool need to be more than liquidity raised
@@ -1571,31 +1574,27 @@ pub mod LaunchpadMarketplace {
             // rounding or 0 value
             let mut x_y = if is_token1_quote {
                 // (launch.liquidity_raised ) / launch.initial_pool_supply
-                // (launch.liquidity_raised * pow_256(10, 18)) / (launch.initial_pool_supply *
-                // pow_256(10, 18))
-                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
-                // scale_factor)
+            
                 (launch.liquidity_raised * scale_factor) / launch.initial_pool_supply
+                // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+            // scale_factor)
             } else {
                 (launch.initial_pool_supply) / launch.liquidity_raised
             };
 
             println!("x_y {}", x_y.clone());
-
             // TODO test sqrt
             // 3. Calculate proper sqrt price ratio
             // Verified fixed i128 with decimals
             // https://docs.ekubo.org/integration-guides/reference/math-1-pager
             // Cubit repo Fixed doesnt work (report issue)
 
-            let x_y_felt: felt252 = x_y.try_into().unwrap();
-            println!("x_y_felt {}", x_y_felt.clone());
-
+            // let x_y_felt: felt252 = x_y.try_into().unwrap();
+            // println!("x_y_felt {}", x_y_felt.clone());
             // let x_y_fixed = FixedTrait::from_unscaled_felt(x_y_felt);
-            let x_y_fixed = FixedTrait::from_felt(x_y_felt);
+            // let x_y_fixed = FixedTrait::from_felt(x_y_felt);
             // let x_y_fixed = FixedTrait::from_u256(x_y);
-            println!("x_y_fixed {}", x_y_fixed.mag.clone());
-
+            // println!("x_y_fixed {}", x_y_fixed.mag.clone());
             // let mut sqrt_ratio_fixed_u128 = sqrt_cubit(x_y_fixed);
             // println!("sqrt_ratio_fixed_u128 {}", sqrt_ratio_fixed_u128.mag.clone());
             // let mut sqrt_ratio = FixedTryIntoU128::try_into_u128(sqrt_ratio_fixed_u128);
@@ -1607,30 +1606,33 @@ pub mod LaunchpadMarketplace {
 
             // Simple sqrt unfixed
             // Fixed point sqrt_ratio
-            println!("x_y before unscale {}", x_y.clone());
-            println!("is_token1_quote {}", is_token1_quote.clone());
-            if is_token1_quote {
-                x_y = x_y / scale_factor;
-            }
-            println!("x_y after unscale {}", x_y.clone());
 
             let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+            println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
+
+            println!("is_token1_quote {}", is_token1_quote.clone());
+
+            // TODO 
+            // Unscale sqrt_ratio with the factor before using the sqrt function
+            // correctly with the fixed decimals
+            // Do a correct unscaled
+            if is_token1_quote == true {
+                // x_y = x_y / scale_factor;
+                // sqrt_ratio= (sqrt_ratio / scale_factor) * pow_256(2, 96);
+                sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
+                // sqrt_ratio = sqrt_ratio / scale_factor;
+                println!("sqrt_ratio unscaled {}", sqrt_ratio.clone());
+            }
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
-            println!("sqrt_ratio pow_256(2, 96){}", sqrt_ratio.clone());
+            println!("sqrt_ratio : {}", sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
             // Assert range for sqrt ratio order, magnitude and min max
 
-            // Unscale sqrt_ratio with the factor before using the sqrt function
-            // println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
-
-            // if is_token1_quote {
-            //     sqrt_ratio = sqrt_ratio / scale_factor;
-            // }
-            // println!("sqrt_ratio after unscale {}", sqrt_ratio.clone());
+            println!("assert sqrt_ratio {}", sqrt_ratio.clone());
 
             sqrt_ratio =
                 if sqrt_ratio < min_sqrt_ratio_limit {
@@ -1677,11 +1679,13 @@ pub mod LaunchpadMarketplace {
             // let bound_spacing = initial_tick.mag * 2;
 
             // let bound_spacing = 887272;
-            let bound_spacing = 88719042;
-            // let bound_spacing = 2000;
-            // let bound_spacing = MAX_TICK.try_into().unwrap();
-            // let bound_spacing = tick_spacing * 88719042;
-            // let bound_spacing =  88719042;
+            // TODO check how used the correct tick spacing
+            let bound_spacing: u128 = calculate_bound_mag(
+                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick
+            );
+            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2,
+            // tick_spacing.clone());
+            // let bound_spacing = 88719042;
 
             let pool_params = EkuboPoolParameters {
                 fee: fee_percent,
@@ -1729,6 +1733,7 @@ pub mod LaunchpadMarketplace {
 
             // Launch on Ekubo
             // TODO Audit unrug.cairo
+            // Bounds calculated from unrug using the sign
             let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
 
             // Update launch state
