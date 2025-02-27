@@ -104,7 +104,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
         </View>
 
         <View style={styles.searchContainer}>
-          <View style={isDesktop ? styles.searchInputContainer : styles.searchInputContainerMobile}>
+          {/* <View style={isDesktop ? styles.searchInputContainer : styles.searchInputContainerMobile}>
             <Icon name={'SearchIcon'} size={20} color={'textPrimary'} style={styles.searchIcon} />
             <TextInput
               style={isDesktop ? styles.input : styles.inputMobile}
@@ -120,7 +120,7 @@ const SearchComponent: React.FC<ISearchComponent> = ({
                 <Path fill="currentColor" d="M10 18v-2h4v2zm-4-5v-2h12v2zM3 8V6h18v2z" />
               </Svg>
             </Pressable>
-          ) : null}
+          ) : null} */}
           <FilterMenu
             visible={isOpenFilter}
             onClose={() => setIsOpenFilter(false)}

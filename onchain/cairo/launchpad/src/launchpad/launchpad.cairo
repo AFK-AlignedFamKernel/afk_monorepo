@@ -1609,7 +1609,7 @@ pub mod LaunchpadMarketplace {
             // Undo
             // let is_token1_quote = true;
 
-            println!("is_token1_quote {}", is_token1_quote.clone());
+            // println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
             //  Edge case related to difference between threshold and total supply
 
@@ -1633,7 +1633,7 @@ pub mod LaunchpadMarketplace {
                 (launch.initial_pool_supply) / launch.liquidity_raised
             };
 
-            println!("x_y {}", x_y.clone());
+            // println!("x_y {}", x_y.clone());
             // TODO test sqrt
             // 3. Calculate proper sqrt price ratio
             // Verified fixed i128 with decimals
@@ -1659,9 +1659,9 @@ pub mod LaunchpadMarketplace {
             // Fixed point sqrt_ratio
 
             let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
-            println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio before unscale {}", sqrt_ratio.clone());
 
-            println!("is_token1_quote {}", is_token1_quote.clone());
+            // println!("is_token1_quote {}", is_token1_quote.clone());
 
             // TODO 
             // Unscale sqrt_ratio with the factor before using the sqrt function
@@ -1672,32 +1672,32 @@ pub mod LaunchpadMarketplace {
                 // sqrt_ratio= (sqrt_ratio / scale_factor) * pow_256(2, 96);
                 sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
                 // sqrt_ratio = sqrt_ratio / scale_factor;
-                println!("sqrt_ratio unscaled {}", sqrt_ratio.clone());
+                // println!("sqrt_ratio unscaled {}", sqrt_ratio.clone());
             }
             // println!("sqrt_ratio {}", sqrt_ratio.clone());
 
-            println!("sqrt_ratio : {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio : {}", sqrt_ratio.clone());
 
             let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
             let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
             // Assert range for sqrt ratio order, magnitude and min max
 
-            println!("assert sqrt_ratio {}", sqrt_ratio.clone());
+            // println!("assert sqrt_ratio {}", sqrt_ratio.clone());
 
             sqrt_ratio =
                 if sqrt_ratio < min_sqrt_ratio_limit {
-                    println!("sqrt_ratio < min_sqrt_ratio_limit");
+                    // println!("sqrt_ratio < min_sqrt_ratio_limit");
                     min_sqrt_ratio_limit
                 } else if sqrt_ratio > max_sqrt_ratio_limit {
-                    println!("sqrt_ratio > max_sqrt_ratio_limit");
+                    // println!("sqrt_ratio > max_sqrt_ratio_limit");
                     max_sqrt_ratio_limit
                 } else {
-                    println!("sqrt_ratio is between min and max");
+                    // println!("sqrt_ratio is between min and max");
                     sqrt_ratio
                 };
 
-            println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
             // Define the minimum and maximum sqrt ratios
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
@@ -1716,7 +1716,7 @@ pub mod LaunchpadMarketplace {
                 .unwrap_syscall();
 
             let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
-            println!("initial_tick {}", initial_tick.mag.clone());
+            // println!("initial_tick {}", initial_tick.mag.clone());
             // TODO
             // Ensure the tick is align with the tick spacing
             // let aligned_tick = align_tick(initial_tick, tick_spacing);

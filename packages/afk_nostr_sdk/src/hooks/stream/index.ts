@@ -1,10 +1,10 @@
-import {signAsync} from '@noble/secp256k1';
-import {NDKEvent, NDKFilter} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
+import { signAsync } from '@noble/secp256k1';
+import { NDKEvent, NDKFilter } from '@nostr-dev-kit/ndk';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
-import {generateRandomIdentifier, generateRandomKeypair, hashTag} from '../../utils/keypair';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
+import { generateRandomIdentifier, generateRandomKeypair, hashTag } from '../../utils/keypair';
 import {
   LIVE_CHAT_KIND,
   LIVE_EVENT_KIND,
@@ -18,7 +18,7 @@ import {
 
 // Helper function to generate participant proof
 const generateParticipantProof = async (kind: number, pubkey: string, identifier: string) => {
-  const {privateKey} = generateRandomKeypair();
+  const { privateKey } = generateRandomKeypair();
   const tag = `${kind}:${pubkey}:${identifier}`;
   const hash = await hashTag(tag);
   const signature = await signAsync(hash, privateKey);
@@ -26,7 +26,7 @@ const generateParticipantProof = async (kind: number, pubkey: string, identifier
 };
 
 const useDeleteEvent = () => {
-  const {ndk} = useNostrContext();
+  const { ndk } = useNostrContext();
   return useMutation({
     mutationKey: ['deleteLiveEvent'],
     mutationFn: async (updates: Partial<LiveEventData>) => {
@@ -49,9 +49,9 @@ const useDeleteEvent = () => {
 export const useLiveActivity = (eventId?: string) => {
   const updateEvent = useEditEvent();
   const deleteEvent = useDeleteEvent();
-  const {data: event} = useGetSingleEvent({eventId});
-  const {ndk} = useNostrContext();
-  const {publicKey: currentUserPubkey} = useAuth();
+  const { data: event } = useGetSingleEvent({ eventId });
+  const { ndk } = useNostrContext();
+  const { publicKey: currentUserPubkey } = useAuth();
 
   // Create new live event
   const createEvent = useMutation({
@@ -122,7 +122,7 @@ export const useLiveActivity = (eventId?: string) => {
       return updateEvent.mutate({
         eventId: identifier,
         shouldMarkDelete: true,
-        participants: [...(event?.participants || []), {pubkey, role, relay}],
+        participants: [...(event?.participants || []), { pubkey, role, relay }],
       });
     },
   });
@@ -172,9 +172,9 @@ export const useLiveActivity = (eventId?: string) => {
   });
 
   // Chat messages query
-  const useGetLiveChat = (options?: UseLiveEventsOptions & {eventId: string}) => {
-    const {ndk} = useNostrContext();
-    const {publicKey: currentUserPubkey} = useAuth();
+  const useGetLiveChat = (options?: UseLiveEventsOptions & { eventId: string }) => {
+    const { ndk } = useNostrContext();
+    const { publicKey: currentUserPubkey } = useAuth();
 
     return useInfiniteQuery({
       initialPageParam: 0,
@@ -182,12 +182,25 @@ export const useLiveActivity = (eventId?: string) => {
       getNextPageParam: (lastPage: ParsedLiveChatMessage[], allPages, lastPageParam) => {
         if (!lastPage?.length) return undefined;
 
-        const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+        const lastNote = lastPage[lastPage.length - 1];
+        // console.log('created_at', lastNote.created_at);
+        const pageParam = lastNote.created_at - 1;
+        console.log('pageParam', pageParam);
 
-        if (!pageParam || pageParam === lastPageParam) return undefined;
         return pageParam;
+        // if (!lastPage?.length) return undefined;
+
+        // const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+
+        // if (!pageParam || pageParam === lastPageParam) return undefined;
+        // return pageParam;
       },
-      queryFn: async ({pageParam}) => {
+      queryFn: async ({ pageParam }) => {
+        const sinceTimestamp = pageParam
+          ? pageParam - 1 * 60 * 60 * 24 :// Restart from pageParam minus 1 hour
+          Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24; // Start from 1 hour ago
+
+
         const filter: NDKFilter = {
           kinds: [LIVE_CHAT_KIND as any],
           '#a': [`${LIVE_EVENT_KIND}:${options.eventId}`],
@@ -237,7 +250,7 @@ export const useLiveActivity = (eventId?: string) => {
           return parsed;
         });
       },
-      placeholderData: {pages: [], pageParams: []},
+      placeholderData: { pages: [], pageParams: [] },
     });
   };
 
@@ -259,21 +272,36 @@ export const useLiveActivity = (eventId?: string) => {
 
 // Fetch multiple events with pagination
 export const useGetLiveEvents = (options?: UseLiveEventsOptions) => {
-  const {ndk} = useNostrContext();
+  const { ndk } = useNostrContext();
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['liveEvents', options?.authors, options?.status, options?.search, options?.hashtag],
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
+      // if (!lastPage?.length) return undefined;
+
+      // const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+
+      // if (!pageParam || pageParam === lastPageParam) return undefined;
+      // return pageParam;
       if (!lastPage?.length) return undefined;
 
-      const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+      const lastNote = lastPage[lastPage.length - 1];
+      // console.log('created_at', lastNote.created_at);
+      const pageParam = lastNote.created_at - 1;
+      console.log('pageParam', pageParam);
 
-      if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
+
+      const sinceTimestamp = pageParam
+        ? pageParam - 1 * 60 * 60 * 24 :// Restart from pageParam minus 1 hour
+        Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24; // Start from 1 hour ago
+
+
       const baseFilter: NDKFilter = {
         kinds: [LIVE_EVENT_KIND as any],
+        since: sinceTimestamp,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,
       };
@@ -294,14 +322,14 @@ export const useGetLiveEvents = (options?: UseLiveEventsOptions) => {
 
       return data;
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 };
 
 // Fetch a single event
 
-export const useGetSingleEvent = (options?: {eventId: string}) => {
-  const {ndk} = useNostrContext();
+export const useGetSingleEvent = (options?: { eventId: string }) => {
+  const { ndk } = useNostrContext();
   return useQuery({
     queryKey: ['SingleliveEvent', options.eventId],
     enabled: !!options.eventId,
@@ -318,11 +346,11 @@ export const useGetSingleEvent = (options?: {eventId: string}) => {
 
 // Update existing event
 export const useEditEvent = () => {
-  const {ndk} = useNostrContext();
-  const {mutate: deleteEvent} = useDeleteEvent();
+  const { ndk } = useNostrContext();
+  const { mutate: deleteEvent } = useDeleteEvent();
   return useMutation({
     mutationKey: ['EditEvent'],
-    mutationFn: async ({shouldMarkDelete = true, ...updates}: Partial<LiveEventData>) => {
+    mutationFn: async ({ shouldMarkDelete = true, ...updates }: Partial<LiveEventData>) => {
       const filter: NDKFilter = {
         kinds: [LIVE_EVENT_KIND as any],
         '#d': [updates.eventId],

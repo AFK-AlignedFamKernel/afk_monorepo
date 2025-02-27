@@ -32,10 +32,10 @@ pub fn sort_tokens(
 pub fn get_initial_tick_from_starting_price(
     starting_price: i129, bound_mag: u128, is_token1_quote: bool
 ) -> (i129, Bounds) {
-    println!("get_initial_tick_from_starting_price",);
-    println!("is_token1_quote {}", is_token1_quote);
-    println!("starting_price sign {}", starting_price.sign);
-    println!("bound_mag {}", bound_mag);
+    // println!("get_initial_tick_from_starting_price",);
+    // println!("is_token1_quote {}", is_token1_quote);
+    // println!("starting_price sign {}", starting_price.sign);
+    // println!("bound_mag {}", bound_mag);
 
     let (initial_tick, bounds) = if is_token1_quote {
         // the price is always supplied in quote/meme. if token 1 is quote,
