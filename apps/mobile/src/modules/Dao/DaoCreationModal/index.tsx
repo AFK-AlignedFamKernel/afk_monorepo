@@ -16,7 +16,7 @@ type Dao = {
   starknetAddress: string;
 };
 
-export const CreateDaoModal = ({ handleModal }: { handleModal: () => void }) => {
+export const CreateDaoModal = ({ closeModal }: { closeModal: () => void }) => {
   const styles = useStyles(stylesheet);
   const { theme } = useTheme();
 
@@ -56,7 +56,10 @@ export const CreateDaoModal = ({ handleModal }: { handleModal: () => void }) => 
 
     try {
       await createDao(tokenAddress);
+      closeModal();
+      showToast({ title: 'DAO created', type: 'success' });
     } catch (error) {
+      closeModal();
       showToast({ title: 'Error creating DAO', type: 'error' });
     }
   };
@@ -91,7 +94,7 @@ export const CreateDaoModal = ({ handleModal }: { handleModal: () => void }) => 
           <Text style={styles.modalButtonText}>Launch</Text>
           {isPending && <LoadingSpinner />}
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={handleModal}>
+        <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={closeModal}>
           <Text style={styles.modalButtonText}>Cancel</Text>
         </TouchableOpacity>
       </View>

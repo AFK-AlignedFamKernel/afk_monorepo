@@ -36,7 +36,7 @@ export const DAOComponent: React.FC = () => {
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <CreateDaoModal handleModal={() => setModalVisible(false)} />
+        <CreateDaoModal closeModal={() => setModalVisible(false)} />
       </Modal>
 
       <ScrollView>
