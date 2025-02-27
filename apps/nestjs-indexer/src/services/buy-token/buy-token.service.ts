@@ -36,13 +36,13 @@ export class BuyTokenService {
         const calculatedQuoteAmount = Number(data.quoteAmount);
         const effectiveQuoteAmount =
           calculatedQuoteAmount;
-          // calculatedQuoteAmount - Number(data?.protocolFee);
+        // calculatedQuoteAmount - Number(data?.protocolFee);
 
 
         const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
         const effectiveLiquidityRaisedAmount =
           calculatedLiquidityRaisedAmount;
-          // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
+        // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -72,7 +72,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.quoteAmount);
+          Number(data.coinAmount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
@@ -160,27 +160,33 @@ export class BuyTokenService {
           },
         });
 
-        await prisma.token_transactions.upsert({
-          where: { transfer_id: data.transferId },
-          update: {},
-          create: {
-            transfer_id: data.transferId,
-            network: data.network,
-            block_hash: data.blockHash,
-            block_number: data.blockNumber,
-            block_timestamp: data.blockTimestamp,
-            transaction_hash: data.transactionHash,
-            memecoin_address: data.memecoinAddress,
-            owner_address: data.ownerAddress,
-            last_price: data.lastPrice,
-            quote_amount: data.quoteAmount,
-            price: price?.toString(),
-            amount: data.coinAmount,
-            protocol_fee: data.protocolFee,
-            time_stamp: data.timestamp,
-            transaction_type: data.transactionType,
-          },
-        });
+        try {
+          await prisma.token_transactions.upsert({
+            where: { transfer_id: data.transferId },
+            update: {},
+            create: {
+              transfer_id: data.transferId,
+              network: data.network,
+              block_hash: data.blockHash,
+              block_number: data.blockNumber,
+              block_timestamp: data.blockTimestamp,
+              transaction_hash: data.transactionHash,
+              memecoin_address: data.memecoinAddress,
+              owner_address: data.ownerAddress,
+              last_price: data.lastPrice,
+              quote_amount: data.quoteAmount,
+              price: price?.toString(),
+              amount: data.coinAmount,
+              protocol_fee: data.protocolFee,
+              time_stamp: data.timestamp,
+              transaction_type: data.transactionType,
+            },
+          });
+        } catch (error) {
+          console.log('error tx', error);
+        }
+
+
       });
 
       this.eventEmitter.emit('candlestick.generate', {
