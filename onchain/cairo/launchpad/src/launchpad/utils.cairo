@@ -32,6 +32,11 @@ pub fn sort_tokens(
 pub fn get_initial_tick_from_starting_price(
     starting_price: i129, bound_mag: u128, is_token1_quote: bool
 ) -> (i129, Bounds) {
+    println!("get_initial_tick_from_starting_price",);
+    println!("is_token1_quote {}", is_token1_quote);
+    println!("starting_price sign {}", starting_price.sign);
+    println!("bound_mag {}", bound_mag);
+
     let (initial_tick, bounds) = if is_token1_quote {
         // the price is always supplied in quote/meme. if token 1 is quote,
         // then the upper bound expressed in quote/meme is +inf
@@ -57,6 +62,33 @@ pub fn get_initial_tick_from_starting_price(
     (initial_tick, bounds)
 }
 
+pub fn get_initial_tick_from_starting_price_unrug(
+    starting_price: i129, bound_mag: u128, is_token1_quote: bool
+) -> (i129, Bounds) {
+    let (initial_tick, bounds) = if is_token1_quote {
+        // the price is always supplied in quote/meme. if token 1 is quote,
+        // then the upper bound expressed in quote/meme is +inf
+        // and the lower bound is the starting price.
+        (
+            i129 { sign: starting_price.sign, mag: starting_price.mag },
+            Bounds {
+                lower: i129 { sign: starting_price.sign, mag: starting_price.mag },
+                upper: i129 { sign: false, mag: bound_mag }
+            }
+        )
+    } else {
+        // The initial tick sign is reversed if the quote is token0.
+        // as the price provided was expressed in token1/token0.
+        (
+            i129 { sign: !starting_price.sign, mag: starting_price.mag },
+            Bounds {
+                lower: i129 { sign: true, mag: bound_mag },
+                upper: i129 { sign: !starting_price.sign, mag: starting_price.mag }
+            }
+        )
+    };
+    (initial_tick, bounds)
+}
 
 pub fn get_next_tick_bounds(
     starting_price: i129, tick_spacing: u128, is_token1_quote: bool
@@ -169,6 +201,71 @@ pub fn contains<T, +Copy<T>, +Drop<T>, +PartialEq<T>>(mut self: Span<T>, value: 
     }
 }
 
+pub fn calculate_bound_mag(fee: u128, tick_spacing: u128, initial_tick: i129) -> u128 {
+    // First align the bound with tick spacing
+    // Instead of using match with non-sequential numbers, use if/else statements
+    let aligned_bound = if fee == 1 {
+        // 0.01% fee
+        tick_spacing * 2000 // Smaller bound for low fee tiers
+    } else if fee == 5 {
+        // 0.05% fee
+        tick_spacing * 4000 // Medium bound for medium fee tiers
+    } else if fee == 30 {
+        // 0.3% fee
+        tick_spacing * 6000 // Larger bound for higher fee tiers
+    } else if fee == 100 {
+        // 1% fee
+        tick_spacing * 8000 // Largest bound for highest fee tiers
+    } else {
+        // Default to medium bound
+        tick_spacing * 4000
+    };
+
+    // Ensure the bound doesn't exceed MAX_TICK
+    let max_bound: u128 = MAX_TICK.try_into().unwrap() - initial_tick.mag.try_into().unwrap();
+    if aligned_bound > max_bound {
+        max_bound
+    } else {
+        aligned_bound
+    }
+}
+
+// pub fn calculate_bound_mag(fee: u128, tick_spacing: u128, initial_tick: i129) -> u128 {
+//     // First align the bound with tick spacing
+//     let aligned_bound = match fee {
+//         // 0% fee
+//         0 => {
+//             tick_spacing * 2000  // Smaller bound for low fee tiers
+//         },
+//         // 0.01% fee
+//         1 => {
+//             tick_spacing * 2000  // Smaller bound for low fee tiers
+//         },
+//         // 0.05% fee
+//         5 => {
+//             tick_spacing * 4000  // Medium bound for medium fee tiers
+//         },
+//         // 0.3% fee
+//         30 => {
+//             tick_spacing * 6000  // Larger bound for higher fee tiers
+//         },
+//         // 1% fee
+//         100 => {
+//             tick_spacing * 8000  // Largest bound for highest fee tiers
+//         },
+//         _ => {
+//             tick_spacing * 4000  // Default to medium bound
+//         }
+//     };
+
+//     // Ensure the bound doesn't exceed MAX_TICK
+//     let max_bound:u128 = MAX_TICK.try_into().unwrap() - initial_tick.mag.try_into().unwrap();
+//     if aligned_bound > max_bound {
+//         max_bound
+//     } else {
+//         aligned_bound
+//     }
+// }
 
 pub fn calculate_aligned_bound_mag(
     starting_price: i129, multiplier: u128, tick_spacing: u128

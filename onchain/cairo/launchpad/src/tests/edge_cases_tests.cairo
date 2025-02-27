@@ -16,7 +16,7 @@ mod edge_cases_tests {
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
-        align_tick_with_max_tick_and_min_tick
+        align_tick_with_max_tick_and_min_tick, calculate_bound_mag
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -531,21 +531,21 @@ mod edge_cases_tests {
     //     );
     // }
 
+    // Verify all supply edge cases possible for total supply of a token
+    // Can variate with the threshold liquidity selected
+    // Check the range between both liq_raised, init_pool_supply that is 20% of the total_supply of
+    // the token
     fn test_get_init_supplies() -> Array<u256> {
         let init_supplies: Array<u256> = array![
-            // 1_u256 * pow_256(10, 18),
-
             // EDGE CASES TO CHECK
-            // THRESHOLD_LIQUIDITY/2_u256 * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY / 10_000_u256) * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY / 100_u256),
-            // (THRESHOLD_LIQUIDITY / 10_u256) * pow_256(10, 18),
-            // THRESHOLD_LIQUIDITY * pow_256(10, 18),
-            // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING
-            (THRESHOLD_LIQUIDITY * 10_u256),
-            (THRESHOLD_LIQUIDITY * 100_u256),
+            // (THRESHOLD_LIQUIDITY ), // BREAKING = same supply as threshold liquidity
+            // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING = double times the supply
+            (THRESHOLD_LIQUIDITY
+                * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
+            (THRESHOLD_LIQUIDITY
+                * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
             100_000_u256 * pow_256(10, 18), // 100k
-            1_000_000_u256 * pow_256(10, 18), // 1m
+            // 1_000_000_u256 * pow_256(10, 18), // 1m
             10_000_000_u256 * pow_256(10, 18), // 10m
             100_000_000_u256 * pow_256(10, 18), // 100m
             1_000_000_000_u256 * pow_256(10, 18), // 1b
@@ -558,6 +558,169 @@ mod edge_cases_tests {
         ];
 
         init_supplies
+    }
+    // Assert balance
+    // Check LP on Ekubo
+    // Default Params Ekubo launch
+    fn test_ekubo_lp(
+        token_address: ContractAddress,
+        quote_address: ContractAddress,
+        launchpad: ILaunchpadMarketplaceDispatcher,
+        supply: u256,
+    ) {
+        // let (sender, erc20, launchpad) = request_fixture();
+
+        let quote_token = IERC20Dispatcher { contract_address: quote_address };
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+        // Default Params Ekubo launch
+        // Refactoring and use utils helpers
+        let fee_percent = 0xc49ba5e353f7d00000000000000000;
+        println!("fee {:?}", fee_percent);
+
+        let tick_spacing = 60_u128;
+        println!("tick_spacing {:?}", tick_spacing);
+
+        let (token0, token1) = sort_tokens(token_address, quote_token.contract_address.clone());
+
+        let total_supply = memecoin.total_supply();
+        // Undo this
+        let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
+        // let is_token1_quote = true;
+        let INITIAL_POOL_SUPPLY = total_supply / LIQUIDITY_RATIO;
+
+        println!("get launch");
+        let launch = launchpad.get_coin_launch(token_address);
+
+        let scale_factor = pow_256(10, 18);
+        let mut x_y = if is_token1_quote {
+            // TODO scaling factor?
+            // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+            // scale_factor)
+            (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply)
+        } else {
+            // TODO scaling factor?
+            (launch.initial_pool_supply) / launch.liquidity_raised
+        };
+        println!("x_y {:?}", x_y);
+
+        let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
+        println!("sqrt_ratio {:?}", sqrt_ratio);
+
+        if is_token1_quote {
+            // sqrt_ratio = sqrt_ratio / scale_factor;
+            // sqrt_ratio = sqrt_ratio / scale_factor;
+            sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
+
+            println!("sqrt_ratio unscale {:?}", sqrt_ratio);
+        }
+
+        let mut call_data: Array<felt252> = array![];
+        Serde::serialize(@sqrt_ratio, ref call_data);
+
+        // let class_hash:ClassHash =
+        // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+        let class_hash: ClassHash =
+            0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+            .try_into()
+            .unwrap();
+
+        let mut res = library_call_syscall(
+            class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
+        )
+            .unwrap_syscall();
+
+        let initial_tick_first = Serde::<i129>::deserialize(ref res).unwrap();
+        println!("initial_tick_first {}", initial_tick_first.mag.clone());
+        println!("initial_tick_first sign {}", initial_tick_first.sign.clone());
+
+        let bound_spacing: u128 = calculate_bound_mag(
+            fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick_first
+        );
+
+        println!("bound_spacing {:?}", bound_spacing);
+        let (initial_tick, full_bounds) = get_initial_tick_from_starting_price(
+            initial_tick_first, bound_spacing, is_token1_quote
+        );
+
+        println!("initial_tick.mag {:?}", initial_tick.mag);
+        println!("initial_tick.sign {:?}", initial_tick.sign);
+
+        let fee = fee_percent.try_into().unwrap();
+        let pool_key = PoolKey {
+            token0: token0.clone(),
+            token1: token1.clone(),
+            fee: fee.clone(),
+            tick_spacing: tick_spacing.try_into().unwrap(),
+            extension: 0.try_into().unwrap(),
+        };
+
+        let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
+        let liquidity = core.get_pool_liquidity(pool_key);
+        let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
+        let price = core.get_pool_price(pool_key);
+
+        let pool_price = position_dispatcher.get_pool_price(pool_key);
+
+        // TODO Check Ekubo LP
+        // SQRT_RATIO
+        // Initial tick
+        // tick spacing
+        // bounding_space
+        // bounds
+
+        // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");
+        // assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
+        // assert(pool_price.tick.mag == initial_tick.mag, 'wrong tick');
+        // assert(pool_price.tick.sign == initial_tick.sign, 'wrong sign');
+
+        // This implementation give us different values from the core
+        println!("pool_price tick mag {:?}", pool_price.tick.mag);
+        println!("pool_price tick sign {:?}", pool_price.tick.sign);
+        println!("pool_price sqrt_ratio {:?}", pool_price.sqrt_ratio);
+
+        // What is liquidity params in CORE?
+        // println!("liquidity {:?}", liquidity);
+        // println!("launch.liquidity_raised {:?}", launch.liquidity_raised);
+        // assert(liquidity == launch.liquidity_raised.try_into().unwrap(), 'wrong liquidity');
+
+        println!("sqrt_ratio calculated here {:?}", sqrt_ratio);
+        println!("price tick mag {:?}", price.tick.mag);
+        println!("price tick sign {:?}", price.tick.sign);
+        println!("price sqrt_ratio {:?}", price.sqrt_ratio);
+        // assert(price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
+
+        println!("initial_tick mag {:?}", initial_tick.mag);
+        println!("initial_tick sign {:?}", initial_tick.sign);
+        println!("pool liquidity {:?}", liquidity);
+
+        assert(price.tick.mag == initial_tick.mag, 'wrong tick');
+        assert(price.tick.sign == initial_tick.sign, 'wrong sign');
+
+
+        let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+            .balance_of(EKUBO_POSITIONS());
+
+        let reserve_memecoin = memecoin.balance_of(core.contract_address);
+
+        let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+            .balance_of(EKUBO_POSITIONS());
+
+        // TODO
+        // Check balances
+        println!("reserve_memecoin {:?}", reserve_memecoin);
+        println!("reserve_quote {:?}", reserve_quote);
+
+        // assert(
+        //     reserve_memecoin >= PercentageMath::percent_mul(launch.initial_pool_supply, 9800),
+        //     'reserve too low meme'
+        // );
+
+        // assert(
+        //     reserve_quote >= PercentageMath::percent_mul(launch.liquidity_raised, 9800),
+        //     'reserve too low quote'
+        // );
+        // assert(pool_price.liquidity == launch.liquidity_raised, 'wrong liquidity');
     }
 
 
@@ -590,9 +753,8 @@ mod edge_cases_tests {
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
                     // contract_address_salt: SALT(),
-                    // contract_address_salt: SALT()+felt252::from_hex(i.to_string()),
-                    // contract_address_salt: SALT(),
-                    contract_address_salt: i.try_into().unwrap(),
+                    contract_address_salt: i.try_into().unwrap(), // find way to predine below quote token
+                    // contract_address_salt: (i.try_into().unwrap() / pow_256(10, 18)).try_into().unwrap(),
                     is_unruggable: false,
                     bonding_type: BondingType::Linear,
                     creator_fee_percent: MID_FEE_CREATOR,
@@ -652,115 +814,12 @@ mod edge_cases_tests {
             liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
             println!("liquidity_raised {:?}", liquidity_raised);
 
-            // Assert balance
-            // Check LP on Ekubo
-            // Default Params Ekubo launch
-            // Refactoring and use utils helpers
-            let fee_percent = 0xc49ba5e353f7d00000000000000000;
+            println!("test_ekubo_lp");
 
-            // let tick_spacing = 5928;
-            let tick_spacing = 200;
+            // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
+            test_ekubo_lp(token_address, erc20.contract_address, launchpad, *init_supplies.at(i));
 
-            // // let bound_spacing = tick_spacing * 2;
-            let bound_spacing = 88719042;
-            // let bound_spacing = 887272;
-
-            // let fee = fee_percent.try_into().unwrap();
-            let (token0, token1) = sort_tokens(token_address, quote_token.contract_address.clone());
-
-            let total_supply = memecoin.total_supply();
-            let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
-            let INITIAL_POOL_SUPPLY = total_supply / LIQUIDITY_RATIO;
-
-            let launch = launchpad.get_coin_launch(token_address);
-            // TODO
-            // edge case related to scaling factor
-            let mut x_y = if is_token1_quote {
-                // TODO scaling factor?
-                // (THRESHOLD_LIQUIDITY ) / INITIAL_POOL_SUPPLY
-                // (launch.liquidity_raised ) / launch.initial_pool_supply
-                (THRESHOLD_LIQUIDITY * pow_256(10, 18)) / (INITIAL_POOL_SUPPLY * pow_256(10, 18))
-            } else {
-                // TODO scaling factor?
-                // INITIAL_POOL_SUPPLY / THRESHOLD_LIQUIDITY
-                (launch.initial_pool_supply) / launch.liquidity_raised
-            };
-
-            let sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
-
-            let mut call_data: Array<felt252> = array![];
-            Serde::serialize(@sqrt_ratio, ref call_data);
-
-            // let class_hash:ClassHash =
-            // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
-            let class_hash: ClassHash =
-                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
-                .try_into()
-                .unwrap();
-
-            let mut res = library_call_syscall(
-                class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
-            )
-                .unwrap_syscall();
-
-            let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
-            println!("initial_tick {}", initial_tick.mag.clone());
-
-            let fee = fee_percent.try_into().unwrap();
-            let pool_key = PoolKey {
-                // token0: token_address.clone(),
-                // token1: erc20.contract_address.clone(),
-                token0: token0.clone(),
-                token1: token1.clone(),
-                fee: fee.clone(),
-                tick_spacing: tick_spacing.try_into().unwrap(),
-                extension: 0.try_into().unwrap(),
-            };
-
-            let quote_address = erc20.contract_address.clone();
-            let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
-            let liquidity = core.get_pool_liquidity(pool_key);
-            println!("pool liquidity {:?}", liquidity);
-            let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
-            let price = core.get_pool_price(pool_key);
-            let pool_price = position_dispatcher.get_pool_price(pool_key);
-
-            let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
-                .balance_of(EKUBO_POSITIONS());
-
-            let reserve_memecoin = memecoin.balance_of(core.contract_address);
-
-            let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
-                .balance_of(EKUBO_POSITIONS());
-
-            println!("reserve_memecoin {:?}", reserve_memecoin);
-            println!("reserve_quote {:?}", reserve_quote);
-
-            assert(
-                reserve_memecoin >= PercentageMath::percent_mul(INITIAL_POOL_SUPPLY, 9800),
-                'reserve too low meme'
-            );
-
-            assert(
-                reserve_quote >= PercentageMath::percent_mul(THRESHOLD_LIQUIDITY, 9800),
-                'reserve too low quote'
-            );
-
-            // let lp_meme_supply = total_supply / LIQUIDITY_RATIO;
-            // let total_token_holded = total_supply / LIQUIDITY_RATIO;
-            // println!("lp_meme_supply {:?}", lp_meme_supply);
-            println!("pool.sqrt_ratio {:?}", pool_price.sqrt_ratio);
-            println!("sqrt_ratio {:?}", sqrt_ratio);
-            println!("initial_tick mag {:?}", initial_tick.mag);
-            println!("initial_tick sign {:?}", initial_tick.sign);
-            println!("tick mag {:?}", pool_price.tick.mag);
-            println!("tick sign {:?}", pool_price.tick.sign);
-
-            // // assert(lp_meme_supply == INITIAL_POOL_SUPPLY, "wrong initial pool supply");
-            // assert(pool_price.sqrt_ratio == sqrt_ratio, 'wrong sqrt ratio');
-            assert(pool_price.tick.mag == initial_tick.mag, 'wrong tick');
-
-            // Add buy and sell in Ekubo
+            println!("test_ekubo_lp_end");
 
             println!(
                 "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
@@ -797,7 +856,8 @@ mod edge_cases_tests {
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
-                    contract_address_salt: SALT(),
+                    // contract_address_salt: SALT(),
+                    contract_address_salt: i.try_into().unwrap(),
                     is_unruggable: false,
                     bonding_type: BondingType::Exponential,
                     creator_fee_percent: MID_FEE_CREATOR,
@@ -809,15 +869,57 @@ mod edge_cases_tests {
             let memecoin = IERC20Dispatcher { contract_address: token_address };
 
             // println!("buy threshold liquidity");
+            // run_buy_by_amount(
+            //     launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
+            // );
             run_buy_by_amount(
-                launchpad, quote_token, memecoin, THRESHOLD_LIQUIDITY, token_address, OWNER(),
+                launchpad,
+                quote_token,
+                memecoin,
+                THRESHOLD_LIQUIDITY / 2_u256,
+                token_address,
+                OWNER(),
             );
+
             let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+
+            // // Sell
+            let share_user = launchpad
+                .get_share_of_user_by_contract(sender.clone(), token_address.clone());
+
+            let amount_owned = share_user.amount_owned.try_into().unwrap();
+            // let amount_owned = share_user.amount_owned;
+            println!("amount_owned {:?}", amount_owned.clone());
+
+            start_cheat_caller_address(launchpad.contract_address, sender.clone());
+            run_sell_by_amount(
+                launchpad, quote_token, memecoin, amount_owned, token_address, sender.clone(),
+            );
+
+            let mut liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
+            println!("liquidity_raised before last {:?}", liquidity_raised);
+
+            let remain_liquidity = THRESHOLD_LIQUIDITY - liquidity_raised;
+
+            println!("remain_liquidity {:?}", remain_liquidity);
+
+            println!("BUY last remain_liquidity {:?}", remain_liquidity);
+
+            run_buy_by_amount(
+                launchpad, quote_token, memecoin, remain_liquidity, token_address, OWNER(),
+            );
             // println!("balance quote in loop {:?}", balance_quote_launch);
             println!(
                 "exp latest init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone()
             );
+
+            println!("exp test_ekubo_lp");
+
+            // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
+            test_ekubo_lp(token_address, erc20.contract_address, launchpad, *init_supplies.at(i));
+
+            println!("exp test_ekubo_lp_end");
 
             i += 1;
         };

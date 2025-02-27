@@ -25,7 +25,7 @@ pub mod UnrugLiquidity {
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         align_tick, MIN_TICK, MAX_TICK, MIN_TICK_U128, MAX_TICK_U128,
-        align_tick_with_max_tick_and_min_tick, calculate_aligned_bound_mag
+        align_tick_with_max_tick_and_min_tick, calculate_aligned_bound_mag, calculate_bound_mag
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -569,61 +569,135 @@ pub mod UnrugLiquidity {
                     };
 
                     let is_token1_quote = launch_params.quote_address == token1;
+                    // let is_token1_quote = true;
                     println!("is_token1_quote {:?}", is_token1_quote);
-                    let (initial_tick, full_range_bounds_initial) =
-                        get_initial_tick_from_starting_price(
-                        launch_params.pool_params.starting_price,
-                        launch_params.pool_params.bound,
-                        is_token1_quote
-                    );
-
-                    // Align the min and max ticks with the spacing
-                    // let aligned_min_tick = align_tick(MIN_TICK,
-                    // launch_params.pool_params.tick_spacing);
-                    // let aligned_max_tick = align_tick(MAX_TICK,
-                    // launch_params.pool_params.tick_spacing);
-
-                    // let min_tick = MIN_TICK.try_into().unwrap();
-                    // let max_tick = MAX_TICK.try_into().unwrap();
 
                     // TODO
                     // Check align ticks based on tick spacing and fee
+                    let fee_percent = launch_params.pool_params.fee;
+                    let tick_spacing = launch_params.pool_params.tick_spacing;
                     let min_tick = MIN_TICK_U128.try_into().unwrap();
                     let max_tick = MAX_TICK_U128.try_into().unwrap();
                     println!("min_tick {}", min_tick.clone());
                     println!("max_tick {}", max_tick.clone());
+
+                    // Align the min and max ticks with the spacing
+                    let starting_price = launch_params.pool_params.starting_price;
                     let aligned_min_tick = align_tick_with_max_tick_and_min_tick(
                         min_tick, launch_params.pool_params.tick_spacing
                     );
                     let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
                         max_tick, launch_params.pool_params.tick_spacing
                     );
+                    let bound_spacing: u128 = calculate_bound_mag(
+                        fee_percent.clone(),
+                        tick_spacing.clone().try_into().unwrap(),
+                        starting_price
+                    );
+
+                    let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
+                        * tick_spacing.try_into().unwrap();
                     println!("aligned_min_tick {}", aligned_min_tick.clone());
                     println!("aligned_max_tick {}", aligned_max_tick.clone());
                     println!("is_token1_quote {}", is_token1_quote);
-                    let full_range_bounds = if is_token1_quote {
-                        Bounds {
-                            lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                            upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
-                        }
-                    } else {
-                        Bounds {
-                            lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                            upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
-                        }
+                    println!("bound_spacing {}", bound_spacing);
+
+                    println!("aligned_bound_spacing {}", aligned_bound_spacing.clone());
+
+                    // let aligned_min_tick = align_tick(MIN_TICK,
+                    // launch_params.pool_params.tick_spacing);
+                    // let aligned_max_tick = align_tick(MAX_TICK,
+                    // launch_params.pool_params.tick_spacing);
+
+                    // let (initial_tick, full_range_bounds_initial) =
+                    //     get_initial_tick_from_starting_price(
+                    //         starting_price,
+                    //         bound_spacing,
+                    //         is_token1_quote
+                    //     );
+
+                    // Get initial tick and full range bounds_initial
+                    let (initial_tick, full_range_bounds_initial) =
+                        get_initial_tick_from_starting_price(
+                        starting_price,
+                        // launch_params.pool_params.bound,
+                        aligned_bound_spacing.clone(), // aligned_max_tick,
+                        is_token1_quote
+                    );
+
+                    // let (initial_tick, full_range_bounds_initial) =
+                    //     get_initial_tick_from_starting_price(
+                    //     launch_params.pool_params.starting_price,
+                    //     launch_params.pool_params.bound,
+                    //     is_token1_quote
+                    // );
+
+                    // Get full range bounds
+
+                    // TODO Check alignement of the ticks and bounds
+                    // let mut full_range_bounds =  Bounds {
+                    //     lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+                    //     upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+                    // };
+
+                    // WORKING
+                    // Align tick with max ticks
+                    // Verify the bounds is as expected
+                    let mut full_range_bounds = Bounds {
+                        lower: i129 { mag: aligned_bound_spacing, sign: true },
+                        upper: i129 { mag: aligned_bound_spacing, sign: false }
                     };
-                    // let bounds_full_range = if is_token1_quote {
+
+                    // TODO check full range bounds to used
+                    // Create bounds ensuring they're multiples of tick spacing
+                    // full_range_bounds = if is_token1_quote {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
-                    //         false }
+                    //         lower: i129 {
+                    //             mag: aligned_bound_spacing,
+                    //             sign: true
+                    //         },
+                    //         upper: i129 {
+                    //             mag: aligned_bound_spacing,
+                    //             sign: false
+                    //         }
                     //     }
+                    //     //     Bounds {
+                    //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //     //         false }
+                    //     //     }
+
                     // } else {
                     //     Bounds {
-                    //         lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-                    //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
-                    //         false }
+                    //         lower: i129 {
+                    //             mag: aligned_bound_spacing,
+                    //             sign: true
+                    //         },
+                    //         upper: i129 {
+                    //             mag: aligned_bound_spacing,
+                    //             sign: false
+                    //         }
                     //     }
+                    //     // TODO align tick
+                    //     //     Bounds {
+                    //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
+                    //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
+                    //     //         false }
+                    //     //     }
+
+                    //     // TODO 
+                    //     // Check not working with reverse bounds like UNRUG
+                    //     // Reverse the bounds for token0 as quote
+                    //     // Bounds {
+                    //     //     lower: i129 {
+                    //     //         mag: aligned_bound_spacing,
+                    //     //         sign: false
+                    //     //     },
+                    //     //     upper: i129 {
+                    //     //         mag: aligned_bound_spacing,
+                    //     //         sign: true
+                    //     //     }
+                    //     // }
                     // };
 
                     let memecoin_balance = IERC20Dispatcher {
@@ -631,18 +705,29 @@ pub mod UnrugLiquidity {
                     }
                         .balance_of(launch_params.token_address);
 
+                    // TODO check the initial_tick with the good sign used
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
+                    // core.maybe_initialize_pool(:pool_key, initial_tick:starting_price);
 
                     // TODO check errors possible
                     // BOUNDS_TICK_SPACING
                     // TODO used it or full_bounds
                     // Verify bound to use based on user params
+                    // Full range bounds or concentrated bounds
                     // Add single tick bound
                     // let single_tick_bound = get_next_tick_bounds(
                     //     launch_params.pool_params.starting_price,
                     //     launch_params.pool_params.tick_spacing,
                     //     is_token1_quote
                     // );
+
+                    // TODO
+                    // Unruggable init of bounds
+                    // let bound_to_use = full_range_bounds_initial;
+                    let bound_to_use = full_range_bounds;
+
+                    // Verify tick spacing, fee, bounding_space,
+                    // initial_tick and and bounds calculated
                     let id = self
                         ._supply_liquidity_ekubo(
                             pool_key,
@@ -650,8 +735,9 @@ pub mod UnrugLiquidity {
                             launch_params.quote_address,
                             launch_params.lp_supply,
                             launch_params.lp_quote_supply,
+                            bound_to_use,
                             // full_range_bounds_initial,
-                            full_range_bounds,
+                            // full_range_bounds,
                             // single_tick_bound,
                             launch_params.owner,
                         );
@@ -660,7 +746,8 @@ pub mod UnrugLiquidity {
                         owner: launch_params.owner,
                         quote_address: launch_params.quote_address,
                         pool_key,
-                        bounds: full_range_bounds
+                        bounds: bound_to_use
+                        // bounds: full_range_bounds
                     };
 
                     let mut return_data: Array<felt252> = Default::default();
@@ -670,7 +757,8 @@ pub mod UnrugLiquidity {
                             owner: launch_params.owner,
                             quote_address: launch_params.quote_address,
                             pool_key,
-                            bounds: full_range_bounds
+                            bounds: bound_to_use
+                            // bounds: full_range_bounds
                         },
                         ref return_data
                     );
