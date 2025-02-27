@@ -1564,9 +1564,9 @@ pub mod LaunchpadMarketplace {
 
             // // TODO FIX
             // // Audit edge case related to difference between threshold and total supply
-
             // TODO: check if this is correct
             // Adjust scale factor
+            // Do a correct scaling
 
             let scale_factor = pow_256(10, 18);
             // Initial pool need to be more than liquidity raised
@@ -1615,7 +1615,7 @@ pub mod LaunchpadMarketplace {
             // TODO 
             // Unscale sqrt_ratio with the factor before using the sqrt function
             // correctly with the fixed decimals
-
+            // Do a correct unscaled
             if is_token1_quote == true {
                 // x_y = x_y / scale_factor;
                 // sqrt_ratio= (sqrt_ratio / scale_factor) * pow_256(2, 96);
