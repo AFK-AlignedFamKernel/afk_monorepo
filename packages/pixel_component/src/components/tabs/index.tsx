@@ -1,1 +1,1 @@
-export { PixelInfoTab, } from "./pixel.tsx"   
+export { PixelInfoTab, } from "./pixel"   

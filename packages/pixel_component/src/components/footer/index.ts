@@ -1,3 +1,3 @@
-export { Footer } from "./footer.tsx"
-export { AIController } from "./ai-agent.tsx"
-export { StencilBotController } from "./stencil-bot.tsx"
+export { Footer } from "./footer"
+export { AIController } from "./ai-agent"
+export { StencilBotController } from "./stencil-bot"

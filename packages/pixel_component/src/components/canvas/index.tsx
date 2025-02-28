@@ -1,3 +1,3 @@
-export { Canvas } from "./canvas.tsx"
-export { StencilOverlay } from "./stencil-overlay.tsx"
-export { Controller } from "./controller.tsx"
+export * from "./canvas"
+export * from "./stencil-overlay"
+export * from "./controller"

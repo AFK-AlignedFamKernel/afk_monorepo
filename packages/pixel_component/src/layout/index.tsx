@@ -111,7 +111,7 @@ export function AppPixelComponent() {
 //   {!hasLaunched && <Route path="/" element={<Teaser />} />}
 // </Routes>
 
-export default function Home() {
+export function HomeApp() {
   return (
     <StrictMode>
       <StarknetProvider>

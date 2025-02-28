@@ -1,10 +1,38 @@
 {
   "name": "pixel_component",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js",
+      "require": "./dist/components/index.js"
+    },
+    "./layout": {
+      "types": "./dist/layout/index.d.ts",
+      "import": "./dist/layout/index.js",
+      "require": "./dist/layout/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "public"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "prebuild": "rm -rf dist",
+    "build": "tsc && cp -r public dist/ && cp -r src/styles dist/",
+    "prepare": "npm run build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix"

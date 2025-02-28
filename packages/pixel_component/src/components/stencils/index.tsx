@@ -1,1 +1,1 @@
-export { StencilItem } from "./item.tsx"
+export { StencilItem } from "./item"
