@@ -2,7 +2,7 @@ import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { decodeEvent, StarknetStream } from '@apibara/starknet';
-import { hash } from 'starknet';
+import { encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as daoAaABI } from './abi/daoAA.abi';
@@ -49,7 +49,6 @@ export default function (config: ApibaraRuntimeConfig) {
         logger.log('Factory: new DAO Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
         return {
           address: daoAddress,
-          keys: [PROPOSAL_CREATED, PROPOSAL_VOTED, PROPOSAL_CANCELED, PROPOSAL_RESOLVED],
         };
       });
 
@@ -86,16 +85,16 @@ export default function (config: ApibaraRuntimeConfig) {
     async transform({ block }) {
       const logger = useLogger();
       const { events, header } = block;
-      logger.log(`Block number ${header?.blockNumber}`);
 
       if (events.length === 0) {
-        logger.log(`No events found in block ${header?.blockNumber}`);
+        return;
       }
 
       for (const event of events) {
-        logger.log(`Event ${event.eventIndex} tx=${event.transactionHash}`);
+        logger.log(`Found event ${event.keys[0]}`);
+        if (event.keys[0] == encode.sanitizeHex(PROPOSAL_CREATED)) {
+          logger.log(`Event ProposalCreated in dao ${event.address}`);
 
-        if (event.keys[0] === PROPOSAL_CREATED) {
           const decodedEvent = decodeEvent({
             abi: daoAaABI,
             event,
@@ -109,7 +108,9 @@ export default function (config: ApibaraRuntimeConfig) {
             createdAt: Number(decodedEvent.args.created_at),
             endAt: Number(decodedEvent.args.end_at),
           });
-        } else if (event.keys[0] === PROPOSAL_CANCELED) {
+        } else if (event.keys[0] == encode.sanitizeHex(PROPOSAL_CANCELED)) {
+          logger.log(`Event ProposalCanceled in dao ${event.address}`);
+
           const decodedEvent = decodeEvent({
             abi: daoAaABI,
             event,
@@ -121,7 +122,9 @@ export default function (config: ApibaraRuntimeConfig) {
             decodedEvent.args.owner,
             decodedEvent.args.id,
           );
-        } else if (event.keys[0] === PROPOSAL_RESOLVED) {
+        } else if (event.keys[0] == encode.sanitizeHex(PROPOSAL_RESOLVED)) {
+          logger.log(`Event ProposalResolved in dao ${event.address}`);
+
           const decodedEvent = decodeEvent({
             abi: daoAaABI,
             event,
@@ -134,7 +137,9 @@ export default function (config: ApibaraRuntimeConfig) {
             decodedEvent.args.id,
             decodedEvent.args.result.toString(),
           );
-        } else if (event.keys[0] === PROPOSAL_VOTED) {
+        } else if (event.keys[0] == encode.sanitizeHex(PROPOSAL_VOTED)) {
+          logger.log(`Event ProposalVoted in dao ${event.address}`);
+
           const decodedEvent = decodeEvent({
             abi: daoAaABI,
             event,

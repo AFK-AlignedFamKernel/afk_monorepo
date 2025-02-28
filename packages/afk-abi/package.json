@@ -1,12 +1,17 @@
 {
   "name": "afk-abi",
   "version": "0.0.1",
-  "private": true,
+  "main": "./abi/index.ts",
+  "exports": {
+    ".": "./abi/index.ts"
+  },
+  "files": [
+    "abi"
+  ],
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.5.2",
     "typescript": "^5.6.3"

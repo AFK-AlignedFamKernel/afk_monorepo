@@ -1,31 +1,17 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "composite": true,
-    "target": "ES6",
-    "module": "ES6",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "jsx": "react-jsx",
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["esnext"],
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "allowJs": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
-  "include": [
-    "abi/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["abi/**/*"],
+  "exclude": ["node_modules"]
 }

@@ -9,9 +9,27 @@ import { useStyles } from '../../hooks';
 import { useDao } from '../../hooks/api/indexer/useDaos';
 import { useDimensions } from '../../hooks/useWindowDimensions';
 import { DaoDetail } from '../../modules/Dao/DaoDetail';
+import { DaoProposals } from '../../modules/Dao/DaoProposals';
 import { DAOPageProps } from '../../types';
-import { SelectedTab, TABS_DAO } from '../../types/tab';
 import stylesheet from './styles';
+
+enum DaoTabs {
+  DAO_OVERVIEW,
+  PROPOSALS,
+}
+
+const TABS_DAO: { screen?: string; title: string; tab: DaoTabs }[] = [
+  {
+    title: 'Overview',
+    screen: 'DAO',
+    tab: DaoTabs.DAO_OVERVIEW,
+  },
+  {
+    title: 'Proposals',
+    screen: 'DAO',
+    tab: DaoTabs.PROPOSALS,
+  },
+];
 
 export const DaoPage: React.FC<DAOPageProps> = ({ navigation, route }) => {
   const styles = useStyles(stylesheet);
@@ -20,9 +38,9 @@ export const DaoPage: React.FC<DAOPageProps> = ({ navigation, route }) => {
   const { daoAddress } = route.params;
   const { data: dao } = useDao(daoAddress);
 
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.DAO_OVERVIEW);
+  const [selectedTab, setSelectedTab] = useState<DaoTabs | undefined>(DaoTabs.DAO_OVERVIEW);
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
+  const handleTabSelected = (tab: string | DaoTabs, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
       navigation.navigate(screen as any);
@@ -41,7 +59,8 @@ export const DaoPage: React.FC<DAOPageProps> = ({ navigation, route }) => {
         // Mobile Layout
         <ScrollView style={styles.mobileContent}>
           <ScrollView style={styles.tabContent}>
-            {selectedTab == SelectedTab.DAO_OVERVIEW && dao && <DaoDetail dao={dao} />}
+            {selectedTab == DaoTabs.DAO_OVERVIEW && dao && <DaoDetail dao={dao} />}
+            {selectedTab == DaoTabs.PROPOSALS && dao && <DaoProposals dao={dao} />}
           </ScrollView>
           <View style={styles.mobileTabBar}>
             <TabSelector
@@ -66,7 +85,8 @@ export const DaoPage: React.FC<DAOPageProps> = ({ navigation, route }) => {
               addScreenNavigation={false}
             />
             <ScrollView style={styles.tabContent}>
-              {selectedTab == SelectedTab.DAO_OVERVIEW && dao && <DaoDetail dao={dao} />}
+              {selectedTab == DaoTabs.DAO_OVERVIEW && dao && <DaoDetail dao={dao} />}
+              {selectedTab == DaoTabs.PROPOSALS && dao && <DaoProposals dao={dao} />}
             </ScrollView>
           </View>
         </View>
