@@ -18,6 +18,7 @@ export class SellTokenService {
   }
 
   async create(data: SellToken) {
+    console.log('sell token data', data);
     try {
       const sellTokenRecord =
         await this.prismaService.token_transactions.findUnique({
@@ -37,7 +38,14 @@ export class SellTokenService {
 
       let price = tokenLaunchRecord?.price ?? 0;
 
-      const calculatedQuoteAmount = Number(data?.quoteAmount);
+      let coinAmount = Number(data.coinAmount);
+      let quoteAmount = Number(data.amount);
+
+      // const calculatedQuoteAmount = Number(data.amount) * Number(price);
+      const calculatedQuoteAmount = Number(data.quoteAmount);
+
+      const effectiveQuoteAmount = calculatedQuoteAmount;
+      // calculatedQuoteAmount - Number(data?.protocolFee);
 
       if (!tokenLaunchRecord) {
         this.logger.warn(
@@ -49,7 +57,7 @@ export class SellTokenService {
           Number(data.coinAmount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
-          calculatedQuoteAmount;
+          effectiveQuoteAmount;
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -91,9 +99,13 @@ export class SellTokenService {
         price = priceAfterSell;
         console.log('price calculation', price);
 
+        // const marketCap = (
+        //   (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
+        //   price
+        // ).toString();
+
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0) - newSupply) *
-          price
+          Number(tokenLaunchRecord.total_supply ?? 0) * price
         ).toString();
 
         await this.prismaService.token_launch.update({
@@ -109,14 +121,27 @@ export class SellTokenService {
       }
 
       // TODO check share user fixed negative number after total sell for first time
-      await this.prismaService.shares_token_user.update({
+      await this.prismaService.shares_token_user.upsert({
         where: {
           id: `${data.ownerAddress}_${data.memecoinAddress}`,
+          owner: data.ownerAddress,
+          token_address: data.memecoinAddress,
         },
-        data: {
+        update: {
           amount_owned: {
-            decrement: data.coinAmount,
+            // decrement: data.amount,
+            decrement: data?.coinAmount,
           },
+          // amount_owned: {
+          //   // decrement: data.amount,
+          //   decrement: data.coinAmount ?? data?.amount,
+          // },
+        },
+        create: {
+          id: `${data.ownerAddress}_${data.memecoinAddress}`,
+          owner: data.ownerAddress,
+          token_address: data.memecoinAddress,
+          amount_owned: data.coinAmount.toString(),
         },
       });
       // await this.prismaService.shares_token_user.upsert({
@@ -156,7 +181,7 @@ export class SellTokenService {
           last_price: data.lastPrice,
           quote_amount: data.quoteAmount,
           price: price?.toString(),
-          amount: data.coinAmount,
+          amount: data.amount,
           protocol_fee: data.protocolFee,
           time_stamp: data.timestamp,
           transaction_type: data.transactionType,
@@ -165,7 +190,7 @@ export class SellTokenService {
 
       this.eventEmitter.emit('candlestick.generate', {
         memecoinAddress: data.memecoinAddress,
-        interval: 5,
+        interval: 60,
       });
     } catch (error) {
       this.logger.error(

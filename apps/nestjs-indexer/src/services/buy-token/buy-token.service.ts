@@ -44,8 +44,7 @@ export class BuyTokenService {
         }
 
         let newSupply =
-          Number(tokenLaunchRecord.current_supply ?? 0) -
-          Number(data.coinAmount);
+          Number(tokenLaunchRecord.current_supply ?? 0) - Number(data.amount);
         let newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) +
           effectiveLiquidityRaisedAmount;
@@ -66,7 +65,7 @@ export class BuyTokenService {
 
         const newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) +
-          Number(data.coinAmount);
+          Number(data.quoteAmount);
 
         // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
