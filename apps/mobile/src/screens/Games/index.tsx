@@ -2,18 +2,17 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { IconButton } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { NameserviceComponent } from '../../modules/nameservice';
 import { PixelPeace } from '../../modules/PixelPeace';
+import { QuestsComponent } from '../../modules/quests';
 import { GameSreenProps } from '../../types';
-import { SelectedTab, CONSOLE_TABS_MENU } from '../../types/tab';
+import { CONSOLE_TABS_MENU, SelectedTab } from '../../types/tab';
+import { DAOComponent } from '../DAO/DaoComponent';
 import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
-import { SlinksMap } from '../Slink/SlinksMap';
 import stylesheet from './styles';
-import { NameserviceComponent } from '../../modules/nameservice';
-import { QuestsComponent } from '../../modules/quests';
-import { IconButton } from '../../components';
-import { DAOComponent } from '../../modules/DAO';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -25,13 +24,17 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
     return dimensions.width >= 1024;
   }, [dimensions]);
 
-  const handleTabSelected = (tab: string | SelectedTab, screen?: string, insideRouting?:string) => {
+  const handleTabSelected = (
+    tab: string | SelectedTab,
+    screen?: string,
+    insideRouting?: string,
+  ) => {
     setSelectedTab(tab as any);
     if (screen && !insideRouting) {
       navigation.navigate(screen as any);
       setSelectedTab(undefined);
-    } else if(screen && insideRouting) {
-      navigation.navigate(insideRouting as any, { screen: screen });
+    } else if (screen && insideRouting) {
+      navigation.navigate(insideRouting as any, { screen });
       setSelectedTab(undefined);
     }
   };
@@ -65,10 +68,7 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
       ) : (
         <KeyboardAvoidingView behavior="padding" style={styles.selectedContent}>
           <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-            >
+            <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
               {selectedTab == SelectedTab.PIXEL_PEACE && (
                 <>
                   <IconButton
@@ -142,7 +142,7 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                     style={{
                       paddingVertical: 5,
                       borderRadius: 5,
-                     
+
                       gap: 2,
                       borderColor: theme.theme?.colors?.shadow,
                     }}
@@ -153,17 +153,17 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                       onPress={handleGoBack}
                       style={styles.backButton}
                     />
-                     <View style={{ paddingTop: 70, paddingHorizontal: 20 }}>
-                    <Text style={styles.text}>Key pass for Starknet user</Text>
+                    <View style={{ paddingTop: 70, paddingHorizontal: 20 }}>
+                      <Text style={styles.text}>Key pass for Starknet user</Text>
                       <Text style={styles.text}>
-                      {' '}
-                      Send the force and tip your friends and favorite content creator.
+                        {' '}
+                        Send the force and tip your friends and favorite content creator.
                       </Text>
-                    <Text style={styles.text}>
-                      {' '}
-                      Buy or sell the keys to get perks and rewards from them, linked to Nostr &
-                      Starknet.
-                    </Text>
+                      <Text style={styles.text}>
+                        {' '}
+                        Buy or sell the keys to get perks and rewards from them, linked to Nostr &
+                        Starknet.
+                      </Text>
                     </View>
                   </View>
                   <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>

@@ -27,7 +27,6 @@ export type AuthStackParams = {
   };
   Community: undefined;
   RecordedStream: { streamId: string };
-
 };
 
 export type MainStackParams = {
@@ -78,7 +77,7 @@ export type MainStackParams = {
   WalletBTC: undefined;
   StreamStudio: undefined;
   WatchStream: { streamId: string };
-  ViewStreamGuest: { streamId: string, recordingUrl?: string };
+  ViewStreamGuest: { streamId: string; recordingUrl?: string };
   Wallet: undefined;
   Portfolio: undefined;
   Ramp: undefined;
@@ -93,11 +92,10 @@ export type MainStackParams = {
   Nameservice: undefined;
   Console: undefined;
   Community: undefined;
-  RecordedStream: { streamId: string, recordingUrl?: string };
+  RecordedStream: { streamId: string; recordingUrl?: string };
   DAO: undefined;
-  DAODetail: { daoId: string };
+  DAOPage: { daoAddress: string };
 };
-
 
 export type HomeBottomStackParams = {
   Feed: undefined;
@@ -134,7 +132,7 @@ export type HomeBottomStackParams = {
   Console: undefined;
   Community: undefined;
   DAO: undefined;
-  DAODetail: { daoId: string };
+  DAOPage: { daoAddress: string };
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -213,7 +211,6 @@ export type SearchScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<HomeBottomStackParams, 'ChannelsFeed'>,
 //   NativeStackScreenProps<RootStackParams>
 // >;
-
 
 // Main Stack
 export type MainStackNavigationProps = NativeStackNavigationProp<MainStackParams>;
@@ -430,9 +427,13 @@ export type CommunityScreenProps = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-
 export type DAOScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'DAO'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type DAOPageProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'DAOPage'>,
   NativeStackScreenProps<RootStackParams>
 >;
 

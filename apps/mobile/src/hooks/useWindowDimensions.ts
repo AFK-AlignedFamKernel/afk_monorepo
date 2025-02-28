@@ -1,5 +1,5 @@
-import {useMemo} from 'react';
-import {Dimensions, Platform, useWindowDimensions as useRNWindowDimensions} from 'react-native';
+import { useMemo } from 'react';
+import { Dimensions, Platform, useWindowDimensions as useRNWindowDimensions } from 'react-native';
 
 export const useWindowDimensions = () => {
   const dimensions = useRNWindowDimensions();
@@ -12,17 +12,23 @@ export const useWindowDimensions = () => {
 };
 
 export const useDimensions = () => {
-  // const [dimension, setDimension] = useState()
+  const window = Dimensions.get('window');
+
   const width = useMemo(() => {
-    return Dimensions.get('window').width;
-  }, [Dimensions.get('window').width]);
+    return window.width;
+  }, [window.width]);
 
   const isDesktop = useMemo(() => {
-    return width >= 1024 ? true : false;
+    return width >= 1024;
+  }, [width]);
+
+  const isMobile = useMemo(() => {
+    return width < 768; // Common breakpoint for mobile
   }, [width]);
 
   return {
     width,
     isDesktop,
+    isMobile,
   };
 };

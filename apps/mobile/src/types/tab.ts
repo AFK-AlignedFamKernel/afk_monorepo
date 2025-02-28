@@ -6,6 +6,7 @@ export enum SelectedTab {
   CREATE_NOTE,
   CREATE_CHANNEL,
   CREATE_TOKEN,
+  DAO_OVERVIEW,
   LAUNCH_TOKEN,
   LAUNCH_TOKEN_UNRUGGABLE,
   VIEW_KEYS_MARKETPLACE,
@@ -19,7 +20,7 @@ export enum SelectedTab {
   LAUNCH_HOLDERS,
   LAUNCH_TX,
   LIGHTNING_NETWORK_WALLET,
-  GROUP,  
+  GROUP,
   ALL_GROUP,
   GROUP_MESSAGE,
   PIXEL_PEACE,
@@ -59,7 +60,7 @@ export enum SelectedTab {
   DAO_COMMUNITY = 'DAO_COMMUNITY',
 }
 
-export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -88,7 +89,7 @@ export const TABS_TIP_LIST: {screen?: string; title: string; tab: SelectedTab}[]
   // },
 ];
 
-export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Tips',
     screen: 'Tips',
@@ -107,7 +108,7 @@ export const TABS_LIST: {screen?: string; title: string; tab: SelectedTab}[] = [
   // },
 ];
 
-export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_LIST_SEARCH: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Notes',
     screen: 'Feed',
@@ -132,7 +133,7 @@ export const TABS_LIST_SEARCH: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Notes',
     screen: 'PostCreate',
@@ -162,7 +163,12 @@ export const TABS_FORM_CREATE: {screen?: string; title: string; tab: SelectedTab
   // },
 ];
 
-export const TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab}[] = [
+export const TABS_MENU: {
+  screen?: string;
+  title: string;
+  description: string;
+  tab: SelectedTab;
+}[] = [
   {
     title: 'Pump',
     description: 'Launch your token to be trade and pumped',
@@ -228,7 +234,7 @@ export const TABS_MENU: {screen?: string; title: string;  description: string; t
   // },
 ];
 
-export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_DEFI: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -268,7 +274,7 @@ export const TABS_DEFI: {screen?: string; title: string; tab: SelectedTab}[] = [
   // },
 ];
 
-export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_LAUNCH: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Overview',
     screen: 'overview',
@@ -307,7 +313,7 @@ export const TABS_LAUNCH: {screen?: string; title: string; tab: SelectedTab}[] =
   },
 ];
 
-export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_CASHU: { screen?: string; title: string; tab: SelectedTab }[] = [
   // {
   //   title: 'General',
   //   screen: 'General',
@@ -335,7 +341,7 @@ export const TABS_CASHU: {screen?: string; title: string; tab: SelectedTab}[] = 
   },
 ];
 
-export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -380,7 +386,7 @@ export const TABS_WALLET: {screen?: string; title: string; tab: SelectedTab}[] =
   // },
 ];
 
-export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_WALLET_BTC: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Cashu',
     screen: 'Cashu',
@@ -393,7 +399,7 @@ export const TABS_WALLET_BTC: {screen?: string; title: string; tab: SelectedTab}
   },
 ];
 
-export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_ONBOARDING_WALLET: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Dynamic',
     screen: 'Dynamic',
@@ -411,7 +417,7 @@ export const TABS_ONBOARDING_WALLET: {screen?: string; title: string; tab: Selec
   },
 ];
 
-export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_NAMESERVICE: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Buy Name',
     screen: 'Buy',
@@ -429,7 +435,7 @@ export const TABS_NAMESERVICE: {screen?: string; title: string; tab: SelectedTab
   },
 ];
 
-export const TABS_CONSOLE: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_CONSOLE: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Pump',
     screen: 'Launchpad',
@@ -489,9 +495,7 @@ export const TABS_CONSOLE: {screen?: string; title: string; tab: SelectedTab}[] 
   // },
 ];
 
-
-export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[] = [
-
+export const TABS_COMMUNITY: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'All Group',
     screen: 'AllGroup',
@@ -520,7 +524,13 @@ export const TABS_COMMUNITY: {screen?: string; title: string; tab: SelectedTab}[
   // },
 ];
 
-export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: string; tab: SelectedTab, insideRouting?:string}[] = [
+export const CONSOLE_TABS_MENU: {
+  screen?: string;
+  title: string;
+  description: string;
+  tab: SelectedTab;
+  insideRouting?: string;
+}[] = [
   {
     title: 'Pump',
     description: 'Launch your token to be trade and pumped',
@@ -600,8 +610,7 @@ export const CONSOLE_TABS_MENU: {screen?: string; title: string;  description: s
   // },
 ];
 
-
-export const TABS_QUESTS: {screen?: string; title: string; tab: SelectedTab}[] = [
+export const TABS_QUESTS: { screen?: string; title: string; tab: SelectedTab }[] = [
   {
     title: 'Quest',
     screen: 'Quest',
@@ -616,5 +625,13 @@ export const TABS_QUESTS: {screen?: string; title: string; tab: SelectedTab}[] =
     title: 'Your Quests',
     screen: 'Owned',
     tab: SelectedTab.DYNAMIC_OWNED,
+  },
+];
+
+export const TABS_DAO: { screen?: string; title: string; tab: SelectedTab }[] = [
+  {
+    title: 'Overview',
+    screen: 'DAO',
+    tab: SelectedTab.DAO_OVERVIEW,
   },
 ];

@@ -5,8 +5,8 @@ import { decodeEvent, StarknetStream } from '@apibara/starknet';
 import { hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
-import { ABI as daoAAAbi } from './abi/daoAA.abi';
-import { ABI as daoFactoryAbi } from './abi/daoFactory.abi';
+import { ABI as daoAaABI } from './abi/daoAA.abi';
+import { ABI as daoFactoryABI } from './abi/daoFactory.abi';
 import {
   insertDaoCreation,
   insertProposal,
@@ -55,7 +55,7 @@ export default function (config: ApibaraRuntimeConfig) {
 
       const daoCreationData = events.map((event) => {
         const decodedEvent = decodeEvent({
-          abi: daoFactoryAbi,
+          abi: daoFactoryABI,
           event,
           eventName: 'afk::dao::dao_factory::DaoFactory::DaoAACreated',
         });
@@ -97,7 +97,7 @@ export default function (config: ApibaraRuntimeConfig) {
 
         if (event.keys[0] === PROPOSAL_CREATED) {
           const decodedEvent = decodeEvent({
-            abi: daoAAAbi,
+            abi: daoAaABI,
             event,
             eventName: 'afk::interfaces::voting::ProposalCreated',
           });
@@ -111,7 +111,7 @@ export default function (config: ApibaraRuntimeConfig) {
           });
         } else if (event.keys[0] === PROPOSAL_CANCELED) {
           const decodedEvent = decodeEvent({
-            abi: daoAAAbi,
+            abi: daoAaABI,
             event,
             eventName: 'afk::interfaces::voting::ProposalCanceled',
           });
@@ -123,7 +123,7 @@ export default function (config: ApibaraRuntimeConfig) {
           );
         } else if (event.keys[0] === PROPOSAL_RESOLVED) {
           const decodedEvent = decodeEvent({
-            abi: daoAAAbi,
+            abi: daoAaABI,
             event,
             eventName: 'afk::interfaces::voting::ProposalResolved',
           });
@@ -136,7 +136,7 @@ export default function (config: ApibaraRuntimeConfig) {
           );
         } else if (event.keys[0] === PROPOSAL_VOTED) {
           const decodedEvent = decodeEvent({
-            abi: daoAAAbi,
+            abi: daoAaABI,
             event,
             eventName: 'afk::interfaces::voting::ProposalVoted',
           });
