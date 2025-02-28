@@ -1,8 +1,6 @@
 
 use core::starknet::{ContractAddress};
 
-use core::starknet::Span;
-
 #[derive(Drop, Serde)]
 pub struct GameBounds {
     min_color_count: u32,
