@@ -9,7 +9,8 @@ import {
   argent,
   braavos,
 } from "@starknet-react/core";
-import { argentMobile, webWallet } from "starknetkit";
+import { ArgentMobileConnector } from "starknetkit/argentMobile";
+import { WebWalletConnector } from "starknetkit/webwallet";
 import ControllerConnector from "@cartridge/controller";
 import { SessionPolicies } from "@cartridge/controller";
 
@@ -109,7 +110,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     // Randomize the order of the connectors.
     order: "random"
   });
-  const mobileConnector = argentMobile.init({
+  const mobileConnector = ArgentMobileConnector.init({
     options: {
         dappName: "art/peace",
         url: typeof location !== "undefined" ? location.hostname : "localhost",
@@ -122,7 +123,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       autoConnect
       chains={[mainnet]}
       provider={provider}
-      connectors={[...connectors, mobileConnector, webWallet.init() ]}
+      connectors={[...connectors, mobileConnector, new WebWalletConnector() ]}
       explorer={starkscan}
     >
       {children}

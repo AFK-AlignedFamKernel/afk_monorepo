@@ -116,6 +116,8 @@
     "pbkdf2": "^3.1.2",
     "pixel_component": "workspace:*",
     "postcss": "^8.4.23",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.74.3",
@@ -158,12 +160,12 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-native": "^4.1.0",
+    "nativewind": "^4.1.23",
     "patch-package": "^8.0.0",
+    "postcss": "^8.4.23",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.3.3",
-    "typescript": "~5.3.3",
-    "nativewind": "^4.1.23",
-    "postcss": "^8.4.23"
+    "typescript": "~5.3.3"
   },
   "private": true
 }

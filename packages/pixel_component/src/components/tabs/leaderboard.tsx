@@ -192,7 +192,7 @@ export const LeaderboardTab = (props: any) => {
         setState={setLeaderboardPagination}
       />
       {selectedOption.name === "World Pxs" && (
-        <p className="Text__xsmall mx-[0.5rem] my-[1rem] truncate">Stats for world: {props.activeWorld.name}</p>
+        <p className="Text__xsmall mx-[0.5rem] my-[1rem] truncate">Stats for world: {props?.activeWorld?.name}</p>
       )}
     </BasicTab>
   );

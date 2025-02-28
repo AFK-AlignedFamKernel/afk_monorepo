@@ -1,6 +1,6 @@
-import React from 'react';
-
 'use client';
+
+import React from 'react';
 
 // Import from browser storage
 export let soundEffectVolume = typeof window !== "undefined" && window.localStorage.getItem("artPeaceSoundEffectVolume") ? parseFloat(window.localStorage.getItem("artPeaceSoundEffectVolume") as unknown as any) : 1;
