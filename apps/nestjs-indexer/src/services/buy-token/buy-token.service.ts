@@ -14,15 +14,11 @@ export class BuyTokenService {
     private readonly eventEmitter: EventEmitter2,
   ) {
     this.eventEmitter.on('candlestick.generate', async (data) => {
-      await this.candlestickService.generateCandles(
-        data.memecoinAddress,
-        data.interval,
-      );
+      await this.candlestickService.generateCandles(data.memecoinAddress);
     });
   }
 
   async create(data: BuyToken) {
-
     console.log('buy token data', data);
     try {
       await this.prismaService.$transaction(async (prisma) => {
@@ -34,15 +30,12 @@ export class BuyTokenService {
         let price = tokenLaunchRecord?.price ?? 0;
 
         const calculatedQuoteAmount = Number(data.quoteAmount);
-        const effectiveQuoteAmount =
-          calculatedQuoteAmount;
+        const effectiveQuoteAmount = calculatedQuoteAmount;
         // calculatedQuoteAmount - Number(data?.protocolFee);
-
 
         const calculatedLiquidityRaisedAmount = Number(data.quoteAmount);
         const effectiveLiquidityRaisedAmount =
           calculatedLiquidityRaisedAmount;
-        // calculatedLiquidityRaisedAmount - Number(data?.protocolFee);
         if (!tokenLaunchRecord) {
           this.logger.warn(
             `Record with memecoin address ${data.memecoinAddress} doesn't exist`,
@@ -101,10 +94,8 @@ export class BuyTokenService {
         //   price
         // ).toString();
 
-
         const marketCap = (
-          (Number(tokenLaunchRecord.total_supply ?? 0)) *
-          price
+          Number(tokenLaunchRecord.total_supply ?? 0) * price
         ).toString();
 
         console.log('price calculation', price);
