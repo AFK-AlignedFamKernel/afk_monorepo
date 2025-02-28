@@ -52,4 +52,28 @@ export default ThemedStyleSheet((theme: Theme) => ({
     backgroundColor: theme.colors.surface,
     paddingVertical: Spacing.small,
   },
+  intervalContainer: {
+    marginBottom: Spacing.normal,
+    alignItems: 'center',
+  },
+  intervalSelector: {
+    flexDirection: 'row',
+    marginTop: Spacing.small,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  intervalButton: {
+    paddingHorizontal: Spacing.small,
+    paddingVertical: Spacing.xxxsmall,
+    marginRight: Spacing.small,
+    marginBottom: Spacing.small,
+    borderRadius: 4,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  intervalButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
 }));
