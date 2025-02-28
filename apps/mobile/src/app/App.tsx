@@ -13,12 +13,14 @@ import {Router} from './Router';
 // import '../styles/index.css';
 // import '../styles/global.css';
 
+// import { withExpoSnack } from 'nativewind';
+
 SplashScreen.preventAutoHideAsync();
 
 // const StyledView = styled(View);
 
-// function App() {
-export default function App() {
+function App() {
+// export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
 
@@ -110,3 +112,4 @@ const styles = StyleSheet.create({
 });
 
 // export default withExpoSnack(App);
+export default App;

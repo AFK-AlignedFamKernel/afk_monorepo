@@ -15,7 +15,7 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "useUnknownInCatchVariables": false,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react",
@@ -23,7 +23,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
-    "module": "CommonJS",
+    "module": "ESNext",
     "paths": {
       "@/*": ["./src/*"]
     }

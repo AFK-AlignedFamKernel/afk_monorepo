@@ -9,8 +9,8 @@ import {
   argent,
   braavos,
 } from "@starknet-react/core";
-import { ArgentMobileConnector } from "starknetkit/dist/argentMobile";
-import { WebWalletConnector } from "starknetkit/dist/webwalletConnector";
+import { ArgentMobileConnector } from "starknetkit";
+import { WebWalletConnector } from "starknetkit";
 import ControllerConnector from "@cartridge/controller";
 import { SessionPolicies } from "@cartridge/controller";
 

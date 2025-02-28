@@ -39,7 +39,7 @@
         "../../packages/pixel_ui/src"
       ],
       "pixel_component": [
-        "../../packages/pixel_component/"
+        "../../packages/pixel_component/src"
       ]
     }
   },

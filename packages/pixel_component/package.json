@@ -32,7 +32,7 @@
     "dev": "next dev --turbopack",
     "prebuild": "rm -rf dist",
     "build": "pnpm run build:css && tsup src/index.ts src/native.ts --format esm,cjs --dts --external react --external react-dom --external react-native --external react-native-webview --external @cartridge/connector --external @cartridge/controller --external @starknet-react/chains --external @starknet-react/core --external starknet --external starknetkit && cp -r src/styles dist/",
-    "build:css": "NODE_ENV=production tailwindcss -i src/styles/index.css -o dist/styles/index.css --minify && NODE_ENV=production TAILWIND_MODE=native tailwindcss -i src/styles/index.css -o dist/styles/native.css --minify",
+    "build:css": "NODE_ENV=production tailwindcss -i src/styles/index.css -o dist/styles/index.css --minify",
     "prepare": "npm run build",
     "start": "next start",
     "lint": "next lint",
@@ -42,8 +42,6 @@
     "@cartridge/connector": "0.6.0",
     "@cartridge/controller": "0.6.0",
     "js-sha256": "^0.11.0",
-    "nativewind": "^4.1.23",
-    "pixel_component": "link:",
     "react-native-webview": "^13.6.4",
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.13.0"
@@ -57,7 +55,8 @@
     "react-router": "^7.1.5",
     "starknet": "6.11.0",
     "starknetkit": "^2.6.1",
-    "tailwindcss": "^3.4.1"
+    "nativewind": "^4.0.1",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
