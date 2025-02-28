@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://your_user:your_password@localhost:5433/your_database"
+  url      = env("BACKEND_DATABASE_URL")
 }
 
 model registration {
