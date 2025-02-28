@@ -28,11 +28,11 @@ interface ProposalVoteData {
 }
 
 export async function insertDaoCreation(daoCreationData: DaoCreationData[]) {
-  return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing().execute();
+  return await db.insert(daoCreation).values(daoCreationData).onConflictDoNothing().execute();
 }
 
 export async function insertProposal(proposalCreationData: ProposalCreationData) {
-  return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing().execute();
+  return await db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing().execute();
 }
 
 export async function updateProposalCancellation(
@@ -40,7 +40,7 @@ export async function updateProposalCancellation(
   creator: string,
   proposalId: bigint,
 ) {
-  return db
+  return await db
     .update(daoProposal)
     .set({ isCanceled: true })
     .where(
@@ -59,7 +59,7 @@ export async function updateProposalResult(
   proposalId: bigint,
   result: string,
 ) {
-  return db
+  return await db
     .update(daoProposal)
     .set({ result })
     .where(
@@ -73,7 +73,7 @@ export async function updateProposalResult(
 }
 
 export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
-  return db
+  return await db
     .insert(daoProposalVote)
     .values(proposalVoteData)
     .onConflictDoUpdate({

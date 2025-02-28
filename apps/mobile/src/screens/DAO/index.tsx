@@ -1,14 +1,15 @@
-import {useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, Text, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {TextButton} from '../../components';
-import {useStyles, useTheme} from '../../hooks';
-import { DAOScreenProps} from '../../types';
-import {SelectedTab, TABS_CONSOLE} from '../../types/tab';
-import stylesheet from './styles';
-import { DAOComponent } from '../../modules/DAO';
+import { useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export const DAOScreen: React.FC<DAOScreenProps> = ({navigation}) => {
+import { TextButton } from '../../components';
+import { useStyles, useTheme } from '../../hooks';
+import { DAOScreenProps } from '../../types';
+import { SelectedTab } from '../../types/tab';
+import { DAOComponent } from './DaoComponent';
+import stylesheet from './styles';
+
+export const DAOScreen: React.FC<DAOScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
@@ -28,7 +29,6 @@ export const DAOScreen: React.FC<DAOScreenProps> = ({navigation}) => {
         </TextButton>
       </SafeAreaView>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
-     
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.viewContent}>
           <ScrollView>
             <DAOComponent />

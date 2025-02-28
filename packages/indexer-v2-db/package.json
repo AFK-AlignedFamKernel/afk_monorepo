@@ -4,7 +4,9 @@
   "private": true,
   "exports": {
     ".": "./dist/index.js",
-    "./schema": "./dist/schema.js"
+    "./schema": "./dist/schema.js",
+    "./dist": "./dist/index.js",
+    "./dist/schema": "./dist/schema.js"
   },
   "scripts": {
     "build": "tsc",
