@@ -13,6 +13,7 @@ pub mod interfaces {
     pub mod quests;
     pub mod username_store;
     pub mod vault;
+    // pub mod multi_canvas_interface;
 }
 
 
@@ -39,6 +40,7 @@ pub mod pixel {
     pub mod art_peace;
     pub mod canvas;
     pub mod canvas_factory;
+    pub mod multi_canvas;
     // pub mod templates;
 // use art_peace::ArtPeace;
 
