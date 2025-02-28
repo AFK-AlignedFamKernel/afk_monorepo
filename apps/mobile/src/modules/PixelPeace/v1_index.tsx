@@ -5,9 +5,8 @@ import WebView from 'react-native-webview';
 import {useStyles} from '../../hooks';
 import {useIsDesktop} from '../../hooks/useIsDesktop';
 import stylesheet from './styles';
-import { AppPixelComponent } from 'pixel_component';
 
-export const PixelPeace: React.FC = () => {
+export const PixelPeaceV1: React.FC = () => {
   const styles = useStyles(stylesheet);
   const isDesktop = useIsDesktop();
 
@@ -16,11 +15,11 @@ export const PixelPeace: React.FC = () => {
       {Platform.OS == 'web' && (
         // && process.env.EXPO_PUBLIC_PIXEL_URL
         <>
-          <AppPixelComponent
-            // artPeaceAddress={ART_PEACE_ADDRESS['0x534e5f5345504f4c4941']}
+          {/* <AppRender
+            artPeaceAddress={ART_PEACE_ADDRESS['0x534e5f5345504f4c4941']}
             // nftCanvasAddress={}
-            // usernameAddress={USERNAME_STORE_ADDRESS['0x534e5f5345504f4c4941']}
-          ></AppPixelComponent>
+            usernameAddress={USERNAME_STORE_ADDRESS['0x534e5f5345504f4c4941']}
+          ></AppRender> */}
           <iframe
             src={process.env.EXPO_PUBLIC_PIXEL_URL}
             // height={isDesktop ? 750 : 550}

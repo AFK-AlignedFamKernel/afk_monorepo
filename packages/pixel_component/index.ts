@@ -1,2 +1,2 @@
 export  *  from "./src/components"
-export  *  from "./src/layout/page"
+export  *  from "./src/layout"

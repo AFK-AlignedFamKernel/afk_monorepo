@@ -1,0 +1,1 @@
+export { PixelInfoTab, } from "./pixel.tsx"   

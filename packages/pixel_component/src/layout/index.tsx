@@ -13,7 +13,7 @@ import Teaser from "../screens/teaser";
 
 import logo from '../../../public/logo/logo.png';
 
-function App() {
+export function AppPixelComponent() {
   usePreventZoom();
 
   const musicList = [
@@ -115,7 +115,7 @@ export default function Home() {
   return (
     <StrictMode>
       <StarknetProvider>
-        <App />
+        <AppPixelComponent />
       </StarknetProvider>
     </StrictMode>
   );

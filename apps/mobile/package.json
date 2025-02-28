@@ -137,7 +137,8 @@
     "text-encoding": "^0.7.0",
     "viem": "2.21.60",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "pixel_component": "workspace:*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
