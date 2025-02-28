@@ -1,4 +1,5 @@
 import '@walletconnect/react-native-compat';
+import { StyleSheet } from 'react-native';
 
 import {starknetChainId, useAccount} from '@starknet-react/core';
 import * as Font from 'expo-font';
@@ -9,11 +10,14 @@ import {View} from 'react-native';
 import {useTips} from '../hooks/api/indexer/useTips';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
-// import '../styles/ind  ex.css';
+// import '../styles/index.css';
 // import '../styles/global.css';
 
 SplashScreen.preventAutoHideAsync();
 
+// const StyledView = styled(View);
+
+// function App() {
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
@@ -92,8 +96,17 @@ export default function App() {
   if (!appIsReady) return null;
 
   return (
-    <View style={{flex: 1, flexDirection: 'row'}} onLayout={onLayoutRootView}>
+    <View style={styles.container} onLayout={onLayoutRootView}>
       <Router />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+});
+
+// export default withExpoSnack(App);

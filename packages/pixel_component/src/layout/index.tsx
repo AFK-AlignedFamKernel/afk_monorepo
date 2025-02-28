@@ -13,8 +13,8 @@ import Teaser from "../screens/teaser";
 
 import logo from '../../public/logo/logo.png';
 import React from 'react';
-import '../styles/index.css';
-import './globals.css';
+// import '../styles/index.css';
+// import './globals.css';
 
 export function AppPixelComponent() {
   usePreventZoom();

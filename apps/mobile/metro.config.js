@@ -1,4 +1,6 @@
 const {getDefaultConfig} = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+
 const path = require('path');
 
 const workspaceRoot = path.resolve(__dirname, '../..');
@@ -41,4 +43,10 @@ config.server = {
   pollingInterval: 1000,
 };
 
-module.exports = config;
+// module.exports = config;
+
+
+module.exports = withNativeWind(config, {
+  input: './global.css',
+  inlineRem: 16,
+});

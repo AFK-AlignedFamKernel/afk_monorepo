@@ -3,6 +3,7 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
@@ -14,4 +15,12 @@ module.exports = {
     },
   },
   plugins: [],
+  // Enable native support
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
+  // Important to handle both web and native
+  corePlugins: {
+    preflight: false,
+  }
 } 

@@ -12,7 +12,10 @@ import Canvas from "../screens/canvas";
 import Teaser from "../screens/teaser";
 
 import logo from '../../public/logo/logo.png';
+// import '../styles/index.css';
+// import '../layout/globals.css';
 
+import { HomeApp } from 'pixel_component';
 function App() {
   usePreventZoom();
 
@@ -113,6 +116,7 @@ function App() {
 
 export default function Home() {
   return (
+    // <HomeApp></HomeApp>
     <StrictMode>
       <StarknetProvider>
         <App />

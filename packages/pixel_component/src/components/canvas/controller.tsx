@@ -5,8 +5,8 @@ import React, { useState, useEffect, useRef, createRef } from "react";
 import { StencilCreationOverlay } from "./stencil-overlay";
 import { playShutter } from "../utils/sounds";
 import { Canva } from "./canvas";
-import '../styles/index.css';
-import '../layout/globals.css';
+import "../../styles/index.css";
+
 
 export const CanvasController = (props: any) => {
   const baseWorldX = process.env.NEXT_PUBLIC_WORLD_X as unknown as number || 528;

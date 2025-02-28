@@ -4,6 +4,7 @@ import { getCanvas, getCanvasColors } from "../../api/canvas";
 import { placePixelCall } from "../../contract/calls";
 import { playSoftClick, playPixelPlaced2 } from "../utils/sounds";
 import "./canvas.css";
+import "../../styles/index.css";
 export const Canva = (props: any) => {
   const { account } = useAccount();
   const [colors, setColors] = useState([] as string[]);
