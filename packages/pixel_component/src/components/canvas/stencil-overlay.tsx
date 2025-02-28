@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { playSoftClick2 } from '../utils/sounds';
 import { backendUrl } from '../../api/api';
 

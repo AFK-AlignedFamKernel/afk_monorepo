@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAccount } from '@starknet-react/core';
 import { lookupAddresses } from '@cartridge/controller';
 import { BasicTab } from "./basic";

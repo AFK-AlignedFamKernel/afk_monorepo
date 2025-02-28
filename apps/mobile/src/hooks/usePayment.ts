@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
 import {
+  EventMarker,
   ICashuInvoice,
   useAuth,
   useCreateSpendingEvent,
@@ -13,7 +14,6 @@ import {useCashuContext} from '../providers/CashuProvider';
 import {useToast} from './modals';
 import {useGetTokensByProofs} from './useGetTokensByProof';
 import {useProofsStorage, useTransactionsStorage, useWalletIdStorage} from './useStorageState';
-import { EventMarker } from '../../../../packages/afk_nostr_sdk/src/hooks/cashu/useCreateSpendingEvent';
 
 export const usePayment = () => {
   const {showToast} = useToast();

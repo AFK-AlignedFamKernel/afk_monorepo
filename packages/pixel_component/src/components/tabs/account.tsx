@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { constants } from "starknet";
 import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import ControllerConnector from "@cartridge/connector/controller";

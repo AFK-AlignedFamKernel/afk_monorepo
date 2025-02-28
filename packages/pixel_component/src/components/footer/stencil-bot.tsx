@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { playSoftClick, playSoftClick2 } from "../utils/sounds";
 import { getStencilPixelData } from "../../api/stencils";
 

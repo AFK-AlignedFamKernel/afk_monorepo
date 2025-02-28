@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { playSoftClick2 } from "../utils/sounds";
 import { promptKasar } from "../../api/agent";
 
@@ -44,6 +44,8 @@ export const AIController = (props: any) => {
     if (promptStatus.status === "loading" || promptStatus.status === "running") {
       const interval = setInterval(loader, 500);
       return () => clearInterval(interval);
+    } else {
+      return;
     }
   }, [promptStatus.status, loaderCount]);
 

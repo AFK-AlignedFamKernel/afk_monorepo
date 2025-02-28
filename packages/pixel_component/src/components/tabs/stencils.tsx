@@ -1,5 +1,5 @@
 import NextImg from "next/image";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { ExpandableTab } from "./expandable";
 import { StencilItem } from "../stencils/item";

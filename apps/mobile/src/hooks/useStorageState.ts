@@ -1,7 +1,7 @@
 // hooks/useStorageState.ts
 import {MeltQuoteResponse, Proof, Token} from '@cashu/cashu-ts';
 import {ICashuInvoice} from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {MintData} from 'afk_nostr_sdk';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Platform} from 'react-native';
 

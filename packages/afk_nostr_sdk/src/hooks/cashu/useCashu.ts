@@ -22,15 +22,7 @@ import {useMemo, useState} from 'react';
 import {useNostrContext} from '../../context';
 import {useAuth, useCashuStore} from '../../store';
 import { generateMnemonic } from 'bip39';
-
-export interface MintData {
-  url: string;
-  alias: string;
-  keys: MintActiveKeys;
-  keysets: MintAllKeysets;
-  info: GetInfoResponse;
-  units: string[];
-}
+import { MintData } from '../../types';
 
 export interface ICashu {
   wallet: CashuWallet;

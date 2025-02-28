@@ -5,8 +5,7 @@ import WebView from 'react-native-webview';
 import {useStyles} from '../../hooks';
 import {useIsDesktop} from '../../hooks/useIsDesktop';
 import stylesheet from './styles';
-import { AppPixelComponent } from 'pixel_component';
-
+import {AppPixelComponent} from 'pixel_component';
 export const PixelPeace: React.FC = () => {
   const styles = useStyles(stylesheet);
   const isDesktop = useIsDesktop();

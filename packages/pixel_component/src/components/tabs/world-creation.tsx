@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
 import { createCanvasCall } from "../../contract/calls";

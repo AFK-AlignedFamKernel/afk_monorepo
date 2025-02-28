@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useConnect, useAccount } from '@starknet-react/core'
 import ControllerConnector from "@cartridge/connector/controller";
 import { getCanvasColors } from "../../api/canvas";

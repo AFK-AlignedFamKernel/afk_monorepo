@@ -3,6 +3,7 @@ import { BasicTab } from "./basic";
 import check from "../../../public/icons/check.png";
 import "./world-creation.css";
 import { playSoftClick2 } from "../utils/sounds";
+import React from 'react';
 
 export const StagingPixelsTab = (props: any) => {
   // TODO: Style scrollbar better

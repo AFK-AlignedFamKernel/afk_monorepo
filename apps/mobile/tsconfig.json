@@ -18,6 +18,7 @@
     "noImplicitReturns": true,
     "useUnknownInCatchVariables": false,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "downlevelIteration": true,
@@ -28,7 +29,7 @@
       "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"],
       "common": ["../../packages/common/src"],
       "pixel_ui": ["../../packages/pixel_ui/src"],
-      "pixel_component": ["../../packages/pixel_component/src"],
+      "pixel_component": ["../../packages/pixel_component/"]
     },
   },
   "exclude": ["node_modules", "dist", "babel.config.js", "metro.config.js", "jest.config.js"],

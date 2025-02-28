@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GameController } from "./controller";
 import { playSoftClick2 } from "../utils/sounds";
 

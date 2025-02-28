@@ -4,7 +4,7 @@ import '../../../applyGlobalPolyfills';
 import { GetInfoResponse, MintQuoteResponse } from '@cashu/cashu-ts';
 import { Picker } from '@react-native-picker/picker';
 import { getProofs, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
-import { MintData } from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import { MintData } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';

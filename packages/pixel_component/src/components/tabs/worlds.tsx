@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { ExpandableTab } from "./expandable";
 import { backendUrl } from "../../api/api";

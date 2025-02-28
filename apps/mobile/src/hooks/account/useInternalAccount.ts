@@ -1,6 +1,6 @@
 import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {generateRandomKeypair} from 'afk_nostr_sdk/src/utils/keypair';
+import {generateRandomKeypair} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import {useState} from 'react';
 import {Platform} from 'react-native';

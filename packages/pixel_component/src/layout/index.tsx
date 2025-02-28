@@ -11,7 +11,8 @@ import { playSoftClick2, getMusicVolume } from '../components/utils/sounds';
 import Canvas from "../screens/canvas";
 import Teaser from "../screens/teaser";
 
-import logo from '../../../public/logo/logo.png';
+import logo from '../../public/logo/logo.png';
+import React from 'react';
 
 export function AppPixelComponent() {
   usePreventZoom();

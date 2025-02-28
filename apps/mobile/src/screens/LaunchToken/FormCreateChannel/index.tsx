@@ -2,7 +2,7 @@ import {useQueryClient} from '@tanstack/react-query';
 import {useCreateChannel, useProfile, useSettingsStore} from 'afk_nostr_sdk';
 // import { useAuth } from '../../../store/auth';
 import {useAuth} from 'afk_nostr_sdk';
-import {AFK_RELAYS} from 'afk_nostr_sdk/src/utils/relay';
+import {AFK_RELAYS} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import {Formik, FormikProps} from 'formik';

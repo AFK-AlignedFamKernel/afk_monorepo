@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { getCanvas, getCanvasColors } from "../../api/canvas";
 import { placePixelCall } from "../../contract/calls";
 import { playSoftClick, playPixelPlaced2 } from "../utils/sounds";
 import "./canvas.css";
-
 export const Canva = (props: any) => {
   const { account } = useAccount();
   const [colors, setColors] = useState([] as string[]);

@@ -5,7 +5,7 @@ import { sha256 } from "js-sha256";
 import { playSoftClick2 } from "../utils/sounds";
 import { addStencilData } from "../../api/stencils";
 import { addStencilCall } from "../../contract/calls";
-
+import React from "react";
 export const StencilCreationTab = (props: any) => {
   const { account } = useAccount();
 

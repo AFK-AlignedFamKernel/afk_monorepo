@@ -1,6 +1,7 @@
 export * from './src/context';
 export * from './src/hooks';
 export * from './src/store';
+export * from './src/index';
 
 // import { NostrContext } from "./context/NostrContext";
 // import { TanstackProvider } from "./context/TanstackProvider";

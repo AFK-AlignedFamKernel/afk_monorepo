@@ -1,5 +1,21 @@
-import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {GetInfoResponse, MintActiveKeys, MintAllKeysets, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
 import {NDKUserProfile} from '@nostr-dev-kit/ndk';
+/**
+ * NIP-60: https://nips.nostr.com/60
+ * Spending History Event: https://nips.nostr.com/60#spending-history-event
+ */
+
+export type EventMarker = 'destroyed' | 'created' | 'redeemed';
+
+export interface MintData {
+  url: string;
+  alias: string;
+  keys: MintActiveKeys;
+  keysets: MintAllKeysets;
+  info: GetInfoResponse;
+  units: string[];
+}
+
 
 export interface Contact extends NDKUserProfile {
   handle?: string;

@@ -2,15 +2,15 @@
   "name": "pixel_component",
   "version": "0.1.0",
   "private": false,
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "browser": "./dist/index.global.js",
+      "types": "./dist/index.d.ts"
     },
     "./components": {
       "types": "./dist/components/index.d.ts",
@@ -31,7 +31,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "prebuild": "rm -rf dist",
-    "build": "tsc && cp -r public dist/ && cp -r src/styles dist/",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "prepare": "npm run build",
     "start": "next start",
     "lint": "next lint",
@@ -61,6 +61,7 @@
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsup": "^8.0.2"
   }
 }

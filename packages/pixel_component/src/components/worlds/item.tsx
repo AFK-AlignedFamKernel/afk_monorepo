@@ -1,11 +1,10 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
 import FavoriteIcon from "../../../public/icons/Favorite.png";
 import FavoritedIcon from "../../../public/icons/Favorited.png";
 import Info from "../../../public/icons/Info.png";
-
 export const WorldItem = (props: any) => {
   const { address } = useAccount();
 

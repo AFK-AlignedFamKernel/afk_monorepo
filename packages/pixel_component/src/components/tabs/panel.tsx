@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { AccountTab } from './account';
 import { LeaderboardTab } from './leaderboard';

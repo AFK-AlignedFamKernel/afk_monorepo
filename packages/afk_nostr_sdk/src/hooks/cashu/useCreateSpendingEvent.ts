@@ -3,13 +3,8 @@ import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
+import { EventMarker } from '../../types';
 
-/**
- * NIP-60: https://nips.nostr.com/60
- * Spending History Event: https://nips.nostr.com/60#spending-history-event
- */
-
-export type EventMarker = 'destroyed' | 'created' | 'redeemed';
 
 interface CreateSpendingEventParams {
   walletId: string;

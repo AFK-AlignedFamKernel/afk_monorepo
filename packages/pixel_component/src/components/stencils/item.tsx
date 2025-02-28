@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
 import FavoriteIcon from "../../../public/icons/Favorite.png";
