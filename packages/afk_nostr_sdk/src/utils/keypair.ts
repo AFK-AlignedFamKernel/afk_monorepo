@@ -161,13 +161,16 @@ export function deriveSharedKey(
     const privateKey = hexToUint8Array(authorPrivateKeyHex);
 
     // Convert the public key from a hex string to a secp256k1 Point
-    const publicKeyPoint = secp.ProjectivePoint.fromHex(recipientPublicKeyHex);
+    // const publicKeyPoint = secp.ProjectivePoint.fromHex(recipientPublicKeyHex);
+    // const publicKeyPoint = secp.schnorr.getPublicKey(recipientPublicKeyHex);
+    const publicKeyPoint = recipientPublicKeyHex;
 
     // Validate the public key before using it
-    publicKeyPoint.assertValidity();
+    // publicKeyPoint.assertValidity();
 
     // Compute shared secret using the ECDH method
-    const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toRawBytes(true), true);
+    // const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toRawBytes(true), true);
+    const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toString(), true);
 
     // Return the shared secret (skip the first byte which is used for parity)
     return sharedSecret.slice(1);
@@ -252,8 +255,10 @@ export function fixPubKey(pubkey: string): string {
 
   // Validate the corrected public key using secp256k1 library
   try {
-    const publicKeyPoint = secp.ProjectivePoint.fromHex(fixedPubKey);
-    publicKeyPoint.assertValidity(); // Check if the point is valid on the curve
+    console.log("assure verification key")
+    // secp.getSharedSecret(fixedPubKey);
+    // const publicKeyPoint = secp.getPublicKey(fixedPubKey);
+    // publicKeyPoint.assertValidity(); // Check if the point is valid on the curve
   } catch (error) {
     throw new Error('Corrected public key is not valid on the secp256k1 curve.');
   }

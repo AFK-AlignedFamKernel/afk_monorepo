@@ -2,7 +2,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    position: 'relative',
+    // position: 'relative',
     flex: 1,
     backgroundColor: theme.colors.background,
   },
@@ -39,34 +39,6 @@ export default ThemedStyleSheet((theme) => ({
   storySeparator: {
     width: Spacing.medium,
   },
-  activeToggle: {
-    borderBottomWidth: 3,
-    padding: 2,
-    borderBottomColor: theme.colors.primary,
-  },
-  toggleButton: {
-    width: 'auto',
-    backgroundColor: theme.colors.background,
-    padding: 2,
-    borderRadius: 0,
-    height: 'auto',
-  },
-  toggleButtonText: {
-    color: theme.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: 'semibold',
-  },
-
-  actionToggle: {
-    flexDirection: 'row',
-    gap: Spacing.xsmall,
-    // marginBottom: Spacing.small,
-    height: '100%',
-    maxHeight: 70,
-    minHeight: 50,
-    marginLeft: 20
-  },
-
 
   // stories: {
   //   flex: 1,

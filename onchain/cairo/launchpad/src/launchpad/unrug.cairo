@@ -570,7 +570,7 @@ pub mod UnrugLiquidity {
 
                     let is_token1_quote = launch_params.quote_address == token1;
                     // let is_token1_quote = true;
-                    println!("is_token1_quote {:?}", is_token1_quote);
+                    // println!("is_token1_quote {:?}", is_token1_quote);
 
                     // TODO
                     // Check align ticks based on tick spacing and fee
@@ -578,8 +578,8 @@ pub mod UnrugLiquidity {
                     let tick_spacing = launch_params.pool_params.tick_spacing;
                     let min_tick = MIN_TICK_U128.try_into().unwrap();
                     let max_tick = MAX_TICK_U128.try_into().unwrap();
-                    println!("min_tick {}", min_tick.clone());
-                    println!("max_tick {}", max_tick.clone());
+                    // println!("min_tick {}", min_tick.clone());
+                    // println!("max_tick {}", max_tick.clone());
 
                     // Align the min and max ticks with the spacing
                     let starting_price = launch_params.pool_params.starting_price;
@@ -597,12 +597,12 @@ pub mod UnrugLiquidity {
 
                     let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
                         * tick_spacing.try_into().unwrap();
-                    println!("aligned_min_tick {}", aligned_min_tick.clone());
-                    println!("aligned_max_tick {}", aligned_max_tick.clone());
-                    println!("is_token1_quote {}", is_token1_quote);
-                    println!("bound_spacing {}", bound_spacing);
+                    // println!("aligned_min_tick {}", aligned_min_tick.clone());
+                    // println!("aligned_max_tick {}", aligned_max_tick.clone());
+                    // println!("is_token1_quote {}", is_token1_quote);
+                    // println!("bound_spacing {}", bound_spacing);
 
-                    println!("aligned_bound_spacing {}", aligned_bound_spacing.clone());
+                    // println!("aligned_bound_spacing {}", aligned_bound_spacing.clone());
 
                     // let aligned_min_tick = align_tick(MIN_TICK,
                     // launch_params.pool_params.tick_spacing);
@@ -1004,11 +1004,11 @@ pub mod UnrugLiquidity {
                     owner, recipient: positions.contract_address, amount: lp_quote_supply
                 );
 
-            println!("try mint and deposit");
+            // println!("try mint and deposit");
             // let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
             let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
 
-            println!("pool id {}", id.clone());
+            // println!("pool id {}", id.clone());
             id
         }
 

@@ -67,7 +67,7 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
         const isVisible = y >= 0 && y + height <= windowHeight;
 
         if (isVisible) {
-          videoRef.playAsync();
+          // videoRef.playAsync();
         } else {
           videoRef.pauseAsync();
           videoRef.setPositionAsync(0);
@@ -206,7 +206,7 @@ const NostrVideo = ({ item, shouldPlay }: { shouldPlay: boolean; item: NostrEven
             source={{ uri: videoURL }}
             style={styles.video}
             isLooping
-            shouldPlay={true}
+            shouldPlay={shouldPlay}
             resizeMode={ResizeMode.COVER}
             // useNativeControls={false}
             onPlaybackStatusUpdate={(status) => setStatus(() => status)}

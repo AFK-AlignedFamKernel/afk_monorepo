@@ -54,7 +54,12 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              {/* <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} /> */}
+              {eventData.recordingUrl || eventData.streamingUrl ? (
+                <ViewerVideoView playbackUrl={eventData.streamingUrl || ''} />
+              ) : (
+                <Text>No streaming URL found</Text>
+              )}
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>
@@ -79,7 +84,12 @@ export const ViewStreamModuleView: React.FC<ViewStreamGuest> = ({ route }) => {
         return (
           <>
             <View style={styles.videoContainer}>
-              <ViewerVideoView playbackUrl={eventData.recordingUrl || eventData.streamingUrl || ''} />
+
+              {eventData.recordingUrl || eventData?.streamingUrl ? (
+                <ViewerVideoView playbackUrl={eventData.recordingUrl || eventData?.streamingUrl || ''} />
+              ) : (
+                <Text>No recording URL found</Text>
+              )}
               <View style={styles.overlay}>
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>STREAM ENDED</Text>

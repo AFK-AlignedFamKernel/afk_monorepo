@@ -21,10 +21,10 @@ import { useSocketContext } from '../../context/SocketContext';
 // import {DatePicker} from '../../components/DateComponent';
 import { useNostrAuth, useStyles, useTheme } from '../../hooks';
 import { useToast } from '../../hooks/modals';
-import { StreamStudio } from '../../types';
+import { MainStackNavigationProps, StreamStudio } from '../../types';
 import styleSheet from './event.styles';
 import { useWebStream } from './stream/useWebStream';
-import { StudioModule } from './StudioModule';
+import { useNavigation } from '@react-navigation/native';
 
 type Event = {
   identifier: string;
@@ -43,9 +43,9 @@ type Event = {
   streamingUrl?: string;
 };
 
-export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) => {
+export const StudioModule: React.FC = () => {
   const { publicKey } = useAuth();
-  const { data, isFetching, refetch, isPending, isLoading } = useGetLiveEvents({
+  const { data, isFetching, refetch, isPending, isLoading, fetchNextPage } = useGetLiveEvents({
     limit: 10,
   });
 
@@ -57,6 +57,8 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
   const styles = useStyles(styleSheet);
 
   const [isModalVisible, setModalVisible] = useState(false);
+
+  const navigation = useNavigation<MainStackNavigationProps>();
 
   const handleNavigate = (id: string) => {
     navigation.navigate('WatchStream', { streamId: id });
@@ -98,8 +100,31 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
 
   return (
     <View style={styles.container}>
-      <StudioModule></StudioModule>
-      {/* <SafeAreaView style={styles.scrollContent}>
+      <SafeAreaView style={styles.scrollContent}>
+
+        {/* {data?.pages?.flat().length === 0 ?
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <Text style={styles.headerText}>Stream Studio Events</Text>
+              <RenderEmptyState
+                isVisible={isModalVisible}
+                handleModalOpen={() => setModalVisible(!isModalVisible)}
+                isEmpty={true}
+              />
+            </SafeAreaView>
+          </View> :
+          <View style={styles.container}>
+            <SafeAreaView style={styles.scrollContent}>
+              <Text style={styles.headerText}>Stream Studio Events</Text>
+              <RenderEmptyState
+                isVisible={isModalVisible}
+                handleModalOpen={() => setModalVisible(!isModalVisible)}
+                isEmpty={false}
+              />
+            </SafeAreaView>
+          </View>
+
+        } */}
 
 
         {
@@ -122,6 +147,14 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
           </View>
         }
 
+        {/* <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isVisible}
+          onRequestClose={() => handleModalOpen()}
+        >
+          <CreateEventModal handleModal={() => handleModalOpen()} />
+        </Modal> */}
         <Text style={styles.headerText}>Stream Studio Events</Text>
         <FlatList
           data={data?.pages.flat()}
@@ -137,7 +170,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
           )}
           keyExtractor={(item: any) => item.eventId}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => refetch()} />}
-        // onEndReached={() => fetchNextPage()}
+          onEndReached={() => fetchNextPage()}
         />
       </SafeAreaView>
 
@@ -152,7 +185,7 @@ export const StudioModuleView: React.FC<StreamStudio> = ({ navigation, route }) 
         onRequestClose={() => setModalVisible(false)}
       >
         <CreateEventModal handleModal={() => setModalVisible(false)} />
-      </Modal> */}
+      </Modal>
     </View>
   );
 };

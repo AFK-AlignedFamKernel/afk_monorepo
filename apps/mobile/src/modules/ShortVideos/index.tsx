@@ -1,6 +1,6 @@
 import { NostrEvent } from '@nostr-dev-kit/ndk';
 import { useGetVideos } from 'afk_nostr_sdk';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, RefreshControl, Text, View } from 'react-native';
 
 import { InfoIcon } from '../../assets/icons';
@@ -25,9 +25,20 @@ const ShortVideosModule = () => {
     videos?.data?.pages?.flat() as NostrEvent[],
   );
 
+  console.log("videosEventsState", videosEventsState)
+
   const videosEvents = useMemo(() => {
+    console.log("videosEvents", videos?.data?.pages?.flat())
+    // setVideosEvents(videos?.data?.pages?.flat() as NostrEvent[])
     return videos?.data?.pages?.flat() as NostrEvent[];
-  }, [videos?.data?.pages]);
+  }, [videos, videos?.data?.pages]);
+
+
+  useEffect(() => {
+    setVideosEvents(videos?.data?.pages?.flat() as NostrEvent[])
+  }, [videos?.data?.pages])
+
+  console.log("videosEvents", videosEvents)
 
   const fetchNostrEvents = async () => {
     // This mock should be replaced with actual implementation (hook integration to get videos)
@@ -53,10 +64,10 @@ const ShortVideosModule = () => {
 
       {videos?.isFetching && <ActivityIndicator />}
 
-      {videosEvents.length > 0 ? (
+      {videosEventsState.length > 0 ? (
         <FlatList
           style={styles.list}
-          data={videosEvents}
+          data={videosEventsState}
           renderItem={({ item, index }) => (
             <View style={[styles.videoContainer, { height: WINDOW_HEIGHT, width: WINDOW_WIDTH }]}>
               <NostrVideo item={item}
@@ -82,6 +93,7 @@ const ShortVideosModule = () => {
           getItemLayout={getItemLayout}
           viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
           onEndReached={() => {
+            console.log("loading more videos")
             videos?.fetchNextPage();
           }}
           refreshControl={
