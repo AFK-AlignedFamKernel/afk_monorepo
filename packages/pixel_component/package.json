@@ -2,66 +2,74 @@
   "name": "pixel_component",
   "version": "0.1.0",
   "private": false,
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/styles/index.css",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
       "require": "./dist/index.js",
-      "browser": "./dist/index.global.js",
-      "types": "./dist/index.d.ts"
+      "style": "./dist/styles/index.css"
     },
-    "./components": {
-      "types": "./dist/components/index.d.ts",
-      "import": "./dist/components/index.js",
-      "require": "./dist/components/index.js"
-    },
-    "./layout": {
-      "types": "./dist/layout/index.d.ts",
-      "import": "./dist/layout/index.js",
-      "require": "./dist/layout/index.js"
-    }
+    "./styles": "./dist/styles/index.css"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
-    "public"
+    "public",
+    "src/styles"
   ],
   "scripts": {
     "dev": "next dev --turbopack",
     "prebuild": "rm -rf dist",
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build": "pnpm run build:css && tsup src/index.ts --format esm,cjs --dts --external react --external react-dom --external @cartridge/connector --external @cartridge/controller --external @starknet-react/chains --external @starknet-react/core --external starknet --external starknetkit && cp -r src/styles dist/",
     "prepare": "npm run build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "build:css": "postcss src/styles/index.css -o dist/styles/index.css"
   },
   "dependencies": {
-    "@cartridge/connector": "^0.6.0",
-    "@cartridge/controller": "^0.6.0",
+    "@cartridge/connector": "0.6.0",
+    "@cartridge/controller": "0.6.0",
+    "js-sha256": "^0.11.0",
+    "react-transition-group": "^4.4.5",
+    "react-use-websocket": "^4.13.0"
+  },
+  "peerDependencies": {
     "@starknet-react/chains": "^3.1.2",
     "@starknet-react/core": "^3.7.2",
-    "js-sha256": "^0.11.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
     "react-router": "^7.1.5",
-    "react-transition-group": "^4.4.5",
-    "react-use-websocket": "^4.13.0",
-    "starknet": "^6.23.1",
-    "starknetkit": "^2.6.1"
+    "starknet": "6.11.0",
+    "starknetkit": "^2.6.1",
+    "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@starknet-react/chains": "^3.1.2",
+    "@starknet-react/core": "^3.7.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-transition-group": "^4.4.12",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.24",
+    "postcss-cli": "^10.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7.1.5",
+    "starknet": "6.11.0",
+    "starknetkit": "^2.6.1",
+    "tailwindcss": "^3.3.2",
+    "tsup": "^8.0.2",
     "typescript": "^5",
-    "tsup": "^8.0.2"
+    "autoprefixer": "^10.4.14"
   }
 }

@@ -9,6 +9,8 @@ import {View} from 'react-native';
 import {useTips} from '../hooks/api/indexer/useTips';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
+// import '../styles/ind  ex.css';
+// import '../styles/global.css';
 
 SplashScreen.preventAutoHideAsync();
 

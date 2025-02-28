@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
@@ -334,7 +333,7 @@ export const WorldCreationTab = (props: any) => {
                   value={newColor}
                   onChange={(e) => setNewColor(e.target.value)}
                 />
-                <Image
+                <img
                   src={plus}
                   alt="Add Color"
                   className="w-[2.5rem] h-[2.5rem] cursor-pointer

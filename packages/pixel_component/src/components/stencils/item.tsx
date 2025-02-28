@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
@@ -54,8 +53,8 @@ export const StencilItem = (props: any) => {
         border-2 border-[#00000030] rounded-lg shadow-md
         overflow-hidden cursor-pointer"
     >
-      <Image
-        loader={() => props.image}
+      <img
+        // loader={() => props.image}
         src={props.image}
         alt={`stencil-image-${props.stencil.stencilId}`}
         width={props.stencil.width}
@@ -68,7 +67,7 @@ export const StencilItem = (props: any) => {
           className={`${address ? "" : "Button--disabled"} Button__primary h-[3rem]`}
           onClick={handleFavoritePress}
         >
-          <Image
+          <img
             src={props.stencil.favorited ? FavoritedIcon : FavoriteIcon}
             alt="Favorite"
             width={24}

@@ -1,8 +1,7 @@
-import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { constants } from "starknet";
-import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
-import ControllerConnector from "@cartridge/connector/controller";
+import { Connector, useAccount, useConnect, useDisconnect } from '@starknet-react/core';
+import ControllerConnector from "@cartridge/controller";
 import { BasicTab } from "./basic";
 import { getLeaderboardPixelsUser, getLeaderboardWorldUser } from "../../api/stats";
 import copyIcon from "../../../public/icons/copy.png";
@@ -13,14 +12,14 @@ import { getSoundEffectVolume, setSoundEffectVolume, getMusicVolume, setMusicVol
 export const AccountTab = (props: any) => {
   const { address } = useAccount();
   const { connect, connector, connectors } = useConnect();
-  const controller = connectors[0] as ControllerConnector;
+  const controller = connectors[0] as unknown as Connector;
   const { disconnect } = useDisconnect();
 
   const [username, setUsername] = useState<string>();
   const [addressShort, setAddressShort] = useState<string>();
   useEffect(() => {
     if (!address) return;
-    const controller = connector as ControllerConnector;
+    const controller = connector as unknown as ControllerConnector;
     if (!controller.username) {
       setUsername("N/A");
     } else {
@@ -117,7 +116,7 @@ export const AccountTab = (props: any) => {
                 playSoftClick2();
                 copyToClipboard(address);
               }}>
-                <Image src={copyIcon} alt="Copy icon" />
+                <img src={copyIcon} alt="Copy icon" />
               </div>
             </div>
           </div>
@@ -180,7 +179,7 @@ export const AccountTab = (props: any) => {
             <div className="px-[0.5rem] ml-[0.5rem] mr-[1rem] flex flex-row align-center justify-around mt-[1rem]">
               <div className="flex flex-row align-center">
                 <p className="Text__medium pr-[1rem] my-auto">Sound FX</p>
-                <Image
+                <img
                   src={isFXMuted ? muteIcon : unmuteIcon}
                   alt="Mute icon"
                   onClick={() => {
@@ -194,7 +193,7 @@ export const AccountTab = (props: any) => {
               </div>
               <div className="flex flex-row align-center">
                 <p className="Text__medium pr-[1rem] my-auto">Music</p>
-                <Image
+                <img
                   src={isMusicMuted ? muteIcon : unmuteIcon}
                   alt="Mute icon"
                   onClick={() => {

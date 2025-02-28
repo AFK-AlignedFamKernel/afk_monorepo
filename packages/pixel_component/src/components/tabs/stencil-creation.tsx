@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
 import { sha256 } from "js-sha256";
@@ -50,7 +49,7 @@ export const StencilCreationTab = (props: any) => {
         <div>
           <div className="flex flex-col w-full">
             <div className="pt-[1rem] pb-[2rem] flex flex-col items-center justify-center gap-1">
-              <Image
+              <img
                 src={props.stencilImage.image}
                 width={props.stencilImage.width}
                 height={props.stencilImage.height}

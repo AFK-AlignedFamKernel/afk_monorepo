@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
@@ -31,7 +30,7 @@ export const WorldItem = (props: any) => {
     >
       <div className="relative w-full h-full">
         <div className="flex flex-col w-full h-full justify-center items-center p-0 m-0">
-          <Image
+          <img
             src={props.world.image}
             alt={`world-image-${props.world.worldId}`}
             className="w-full h-auto block object-contain m-0 p-0 Pixel__img"
@@ -48,7 +47,7 @@ export const WorldItem = (props: any) => {
                   ${props.world.favorited ? "bg-[rgba(255,64,61,0.5)] border-[1px solid rgba(rgba(255,64,61,0.8)]" : ""} ${!address ? "Button--disabled" : ""}`}
                   onClick={handleFavoritePress}
                 >
-                  <Image
+                  <img
                     className="p-0 m-0 w-[2rem] h-[2rem]"
                     src={props.world.favorited ? FavoritedIcon : FavoriteIcon}
                     alt="Favorite"
@@ -68,7 +67,7 @@ export const WorldItem = (props: any) => {
                       X
                     </p>
                   ) : (
-                    <Image
+                    <img
                       src={Info}
                       alt="Info"
                       style={{

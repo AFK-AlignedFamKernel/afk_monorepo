@@ -1,6 +1,7 @@
 'use client';
+"use dom";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useAccount } from '@starknet-react/core';
 import { CanvasController } from '../components/canvas/controller';
@@ -12,6 +13,8 @@ import { getWorlds, getHomeWorlds, getWorld } from "../api/worlds";
 import { getCanvasColors } from "../api/canvas";
 import { placePixelsCall } from "../contract/calls";
 import { playPixelPlaced2 } from "../components/utils/sounds";
+import '../styles/index.css';
+import '../layout/globals.css';
 
 const Canvas = (props: any) => {
   const { account } = useAccount();

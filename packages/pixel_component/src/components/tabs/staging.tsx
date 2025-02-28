@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { BasicTab } from "./basic";
 import check from "../../../public/icons/check.png";
 import "./world-creation.css";
@@ -35,7 +34,7 @@ export const StagingPixelsTab = (props: any) => {
             playSoftClick2();
             props.commitStagingPixels();
           }}>
-            <Image alt="submit" src={check} className="w-[1.6rem] h-[1.6rem]" width={16} height={16} />
+            <img alt="submit" src={check} className="w-[1.6rem] h-[1.6rem]" />
           </button>
           <button className="Button__circle Text__medium" onClick={() => {
             playSoftClick2();

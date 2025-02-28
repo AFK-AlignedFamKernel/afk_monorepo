@@ -1,7 +1,6 @@
-import Image from 'next/image';
 import React, { useEffect, useState } from "react";
-import { useConnect, useAccount } from '@starknet-react/core'
-import ControllerConnector from "@cartridge/connector/controller";
+import { useConnect, useAccount, Connector } from '@starknet-react/core'
+import ControllerConnector from "@cartridge/controller";
 import { getCanvasColors } from "../../api/canvas";
 import bot from "../../../public/icons/bot.png";
 import { AIController } from "./ai-agent";
@@ -11,7 +10,7 @@ import { playNotification, playSoftClick2 } from "../utils/sounds";
 export const GameController = (props: any) => {
   const { address } = useAccount();
   const { connect, connectors } = useConnect();
-  const controller = connectors[0] as ControllerConnector;
+  const controller = connectors[0] as unknown as ControllerConnector;
 
   const [controllerText, setControllerText] = useState("XX:XX");
   const [placementMode, setPlacementMode] = useState(false);
@@ -78,7 +77,7 @@ export const GameController = (props: any) => {
 
     if (!address) {
       try {
-        connect({ connector: controller });
+        await connect({ connector: controller as unknown as Connector });
       } catch (error) {
         console.log(error);
       }
@@ -238,7 +237,7 @@ export const GameController = (props: any) => {
             </div>
             </>
           )}
-          <Image
+          <img
             src={bot}
             alt="Bot"
             className="w-[2.6rem] h-[2.6rem] m-[2px]"

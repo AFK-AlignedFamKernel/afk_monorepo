@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+
 const Teaser = (props: any) => {
   return (
     <div className="relative">

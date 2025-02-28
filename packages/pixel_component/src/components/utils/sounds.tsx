@@ -1,3 +1,5 @@
+import React from 'react';
+
 'use client';
 
 // Import from browser storage

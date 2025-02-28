@@ -1,3 +1,4 @@
+import React from 'react';
 import { constants } from "starknet";
 import { sepolia, mainnet, Chain } from "@starknet-react/chains";
 import {
@@ -8,10 +9,9 @@ import {
   argent,
   braavos,
 } from "@starknet-react/core";
-import { ArgentMobileConnector } from "starknetkit/argentMobile"
-import { WebWalletConnector } from "starknetkit/webwallet"
-
-import ControllerConnector from "@cartridge/connector/controller";
+import { ArgentMobileConnector } from "starknetkit/dist/argentMobile";
+import { WebWalletConnector } from "starknetkit/dist/webwalletConnector";
+import ControllerConnector from "@cartridge/controller";
 import { SessionPolicies } from "@cartridge/controller";
 
 export const CANVAS_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CANVAS_CONTRACT_ADDRESS || 
@@ -123,7 +123,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       autoConnect
       chains={[mainnet]}
       provider={provider}
-      connectors={[controllerConnector, ...connectors, mobileConnector, new WebWalletConnector()]}
+      connectors={[...connectors, mobileConnector, new WebWalletConnector() ]}
       explorer={starkscan}
     >
       {children}

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2017",
     "lib": ["dom", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -23,7 +23,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
-    "module": "ES6",
+    "module": "CommonJS",
     "paths": {
       "@/*": ["./src/*"]
     }

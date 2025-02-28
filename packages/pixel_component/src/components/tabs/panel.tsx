@@ -1,3 +1,5 @@
+"use dom";
+
 import React, { useRef } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { AccountTab } from './account';
@@ -8,6 +10,8 @@ import { StencilCreationTab } from './stencil-creation';
 import { WorldCreationTab } from './world-creation';
 import { PixelInfoTab } from './pixel';
 import { StagingPixelsTab } from './staging';
+import '../styles/index.css';
+import '../layout/globals.css';
 
 export const TabPanel = (props: any) => {
   const nodeRef = useRef(null);

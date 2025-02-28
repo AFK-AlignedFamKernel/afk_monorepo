@@ -1,3 +1,5 @@
+import React from 'react';
+
 export function PaginationView(props: any) {
   const hasMore = () => {
     if (!props.data || !props.data.length) {

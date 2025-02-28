@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { lookupAddresses } from '@cartridge/controller';
 import { useAccount } from '@starknet-react/core';
@@ -163,7 +162,7 @@ export const LeaderboardTab = (props: any) => {
             <div className="flex items-center">
               <div className="text-black text-md w-[min(3rem)] mr-4">{i + 1}</div>
               <div className="text-black text-md w-[max(25rem)] md:w-[max(22rem)] truncate">{useKeyNames ? keyNameMap[stat.key] : stat.key}</div>
-              <Image src={copyIcon} alt="copy" width={16} height={16} onClick={() => {
+              <img src={copyIcon} alt="copy" width={16} height={16} onClick={() => {
                 playSoftClick2();
                 copyToClipboard(useKeyNames ? "0x" + stat.key : stat.key);
               }}
