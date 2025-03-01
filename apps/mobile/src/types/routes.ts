@@ -95,7 +95,7 @@ export type MainStackParams = {
   RecordedStream: { streamId: string; recordingUrl?: string };
   DAO: undefined;
   DAOPage: { daoAddress: string };
-  Pixel:undefined;
+  // Pixel:undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -134,7 +134,7 @@ export type HomeBottomStackParams = {
   Community: undefined;
   DAO: undefined;
   DAOPage: { daoAddress: string };
-  Pixel:undefined;
+  // Pixel:undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;

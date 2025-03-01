@@ -65,7 +65,7 @@ import { TagsView } from '../screens/Tags';
 import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
-import { PixelScreen } from '../screens/Pixel';
+// import { PixelScreen } from '../screens/Pixel';
 import { ThemedStyleSheet } from '../styles';
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
