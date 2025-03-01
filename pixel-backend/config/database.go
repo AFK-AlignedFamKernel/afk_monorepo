@@ -1,13 +1,15 @@
 package config
 
 import (
-	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
 )
 
 type RedisConfig struct {
-	Host string `json:"host"`
-	Port int    `json:"port"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Password string `json:"password"`
 }
 
 type PostgresConfig struct {
@@ -24,8 +26,9 @@ type DatabaseConfig struct {
 
 var DefaultDatabaseConfig = DatabaseConfig{
 	Redis: RedisConfig{
-		Host: "localhost",
-		Port: 6379,
+		Host:     "localhost",
+		Port:     6379,
+		Password: "password",
 	},
 	Postgres: PostgresConfig{
 		Host:     "localhost",
@@ -35,21 +38,51 @@ var DefaultDatabaseConfig = DatabaseConfig{
 	},
 }
 
-var DefaultDatabaseConfigPath = "./configs/database.config.json"
+// var DefaultDatabaseConfigPath = "./configs/database.config.json"
 
-func LoadDatabaseConfig(databaseConfigPath string) (*DatabaseConfig, error) {
-	file, err := os.Open(databaseConfigPath)
+// func LoadDatabaseConfig(databaseConfigPath string) (*DatabaseConfig, error) {
+func LoadDatabaseConfig() (*DatabaseConfig, error) {
+	
+	fmt.Println("REDIS_PORT:", os.Getenv("REDIS_PORT"))
+	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
+	
+	fmt.Println("Redis port:", redisPort)
 	if err != nil {
-		return nil, err
+		// return nil, fmt.Errorf("invalid REDIS_PORT: %v", err)
+		return nil, fmt.Errorf("invalid REDIS_PORT: %v", err)
 	}
-	defer file.Close()
 
-	decoder := json.NewDecoder(file)
-	config := DatabaseConfig{}
-	err = decoder.Decode(&config)
+	postgresPort, err := strconv.Atoi(os.Getenv("POSTGRES_PORT"))
+	fmt.Println("Postgres port:", postgresPort)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid POSTGRES_PORT: %v", err)
 	}
+
+	config := DatabaseConfig{
+		Redis: RedisConfig{
+			Host:     os.Getenv("REDIS_HOST"),
+			Port:     redisPort,
+			Password: os.Getenv("REDIS_PASSWORD"),
+		},
+		Postgres: PostgresConfig{
+			Host:     os.Getenv("POSTGRES_HOST"),
+			Port:     postgresPort,
+			User:     os.Getenv("POSTGRES_USER"),
+			Database: os.Getenv("POSTGRES_DATABASE"),
+		},
+	}
+	// file, err := os.Open(databaseConfigPath)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer file.Close()
+
+	// decoder := json.NewDecoder(file)
+	// config := DatabaseConfig{}
+	// err = decoder.Decode(&config)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &config, nil
 }

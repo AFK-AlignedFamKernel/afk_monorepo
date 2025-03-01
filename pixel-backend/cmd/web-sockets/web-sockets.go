@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-
+	"github.com/joho/godotenv"
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/config"
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes"
@@ -20,6 +20,8 @@ func isFlagSet(name string) bool {
 }
 
 func main() {
+	err := godotenv.Load()
+
 	roundsConfigFilename := flag.String("rounds-config", config.DefaultRoundsConfigPath, "Rounds config file")
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
 	databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
@@ -38,7 +40,8 @@ func main() {
 		panic(err)
 	}
 
-	databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	// databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	databaseConfig, err := config.LoadDatabaseConfig()
 	if err != nil {
 		panic(err)
 	}
