@@ -1,9 +1,6 @@
-// "use dom";
-
 import React from 'react';
 import {Platform, View} from 'react-native';
 import WebView from 'react-native-webview';
-
 import {useStyles} from '../../hooks';
 import {useIsDesktop} from '../../hooks/useIsDesktop';
 import stylesheet from './styles';

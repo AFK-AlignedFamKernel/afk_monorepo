@@ -1,5 +1,3 @@
-// "use dom";
-
 import React, { useRef } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { AccountTab } from './account';

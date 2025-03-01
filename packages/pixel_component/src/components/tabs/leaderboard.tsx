@@ -1,5 +1,3 @@
-// "use dom";
-
 import React, { useState, useEffect } from "react";
 import { lookupAddresses } from '@cartridge/controller';
 import { useAccount } from '@starknet-react/core';

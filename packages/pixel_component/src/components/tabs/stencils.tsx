@@ -1,6 +1,3 @@
-// "use dom";
-// import "../../styles/index.css";
-
 import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { ExpandableTab } from "./expandable";
