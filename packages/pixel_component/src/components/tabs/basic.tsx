@@ -1,6 +1,5 @@
 // "use dom";
-
-import "../../styles/index.css";
+// import "../../styles/index.css";
 
 import React from "react";
 import { playSoftClick2 } from "../utils/sounds";
