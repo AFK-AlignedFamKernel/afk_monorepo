@@ -59,6 +59,7 @@ export const getWorld = async (worldId: string): Promise<any> => {
   try {
     const getWorldEndpoint = `${backendUrl}/get-world?worldId=${worldId}`;
     const world = await fetchJsonData(getWorldEndpoint);
+    console.log("world getWorld", world);
     return world;
   } catch (error) {
     console.error("Error getting world", error);

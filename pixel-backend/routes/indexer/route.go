@@ -253,6 +253,7 @@ const (
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
+	fmt.Println("Received message", message)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
@@ -260,6 +261,11 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 
 	if len(message.Data.Batch) == 0 {
 		fmt.Println("No events in batch")
+		return
+	}
+
+	if len(message.Data.Batch[0].Events) != 1 {
+		fmt.Println("Expected 1 event in batch, got", len(message.Data.Batch[0].Events))
 		return
 	}
 

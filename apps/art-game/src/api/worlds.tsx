@@ -15,6 +15,7 @@ export const getNewWorlds = async (address: string, pageLength: number, page: nu
   try {
     const getNewWorldsEndpoint = `${backendUrl}/get-new-worlds?address=${address}&pageLength=${pageLength}&page=${page}`;
     const newWorlds = await fetchJsonData(getNewWorldsEndpoint);
+    console.log("newWorlds", newWorlds);
     return newWorlds;
   } catch (error) {
     console.error("Error getting new worlds", error);
@@ -26,6 +27,7 @@ export const getTopWorlds = async (address: string, pageLength: number, page: nu
   try {
     const getTopWorldsEndpoint = `${backendUrl}/get-top-worlds?address=${address}&pageLength=${pageLength}&page=${page}`;
     const topWorlds = await fetchJsonData(getTopWorldsEndpoint);
+    console.log("topWorlds", topWorlds);
     return topWorlds;
   } catch (error) {
     console.error("Error getting top worlds", error);
@@ -48,6 +50,7 @@ export const getWorlds = async (pageLength: number, page: number): Promise<any> 
   try {
     const getWorldsEndpoint = `${backendUrl}/get-worlds?pageLength=${pageLength}&page=${page}`;
     const worlds = await fetchJsonData(getWorldsEndpoint);
+    console.log("worlds", worlds);
     return worlds;
   } catch (error) {
     console.error("Error getting worlds", error);
@@ -81,6 +84,7 @@ export const getRoundsConfig = async (): Promise<any> => {
   try {
     const roundsConfigEndpoint = `${backendUrl}/get-rounds-config`;
     const roundsConfig = await fetchJsonData(roundsConfigEndpoint);
+    console.log("roundsConfig", roundsConfig);
     return roundsConfig;
   } catch (error) {
     console.error("Error getting rounds config", error);

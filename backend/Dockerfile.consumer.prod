@@ -43,6 +43,6 @@ ENV CONSUMER_PORT=${CONSUMER_PORT}
 # Build the app & run it
 RUN go build -o consumer ./cmd/consumer/consumer.go
 
-EXPOSE 8081
+EXPOSE 8082
 
 CMD ["./consumer"]

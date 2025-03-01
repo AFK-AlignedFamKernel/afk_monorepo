@@ -15,6 +15,7 @@ export const getLeaderboardWorlds = async (pageLength: number, page: number): Pr
   try {
     const getLeaderboardWorldsEndpoint = `${backendUrl}/leaderboard-worlds?pageLength=${pageLength}&page=${page}`;
     const worldLeaderboard = await fetchJsonData(getLeaderboardWorldsEndpoint);
+    console.log("worldLeaderboard", worldLeaderboard);
     return worldLeaderboard;
   } catch (error) {
     console.error("Error getting leaderboard worlds", error);

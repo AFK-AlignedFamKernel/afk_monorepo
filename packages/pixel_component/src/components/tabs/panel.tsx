@@ -47,11 +47,11 @@ export const TabPanel = (props: any) => {
         appear
       >
         <StencilCreationTab
-          x={props.selectedPixelX}
-          y={props.selectedPixelY}
-          canvasWidth={props.width}
-          worldId={props.worldId}
-          worldName={props.activeWorld ? props.activeWorld.name : ""}
+          x={props?.selectedPixelX}
+          y={props?.selectedPixelY}
+          canvasWidth={props?.width}
+          worldId={props?.worldId}
+          worldName={props?.activeWorld ? props?.activeWorld?.name : ""}
           endStencilCreation={props.endStencilCreation}
           stencilImage={props.stencilImage}
           stencilPosition={props.stencilPosition}

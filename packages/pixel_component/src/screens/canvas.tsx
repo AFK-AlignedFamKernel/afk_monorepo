@@ -32,6 +32,7 @@ const Canvas = (props: any) => {
   useEffect(() => {
     const fetchWorldData = async () => {
       const worlds = await getWorlds(13, 0);
+      console.log("worlds", worlds);
       // TODO: const worlds = await getHomeWorlds();
       // TODO: Once center can be a home world:
       //   const homeWorlds = worlds.filter((world) => world.worldId !== openedWorldId).slice(0, 12);
@@ -56,15 +57,27 @@ const Canvas = (props: any) => {
   }, []);
   useEffect(() => {
     const fetchWorldData = async () => {
+      console.log("fetchWorldData");
+      console.log("openedWorldId", openedWorldId);
       const world = await getWorld(openedWorldId.toString());
-      setActiveWorld(world);
-      setWorldWidth(world.width);
-      setTimeBetweenPlacements(world.timeBetweenPixels * 1000);
+      console.log("res world getWorld", world);
+      if(world) { 
+        setActiveWorld(world);
+        setWorldWidth(world?.width);
+        setTimeBetweenPlacements(world?.timeBetweenPixels * 1000);
+      } else {
+        setWorldWidth(540);
+        setTimeBetweenPlacements(secondsBetweenPlacements * 1000);
+      }
     };
 
     setStagingPixels([]);
     fetchWorldData();
-  }, [openedWorldId]);
+
+    if(!activeWorld) {
+      fetchWorldData();
+    }
+  }, [openedWorldId, activeWorld]);
   const [worldColors, setWorldColors] = useState([] as string[]);
   const [worldCanvasRef, setWorldCanvasRef] = useState<any>(null);
   useEffect(() => {
@@ -79,7 +92,7 @@ const Canvas = (props: any) => {
   const [lastPlacedTime, setLastPlacedTime] = useState<number>(0);
   const [basePixelTimer, setBasePixelTimer] = useState<string>("XX:XX")
   const [basePixelUp, setBasePixelUp] = useState<boolean>(false)
-  const [availablePixels, setAvailablePixels] = useState<number>(1)
+  const [availablePixels, setAvailablePixels] = useState<number>(0)
   const [availablePixelsUsed, setAvailablePixelsUsed] = useState<number>(0)
   const [stagingPixels, setStagingPixels] = useState<any[]>([]);
   useEffect(() => {

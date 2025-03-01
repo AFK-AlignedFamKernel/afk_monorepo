@@ -39,7 +39,7 @@ export function AppPixelComponent() {
       audio.loop = false;
       audio.volume = 0.25 * getMusicVolume();
       try {
-        await audio.play();
+        // await audio.play();
         setCurrentBackgroundSong(audio);
       } catch (e) {
         console.log("Failed to play audio", e);

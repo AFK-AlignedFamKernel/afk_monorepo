@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
@@ -99,6 +100,7 @@ func getWorldId(w http.ResponseWriter, r *http.Request) {
 }
 
 func getWorld(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("getWorld")
 	worldId := r.URL.Query().Get("worldId")
 	if worldId == "" {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Missing worldId")
@@ -130,6 +132,7 @@ func getWorld(w http.ResponseWriter, r *http.Request) {
       worlds.world_id = $2`
 
 	world, err := core.PostgresQueryOneJson[WorldData](query, address, worldId)
+	fmt.Println("world by worldId", world)
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve World")
 		return
@@ -139,6 +142,7 @@ func getWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func getWorlds(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("getWorlds")
 	address := r.URL.Query().Get("address")
 	if address == "" {
 		address = "0"
@@ -175,6 +179,7 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
         ORDER BY worlds.world_id DESC
         LIMIT $2 OFFSET $3`
 	worlds, err := core.PostgresQueryJson[WorldData](query, address, pageLength, offset)
+	fmt.Println("worlds", len(worlds))
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds")
 		return
