@@ -966,7 +966,7 @@ body {
   z-index: 100;
   right: 0;
   top: 0;
-  width: calc(100% - 1rem);
+  /* width: calc(100% - 1rem); */
   margin: 0.5rem;
   padding: 0;
   display: flex;
@@ -992,7 +992,7 @@ body {
     width: max(40rem, 25%);
   }
 } */
-
+/* 
 .Leader__tabs {
   display: flex;
   flex-direction: row;
@@ -1015,7 +1015,7 @@ body {
   width: 100%;
   margin: 0 auto;
   transition: all 500ms ease-in-out;
-}
+} */
 /* 
 @media (min-width: 640px) {
   .Stencils__modal {
