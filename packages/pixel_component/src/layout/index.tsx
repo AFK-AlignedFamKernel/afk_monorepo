@@ -1,5 +1,5 @@
 'use client';
-"use dom";
+// "use dom";
 
 import { StrictMode, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';

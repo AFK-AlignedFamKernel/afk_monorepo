@@ -974,7 +974,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-
+/* 
 @media (min-width: 768px) {
   .Modal__basic {
     width: max(40rem, 45%);
@@ -991,7 +991,7 @@ body {
   .Modal__basic {
     width: max(40rem, 25%);
   }
-}
+} */
 
 .Leader__tabs {
   display: flex;
@@ -1016,7 +1016,7 @@ body {
   margin: 0 auto;
   transition: all 500ms ease-in-out;
 }
-
+/* 
 @media (min-width: 640px) {
   .Stencils__modal {
     width: min(100%, 40rem);
@@ -1033,5 +1033,5 @@ body {
   .Stencils__modal {
     width: min(100%, 40rem);
   }
-}
+} */
 

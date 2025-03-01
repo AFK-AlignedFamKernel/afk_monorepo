@@ -1,4 +1,4 @@
-"use dom";
+// "use dom";
 
 import React from 'react';
 import {Platform, View} from 'react-native';

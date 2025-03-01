@@ -91,7 +91,7 @@ const controllerConnector = new ControllerConnector({
     { rpcUrl: SEPOLIA_RPC_URL },
     { rpcUrl: MAINNET_RPC_URL },
   ],
-  defaultChainId: constants.StarknetChainId.SN_MAIN,
+  defaultChainId: constants.StarknetChainId.SN_SEPOLIA,
 })
 
 // Configure RPC provider
@@ -111,15 +111,18 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
     recommended: [
+      controllerConnector as unknown as Connector,
       argent(),
       // argent(),
       braavos(),
-      controllerConnector as unknown as Connector,
     ],
     // Hide recommended connectors if the user has any connector installed.
-    includeRecommended: "onlyIfNoConnectors",
+    // includeRecommended: "onlyIfNoConnectors",
+    includeRecommended: 'always',
+
     // Randomize the order of the connectors.
-    order: "random"
+    order: 'alphabetical',
+    // order: "random"
   });
   const mobileConnector = ArgentMobileConnector.init({
     options: {
@@ -132,10 +135,11 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
   return (
     <StarknetConfig
       autoConnect
-      chains={[mainnet]}
+      chains={[mainnet, sepolia]}
       provider={provider}
-      connectors={[...connectors, mobileConnector, new WebWalletConnector(),
-        // controllerConnector as unknown as Connector
+      connectors={[
+        controllerConnector as unknown as Connector,
+        ...connectors, mobileConnector, new WebWalletConnector(),
       ]}
       explorer={starkscan}
     >
