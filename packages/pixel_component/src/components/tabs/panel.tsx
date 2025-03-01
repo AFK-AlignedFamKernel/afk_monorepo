@@ -1,5 +1,4 @@
 // "use dom";
-import '../../styles/index.css';
 
 import React, { useRef } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';

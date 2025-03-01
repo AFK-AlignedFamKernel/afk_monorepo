@@ -1,5 +1,5 @@
 // "use dom";
-import "../../styles/index.css";
+// import "../../styles/index.css";
 
 import React, { useState, useEffect } from "react";
 import { lookupAddresses } from '@cartridge/controller';
