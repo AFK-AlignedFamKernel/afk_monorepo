@@ -9,7 +9,7 @@ export const config = {
         // Canvas Created Event
         fromAddress: Deno.env.get("CANVAS_FACTORY_CONTRACT_ADDRESS"),
         keys: [
-          "0x0003fddf2e955d6c8fbd5ec6e98da32f7e9ebe7731b86b4ef7de342b165222e0"
+          "0x3fddf2e955d6c8fbd5ec6e98da32f7e9ebe7731b86b4ef7de342b165222e0"
         ],
         includeReverted: false,
         includeTransaction: false,
