@@ -10,7 +10,7 @@ import {View} from 'react-native';
 import {useTips} from '../hooks/api/indexer/useTips';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
-// import '../styles/index.css';
+// import '../styles/index.css'; 
 // import '../styles/global.css';
 
 // import { withExpoSnack } from 'nativewind';
@@ -19,7 +19,7 @@ SplashScreen.preventAutoHideAsync();
 
 // const StyledView = styled(View);
 
-function App() {
+export default function App() {
 // export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
@@ -112,4 +112,4 @@ const styles = StyleSheet.create({
 });
 
 // export default withExpoSnack(App);
-export default App;
+// export default App;

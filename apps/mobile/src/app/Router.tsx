@@ -343,7 +343,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Community" component={Community} />
       <MainStack.Screen name="DAO" component={DAOScreen} />
       <MainStack.Screen name="DAOPage" component={DaoPage} />
-      <MainStack.Screen name="Pixel" component={PixelScreen} />
+      {/* <MainStack.Screen name="Pixel" component={PixelScreen} /> */}
     </MainStack.Navigator>
   );
 };

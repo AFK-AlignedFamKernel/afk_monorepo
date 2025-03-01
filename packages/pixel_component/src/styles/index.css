@@ -975,12 +975,6 @@ body {
   justify-content: center;
 }
 
-@media (min-width: 640px) {
-  .Modal__basic {
-    width: max(40rem, 70%);
-  }
-}
-
 @media (min-width: 768px) {
   .Modal__basic {
     width: max(40rem, 45%);
