@@ -8,17 +8,21 @@ import {
   useInjectedConnectors,
   argent,
   braavos,
+  Connector,
 } from "@starknet-react/core";
 import { ArgentMobileConnector } from "starknetkit/argentMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
 import ControllerConnector from "@cartridge/controller";
 import { SessionPolicies } from "@cartridge/controller";
 
-import { MULTI_CANVAS_ADDRESS } from "common";
+// import { MULTI_CANVAS_ADDRESS } from "common";
 
 // import { CANVAS_CONTRACT_ADDRESS } from "common";
-export const CANVAS_CONTRACT_ADDRESS =
-  MULTI_CANVAS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.NEXT_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
+// export const CANVAS_CONTRACT_ADDRESS =
+//   MULTI_CANVAS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.NEXT_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
+//   process.env.EXPO_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
+//   "0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b"
+export const CANVAS_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
   process.env.EXPO_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
   "0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b"
 
@@ -128,7 +132,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       autoConnect
       chains={[mainnet]}
       provider={provider}
-      connectors={[...connectors, mobileConnector, new WebWalletConnector()]}
+      connectors={[...connectors, mobileConnector, new WebWalletConnector(), controllerConnector as unknown as Connector]}
       explorer={starkscan}
     >
       {children}

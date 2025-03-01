@@ -1,5 +1,5 @@
-export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-export const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8083";
+export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:8080";
+export const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || process.env.EXPO_PUBLIC_WEBSOCKET_URL || "ws://localhost:8083";
 
 export const fetchJsonData = async (endpoint: string): Promise<any> => {
   try {
