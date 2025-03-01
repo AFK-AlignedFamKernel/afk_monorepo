@@ -6,6 +6,8 @@ CREATE TABLE Pixels (
   day integer NOT NULL,
   color integer NOT NULL,
   time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  metadata JSONB DEFAULT NULL,
+  shield JSONB DEFAULT NULL
 );
 CREATE INDEX pixels_address_index ON Pixels (address);
 CREATE INDEX pixels_position_index ON Pixels (position);
@@ -397,3 +399,9 @@ CREATE TABLE WorldsColors (
 );
 CREATE INDEX worldcolors_world_id_index ON WorldsColors (world_id);
 CREATE INDEX worldcolors_color_key_index ON WorldsColors (color_key);
+
+
+CREATE INDEX pixelShields_address_index ON PixelShields (address);
+CREATE INDEX pixelShields_position_index ON PixelShields (position);
+CREATE INDEX pixelShields_shield_type_index ON PixelShields (shield_type);
+CREATE INDEX pixelShields_placed_at_index ON PixelShields (placed_at);

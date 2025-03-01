@@ -5,7 +5,7 @@
     "dockerfilePath": "pixel-backend/indexer/Dockerfile.worlds.prod"
   },
   "deploy": {
-    "startCommand": "/nix/store/2l9p053ypiyh4i1r0b82ml4f1x0fy0sp-apibara-sink-webhook-0.6.0/bin/apibara-sink-webhook run --allow-env-from-env CONSUMER_TARGET_URL,APIBARA_STREAM_URL,PERSIST_TO_REDIS,INDEXER_ID,ART_PEACE_CONTRACT_ADDRESS,NFT_CONTRACT_ADDRESS,USERNAME_STORE_ADDRESS /indexer/script.js",
+    "startCommand": "/nix/store/2l9p053ypiyh4i1r0b82ml4f1x0fy0sp-apibara-sink-webhook-0.6.0/bin/apibara-sink-webhook run --allow-env-from-env CONSUMER_TARGET_URL,APIBARA_STREAM_URL,PERSIST_TO_REDIS,INDEXER_ID,ART_PEACE_CONTRACT_ADDRESS,NFT_CONTRACT_ADDRESS,USERNAME_STORE_ADDRESS /indexer/prod-worlds-script.js",
     "restartPolicyType": "ALWAYS"
   }
 }
