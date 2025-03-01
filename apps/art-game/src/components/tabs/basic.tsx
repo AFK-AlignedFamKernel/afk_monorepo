@@ -1,4 +1,4 @@
-"use dom";
+// "use dom";
 
 import "../styles/index.css";
 import { playSoftClick2 } from "../utils/sounds";

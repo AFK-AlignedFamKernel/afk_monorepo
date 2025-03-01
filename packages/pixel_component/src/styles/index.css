@@ -961,19 +961,19 @@ body {
 }
 
 
-.Modal__basic {
+/* .Modal__basic {
   position: fixed;
   z-index: 100;
   right: 0;
   top: 0;
-  /* width: calc(100% - 1rem); */
+  width: calc(100% - 1rem);
   margin: 0.5rem;
   padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
+} */
 /* 
 @media (min-width: 768px) {
   .Modal__basic {
