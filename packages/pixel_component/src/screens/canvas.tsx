@@ -1,5 +1,5 @@
 'use client';
-"use dom";
+// "use dom";
 
 import React, { useState, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
