@@ -1,3 +1,6 @@
+"use dom";
+import "../../styles/index.css";
+
 import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { ExpandableTab } from "./expandable";
@@ -21,7 +24,7 @@ const StencilsMainSection = (props: any) => {
 
   return (
     <div
-      className={`${props.expanded ? "relative w-[min(100%,40rem)] mx-auto my-0 transition-all duration-500 ease-in-out" : "relative w-full mx-auto my-0 transition-all duration-500 ease-in-out"}`}
+      className={`Stencils__modal ${props.expanded ? "relative w-[min(100%,40rem)] mx-auto my-0 transition-all duration-500 ease-in-out" : "relative w-full mx-auto my-0 transition-all duration-500 ease-in-out"}`}
     >
       <div className="flex flex-row justify-between items-between px-[0.5rem] mx-[0.5rem] w-[calc(100%-1rem) relative]">
         <div className="flex flex-row align-center absolute top-0 right-[1rem] z-[20]">

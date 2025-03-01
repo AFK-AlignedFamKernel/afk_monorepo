@@ -959,3 +959,85 @@ body {
 .Text__shadow--lg {
   text-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.6);
 }
+
+
+.Modal__basic {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  top: 0;
+  width: calc(100% - 1rem);
+  margin: 0.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .Modal__basic {
+    width: max(40rem, 70%);
+  }
+}
+
+@media (min-width: 768px) {
+  .Modal__basic {
+    width: max(40rem, 45%);
+  }
+}
+
+@media (min-width: 1024px) {
+  .Modal__basic {
+    width: max(40rem, 30%);
+  }
+}
+
+@media (min-width: 1280px) {
+  .Modal__basic {
+    width: max(40rem, 25%);
+  }
+}
+
+.Leader__tabs {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(0, 0, 0, 0.12);
+  padding: 3px;
+  border-radius: 1rem;
+  outline: 1px solid rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.Stencils__modal {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  transition: all 500ms ease-in-out;
+}
+
+@media (min-width: 640px) {
+  .Stencils__modal {
+    width: min(100%, 40rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .Stencils__modal {
+    width: min(100%, 40rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .Stencils__modal {
+    width: min(100%, 40rem);
+  }
+}
+
