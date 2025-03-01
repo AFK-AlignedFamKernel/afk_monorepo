@@ -10,9 +10,12 @@ COPY ./configs/prod-backend.config.json ./backend.config.json
 
 # Copy over the app
 WORKDIR /app
-COPY ./pixel-backend/go.mod ./pixel-backend/go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
-COPY ./pixel-backend .
+COPY ./ .
+# COPY ./pixel-backend/go.mod ./pixel-backend/go.sum ./
+# RUN go mod download
+# COPY ./pixel-backend/ .
 
 # Argument for Redis host and port
 ARG REDIS_HOST
