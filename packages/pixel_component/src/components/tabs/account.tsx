@@ -4,9 +4,12 @@ import { Connector, useAccount, useConnect, useDisconnect } from '@starknet-reac
 import ControllerConnector from "@cartridge/controller";
 import { BasicTab } from "./basic";
 import { getLeaderboardPixelsUser, getLeaderboardWorldUser } from "../../api/stats";
-import copyIcon from "../../../public/icons/copy.png";
-import muteIcon from "../../../public/icons/mute.png";
-import unmuteIcon from "../../../public/icons/unmute.png";
+// import copyIcon from "../../../public/icons/copy.png";
+// import muteIcon from "../../../public/icons/mute.png";
+// import unmuteIcon from "../../../public/icons/unmute.png";
+const copyIconSrc = "../../../public/icons/copy.png";
+const muteIconSrc = "../../../public/icons/mute.png";
+const unmuteIconSrc = "../../../public/icons/unmute.png";
 import { getSoundEffectVolume, setSoundEffectVolume, getMusicVolume, setMusicVolume, playSoftClick2 } from "../utils/sounds";
 
 export const AccountTab = (props: any) => {
@@ -116,7 +119,7 @@ export const AccountTab = (props: any) => {
                 playSoftClick2();
                 copyToClipboard(address);
               }}>
-                <img src={copyIcon} alt="Copy icon" />
+                <img src={copyIconSrc} alt="Copy icon" />
               </div>
             </div>
           </div>
@@ -180,7 +183,7 @@ export const AccountTab = (props: any) => {
               <div className="flex flex-row align-center">
                 <p className="Text__medium pr-[1rem] my-auto">Sound FX</p>
                 <img
-                  src={isFXMuted ? muteIcon : unmuteIcon}
+                  src={isFXMuted ? muteIconSrc : unmuteIconSrc}
                   alt="Mute icon"
                   onClick={() => {
                     playSoftClick2();
@@ -194,7 +197,7 @@ export const AccountTab = (props: any) => {
               <div className="flex flex-row align-center">
                 <p className="Text__medium pr-[1rem] my-auto">Music</p>
                 <img
-                  src={isMusicMuted ? muteIcon : unmuteIcon}
+                  src={isMusicMuted ? muteIconSrc : unmuteIconSrc}
                   alt="Mute icon"
                   onClick={() => {
                     playSoftClick2();

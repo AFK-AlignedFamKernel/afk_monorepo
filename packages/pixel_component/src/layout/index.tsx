@@ -11,7 +11,8 @@ import { playSoftClick2, getMusicVolume } from '../components/utils/sounds';
 import Canvas from "../screens/canvas";
 import Teaser from "../screens/teaser";
 
-import logo from '../../public/logo/logo.png';
+// import logo from '../../public/logo/logo.png';
+const logoSrc = "../../public/logo/logo.png";
 import React from 'react';
 import '../styles/index.css';
 import './globals.css';
@@ -88,7 +89,7 @@ export function AppPixelComponent() {
         <div className="w-[8rem] absolute top-0 left-0 m-2 cursor-pointer z-[20]">
           <div className="relative w-full h-full">
             <img
-              src={logo}
+              src={logoSrc}
               alt="logo"
               className="w-full h-full object-contain"
               onClick={() => {

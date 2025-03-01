@@ -16,7 +16,8 @@ import {
 } from "../../api/stencils";
 import { PaginationView } from "../utils/pagination";
 import { playSoftClick2 } from "../utils/sounds";
-import uploadIcon from "../../../public/icons/Share.png";
+// import uploadIcon from "../../../public/icons/Share.png";
+const uploadIconSrc = "../../../public/icons/Share.png";
 
 const StencilsMainSection = (props: any) => {
   const [uploadEnabled, _] = useState(false);
@@ -127,7 +128,7 @@ const StencilsMainSection = (props: any) => {
                 <p className="Text__xsmall pt-0 p-2">Max 128x128</p>
               </div>
               <img
-                src={uploadIcon}
+                src={uploadIconSrc}
                 alt="Upload"
                 width={24}
                 height={24}

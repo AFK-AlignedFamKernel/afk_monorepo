@@ -3,7 +3,8 @@ import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
 import { createCanvasCall } from "../../contract/calls";
 import { getRoundsConfig } from "../../api/worlds";
-import plus from "../../../public/icons/Edit.png";
+// import plus from "../../../public/icons/Edit.png";
+const plusSrc = "../../../public/icons/Edit.png";
 import "./world-creation.css";
 import { playSoftClick2 } from "../utils/sounds";
 
@@ -334,7 +335,7 @@ export const WorldCreationTab = (props: any) => {
                   onChange={(e) => setNewColor(e.target.value)}
                 />
                 <img
-                  src={plus}
+                  src={plusSrc}
                   alt="Add Color"
                   className="w-[2.5rem] h-[2.5rem] cursor-pointer
                     hover:scale-110 transform transition duration-300 ease-in-out
