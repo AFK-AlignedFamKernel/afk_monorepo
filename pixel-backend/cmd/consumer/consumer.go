@@ -38,7 +38,8 @@ func main() {
 		panic(err)
 	}
 
-	databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	// databaseConfig, err := config.LoadDatabaseConfig(*databaseConfigFilename)
+	databaseConfig, err := config.LoadDatabaseConfig()
 	if err != nil {
 		panic(err)
 	}
