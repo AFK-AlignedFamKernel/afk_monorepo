@@ -3,7 +3,7 @@ import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
 import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
-import {useCashuBalance} from 'afk_nostr_sdk/src/hooks/cashu';
+import {useCashuBalance} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';

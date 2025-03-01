@@ -95,6 +95,7 @@ export type MainStackParams = {
   RecordedStream: { streamId: string; recordingUrl?: string };
   DAO: undefined;
   DAOPage: { daoAddress: string };
+  Pixel:undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -133,6 +134,7 @@ export type HomeBottomStackParams = {
   Community: undefined;
   DAO: undefined;
   DAOPage: { daoAddress: string };
+  Pixel:undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -329,6 +331,11 @@ export type CashuWalletScreenProps = CompositeScreenProps<
 
 export type WalletScreenBTC = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'WalletBTC'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type PixelScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
   NativeStackScreenProps<RootStackParams>
 >;
 // export type TipsMainScreenProps = CompositeScreenProps<

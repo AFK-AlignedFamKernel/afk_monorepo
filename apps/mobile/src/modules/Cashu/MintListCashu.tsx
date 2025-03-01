@@ -8,7 +8,7 @@ import {
   useCashuStore,
   useNostrContext,
 } from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {MintData} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useEffect, useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';

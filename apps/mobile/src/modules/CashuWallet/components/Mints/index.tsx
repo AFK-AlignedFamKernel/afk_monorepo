@@ -3,7 +3,7 @@ import '../../../../../applyGlobalPolyfills';
 
 import {GetInfoResponse} from '@cashu/cashu-ts';
 import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {MintData} from 'afk_nostr_sdk';
 import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';

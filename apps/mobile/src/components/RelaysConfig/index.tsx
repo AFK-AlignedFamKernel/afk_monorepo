@@ -1,5 +1,5 @@
 import {useSettingsStore} from 'afk_nostr_sdk';
-import {AFK_RELAYS} from 'afk_nostr_sdk/src/utils/relay';
+import {AFK_RELAYS} from 'afk_nostr_sdk';
 import {useState} from 'react';
 import {ScrollView, View} from 'react-native';
 

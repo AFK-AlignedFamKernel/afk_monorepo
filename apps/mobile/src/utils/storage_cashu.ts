@@ -1,7 +1,7 @@
 import {MeltQuoteResponse, Proof, Token} from '@cashu/cashu-ts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ICashuInvoice} from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk/src/hooks/cashu/useCashu';
+import {MintData} from 'afk_nostr_sdk';
 import * as SecureStore from 'expo-secure-store';
 import {Platform} from 'react-native';
 
