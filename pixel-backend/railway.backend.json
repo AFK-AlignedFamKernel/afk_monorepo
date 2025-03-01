@@ -1,0 +1,11 @@
+{
+  "$schema": "https://backboard.railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "./backend/Dockerfile.backend.railway"
+  },
+  "deploy": {
+    "startCommand": "",
+    "restartPolicyType": "ALWAYS"
+  }
+}
