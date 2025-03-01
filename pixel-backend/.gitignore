@@ -1,0 +1,7 @@
+/indexer/indexer.env
+/indexer/.env
+
+/pixel.env
+/pixel/.env
+
+.env
