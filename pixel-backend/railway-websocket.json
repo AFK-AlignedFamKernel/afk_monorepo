@@ -2,7 +2,7 @@
   "$schema": "https://backboard.railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "./backend/Dockerfile.websocket.railway.prod"
+    "dockerfilePath": "./pixel-backend/Dockerfile.websocket.railway.prod"
   },
   "deploy": {
     "startCommand": "",
