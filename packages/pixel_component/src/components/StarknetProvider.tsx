@@ -14,8 +14,13 @@ import { WebWalletConnector } from "starknetkit/webwallet";
 import ControllerConnector from "@cartridge/controller";
 import { SessionPolicies } from "@cartridge/controller";
 
-export const CANVAS_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CANVAS_CONTRACT_ADDRESS || 
-"0x011195b78f3765b1b8cfe841363e60f2335adf67af2443364d4b15cf8dff60ac"
+import { MULTI_CANVAS_ADDRESS } from "common";
+
+// import { CANVAS_CONTRACT_ADDRESS } from "common";
+export const CANVAS_CONTRACT_ADDRESS =
+  MULTI_CANVAS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.NEXT_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
+  process.env.EXPO_PUBLIC_MULTI_CANVAS_CONTRACT_ADDRESS ||
+  "0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b"
 
 // Define session policies
 const policies: SessionPolicies = {
@@ -74,13 +79,13 @@ const policies: SessionPolicies = {
 
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://api.cartridge.gg/x/starknet/sepolia'
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || 'https://api.cartridge.gg/x/starknet/mainnet'
- 
+
 // Initialize the connector
 const controllerConnector = new ControllerConnector({
   policies,
   chains: [
-      { rpcUrl: SEPOLIA_RPC_URL },
-      { rpcUrl: MAINNET_RPC_URL },
+    { rpcUrl: SEPOLIA_RPC_URL },
+    { rpcUrl: MAINNET_RPC_URL },
   ],
   defaultChainId: constants.StarknetChainId.SN_MAIN,
 })
@@ -97,7 +102,7 @@ const provider = jsonRpcProvider({
     }
   },
 })
- 
+
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
@@ -112,18 +117,18 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
   });
   const mobileConnector = ArgentMobileConnector.init({
     options: {
-        dappName: "art/peace",
-        url: typeof location !== "undefined" ? location.hostname : "localhost",
-        chainId: "SN_MAIN" as any,
-        icons: [],
-      },
-    });
+      dappName: "art/peace",
+      url: typeof location !== "undefined" ? location.hostname : "localhost",
+      chainId: "SN_MAIN" as any,
+      icons: [],
+    },
+  });
   return (
     <StarknetConfig
       autoConnect
       chains={[mainnet]}
       provider={provider}
-      connectors={[...connectors, mobileConnector, new WebWalletConnector() ]}
+      connectors={[...connectors, mobileConnector, new WebWalletConnector()]}
       explorer={starkscan}
     >
       {children}

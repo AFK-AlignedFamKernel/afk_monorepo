@@ -32,6 +32,7 @@
     "dev": "next dev --turbopack",
     "prebuild": "rm -rf dist",
     "build": "pnpm run build:css && tsup src/index.ts src/native.ts --format esm,cjs --dts --external react --external react-dom --external react-native --external react-native-webview --external @cartridge/connector --external @cartridge/controller --external @starknet-react/chains --external @starknet-react/core --external starknet --external starknetkit && cp -r src/styles dist/",
+    "build:css_all": "NODE_ENV=production tailwindcss -i src/styles/index.css -o dist/styles/index.css --minify && NODE_ENV=production TAILWIND_MODE=native tailwindcss -i src/styles/index.css -o dist/styles/native.css --minify",
     "build:css": "NODE_ENV=production tailwindcss -i src/styles/index.css -o dist/styles/index.css --minify",
     "prepare": "npm run build",
     "start": "next start",
@@ -42,22 +43,28 @@
     "@cartridge/connector": "0.6.0",
     "@cartridge/controller": "0.6.0",
     "js-sha256": "^0.11.0",
+    "pixel_component": "link:",
     "react-native-webview": "^13.6.4",
     "react-transition-group": "^4.4.5",
-    "react-use-websocket": "^4.13.0"
+    "react-use-websocket": "^4.13.0",
+    "nativewind": "^4.1.23",
+    "common": "workspace:*"
+
   },
   "peerDependencies": {
     "@starknet-react/chains": "^3.1.2",
     "@starknet-react/core": "^3.7.2",
-    "nativewind": "^4.1.23",
-    "postcss": "^8.4.24",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
     "react-native": ">=0.71.0",
     "react-router": "^7.1.5",
     "starknet": "6.11.0",
     "starknetkit": "^2.6.1",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "nativewind": "^4.1.23",
+    "postcss": "^8.4.24"
+
+
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -72,8 +79,6 @@
     "eslint-config-next": "15.1.7",
     "postcss": "^8.4.24",
     "postcss-cli": "^10.1.0",
-    "postcss-import": "^16.1.0",
-    "postcss-nesting": "^13.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.1.5",
@@ -81,6 +86,9 @@
     "starknetkit": "^2.6.1",
     "tailwindcss": "^3.3.2",
     "tsup": "^8.0.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "nativewind": "^4.1.23"
+
+    
   }
 }

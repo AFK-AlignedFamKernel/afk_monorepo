@@ -52,10 +52,10 @@ func LoadDatabaseConfig() (*DatabaseConfig, error) {
 		return nil, fmt.Errorf("invalid REDIS_PORT: %v", err)
 	}
 
-	postgresPort, err := strconv.Atoi(os.Getenv("POSTGRES_PORT"))
+	postgresPort, err := strconv.Atoi(os.Getenv("PG_PORT"))
 	fmt.Println("Postgres port:", postgresPort)
 	if err != nil {
-		return nil, fmt.Errorf("invalid POSTGRES_PORT: %v", err)
+		return nil, fmt.Errorf("invalid PG_PORT: %v", err)
 	}
 
 	config := DatabaseConfig{
@@ -65,10 +65,10 @@ func LoadDatabaseConfig() (*DatabaseConfig, error) {
 			Password: os.Getenv("REDIS_PASSWORD"),
 		},
 		Postgres: PostgresConfig{
-			Host:     os.Getenv("POSTGRES_HOST"),
+			Host:     os.Getenv("PG_HOST"),
 			Port:     postgresPort,
 			User:     os.Getenv("POSTGRES_USER"),
-			Database: os.Getenv("POSTGRES_DATABASE"),
+			Database: os.Getenv("PG_DATABASE"),
 		},
 	}
 	// file, err := os.Open(databaseConfigPath)

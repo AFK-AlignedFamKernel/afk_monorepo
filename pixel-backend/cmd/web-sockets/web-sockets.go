@@ -24,7 +24,7 @@ func main() {
 
 	roundsConfigFilename := flag.String("rounds-config", config.DefaultRoundsConfigPath, "Rounds config file")
 	canvasConfigFilename := flag.String("canvas-config", config.DefaultCanvasConfigPath, "Canvas config file")
-	databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
+	// databaseConfigFilename := flag.String("database-config", config.DefaultDatabaseConfigPath, "Database config file")
 	backendConfigFilename := flag.String("backend-config", config.DefaultBackendConfigPath, "Backend config file")
 	production := flag.Bool("production", false, "Production mode")
 
