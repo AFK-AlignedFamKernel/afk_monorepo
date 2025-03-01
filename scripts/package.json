@@ -22,6 +22,7 @@
     "deploy:dao_factory": "ts-node ./deploy/dao_factory.ts",
     "deploy:quests_canva": "ts-node ./run/pixel/create_all_chain_faction.ts",
     "get_hash": "ts-node ./run/utils/get_hash.ts",
+    "deploy:multi_canvas": "ts-node ./deploy/multi_canvas.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"
