@@ -79,7 +79,7 @@ const Canvas = (props: any) => {
   const [lastPlacedTime, setLastPlacedTime] = useState<number>(0);
   const [basePixelTimer, setBasePixelTimer] = useState<string>("XX:XX")
   const [basePixelUp, setBasePixelUp] = useState<boolean>(false)
-  const [availablePixels, setAvailablePixels] = useState<number>(0)
+  const [availablePixels, setAvailablePixels] = useState<number>(1)
   const [availablePixelsUsed, setAvailablePixelsUsed] = useState<number>(0)
   const [stagingPixels, setStagingPixels] = useState<any[]>([]);
   useEffect(() => {
@@ -473,6 +473,7 @@ const Canvas = (props: any) => {
         setGameUpdate={setGameUpdate}
       />
       <Footer
+        enableController={true}
         basePixelTimer={basePixelTimer}
         availablePixels={availablePixels}
         availablePixelsUsed={availablePixelsUsed}

@@ -112,7 +112,9 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     // Show these connectors if the user has no connector installed.
     recommended: [
       argent(),
+      // argent(),
       braavos(),
+      controllerConnector as unknown as Connector,
     ],
     // Hide recommended connectors if the user has any connector installed.
     includeRecommended: "onlyIfNoConnectors",
@@ -132,7 +134,9 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       autoConnect
       chains={[mainnet]}
       provider={provider}
-      connectors={[...connectors, mobileConnector, new WebWalletConnector(), controllerConnector as unknown as Connector]}
+      connectors={[...connectors, mobileConnector, new WebWalletConnector(),
+        // controllerConnector as unknown as Connector
+      ]}
       explorer={starkscan}
     >
       {children}
