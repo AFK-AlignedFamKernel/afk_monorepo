@@ -334,10 +334,10 @@ export type WalletScreenBTC = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-export type PixelScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
-  NativeStackScreenProps<RootStackParams>
->;
+// export type PixelScreenProps = CompositeScreenProps<
+//   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
+//   NativeStackScreenProps<RootStackParams>
+// >;
 // export type TipsMainScreenProps = CompositeScreenProps<
 //   NativeStackScreenProps<MainStackParams, 'Tips'>,
 //   NativeStackScreenProps<RootStackParams>
