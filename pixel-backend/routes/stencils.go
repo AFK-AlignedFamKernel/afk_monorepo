@@ -29,7 +29,7 @@ func InitStencilsRoutes() {
 	http.HandleFunc("/add-stencil-img", addStencilImg)
 	http.HandleFunc("/add-stencil-data", addStencilData)
 	http.HandleFunc("/get-stencil-pixel-data", getStencilPixelData)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/add-stencil-devnet", addStencilDevnet)
 		http.HandleFunc("/remove-stencil-devnet", removeStencilDevnet)
 		http.HandleFunc("/favorite-stencil-devnet", favoriteStencilDevnet)
@@ -745,7 +745,7 @@ func addStencilDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.AddStencilDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.AddStencilDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "add_stencil", strconv.Itoa(worldId), hash, strconv.Itoa(width), strconv.Itoa(height), strconv.Itoa(position))
 	_, err = cmd.Output()
@@ -781,7 +781,7 @@ func removeStencilDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.RemoveStencilDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.RemoveStencilDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "remove_stencil", strconv.Itoa(worldId), strconv.Itoa(stencilId))
 	_, err = cmd.Output()
@@ -817,7 +817,7 @@ func favoriteStencilDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.FavoriteStencilDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.FavoriteStencilDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "favorite_stencil", strconv.Itoa(worldId), strconv.Itoa(stencilId))
 	_, err = cmd.Output()
@@ -853,7 +853,7 @@ func unfavoriteStencilDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.UnfavoriteStencilDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.UnfavoriteStencilDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "unfavorite_stencil", strconv.Itoa(worldId), strconv.Itoa(stencilId))
 	_, err = cmd.Output()

@@ -18,7 +18,7 @@ func getRoundsConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := core.ArtPeaceBackend.RoundsConfig
+	config := core.AFKBackend.RoundsConfig
 
 	// Marshal the config to JSON
 	configJson, err := json.Marshal(config)

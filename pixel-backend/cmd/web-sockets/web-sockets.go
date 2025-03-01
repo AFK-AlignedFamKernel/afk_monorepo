@@ -58,12 +58,12 @@ func main() {
 	databases := core.NewDatabases(databaseConfig)
 	defer databases.Close()
 
-	core.ArtPeaceBackend = core.NewBackend(databases, roundsConfig, canvasConfig, backendConfig, false)
+	core.AFKBackend = core.NewBackend(databases, roundsConfig, canvasConfig, backendConfig, false)
 
 	routes.InitBaseRoutes()
 	routes.InitWebsocketRoutes()
 	go routes.StartWebsocketServer()
 
-	fmt.Println("Starting websocket server on port", core.ArtPeaceBackend.BackendConfig.WsPort)
-	core.ArtPeaceBackend.Start(core.ArtPeaceBackend.BackendConfig.WsPort)
+	fmt.Println("Starting websocket server on port", core.AFKBackend.BackendConfig.WsPort)
+	core.AFKBackend.Start(core.AFKBackend.BackendConfig.WsPort)
 }

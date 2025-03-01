@@ -79,7 +79,7 @@ func (d *Databases) Close() {
 
 func PostgresQuery[RowType any](query string, args ...interface{}) ([]RowType, error) {
 	var result []RowType
-	err := pgxscan.Select(context.Background(), ArtPeaceBackend.Databases.Postgres, &result, query, args...)
+	err := pgxscan.Select(context.Background(), AFKBackend.Databases.Postgres, &result, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func PostgresQuery[RowType any](query string, args ...interface{}) ([]RowType, e
 
 func PostgresQueryOne[RowType any](query string, args ...interface{}) (*RowType, error) {
 	var result RowType
-	err := pgxscan.Get(context.Background(), ArtPeaceBackend.Databases.Postgres, &result, query, args...)
+	err := pgxscan.Get(context.Background(), AFKBackend.Databases.Postgres, &result, query, args...)
 	if err != nil {
 		return nil, err
 	}

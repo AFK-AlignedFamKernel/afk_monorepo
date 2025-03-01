@@ -45,7 +45,7 @@ func processStencilAddedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position) VALUES ($1, $2, $3, $4, $5, $6)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position) VALUES ($1, $2, $3, $4, $5, $6)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition)
 	if err != nil {
 		PrintIndexerError("processStencilAddedEvent", "Failed to insert into Stencils", canvasIdHex, stencilIdHex, hashHex, widthHex, heightHex, positionHex, err)
 		return
@@ -68,7 +68,7 @@ func revertStencilAddedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Stencils WHERE stencil_id = $1 AND world_id = $2", stencilId, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Stencils WHERE stencil_id = $1 AND world_id = $2", stencilId, canvasId)
 	if err != nil {
 		PrintIndexerError("revertStencilAddedEvent", "Failed to delete from Stencils", canvasIdHex, stencilIdHex, err)
 		return
@@ -91,7 +91,7 @@ func processStencilRemovedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Stencils WHERE stencil_id = $1 AND world_id = $2", stencilId, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Stencils WHERE stencil_id = $1 AND world_id = $2", stencilId, canvasId)
 	if err != nil {
 		PrintIndexerError("processStencilRemovedEvent", "Failed to delete from Stencils", canvasIdHex, stencilIdHex, err)
 		return
@@ -136,7 +136,7 @@ func revertStencilRemovedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position) VALUES ($1, $2, $3, $4, $5, $6)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position) VALUES ($1, $2, $3, $4, $5, $6)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition)
 	if err != nil {
 		PrintIndexerError("revertStencilRemovedEvent", "Failed to insert into Stencils", canvasIdHex, stencilIdHex, hashHex, widthHex, heightHex, positionHex, err)
 		return
@@ -160,7 +160,7 @@ func processStencilFavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO StencilFavorites (stencil_id, world_id, user_address) VALUES ($1, $2, $3)", stencilId, canvasId, userAddressHex)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO StencilFavorites (stencil_id, world_id, user_address) VALUES ($1, $2, $3)", stencilId, canvasId, userAddressHex)
 	if err != nil {
 		PrintIndexerError("processStencilFavoritedEvent", "Failed to insert into StencilFavorites", canvasIdHex, stencilIdHex, userAddressHex, err)
 		return
@@ -184,7 +184,7 @@ func revertStencilFavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM StencilFavorites WHERE stencil_id = $1 AND world_id = $2 AND user_address = $3", stencilId, canvasId, userAddressHex)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM StencilFavorites WHERE stencil_id = $1 AND world_id = $2 AND user_address = $3", stencilId, canvasId, userAddressHex)
 	if err != nil {
 		PrintIndexerError("revertStencilFavoritedEvent", "Failed to delete from StencilFavorites", canvasIdHex, stencilIdHex, userAddressHex, err)
 		return
@@ -208,7 +208,7 @@ func processStencilUnfavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM StencilFavorites WHERE stencil_id = $1 AND world_id = $2 AND user_address = $3", stencilId, canvasId, userAddressHex)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM StencilFavorites WHERE stencil_id = $1 AND world_id = $2 AND user_address = $3", stencilId, canvasId, userAddressHex)
 	if err != nil {
 		PrintIndexerError("processStencilUnfavoritedEvent", "Failed to delete from StencilFavorites", canvasIdHex, stencilIdHex, userAddressHex, err)
 		return
@@ -232,7 +232,7 @@ func revertStencilUnfavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO StencilFavorites (stencil_id, world_id, user_address) VALUES ($1, $2, $3)", stencilId, canvasId, userAddressHex)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO StencilFavorites (stencil_id, world_id, user_address) VALUES ($1, $2, $3)", stencilId, canvasId, userAddressHex)
 	if err != nil {
 		PrintIndexerError("revertStencilUnfavoritedEvent", "Failed to insert into StencilFavorites", canvasIdHex, stencilIdHex, userAddressHex, err)
 		return

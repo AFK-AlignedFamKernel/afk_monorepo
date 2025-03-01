@@ -36,7 +36,7 @@ func InitWorldsRoutes() {
 	http.HandleFunc("/leaderboard-pixels-world", getLeaderboardPixelsWorld)
 	http.HandleFunc("/leaderboard-pixels-user", getLeaderboardPixelsUser)
 	http.HandleFunc("/leaderboard-pixels-world-user", getLeaderboardPixelsWorldUser)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/create-canvas-devnet", createCanvasDevnet)
 		http.HandleFunc("/favorite-world-devnet", favoriteWorldDevnet)
 		http.HandleFunc("/unfavorite-world-devnet", unfavoriteWorldDevnet)
@@ -60,7 +60,7 @@ func getWorldCanvas(w http.ResponseWriter, r *http.Request) {
 	canvasName := "canvas-" + worldId
 
 	ctx := context.Background()
-	val, err := core.ArtPeaceBackend.Databases.Redis.Get(ctx, canvasName).Result()
+	val, err := core.AFKBackend.Databases.Redis.Get(ctx, canvasName).Result()
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get canvas")
 		return
@@ -189,7 +189,7 @@ func getHomeWorlds(w http.ResponseWriter, r *http.Request) {
 		address = "0"
 	}
 
-	roundConfig := core.ArtPeaceBackend.RoundsConfig.Round3
+	roundConfig := core.AFKBackend.RoundsConfig.Round3
 
 	query := `
         SELECT 
@@ -598,7 +598,7 @@ func createCanvasDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.CreateCanvasDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.CreateCanvasDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "create_canvas", host, name, uniqueName, strconv.Itoa(width), strconv.Itoa(height), strconv.Itoa(timer), strconv.Itoa(len(palette)), paletteInput, strconv.Itoa(startTime), strconv.Itoa(endTime))
@@ -625,7 +625,7 @@ func favoriteWorldDevnet(w http.ResponseWriter, r *http.Request) {
 
 	worldId := (*jsonBody)["worldId"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.FavoriteWorldDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.FavoriteWorldDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "favorite_canvas", worldId)
@@ -652,7 +652,7 @@ func unfavoriteWorldDevnet(w http.ResponseWriter, r *http.Request) {
 
 	worldId := (*jsonBody)["worldId"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.UnfavoriteWorldDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.UnfavoriteWorldDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "unfavorite_canvas", worldId)
@@ -714,7 +714,7 @@ func placeWorldPixelDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.PlaceWorldPixelDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.PlaceWorldPixelDevnet
 	contract := os.Getenv("CANVAS_FACTORY_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "place_pixel", strconv.Itoa(worldId), strconv.Itoa(position), strconv.Itoa(color), strconv.Itoa(timestamp))

@@ -28,7 +28,7 @@ func InitTemplateRoutes() {
 	http.HandleFunc("/add-template-img", addTemplateImg)
 	http.HandleFunc("/add-template-data", addTemplateData)
 	http.HandleFunc("/get-template-pixel-data", getTemplatePixelData)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		// http.HandleFunc("/add-template-devnet", addTemplateDevnet)
 		http.HandleFunc("/add-faction-template-devnet", addFactionTemplateDevnet)
 		http.HandleFunc("/remove-faction-template-devnet", removeFactionTemplateDevnet)
@@ -559,7 +559,7 @@ func addTemplateDevnet(w http.ResponseWriter, r *http.Request) {
 
 	rewardToken := (*jsonBody)["rewardToken"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.AddTemplateDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.AddTemplateDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "add_template", hash, nameHex, strconv.Itoa(position), strconv.Itoa(width), strconv.Itoa(height), strconv.Itoa(reward), rewardToken)
 	_, err = cmd.Output()
@@ -609,7 +609,7 @@ func addFactionTemplateDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.AddFactionTemplateDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.AddFactionTemplateDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "add_faction_template", strconv.Itoa(factionId), hash, strconv.Itoa(position), strconv.Itoa(width), strconv.Itoa(height))
 	_, err = cmd.Output()
@@ -639,7 +639,7 @@ func removeFactionTemplateDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.RemoveFactionTemplateDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.RemoveFactionTemplateDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "remove_faction_template", strconv.Itoa(templateId))
 	_, err = cmd.Output()
@@ -689,7 +689,7 @@ func addChainFactionTemplateDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.AddFactionTemplateDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.AddFactionTemplateDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "add_chain_faction_template", strconv.Itoa(factionId), hash, strconv.Itoa(position), strconv.Itoa(width), strconv.Itoa(height))
 	_, err = cmd.Output()
@@ -719,7 +719,7 @@ func removeChainFactionTemplateDevnet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.RemoveFactionTemplateDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.RemoveFactionTemplateDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 	cmd := exec.Command(shellCmd, contract, "remove_chain_faction_template", strconv.Itoa(templateId))
 	_, err = cmd.Output()

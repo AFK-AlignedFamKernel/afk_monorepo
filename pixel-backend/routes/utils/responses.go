@@ -12,7 +12,7 @@ import (
 )
 
 func SetupAccessHeaders(w http.ResponseWriter) {
-	config := core.ArtPeaceBackend.BackendConfig.Http
+	config := core.AFKBackend.BackendConfig.Http
 
 	// TODO: Process multiple origins in the future.
 	if len(config.AllowOrigin) > 0 {
@@ -66,20 +66,20 @@ func SendWebSocketMessage(message map[string]string) {
 		fmt.Println("Failed to marshal websocket message")
 		return
 	}
-	core.ArtPeaceBackend.WSConnectionsLock.Lock()
-	for idx, conn := range core.ArtPeaceBackend.WSConnections {
+	core.AFKBackend.WSConnectionsLock.Lock()
+	for idx, conn := range core.AFKBackend.WSConnections {
 		if err := conn.WriteMessage(websocket.TextMessage, messageBytes); err != nil {
 			fmt.Println(err)
 			// Remove problematic connection
 			conn.Close()
-			if idx < len(core.ArtPeaceBackend.WSConnections) {
-				core.ArtPeaceBackend.WSConnections = append(core.ArtPeaceBackend.WSConnections[:idx], core.ArtPeaceBackend.WSConnections[idx+1:]...)
+			if idx < len(core.AFKBackend.WSConnections) {
+				core.AFKBackend.WSConnections = append(core.AFKBackend.WSConnections[:idx], core.AFKBackend.WSConnections[idx+1:]...)
 			} else {
-				core.ArtPeaceBackend.WSConnections = core.ArtPeaceBackend.WSConnections[:idx]
+				core.AFKBackend.WSConnections = core.AFKBackend.WSConnections[:idx]
 			}
 		}
 	}
-	core.ArtPeaceBackend.WSConnectionsLock.Unlock()
+	core.AFKBackend.WSConnectionsLock.Unlock()
 }
 
 func SendWebSocketMessages(messages []map[string]string) {
@@ -88,24 +88,24 @@ func SendWebSocketMessages(messages []map[string]string) {
 		fmt.Println("Failed to marshal websocket message")
 		return
 	}
-	core.ArtPeaceBackend.WSConnectionsLock.Lock()
-	for idx, conn := range core.ArtPeaceBackend.WSConnections {
+	core.AFKBackend.WSConnectionsLock.Lock()
+	for idx, conn := range core.AFKBackend.WSConnections {
 		if err := conn.WriteMessage(websocket.TextMessage, messageBytes); err != nil {
 			fmt.Println(err)
 			// Remove problematic connection
 			conn.Close()
-			if idx < len(core.ArtPeaceBackend.WSConnections) {
-				core.ArtPeaceBackend.WSConnections = append(core.ArtPeaceBackend.WSConnections[:idx], core.ArtPeaceBackend.WSConnections[idx+1:]...)
+			if idx < len(core.AFKBackend.WSConnections) {
+				core.AFKBackend.WSConnections = append(core.AFKBackend.WSConnections[:idx], core.AFKBackend.WSConnections[idx+1:]...)
 			} else {
-				core.ArtPeaceBackend.WSConnections = core.ArtPeaceBackend.WSConnections[:idx]
+				core.AFKBackend.WSConnections = core.AFKBackend.WSConnections[:idx]
 			}
 		}
 	}
-	core.ArtPeaceBackend.WSConnectionsLock.Unlock()
+	core.AFKBackend.WSConnectionsLock.Unlock()
 }
 
 func SendMessageToWSS(message map[string]string) {
-	websocketHost := core.ArtPeaceBackend.BackendConfig.WsHost + ":" + strconv.Itoa(core.ArtPeaceBackend.BackendConfig.WsPort) + "/ws-msg"
+	websocketHost := core.AFKBackend.BackendConfig.WsHost + ":" + strconv.Itoa(core.AFKBackend.BackendConfig.WsPort) + "/ws-msg"
 	messageBytes, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Failed to marshal websocket message")

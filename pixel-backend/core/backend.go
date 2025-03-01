@@ -22,7 +22,8 @@ type Backend struct {
 	AdminMode bool
 }
 
-var ArtPeaceBackend *Backend
+// var AFKBackend *Backend
+var AFKBackend *Backend
 
 func NewBackend(databases *Databases, roundsConfig *config.RoundsConfig, canvasConfig *config.CanvasConfig, backendConfig *config.BackendConfig, adminMode bool) *Backend {
 	return &Backend{

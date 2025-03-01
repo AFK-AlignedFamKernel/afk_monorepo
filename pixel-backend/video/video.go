@@ -15,9 +15,9 @@ import (
 func GenerateImageFromCanvas(orderId int) {
 	ctx := context.Background()
 
-	colorWidth := core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
-	canvasWidth := int(core.ArtPeaceBackend.CanvasConfig.Canvas.Width)
-	canvasHeight := int(core.ArtPeaceBackend.CanvasConfig.Canvas.Height)
+	colorWidth := core.AFKBackend.CanvasConfig.ColorsBitWidth
+	canvasWidth := int(core.AFKBackend.CanvasConfig.Canvas.Width)
+	canvasHeight := int(core.AFKBackend.CanvasConfig.Canvas.Height)
 
 	// TODO: Make generic & initialize only once
 	colorPalette := make([]color.RGBA, 0)
@@ -41,14 +41,14 @@ func GenerateImageFromCanvas(orderId int) {
 		colorPalette = append(colorPalette, color.RGBA{uint8(r), uint8(g), uint8(b), 255})
 	}
 	generatedImage := image.NewRGBA(image.Rect(0, 0, canvasWidth, canvasHeight))
-	bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-	roundNumber := core.ArtPeaceBackend.CanvasConfig.Round
+	bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+	roundNumber := core.AFKBackend.CanvasConfig.Round
 	canvasKey := fmt.Sprintf("canvas-%s", roundNumber)
 	for y := 0; y < canvasHeight; y++ {
 		for x := 0; x < canvasWidth; x++ {
 			position := y*canvasWidth + x
 			pos := position * int(colorWidth)
-			val, err := core.ArtPeaceBackend.Databases.Redis.BitField(ctx, canvasKey, "GET", bitfieldType, pos).Result()
+			val, err := core.AFKBackend.Databases.Redis.BitField(ctx, canvasKey, "GET", bitfieldType, pos).Result()
 			if err != nil {
 				fmt.Println("Failed to get bitfield value. Error: ", err)
 				return

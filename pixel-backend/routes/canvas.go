@@ -20,11 +20,11 @@ func initCanvas(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roundNumber := core.ArtPeaceBackend.CanvasConfig.Round
+	roundNumber := core.AFKBackend.CanvasConfig.Round
 	canvasKey := fmt.Sprintf("canvas-%s", roundNumber)
 
-	if core.ArtPeaceBackend.Databases.Redis.Exists(context.Background(), canvasKey).Val() == 0 {
-		totalBitSize := core.ArtPeaceBackend.CanvasConfig.Canvas.Width * core.ArtPeaceBackend.CanvasConfig.Canvas.Height * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	if core.AFKBackend.Databases.Redis.Exists(context.Background(), canvasKey).Val() == 0 {
+		totalBitSize := core.AFKBackend.CanvasConfig.Canvas.Width * core.AFKBackend.CanvasConfig.Canvas.Height * core.AFKBackend.CanvasConfig.ColorsBitWidth
 		totalByteSize := (totalBitSize / 8)
 		if totalBitSize%8 != 0 {
 			// Round up to nearest byte
@@ -34,7 +34,7 @@ func initCanvas(w http.ResponseWriter, r *http.Request) {
 		// Create canvas
 		canvas := make([]byte, totalByteSize)
 		ctx := context.Background()
-		err := core.ArtPeaceBackend.Databases.Redis.Set(ctx, canvasKey, canvas, 0).Err()
+		err := core.AFKBackend.Databases.Redis.Set(ctx, canvasKey, canvas, 0).Err()
 		if err != nil {
 			routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to initialize canvas")
 			return
@@ -52,13 +52,13 @@ func getCanvas(w http.ResponseWriter, r *http.Request) {
 	// Get round number from query params, default to config round
 	roundNumber := r.URL.Query().Get("round")
 	if roundNumber == "" {
-		roundNumber = core.ArtPeaceBackend.CanvasConfig.Round
+		roundNumber = core.AFKBackend.CanvasConfig.Round
 	}
 
 	canvasKey := fmt.Sprintf("canvas-%s", roundNumber)
 
 	ctx := context.Background()
-	val, err := core.ArtPeaceBackend.Databases.Redis.Get(ctx, canvasKey).Result()
+	val, err := core.AFKBackend.Databases.Redis.Get(ctx, canvasKey).Result()
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get canvas")
 		return

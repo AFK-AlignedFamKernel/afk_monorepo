@@ -70,7 +70,7 @@ func processTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Add template to postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Templates (key, name, hash, position, width, height, reward, reward_token) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", templateId, templateName, templateHashHex, templatePosition, templateWidth, templateHeight, templateReward, templateRewardToken)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Templates (key, name, hash, position, width, height, reward, reward_token) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", templateId, templateName, templateHashHex, templatePosition, templateWidth, templateHeight, templateReward, templateRewardToken)
 	if err != nil {
 		PrintIndexerError("processTemplateAddedEvent", "Error inserting template into postgres", templateIdHex, templateHashHex, templateNameHex, templatePositionHex, templateWidthHex, templateHeightHex, templateRewardLowHex, templateRewardToken)
 		return
@@ -89,7 +89,7 @@ func revertTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Remove template from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Templates WHERE key = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Templates WHERE key = $1", templateId)
 	if err != nil {
 		PrintIndexerError("reverseTemplateAddedEvent", "Error deleting template from postgres", templateIdHex)
 		return
@@ -137,7 +137,7 @@ func processFactionTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Add faction template to postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionTemplates (template_id, faction_id, hash, position, width, height, stale) VALUES ($1, $2, $3, $4, $5, $6, $7)", templateId, factionId, imageHashLowercase, factionTemplatePosition, factionTemplateWidth, factionTemplateHeight, false)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO FactionTemplates (template_id, faction_id, hash, position, width, height, stale) VALUES ($1, $2, $3, $4, $5, $6, $7)", templateId, factionId, imageHashLowercase, factionTemplatePosition, factionTemplateWidth, factionTemplateHeight, false)
 	if err != nil {
 		PrintIndexerError("processFactionTemplateAddedEvent", "Error inserting faction template into postgres", templateIdHex, factionIdHex, factionTemplateHashHex, factionTemplatePositionHex, factionTemplateWidthHex, factionTemplateHeightHex)
 		return
@@ -154,7 +154,7 @@ func revertFactionTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Remove faction template from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionTemplates WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM FactionTemplates WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("reverseFactionTemplateAddedEvent", "Error deleting faction template from postgres", templateIdHex)
 		return
@@ -171,7 +171,7 @@ func processFactionTemplateRemovedEvent(event IndexerEvent) {
 	}
 
 	// Mark faction template as stale in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionTemplates SET stale = true WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionTemplates SET stale = true WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("processFactionTemplateRemovedEvent", "Error marking faction template as stale in postgres", templateIdHex)
 		return
@@ -188,7 +188,7 @@ func revertFactionTemplateRemovedEvent(event IndexerEvent) {
 	}
 
 	// Unmark faction template as stale in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionTemplates SET stale = false WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE FactionTemplates SET stale = false WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("reverseFactionTemplateRemovedEvent", "Error unmarking faction template as stale in postgres", templateIdHex)
 		return
@@ -236,7 +236,7 @@ func processChainFactionTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Add chain template to postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactionTemplates (template_id, faction_id, hash, position, width, height, stale) VALUES ($1, $2, $3, $4, $5, $6, $7)", templateId, chainId, imageHashLowercase, chainTemplatePosition, chainTemplateWidth, chainTemplateHeight, false)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO ChainFactionTemplates (template_id, faction_id, hash, position, width, height, stale) VALUES ($1, $2, $3, $4, $5, $6, $7)", templateId, chainId, imageHashLowercase, chainTemplatePosition, chainTemplateWidth, chainTemplateHeight, false)
 	if err != nil {
 		PrintIndexerError("processChainTemplateAddedEvent", "Error inserting chain template into postgres", templateIdHex, chainIdHex, chainTemplateHashHex, chainTemplatePositionHex, chainTemplateWidthHex, chainTemplateHeightHex)
 		return
@@ -253,7 +253,7 @@ func revertChainFactionTemplateAddedEvent(event IndexerEvent) {
 	}
 
 	// Remove chain template from postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactionTemplates WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM ChainFactionTemplates WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("reverseChainTemplateAddedEvent", "Error deleting chain template from postgres", templateIdHex)
 		return
@@ -270,7 +270,7 @@ func processChainFactionTemplateRemovedEvent(event IndexerEvent) {
 	}
 
 	// Mark chain template as stale in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionTemplates SET stale = true WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionTemplates SET stale = true WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("processChainTemplateRemovedEvent", "Error marking chain template as stale in postgres", templateIdHex)
 		return
@@ -287,7 +287,7 @@ func revertChainFactionTemplateRemovedEvent(event IndexerEvent) {
 	}
 
 	// Unmark chain template as stale in postgres
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionTemplates SET stale = false WHERE template_id = $1", templateId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE ChainFactionTemplates SET stale = false WHERE template_id = $1", templateId)
 	if err != nil {
 		PrintIndexerError("reverseChainTemplateRemovedEvent", "Error unmarking chain template as stale in postgres", templateIdHex)
 		return

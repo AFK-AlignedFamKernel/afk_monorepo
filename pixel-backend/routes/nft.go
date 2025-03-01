@@ -27,7 +27,7 @@ func InitNFTRoutes() {
 	http.HandleFunc("/get-liked-nfts", getLikedNFTs)
 	http.HandleFunc("/get-top-nfts", getTopNFTs)
 	http.HandleFunc("/get-hot-nfts", getHotNFTs)
-	if !core.ArtPeaceBackend.BackendConfig.Production {
+	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/mint-nft-devnet", mintNFTDevnet)
 		http.HandleFunc("/like-nft-devnet", likeNFTDevnet)
 		http.HandleFunc("/unlike-nft-devnet", unlikeNFTDevnet)
@@ -316,7 +316,7 @@ func mintNFTDevnet(w http.ResponseWriter, r *http.Request) {
 
 	name := (*jsonBody)["name"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.MintNFTDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.MintNFTDevnet
 	contract := os.Getenv("ART_PEACE_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "mint_nft", strconv.Itoa(position), strconv.Itoa(width), strconv.Itoa(height), name)
@@ -343,7 +343,7 @@ func mintNFTDevnet(w http.ResponseWriter, r *http.Request) {
 // 	}
 //
 // 	// TODO: ensure that the nft exists
-// 	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2)", nftlikeReq.NFTKey, nftlikeReq.UserAddress)
+// 	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO NFTLikes (nftKey, liker) VALUES ($1, $2)", nftlikeReq.NFTKey, nftlikeReq.UserAddress)
 // 	if err != nil {
 // 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "NFT already liked by user")
 // 		return
@@ -364,7 +364,7 @@ func mintNFTDevnet(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 //
-// 	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM nftlikes WHERE nftKey = $1 AND liker = $2", nftlikeReq.NFTKey, nftlikeReq.UserAddress)
+// 	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM nftlikes WHERE nftKey = $1 AND liker = $2", nftlikeReq.NFTKey, nftlikeReq.UserAddress)
 // 	if err != nil {
 // 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to unlike NFT")
 // 		return
@@ -449,7 +449,7 @@ func likeNFTDevnet(w http.ResponseWriter, r *http.Request) {
 	// TODO: Read tokenId into a big.Int
 	tokenId := (*jsonBody)["tokenId"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.LikeNFTDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.LikeNFTDevnet
 	contract := os.Getenv("CANVAS_NFT_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "like_nft", tokenId, "0")
@@ -476,7 +476,7 @@ func unlikeNFTDevnet(w http.ResponseWriter, r *http.Request) {
 
 	tokenId := (*jsonBody)["tokenId"]
 
-	shellCmd := core.ArtPeaceBackend.BackendConfig.Scripts.UnlikeNFTDevnet
+	shellCmd := core.AFKBackend.BackendConfig.Scripts.UnlikeNFTDevnet
 	contract := os.Getenv("CANVAS_NFT_CONTRACT_ADDRESS")
 
 	cmd := exec.Command(shellCmd, contract, "unlike_nft", tokenId, "0")

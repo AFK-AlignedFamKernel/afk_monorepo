@@ -109,22 +109,22 @@ func processCanvasCreatedEvent(event IndexerEvent) {
 	}
 
 	// Insert into Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Worlds (world_id, host, name, unique_name, width, height, pixels_per_time, time_between_pixels, start_time, end_time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TO_TIMESTAMP($9), TO_TIMESTAMP($10))", canvasId, host, name, uniqueName, width, height, pixelsPerTime, timeBetweenPixels, startTime, endTime)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Worlds (world_id, host, name, unique_name, width, height, pixels_per_time, time_between_pixels, start_time, end_time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TO_TIMESTAMP($9), TO_TIMESTAMP($10))", canvasId, host, name, uniqueName, width, height, pixelsPerTime, timeBetweenPixels, startTime, endTime)
 	if err != nil {
 		PrintIndexerError("processCanvasCreatedEvent", "Failed to insert into Worlds", canvasIdHex, host, nameHex, uniqueNameHex, widthHex, heightHex, pixelsPerTimeHex, timeBetweenPixelsHex, colorPaletteLenHex, err)
 		return
 	}
 
 	canvasRedisKey := "canvas-" + strconv.Itoa(int(canvasId))
-	if core.ArtPeaceBackend.Databases.Redis.Exists(context.Background(), canvasRedisKey).Val() == 0 {
-		totalBitSize := uint(width*height) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+	if core.AFKBackend.Databases.Redis.Exists(context.Background(), canvasRedisKey).Val() == 0 {
+		totalBitSize := uint(width*height) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 		totalByteSize := (totalBitSize / 8)
 		if totalBitSize%8 != 0 {
 			totalByteSize += 1
 		}
 
 		canvas := make([]byte, totalByteSize)
-		err := core.ArtPeaceBackend.Databases.Redis.Set(context.Background(), canvasRedisKey, canvas, 0).Err()
+		err := core.AFKBackend.Databases.Redis.Set(context.Background(), canvasRedisKey, canvas, 0).Err()
 		if err != nil {
 			PrintIndexerError("processCanvasCreatedEvent", "Failed to set canvas in redis", canvasIdHex, host, nameHex, uniqueNameHex, widthHex, heightHex, pixelsPerTimeHex, timeBetweenPixelsHex, colorPaletteLenHex, err)
 			return
@@ -207,14 +207,14 @@ func revertCanvasCreatedEvent(event IndexerEvent) {
 	}
 
 	// Delete from Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Worlds WHERE world_id = $1", canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM Worlds WHERE world_id = $1", canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasCreatedEvent", "Failed to delete from Worlds", canvasIdHex, err)
 		return
 	}
 
 	canvasRedisKey := "canvas-" + strconv.Itoa(int(canvasId))
-	err = core.ArtPeaceBackend.Databases.Redis.Del(context.Background(), canvasRedisKey).Err()
+	err = core.AFKBackend.Databases.Redis.Del(context.Background(), canvasRedisKey).Err()
 	if err != nil {
 		PrintIndexerError("revertCanvasCreatedEvent", "Failed to delete canvas from redis", canvasIdHex, err)
 		return
@@ -233,7 +233,7 @@ func processCanvasHostChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET host = $1 WHERE world_id = $2", newHost, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET host = $1 WHERE world_id = $2", newHost, canvasId)
 	if err != nil {
 		PrintIndexerError("processCanvasHostChangedEvent", "Failed to update Worlds", canvasIdHex, oldHost, newHost, err)
 		return
@@ -252,7 +252,7 @@ func revertCanvasHostChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET host = $1 WHERE world_id = $2", oldHost, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET host = $1 WHERE world_id = $2", oldHost, canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasHostChangedEvent", "Failed to update Worlds", canvasIdHex, oldHost, newHost, err)
 		return
@@ -277,7 +277,7 @@ func processCanvasPixelsPerTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET pixels_per_time = $1 WHERE world_id = $2", newPixelsPerTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET pixels_per_time = $1 WHERE world_id = $2", newPixelsPerTime, canvasId)
 	if err != nil {
 		PrintIndexerError("processCanvasPixelsPerTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldPixelsPerTimeHex, newPixelsPerTimeHex, err)
 		return
@@ -302,7 +302,7 @@ func revertCanvasPixelsPerTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET pixels_per_time = $1 WHERE world_id = $2", oldPixelsPerTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET pixels_per_time = $1 WHERE world_id = $2", oldPixelsPerTime, canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasPixelsPerTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldPixelsPerTimeHex, newPixelsPerTimeHex, err)
 		return
@@ -327,7 +327,7 @@ func processCanvasTimerChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET time_between_pixels = $1 WHERE world_id = $2", newTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET time_between_pixels = $1 WHERE world_id = $2", newTime, canvasId)
 	if err != nil {
 		PrintIndexerError("processCanvasTimeBetweenPixelsChangedEvent", "Failed to update Worlds", canvasIdHex, oldTimeHex, newTimeHex, err)
 		return
@@ -352,7 +352,7 @@ func revertCanvasTimerChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET time_between_pixels = $1 WHERE world_id = $2", oldTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET time_between_pixels = $1 WHERE world_id = $2", oldTime, canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasTimeBetweenPixelsChangedEvent", "Failed to update Worlds", canvasIdHex, oldTimeHex, newTimeHex, err)
 		return
@@ -377,7 +377,7 @@ func processCanvasStartTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET start_time = TO_TIMESTAMP($1) WHERE world_id = $2", newStartTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET start_time = TO_TIMESTAMP($1) WHERE world_id = $2", newStartTime, canvasId)
 	if err != nil {
 		PrintIndexerError("processCanvasStartTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldStartTimeHex, newStartTimeHex, err)
 		return
@@ -402,7 +402,7 @@ func revertCanvasStartTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET start_time = TO_TIMESTAMP($1) WHERE world_id = $2", oldStartTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET start_time = TO_TIMESTAMP($1) WHERE world_id = $2", oldStartTime, canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasStartTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldStartTimeHex, newStartTimeHex, err)
 		return
@@ -427,7 +427,7 @@ func processCanvasEndTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET end_time = TO_TIMESTAMP($1) WHERE world_id = $2", newEndTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET end_time = TO_TIMESTAMP($1) WHERE world_id = $2", newEndTime, canvasId)
 	if err != nil {
 		PrintIndexerError("processCanvasEndTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldEndTimeHex, newEndTimeHex, err)
 		return
@@ -452,7 +452,7 @@ func revertCanvasEndTimeChangedEvent(event IndexerEvent) {
 	}
 
 	// Update Worlds
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET end_time = TO_TIMESTAMP($1) WHERE world_id = $2", oldEndTime, canvasId)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE Worlds SET end_time = TO_TIMESTAMP($1) WHERE world_id = $2", oldEndTime, canvasId)
 	if err != nil {
 		PrintIndexerError("revertCanvasEndTimeChangedEvent", "Failed to update Worlds", canvasIdHex, oldEndTimeHex, newEndTimeHex, err)
 		return
@@ -479,7 +479,7 @@ func processCanvasColorAddedEvent(event IndexerEvent) {
 	color := colorHex[len(colorHex)-6:] // Remove prefix
 
 	// Insert into WorldsColors
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsColors (world_id, color_key, hex) VALUES ($1, $2, $3)", canvasId, colorKey, color)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsColors (world_id, color_key, hex) VALUES ($1, $2, $3)", canvasId, colorKey, color)
 }
 
 func revertCanvasColorAddedEvent(event IndexerEvent) {
@@ -499,7 +499,7 @@ func revertCanvasColorAddedEvent(event IndexerEvent) {
 	}
 
 	// Delete from WorldsColors
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldsColors WHERE world_id = $1 AND color_key = $2", canvasId, colorKey)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldsColors WHERE world_id = $1 AND color_key = $2", canvasId, colorKey)
 }
 
 func processCanvasPixelPlacedEvent(event IndexerEvent) {
@@ -526,19 +526,19 @@ func processCanvasPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsPixels (world_id, address, position, color) VALUES ($1, $2, $3, $4)", canvasId, placedBy, pos, colorVal)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsPixels (world_id, address, position, color) VALUES ($1, $2, $3, $4)", canvasId, placedBy, pos, colorVal)
 	if err != nil {
 		PrintIndexerError("processCanvasPixelPlacedEvent", "Failed to insert into WorldsPixels", canvasIdHex, placedBy, posHex, colorHex, err)
 		return
 	}
 
 	go func() {
-		bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-		position := uint(pos) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+		bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+		position := uint(pos) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 		ctx := context.Background()
 		canvasRedisKey := "canvas-" + strconv.Itoa(int(canvasId))
-		err = core.ArtPeaceBackend.Databases.Redis.BitField(ctx, canvasRedisKey, "SET", bitfieldType, position, colorVal).Err()
+		err = core.AFKBackend.Databases.Redis.BitField(ctx, canvasRedisKey, "SET", bitfieldType, position, colorVal).Err()
 		if err != nil {
 			PrintIndexerError("processCanvasPixelPlacedEvent", "Failed to set bitfield", canvasIdHex, placedBy, posHex, colorHex, err)
 			return
@@ -586,7 +586,7 @@ func processCanvasPixelPlacedEvent(event IndexerEvent) {
 
 			ctx := context.Background()
 			canvasRedisKey := "canvas-" + strconv.Itoa(int(canvasId))
-			canvas, err := core.ArtPeaceBackend.Databases.Redis.Get(ctx, canvasRedisKey).Result()
+			canvas, err := core.AFKBackend.Databases.Redis.Get(ctx, canvasRedisKey).Result()
 			if err != nil {
 				PrintIndexerError("processCanvasPixelPlacedEvent", "Failed to get canvas", canvasIdHex, placedBy, posHex, colorHex, err)
 				return
@@ -620,7 +620,7 @@ func processCanvasPixelPlacedEvent(event IndexerEvent) {
 
 			// Create world image
 			generatedWorldImage := image.NewRGBA(image.Rect(0, 0, *worldWidth, *worldHeight))
-			bitWidth := uint(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth)
+			bitWidth := uint(core.AFKBackend.CanvasConfig.ColorsBitWidth)
 			oneByteBitOffset := uint(8 - bitWidth)
 			twoByteBitOffset := uint(16 - bitWidth)
 
@@ -677,7 +677,7 @@ func revertCanvasPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldsPixels WHERE world_id = $1 AND address = $2 AND position = $3 ORDER BY time DESC limit 1", worldId, placedBy, pos)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldsPixels WHERE world_id = $1 AND address = $2 AND position = $3 ORDER BY time DESC limit 1", worldId, placedBy, pos)
 	if err != nil {
 		PrintIndexerError("revertPixelPlacedEvent", "Failed to delete from WorldsPixels", worldIdHex, placedBy, posHex, err)
 		return
@@ -691,11 +691,11 @@ func revertCanvasPixelPlacedEvent(event IndexerEvent) {
 				return
 			}
 
-			bitfieldType := "u" + strconv.Itoa(int(core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth))
-			position := uint(pos) * core.ArtPeaceBackend.CanvasConfig.ColorsBitWidth
+			bitfieldType := "u" + strconv.Itoa(int(core.AFKBackend.CanvasConfig.ColorsBitWidth))
+			position := uint(pos) * core.AFKBackend.CanvasConfig.ColorsBitWidth
 
 			ctx := context.Background()
-			err = core.ArtPeaceBackend.Databases.Redis.BitField(ctx, "canvas-"+strconv.Itoa(int(worldId)), "SET", bitfieldType, position, oldColor).Err()
+			err = core.AFKBackend.Databases.Redis.BitField(ctx, "canvas-"+strconv.Itoa(int(worldId)), "SET", bitfieldType, position, oldColor).Err()
 			if err != nil {
 				PrintIndexerError("revertPixelPlacedEvent", "Failed to set bitfield", worldIdHex, placedBy, posHex, err)
 				return
@@ -722,7 +722,7 @@ func processCanvasBasicPixelPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsLastPlacedTime (world_id, address, time) VALUES ($1, $2, TO_TIMESTAMP($3)) ON CONFLICT (world_id, address) DO UPDATE SET time = TO_TIMESTAMP($3)", canvasId, placedBy, timestamp)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsLastPlacedTime (world_id, address, time) VALUES ($1, $2, TO_TIMESTAMP($3)) ON CONFLICT (world_id, address) DO UPDATE SET time = TO_TIMESTAMP($3)", canvasId, placedBy, timestamp)
 	if err != nil {
 		PrintIndexerError("processCanvasBasicPixelPlacedEvent", "Failed to insert into WorldsLastPlacedTime", canvasIdHex, placedBy, timestampHex, err)
 		return
@@ -750,7 +750,7 @@ func processCanvasExtraPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available - $1, used = used + $1 WHERE world_id = $2 AND address = $3", extraPixels, canvasId, placedBy)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available - $1, used = used + $1 WHERE world_id = $2 AND address = $3", extraPixels, canvasId, placedBy)
 	if err != nil {
 		PrintIndexerError("processCanvasExtraPixelsPlacedEvent", "Failed to insert into WorldsExtraPixels", canvasIdHex, placedBy, extraPixelsHex, err)
 		return
@@ -774,7 +774,7 @@ func revertCanvasExtraPixelsPlacedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available + $1, used = used - $1 WHERE world_id = $2 AND address = $3", extraPixels, canvasId, placedBy)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available + $1, used = used - $1 WHERE world_id = $2 AND address = $3", extraPixels, canvasId, placedBy)
 	if err != nil {
 		PrintIndexerError("revertCanvasExtraPixelsPlacedEvent", "Failed to insert into WorldsExtraPixels", canvasIdHex, placedBy, extraPixelsHex, err)
 		return
@@ -798,7 +798,7 @@ func processCanvasHostAwardedUserEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsExtraPixels (world_id, address, available, used) VALUES ($1, $2, $3, 0) ON CONFLICT (world_id, address) DO UPDATE SET available = WorldsExtraPixels.available + $3", canvasId, user, amount)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldsExtraPixels (world_id, address, available, used) VALUES ($1, $2, $3, 0) ON CONFLICT (world_id, address) DO UPDATE SET available = WorldsExtraPixels.available + $3", canvasId, user, amount)
 	if err != nil {
 		PrintIndexerError("processCanvasHostAwardedUserEvent", "Failed to insert into WorldFavorites", canvasIdHex, user, amountHex, err)
 		return
@@ -822,7 +822,7 @@ func revertCanvasHostAwardedUserEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available - $1 WHERE world_id = $2 AND address = $3", amount, canvasId, user)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "UPDATE WorldsExtraPixels SET available = available - $1 WHERE world_id = $2 AND address = $3", amount, canvasId, user)
 	if err != nil {
 		PrintIndexerError("revertCanvasHostAwardedUserEvent", "Failed to insert into WorldFavorites", canvasIdHex, user, amountHex, err)
 		return
@@ -839,7 +839,7 @@ func processCanvasFavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldFavorites (world_id, user_address) VALUES ($1, $2)", canvasId, user)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldFavorites (world_id, user_address) VALUES ($1, $2)", canvasId, user)
 	if err != nil {
 		PrintIndexerError("processCanvasFavoritedEvent", "Failed to insert into WorldFavorites", canvasIdHex, user, err)
 		return
@@ -856,7 +856,7 @@ func revertCanvasFavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldFavorites WHERE world_id = $1 AND user_address = $2", canvasId, user)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldFavorites WHERE world_id = $1 AND user_address = $2", canvasId, user)
 	if err != nil {
 		PrintIndexerError("revertCanvasFavoritedEvent", "Failed to delete from WorldFavorites", canvasIdHex, user, err)
 		return
@@ -873,7 +873,7 @@ func processCanvasUnfavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldFavorites WHERE world_id = $1 AND user_address = $2", canvasId, user)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "DELETE FROM WorldFavorites WHERE world_id = $1 AND user_address = $2", canvasId, user)
 	if err != nil {
 		PrintIndexerError("processCanvasUnfavoritedEvent", "Failed to delete from WorldFavorites", canvasIdHex, user, err)
 		return
@@ -890,7 +890,7 @@ func revertCanvasUnfavoritedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.ArtPeaceBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldFavorites (world_id, user_address) VALUES ($1, $2)", canvasId, user)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO WorldFavorites (world_id, user_address) VALUES ($1, $2)", canvasId, user)
 	if err != nil {
 		PrintIndexerError("revertCanvasUnfavoritedEvent", "Failed to insert into WorldFavorites", canvasIdHex, user, err)
 		return
