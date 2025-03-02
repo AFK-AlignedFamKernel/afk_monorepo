@@ -51,6 +51,6 @@ RUN echo "REDIS_HOST=${REDIS_HOST}" >> .env && \
 # Build the app & run it
 RUN go build -o consumer ./cmd/consumer/consumer.go
 
-EXPOSE CONSUMER_PORT
+EXPOSE ${CONSUMER_PORT}
 
 CMD ["./consumer"]
