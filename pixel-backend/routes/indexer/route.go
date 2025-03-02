@@ -265,36 +265,21 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 	
 	// Restore body for further processing
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
-
+	
 	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
-	fmt.Printf("Parsed message: %+v\n", message) // Use %+v for detailed struct printing
+	// message, err := routeutils.ReadJsonBody[IndexerMessage](body)
+
+	fmt.Println("message", message)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
 	}
 
-	// Validate message structure
-	if message.Data.Batch == nil {
-		fmt.Println("Batch array is nil")
-		return
-	}
-
 	if len(message.Data.Batch) == 0 {
-		fmt.Println("No batches in message")
+		fmt.Println("No events in batch")
 		return
 	}
 
-	if message.Data.Batch[0].Events == nil {
-		fmt.Println("Events array is nil in first batch")
-		return
-	}
-
-	if len(message.Data.Batch[0].Events) == 0 {
-		fmt.Println("No events in first batch")
-		return
-	}
-
-	// Process based on finality status
 	if message.Data.Finality == DATA_STATUS_FINALIZED {
 		// TODO: Track diffs with accepted messages? / check if accepted message processed
 		FinalizedMessageLock.Lock()
@@ -313,7 +298,7 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 		PendingMessageLock.Unlock()
 		return
 	} else {
-		fmt.Printf("Unknown finality status: %s\n", message.Data.Finality)
+		fmt.Println("Unknown finality status")
 	}
 }
 

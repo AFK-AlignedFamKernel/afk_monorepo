@@ -1,7 +1,7 @@
 {
   "host": "localhost",
   "port": 8080,
-  "consumer_port": 8082,
+  "consumer_port": 8081,
   "ws_host": "localhost",
   "ws_port": 8083,
   "scripts": {
