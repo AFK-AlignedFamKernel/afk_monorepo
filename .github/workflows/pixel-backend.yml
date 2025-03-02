@@ -1,0 +1,28 @@
+name: Pixel-Backend
+
+on:
+  push:
+    paths:
+      - ".github/workflows/pixel-backend.yml"
+      - "pixel-backend/**"
+      - "package.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "pixel-backend/**"
+
+permissions: read-all
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.0'
+      - name: Build
+        run: go mod download && go build -o main ./cmd/backend/backend.go
+        working-directory: pixel-backend
