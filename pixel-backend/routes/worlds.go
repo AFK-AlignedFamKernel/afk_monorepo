@@ -181,7 +181,7 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 
 	query := `
         SELECT 
-            world_id,
+            worlds.world_id,
 			host,
 			name,
 			unique_name,
@@ -216,6 +216,7 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 	worlds, err := core.PostgresQueryJson[WorldData](query, address, pageLength, offset)
 	fmt.Println("worlds", len(worlds))
 	if err != nil {
+		fmt.Println("error getWorlds", err)
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds")
 		return
 	}

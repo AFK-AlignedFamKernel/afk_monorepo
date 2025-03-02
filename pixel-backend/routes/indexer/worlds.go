@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"strconv"
+	"fmt"
 
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
@@ -503,6 +504,7 @@ func revertCanvasColorAddedEvent(event IndexerEvent) {
 }
 
 func processCanvasPixelPlacedEvent(event IndexerEvent) {
+	fmt.Println("processCanvasPixelPlacedEvent", event)		
 	canvasIdHex := event.Event.Keys[1]
 	placedBy := event.Event.Keys[2][2:] // Remove 0x prefix
 	posHex := event.Event.Keys[3]
