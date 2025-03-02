@@ -38,9 +38,6 @@
       "pixel_ui": [
         "../../packages/pixel_ui/src"
       ],
-      "pixel_component": [
-        "../../packages/pixel_component/src"
-      ]
     }
   },
   "exclude": [
