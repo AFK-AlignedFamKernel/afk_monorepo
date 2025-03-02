@@ -7,7 +7,6 @@ import { getLeaderboardPixels, getLeaderboardWorlds, getLeaderboardPixelsWorld }
 const copyIconSrc = "../../../public/icons/copy.png";
 import { PaginationView } from "../utils/pagination";
 import { playSoftClick2 } from "../utils/sounds";
-// import "../../styles/index.css";
 
 export const LeaderboardTab = (props: any) => {
   const { address } = useAccount();

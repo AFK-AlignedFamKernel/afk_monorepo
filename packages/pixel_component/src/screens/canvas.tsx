@@ -12,7 +12,7 @@ import { getWorlds, getHomeWorlds, getWorld } from "../api/worlds";
 import { getCanvasColors } from "../api/canvas";
 import { placePixelsCall } from "../contract/calls";
 import { playPixelPlaced2 } from "../components/utils/sounds";
-import '../styles/index.css';
+// import '../styles/index.css';
 import '../layout/globals.css';
 
 const Canvas = (props: any) => {
