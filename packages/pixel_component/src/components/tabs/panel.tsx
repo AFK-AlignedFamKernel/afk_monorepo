@@ -8,7 +8,6 @@ import { StencilCreationTab } from './stencil-creation';
 import { WorldCreationTab } from './world-creation';
 import { PixelInfoTab } from './pixel';
 import { StagingPixelsTab } from './staging';
-// import '../../styles/index.css';
 
 export const TabPanel = (props: any) => {
   const nodeRef = useRef(null);
