@@ -1,6 +1,20 @@
 import {Uint256} from 'starknet';
 
 export type ACTION_LAUNCHPAD = 'BUY' | 'SELL';
+
+export interface MetadataOnchain {
+  token_address?: string;
+  owner?: string;
+  owner_nostr?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  nostr_event_id?: string;
+  tags?: string[];
+  is_verified?: boolean;
+}
+
 export interface KeysUser {
   owner: string;
   token_address: string;

@@ -6,11 +6,11 @@ import {KeyModalAction} from '../modules/KeyModal';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
 import {TokenCreateModal} from '../modules/TokenCreatedModal';
 import {useAccount} from '@starknet-react/core';
-
+import {MetadataOnchain} from '../types/keys';
 export type TokenCreateModal = Modalize;
 
 export type TokenCreatedContextType = {
-  show: (event?: NDKEvent, starknetAddress?: string) => void;
+  show: (event?: NDKEvent, starknetAddress?: string, metadata?:MetadataOnchain) => void;
   hide?: () => void;
 
   showSuccess?: (props: TipSuccessModalProps) => void;
@@ -25,7 +25,7 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
 
   const [event, setEvent] = useState<NDKEvent | undefined>();
   const [starknetAddress, setStarknetAddress] = useState<string | undefined>();
-  const [action, setAction] = useState<KeyModalAction | undefined>();
+  const [metadata, setMetadata] = useState<MetadataOnchain | undefined>();
   const [successModal, setSuccessModal] = useState<TipSuccessModalProps | null>(null);
 
   useEffect(() => {
@@ -37,9 +37,10 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
     }
   }, [account, account?.address]);
   const show = useCallback(
-    (event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => {
+    (event?: NDKEvent, starknetAddress?: string, metadata?:MetadataOnchain, action?:KeyModalAction) => {
       setEvent(event);
       setStarknetAddress(starknetAddress);
+      setMetadata(metadata);
       tokenModalRef.current?.open();
     },
     [],
@@ -73,6 +74,7 @@ export const TokenCreateModalProvider: React.FC<React.PropsWithChildren> = ({chi
         showSuccess={showSuccess}
         hideSuccess={hideSuccess}
         ref={tokenModalRef}
+        metadata={metadata}
       />
 
       {successModal && <TipSuccessModal {...successModal} />}

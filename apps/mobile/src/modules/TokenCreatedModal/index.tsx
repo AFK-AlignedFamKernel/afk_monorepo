@@ -8,7 +8,7 @@ import {TokenSymbol} from '../../constants/tokens';
 import {useStyles} from '../../hooks';
 import {useDialog} from '../../hooks/modals/useDialog';
 import {useWalletModal} from '../../hooks/modals/useWalletModal';
-import {KeysUser} from '../../types/keys';
+import {KeysUser, MetadataOnchain} from '../../types/keys';
 import {FormLaunchToken} from '../LaunchTokenPump/FormLaunchToken';
 import {TipSuccessModalProps} from '../TipSuccessModal';
 import stylesheet from './styles';
@@ -24,15 +24,15 @@ export type TokenCreateModalProps = {
   event?: NDKEvent;
   starknetAddress?: string;
   action?: KeyModalAction;
-
-  show?: (event?: NDKEvent, starknetAddress?: string, action?: KeyModalAction) => void;
+  metadata?: MetadataOnchain;
+  show?: (event?: NDKEvent, starknetAddress?: string, metadata?:MetadataOnchain, action?: KeyModalAction) => void;
   hide?: () => void;
   showSuccess?: (props: TipSuccessModalProps) => void;
   hideSuccess?: () => void;
 };
 
 export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
-  ({event, hide: hideKeyModal, showSuccess, hideSuccess, starknetAddress, action}, ref) => {
+  ({event, hide: hideKeyModal, showSuccess, hideSuccess, starknetAddress, action, metadata}, ref) => {
     const styles = useStyles(stylesheet);
     const [token, setToken] = useState<TokenSymbol>(TokenSymbol.ETH);
     const [amount, setAmount] = useState<string>('');
@@ -52,6 +52,7 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
       >
         <FormLaunchToken
           //  show={showDialog}
+          metadata={metadata}
           showSuccess={showSuccess}
           hide={hideDialog}
           hideSuccess={hideSuccess}
