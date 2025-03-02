@@ -378,8 +378,13 @@ export const Router = () => {
 
   const GA_TRACKING_ID = process.env.EXPO_PUBLIC_GOOGLE_TAG_ID; // Replace with your Google Analytics Tracking ID
 
+  // const nodeEnv = process.env.EXPO_PUBLIC_NODE_ENV;
+  // const isDev = nodeEnv === 'development';
+  // const isProd = nodeEnv === 'production';
   useEffect(() => {
-    if (Platform.OS === 'web' && GA_TRACKING_ID && process.env.EXPO_PUBLIC_NODE_ENV !== 'development') {
+    if (Platform.OS === 'web' && GA_TRACKING_ID
+      // && (!isDev || !isProd)
+    ) {
       initGoogleAnalytics(GA_TRACKING_ID);
       logPageView(); // Log the initial page view
 
@@ -492,7 +497,7 @@ const linking = {
               daoId: (daoId: string) => `${daoId}`,
             },
           },
-          Pixel:"app/pixel"
+          Pixel: 'app/pixel',
         },
       },
     },

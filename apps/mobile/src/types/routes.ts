@@ -95,7 +95,7 @@ export type MainStackParams = {
   RecordedStream: { streamId: string; recordingUrl?: string };
   DAO: undefined;
   DAOPage: { daoAddress: string };
-  Pixel:undefined;
+  Pixel: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -338,10 +338,10 @@ export type PixelScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
   NativeStackScreenProps<RootStackParams>
 >;
-// export type TipsMainScreenProps = CompositeScreenProps<
-//   NativeStackScreenProps<MainStackParams, 'Tips'>,
-//   NativeStackScreenProps<RootStackParams>
-// >;
+export type TipsMainScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Tips'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 
 export type BottomBarProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'BottomBar'>,

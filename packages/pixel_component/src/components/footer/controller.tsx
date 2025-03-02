@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useConnect, useAccount, Connector } from '@starknet-react/core'
 import ControllerConnector from "@cartridge/controller";
 import { getCanvasColors } from "../../api/canvas";
+const botSrc = "../../../public/icons/bot.png";
 import bot from "../../../public/icons/bot.png";
 import { AIController } from "./ai-agent";
 import { StencilBotController } from "./stencil-bot";
@@ -238,7 +239,7 @@ export const GameController = (props: any) => {
             </>
           )}
           <img
-            src={bot}
+            src={botSrc}
             alt="Bot"
             className="w-[2.6rem] h-[2.6rem] m-[2px]"
           />

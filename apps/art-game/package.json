@@ -25,7 +25,8 @@
     "react-use-websocket": "^4.13.0",
     "starknet": "^6.23.1",
     "starknetkit": "^2.6.1",
-    "pixel_component": "workspace:*"
+    "pixel_component": "workspace:*",
+    "common": "workspace:*"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

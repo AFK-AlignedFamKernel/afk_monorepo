@@ -960,8 +960,7 @@ body {
   text-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.6);
 }
 
-
-.Modal__basic {
+/* .Modal__basic {
   position: fixed;
   z-index: 100;
   right: 0;
@@ -973,14 +972,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-@media (min-width: 640px) {
-  .Modal__basic {
-    width: max(40rem, 70%);
-  }
-}
-
+} */
+/* 
 @media (min-width: 768px) {
   .Modal__basic {
     width: max(40rem, 45%);
@@ -997,8 +990,8 @@ body {
   .Modal__basic {
     width: max(40rem, 25%);
   }
-}
-
+} */
+/* 
 .Leader__tabs {
   display: flex;
   flex-direction: row;
@@ -1021,8 +1014,8 @@ body {
   width: 100%;
   margin: 0 auto;
   transition: all 500ms ease-in-out;
-}
-
+} */
+/* 
 @media (min-width: 640px) {
   .Stencils__modal {
     width: min(100%, 40rem);
@@ -1039,5 +1032,5 @@ body {
   .Stencils__modal {
     width: min(100%, 40rem);
   }
-}
+} */
 

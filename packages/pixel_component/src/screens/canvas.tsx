@@ -1,5 +1,4 @@
 'use client';
-"use dom";
 
 import React, { useState, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
@@ -13,7 +12,7 @@ import { getWorlds, getHomeWorlds, getWorld } from "../api/worlds";
 import { getCanvasColors } from "../api/canvas";
 import { placePixelsCall } from "../contract/calls";
 import { playPixelPlaced2 } from "../components/utils/sounds";
-import '../styles/index.css';
+// import '../styles/index.css';
 import '../layout/globals.css';
 
 const Canvas = (props: any) => {
@@ -32,6 +31,7 @@ const Canvas = (props: any) => {
   useEffect(() => {
     const fetchWorldData = async () => {
       const worlds = await getWorlds(13, 0);
+      console.log("worlds", worlds);
       // TODO: const worlds = await getHomeWorlds();
       // TODO: Once center can be a home world:
       //   const homeWorlds = worlds.filter((world) => world.worldId !== openedWorldId).slice(0, 12);
@@ -56,15 +56,27 @@ const Canvas = (props: any) => {
   }, []);
   useEffect(() => {
     const fetchWorldData = async () => {
+      console.log("fetchWorldData");
+      console.log("openedWorldId", openedWorldId);
       const world = await getWorld(openedWorldId.toString());
-      setActiveWorld(world);
-      setWorldWidth(world.width);
-      setTimeBetweenPlacements(world.timeBetweenPixels * 1000);
+      console.log("res world getWorld", world);
+      if(world) { 
+        setActiveWorld(world);
+        setWorldWidth(world?.width);
+        setTimeBetweenPlacements(world?.timeBetweenPixels * 1000);
+      } else {
+        setWorldWidth(540);
+        setTimeBetweenPlacements(secondsBetweenPlacements * 1000);
+      }
     };
 
     setStagingPixels([]);
     fetchWorldData();
-  }, [openedWorldId]);
+
+    if(!activeWorld) {
+      fetchWorldData();
+    }
+  }, [openedWorldId, activeWorld]);
   const [worldColors, setWorldColors] = useState([] as string[]);
   const [worldCanvasRef, setWorldCanvasRef] = useState<any>(null);
   useEffect(() => {
@@ -473,6 +485,7 @@ const Canvas = (props: any) => {
         setGameUpdate={setGameUpdate}
       />
       <Footer
+        enableController={true}
         basePixelTimer={basePixelTimer}
         availablePixels={availablePixels}
         availablePixelsUsed={availablePixelsUsed}

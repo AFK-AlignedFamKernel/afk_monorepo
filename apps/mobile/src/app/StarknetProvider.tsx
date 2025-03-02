@@ -62,7 +62,7 @@ export const StarknetReactProvider: React.FC<React.PropsWithChildren> = ({childr
             url: typeof window !== 'undefined' ? window.location.href : '',
             dappName: 'AFK Dapp',
             chainId: CHAIN_ID as any,
-            projectId: process.env.EXPO_PUBLIC_WC_ID ?? 'example-project-id',
+            // projectId: process.env.EXPO_PUBLIC_WC_ID ?? 'example-project-id',
           },
         }),
         new WebWalletConnector({url: 'https://web.argent.xyz'}),

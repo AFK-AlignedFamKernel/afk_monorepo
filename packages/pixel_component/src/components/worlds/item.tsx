@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
-import FavoriteIcon from "../../../public/icons/Favorite.png";
-import FavoritedIcon from "../../../public/icons/Favorited.png";
-import Info from "../../../public/icons/Info.png";
+// import FavoriteIcon from "../../../public/icons/Favorite.png";
+// import FavoritedIcon from "../../../public/icons/Favorited.png";
+// import Info from "../../../public/icons/Info.png";
+const FavoriteIconSrc = "../../../public/icons/Favorite.png";
+const FavoritedIconSrc = "../../../public/icons/Favorited.png";
+const InfoSrc = "../../../public/icons/Info.png";
+
 export const WorldItem = (props: any) => {
   const { address } = useAccount();
 
@@ -49,7 +53,7 @@ export const WorldItem = (props: any) => {
                 >
                   <img
                     className="p-0 m-0 w-[2rem] h-[2rem]"
-                    src={props.world.favorited ? FavoritedIcon : FavoriteIcon}
+                    src={props.world.favorited ? FavoritedIconSrc : FavoriteIconSrc}
                     alt="Favorite"
                   />
                   <p className="Text__small p-0 m-0 text-center w-[3.5rem]">{props.world.favorites}</p>
@@ -68,7 +72,7 @@ export const WorldItem = (props: any) => {
                     </p>
                   ) : (
                     <img
-                      src={Info}
+                      src={InfoSrc}
                       alt="Info"
                       style={{
                         backgroundColor: "rgba(255, 255, 255, 0.5)",

@@ -1,11 +1,8 @@
-"use dom";
-
 import React, { useState, useEffect, useRef, createRef } from "react";
 
 import { StencilCreationOverlay } from "./stencil-overlay";
 import { playShutter } from "../utils/sounds";
 import { Canva } from "./canvas";
-import "../../styles/index.css";
 
 
 export const CanvasController = (props: any) => {

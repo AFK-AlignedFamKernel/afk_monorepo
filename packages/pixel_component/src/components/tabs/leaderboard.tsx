@@ -1,12 +1,10 @@
-"use dom";
-import "../../styles/index.css";
-
 import React, { useState, useEffect } from "react";
 import { lookupAddresses } from '@cartridge/controller';
 import { useAccount } from '@starknet-react/core';
 import { BasicTab } from "./basic";
 import { getLeaderboardPixels, getLeaderboardWorlds, getLeaderboardPixelsWorld } from "../../api/stats";
-import copyIcon from "../../../public/icons/copy.png";
+// import copyIcon from "../../../public/icons/copy.png";
+const copyIconSrc = "../../../public/icons/copy.png";
 import { PaginationView } from "../utils/pagination";
 import { playSoftClick2 } from "../utils/sounds";
 
@@ -117,7 +115,7 @@ export const LeaderboardTab = (props: any) => {
 
   return (
     <BasicTab title="Leaderboard" {...props}>
-      <div className="Leader__tabs flex flex-row justify-around align-center mt-[1rem] mb-[0.5rem] w-[90%] mx-auto bg-[#00000020] p-[3px] rounded-2xl outline outline-[rgba(0,0,0,0.15)] text-nowrap">
+      <div className="flex flex-row justify-around align-center mt-[1rem] mb-[0.5rem] w-[90%] mx-auto bg-[#00000020] p-[3px] rounded-2xl outline outline-[rgba(0,0,0,0.15)] text-nowrap">
         <p
           className={`Text__small rounded-2xl py-[0.5rem] flex-1 text-center ${selectedOption.name === "Players" ? "outline outline-[rgba(0,0,0,0.4)] bg-[rgba(255,255,255,0.8)]" : ""} cursor-pointer`}
           onClick={() => {
@@ -165,7 +163,7 @@ export const LeaderboardTab = (props: any) => {
             <div className="flex items-center">
               <div className="text-black text-md w-[min(3rem)] mr-4">{i + 1}</div>
               <div className="text-black text-md w-[max(25rem)] md:w-[max(22rem)] truncate">{useKeyNames ? keyNameMap[stat.key] : stat.key}</div>
-              <img src={copyIcon} alt="copy" width={16} height={16} onClick={() => {
+              <img src={copyIconSrc} alt="copy" width={16} height={16} onClick={() => {
                 playSoftClick2();
                 copyToClipboard(useKeyNames ? "0x" + stat.key : stat.key);
               }}

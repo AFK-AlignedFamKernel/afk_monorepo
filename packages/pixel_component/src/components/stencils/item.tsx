@@ -3,6 +3,8 @@ import { CSSTransition } from "react-transition-group";
 import { useAccount } from '@starknet-react/core';
 import FavoriteIcon from "../../../public/icons/Favorite.png";
 import FavoritedIcon from "../../../public/icons/Favorited.png";
+const FavoritedIconSrc = "../../../public/icons/Favorited.png";
+const FavoriteIconSrc = "../../../public/icons/Favorite.png";
 //import Info from "../../../public/icons/Info.png";
 import { playSoftClick2 } from "../utils/sounds";
 import { favoriteStencilCall, unfavoriteStencilCall } from "../../contract/calls";
@@ -68,7 +70,7 @@ export const StencilItem = (props: any) => {
           onClick={handleFavoritePress}
         >
           <img
-            src={props.stencil.favorited ? FavoritedIcon : FavoriteIcon}
+            src={props.stencil.favorited ? FavoritedIconSrc : FavoriteIconSrc}
             alt="Favorite"
             width={24}
             height={24}

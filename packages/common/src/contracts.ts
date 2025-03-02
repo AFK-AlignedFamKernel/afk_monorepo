@@ -234,6 +234,12 @@ export const DAO_FACTORY_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: '0x',
 } as { [key in string]: `0x${string}` };
 
+export const MULTI_CANVAS_ADDRESS = {
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    '0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b',
+  [constants.StarknetChainId.SN_MAIN]: '0x',
+} as { [key in string]: `0x${string}` };
+
 export const RPC_URLS_NUMBER: { [key: number]: string } = {
   11155111: 'https://eth-sepolia.public.blastapi.io',
   1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID', // Ethereum Mainnet

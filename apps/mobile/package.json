@@ -109,15 +109,12 @@
     "lightweight-charts": "^5.0.3",
     "memoize-one": "^6.0.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "mobile": "link:",
     "nativewind": "^4.1.23",
     "npx": "^10.2.2",
     "path": "^0.12.7",
     "pbkdf2": "^3.1.2",
     "pixel_component": "workspace:*",
     "postcss": "^8.4.23",
-    "postcss-import": "^16.1.0",
-    "postcss-nesting": "^13.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.74.3",
@@ -146,7 +143,9 @@
     "text-encoding": "^0.7.0",
     "viem": "2.21.60",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

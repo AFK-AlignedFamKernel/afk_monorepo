@@ -1,5 +1,6 @@
 import { BasicTab } from "./basic";
-import check from "../../../public/icons/check.png";
+// import check from "../../../public/icons/check.png";
+const checkSrc = "../../../public/icons/check.png";
 import "./world-creation.css";
 import { playSoftClick2 } from "../utils/sounds";
 import React from 'react';
@@ -34,7 +35,7 @@ export const StagingPixelsTab = (props: any) => {
             playSoftClick2();
             props.commitStagingPixels();
           }}>
-            <img alt="submit" src={check} className="w-[1.6rem] h-[1.6rem]" />
+            <img alt="submit" src={checkSrc} className="w-[1.6rem] h-[1.6rem]" />
           </button>
           <button className="Button__circle Text__medium" onClick={() => {
             playSoftClick2();
