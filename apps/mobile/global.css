@@ -64,29 +64,23 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: pixelated;
-  background-image: linear-gradient(
-    to bottom right,
-    rgba(0, 0, 0, 0.2),
-    rgba(0, 0, 0, 0.4)
-  );
+  background-image: linear-gradient(to bottom right,
+      rgba(0, 0, 0, 0.2),
+      rgba(0, 0, 0, 0.4));
 
   position: relative;
 }
 
 .Gradient__standard {
-  background-image: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.9)
-  );
+  background-image: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.9));
 }
 
 .Gradient__secondary {
-  background-image: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.8),
-    rgba(255, 255, 255, 1)
-  );
+  background-image: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 1));
 }
 
 .Button__circle {
@@ -98,11 +92,9 @@ body {
   align-items: center;
   justify-content: center;
 
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.8));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3);
   border-radius: 50%;
   border: 0.1rem solid rgba(0, 0, 0, 0.4);
@@ -113,21 +105,17 @@ body {
 }
 
 .Button__circle:hover {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.9)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.9));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.4);
   transform: scale(1.05) translateY(-0.1rem);
 }
 
 .Button__circle:active {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.8));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
   transform: scale(1) translateY(0);
 }
@@ -142,11 +130,9 @@ body {
   align-items: center;
   justify-content: center;
 
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.8));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3);
   border-radius: 2rem;
   border: 0.1rem solid rgba(0, 0, 0, 0.4);
@@ -157,31 +143,25 @@ body {
 }
 
 .Button__primary:hover {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.9)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.7),
+      rgba(255, 255, 255, 0.9));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.4);
   transform: scale(1.05) translateY(-0.1rem);
 }
 
 .Button__primary:active {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.8));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
   transform: scale(1) translateY(0);
 }
 
 .Button__primary--invalid:active {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 100, 100, 0.6),
-    rgba(255, 100, 100, 0.8)
-  ) !important;
+  background: linear-gradient(to bottom right,
+      rgba(255, 100, 100, 0.6),
+      rgba(255, 100, 100, 0.8)) !important;
 }
 
 .Button--disabled {
@@ -211,11 +191,9 @@ body {
   align-items: center;
   justify-content: center;
 
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.8));
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3);
   border-radius: 2rem;
   border: 0.1rem solid rgba(0, 0, 0, 0.4);
@@ -227,9 +205,11 @@ body {
   0% {
     box-shadow: 0 0 0 0 rgba(30, 30, 70, 0.3);
   }
+
   70% {
     box-shadow: 0 0 0 0.7rem rgba(30, 30, 70, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(30, 30, 70, 0);
   }
@@ -332,8 +312,7 @@ body {
 }
 
 /* This fires as soon as the this.state.showList is false */
-.list-transition-exit {
-}
+.list-transition-exit {}
 
 /* fires as element leaves the DOM*/
 .list-transition-exit-active {
@@ -346,21 +325,27 @@ body {
   0% {
     box-shadow: 0 0 10px rgba(200, 0, 0, 0.6);
   }
+
   17% {
     box-shadow: 0 0 9px rgba(200, 200, 0, 0.6);
   }
+
   34% {
     box-shadow: 0 0 8px rgba(0, 200, 0, 0.6);
   }
+
   51% {
     box-shadow: 0 0 8px rgba(0, 200, 200, 0.6);
   }
+
   68% {
     box-shadow: 0 0 9px rgba(0, 0, 200, 0.6);
   }
+
   85% {
     box-shadow: 0 0 10px rgba(200, 0, 200, 0.6);
   }
+
   100% {
     box-shadow: 0 0 9px rgba(200, 0, 0, 0.6);
   }
@@ -409,16 +394,16 @@ body {
 
 /* Base styles */
 @layer base {
-    :root {
-      --primary-color: #0070f3;
-      --secondary-color: #ff4081;
-      --background-color: #ffffff;
-      --text-color: #000000;
-    }
+  :root {
+    --primary-color: #0070f3;
+    --secondary-color: #ff4081;
+    --background-color: #ffffff;
+    --text-color: #000000;
   }
-  
-  /* Component styles */
-  @layer components {
+}
+
+/* Component styles */
+/* @layer components {
     .Button__primary {
       @apply flex flex-row items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors;
     }
@@ -455,22 +440,22 @@ body {
       @apply bg-gradient-to-r from-gray-100 to-gray-200;
     }
   }
-  
-  /* Transitions */
-  .fade-enter {
-    opacity: 0;
-  }
-  
-  .fade-enter-active {
-    opacity: 1;
-    transition: opacity 200ms ease-in;
-  }
-  
-  .fade-exit {
-    opacity: 1;
-  }
-  
-  .fade-exit-active {
-    opacity: 0;
-    transition: opacity 200ms ease-out;
-  } 
+   */
+/* Transitions */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
