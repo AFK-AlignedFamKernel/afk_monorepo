@@ -65,7 +65,7 @@ import { TagsView } from '../screens/Tags';
 import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
-// import { PixelScreen } from '../screens/Pixel';
+import { PixelScreen } from '../screens/Pixel';
 import { ThemedStyleSheet } from '../styles';
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
@@ -343,7 +343,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="Community" component={Community} />
       <MainStack.Screen name="DAO" component={DAOScreen} />
       <MainStack.Screen name="DAOPage" component={DaoPage} />
-      {/* <MainStack.Screen name="Pixel" component={PixelScreen} /> */}
+      <MainStack.Screen name="Pixel" component={PixelScreen} />
     </MainStack.Navigator>
   );
 };
@@ -497,7 +497,7 @@ const linking = {
               daoId: (daoId: string) => `${daoId}`,
             },
           },
-          // Pixel:"app/pixel"
+          Pixel: 'app/pixel',
         },
       },
     },

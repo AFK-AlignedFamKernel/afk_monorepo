@@ -95,7 +95,7 @@ export type MainStackParams = {
   RecordedStream: { streamId: string; recordingUrl?: string };
   DAO: undefined;
   DAOPage: { daoAddress: string };
-  // Pixel:undefined;
+  Pixel: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -134,7 +134,7 @@ export type HomeBottomStackParams = {
   Community: undefined;
   DAO: undefined;
   DAOPage: { daoAddress: string };
-  // Pixel:undefined;
+  Pixel:undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -334,14 +334,14 @@ export type WalletScreenBTC = CompositeScreenProps<
   NativeStackScreenProps<RootStackParams>
 >;
 
-// export type PixelScreenProps = CompositeScreenProps<
-//   NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
-//   NativeStackScreenProps<RootStackParams>
-// >;
-// export type TipsMainScreenProps = CompositeScreenProps<
-//   NativeStackScreenProps<MainStackParams, 'Tips'>,
-//   NativeStackScreenProps<RootStackParams>
-// >;
+export type PixelScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'Pixel'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+export type TipsMainScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'Tips'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 
 export type BottomBarProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'BottomBar'>,

@@ -4,14 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { IconButton } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
-import { NameserviceComponent } from '../../modules/nameservice';
 import { PixelPeace } from '../../modules/PixelPeace';
-import { QuestsComponent } from '../../modules/quests';
 import { PixelScreenProps } from '../../types';
-import { CONSOLE_TABS_MENU, SelectedTab } from '../../types/tab';
-import { DAOComponent } from '../DAO/DaoComponent';
-import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
-import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
+import { SelectedTab } from '../../types/tab';
 import stylesheet from './styles';
 
 export const PixelScreen: React.FC<PixelScreenProps> = ({ navigation }) => {
