@@ -57,16 +57,32 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 
 	// Connect to Postgres
 	// postgresConnString := "postgresql://" + databaseConfig.Postgres.User + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + databaseConfig.Postgres.Host + ":" + strconv.Itoa(databaseConfig.Postgres.Port) + "/" + databaseConfig.Postgres.Database
-
 	postgresConnString := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("PG_HOST") + ":" + os.Getenv("PG_PORT") + "/" + os.Getenv("PG_DATABASE")
 	fmt.Println("Postgres connection string:", postgresConnString)
-	// TODO: crd_audit?sslmode=disable
+
+	// Create connection pool
 	pgPool, err := pgxpool.New(context.Background(), postgresConnString)
 	if err != nil {
-		fmt.Println("Failed to connect to Postgres:", err)
-
+		fmt.Println("Failed to create connection pool:", err)
 		panic(err)
 	}
+
+	// Verify connection with a ping
+	err = pgPool.Ping(context.Background())
+	if err != nil {
+		fmt.Println("Failed to ping database:", err)
+		panic(err)
+	}
+
+	// Test query to verify database is accessible
+	var result int
+	err = pgPool.QueryRow(context.Background(), "SELECT 1").Scan(&result)
+	if err != nil {
+		fmt.Println("Test query failed:", err)
+		panic(err)
+	}
+	fmt.Println("Successfully connected to PostgreSQL database")
+
 	d.Postgres = pgPool
 
 	return d

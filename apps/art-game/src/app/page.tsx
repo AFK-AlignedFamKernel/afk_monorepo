@@ -82,30 +82,34 @@ function App() {
   }, [currentBackgroundSongIndex, hasPlayedYet]);
 
   const [homeClicked, setHomeClicked] = useState(false);
-  return (
-    <HomeApp />
-    // <div className="h-[100vh] w-[100vw] bg-[#fefdfb] flex flex-col align-center">
-    //   <div className="Page__bg">
-    //     <div className="w-[8rem] absolute top-0 left-0 m-2 cursor-pointer z-[20]">
-    //       <div className="relative w-full h-full">
-    //         <Image
-    //           src={logo}
-    //           alt="logo"
-    //           className="w-full h-full object-contain"
-    //           onClick={() => {
-    //             playSoftClick2();
-    //             setHomeClicked(true);
-    //             // TODO: window.location.href = '/';
-    //           }}
-    //         />
-    //         <p className="text-md text-black absolute top-[45%] left-[65%]
-    //           transform translate-x-[-50%] translate-y-[-50%] pointer-events-none
-    //           ">3</p>
-    //       </div>
-    //     </div>
-    //     <Canvas setIsMusicMuted={setIsMusicMuted} homeClicked={homeClicked} setHomeClicked={setHomeClicked} />
-    //   </div>
-    // </div>
+  return (<>
+    {/* <HomeApp /> */}
+
+    <div className="h-[100vh] w-[100vw] bg-[#fefdfb] flex flex-col align-center">
+      <div className="Page__bg">
+        <div className="w-[8rem] absolute top-0 left-0 m-2 cursor-pointer z-[20]">
+          <div className="relative w-full h-full">
+            <Image
+              src={logo}
+              alt="logo"
+              className="w-full h-full object-contain"
+              onClick={() => {
+                playSoftClick2();
+                setHomeClicked(true);
+                // TODO: window.location.href = '/';
+              }}
+            />
+            <p className="text-md text-black absolute top-[45%] left-[65%]
+              transform translate-x-[-50%] translate-y-[-50%] pointer-events-none
+              ">3</p>
+          </div>
+        </div>
+        <Canvas setIsMusicMuted={setIsMusicMuted} homeClicked={homeClicked} setHomeClicked={setHomeClicked} />
+      </div>
+    </div> 
+
+  </>
+
   );
 }
 // TODO
