@@ -43,10 +43,10 @@ config.server = {
   pollingInterval: 1000,
 };
 
-// module.exports = withNativeWind(config, {
-//   input: './global.css',
-//   inlineRem: 16,
-// });
+module.exports = withNativeWind(config, {
+  input: './global.css',
+  inlineRem: 16,
+});
 
 module.exports = config;
 
