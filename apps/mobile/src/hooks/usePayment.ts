@@ -36,7 +36,10 @@ export const usePayment = () => {
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
       console.log('no wallet');
-      return undefined;
+      return {
+        meltResponse: undefined,
+        invoice: undefined,
+      };
     } else if (proofs) {
       try {
       console.log('proofs', proofs);
@@ -84,18 +87,21 @@ export const usePayment = () => {
             direction: 'out',
           };
           setTransactions([...transactions, newInvoice]);
-          return meltResponse;
+          return {meltResponse, invoice: newInvoice};
         } else {
-          return undefined;
+          return { meltResponse: undefined, invoice: undefined};
         }
       } catch (error) {
         console.log('error', error);
-        return undefined;
+        return {  meltResponse: undefined, invoice: undefined};
       }
     } else {
       console.log('no proofs');
       // no proofs = no balance
-      return undefined;
+      return {
+        meltResponse: undefined,
+        invoice: undefined,
+      };
     }
   };
 

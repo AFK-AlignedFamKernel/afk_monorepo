@@ -131,9 +131,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       setIsPaymentProcessing(false);
       return;
     }
-    const tokens = await handlePayInvoice(invoice);
+    const {meltResponse} = await handlePayInvoice(invoice);
     setIsPaymentProcessing(false);
-    if (!tokens) {
+    if (!meltResponse) {
       setModalToast({
         title: 'Error processing payment.',
         type: 'error',

@@ -1,12 +1,12 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useCashu, useLN, useProfile, useSendZapNote} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useCashu, useLN, useProfile, useSendZapNote } from 'afk_nostr_sdk';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 
-import {Avatar, Button, Input, Modalize, Text} from '../../../components';
-import {useStyles} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {TipSuccessModalProps} from '../../TipSuccessModal';
+import { Avatar, Button, Input, Modalize, Text } from '../../../components';
+import { useStyles } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
 import { usePayment } from 'src/hooks/usePayment';
 
@@ -31,33 +31,33 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const styles = useStyles(stylesheet);
 
   const [isCashu, setIsCashu] = useState(true);
-  const {mutate: mutateSendZapNote} = useSendZapNote();
+  const { mutate: mutateSendZapNote } = useSendZapNote();
 
   const [amount, setAmount] = useState<string>('');
-  const {handleZap, getInvoiceFromLnAddress, payInvoice} = useLN();
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const {showToast} = useToast();
+  const { handleZap, getInvoiceFromLnAddress, payInvoice } = useLN();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { showToast } = useToast();
   const isActive = !!amount;
 
   console.log('profile nip', profile);
   console.log('lud06', profile?.lud06);
   console.log('lud16', profile?.lud16);
   console.log('nip', profile?.nip05);
-  const { handleGenerateEcash, handlePayInvoice } = usePayment();
+  const { handleGenerateEcash, handlePayInvoice , } = usePayment();
 
-  const {payExternalInvoice, payLnInvoice} = useCashu()
+  const { payExternalInvoice, payLnInvoice , checkMeltQuote} = useCashu()
   const onTipPress = async () => {
-    showToast({title: 'ZAP in processing', type: 'info'});
+    showToast({ title: 'ZAP in processing', type: 'info' });
 
     if (!event) return;
 
     if (!amount) {
-      showToast({title: 'Zap send', type: 'error'});
+      showToast({ title: 'Zap send', type: 'error' });
       return;
     }
 
     if (!profile?.lud16) {
-      showToast({title: "This profile doesn't have a lud16 Lightning address", type: 'error'});
+      showToast({ title: "This profile doesn't have a lud16 Lightning address", type: 'error' });
       return;
     }
 
@@ -65,20 +65,24 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     console.log('invoice', invoice);
 
     if (!invoice?.paymentRequest) {
-      showToast({title: "Invoice not found", type: 'error'});
+      showToast({ title: "Invoice not found", type: 'error' });
       return;
     }
 
-    let result:string|undefined;
-    if(!isCashu) {
+    let result: string | undefined;
+    if (!isCashu) {
       const zapExtension = await handleZap(amount, invoice?.paymentRequest);
       console.log('zapExtension', zapExtension);
 
     } else {
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
-      const cashuLnPayment = await handlePayInvoice(
+      const {invoice:cashuLnPayment} = await handlePayInvoice(
         invoice?.paymentRequest)
-    console.log('cashuLnPayment', cashuLnPayment);
+      console.log('cashuLnPayment', cashuLnPayment);
+      if(cashuLnPayment?.quote) {
+        const verify = await checkMeltQuote(cashuLnPayment?.quote)
+        console.log('verify', verify);
+      }
     }
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
 

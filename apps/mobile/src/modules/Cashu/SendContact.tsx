@@ -65,8 +65,8 @@ const SendNostrContact: React.FC<SendModalProps> = ({onClose}) => {
       return showToast({title: 'Invoice creation failed', type: 'error'});
     }
 
-    const response = await handlePayInvoice(invoice.paymentRequest);
-    if (response) {
+    const {meltResponse} = await handlePayInvoice(invoice.paymentRequest);
+    if (meltResponse) {
       showToast({title: 'Payment sent', type: 'success'});
     }
   };

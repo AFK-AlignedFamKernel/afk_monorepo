@@ -76,7 +76,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
   const handlePay = async (): Promise<void> => {
     if (scannedData) {
       setIsProcessing(true);
-      const tokens = await handlePayInvoice(scannedData);
+      const {meltResponse:tokens} = await handlePayInvoice(scannedData);
       if (tokens) {
         setModalVisible(false);
         cleanup();
