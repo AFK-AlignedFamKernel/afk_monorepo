@@ -4,7 +4,7 @@ import { useAccount } from '@starknet-react/core';
 import { useProfile } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import { useMemo, useState } from 'react';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, TouchableOpacity, View, Image } from 'react-native';
 
 import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
 import { useToast } from '../../../hooks/modals';
@@ -133,35 +133,51 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         </View> */}
         {/* <Text style={styles.price}>MC {Number(token?.market_cap || 0).toFixed(4)}</Text> */}
       </View>
+
+
+      <View style={styles.imageContainer}>
+        {token?.url &&
+          <Image source={{ uri: token?.url }} style={[styles.contentImage,
+            // {
+            //   // height: dimensionsMedia[1],
+            //   // aspectRatio: getImageRatio(postSource.width, postSource.height),
+            // },
+          ]} />
+        }
+      </View>
+
+
       <View style={styles.divider} />
-      {token?.threshold_liquidity && (
-        <View>
-          <View style={styles.detailRow}>
-            <Text style={styles.label}>Raised Progress</Text>
-            <Text style={styles.value}>
-              {Number(token?.liquidity_raised || 0).toLocaleString()} /{' '}
-              {Number(token?.threshold_liquidity).toLocaleString()}
-            </Text>
+      {
+        token?.threshold_liquidity && (
+          <View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Raised Progress</Text>
+              <Text style={styles.value}>
+                {Number(token?.liquidity_raised || 0).toLocaleString()} /{' '}
+                {Number(token?.threshold_liquidity).toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.progressBarContainer}>
+              <View
+                style={[
+                  Number(token.liquidity_raised) <=
+                    Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
+                    ? styles.progressBarFillWarn
+                    : styles.progressBarFill,
+                  {
+                    width: `${Math.min(
+                      (Number(token?.liquidity_raised || 0) / Number(token?.threshold_liquidity)) *
+                      100,
+                      100,
+                    )}%`,
+                  },
+                ]}
+              />
+            </View>
           </View>
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                Number(token.liquidity_raised) <=
-                  Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
-                  ? styles.progressBarFillWarn
-                  : styles.progressBarFill,
-                {
-                  width: `${Math.min(
-                    (Number(token?.liquidity_raised || 0) / Number(token?.threshold_liquidity)) *
-                    100,
-                    100,
-                  )}%`,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      )}
+        )
+      }
       <View style={styles.stats}>
         <View style={styles.statContainer}>
           {/* <Icon name="MaxSupplyIcon" size={22} fill="black" /> */}
@@ -185,38 +201,40 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         </View> */}
       </View>
 
-      {!isViewDetailDisabled && (
-        <>
-          {!isTokenOnly && (
-            <TouchableOpacity
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              <Text style={styles.actionButtonText}>View details</Text>
-            </TouchableOpacity>
-          )}
-          {isTokenOnly && (
-            <TouchableOpacity
-              onPress={() => {
-                if (token && token?.memecoin_address) {
-                  navigation.navigate('LaunchDetail', {
-                    coinAddress: token?.memecoin_address,
-                  });
-                }
-              }}
-              style={styles.actionButton}
-            >
-              <Text style={styles.actionButtonText}>View token page</Text>
-            </TouchableOpacity>
-          )}
-        </>
-      )}
-    </View>
+      {
+        !isViewDetailDisabled && (
+          <>
+            {!isTokenOnly && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (token && token?.memecoin_address) {
+                    navigation.navigate('LaunchDetail', {
+                      coinAddress: token?.memecoin_address,
+                    });
+                  }
+                }}
+                style={styles.actionButton}
+              >
+                <Text style={styles.actionButtonText}>View details</Text>
+              </TouchableOpacity>
+            )}
+            {isTokenOnly && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (token && token?.memecoin_address) {
+                    navigation.navigate('LaunchDetail', {
+                      coinAddress: token?.memecoin_address,
+                    });
+                  }
+                }}
+                style={styles.actionButton}
+              >
+                <Text style={styles.actionButtonText}>View token page</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )
+      }
+    </View >
   );
 };

@@ -231,10 +231,13 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
 
         {token?.url && (
-          <View>
+          <View
+            style={{ width: "100%", height: 150, maxHeight: 200 }}
+
+          >
             <Image
               source={{ uri: token?.url }}
-              style={{ width: 100, height: 100 }}
+              style={{ width: "100%", height: "100%" }}
             />
 
           </View>

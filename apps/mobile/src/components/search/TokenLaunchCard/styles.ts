@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+import { Spacing } from 'src/styles';
 
 export default (theme: any) =>
   StyleSheet.create({
@@ -151,5 +152,21 @@ export default (theme: any) =>
       color: theme.colors.text,
       fontSize: 10,
       // fontWeight: '600',
+    },
+    contentImage: {
+      width: '100%',
+      height: '100%',
+      // resizeMode: 'cover',
+      borderRadius: 8,
+      overflow: 'hidden',
+      marginTop: Spacing.small,
+    },
+    imageContainer: {
+      width: '100%',
+      height: 150,
+      maxHeight: 250,
+      // resizeMode: 'cover',
+      borderRadius: 8,
+      overflow: 'hidden',
     },
   });
