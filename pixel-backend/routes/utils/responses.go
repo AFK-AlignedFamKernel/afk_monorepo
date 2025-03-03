@@ -11,20 +11,14 @@ import (
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 )
 
+// SetupAccessHeaders sets up CORS headers to allow all origins
 func SetupAccessHeaders(w http.ResponseWriter) {
-	config := core.AFKBackend.BackendConfig.Http
-
-	// TODO: Process multiple origins in the future.
-	if len(config.AllowOrigin) > 0 {
-		w.Header().Set("Access-Control-Allow-Origin", config.AllowOrigin[0])
-	}
-	methods := strings.Join(config.AllowMethods, ", ")
-	w.Header().Set("Access-Control-Allow-Methods", methods)
-
-	headers := strings.Join(config.AllowHeaders, ", ")
-	w.Header().Set("Access-Control-Allow-Headers", headers)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, X-CSRF-Token")
 }
 
+// SetupHeaders sets up response headers
 func SetupHeaders(w http.ResponseWriter) {
 	SetupAccessHeaders(w)
 	w.Header().Set("Content-Type", "application/json")

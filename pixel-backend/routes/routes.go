@@ -8,6 +8,10 @@ import (
 
 func InitBaseRoutes() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			routeutils.HandlePreflight(w, r)
+			return
+		}
 		routeutils.SetupHeaders(w)
 		w.WriteHeader(http.StatusOK)
 	})
