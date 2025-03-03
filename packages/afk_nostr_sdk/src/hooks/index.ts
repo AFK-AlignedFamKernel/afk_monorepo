@@ -81,3 +81,4 @@ export {useSendZap} from './zap/useZap';
 export {useConnectNWC} from './zap/useZap';
 export {useSendZapNote} from './zap/useZap';
 export {useAddHashtagInterests} from './hashtag/useAddHashtagInterests';
+export {useQuote} from './useQuote';
