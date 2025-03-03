@@ -41,6 +41,16 @@ export class MetadataLaunchService {
           data: {
             url: data?.url,
             nostr_id: data?.nostr_event_id,
+            nostr_event_id: data?.nostr_event_id,
+          },
+        });
+
+        await this.prismaService.token_launch.updateMany({
+          where: { memecoin_address: data.memecoinAddress },
+          data: {
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
+            nostr_event_id: data?.nostr_event_id,
           },
         });
       } else {
@@ -50,6 +60,7 @@ export class MetadataLaunchService {
           data: {
             url: data.url,
             nostr_id: data.nostr_event_id,
+            nostr_event_id: data?.nostr_event_id,
           },
         });
         await this.prismaService.token_deploy.updateMany({
@@ -57,6 +68,7 @@ export class MetadataLaunchService {
           data: {
             url: data?.url,
             nostr_id: data?.nostr_event_id,
+            nostr_event_id: data?.nostr_event_id,
           },
         });
       }
