@@ -14,6 +14,8 @@ export const deployWorld = async () => {
   const privateKey0 = process.env.DEV_PK as string;
   const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
   const account = new Account(provider, accountAddress0, privateKey0, "1");
+  let startTime = Math.round(new Date().getTime() / 1000)
+  let endTime = (Math.round(new Date().getTime()) + (1000 + 60 * 60 * 24 * 90) / 1000)
 
   let art_peace;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
@@ -21,12 +23,13 @@ export const deployWorld = async () => {
     const votableColors = CanvasConfig.votableColors?.map((c) => `0x${c}`);
     console.log("CanvasConfig", CanvasConfig);
     // const colors = CanvasConfig["colors"]
+
     let artPeaceContract = await createWorld(
       accountAddress0 ?? account?.address,
       // "afklfg",
       // "afklfg",
-      cairo.felt("1"),
-      cairo.felt("build5"),
+      cairo.felt("build6"),
+      cairo.felt("build6"),
       CanvasConfig.canvas?.width,
       CanvasConfig.canvas?.height,
       5,
@@ -34,8 +37,8 @@ export const deployWorld = async () => {
       colors ?? [],
       votableColors ?? [],
       1,
-      new Date().getTime(),
-      new Date().getTime() + 1000 * 60 * 60 * 24 * 90,
+      startTime,
+      endTime,
       1,
       false
     );

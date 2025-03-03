@@ -1,7 +1,9 @@
 package indexer
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 
@@ -252,8 +254,22 @@ const (
 )
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
+	// Log raw request body for debugging
+	fmt.Println("Received request")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		PrintIndexerError("consumeIndexerMsg", "error reading request body", err)
+		return
+	}
+	fmt.Println("Raw request body:", string(body))
+	
+	// Restore body for further processing
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	
 	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
-	fmt.Println("Received message", message)
+	// message, err := routeutils.ReadJsonBody[IndexerMessage](body)
+
+	fmt.Println("message", message)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
@@ -261,11 +277,6 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 
 	if len(message.Data.Batch) == 0 {
 		fmt.Println("No events in batch")
-		return
-	}
-
-	if len(message.Data.Batch[0].Events) != 1 {
-		fmt.Println("Expected 1 event in batch, got", len(message.Data.Batch[0].Events))
 		return
 	}
 

@@ -126,18 +126,19 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
       )}
       <View
         style={{
-          display: "flex", flexDirection: "column",
-          gap: 10
+          display: "flex",
+          flexDirection: "row",
+          gap: 10,
+          alignItems: "center",
+          justifyContent: "space-between",
         }
         }>
-        {token?.block_timestamp && (
-          <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
-        )}
 
         {token?.is_launched &&
           <View
             style={{
-              display: "flex", flexDirection: "row",
+              display: "flex",
+              flexDirection: "row",
               gap: 10
             }}
           >
@@ -145,33 +146,15 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
             <Text style={{ fontSize: 10, fontStyle: "italic" }}>Launched in Bonding curve</Text>
           </View>
         }
+
+        {token?.block_timestamp && (
+          <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
+        )}
+
+
       </View>
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-          <Text
-            numberOfLines={isExpanded ? undefined : 1}
-            ellipsizeMode="tail"
-            style={styles.tokenName}
-          >
-            {token?.name || 'Unnamed Token'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
-          <Text
-            numberOfLines={isExpandedSymbol ? undefined : 1}
-            ellipsizeMode="tail"
-            style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
-        </TouchableOpacity>
-
-        {/* <View style={styles.priceTag}>
-          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
-        </View>
-
-        <View style={styles.priceTag}>
-          <Text style={styles.text}>${Number(token?.market_cap || 0).toFixed(4)}</Text>
-        </View> */}
+      <View>
 
         <View style={styles.addressContainer}>
           <TouchableOpacity onPress={handleCopy}>
@@ -183,14 +166,68 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
 
               style={{
                 // color: '#808080', 
-                flex: 1, flexWrap: 'wrap', width: "50%"
+                flex: 1, flexWrap: 'wrap',
+                // width: "50%"
               }}>
-              {token?.memecoin_address ? feltToAddress(BigInt(token.memecoin_address)) : ''}
+              {token?.memecoin_address ?
+                `${feltToAddress(BigInt(token.memecoin_address)).slice(0, 6)}...${feltToAddress(BigInt(token.memecoin_address)).slice(token?.memecoin_address?.length - 4, token?.memecoin_address?.length)}`
+                : ''}
             </Text>
 
           </TouchableOpacity>
 
         </View>
+      </View>
+
+      <View style={styles.header}>
+
+        <TouchableOpacity onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
+          <Text
+            numberOfLines={isExpandedSymbol ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.symbolName}>{token?.symbol || 'Unnamed Symbol'}</Text>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
+          <Text
+            numberOfLines={isExpanded ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.tokenName}
+          >
+            {token?.name || 'Unnamed Token'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* <View style={styles.priceTag}>
+          <Text style={{ color: '#4CAF50' }}>${Number(token?.price || 0).toFixed(4)}</Text>
+        </View>
+
+        <View style={styles.priceTag}>
+          <Text style={styles.text}>${Number(token?.market_cap || 0).toFixed(4)}</Text>
+        </View> */}
+        {/* 
+        <View style={styles.addressContainer}>
+          <TouchableOpacity onPress={handleCopy}>
+            <CopyIconStack color={theme.colors.primary} />
+            <Text
+              // onPress={handleCopy} 
+              numberOfLines={1}
+              ellipsizeMode="middle"
+
+              style={{
+                // color: '#808080', 
+                flex: 1, flexWrap: 'wrap',
+                // width: "50%"
+              }}>
+              {token?.memecoin_address ?
+                `${feltToAddress(BigInt(token.memecoin_address)).slice(0, 6)}...${feltToAddress(BigInt(token.memecoin_address)).slice(token?.memecoin_address?.length - 4, token?.memecoin_address?.length)}`
+                : ''}
+            </Text>
+
+          </TouchableOpacity>
+
+        </View> */}
 
 
         {token?.url && (

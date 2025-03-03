@@ -58,7 +58,7 @@ type BackendConfig struct {
 var DefaultBackendConfig = BackendConfig{
 	Host:         "localhost",
 	Port:         8080,
-	ConsumerPort: 8081,
+	ConsumerPort: 8082,
 	WsHost:       "localhost",
 	WsPort:       8083,
 	Scripts: BackendScriptsConfig{

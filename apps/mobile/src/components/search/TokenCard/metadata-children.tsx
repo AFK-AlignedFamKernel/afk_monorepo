@@ -40,6 +40,8 @@ export type LaunchCoinProps = {
   setMetadataProps?: (metadata: MetadataOnchain) => void;
   metadataProps?: MetadataOnchain;
   isHandleMetadata?: boolean;
+  setVideoProps?: (video: ImagePicker.ImagePickerAsset | any) => void;
+  setImageProps?: (image: ImagePicker.ImagePickerAsset | undefined) => void;
 };
 
 enum AmountType {
@@ -47,7 +49,7 @@ enum AmountType {
   COIN_AMOUNT_TO_BUY,
 }
 
-export const FormMetadata: React.FC<LaunchCoinProps> = ({
+export const FormMetadataChildren: React.FC<LaunchCoinProps> = ({
   token,
   launch,
   imageProps,
@@ -60,7 +62,9 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
   isButtonOpenVisible,
   setMetadataProps,
   metadataProps,
-  isHandleMetadata
+  isHandleMetadata,
+  setVideoProps,
+  setImageProps
 }) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const { account } = useAccount();
@@ -72,6 +76,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
   const fileUpload = useFileUpload();
 
   const { addMetadata } = useMetadataLaunch();
+  const { handleLaunchCoin } = useLaunchToken();
   const waitConnection = useWaitConnection();
 
   const handleCopy = async () => {
@@ -100,6 +105,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
     if (pickerResult.canceled || !pickerResult.assets.length) return;
     setImage(pickerResult.assets[0]);
+    setImageProps?.(pickerResult.assets[0])
   };
 
 
@@ -128,6 +134,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
     if (!result.canceled) {
       const asset = result.assets[0];
       setVideo(asset);
+      setVideoProps?.(asset)
     }
   };
 
@@ -147,7 +154,7 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
 
     if (!account) {
-    const waitConnection = useWaitConnection();
+      const waitConnection = useWaitConnection();
 
       showToast({ type: 'error', title: 'Please connect your account' });
       return;
@@ -162,6 +169,11 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
 
     if (image) {
       const result = await fileUpload.mutateAsync(image);
+      if (result.data.url) imageUrl = result.data.url;
+    }
+
+    if (video) {
+      const result = await fileUpload.mutateAsync(video);
       if (result.data.url) imageUrl = result.data.url;
     }
 
@@ -186,70 +198,68 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
       )}
 
       {isModalVisible && (
-        <Modal
-        >
-          <ScrollView>
+        <ScrollView>
 
-            <Button
-              onPress={() => handleClose()}
-            >
-              <Text>Close</Text>
-            </Button>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Add Token Metadata</Text>
+          <Button
+            onPress={() => handleClose()}
+          >
+            <Text>Close</Text>
+          </Button>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Token Metadata</Text>
 
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Nostr event id"
-                  multiline
-                  numberOfLines={4}
-                  value={metadata.nostr_event_id}
-                  onChangeText={(text) => {
-                    setMetadata({ ...metadata, nostr_event_id: text })
-                    setMetadataProps?.(metadata)
-                  }}
-                />
-              </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Nostr event id"
+                multiline
+                numberOfLines={4}
+                value={metadata.nostr_event_id}
+                onChangeText={(text) => {
+                  setMetadata({ ...metadata, nostr_event_id: text })
+                  setMetadataProps?.({ ...metadataProps, nostr_event_id: text })
+                }}
+              />
+            </View>
 
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Media</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Media</Text>
 
 
 
-                {image && (
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: image.uri }}
-                      style={[styles.image, { aspectRatio: getImageRatio(image.width, image.height) }]}
-                    />
-                  </View>
-                )}
+              {image && (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: image.uri }}
+                    style={[styles.image, { aspectRatio: getImageRatio(image.width, image.height) }]}
+                  />
+                </View>
+              )}
 
-                {video && (
-                  <View style={styles.videoContainer}>
-                    <VideoPlayer uri={video.uri} />
-                  </View>
-                )}
+              {video && (
+                <View style={styles.videoContainer}>
+                  <VideoPlayer uri={video.uri} />
+                </View>
+              )}
 
-                <View style={styles.mediaUpload}>
+              <View style={styles.mediaUpload}>
 
-                  <View style={styles.mediaButtons}>
-                    {!video && (
-                      <Pressable onPress={onGalleryPress}>
-                        <GalleryIcon width="24" height="24" color={theme.colors.red} />
-                      </Pressable>
-                    )}
+                <View style={styles.mediaButtons}>
+                  {!video && (
+                    <Pressable onPress={onGalleryPress}>
+                      <GalleryIcon width="24" height="24" color={theme.colors.red} />
+                    </Pressable>
+                  )}
 
-                    {!image && (
-                      <Pressable onPress={handleVideoSelect}>
-                        <VideoIcon width="30" height="30" color={theme.colors.red} />
-                      </Pressable>
-                    )}
-                  </View>
-                  {/* <TouchableOpacity
+                  {!image && (
+                    <Pressable onPress={handleVideoSelect}>
+                      <VideoIcon width="30" height="30" color={theme.colors.red} />
+                    </Pressable>
+                  )}
+                </View>
+                {/* <TouchableOpacity
                     style={styles.uploadButton}
                     onPress={() => {
                       // Handle media upload
@@ -257,34 +267,33 @@ export const FormMetadata: React.FC<LaunchCoinProps> = ({
                   >
                     <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
                   </TouchableOpacity> */}
-                </View>
-              </View>
-
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setIsModalVisible(false)}
-                >
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
-
-                {isHandleMetadata &&
-                  <TouchableOpacity
-                    style={styles.submitButton}
-                    onPress={() => {
-                      handleAddMetadata()
-                      // Handle form submission
-                      // setIsModalVisible(false);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Submit</Text>
-                  </TouchableOpacity>
-                }
-
               </View>
             </View>
-          </ScrollView>
-        </Modal>
+
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setIsModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              {isHandleMetadata &&
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => {
+                    handleAddMetadata()
+                    // Handle form submission
+                    // setIsModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              }
+
+            </View>
+          </View>
+        </ScrollView>
       )}
 
     </View >

@@ -15,11 +15,16 @@ import { useToast, useWalletModal } from '../../hooks/modals';
 import stylesheet from '../../screens/CreateChannel/styles';
 import { TipSuccessModalProps } from '../TipSuccessModal';
 import { Picker } from '@react-native-picker/picker';
-import { BondingType } from '../../types/keys';
+import { BondingType, MetadataOnchain } from '../../types/keys';
 import { numericValue } from '../../utils/format';
 import { useTokenCreatedModal } from '../../hooks/modals/useTokenCreateModal';
 import { LoadingSpinner } from '../../components/Loading';
 import { byteArray } from 'starknet';
+import { FormMetadata } from 'src/components/search/TokenCard/form-metadata';
+import { FormMetadataChildren } from 'src/components/search/TokenCard/metadata-children';
+import * as ImagePicker from 'expo-image-picker';
+import { useFileUpload } from '../../hooks/api';
+
 enum TypeCreate {
   LAUNCH,
   CREATE,
@@ -31,10 +36,11 @@ export type FormTokenCreatedProps = {
   hide?: () => void;
   showSuccess?: (props: TipSuccessModalProps) => void;
   hideSuccess?: () => void;
+  metadata?: MetadataOnchain;
 };
 
 type FormValues = DeployTokenFormValues;
-export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
+export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
   const [loading, setLoading] = useState(false)
   const formikRef = useRef<FormikProps<FormValues>>(null);
   const { hide: hideTokenCreateModal } = useTokenCreatedModal();
@@ -45,8 +51,14 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const account = useAccount();
+  const [isOpenFormMetadata, setIsOpenFormMetadata] = useState(false);
   const waitConnection = useWaitConnection();
-  const { deployToken, deployTokenAndLaunch } = useCreateToken();
+  const { deployToken, deployTokenAndLaunch, deployTokenAndLaunchWithMetadata } = useCreateToken();
+  const [metadata, setMetadata] = useState<MetadataOnchain | undefined>(props?.metadata);
+
+  const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | any>();
+  const [image, setImage] = useState<ImagePicker.ImagePickerAsset | undefined>();
+  const fileUpload = useFileUpload();
 
   const [type, setType] = useState(TypeCreate.CREATE);
   const initialFormValues: FormValues = {
@@ -98,6 +110,8 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
 
       let tx;
       setLoading(true)
+
+      console.log('metadata', metadata)
       if (type == TypeCreate.CREATE) {
         const data: DeployTokenFormValues = {
           recipient: account?.address,
@@ -125,12 +139,44 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
           is_unruggable: values.is_unruggable ?? false,
           bonding_type: values.bonding_type,
         };
-        tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
-          // showToast({ type: 'error', title: err?.message || "Something went wrong" });
-          showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
 
-          setLoading(false)
-        });
+        if(!metadata){
+          tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
+            // showToast({ type: 'error', title: err?.message || "Something went wrong" });
+            showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
+  
+            setLoading(false)
+          });
+        } else {
+          let imageUrl: string | undefined;
+
+          if (image) {
+            const result = await fileUpload.mutateAsync(image);
+            if (result.data.url) imageUrl = result.data.url;
+          }
+      
+          if (video) {
+            const result = await fileUpload.mutateAsync(video);
+            if (result.data.url) imageUrl = result.data.url;
+          }
+
+          console.log("imageUrl", imageUrl)
+          const metadataPrepared = {
+            ...metadata,
+            url: imageUrl ?? "",
+            nostr_event_id: metadata?.nostr_event_id,
+          }
+          console.log("metadataPrepared", metadataPrepared)
+
+          tx = await deployTokenAndLaunchWithMetadata(account?.account, data, metadataPrepared).catch(err => {
+            // showToast({ type: 'error', title: err?.message || "Something went wrong" });
+            showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
+  
+            setLoading(false)
+          });
+        }
+     
+      
       }
 
       if (tx) {
@@ -227,7 +273,28 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = () => {
                   ))}
               </Picker>
             </View>
+            
 
+            <View>
+              <Button disabled={loading} variant="primary" onPress={() => setIsOpenFormMetadata(!isOpenFormMetadata)}>
+                {isOpenFormMetadata ? 'Close' : 'Add Metadata'}
+              </Button>
+
+              {isOpenFormMetadata && (
+                <FormMetadataChildren
+                  // token={token}
+                  // launch={launch}
+                  isModalVisibleProps={isOpenFormMetadata}  
+                  setIsModalVisibleProps={setIsOpenFormMetadata}
+                  // imageProps={imageProps}
+                  setMetadataProps={setMetadata}
+                  metadataProps={metadata}
+                  isHandleMetadata={false}
+                  setImageProps={setImage}
+                  setVideoProps={setVideo}
+                />
+              )}
+            </View>
             <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
               Create
               {loading && type == TypeCreate.CREATE &&

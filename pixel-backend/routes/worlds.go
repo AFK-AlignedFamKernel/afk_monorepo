@@ -37,6 +37,8 @@ func InitWorldsRoutes() {
 	http.HandleFunc("/leaderboard-pixels-world", getLeaderboardPixelsWorld)
 	http.HandleFunc("/leaderboard-pixels-user", getLeaderboardPixelsUser)
 	http.HandleFunc("/leaderboard-pixels-world-user", getLeaderboardPixelsWorldUser)
+	http.HandleFunc("/get-all-worlds", getAllWorlds)
+
 	if !core.AFKBackend.BackendConfig.Production {
 		http.HandleFunc("/create-canvas-devnet", createCanvasDevnet)
 		http.HandleFunc("/favorite-world-devnet", favoriteWorldDevnet)
@@ -63,6 +65,7 @@ func getWorldCanvas(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	val, err := core.AFKBackend.Databases.Redis.Get(ctx, canvasName).Result()
 	if err != nil {
+		fmt.Println("error getWorldCanvas", err)
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get canvas")
 		return
 	}
@@ -114,10 +117,25 @@ func getWorld(w http.ResponseWriter, r *http.Request) {
 
 	query := `
     SELECT
-      worlds.*,
+		worlds.world_id,
+		host,
+		name,
+		unique_name,
+		width,
+		height,
+		pixels_per_time,
+		time_between_pixels,
+		CASE 
+			WHEN EXTRACT(YEAR FROM start_time) BETWEEN 0 AND 9999 THEN start_time 
+			ELSE NULL 
+		END as start_time,
+		CASE
+			WHEN EXTRACT(YEAR FROM end_time) BETWEEN 0 AND 9999 THEN end_time
+			ELSE NULL
+		END as end_time,
       COALESCE(worldfavorites.favorite_count, 0) AS favorites,
       COALESCE((SELECT true FROM worldfavorites WHERE user_address = $1 AND worldfavorites.world_id = worlds.world_id), false) as favorited
-    FROM
+	    FROM
       worlds
     LEFT JOIN (
       SELECT
@@ -134,6 +152,7 @@ func getWorld(w http.ResponseWriter, r *http.Request) {
 	world, err := core.PostgresQueryOneJson[WorldData](query, address, worldId)
 	fmt.Println("world by worldId", world)
 	if err != nil {
+		fmt.Println("error", err)
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve World")
 		return
 	}
@@ -162,9 +181,25 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 
 	query := `
         SELECT 
-            worlds.*, 
+            worlds.world_id,
+			host,
+			name,
+			unique_name,
+			width,
+			height,
+			pixels_per_time,
+			time_between_pixels,
+			CASE 
+				WHEN EXTRACT(YEAR FROM start_time) BETWEEN 0 AND 9999 THEN start_time 
+				ELSE NULL 
+			END as start_time,
+			CASE
+				WHEN EXTRACT(YEAR FROM end_time) BETWEEN 0 AND 9999 THEN end_time
+				ELSE NULL
+			END as end_time,
             COALESCE(worldfavorites.favorite_count, 0) AS favorites,
             COALESCE((SELECT true FROM worldfavorites WHERE user_address = $1 AND worldfavorites.world_id = worlds.world_id), false) as favorited
+		
         FROM 
             worlds
         LEFT JOIN (
@@ -181,6 +216,7 @@ func getWorlds(w http.ResponseWriter, r *http.Request) {
 	worlds, err := core.PostgresQueryJson[WorldData](query, address, pageLength, offset)
 	fmt.Println("worlds", len(worlds))
 	if err != nil {
+		fmt.Println("error getWorlds", err)
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds")
 		return
 	}
@@ -933,4 +969,54 @@ func doesWorldNameExist(name string) (bool, error) {
 		return false, err
 	}
 	return *exists, nil
+}
+
+
+
+func getAllWorlds(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("getAllWorlds")
+	pageLength, err := strconv.Atoi(r.URL.Query().Get("pageLength"))
+	if err != nil || pageLength <= 0 {
+		pageLength = 25
+	}
+	if pageLength > 50 {
+		pageLength = 50
+	}
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * pageLength
+
+	query := `
+        SELECT 
+            world_id,
+            host,
+            name,
+            unique_name,
+            width,
+            height,
+            pixels_per_time,
+            time_between_pixels,
+            CASE 
+                WHEN EXTRACT(YEAR FROM start_time) BETWEEN 0 AND 9999 THEN start_time 
+                ELSE NULL 
+            END as start_time,
+            CASE
+                WHEN EXTRACT(YEAR FROM end_time) BETWEEN 0 AND 9999 THEN end_time
+                ELSE NULL
+            END as end_time
+        FROM 
+            worlds
+        ORDER BY world_id DESC 
+        LIMIT $1 OFFSET $2`
+	worlds, err := core.PostgresQueryJson[WorldData](query, pageLength, offset)
+	fmt.Println("Attempting to query worlds with pageLength:", pageLength, "offset:", offset)
+	if err != nil {
+		fmt.Println("Database error:", err) // Log the actual error
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds: " + err.Error())
+		return
+	}
+	fmt.Println("Successfully retrieved worlds, count:", len(worlds))
+	routeutils.WriteDataJson(w, string(worlds))
 }
