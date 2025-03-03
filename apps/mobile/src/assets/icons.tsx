@@ -963,3 +963,29 @@ export const GroupIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+
+
+export const SupplyIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-1.62 3.37-2.77 7-2.77s7 1.15 7 2.77V19z"
+      fill="currentColor"
+    />
+    <Path
+      d="M16 10h2v2h-2zm-2-2h2v2h-2zm-2 2h2v2h-2zm-2-2h2v2h-2zm-2 2h2v2H8z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
+
+export const SupplyIconBag: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-1.62 3.37-2.77 7-2.77s7 1.15 7 2.77V19z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+

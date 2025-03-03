@@ -14,6 +14,8 @@ import { getElapsedTimeStringFull } from '../../../utils/timestamp';
 import { Icon } from '../../Icon';
 import { Text } from '../../Text';
 import stylesheet from './styles';
+import { CopyIconStack } from 'src/assets/icons';
+import { feltToAddress } from 'common';
 
 export type LaunchCoinProps = {
   imageProps?: ImageSourcePropType;
@@ -72,6 +74,29 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}
           </Text>
         ) : null}
+
+        <View style={styles.addressContainer}>
+          <TouchableOpacity onPress={handleCopy}>
+            <CopyIconStack color={theme.colors.primary} />
+            <Text
+              // onPress={handleCopy} 
+              numberOfLines={1}
+              ellipsizeMode="middle"
+
+              style={{
+                // color: '#808080', 
+                flex: 1, flexWrap: 'wrap',
+                // width: "50%"
+              }}>
+              {token?.memecoin_address ?
+                `${feltToAddress(BigInt(token.memecoin_address)).slice(0, 6)}...${feltToAddress(BigInt(token.memecoin_address)).slice(token?.memecoin_address?.length - 5, token?.memecoin_address?.length - 1)}`
+                : ''}
+
+            </Text>
+
+          </TouchableOpacity>
+
+        </View>
         {/* <View style={styles.priceTag}>
           <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)}</Text>
 
@@ -87,14 +112,6 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
       }
       <View style={styles.header}>
 
-
-        <TouchableOpacity
-          onPress={() => setIsExpanded(!isExpanded)}>
-          <Text
-            numberOfLines={isExpanded ? undefined : 1}
-            ellipsizeMode="tail"
-            style={styles.tokenName}>${token?.name || ""}</Text>
-        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setIsExpandedSymbol(!isExpandedSymbol)}>
           {token?.symbol ? <Text
@@ -102,6 +119,14 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
             ellipsizeMode="tail"
             style={styles.tokenSymbol}>{token.symbol}</Text> : null}
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setIsExpanded(!isExpanded)}>
+          <Text
+            numberOfLines={isExpanded ? undefined : 1}
+            ellipsizeMode="tail"
+            style={styles.tokenName}>${token?.name || ""}</Text>
+        </TouchableOpacity>
+
         {/* <View style={styles.priceTag}>
           <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)} Meme/STRK</Text>
 
@@ -139,14 +164,19 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
       )}
       <View style={styles.stats}>
         <View style={styles.statContainer}>
-          <Icon name="MaxSupplyIcon" size={22} fill="black" />
+          {/* <Icon name="MaxSupplyIcon" size={22} fill="black" /> */}
+          <Icon name="SupplyIcon" size={22} fill="black" />
           <Text style={styles.statValue}>{Number(token?.total_supply || 0).toLocaleString()}</Text>
         </View>
-        <View style={styles.statContainer}>
+        {/* <View style={styles.statContainer}>
+          <Icon name="MaxSupplyIcon" size={22} fill="black" />
+          <Text style={styles.statValue}>{Number(token?.market_cap || 0).toLocaleString()}</Text>
+        </View> */}
+        {/* <View style={styles.statContainer}>
           <Icon name="TokenHolderIcon" size={22} fill="black" />
           <Text style={styles.statValue}>{Number(token?.token_holded || 0).toLocaleString()}</Text>
-        </View>
-{/* 
+        </View> */}
+        {/* 
         <View style={styles.statContainer}>
           <View style={styles.priceTag}>
             <Text style={styles.text}>Price: {Number(token?.price || 0).toFixed(4)}</Text>

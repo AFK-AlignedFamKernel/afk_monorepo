@@ -21,15 +21,16 @@ export default (theme: any) =>
       marginBottom: 20,
     },
     tokenName: {
-      fontSize: 18,
+      fontSize: 14,
       // color: '#FFFFFF',
       color: theme.colors.text,
       fontWeight: 'bold',
       fontFamily: 'italic',
     },
     symbolName: {
-      fontSize: 22,
+      fontSize: 20,
       // color: '#FFFFFF',
+      fontWeight: 'bold',
       color: theme.colors.text,
       // fontWeight: 'bold',
     },
