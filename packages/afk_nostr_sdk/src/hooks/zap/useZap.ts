@@ -1,11 +1,11 @@
-import {Invoice} from '@getalby/lightning-tools';
-import NDK, {NDKEvent, NDKNwcResponse} from '@nostr-dev-kit/ndk';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {SendPaymentResponse} from '@webbtc/webln-types';
+import { Invoice } from '@getalby/lightning-tools';
+import NDK, { NDKEvent, NDKNwcResponse } from '@nostr-dev-kit/ndk';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { SendPaymentResponse } from '@webbtc/webln-types';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
-import {useLN} from '../ln';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
+import { useLN } from '../ln';
 
 export const useGetZapInfo = (relayUrl: string) => {
   const ndk = new NDK({
@@ -30,29 +30,12 @@ export const useGetZapInfo = (relayUrl: string) => {
 };
 
 export const useSendZap = () => {
-  const {ndk} = useNostrContext();
+  const { ndk, nwcNdk } = useNostrContext();
+  const { getInvoiceFromLnAddress, payInvoice, nostrWebLN } = useLN();
 
   return useMutation({
-    mutationKey: ['useSendZap', ndk],
-    mutationFn: async () => {
-      //Implement send Zap
-    },
-  });
-};
-
-interface ISendZapNote {
-  event: NDKEvent;
-  amount: number;
-  lud16?: string;
-  options?: {comment; unit; signer; tags; onLnPay; onCashuPay; onComplete};
-}
-export const useSendZapNote = () => {
-  const {ndk, nwcNdk} = useNostrContext();
-  const {getInvoiceFromLnAddress, payInvoice, nostrWebLN} = useLN();
-
-  return useMutation({
-    mutationKey: ['useSendZapNote', ndk, nwcNdk],
-    mutationFn: async ({event, amount, lud16, options}: ISendZapNote) => {
+    mutationKey: ['useSendZapSend', ndk, nwcNdk],
+    mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
       try {
         const zap = await ndk.zap(event, amount, {});
 
@@ -75,8 +58,129 @@ export const useSendZapNote = () => {
         // )
         let payLnInvoice:
           | NDKNwcResponse<{
-              preimage?: string;
-            }>
+            preimage?: string;
+          }>
+          | undefined;
+        console.log('nwcNdk', nwcNdk);
+
+        let paymentResponse: undefined | SendPaymentResponse;
+      } catch (e) {
+        console.log('issue send zap', e);
+      }
+
+      //Implement send Zap
+    },
+  });
+};
+
+export const useSendZapSend = () => {
+  const { ndk, nwcNdk } = useNostrContext();
+  const { getInvoiceFromLnAddress, payInvoice, nostrWebLN } = useLN();
+
+  return useMutation({
+    mutationKey: ['useSendZapSend', ndk, nwcNdk],
+    mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
+      try {
+        const zap = await ndk.zap(event, amount, {});
+
+        console.log('zap', zap);
+
+        let invoiceFromLn: undefined | string;
+        let invoice: undefined | Invoice;
+        if (lud16) {
+          invoice = await getInvoiceFromLnAddress(lud16, amount);
+        }
+
+        const zapMethods = await zap?.getZapMethods(ndk, event?.pubkey);
+        console.log('zapMethods', zapMethods);
+
+        //  const config = await ndk.walletConfig
+        //   const invoice = await zap?.getLnInvoice(event, amount,
+        //   //   {
+
+        //   // }
+        // )
+        let payLnInvoice:
+          | NDKNwcResponse<{
+            preimage?: string;
+          }>
+          | undefined;
+        console.log('nwcNdk', nwcNdk);
+
+        let paymentResponse: undefined | SendPaymentResponse;
+      } catch (e) {
+        console.log('issue send zap', e);
+      }
+
+      //Implement send Zap
+    },
+  });
+};
+
+export const useSendZapReiceved = () => {
+  const { ndk, nwcNdk } = useNostrContext();
+  const { getInvoiceFromLnAddress, payInvoice, nostrWebLN } = useLN();
+
+  return useMutation({
+    mutationKey: ['useSendZapReiceved', ndk, nwcNdk],
+    mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
+      try {
+        const zap = await ndk.zap(event, amount, {});
+
+        console.log('zap', zap);
+
+        let invoiceFromLn: undefined | string;
+        let invoice: undefined | Invoice;
+        if (lud16) {
+          invoice = await getInvoiceFromLnAddress(lud16, amount);
+        }
+
+        const zapMethods = await zap?.getZapMethods(ndk, event?.pubkey);
+        console.log('zapMethods', zapMethods);
+      } catch (e) {
+        console.log('issue send zap', e);
+      }
+    },
+  });
+};
+
+interface ISendZapNote {
+  event: NDKEvent;
+  amount: number;
+  lud16?: string;
+  options?: { comment; unit; signer; tags; onLnPay; onCashuPay; onComplete };
+}
+export const useSendZapNote = () => {
+  const { ndk, nwcNdk } = useNostrContext();
+  const { getInvoiceFromLnAddress, payInvoice, nostrWebLN } = useLN();
+
+  return useMutation({
+    mutationKey: ['useSendZapNote', ndk, nwcNdk],
+    mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
+      try {
+        const zap = await ndk.zap(event, amount, {});
+
+        console.log('zap', zap);
+
+        let invoiceFromLn: undefined | string;
+        let invoice: undefined | Invoice;
+        if (lud16) {
+          invoice = await getInvoiceFromLnAddress(lud16, amount);
+        }
+
+        const zapMethods = await zap?.getZapMethods(ndk, event?.pubkey);
+        console.log('zapMethods', zapMethods);
+
+        //  const config = await ndk.walletConfig
+        //   const invoice = await zap?.getLnInvoice(event, amount,
+        //   //   {
+
+        //   // }
+        // )
+        let payLnInvoice:
+          | NDKNwcResponse<{
+            preimage?: string;
+          }>
           | undefined;
         console.log('nwcNdk', nwcNdk);
 
@@ -92,7 +196,7 @@ export const useSendZapNote = () => {
           console.log('payLnInvoice', payLnInvoice);
         }
 
-        return {zap, invoice, preimage: payLnInvoice?.result?.preimage, paymentResponse};
+        return { zap, invoice, preimage: payLnInvoice?.result?.preimage, paymentResponse };
       } catch (e) {
         console.log('issue send zap', e);
       }
@@ -102,9 +206,11 @@ export const useSendZapNote = () => {
   });
 };
 
+
+
 export const useConnectNWC = () => {
-  const {ndk} = useNostrContext();
-  const {setNWCUrl} = useAuth();
+  const { ndk } = useNostrContext();
+  const { setNWCUrl } = useAuth();
 
   return useMutation({
     mutationKey: ['useConnectNWC', ndk],

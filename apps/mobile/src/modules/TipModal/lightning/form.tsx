@@ -70,34 +70,45 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     }
 
     let result: string | undefined;
+    let success: boolean = false;
     if (!isCashu) {
       const zapExtension = await handleZap(amount, invoice?.paymentRequest);
       console.log('zapExtension', zapExtension);
-
+      if(zapExtension?.preimage) {
+        success = true;
+        showToast({ title: "Lightning zap succeed", type: "success" })
+      }
     } else {
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const {invoice:cashuLnPayment} = await handlePayInvoice(
         invoice?.paymentRequest)
       console.log('cashuLnPayment', cashuLnPayment);
+
+      if(!cashuLnPayment) {
+        showToast({ title: "Lightning zap failed", type: "error" })
+      }
       if(cashuLnPayment?.quote) {
         const verify = await checkMeltQuote(cashuLnPayment?.quote)
         console.log('verify', verify);
+
+        success = true;
+        showToast({ title: "Lightning zap succeed with Cashu", type: "success" })
       }
     }
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
 
-    // if(!zapExtension) {
-    //   await mutateSendZapNote({
-    //     event,
-    //     amount: Number(amount?.toString()),
-    //     lud16: profile?.lud16
-    //   }, {
-    //     onSuccess: () => {
-    //       showToast({ title: "Lightning zap succeed", type: "success" })
+    if(!success) {
+      await mutateSendZapNote({
+        event,
+        amount: Number(amount?.toString()),
+        lud16: profile?.lud16
+      }, {
+        onSuccess: () => {
+          showToast({ title: "Zap and notif sent", type: "success" })
 
-    //     }
-    //   })
-    // }
+        }
+      })
+    }
   };
 
   return (
