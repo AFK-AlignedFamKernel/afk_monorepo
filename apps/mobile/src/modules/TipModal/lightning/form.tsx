@@ -1,5 +1,5 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useLN, useProfile, useSendZapNote} from 'afk_nostr_sdk';
+import {useCashu, useLN, useProfile, useSendZapNote} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -8,6 +8,7 @@ import {useStyles} from '../../../hooks';
 import {useToast} from '../../../hooks/modals';
 import {TipSuccessModalProps} from '../../TipSuccessModal';
 import stylesheet from './styles';
+import { usePayment } from 'src/hooks/usePayment';
 
 export type TipModalLightning = Modalize;
 
@@ -29,6 +30,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 }: FormTipModalLightningProps) => {
   const styles = useStyles(stylesheet);
 
+  const [isCashu, setIsCashu] = useState(true);
   const {mutate: mutateSendZapNote} = useSendZapNote();
 
   const [amount, setAmount] = useState<string>('');
@@ -41,9 +43,11 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   console.log('lud06', profile?.lud06);
   console.log('lud16', profile?.lud16);
   console.log('nip', profile?.nip05);
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
+  const {payExternalInvoice, payLnInvoice} = useCashu()
   const onTipPress = async () => {
-    showToast({title: 'ZAP coming soon', type: 'info'});
+    showToast({title: 'ZAP in processing', type: 'info'});
 
     if (!event) return;
 
@@ -59,9 +63,24 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
     const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
     console.log('invoice', invoice);
-    const zapExtension = await handleZap(amount, invoice?.paymentRequest);
+
+    if (!invoice?.paymentRequest) {
+      showToast({title: "Invoice not found", type: 'error'});
+      return;
+    }
+
+    let result:string|undefined;
+    if(!isCashu) {
+      const zapExtension = await handleZap(amount, invoice?.paymentRequest);
+      console.log('zapExtension', zapExtension);
+
+    } else {
+      // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
+      const cashuLnPayment = await handlePayInvoice(
+        invoice?.paymentRequest)
+    console.log('cashuLnPayment', cashuLnPayment);
+    }
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
-    console.log('zapExtension', zapExtension);
 
     // if(!zapExtension) {
     //   await mutateSendZapNote({
