@@ -89,6 +89,11 @@ export const SliderImages: React.FC<PostProps> = ({
         width: '100%',
         height: '100%',
         maxHeight: '350px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+        flex: 1,
       }, animatedStyle]}>
         <Image
           source={{ uri: imgUrls[currentIndex] }}
@@ -99,6 +104,27 @@ export const SliderImages: React.FC<PostProps> = ({
             resizeMode: 'cover'
           }}
         />
+
+        {/* <View style={{
+        position: 'absolute',
+        bottom: 10,
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 5
+      }}>
+        {imgUrls.map((_, index) => (
+          <View
+            key={index}
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: index === currentIndex ? '#fff' : 'rgba(255,255,255,0.5)'
+            }}
+          />
+        ))}
+      </View> */}
       </Animated.View>
 
       {currentIndex > 0 && (
@@ -133,26 +159,6 @@ export const SliderImages: React.FC<PostProps> = ({
         </Pressable>
       )}
 
-      <View style={{
-        position: 'absolute',
-        bottom: 10,
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 5
-      }}>
-        {imgUrls.map((_, index) => (
-          <View
-            key={index}
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: index === currentIndex ? '#fff' : 'rgba(255,255,255,0.5)'
-            }}
-          />
-        ))}
-      </View>
     </View>
   );
 

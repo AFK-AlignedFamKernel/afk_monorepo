@@ -5,6 +5,7 @@ import * as Clipboard from 'expo-clipboard';
 import {
   useBookmark,
   useProfile,
+  useQuote,
   useReact,
   useReactions,
   useReplyNotes,
@@ -37,6 +38,7 @@ import { ContentWithClickableHashtags } from '../PostCard';
 import stylesheet from './styles';
 import { SliderImages } from './SliderImages';
 import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
+import { useQuoteNoteModal } from 'src/hooks/modals/useQuoteNoteModal';
 
 export type PostProps = {
   asComment?: boolean;
@@ -60,6 +62,7 @@ export const Post: React.FC<PostProps> = ({
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const { showToast } = useToast();
+  const { show: showQuoteNoteModal } = useQuoteNoteModal();
 
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -73,6 +76,7 @@ export const Post: React.FC<PostProps> = ({
   const react = useReact();
   const queryClient = useQueryClient();
   const repostMutation = useRepost({ event });
+  const quoteMutation = useQuote({ event });
   const { bookmarkNote, removeBookmark } = useBookmark(publicKey);
   const [noteBookmarked, setNoteBookmarked] = useState(isBookmarked);
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
@@ -221,7 +225,33 @@ export const Post: React.FC<PostProps> = ({
     );
   };
 
+
+  const handleQuoteOrRepost = async () => {
+    if (!event) return;
+    try {
+      await handleCheckNostrAndSendConnectDialog();
+
+      showQuoteNoteModal(event);
+      // showQuoteNoteModal(event);
+    } catch (error) {
+      console.error('Quote error:', error);
+    }
+  };
   const handleRepost = async () => {
+    if (!event) return;
+    try {
+      // @TODO fix
+      await handleCheckNostrAndSendConnectDialog();
+
+      await repostMutation.mutateAsync();
+      showToast({ title: 'Post reposted successfully', type: 'success' });
+    } catch (error) {
+      console.error('Repost error:', error);
+      showToast({ title: 'Failed to repost', type: 'error' });
+    }
+  };
+
+  const handleQuote = async () => {
     if (!event) return;
     try {
       // @TODO fix
@@ -488,7 +518,10 @@ export const Post: React.FC<PostProps> = ({
                 </View>
               </Pressable>
 
-              <Pressable onPress={handleRepost} disabled={repostMutation.isPending}>
+              <Pressable onPress={() => {
+                // handleRepost()
+                handleQuoteOrRepost()
+              }} disabled={repostMutation.isPending}>
                 <Icon name="RepostIcon" size={15} title="Repost" />
                 {/* todo add number of reposts */}
                 {repostMutation.isPending && <ActivityIndicator size="small" />}

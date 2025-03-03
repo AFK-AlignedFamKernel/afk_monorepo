@@ -17,7 +17,7 @@ import { playSoftClick2 } from "../utils/sounds";
 import uploadIcon from "../../../public/icons/Share.png";
 
 const StencilsMainSection = (props: any) => {
-  const [uploadEnabled, _] = useState(false);
+  const [uploadEnabled, _] = useState(true);
   const { address } = useAccount();
 
   return (
@@ -111,7 +111,7 @@ const StencilsMainSection = (props: any) => {
         )}
       </div>
       </div>
-        {address && uploadEnabled && (
+        {uploadEnabled && (
           <div className="flex flex-row justify-center items-center w-full mt-2">
             <div
               className="Button__primary"

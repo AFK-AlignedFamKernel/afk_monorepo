@@ -17,7 +17,7 @@ import { playSoftClick2 } from "../utils/sounds";
 const uploadIconSrc = "../../../public/icons/Share.png";
 
 const StencilsMainSection = (props: any) => {
-  const [uploadEnabled, _] = useState(false);
+  const [uploadEnabled, _] = useState(true);
   const { address } = useAccount();
 
   return (

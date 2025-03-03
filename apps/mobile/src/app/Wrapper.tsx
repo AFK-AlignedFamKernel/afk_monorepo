@@ -24,6 +24,7 @@ import {CashuProvider} from '../providers/CashuProvider';
 import App from './App';
 import {EVMProvider} from './EVMProvider';
 import {StarknetProvider} from './StarknetProvider';
+import { QuoteNostrModalProvider } from 'src/context/QuoteNostrModal';
 
 const queryClient = new QueryClient({
   defaultOptions: {queries: {retry: 2}},
@@ -41,7 +42,9 @@ const ModalProviders = ({children}: {children: React.ReactNode}) => {
                   <TokenCreateModalProvider>
                     <KeyModalProvider>
                       <LoginModalProvider>
-                        <ModalParentProvider>{children}</ModalParentProvider>
+                        <QuoteNostrModalProvider>
+                          <ModalParentProvider>{children}</ModalParentProvider>
+                        </QuoteNostrModalProvider>
                       </LoginModalProvider>
                     </KeyModalProvider>
                   </TokenCreateModalProvider>

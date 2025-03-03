@@ -88,11 +88,11 @@ export const DirectMessages: React.FC = () => {
     console.log("publicKey", publicKey)
     refetch()
 
-    if (publicKey && !isLoadedOneTime) {
-      console.log("refetch")
-      refetch()
-      setIsLoaderOnetTime(true)
-    }
+    // if (publicKey && !isLoadedOneTime) {
+    //   console.log("refetch")
+    //   refetch()
+    //   setIsLoaderOnetTime(true)
+    // }
   }, [publicKey, isLoadedOneTime])
 
   const onOpenMenu = () => {
@@ -103,7 +103,7 @@ export const DirectMessages: React.FC = () => {
   const [isBack, setIsBack] = useState(false);
   const handleGoBack = () => {
     setSelectedConversation(null);
-    setIsBack(true);
+    // setIsBack(true);
   };
 
   // if (isPending) {
@@ -147,6 +147,14 @@ export const DirectMessages: React.FC = () => {
   }, [selectedConversation, messagesSent.data?.pages, isBack, handleGoBack]);
 
 
+
+  const handleConnect = async () => {
+    // navigation.navigate('Login')
+    const connected = await handleCheckNostrAndSendConnectDialog()
+    if (connected) {
+      // setIsConnected(true)
+    }
+  }
   const contacts = useContacts();
   // console.log('contacts', contacts);
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -186,7 +194,8 @@ export const DirectMessages: React.FC = () => {
         <View>
           <Text>Connect your Nostr account</Text>
           <Button onPress={() => {
-            navigation.navigate('Login')
+            handleConnect()
+            // navigation.navigate('Login')
             // handleCheckNostrAndSendConnectDialog()
           }}>Connect</Button>
         </View>
@@ -199,14 +208,27 @@ export const DirectMessages: React.FC = () => {
         <View>
           <Text>Followers</Text>
           <ScrollView showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-        >
-          {contacts.data?.flat().map((contact) => (
+            showsHorizontalScrollIndicator={false}
+          >
+            <FlatList
+              data={contacts.data?.flat()}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => {
+
+                // get profile infos
+                return (
+                  <View key={item}>
+                    <Text style={styles?.contactItem}>{item}</Text>
+                  </View>
+                )
+              }}
+            />
+            {/* {contacts.data?.flat().map((contact) => (
             <View key={contact}>
               <Text style={styles?.contactItem}>{contact}</Text>
             </View>
-          ))}
-        </ScrollView>
+          ))} */}
+          </ScrollView>
         </View>
       )}
 
@@ -214,7 +236,7 @@ export const DirectMessages: React.FC = () => {
         <ScrollView showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
         >
-         <ContactList onClose={() => setActiveTab('messages')} />
+          <ContactList onClose={() => setActiveTab('messages')} />
         </ScrollView>
       }
 
@@ -286,7 +308,7 @@ Refetch and clean Decrypted message after handleGoBack */}
         buttons={[
           { tab: 'messages', title: 'Messages' },
           { tab: 'contacts', title: 'Contacts' },
-          {tab: 'followers', title: 'Followers'},
+          { tab: 'followers', title: 'Followers' },
         ]}
       />
       {/* {activeTab === 'contacts' && <DirectMessages />} */}
