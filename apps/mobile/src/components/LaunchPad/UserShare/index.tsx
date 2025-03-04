@@ -86,7 +86,7 @@ export const UserShare: React.FC<UserShareProps> = ({ shares, share, loading, co
               Amount to claim
             </Text>
             <Text fontSize={14}>
-              {Number(share?.data?.amount_owned)}
+              {Number(share?.data?.amount_owned) >= 0 ? Number(share?.data?.amount_owned) : 0}
             </Text>
           </View>
           <View>

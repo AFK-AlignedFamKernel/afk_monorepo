@@ -39,7 +39,7 @@ export class SellTokenService {
       let price = tokenLaunchRecord?.price ?? 0;
 
       let coinAmount = Number(data.coinAmount);
-      let quoteAmount = Number(data.amount);
+      let quoteAmount = Number(data.quoteAmount);
 
       // const calculatedQuoteAmount = Number(data.amount) * Number(price);
       const calculatedQuoteAmount = Number(data.quoteAmount);
@@ -47,15 +47,24 @@ export class SellTokenService {
       const effectiveQuoteAmount = calculatedQuoteAmount;
       // calculatedQuoteAmount - Number(data?.protocolFee);
 
+      // let newTotalTokenHolded = 0;
+      let newTotalTokenHolded =
+        Number(tokenLaunchRecord.total_token_holded ?? 0) -
+        Number(data.coinAmount);
+
+      let newLiquidityRaised =
+        Number(tokenLaunchRecord.liquidity_raised ?? 0) -
+        effectiveQuoteAmount;
+        
       if (!tokenLaunchRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
         );
       } else {
         const newSupply =
-          Number(tokenLaunchRecord.current_supply ?? 0) +
+          Number(tokenLaunchRecord.current_supply ?? 0) -
           Number(data.coinAmount);
-        let newLiquidityRaised =
+        newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           effectiveQuoteAmount;
 
@@ -71,7 +80,7 @@ export class SellTokenService {
         }
         // TODO fix issue negative number
         // Check event fees etc
-        let newTotalTokenHolded =
+        newTotalTokenHolded =
           Number(tokenLaunchRecord.total_token_holded ?? 0) -
           Number(data.coinAmount);
 
@@ -128,10 +137,11 @@ export class SellTokenService {
           token_address: data.memecoinAddress,
         },
         update: {
-          amount_owned: {
-            // decrement: data.amount,
-            decrement: data?.coinAmount,
-          },
+          amount_owned: newTotalTokenHolded.toString(),
+          // amount_owned: {
+          //   // decrement: data.amount,
+          //   decrement: data?.coinAmount,
+          // },
           // amount_owned: {
           //   // decrement: data.amount,
           //   decrement: data.coinAmount ?? data?.amount,
