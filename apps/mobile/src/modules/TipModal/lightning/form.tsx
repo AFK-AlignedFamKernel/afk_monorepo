@@ -1,7 +1,7 @@
 import { NDKEvent } from '@nostr-dev-kit/ndk';
-import { useCashu, useLN, useProfile, useSendZapNote } from 'afk_nostr_sdk';
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import { useCashu, useCashuStore, useLN, useProfile, useSendZapNote } from 'afk_nostr_sdk';
+import React, { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 
 import { Avatar, Button, Input, Modalize, Text } from '../../../components';
 import { useStyles } from '../../../hooks';
@@ -9,6 +9,8 @@ import { useToast } from '../../../hooks/modals';
 import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
 import { usePayment } from 'src/hooks/usePayment';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
 
 export type TipModalLightning = Modalize;
 
@@ -43,9 +45,50 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   console.log('lud06', profile?.lud06);
   console.log('lud16', profile?.lud16);
   console.log('nip', profile?.nip05);
-  const { handleGenerateEcash, handlePayInvoice , } = usePayment();
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const { payExternalInvoice, payLnInvoice , checkMeltQuote} = useCashu()
+  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls } = useCashu()
+  // useEffect(() => {
+  //   (async () => {
+
+  //     if (!activeMintIndex) return;
+
+  //     const mintUrl = mintUrls?.[activeMintIndex]?.url;
+  //     if (!mintUrl) return;
+  //     const info = await getMintInfo(mintUrl);
+  //     setMintInfo(info);
+  //   })();
+  // }, [activeMintIndex]);
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const { setMnemonic } = useCashuStore();
+
+  const [hasSeedCashu, setHasSeedCashu] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
+
+      if (biometrySupported) {
+        const password = await retrievePassword();
+        if (!password) return;
+        const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
+
+        if (!storeMnemonic) {
+          return;
+        }
+        if (storeMnemonic) setHasSeedCashu(true);
+
+        const decoder = new TextDecoder();
+        // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
+        const decryptedPrivateKey = Buffer.from(storeMnemonic).toString('hex');
+        setMnemonic(decryptedPrivateKey);
+
+        if (isSeedCashuStorage) setHasSeedCashu(true);
+      }
+    })();
+  }, []);
+
+  const { payExternalInvoice, payLnInvoice, checkMeltQuote } = useCashu()
   const onTipPress = async () => {
     showToast({ title: 'ZAP in processing', type: 'info' });
 
@@ -74,20 +117,20 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     if (!isCashu) {
       const zapExtension = await handleZap(amount, invoice?.paymentRequest);
       console.log('zapExtension', zapExtension);
-      if(zapExtension?.preimage) {
+      if (zapExtension?.preimage) {
         success = true;
         showToast({ title: "Lightning zap succeed", type: "success" })
       }
     } else {
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
-      const {invoice:cashuLnPayment} = await handlePayInvoice(
+      const { invoice: cashuLnPayment, meltResponse } = await handlePayInvoice(
         invoice?.paymentRequest)
       console.log('cashuLnPayment', cashuLnPayment);
 
-      if(!cashuLnPayment) {
-        showToast({ title: "Lightning zap failed", type: "error" })
+      if (!cashuLnPayment && !meltResponse) {
+        return showToast({ title: "Lightning zap failed", type: "error" })
       }
-      if(cashuLnPayment?.quote) {
+      if (cashuLnPayment?.quote) {
         const verify = await checkMeltQuote(cashuLnPayment?.quote)
         console.log('verify', verify);
 
@@ -97,7 +140,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     }
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
 
-    if(!success) {
+    if (success) {
       await mutateSendZapNote({
         event,
         amount: Number(amount?.toString()),
@@ -113,7 +156,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
   return (
     <View>
-      <Text>ZAP Coming soon</Text>
+      <Text>ZAP with Bitcoin</Text>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardContent}>
