@@ -1,13 +1,16 @@
-import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useLN, useProfile, useSendZapNote} from 'afk_nostr_sdk';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useCashu, useCashuStore, useLN, useProfile, useSendZapNote } from 'afk_nostr_sdk';
+import React, { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 
-import {Avatar, Button, Input, Modalize, Text} from '../../../components';
-import {useStyles} from '../../../hooks';
-import {useToast} from '../../../hooks/modals';
-import {TipSuccessModalProps} from '../../TipSuccessModal';
+import { Avatar, Button, Input, Modalize, Text } from '../../../components';
+import { useStyles } from '../../../hooks';
+import { useToast } from '../../../hooks/modals';
+import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
+import { usePayment } from 'src/hooks/usePayment';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
 
 export type TipModalLightning = Modalize;
 
@@ -29,57 +32,131 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 }: FormTipModalLightningProps) => {
   const styles = useStyles(stylesheet);
 
-  const {mutate: mutateSendZapNote} = useSendZapNote();
+  const [isCashu, setIsCashu] = useState(true);
+  const { mutate: mutateSendZapNote } = useSendZapNote();
 
   const [amount, setAmount] = useState<string>('');
-  const {handleZap, getInvoiceFromLnAddress, payInvoice} = useLN();
-  const {data: profile} = useProfile({publicKey: event?.pubkey});
-  const {showToast} = useToast();
+  const { handleZap, getInvoiceFromLnAddress, payInvoice } = useLN();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { showToast } = useToast();
   const isActive = !!amount;
 
   console.log('profile nip', profile);
   console.log('lud06', profile?.lud06);
   console.log('lud16', profile?.lud16);
   console.log('nip', profile?.nip05);
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
+  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls } = useCashu()
+  // useEffect(() => {
+  //   (async () => {
+
+  //     if (!activeMintIndex) return;
+
+  //     const mintUrl = mintUrls?.[activeMintIndex]?.url;
+  //     if (!mintUrl) return;
+  //     const info = await getMintInfo(mintUrl);
+  //     setMintInfo(info);
+  //   })();
+  // }, [activeMintIndex]);
+  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const { setMnemonic } = useCashuStore();
+
+  const [hasSeedCashu, setHasSeedCashu] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
+
+      if (biometrySupported) {
+        const password = await retrievePassword();
+        if (!password) return;
+        const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
+
+        if (!storeMnemonic) {
+          return;
+        }
+        if (storeMnemonic) setHasSeedCashu(true);
+
+        const decoder = new TextDecoder();
+        // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
+        const decryptedPrivateKey = Buffer.from(storeMnemonic).toString('hex');
+        setMnemonic(decryptedPrivateKey);
+
+        if (isSeedCashuStorage) setHasSeedCashu(true);
+      }
+    })();
+  }, []);
+
+  const { payExternalInvoice, payLnInvoice, checkMeltQuote } = useCashu()
   const onTipPress = async () => {
-    showToast({title: 'ZAP coming soon', type: 'info'});
+    showToast({ title: 'ZAP in processing', type: 'info' });
 
     if (!event) return;
 
     if (!amount) {
-      showToast({title: 'Zap send', type: 'error'});
+      showToast({ title: 'Zap send', type: 'error' });
       return;
     }
 
     if (!profile?.lud16) {
-      showToast({title: "This profile doesn't have a lud16 Lightning address", type: 'error'});
+      showToast({ title: "This profile doesn't have a lud16 Lightning address", type: 'error' });
       return;
     }
 
     const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
     console.log('invoice', invoice);
-    const zapExtension = await handleZap(amount, invoice?.paymentRequest);
+
+    if (!invoice?.paymentRequest) {
+      showToast({ title: "Invoice not found", type: 'error' });
+      return;
+    }
+
+    let result: string | undefined;
+    let success: boolean = false;
+    if (!isCashu) {
+      const zapExtension = await handleZap(amount, invoice?.paymentRequest);
+      console.log('zapExtension', zapExtension);
+      if (zapExtension?.preimage) {
+        success = true;
+        showToast({ title: "Lightning zap succeed", type: "success" })
+      }
+    } else {
+      // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
+      const { invoice: cashuLnPayment, meltResponse } = await handlePayInvoice(
+        invoice?.paymentRequest)
+      console.log('cashuLnPayment', cashuLnPayment);
+
+      if (!cashuLnPayment && !meltResponse) {
+        return showToast({ title: "Lightning zap failed", type: "error" })
+      }
+      if (cashuLnPayment?.quote) {
+        const verify = await checkMeltQuote(cashuLnPayment?.quote)
+        console.log('verify', verify);
+
+        success = true;
+        showToast({ title: "Lightning zap succeed with Cashu", type: "success" })
+      }
+    }
     // const zapExtension = await payInvoice(invoice?.paymentRequest)
-    console.log('zapExtension', zapExtension);
 
-    // if(!zapExtension) {
-    //   await mutateSendZapNote({
-    //     event,
-    //     amount: Number(amount?.toString()),
-    //     lud16: profile?.lud16
-    //   }, {
-    //     onSuccess: () => {
-    //       showToast({ title: "Lightning zap succeed", type: "success" })
+    if (success) {
+      await mutateSendZapNote({
+        event,
+        amount: Number(amount?.toString()),
+        lud16: profile?.lud16
+      }, {
+        onSuccess: () => {
+          showToast({ title: "Zap and notif sent", type: "success" })
 
-    //     }
-    //   })
-    // }
+        }
+      })
+    }
   };
 
   return (
     <View>
-      <Text>ZAP Coming soon</Text>
+      <Text>ZAP with Bitcoin</Text>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardContent}>

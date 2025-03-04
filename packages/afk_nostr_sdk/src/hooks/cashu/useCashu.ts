@@ -14,20 +14,20 @@ import {
   Proof,
   ProofState,
 } from '@cashu/cashu-ts';
-import {bytesToHex} from '@noble/curves/abstract/utils';
-import {NDKCashuToken} from '@nostr-dev-kit/ndk-wallet';
+import { bytesToHex } from '@noble/curves/abstract/utils';
+import { NDKCashuToken } from '@nostr-dev-kit/ndk-wallet';
 import * as Bip39 from 'bip39';
-import {useMemo, useState} from 'react';
+import { useMemo, useState } from 'react';
 
-import {useNostrContext} from '../../context';
-import {useAuth, useCashuStore} from '../../store';
+import { useNostrContext } from '../../context';
+import { useAuth, useCashuStore } from '../../store';
 import { generateMnemonic } from 'bip39';
 import { MintData } from '../../types';
 
 export interface ICashu {
   wallet: CashuWallet;
   mint: CashuMint;
-  activieMintIndex?:number;
+  activeMintIndex?: number;
   generateNewMnemonic: () => string;
   derivedSeedFromMnenomicAndSaved: (mnemonic: string) => Uint8Array;
   connectCashMint: (mintUrl: string) => Promise<{
@@ -90,7 +90,7 @@ export interface ICashu {
   getProofsSpents: (proofs: Proof[]) => Promise<ProofState[]>;
   checkMeltQuote: (quote: string) => Promise<MeltQuoteResponse>;
   checkMintQuote: (quote: string) => Promise<MintQuoteResponse>;
-  checkProofSpent: (proofs: {secret: string}[]) => Promise<ProofState[]>;
+  checkProofSpent: (proofs: { secret: string }[]) => Promise<ProofState[]>;
   receiveEcash: (ecash: string) => Promise<Proof[]>;
   handleReceivedPayment: (amount: number, quote: MintQuoteResponse) => Promise<Proof[]>;
   mints: MintData[];
@@ -108,31 +108,42 @@ export interface ICashu {
   setMintUrls?: React.Dispatch<React.SetStateAction<MintData[]>>;
   activeCurrency?: string;
   setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
+  getMintInfo: (mintUrl: string) => Promise<GetInfoResponse>;
+  setMintInfo: React.Dispatch<React.SetStateAction<GetInfoResponse>>;
 }
 
 export const useCashu = (): ICashu => {
-  const {ndkCashuWallet} = useNostrContext();
-  const {privateKey} = useAuth();
-  const {setSeed, seed, setMnemonic} = useCashuStore();
+  const { ndkCashuWallet } = useNostrContext();
+  const { privateKey } = useAuth();
+  const { setSeed, seed, setMnemonic } = useCashuStore();
 
   const [activeMint, setActiveMint] = useState<string>();
-  const [activeMintIndex, setActiveMintIndex] = useState<number>();
+  const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeUnit, setActiveUnit] = useState<string>();
   const [activeCurrency, setActiveCurrency] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
   const [mintUrls, setMintUrls] = useState<MintData[]>([]);
   const [proofs, setProofs] = useState<Proof[]>([]);
+  const [mintInfo, setMintInfo] = useState<GetInfoResponse|undefined>();
 
   const mint = useMemo(() => {
     if (activeMint) return new CashuMint(activeMint);
   }, [activeMint]);
 
   const wallet = useMemo(() => {
-    if (mint)
+    if (mint){
       return new CashuWallet(mint, {
         bip39seed: seed,
         unit: activeUnit,
       });
+    }
+
+    if(mint && !seed) {
+      return new CashuWallet(mint, {
+        // bip39seed: seed,
+        unit: activeUnit,
+      });
+    }
   }, [mint, seed, activeUnit]);
 
   /** TODO saved in secure store */
@@ -165,13 +176,14 @@ export const useCashu = (): ICashu => {
     const keyssets = await mintCashu?.getKeySets();
     // setMintAllKeys(keyssets);
 
-    return {mint: mintCashu, keys};
+    return { mint: mintCashu, keys };
   };
+
 
   const getMintInfo = async (mintUrl: string) => {
     const mintCashu = new CashuMint(mintUrl);
     const info = await mintCashu.getInfo();
-    // setMintInfo(info);
+    setMintInfo(info);
     return info;
   };
 
@@ -214,7 +226,7 @@ export const useCashu = (): ICashu => {
   const getUnits = async (url: string) => {
     let units = [];
     const currentMint = new CashuMint(url);
-    await currentMint?.getKeySets().then(({keysets}) => {
+    await currentMint?.getKeySets().then(({ keysets }) => {
       units = keysets
         .map((k) => k.unit)
         .filter((value, index, self) => self.indexOf(value) === index);
@@ -225,7 +237,7 @@ export const useCashu = (): ICashu => {
   const getUnitKeysets = async (unit: string, pMint: MintData): Promise<MintKeyset[]> => {
     const currentMint = new CashuMint(pMint.url);
     let unitKeysets: MintKeyset[];
-    await currentMint?.getKeySets().then(({keysets}) => {
+    await currentMint?.getKeySets().then(({ keysets }) => {
       unitKeysets = keysets.filter((k) => k.unit === unit && k.active);
     });
     return unitKeysets;
@@ -309,13 +321,13 @@ export const useCashu = (): ICashu => {
 
       // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
       // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
-      const {keep: proofsToKeep, send: proofsToSend} = await wallet.send(
+      const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(
         amountToSend,
         selectedProofs,
       );
       const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
 
-      return {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs};
+      return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
     } catch (e) {
       console.log('Error meltTokens', e);
       return undefined;
@@ -327,7 +339,7 @@ export const useCashu = (): ICashu => {
 
     const quote = await wallet.createMeltQuote(request.request);
     const totalAmount = quote.fee_reserve + amount;
-    const {keep, send} = await wallet.send(totalAmount, proofs);
+    const { keep, send } = await wallet.send(totalAmount, proofs);
     const payRes = await wallet.meltProofs(quote, send);
 
     // check states of spent and kept proofs after payment
@@ -351,7 +363,7 @@ export const useCashu = (): ICashu => {
   ) => {
     if (!wallet) return undefined;
 
-    const {send} = await wallet.send(amount, tokensProofs, {pubkey: bytesToHex(pubkeyRecipient)});
+    const { send } = await wallet.send(amount, tokensProofs, { pubkey: bytesToHex(pubkeyRecipient) });
     const encoded = getEncodedToken({
       mint: mintUrl,
       proofs: send,
@@ -369,7 +381,7 @@ export const useCashu = (): ICashu => {
     const privateKeyHex = new Uint8Array(Buffer.from(privateKey, 'utf-8'));
 
     if (privateKey && privateKey) {
-      const proofs = await wallet.receive(encoded, {privkey: bytesToHex(privateKeyHex)});
+      const proofs = await wallet.receive(encoded, { privkey: bytesToHex(privateKeyHex) });
 
       return proofs;
     } else {
@@ -389,7 +401,7 @@ export const useCashu = (): ICashu => {
 
     const quote = await wallet.createMeltQuote(externalInvoice);
     const totalAmount = fee + amount;
-    const {keep, send} = await wallet.send(totalAmount, proofs);
+    const { keep, send } = await wallet.send(totalAmount, proofs);
     const payRes = await wallet.meltProofs(quote, send);
 
     // expect that we have not received the fee back, since it was external
@@ -521,6 +533,8 @@ export const useCashu = (): ICashu => {
     activeCurrency,
     setActiveCurrency,
     setActiveMintIndex,
-    setMintUrls
+    setMintUrls,
+    getMintInfo,
+    setMintInfo,
   };
 };

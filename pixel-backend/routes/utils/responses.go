@@ -15,7 +15,10 @@ import (
 func SetupAccessHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, X-CSRF-Token")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, X-CSRF-Token, X-Requested-With")
+	w.Header().Set("Access-Control-Max-Age", "3600")
+	w.Header().Set("Referrer-Policy", "no-referrer-when-downgrade")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
 }
 
 // SetupHeaders sets up response headers
