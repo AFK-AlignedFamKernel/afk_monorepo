@@ -37,3 +37,26 @@ export const logPageView = () => {
     });
   }
 };
+
+export const logClickedEvent = (
+  event: string,
+  category?: string,
+  label?: string,
+  value?: number
+) => {
+  try {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", event, {
+        event_category: category || "Interaction",
+        event_label: label || "Button Click",
+        value: value || 1,
+        page_path: window.location.pathname,
+        timestamp: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+};

@@ -23,6 +23,7 @@ import stylesheet from './styles';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useCashuContext } from '../../providers/CashuProvider';
 import { LoginNostrModuleComponent } from './LoginComponent';
+import { logClickedEvent } from 'src/utils/analytics';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -138,8 +139,10 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           label: 'Continue',
           onPress: () => {
             if (handleNavigateCreateAccount) {
+              logClickedEvent('CreateAccount', "user_action", "create_account")
               handleNavigateCreateAccount();
             } else {
+              logClickedEvent('CreateAccount', "user_action", "create_account")
               navigationProps?.navigate('CreateAccount');
             }
             hideDialog();
@@ -161,8 +164,10 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
           label: 'Continue',
           onPress: () => {
             if (handleNavigateImportKeys) {
+              logClickedEvent('ImportKeys', "user_action", "import_keys")
               handleNavigateImportKeys();
             } else {
+              logClickedEvent('ImportKeys', "user_action", "import_keys")
               navigationProps?.navigate('ImportKeys');
             }
             hideDialog();
@@ -188,6 +193,8 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             if (handleSuccess) {
               handleSuccess();
             } else if (publicKey && navigationProps) {
+              logClickedEvent('Profile', "user_action", "profile")
+
               navigationProps.navigate('Profile', { publicKey });
             }
           },
@@ -282,7 +289,10 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
         style={styles.loginBtn}
         variant="primary"
         disabled={!password?.length}
-        onPress={handleLogin}
+        onPress={() => {
+          handleLogin();
+          logClickedEvent('Login', "user_action", "login")
+        }}
       >
         Log In
       </Button>

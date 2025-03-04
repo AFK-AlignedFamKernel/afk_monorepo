@@ -208,7 +208,7 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
           <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Wallet</Text>
         </Pressable>
 
-        {Platform.OS === 'web' && (
+        {/* {Platform.OS === 'web' && (
           <Pressable
             onPress={handleStudioScreen}
             onHoverIn={() => setHoveredKey('Studio')}
@@ -223,7 +223,7 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
             <Icon name="VideoIcon" size={isDesktop ? 30 : 25} />
             <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Studio</Text>
           </Pressable>
-        )}
+        )} */}
         {/* 
         <Pressable
           onPress={handleSocialScreen}
