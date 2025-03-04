@@ -18,7 +18,7 @@ export const daoProposal = pgTable(
     creator: text('creator'),
     createdAt: integer('created_at'),
     endAt: integer('end_at'),
-    isCanceled: boolean('is_canceled'),
+    isCanceled: boolean('is_canceled').default(false),
     result: text('result'),
   },
   (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId] })],
