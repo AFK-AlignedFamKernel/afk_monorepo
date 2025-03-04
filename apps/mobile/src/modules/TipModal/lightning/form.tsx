@@ -11,6 +11,7 @@ import stylesheet from './styles';
 import { usePayment } from 'src/hooks/usePayment';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
+import { CashuMint } from '@cashu/cashu-ts';
 
 export type TipModalLightning = Modalize;
 
@@ -47,7 +48,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   console.log('nip', profile?.nip05);
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls } = useCashu()
+  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls, wallet, connectCashWallet, setActiveMint, mintUrlSelected, setMintUrlSelected } = useCashu()
   useEffect(() => {
     (async () => {
 
@@ -64,29 +65,29 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
   // const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
+  // useEffect(() => {
+  //   (async () => {
+  //     const biometrySupported = Platform.OS !== 'web' && canUseBiometricAuthentication?.();
 
-      if (biometrySupported) {
-        const password = await retrievePassword();
-        if (!password) return;
-        const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
+  //     if (biometrySupported) {
+  //       const password = await retrievePassword();
+  //       if (!password) return;
+  //       const storeMnemonic = await retrieveAndDecryptCashuMnemonic(password);
 
-        if (!storeMnemonic) {
-          return;
-        }
-        if (storeMnemonic) setHasSeedCashu(true);
+  //       if (!storeMnemonic) {
+  //         return;
+  //       }
+  //       if (storeMnemonic) setHasSeedCashu(true);
 
-        const decoder = new TextDecoder();
-        // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
-        const decryptedPrivateKey = Buffer.from(storeMnemonic).toString('hex');
-        setMnemonic(decryptedPrivateKey);
+  //       const decoder = new TextDecoder();
+  //       // const decryptedPrivateKey = decoder.decode(Buffer.from(storeMnemonic).toString("hex"));
+  //       const decryptedPrivateKey = Buffer.from(storeMnemonic).toString('hex');
+  //       setMnemonic(decryptedPrivateKey);
 
-        if (isSeedCashuStorage) setHasSeedCashu(true);
-      }
-    })();
-  }, []);
+  //       if (isSeedCashuStorage) setHasSeedCashu(true);
+  //     }
+  //   })();
+  // }, []);
 
   const { payExternalInvoice, payLnInvoice, checkMeltQuote } = useCashu()
   const onTipPress = async () => {
@@ -190,7 +191,37 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
           )}
         </View>
 
-        <View></View>
+        <View>
+
+          {!wallet && (
+            <View>
+              <Button variant="secondary" onPress={() => {
+
+                if (mint) {
+                  connectCashWallet(mint)
+                } else {
+
+                  if (!activeMintIndex) {
+                    console.log('no active mint index');
+                    // connectCashWallet(mintUrls?.["0"]?.url)
+                    setActiveMint(mintUrlSelected)
+                    return;
+                  };
+
+                  // const cashuMint = new CashuMint(mintUrls?.[activeMintIndex]?.url).
+                  if (mintUrls?.[activeMintIndex]?.url) {
+                    setActiveMint(mintUrls?.[activeMintIndex]?.url)
+
+                    const cashuMint = new CashuMint(mintUrls?.[activeMintIndex]?.url)
+                    // setWalletConnected(cashuMint)
+                    connectCashWallet(cashuMint)
+                  }
+                }
+
+              }}>Connect Cashu</Button>
+            </View>
+          )}
+        </View>
 
         <Text
           fontSize={13}

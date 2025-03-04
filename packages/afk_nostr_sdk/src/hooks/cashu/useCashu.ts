@@ -17,7 +17,7 @@ import {
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { NDKCashuToken } from '@nostr-dev-kit/ndk-wallet';
 import * as Bip39 from 'bip39';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
@@ -110,6 +110,10 @@ export interface ICashu {
   setActiveCurrency: React.Dispatch<React.SetStateAction<string>>;
   getMintInfo: (mintUrl: string) => Promise<GetInfoResponse>;
   setMintInfo: React.Dispatch<React.SetStateAction<GetInfoResponse>>;
+  mintUrlSelected: string;
+  setMintUrlSelected: React.Dispatch<React.SetStateAction<string>>;
+  setWalletConnected: React.Dispatch<React.SetStateAction<CashuWallet | undefined>>;
+  walletConnected: CashuWallet | undefined;
 }
 
 export const useCashu = (): ICashu => {
@@ -117,7 +121,10 @@ export const useCashu = (): ICashu => {
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
 
-  const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
+  const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
+
+  const [activeMint, setActiveMint] = useState<string>();
+  // const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeUnit, setActiveUnit] = useState<string>();
   const [activeCurrency, setActiveCurrency] = useState<string>();
@@ -126,27 +133,59 @@ export const useCashu = (): ICashu => {
   const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
 
   const [proofs, setProofs] = useState<Proof[]>([]);
-  const [mintInfo, setMintInfo] = useState<GetInfoResponse|undefined>();
+  const [mintInfo, setMintInfo] = useState<GetInfoResponse | undefined>();
 
   const mint = useMemo(() => {
+    console.log('activeMint', activeMint);
     if (activeMint) return new CashuMint(activeMint);
-  }, [activeMint]);
+    if(!activeMint && mintUrls && activeMintIndex) {
+      return new CashuMint(mintUrls[activeMintIndex].url);
+    }
+    if(!activeMint && !mintUrls && !activeMintIndex) {
+      return new CashuMint(mintUrls[0].url);
+    }
+  }, [activeMint, mintUrls, activeMintIndex, setMintUrlSelected]);
+
+  useEffect(() => {
+    (async () => {
+      if(!activeMintIndex) return;
+      const mintUrl = mintUrls?.[activeMintIndex]?.url;
+      if (!mintUrl) return;
+      const info = await getMintInfo(mintUrl);
+      setMintInfo(info);
+    })();
+  }, [activeMintIndex]);
+
+
+  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>();
 
   const wallet = useMemo(() => {
-    if (mint){
+    if (mint) {
       return new CashuWallet(mint, {
         bip39seed: seed,
-        unit: activeUnit,
+        // unit: activeUnit,
       });
     }
-
     if(mint && !seed) {
       return new CashuWallet(mint, {
         // bip39seed: seed,
         unit: activeUnit,
       });
     }
+    if(walletConnected) return walletConnected;
+
+   
   }, [mint, seed, activeUnit]);
+
+  useEffect(() => {
+    if (mint) {
+      setActiveMint(mint.mintUrl);
+    }
+
+    if(activeMintIndex && mintUrls) {
+      setActiveMint(mintUrls[activeMintIndex].url);
+    }
+  }, [mint, mintUrls, activeMintIndex ]);
 
   /** TODO saved in secure store */
   const generateNewMnemonic = () => {
@@ -191,17 +230,18 @@ export const useCashu = (): ICashu => {
 
   /** TODO fixed connect cash wallet with mnemonic and keys */
   const connectCashWallet = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
-    if (!mint) return undefined;
-
+    if (!mint && !cashuMint) return undefined;
     const mnemonic = generateMnemonic(128);
     const mintKeysset = await mint?.getKeys();
+    setActiveMint(cashuMint.mintUrl);
     const wallet = new CashuWallet(cashuMint, {
-      // mnemonicOrSeed: mnemonic ?? seed,
+      bip39seed: seed,
       // mnemonicOrSeed: mnemonic,
       // keys:keys
       // keys: keys ?? mintKeysset,
     });
     // setWallet(wallet);
+    setWalletConnected(wallet);
     return wallet;
   };
 
@@ -538,5 +578,9 @@ export const useCashu = (): ICashu => {
     setMintUrls,
     getMintInfo,
     setMintInfo,
+    setMintUrlSelected,
+    mintUrlSelected,
+    setWalletConnected,
+    walletConnected,
   };
 };
