@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Icon, IconButton } from '../../components';
+import { Button, Icon, IconButton } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import { NameserviceComponent } from '../../modules/nameservice';
 import { PixelPeace } from '../../modules/PixelPeace';
@@ -44,9 +44,24 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
     setSelectedTab(undefined);
   };
 
+  const [isViewSelected, setIsViewSelected] = useState(true);
+
   return (
     <View style={styles.container}>
-      {!selectedTab ? (
+
+      {/* <View>
+        <Text>AFK console</Text>
+
+        <View>
+          <Button onPress={() => setIsViewSelected(!isViewSelected)}>View</Button>
+
+          <View>
+
+          </View>
+        </View>
+
+      </View> */}
+      {!selectedTab && isViewSelected ? (
         <ScrollView
           contentContainerStyle={[
             styles.content,
@@ -60,12 +75,12 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
               onPress={() => handleTabSelected(option?.tab, option?.screen, option?.insideRouting)}
             >
 
-              <View style={{ 
-                flexDirection: "row", 
-                display:"flex",
-                alignItems: "center", gap: 10, 
+              <View style={{
+                flexDirection: "row",
+                display: "flex",
+                alignItems: "center", gap: 10,
                 // flex: 1 
-                }}>
+              }}>
                 {option.icon && <Icon name={option.icon as IconNames} size={20} />}
                 <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
 
