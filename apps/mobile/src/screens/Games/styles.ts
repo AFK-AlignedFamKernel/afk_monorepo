@@ -1,6 +1,6 @@
 // import {StyleSheet} from 'react-native';
 
-import {Spacing, ThemedStyleSheet, Typography} from '../../styles';
+import { Spacing, ThemedStyleSheet, Typography } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
@@ -25,22 +25,25 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.grayInput,
-    backgroundColor: theme.colors.grayBg,
+    // backgroundColor: theme.colors.grayBg,
     padding: 20,
-    maxWidth: 400,
+    maxWidth: 300,
+    maxHeight: 250,
     aspectRatio: '1',
     flexBasis: '45%',
+    // flexBasis: '33%',
     cursor: 'pointer',
   },
   title: {
     color: theme.colors.white,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   description: {
     color: theme.colors.white,
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: 'left',
+    fontStyle: 'italic',
   },
   mainTitle: {
     color: theme.colors.textPrimary,

@@ -1,53 +1,69 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token} from '@cashu/cashu-ts';
+import { CashuMint, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
 import {
   EventMarker,
   ICashuInvoice,
+  storeProofsSpent,
   useAuth,
   useCreateSpendingEvent,
   useCreateTokenEvent,
   useDeleteTokenEvents,
 } from 'afk_nostr_sdk';
-import {useState} from 'react';
+import { useState } from 'react';
 
-import {useCashuContext} from '../providers/CashuProvider';
-import {useToast} from './modals';
-import {useGetTokensByProofs} from './useGetTokensByProof';
-import {useProofsStorage, useTransactionsStorage, useWalletIdStorage} from './useStorageState';
+import { useCashuContext } from '../providers/CashuProvider';
+import { useToast } from './modals';
+import { useGetTokensByProofs } from './useGetTokensByProof';
+import { useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './useStorageState';
 
 export const usePayment = () => {
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
-  const {meltTokens, wallet, proofs, setProofs, activeUnit, activeMint} = useCashuContext()!;
-  const {publicKey, privateKey} = useAuth();
+  const { meltTokens, wallet, proofs, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
+  const { publicKey, privateKey } = useAuth();
 
-  const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
-  const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
-  const {value: walletId} = useWalletIdStorage();
+  const { value: proofsStorage, setValue: setProofsStorage } = useProofsStorage();
+  const { value: transactions, setValue: setTransactions } = useTransactionsStorage();
+  const { value: walletId } = useWalletIdStorage();
 
-  const {mutateAsync: createTokenEvent} = useCreateTokenEvent();
-  const {mutateAsync: createSpendingEvent} = useCreateSpendingEvent();
-  const {deleteMultiple} = useDeleteTokenEvents();
+  const { mutateAsync: createTokenEvent } = useCreateTokenEvent();
+  const { mutateAsync: createSpendingEvent } = useCreateSpendingEvent();
+  const { deleteMultiple } = useDeleteTokenEvents();
 
   const [proofsFilter, setProofsFilter] = useState<Proof[]>([]);
 
-  const {refetch: refetchTokens, events: filteredTokenEvents} = useGetTokensByProofs(proofsFilter);
+  const { refetch: refetchTokens, events: filteredTokenEvents } = useGetTokensByProofs(proofsFilter);
 
   const handlePayInvoice = async (pInvoice: string) => {
     if (!wallet) {
       console.log('no wallet');
+
+      const cashuMint = new CashuMint(mintUrlSelected)
+      const wallet = await connectCashWallet(cashuMint)
       return {
         meltResponse: undefined,
         invoice: undefined,
       };
-    } else if (proofs) {
-      try {
-      console.log('proofs', proofs);
+    }
 
+    if (proofs && proofs.length > 0) {
+
+      try {
+        console.log('proofs', proofs);
+
+        // const amount = Number(pInvoice.match(/lnbc(\d+)n/)?.[1] ?? 0);
+        // const amount = Number(1);
+        // console.log('amount regex', amount);
+
+        // const res = await wallet.selectProofsToSend(proofs, amount)
+        // console.log("res", res) 
         const response = await meltTokens(pInvoice, proofs);
         console.log('response', response);
+        // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
+
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(response?.meltQuote.amount, res?.send);
         if (response) {
-          const {meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs} = response;
+          const { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs } = response;
           setProofsFilter(selectedProofs);
           if (privateKey && publicKey) {
             await refetchTokens();
@@ -69,7 +85,7 @@ export const usePayment = () => {
               direction: 'out',
               amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
               unit: activeUnit,
-              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+              events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
             });
           }
           showToast({
@@ -78,6 +94,8 @@ export const usePayment = () => {
           });
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
+          // Stored proofs spent
+          storeProofsSpent([...(meltResponse?.change as Proof[])]);
           const newInvoice: ICashuInvoice = {
             amount: -(meltQuote.amount + meltQuote.fee_reserve),
             bolt11: pInvoice,
@@ -87,13 +105,13 @@ export const usePayment = () => {
             direction: 'out',
           };
           setTransactions([...transactions, newInvoice]);
-          return {meltResponse, invoice: newInvoice};
+          return { meltResponse, invoice: newInvoice };
         } else {
-          return { meltResponse: undefined, invoice: undefined};
+          return { meltResponse: undefined, invoice: undefined };
         }
       } catch (error) {
         console.log('error', error);
-        return {  meltResponse: undefined, invoice: undefined};
+        return { meltResponse: undefined, invoice: undefined };
       }
     } else {
       console.log('no proofs');
@@ -137,7 +155,12 @@ export const usePayment = () => {
           }
         }
 
-        const {keep: proofsToKeep, send: proofsToSend} = await wallet.send(amount, selectedProofs);
+        const res = await wallet.selectProofsToSend(proofs, amount)
+
+        console.log('res', res);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs);
+        const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        console.log('proofsToKeep', proofsToKeep);
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {
@@ -160,11 +183,15 @@ export const usePayment = () => {
               direction: 'out',
               amount: amount.toString(),
               unit: activeUnit,
-              events: [...destroyedEvents, {id: tokenEvent.id, marker: 'created' as EventMarker}],
+              events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
             });
           }
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
+
+          // Stored proofs spent
+          storeProofsSpent([...(res?.send as Proof[])]);
+
 
           const token = {
             mint: activeMint,
@@ -222,11 +249,11 @@ export const usePayment = () => {
             direction: 'in',
             amount: proofsAmount.toString(),
             unit: activeUnit,
-            events: [{id: tokenEvent.id, marker: 'created'}],
+            events: [{ id: tokenEvent.id, marker: 'created' }],
           });
         }
 
-        showToast({title: 'Ecash received.', type: 'success'});
+        showToast({ title: 'Ecash received.', type: 'success' });
         setProofs([...proofs, ...receiveEcashProofs]);
         setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
 

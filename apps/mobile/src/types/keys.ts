@@ -84,6 +84,8 @@ export interface TokenDeployInterface {
   nostr_id?: string;
   description?: string;
   market_cap?: number;
+  total_token_holded?: number;
+  bonding_type?:string;
 }
 
 export interface TokenDeployIndexerInterface {
@@ -121,19 +123,31 @@ export interface TokenTxInterface {
   network: boolean;
   transaction_type: boolean;
   created_at: boolean;
+
 }
+
 
 export interface TokenHoldersInterface {
   data: {
-    _sum: {
-      amount: string;
-    };
-    _count: {
-      owner_address: number;
-    };
-    owner_address: string;
+   amount_owned?: string;
+   owner_address?: string;
+   owner?: string;
+   token_address?: string;
   }[];
 }
+
+
+// export interface TokenHoldersInterface {
+//   data: {
+//     _sum: {
+//       amount: string;
+//     };
+//     _count: {
+//       owner_address: number;
+//     };
+//     owner_address: string;
+//   }[];
+// }
 
 export interface Token {
   owner: string;

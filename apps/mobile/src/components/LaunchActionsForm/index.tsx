@@ -71,6 +71,8 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
     token: launch?.quote_token,
   });
 
+  const amountOwned = userShare?.data?.amount_owned 
+
 
 
 
@@ -127,14 +129,14 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           {account && account?.address &&
             <View>
               <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Balance: {toBalance?.formatted}</Text>
+                <Text style={styles.balanceLabel}>Balance: {toBalance && Number(toBalance?.formatted) < 0 ? 0 : toBalance?.formatted}</Text>
                 <Button
                   style={styles.maxButton}
                   onPress={() => {
                     if (typeAction === 'BUY') {
                       onSetAmount(toBalance?.formatted);
                     } else {
-                      onSetAmount(userShare?.data?.amount_owned?.toString());
+                      onSetAmount(Number(amountOwned) >= 0 ? amountOwned?.toString() : '0');
                     }
                     /* Set max balance */
                   }}
@@ -144,7 +146,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
               </View>
 
               <View style={[styles.balanceInfo, { marginTop: 5 }]}>
-                <Text style={styles.balanceLabel}>Coin Balance: {formatNumber(userShare?.data?.amount_owned as any)}</Text>
+                <Text style={styles.balanceLabel}>Coin Balance: {formatNumber(Number(amountOwned) >= 0 ? amountOwned as any : 0)}</Text>
 
 
                 <Pressable onPress={() => {

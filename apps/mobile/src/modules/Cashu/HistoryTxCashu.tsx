@@ -219,14 +219,14 @@ export const HistoryTxCashu = () => {
         const proofsLocal = await getProofs();
         if (!proofsLocal) {
           setInvoices(invoices);
-          await storeProofs([...(receive?.proofs as Proof[]), ...(response as Proof[])]);
+          await storeProofs([...(receive as Proof[]), ...(response as Proof[])]);
           return response;
         } else {
           const proofs: Proof[] = JSON.parse(proofsLocal);
           console.log('invoices', invoices);
           setInvoices(invoices);
           console.log('receive', receive);
-          await storeProofs([...proofs, ...(receive?.proofs as Proof[]), ...(response as Proof[])]);
+          await storeProofs([...proofs, ...(receive as Proof[]), ...(response as Proof[])]);
           return response;
         }
       }

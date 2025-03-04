@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
+import {CheckStateEnum, MintQuoteResponse, MintQuoteState, Proof} from '@cashu/cashu-ts';
 import {
   getProofs,
   ICashuInvoice,
   storeProofs,
+  storeProofsSpent,
   storeTransactions,
   useCashuStore,
 } from 'afk_nostr_sdk';
@@ -29,7 +30,7 @@ import stylesheet from './styles';
 export const InvoicesListCashu = () => {
   const styles = useStyles(stylesheet);
 
-  const {checkMintQuote, receiveP2PK, mintTokens, mint, activeCurrency, setProofs} =
+  const {checkMintQuote, receiveP2PK, mintTokens, mint, activeCurrency, setProofs, wallet} =
     useCashuContext()!;
 
   const {isSeedCashuStorage} = useCashuStore();
@@ -180,16 +181,24 @@ export const InvoicesListCashu = () => {
         // console.log('response', response);
         const proofsLocal = await getProofs();
         if (!proofsLocal) {
-          storeProofs([...(receive?.proofs as Proof[])]);
-          setProofs([...(receive?.proofs as Proof[])]);
+          storeProofs([...(receive as Proof[])]);
+          setProofs([...(receive as Proof[])]);
+
+          const proofsSpentLocal = await wallet?.checkProofsStates([...(receive as Proof[])]);
+
+          proofsSpentLocal?.map((p) => {
+            if (p.state === CheckStateEnum.SPENT) {
+              storeProofsSpent([p as unknown as Proof]);
+            }
+          });
           return '';
         } else {
           const proofs: Proof[] = JSON.parse(proofsLocal);
           console.log('invoices', invoices);
           setInvoices(invoices);
           console.log('receive', receive);
-          storeProofs([...proofs, ...(receive?.proofs as Proof[])]);
-          setProofs([...proofs, ...(receive?.proofs as Proof[])]);
+          storeProofs([...proofs, ...(receive as Proof[])]);
+          setProofs([...proofs, ...(receive as Proof[])]);
           return '';
         }
       }

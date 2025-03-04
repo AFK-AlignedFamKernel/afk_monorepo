@@ -10,6 +10,7 @@ import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 import ShortVideosModule from '../../modules/ShortVideos';
 import { StudioModuleView } from '../../modules/Studio';
 import { StudioModule } from '../../modules/Studio/StudioModule';
+import { logClickedEvent } from 'src/utils/analytics';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -50,9 +51,19 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         }}
 
       >
-        <Button style={[styles.toggleButton, viewFeed === 'NOTES' && styles.activeToggle]} onPress={() => setViewFeed('NOTES')}>Feed</Button>
-        <Button style={[styles.toggleButton, viewFeed === 'SHORTS' && styles.activeToggle]} onPress={() => setViewFeed('SHORTS')}>Shorts</Button>
-        <Button style={[styles.toggleButton, viewFeed === 'STREAM' && styles.activeToggle]} onPress={() => setViewFeed('STREAM')}>Stream</Button>
+        <Button style={[styles.toggleButton, viewFeed === 'NOTES' && styles.activeToggle]} onPress={() => {
+          setViewFeed('NOTES')
+          logClickedEvent('Feed', "user_action", "feed_toggle")
+        }}>Feed</Button>
+        <Button style={[styles.toggleButton, viewFeed === 'SHORTS' && styles.activeToggle]} onPress={() => {
+          setViewFeed('SHORTS')
+          logClickedEvent('Shorts', "user_action", "feed_toggle")
+        }}>Shorts</Button>
+        <Button style={[styles.toggleButton, viewFeed === 'STREAM' && styles.activeToggle]} onPress={() => {
+          setViewFeed('STREAM')
+          logClickedEvent('Stream', "user_action", "feed_toggle")
+
+        }}>Stream</Button>
         {/* <Button onPress={() => setViewFeed('TOKENS')}>Tokens</Button> */}
         {/* <Button style={[styles.toggleButton, viewFeed === 'VIDEOS' && styles.activeToggle]} onPress={() => setViewFeed('VIDEOS')}>Videos</Button> */}
 

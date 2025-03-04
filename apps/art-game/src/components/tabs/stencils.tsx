@@ -65,6 +65,7 @@ const StencilsMainSection = (props: any) => {
           <h2 className="Text__xlarge p-0 m-0 pb-[1rem] underline">Favorites:</h2>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] grid-rows-[min-content] gap-2">
           {props.favoriteStencils.map((stencil: any, index: number) => {
+            console.log('stencil', stencil);
             return (
               <StencilItem
                 key={index}

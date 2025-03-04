@@ -1,3 +1,5 @@
+import { IconNames } from "src/components/Icon";
+
 export enum SelectedTab {
   TIPS,
   MESSAGES,
@@ -530,18 +532,21 @@ export const CONSOLE_TABS_MENU: {
   description: string;
   tab: SelectedTab;
   insideRouting?: string;
+  icon?: IconNames;
 }[] = [
   {
     title: 'Pump',
     description: 'Launch your token to be trade and pumped',
     screen: 'Launchpad',
     tab: SelectedTab.LAUNCHPAD_VIEW,
+    icon:"RocketIcon"
   },
   {
     title: 'Pixel Peace',
     description: 'Pixel Game for communities',
     // screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
+    icon:"PixelArtGameIcon"
   },
   {
     title: 'DAO Community',
@@ -550,6 +555,7 @@ export const CONSOLE_TABS_MENU: {
     screen: 'DAO',
     insideRouting: 'MainStack',
     tab: SelectedTab.DAO_COMMUNITY,
+    icon:"CommunityIcon"
   },
   // {
   //   title: 'Quests',
@@ -573,6 +579,7 @@ export const CONSOLE_TABS_MENU: {
     description: 'Launch your own keys as a Starknet user linked to your profile',
     // screen: 'KeysMarketplace',
     tab: SelectedTab.VIEW_KEYS_MARKETPLACE,
+    icon:"VIPSubscriptionIcon"
   },
   // {
   //   title: 'Slink',

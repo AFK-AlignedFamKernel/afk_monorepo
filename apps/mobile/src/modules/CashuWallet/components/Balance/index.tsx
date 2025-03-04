@@ -18,7 +18,7 @@ import {formatCurrency} from '../../../../utils/helpers';
 import stylesheet from './styles';
 
 export const Balance = () => {
-  const {getUnitBalance, setActiveUnit} = useCashuContext()!;
+  const {getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked} = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
@@ -50,6 +50,7 @@ export const Balance = () => {
     const fetchBalanceData = async () => {
       setIsLoading(true);
       const mint = mints.filter((mint) => mint.url === activeMint)[0];
+      // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, proofs);
       const balance = await getUnitBalance(activeUnit, mint, proofs);
       setCurrentUnitBalance(balance);
       setIsLoading(false);

@@ -54,7 +54,7 @@ export const CashuView = () => {
     connectCashMint,
     connectCashWallet,
     requestMintQuote,
-    generateMnemonic,
+    // generateMnemonic,
     derivedSeedFromMnenomicAndSaved,
     mint,
     activeMintIndex,
@@ -65,7 +65,31 @@ export const CashuView = () => {
 
   const { setMnemonic } = useCashuStore();
 
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+  const { isSeedCashuStorage, setIsSeedCashuStorage, hasSeedCashu, setHasSeedCashu } = useCashuStore();
+
+  const styles = useStyles(stylesheet);
+  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
+  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
+  const [isZapModalVisible, setIsZapModalVisible] = useState(false);
+  // const [hasSeedCashu, setHasSeedCashu] = useState(false);
+  const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [zapAmount, setZapAmount] = useState('');
+  const [zapRecipient, setZapRecipient] = useState('');
+  const [invoiceAmount, setInvoiceAmount] = useState('');
+  const [invoiceMemo, setInvoiceMemo] = useState('');
+  const { theme } = useTheme();
+  const [newSeed, setNewSeed] = useState<string | undefined>();
+
+  const { showDialog, hideDialog } = useDialog();
+  const { showToast } = useToast();
+
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
+  const [showMore, setShowMore] = useState<boolean>(true);
+
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -93,6 +117,7 @@ export const CashuView = () => {
 
   useEffect(() => {
     (async () => {
+      if(!activeMintIndex) return;
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
       const info = await getMintInfo(mintUrl);
@@ -100,33 +125,11 @@ export const CashuView = () => {
     })();
   }, [activeMintIndex]);
 
-  const styles = useStyles(stylesheet);
-  const [quote, setQuote] = useState<MintQuoteResponse | undefined>();
-  const [isInvoiceModalVisible, setIsInvoiceModalVisible] = useState(false);
-  const [isZapModalVisible, setIsZapModalVisible] = useState(false);
-  const [hasSeedCashu, setHasSeedCashu] = useState(false);
-  const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
 
   const handleCloseContactManagement = () => {
     setIsOpenContactManagement(!isOpenContactManagement);
   };
   const { show } = useModal();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [zapAmount, setZapAmount] = useState('');
-  const [zapRecipient, setZapRecipient] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
-  const [invoiceMemo, setInvoiceMemo] = useState('');
-  const { theme } = useTheme();
-  const [newSeed, setNewSeed] = useState<string | undefined>();
-
-  const { showDialog, hideDialog } = useDialog();
-  const { showToast } = useToast();
-
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
-  const [showMore, setShowMore] = useState<boolean>(true);
-
-  const [isScannerVisible, setIsScannerVisible] = useState(false);
 
   const handleQRCodeClick = () => {
     setIsScannerVisible(true);

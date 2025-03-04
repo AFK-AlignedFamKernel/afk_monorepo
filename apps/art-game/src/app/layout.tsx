@@ -13,8 +13,8 @@ const pixelsFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "art/peace",
-  description: "Competitive art experiment on Starknet",
+  title: "afk pixel world",
+  description: "Competitive and Cooperative art experiment on Starknet and Nostr",
 };
 
 export default function RootLayout({
