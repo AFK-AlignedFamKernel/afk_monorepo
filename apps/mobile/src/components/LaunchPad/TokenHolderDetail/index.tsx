@@ -20,28 +20,32 @@ export const TokenHolderDetail: React.FC<HoldersProps> = ({holders, loading}) =>
     return <Loading />;
   }
 
+
   return (
     <FlatList
       data={holders?.data}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({item}) => (
+      renderItem={({item}) => {
+        
+        const amountOwned = item?.amount_owned ? Number(item?.amount_owned) : 0;
+        return (
         <View style={styles.container}>
           <View style={styles.holderRow}>
             <Text style={styles.label}>Owner Address</Text>
             <View style={styles.addressContainer}>
               {/* <AddressComponent address={feltToAddress(BigInt(item?.owner_address))} /> */}
-              <AddressComponent address={feltToAddress(BigInt(item?.owner))} />
+              <AddressComponent address={item?.owner ? feltToAddress(BigInt(item?.owner)) : ''} />
             </View>
           </View>
 
           <View style={styles.holderRow}>
             <Text style={styles.label}>Amount</Text>
-            <Text style={styles.value}>{item?.amount_owned}</Text>
+            <Text style={styles.value}>{amountOwned >= 0 ? amountOwned : 0}</Text>
 
             {/* <Text style={styles.value}>{item._sum.amount}</Text> */}
           </View>
         </View>
-      )}
+      )}}
       ListEmptyComponent={
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>No holders available</Text>
