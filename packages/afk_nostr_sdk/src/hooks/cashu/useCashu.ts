@@ -103,7 +103,7 @@ export interface ICashu {
   setProofs: React.Dispatch<React.SetStateAction<Proof[]>>;
   buildMintData: (url: string, alias: string) => Promise<MintData>;
   mintUrls?: MintData[];
-  activeMintIndex?: number;
+  // activeMintIndex?: number;
   setActiveMintIndex: React.Dispatch<React.SetStateAction<number>>;
   setMintUrls?: React.Dispatch<React.SetStateAction<MintData[]>>;
   activeCurrency?: string;
@@ -117,12 +117,14 @@ export const useCashu = (): ICashu => {
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
 
-  const [activeMint, setActiveMint] = useState<string>();
+  const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeUnit, setActiveUnit] = useState<string>();
   const [activeCurrency, setActiveCurrency] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
   const [mintUrls, setMintUrls] = useState<MintData[]>([]);
+  const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
+
   const [proofs, setProofs] = useState<Proof[]>([]);
   const [mintInfo, setMintInfo] = useState<GetInfoResponse|undefined>();
 

@@ -66,8 +66,9 @@ export const GenerateInvoiceCashu = () => {
 
   useEffect(() => {
     (async () => {
-      if (activeMintIndex < 0) return;
+      if (!activeMintIndex || activeMintIndex < 0) return;
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
+      if (!mintUrl) return;
       const info = await getMintInfo(mintUrl);
       setMintInfo(info);
     })();

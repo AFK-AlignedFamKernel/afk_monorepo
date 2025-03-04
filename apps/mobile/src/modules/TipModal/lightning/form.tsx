@@ -48,21 +48,21 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
   const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls } = useCashu()
-  // useEffect(() => {
-  //   (async () => {
+  useEffect(() => {
+    (async () => {
 
-  //     if (!activeMintIndex) return;
+      if (!activeMintIndex) return;
 
-  //     const mintUrl = mintUrls?.[activeMintIndex]?.url;
-  //     if (!mintUrl) return;
-  //     const info = await getMintInfo(mintUrl);
-  //     setMintInfo(info);
-  //   })();
-  // }, [activeMintIndex]);
-  const { isSeedCashuStorage, setIsSeedCashuStorage } = useCashuStore();
+      const mintUrl = mintUrls?.[activeMintIndex]?.url;
+      if (!mintUrl) return;
+      const info = await getMintInfo(mintUrl);
+      setMintInfo(info);
+    })();
+  }, [activeMintIndex]);
+  const { isSeedCashuStorage, setIsSeedCashuStorage, hasSeedCashu, setHasSeedCashu } = useCashuStore();
   const { setMnemonic } = useCashuStore();
 
-  const [hasSeedCashu, setHasSeedCashu] = useState(false);
+  // const [hasSeedCashu, setHasSeedCashu] = useState(false);
 
   useEffect(() => {
     (async () => {
