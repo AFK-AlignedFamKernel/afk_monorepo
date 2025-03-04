@@ -2,7 +2,7 @@
 import '../../../applyGlobalPolyfills';
 
 import {MintQuoteResponse} from '@cashu/cashu-ts';
-import {useCashuStore, useNostrContext} from 'afk_nostr_sdk';
+import {getProofs, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {useCashuBalance} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
 import React, {useEffect, useState} from 'react';
@@ -32,6 +32,8 @@ export const BalanceCashu = () => {
     setActiveCurrency,
     getUnitBalance,
     proofs,
+    getUnitBalanceWithProofsChecked,
+    getProofsSpents,
   } = useCashuContext()!;
 
   const {ndkCashuWallet, ndkWallet} = useNostrContext();
@@ -95,12 +97,18 @@ export const BalanceCashu = () => {
 
   useEffect(() => {
     const fetchBalanceData = async () => {
-      const balance = await getUnitBalance(activeCurrency, mintUrls[activeMintIndex]);
+      console.log("fetchBalanceData");
+      const proofsStr = await getProofs();
+      if(!activeMintIndex|| !activeCurrency || !proofsStr || !mintUrls) return;
+      const proofs = JSON.parse(proofsStr);
+      console.log("proofs", proofs);
+      // const balance = await getUnitBalance(activeCurrency, mintUrls[activeMintIndex], proofs);
+      const balance = await getUnitBalanceWithProofsChecked(activeCurrency, mintUrls[activeMintIndex], proofs);
       setCurrentUnitBalance(balance);
     };
     fetchBalanceData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCurrency, proofs]);
+  }, [activeCurrency, proofs, activeMintIndex, mintUrls,]);
 
   return (
     <View style={styles.balanceContainer}>

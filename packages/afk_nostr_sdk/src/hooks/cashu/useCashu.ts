@@ -1,6 +1,7 @@
 import {
   CashuMint,
   CashuWallet,
+  CheckStateEnum,
   getDecodedToken,
   getEncodedToken,
   GetInfoResponse,
@@ -114,6 +115,7 @@ export interface ICashu {
   setMintUrlSelected: React.Dispatch<React.SetStateAction<string>>;
   setWalletConnected: React.Dispatch<React.SetStateAction<CashuWallet | undefined>>;
   walletConnected: CashuWallet | undefined;
+  getUnitBalanceWithProofsChecked: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
 }
 
 export const useCashu = (): ICashu => {
@@ -138,17 +140,17 @@ export const useCashu = (): ICashu => {
   const mint = useMemo(() => {
     console.log('activeMint', activeMint);
     if (activeMint) return new CashuMint(activeMint);
-    if(!activeMint && mintUrls && activeMintIndex) {
+    if (!activeMint && mintUrls && activeMintIndex) {
       return new CashuMint(mintUrls[activeMintIndex].url);
     }
-    if(!activeMint && !mintUrls && !activeMintIndex) {
+    if (!activeMint && !mintUrls && !activeMintIndex) {
       return new CashuMint(mintUrls[0].url);
     }
   }, [activeMint, mintUrls, activeMintIndex, setMintUrlSelected]);
 
   useEffect(() => {
     (async () => {
-      if(!activeMintIndex) return;
+      if (!activeMintIndex) return;
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
       const info = await getMintInfo(mintUrl);
@@ -166,15 +168,15 @@ export const useCashu = (): ICashu => {
         // unit: activeUnit,
       });
     }
-    if(mint && !seed) {
+    if (mint && !seed) {
       return new CashuWallet(mint, {
         // bip39seed: seed,
         unit: activeUnit,
       });
     }
-    if(walletConnected) return walletConnected;
+    if (walletConnected) return walletConnected;
 
-   
+
   }, [mint, seed, activeUnit]);
 
   useEffect(() => {
@@ -182,10 +184,10 @@ export const useCashu = (): ICashu => {
       setActiveMint(mint.mintUrl);
     }
 
-    if(activeMintIndex && mintUrls) {
+    if (activeMintIndex && mintUrls) {
       setActiveMint(mintUrls[activeMintIndex].url);
     }
-  }, [mint, mintUrls, activeMintIndex ]);
+  }, [mint, mintUrls, activeMintIndex]);
 
   /** TODO saved in secure store */
   const generateNewMnemonic = () => {
@@ -307,6 +309,41 @@ export const useCashu = (): ICashu => {
     let unitBalance = 0;
     await getUnitProofs(unit, pMint, proofs).then((unitProofs) => {
       unitBalance = unitProofs.reduce((sum, p) => sum + p.amount, 0);
+    });
+    return unitBalance;
+  };
+
+  const getUnitBalanceWithProofsChecked = async (
+    unit: string,
+    pMint: MintData,
+    proofs: Proof[],
+  ): Promise<number> => {
+    let unitBalance = 0;
+
+    console.log("getUnitBalanceWithProofsChecked");
+    console.log('proofs', proofs);
+    const proofsChecked = await getProofsSpents(proofs);
+    console.log('proofsChecked', proofsChecked);
+
+    const proofsCheck = await wallet?.checkProofsStates(proofs);
+    console.log('proofsCheck', proofsCheck);
+    const proofsCheckedFiltered: any[] = proofsCheck.filter((p) => p.state !== CheckStateEnum.SPENT) as any[];
+    console.log('proofsCheckedFiltered', proofsCheckedFiltered);
+    await getUnitProofs(unit, pMint, proofsCheckedFiltered).then((unitProofs) => {
+
+      const sameProofs = unitProofs.filter((p) => proofs.map((p2) => p2.id).includes(p.id));
+      // FIX TYPE PROOF 
+      // Check filter to render whats not spent
+      // const sameProofs = proofs.filter((p) => proofsCheckedFiltered.find((p2) => {
+      //   // console.log('p2', p2);
+      //   // console.log('p', p);
+      //   // console.log('p2.Y == p.C', p2.Y === p.C);
+
+      //   if (p2.state === CheckStateEnum.SPENT) return undefined;
+      //   return p2.Y == p.C;
+      // }));
+      console.log('sameProofs', sameProofs);
+      unitBalance = sameProofs.reduce((sum, p) => sum + p.amount, 0);
     });
     return unitBalance;
   };
@@ -582,5 +619,6 @@ export const useCashu = (): ICashu => {
     mintUrlSelected,
     setWalletConnected,
     walletConnected,
+    getUnitBalanceWithProofsChecked
   };
 };

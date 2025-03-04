@@ -1,6 +1,6 @@
 import '../../../applyGlobalPolyfills';
 
-import { getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
+import { getDecodedToken, GetInfoResponse, MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
 import { addProofs, ICashuInvoice, useCashuStore, useNostrContext } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { ChangeEvent, useState } from 'react';
@@ -160,6 +160,7 @@ export const ReceiveEcash: React.FC<ReceiveEcashProps> = ({ onClose }) => {
 
       if (response) {
         showToast({ title: 'ecash payment received', type: 'success' });
+        // await addProofs(response as Proof[]);
         await addProofs(response);
       }
     } catch (e) {

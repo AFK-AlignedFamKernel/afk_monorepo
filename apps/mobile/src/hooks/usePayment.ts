@@ -3,6 +3,7 @@ import { CashuMint, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Tok
 import {
   EventMarker,
   ICashuInvoice,
+  storeProofsSpent,
   useAuth,
   useCreateSpendingEvent,
   useCreateTokenEvent,
@@ -50,8 +51,17 @@ export const usePayment = () => {
       try {
         console.log('proofs', proofs);
 
+        // const amount = Number(pInvoice.match(/lnbc(\d+)n/)?.[1] ?? 0);
+        // const amount = Number(1);
+        // console.log('amount regex', amount);
+
+        // const res = await wallet.selectProofsToSend(proofs, amount)
+        // console.log("res", res) 
         const response = await meltTokens(pInvoice, proofs);
         console.log('response', response);
+        // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
+
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(response?.meltQuote.amount, res?.send);
         if (response) {
           const { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs } = response;
           setProofsFilter(selectedProofs);
@@ -84,6 +94,8 @@ export const usePayment = () => {
           });
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
+          // Stored proofs spent
+          storeProofsSpent([...(meltResponse?.change as Proof[])]);
           const newInvoice: ICashuInvoice = {
             amount: -(meltQuote.amount + meltQuote.fee_reserve),
             bolt11: pInvoice,
@@ -143,7 +155,12 @@ export const usePayment = () => {
           }
         }
 
-        const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs);
+        const res = await wallet.selectProofsToSend(proofs, amount)
+
+        console.log('res', res);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs);
+        const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        console.log('proofsToKeep', proofsToKeep);
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {
@@ -171,6 +188,10 @@ export const usePayment = () => {
           }
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
+
+          // Stored proofs spent
+          storeProofsSpent([...(res?.send as Proof[])]);
+
 
           const token = {
             mint: activeMint,
