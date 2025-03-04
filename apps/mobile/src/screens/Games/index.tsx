@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { IconButton } from '../../components';
+import { Icon, IconButton } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import { NameserviceComponent } from '../../modules/nameservice';
 import { PixelPeace } from '../../modules/PixelPeace';
@@ -13,6 +13,7 @@ import { DAOComponent } from '../DAO/DaoComponent';
 import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 import stylesheet from './styles';
+import { IconNames } from 'src/components/Icon';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -58,7 +59,17 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
               style={[styles.menuItem, { borderRadius: isDesktop ? 20 : 15 }]}
               onPress={() => handleTabSelected(option?.tab, option?.screen, option?.insideRouting)}
             >
-              <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
+
+              <View style={{ 
+                flexDirection: "row", 
+                display:"flex",
+                alignItems: "center", gap: 10, 
+                // flex: 1 
+                }}>
+                {option.icon && <Icon name={option.icon as IconNames} size={20} />}
+                <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
+
+              </View>
               <Text style={[styles.description, { fontSize: isDesktop ? 20 : 12 }]}>
                 {option.description}
               </Text>

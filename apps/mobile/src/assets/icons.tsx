@@ -989,3 +989,37 @@ export const SupplyIconBag: React.FC<SvgProps> = (props) => (
   </Svg>
 );
 
+
+export const RocketIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 3.93v5.14c0 .48.39.93.87.93h.26c.48 0 .87-.45.87-.93V5.93c0-.48-.39-.93-.87-.93h-.26c-.48 0-.87.45-.87.93zm5.34 2.84l-2.57 4.45c-.24.42-.1.96.32 1.2l.23.13c.42.24.96.1 1.2-.32l2.57-4.45c.24-.42.1-.96-.32-1.2l-.23-.13c-.42-.24-.96-.1-1.2.32z"
+      fill="currentColor"
+    />
+    <Path
+      d="M8.66 8.77c-.24-.42-.78-.56-1.2-.32l-.23.13c-.42.24-.56.78-.32 1.2l2.57 4.45c.24.42.78.56 1.2.32l.23-.13c.42-.24.56-.78.32-1.2L8.66 8.77z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
+export const PixelArtGameIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+export const VIPSubscriptionIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M12 2L8 6h3v14h2V6h3L12 2zM5 20v2h14v-2H5z"
+      fill="currentColor"
+    />
+    <Path
+      d="M16.5 12l-2.5 2.5-2.5-2.5L9 14.5l2.5 2.5L9 19.5l2.5 2.5 2.5-2.5 2.5 2.5 2.5-2.5-2.5-2.5 2.5-2.5-2.5-2.5z"
+      fill="currentColor"
+    />
+  </Svg>
+);
