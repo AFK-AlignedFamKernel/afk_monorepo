@@ -33,7 +33,7 @@
     "@babel/runtime": "^7.24.8",
     "@cartridge/connector": "0.6.0",
     "@cartridge/controller": "0.6.0",
-    "@cashu/cashu-ts": "^2.0.0",
+    "@cashu/cashu-ts": "^2.2.1",
     "@docusaurus/core": "^3.5.2",
     "@docusaurus/preset-classic": "^3.5.2",
     "@dynamic-labs/client": "4.0.0-alpha.8",

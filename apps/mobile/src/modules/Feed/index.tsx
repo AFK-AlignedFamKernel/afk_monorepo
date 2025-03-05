@@ -324,7 +324,7 @@ export const FeedComponent: React.FC = () => {
     if (publicKey && contacts?.data?.length && contacts?.data?.length > 0 || followersPubkey?.length && followersPubkey?.length > 0) {
       setForYouNotes(notesForYou?.data?.pages?.flat() as any);
     }
-  }, [followersPubkey, contacts, notesForYou, publicKey])
+  }, [followersPubkey, contacts, publicKey])
 
 
   const handleNavigate = (id: string) => {

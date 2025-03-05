@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
+import {useAuth, useCreateWalletEvent, useGetCashuTokenEvents} from 'afk_nostr_sdk';
 import {getRandomBytes, randomUUID} from 'expo-crypto';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
@@ -90,6 +90,12 @@ export const CashuView = () => {
     setProofs(proofs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proofs]);
+
+  const tokenCashuEvents   = useGetCashuTokenEvents()
+
+  console.log("cashuView")
+  console.log('tokenCashuEvents', tokenCashuEvents);
+
 
   // functions
   const handleCloseContactManagement = () => {

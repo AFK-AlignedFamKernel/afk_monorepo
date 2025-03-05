@@ -1,8 +1,8 @@
-import {NDKEvent, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import { NDKEvent, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { useMutation } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
 import { EventMarker } from '../../types';
 
 
@@ -16,11 +16,13 @@ interface CreateSpendingEventParams {
     relay?: string;
     marker: EventMarker;
   }>;
+  tags?: string[][];
+  eventsIdRelations?: string[][];
 }
 
 export const useCreateSpendingEvent = () => {
-  const {ndk} = useNostrContext();
-  const {publicKey, privateKey} = useAuth();
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
 
   return useMutation<NDKEvent, Error, CreateSpendingEventParams>({
     mutationFn: async ({
@@ -29,6 +31,8 @@ export const useCreateSpendingEvent = () => {
       amount,
       unit,
       events,
+      eventsIdRelations,
+      tags,
     }: {
       walletId: string;
       direction: 'in' | 'out';
@@ -39,15 +43,23 @@ export const useCreateSpendingEvent = () => {
         relay?: string;
         marker: EventMarker;
       }>;
+      eventsIdRelations?: string[][];
+      tags?: string[][];
     }) => {
+
+
+      console.log('createSpendingEvent');
       const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({pubkey: publicKey});
+      const user = new NDKUser({ pubkey: publicKey });
       const content = await signer.nip44Encrypt(
         user,
         JSON.stringify([
           ['direction', direction],
           ['amount', amount, unit],
           ...events.map((event) => ['e', event.id, event.relay || '', event.marker]),
+          ["e", `37375:${publicKey}:${walletId}`],
+          // ...eventsIdRelations?.map((event) => ['e', event[0], event[1], event[2]])
+
         ]),
       );
 
@@ -55,7 +67,11 @@ export const useCreateSpendingEvent = () => {
 
       event.kind = 7376;
       event.content = content;
-      event.tags = [['a', `37375:${publicKey}:${walletId}`]];
+      event.tags = tags ?? [
+        ["e", "<event-id-of-created-token>", "", "redeemed"], // TODO: add event id of created token
+        // ['a', `37375:${publicKey}:${walletId}`],
+        // ["e", `37375:${publicKey}:${walletId}`]
+      ];
 
       await event.sign(signer);
 

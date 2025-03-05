@@ -73,21 +73,32 @@ export const usePayment = () => {
 
         let proofsToSend = proofs;
 
-        if (amount) {
+        // if (amount) {
 
-          const res = await wallet.selectProofsToSend(proofs, amount)
-          const checkProofsStates = await wallet.checkProofsStates(proofs)
-          console.log('res selectProofsToSend', res);
-          console.log('res checkProofsStates', checkProofsStates);
+        //   const res = await wallet.selectProofsToSend(proofs, amount)
+        //   const checkProofsStates = await wallet.checkProofsStates(proofs)
+        //   console.log('res selectProofsToSend', res);
+        //   console.log('res checkProofsStates', checkProofsStates);
 
-          proofsToSend=res?.send;
+        //   proofsToSend=res?.send;
 
-        }
+        // }
         // console.log("res", res) 
         console.log('proofsToSend', proofsToSend);
 
         const response = await meltTokens(pInvoice, proofsToSend);
         console.log('response', response);
+
+        if(!response){
+          showToast({
+            title: 'Not enough proofs or amount',
+            type: 'error',
+          });
+          return {
+            meltResponse: undefined,
+            invoice: undefined,
+          }
+        }
         // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
 
         // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(response?.meltQuote.amount, res?.send);
@@ -299,7 +310,7 @@ export const usePayment = () => {
         }
 
         showToast({ title: 'Ecash received.', type: 'success' });
-        setProofs([...proofs, ...receiveEcashProofs]);
+        setProofs([...proofsStorage, ...receiveEcashProofs]);
         setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
 
         const newTx: ICashuInvoice = {
