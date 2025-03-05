@@ -1,25 +1,25 @@
-import {useAccount} from '@starknet-react/core';
-import {feltToAddress} from 'common';
-import {useEffect, useMemo, useState} from 'react';
-import {StyleProp, useWindowDimensions, View, ViewStyle} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useAccount } from '@starknet-react/core';
+import { feltToAddress } from 'common';
+import { useEffect, useMemo, useState } from 'react';
+import { StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {Button, TextButton} from '../../components';
-import {Text} from '../../components';
-import {LaunchActionsForm} from '../../components/LaunchActionsForm';
-import {TokenLaunchDetail} from '../../components/pump/TokenLaunchDetail';
+import { Button, TextButton } from '../../components';
+import { Text } from '../../components';
+import { LaunchActionsForm } from '../../components/LaunchActionsForm';
+import { TokenLaunchDetail } from '../../components/pump/TokenLaunchDetail';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
-import {useGetHoldings} from '../../hooks/api/indexer/useHoldings';
-import {useGetTokenLaunch} from '../../hooks/api/indexer/useLaunchTokens';
-import {useGetTokenStats} from '../../hooks/api/indexer/useTokenStats';
-import {useGetTransactions} from '../../hooks/api/indexer/useTransactions';
-import {useGetShares} from '../../hooks/api/indexer/useUserShare';
-import {useBuyCoinByQuoteAmount} from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
-import {useSellCoin} from '../../hooks/launchpad/useSellCoin';
-import {useToast, useWalletModal} from '../../hooks/modals';
-import {LaunchDetailScreenProps} from '../../types';
+import { useStyles, useTheme } from '../../hooks';
+import { useGetHoldings } from '../../hooks/api/indexer/useHoldings';
+import { useGetTokenLaunch } from '../../hooks/api/indexer/useLaunchTokens';
+import { useGetTokenStats } from '../../hooks/api/indexer/useTokenStats';
+import { useGetTransactions } from '../../hooks/api/indexer/useTransactions';
+import { useGetShares } from '../../hooks/api/indexer/useUserShare';
+import { useBuyCoinByQuoteAmount } from '../../hooks/launchpad/useBuyCoinByQuoteAmount';
+import { useSellCoin } from '../../hooks/launchpad/useSellCoin';
+import { useToast, useWalletModal } from '../../hooks/modals';
+import { LaunchDetailScreenProps } from '../../types';
 import {
   LaunchDataMerged,
   TokenDeployInterface,
@@ -28,15 +28,15 @@ import {
   TokenTxInterface,
   UserShareInterface,
 } from '../../types/keys';
-import {SelectedTab, TABS_LAUNCH} from '../../types/tab';
+import { SelectedTab, TABS_LAUNCH } from '../../types/tab';
 import stylesheet from './styles';
-import {TokenHolderDetail} from '../../components/LaunchPad/TokenHolderDetail';
-import {TokenTx} from '../../components/LaunchPad/TokenTx';
+import { TokenHolderDetail } from '../../components/LaunchPad/TokenHolderDetail';
+import { TokenTx } from '../../components/LaunchPad/TokenTx';
 // import { TokenStats } from '../../components/LaunchPad/TokenStats';
-import {UserShare} from '../../components/LaunchPad/UserShare';
-import {useGetToken} from '../../hooks/api/indexer/useToken';
-import {numericValue} from '../../utils/format';
-import {useGetCandles} from '../../hooks/api/indexer/useGraph';
+import { UserShare } from '../../components/LaunchPad/UserShare';
+import { useGetToken } from '../../hooks/api/indexer/useToken';
+import { numericValue } from '../../utils/format';
+import { useGetCandles } from '../../hooks/api/indexer/useGraph';
 import ChartComponent from '../../components/LaunchPad/CandleGraph';
 
 interface LaunchDetailStyles {
@@ -56,9 +56,9 @@ interface LaunchDetailStyles {
   intervalContainer: ViewStyle;
 }
 
-export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, route}) => {
+export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, route }) => {
   // export const LaunchDetails: React.FC<LaunchpadScreenProps> = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles<LaunchDetailStyles, []>(stylesheet);
   const [loading, setLoading] = useState(false);
   const account = useAccount();
@@ -66,7 +66,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   console.log(account, 'account');
 
-  const {coinAddress} = route.params;
+  const { coinAddress } = route.params;
 
   const [tokens, setTokens] = useState<TokenDeployInterface[] | undefined>([]);
 
@@ -87,11 +87,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   // const navigation = useNavigation<MainStackNavigationProps>();
 
-  const {data: holdingsData, isLoading: holdingsLoading} = useGetHoldings(coinAddress);
+  const { data: holdingsData, isLoading: holdingsLoading } = useGetHoldings(coinAddress);
 
-  const {data: graphData, isLoading: graphLoading} = useGetCandles(coinAddress, selectedInterval);
+  const { data: graphData, isLoading: graphLoading } = useGetCandles(coinAddress, selectedInterval);
 
-  const {data: transactionData, isLoading: txLoading} = useGetTransactions(coinAddress);
+  const { data: transactionData, isLoading: txLoading } = useGetTransactions(coinAddress);
 
   // const {data: statsData, isLoading: statsLoading} = useGetTokenStats(coinAddress);
 
@@ -102,17 +102,17 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     isPending: sharesPending,
   } = useGetShares(coinAddress, account?.address);
 
-  const {data: launchData, isLoading: launchLoading} = useGetTokenLaunch(coinAddress);
+  const { data: launchData, isLoading: launchLoading } = useGetTokenLaunch(coinAddress);
 
-  const {data: tokenData, isLoading: tokenLoading} = useGetToken(coinAddress);
+  const { data: tokenData, isLoading: tokenLoading } = useGetToken(coinAddress);
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(
     SelectedTab.LAUNCH_OVERVIEW,
   );
-  const {handleSellCoins} = useSellCoin();
-  const {handleBuyCoins} = useBuyCoinByQuoteAmount();
+  const { handleSellCoins } = useSellCoin();
+  const { handleBuyCoins } = useBuyCoinByQuoteAmount();
 
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const walletModal = useWalletModal();
 
   const [amount, setAmount] = useState<string | undefined>('0');
@@ -219,7 +219,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
 
   const sellCoin = async (amountSellProps?: number) => {
     if (!amount && !amountSellProps) {
-      return showToast({title: 'Select an amount to sell', type: 'info'});
+      return showToast({ title: 'Select an amount to sell', type: 'info' });
     }
     await onConnect();
     if (!account || !account?.account) return;
@@ -238,14 +238,14 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     );
 
     if (sellResult && sellResult?.value) {
-      return showToast({title: 'Sell done', type: 'success'});
+      return showToast({ title: 'Sell done', type: 'success' });
     }
   };
 
   const buyCoin = async (amountProps?: number) => {
     await onConnect();
     if (!amount) {
-      return showToast({title: 'Select an amount to buy', type: 'info'});
+      return showToast({ title: 'Select an amount to buy', type: 'info' });
     }
 
     if (!account || !account?.account) return;
@@ -253,7 +253,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     console.log('token', token);
 
     if (!token?.memecoin_address) {
-      return showToast({title: "Token can't be find", type: 'info'});
+      return showToast({ title: "Token can't be find", type: 'info' });
     }
     // if (!token?.token_quote) return;
     // handleBuyKeys(account?.account, token?.owner, token?.token_quote, Number(amount),)
@@ -266,7 +266,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     );
 
     if (buyResult) {
-      return showToast({title: 'Buy successful', type: 'success'});
+      return showToast({ title: 'Buy successful', type: 'success' });
     }
   };
 
@@ -284,7 +284,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
     }
   };
 
-  const {width} = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const isMobile = width < 768; // Common breakpoint for mobile
 
   const intervalOptions = [5, 10, 60];
@@ -362,7 +362,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                     Total Owner Address: {holdings?.length}
                   </Text>
                 </View>
-                <TokenHolderDetail holders={{data: holdings}} loading={holdingsLoading} />
+                <TokenHolderDetail holders={{ data: holdings }} loading={holdingsLoading} />
               </>
             )}
 
@@ -400,7 +400,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                 {graphLoading ? (
                   <Text>Loading chart data...</Text>
                 ) : (
-                  <ChartComponent data={graphData?.data || []} />
+                  <ChartComponent candleData={graphData?.data} tokenName={token?.name} />
                 )}
               </View>
             )}
@@ -458,7 +458,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                       Total Owner Address: {holdings?.length}
                     </Text>
                   </View>
-                  <TokenHolderDetail holders={{data: holdings}} loading={holdingsLoading} />
+                  <TokenHolderDetail holders={{ data: holdings }} loading={holdingsLoading} />
                 </>
               )}
 
@@ -496,7 +496,7 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({navigation, rou
                   {graphLoading ? (
                     <Text>Loading chart data...</Text>
                   ) : (
-                    <ChartComponent data={graphData?.data || []} />
+                    <ChartComponent candleData={graphData?.data} tokenName={token?.name} />
                   )}
                 </View>
               )}

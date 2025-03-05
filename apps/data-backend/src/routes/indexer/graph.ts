@@ -46,9 +46,9 @@ async function graphRoute(fastify: FastifyInstance, options: RouteOptions) {
       const transformedData = candles.map((candle) => ({
         open: candle.open,
         close: candle.close,
-        high: candle.high,
         low: candle.low,
-        time: Math.floor(candle.timestamp.getTime() / 1000),
+        high: candle.high,
+        timestamp: candle.timestamp,
       }));
 
       reply.status(HTTPStatus.OK).send({ data: transformedData });
