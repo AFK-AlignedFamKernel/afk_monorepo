@@ -5,9 +5,14 @@ import { sha256 } from "js-sha256";
 import { playSoftClick2 } from "../utils/sounds";
 import { addStencilData } from "../../api/stencils";
 import { addStencilCall } from "../../contract/calls";
+import { useState } from "react";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 export const StencilCreationTab = (props: any) => {
   const { account } = useAccount();
+  const [image, setImage] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const fileUpload = useFileUpload();
 
   const hashStencilImage = () => {
     // TODO: Change hash to Poseidon
@@ -18,9 +23,24 @@ export const StencilCreationTab = (props: any) => {
   const submit = async () => {
     playSoftClick2();
     const hash = hashStencilImage();
+
+    let urlImage = '';
+    let urlHash = '';
+
+    // if (image) {
+    //   const result = await fileUpload.mutateAsync(image);
+    //   console.log("result file upload", result);
+    //   if (result.data.url) {
+    //     urlImage = result.data.url
+    //     setImageUrl(result.data?.hash)
+    //     urlHash = result.data?.hash
+    //   }
+    // }
+
     if (!account) return;
     try {
-      await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
+      // await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
+      await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
     } catch (error) {
       console.error("Error submitting stencil:", error);
       return;
@@ -29,7 +49,8 @@ export const StencilCreationTab = (props: any) => {
     console.log("Stencil added to DB:", res);
     props.endStencilCreation();
     props.setActiveTab("Stencils");
-    const imgHash = hash.substr(2).padStart(64, "0");
+    // const imgHash = hash.substr(2).padStart(64, "0");
+    const imgHash = urlHash;
     const newStencil = {
       favorited: true,
       favorites: 1,

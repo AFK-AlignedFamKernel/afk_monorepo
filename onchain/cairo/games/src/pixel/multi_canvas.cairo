@@ -43,6 +43,17 @@ pub struct StencilMetadata {
     position: u128
 }
 
+#[derive(Drop, Serde, starknet::Store, Clone)]
+pub struct MetadataPixel {
+    pub pos: u128,
+    // Color index in the palette
+    pub ipfs: ByteArray,
+    pub nostr_event_id: u256,
+    pub owner: starknet::ContractAddress,
+    pub contract: starknet::ContractAddress,
+}
+
+
 #[starknet::interface]
 pub trait IMultiCanvas<TContractState> {
     // Game Configuration

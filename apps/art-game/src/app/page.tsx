@@ -106,7 +106,7 @@ function App() {
         </div>
         <Canvas setIsMusicMuted={setIsMusicMuted} homeClicked={homeClicked} setHomeClicked={setHomeClicked} />
       </div>
-    </div> 
+    </div>
 
   </>
 
@@ -123,9 +123,12 @@ export default function Home() {
   return (
     // <HomeApp></HomeApp>
     <StrictMode>
-      <StarknetProvider>
-        <App />
-      </StarknetProvider>
+      {/* <TanstackProvider> */}
+        <StarknetProvider>
+          <App />
+        </StarknetProvider>
+      {/* </TanstackProvider> */}
+
     </StrictMode>
   );
 }

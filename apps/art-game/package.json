@@ -26,7 +26,9 @@
     "starknet": "^6.23.1",
     "starknetkit": "^2.6.1",
     "pixel_component": "workspace:*",
-    "common": "workspace:*"
+    "common": "workspace:*",
+    "@tanstack/react-query": "^5.40.0",
+    "@tanstack/react-query-persist-client": "5.40.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
