@@ -1,6 +1,6 @@
-import { db } from 'indexer-v2-db';
 import { daoCreation, daoProposal, daoProposalVote } from 'indexer-v2-db/schema';
 import { and, eq } from 'drizzle-orm';
+import { useDrizzleStorage } from '@apibara/plugin-drizzle';
 
 interface DaoCreationData {
   number: number;
@@ -28,11 +28,13 @@ interface ProposalVoteData {
 }
 
 export async function insertDaoCreation(daoCreationData: DaoCreationData[]) {
-  return await db.insert(daoCreation).values(daoCreationData).onConflictDoNothing().execute();
+  const { db } = useDrizzleStorage();
+  return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing();
 }
 
 export async function insertProposal(proposalCreationData: ProposalCreationData) {
-  return await db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing().execute();
+  const { db } = useDrizzleStorage();
+  return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing();
 }
 
 export async function updateProposalCancellation(
@@ -40,7 +42,8 @@ export async function updateProposalCancellation(
   creator: string,
   proposalId: bigint,
 ) {
-  return await db
+  const { db } = useDrizzleStorage();
+  return db
     .update(daoProposal)
     .set({ isCanceled: true })
     .where(
@@ -49,8 +52,7 @@ export async function updateProposalCancellation(
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
-    )
-    .execute();
+    );
 }
 
 export async function updateProposalResult(
@@ -59,7 +61,8 @@ export async function updateProposalResult(
   proposalId: bigint,
   result: string,
 ) {
-  return await db
+  const { db } = useDrizzleStorage();
+  return db
     .update(daoProposal)
     .set({ result })
     .where(
@@ -68,17 +71,16 @@ export async function updateProposalResult(
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
-    )
-    .execute();
+    );
 }
 
 export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
-  return await db
+  const { db } = useDrizzleStorage();
+  return db
     .insert(daoProposalVote)
     .values(proposalVoteData)
     .onConflictDoUpdate({
       target: [daoProposalVote.contractAddress, daoProposalVote.proposalId, daoProposalVote.voter],
       set: { totalVotes: proposalVoteData.totalVotes },
-    })
-    .execute();
+    });
 }
