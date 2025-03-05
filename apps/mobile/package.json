@@ -80,6 +80,8 @@
     "buffer": "^6.0.3",
     "common": "workspace:*",
     "crypto-es": "^2.1.0",
+    "echarts": "^5.6.0",
+    "echarts-for-react": "^3.0.3",
     "events": "^3.3.0",
     "expo": "~51.0.38",
     "expo-application": "^5.9.1",
@@ -106,7 +108,6 @@
     "hls.js": "^1.5.17",
     "install": "^0.13.0",
     "jsqr": "^1.4.0",
-    "lightweight-charts": "^5.0.3",
     "memoize-one": "^6.0.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "nativewind": "^4.1.23",
@@ -115,6 +116,8 @@
     "pbkdf2": "^3.1.2",
     "pixel_component": "workspace:*",
     "postcss": "^8.4.23",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.74.3",
@@ -143,9 +146,7 @@
     "text-encoding": "^0.7.0",
     "viem": "2.21.60",
     "wagmi": "^2.12.8",
-    "zustand": "^4.5.2",
-    "postcss-import": "^16.1.0",
-    "postcss-nesting": "^13.0.1"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

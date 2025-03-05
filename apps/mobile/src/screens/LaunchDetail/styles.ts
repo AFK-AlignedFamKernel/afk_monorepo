@@ -1,4 +1,4 @@
-import {Spacing, Theme, ThemedStyleSheet} from '../../styles';
+import { Spacing, Theme, ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme: Theme) => ({
   container: {
@@ -53,7 +53,7 @@ export default ThemedStyleSheet((theme: Theme) => ({
     paddingVertical: Spacing.small,
   },
   intervalContainer: {
-    marginBottom: Spacing.normal,
+    marginBottom: Spacing.small,
     alignItems: 'center',
   },
   intervalSelector: {
