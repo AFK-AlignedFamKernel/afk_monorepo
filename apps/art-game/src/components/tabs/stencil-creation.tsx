@@ -27,6 +27,7 @@ export const StencilCreationTab = (props: any) => {
     let urlImage = '';
     let urlHash = '';
 
+    // TODO add file upload through IPFS
     // if (image) {
     //   const result = await fileUpload.mutateAsync(image);
     //   console.log("result file upload", result);
@@ -50,7 +51,8 @@ export const StencilCreationTab = (props: any) => {
     props.endStencilCreation();
     props.setActiveTab("Stencils");
     // const imgHash = hash.substr(2).padStart(64, "0");
-    const imgHash = urlHash;
+    // const imgHash = urlHash;
+    const imgHash = hash;
     const newStencil = {
       favorited: true,
       favorites: 1,
@@ -61,6 +63,7 @@ export const StencilCreationTab = (props: any) => {
       stencilId: res.stencilId,
       width: props.stencilImage.width,
       worldId: props.worldId,
+      ipfsHash: urlHash,
     };
     props.setOpenedStencil(newStencil);
   };
