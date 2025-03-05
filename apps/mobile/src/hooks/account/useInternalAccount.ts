@@ -9,6 +9,7 @@ import {DEFAULT_PASSKEY_VALUES} from '../../types/storage';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
+  storeCashuSeed,
   storePassword,
   storePrivateKey,
   storePublicKey,
@@ -18,6 +19,7 @@ import {PasskeyManager} from '../../utils/storage/passkey-manager';
 import {WalletManager} from '../../utils/storage/wallet-manager';
 import {useDialog, useToast} from '../modals';
 import {useCashuContext} from '../../providers/CashuProvider';
+import * as Bip39 from 'bip39';
 
 export const useInternalAccount = () => {
   const {meltTokens, wallet, generateNewMnemonic} = useCashuContext()!;
@@ -272,12 +274,22 @@ export const useInternalAccount = () => {
       await storePrivateKey(privateKey, password);
       await storePublicKey(publicKey);
 
+      let seed:string=""
+
+      let mnemonic:string=""
       try {
+
+        // const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
         const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
         if (!mnemonicSaved) {
-          const mnemonic = await generateNewMnemonic();
-          await storeCashuMnemonic(mnemonic, password);
+          const mnemonicGenerated = await generateNewMnemonic();
+          mnemonic = mnemonicGenerated;
+          await storeCashuMnemonic(mnemonicGenerated, password);
+          const seedBuffer = Bip39.mnemonicToSeedSync(mnemonicGenerated);
+          const seedHex = Buffer.from(seedBuffer).toString('hex');
+          seed = seedHex;
+          await storeCashuSeed(seedHex, password);
           setIsSeedCashuStorage(true);
         }
       } catch (e) {
@@ -316,10 +328,10 @@ export const useInternalAccount = () => {
         });
       }
 
-      return {privateKey, publicKey};
+      return {privateKey, publicKey, seed, mnemonic};
     } catch (error) {
       console.log('handleGenerateNostrWalletOld error', error);
-      return {privateKey: undefined, publicKey: undefined};
+      return {privateKey: undefined, publicKey: undefined, seed: undefined, mnemonic: undefined};
     }
   };
 

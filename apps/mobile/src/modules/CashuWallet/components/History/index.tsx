@@ -24,8 +24,8 @@ export const History = () => {
   const [selectedTx, setSelectedTx] = useState<string>('');
 
   const {value: transactions} = useTransactionsStorage();
-  const tokenCashuEvents   = useGetCashuTokenEvents()
-  console.log('tokenCashuEvents', tokenCashuEvents?.data?.pages[0]);
+  // const tokenCashuEvents   = useGetCashuTokenEvents({})
+  // console.log('tokenCashuEvents', tokenCashuEvents?.data?.pages[0]);
 
   useEffect(() => {
     const handleGetInvoices = async () => {

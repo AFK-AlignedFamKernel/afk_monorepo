@@ -70,7 +70,7 @@ export const CreateAccountModule: React.FC<ISignup> = ({
     // const {publicKey, privateKey} = await handleGenerateNostrWalletOld(username, password, passkey)
 
     if (resNostr?.secretKey && resNostr?.publicKey) {
-      const {publicKey, privateKey, seed} = await handleSavedNostrWalletOld(
+      const {publicKey, privateKey} = await handleSavedNostrWalletOld(
         username,
         password,
         resNostr?.secretKey,
@@ -82,7 +82,7 @@ export const CreateAccountModule: React.FC<ISignup> = ({
           handleSuccess();
           return;
         } else {
-          navigation.navigate('SaveKeys', {privateKey, publicKey, seed});
+          navigation.navigate('SaveKeys', {privateKey, publicKey});
         }
       }
     }

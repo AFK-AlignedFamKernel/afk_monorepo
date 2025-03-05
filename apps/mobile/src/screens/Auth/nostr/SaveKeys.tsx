@@ -1,32 +1,35 @@
 // import {useAuth} from '../../store/auth';
-import {useNavigation} from '@react-navigation/native';
-import {useAuth} from 'afk_nostr_sdk';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {TouchableOpacity, View} from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
-import {CopyIconStack} from '../../../assets/icons';
-import {InfoIcon} from '../../../assets/icons';
-import {Button, Input, Text} from '../../../components';
-import {useStyles, useTheme} from '../../../hooks';
-import {useDialog, useToast} from '../../../hooks/modals';
-import {Auth} from '../../../modules/Auth';
-import {AuthSaveKeysScreenProps, MainStackNavigationProps} from '../../../types';
+import { CopyIconStack } from '../../../assets/icons';
+import { InfoIcon } from '../../../assets/icons';
+import { Button, Input, Text } from '../../../components';
+import { useStyles, useTheme } from '../../../hooks';
+import { useDialog, useToast } from '../../../hooks/modals';
+import { Auth } from '../../../modules/Auth';
+import { AuthSaveKeysScreenProps, MainStackNavigationProps } from '../../../types';
 import stylesheet from './styles';
 
-export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
-  const {privateKey, publicKey} = route.params;
+export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({ route }) => {
+  const { privateKey, publicKey, seed } = route.params;
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const setAuth = useAuth((state) => state.setAuth);
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
 
   const navigation = useNavigation<MainStackNavigationProps>();
   // const navigation = useNavigation();
-  const handleCopy = async (type: 'privateKey' | 'publicKey') => {
+  const handleCopy = async (type: 'privateKey' | 'publicKey' | 'seed') => {
     await Clipboard.setStringAsync(type === 'privateKey' ? privateKey : publicKey);
-    showToast({type: 'info', title: 'Copied to clipboard'});
+    if (type === 'seed' && seed) {
+      await Clipboard.setStringAsync(seed);
+    }
+    showToast({ type: 'info', title: 'Copied to clipboard' });
   };
 
   const handleContinue = () => {
@@ -49,7 +52,7 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
             setAuth(publicKey, privateKey);
             hideDialog();
             // navigation.navigate("Feed")
-            navigation.navigate('Profile', {publicKey});
+            navigation.navigate('Profile', { publicKey });
           },
         },
         {
@@ -102,6 +105,29 @@ export const SaveKeys: React.FC<AuthSaveKeysScreenProps> = ({route}) => {
           }
         />
       </View>
+
+
+      {seed &&
+        <View style={styles.inputWithLabel}>
+          <Text weight="semiBold" color="textSecondary">
+            Your seed for Cashu & BTC
+          </Text>
+          <Input
+            value={seed}
+            editable={false}
+            right={
+              <TouchableOpacity
+                onPress={() => handleCopy('seed')}
+                style={{
+                  marginRight: 10,
+                }}
+              >
+                <CopyIconStack color={theme.colors.primary} />
+              </TouchableOpacity>
+            }
+          />
+        </View>
+      }
 
       <View style={styles.warning}>
         <InfoIcon width={20} height={20} color={theme.colors.primary} />
