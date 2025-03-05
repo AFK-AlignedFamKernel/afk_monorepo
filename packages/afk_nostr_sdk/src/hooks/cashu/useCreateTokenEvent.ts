@@ -18,6 +18,7 @@ interface CreateTokenEventParams {
     secret: string;
     C: string;
   }>;
+  event_id_del?:string;
 }
 
 export const useCreateTokenEvent = () => {

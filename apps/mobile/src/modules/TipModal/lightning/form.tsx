@@ -54,12 +54,13 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
       if (!activeMintIndex) return;
 
+      if (!mint) return;
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
       if (!mintUrl) return;
       const info = await getMintInfo(mintUrl);
       setMintInfo(info);
     })();
-  }, [activeMintIndex]);
+  }, [activeMintIndex, mint]);
   const { isSeedCashuStorage, setIsSeedCashuStorage, hasSeedCashu, setHasSeedCashu } = useCashuStore();
   const { setMnemonic } = useCashuStore();
 
@@ -125,7 +126,9 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
     } else {
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const { invoice: cashuLnPayment, meltResponse } = await handlePayInvoice(
-        invoice?.paymentRequest)
+        invoice?.paymentRequest,
+        Number(amount)
+      )
       console.log('cashuLnPayment', cashuLnPayment);
 
       if (!cashuLnPayment && !meltResponse) {
