@@ -1023,3 +1023,12 @@ export const VIPSubscriptionIcon: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+export const ChevronDown: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+      fill="currentColor"
+    />
+  </Svg>
+);

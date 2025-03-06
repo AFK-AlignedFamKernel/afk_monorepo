@@ -1,4 +1,4 @@
-import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {NDKPrivateKeySigner, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {generateRandomKeypair} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
@@ -129,6 +129,8 @@ export const useInternalAccount = () => {
 
   const handleGenerateNostrWallet = async (
     passkey?: Credential | null,
+    isCreatedBlocked?: boolean,
+    nostrProfileMetadata?: NDKUserProfile,
   ): Promise<
     | {
         secretKey?: string;
@@ -175,7 +177,7 @@ export const useInternalAccount = () => {
           // return router.push("/onboarding")
         } else {
           const credential = result;
-          const res = await NostrKeyManager.getOrCreateKeyPair(passkey ?? result);
+          const res = await NostrKeyManager.getOrCreateKeyPair(passkey ?? result, isCreatedBlocked, nostrProfileMetadata);
           console.log('res', res);
           const {secretKey, mnemonic, publicKey} = res;
           resultNostr.secretKey = secretKey;

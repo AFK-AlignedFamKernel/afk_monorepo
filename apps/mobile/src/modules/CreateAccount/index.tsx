@@ -1,15 +1,16 @@
-import {useCashu, useCashuStore, useNip07Extension, useNostrContext} from 'afk_nostr_sdk';
-import {useMemo, useState} from 'react';
+import { useCashu, useCashuStore, useNip07Extension, useNostrContext } from 'afk_nostr_sdk';
+import { useMemo, useState } from 'react';
 
-import {Button, Icon} from '../../components';
-import {useStyles, useTheme, useWindowDimensions} from '../../hooks';
-import {useInternalAccount} from '../../hooks/account/useInternalAccount';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {MainStackNavigationProps} from '../../types';
+import { Button, Icon } from '../../components';
+import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import { useInternalAccount } from '../../hooks/account/useInternalAccount';
+import { useDialog, useToast } from '../../hooks/modals';
+import { Auth } from '../../modules/Auth';
+import { MainStackNavigationProps } from '../../types';
 import stylesheet from './styles';
-import {View, Text, TextInput, TouchableOpacity, Image} from 'react-native';
-import {useCashuContext} from '../../providers/CashuProvider';
+import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import { useCashuContext } from '../../providers/CashuProvider';
+import { NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
 
 interface ISignup {
   navigationProps?: MainStackNavigationProps | any;
@@ -22,17 +23,17 @@ export const CreateAccountModule: React.FC<ISignup> = ({
   handleSuccess,
   handleNavigateLoginScreen,
 }: ISignup) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const {ndk} = useNostrContext();
-  const {setIsSeedCashuStorage} = useCashuStore();
-  const {generateNewMnemonic} = useCashuContext()!;
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
+  const { ndk } = useNostrContext();
+  const { setIsSeedCashuStorage } = useCashuStore();
+  const { generateNewMnemonic } = useCashuContext()!;
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
   const {
     handleGeneratePasskey,
     handleGenerateWallet,
@@ -40,16 +41,20 @@ export const CreateAccountModule: React.FC<ISignup> = ({
     // handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   } = useInternalAccount();
-  const {getPublicKey} = useNip07Extension();
+  const { getPublicKey } = useNip07Extension();
+
+
+  const [ndkProfileUser, setNdkProfileUser] = useState<NDKUserProfile | undefined>(undefined);
+  const [ndkProfileMetadata, setNdkProfileMetadata] = useState<any | undefined>(undefined);
 
   const handleCreateAccount = async () => {
     if (!username) {
-      showToast({type: 'error', title: 'Username is required'});
+      showToast({ type: 'error', title: 'Username is required' });
       return;
     }
 
     if (!password) {
-      showToast({type: 'error', title: 'Password is required'});
+      showToast({ type: 'error', title: 'Password is required' });
       return;
     }
 
@@ -60,17 +65,20 @@ export const CreateAccountModule: React.FC<ISignup> = ({
     // console.log('res handleGenerateWallet', res);
 
     if (!passkey) {
-      showToast({type: 'error', title: 'Passkey issue.'});
+      showToast({ type: 'error', title: 'Passkey issue.' });
       return;
     }
 
-    const resNostr = await handleGenerateNostrWallet(passkey);
+    const ndkProfileMetadata = {
+      nip05: username,
+      displayName: username,
+    }
+    const resNostr = await handleGenerateNostrWallet(passkey, false, ndkProfileMetadata);
     console.log('resNostr handleGenerateNostrWallet', resNostr);
-
     // const {publicKey, privateKey} = await handleGenerateNostrWalletOld(username, password, passkey)
 
     if (resNostr?.secretKey && resNostr?.publicKey) {
-      const {publicKey, privateKey, seed} = await handleSavedNostrWalletOld(
+      const { publicKey, privateKey, seed } = await handleSavedNostrWalletOld(
         username,
         password,
         resNostr?.secretKey,
@@ -82,7 +90,7 @@ export const CreateAccountModule: React.FC<ISignup> = ({
           handleSuccess();
           return;
         } else {
-          navigation.navigate('SaveKeys', {privateKey, publicKey, seed});
+          navigation.navigate('SaveKeys', { privateKey, publicKey, seed });
         }
       }
     }
@@ -166,11 +174,11 @@ export const CreateAccountModule: React.FC<ISignup> = ({
             //   handleSuccess();
             // }
             if (publicKey && navigation) {
-              navigation.navigate('Profile', {publicKey});
+              navigation.navigate('Profile', { publicKey });
             }
           },
         },
-        {type: 'default', label: 'Cancel', onPress: hideDialog},
+        { type: 'default', label: 'Cancel', onPress: hideDialog },
       ],
     });
   };

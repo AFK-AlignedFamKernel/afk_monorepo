@@ -3,6 +3,7 @@
 
 import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
+import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
 export class NostrKeyManager {
   private static STORAGE_KEY = 'nostr_pubkey';
@@ -21,7 +22,7 @@ export class NostrKeyManager {
       seed: string;
       salt?: string;
       rawId?: string;
-      nostrProfile?:any;
+      nostrProfile?: any;
     };
   } = {};
 
@@ -33,9 +34,20 @@ export class NostrKeyManager {
       seed: string;
       salt?: string;
       rawId?: string;
+      nostrProfile?: any;
     };
   } = {};
-  static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean): Promise<{
+
+
+  static getNostrAccountsFromStorage() {
+
+    if (!localStorage) return undefined;
+    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
+    if (!storedPubKey) return undefined;
+    return JSON.parse(storedPubKey);
+  }
+
+  static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean, nostrProfileMetadata?: NDKUserProfile): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
@@ -51,7 +63,7 @@ export class NostrKeyManager {
         return { secretKey, publicKey: storedPubKey, mnemonic };
       }
       // return this.createAndStoreKeyPair(credential);
-      return this.createAndStoreKeyPairUnencrypted(credential);
+      return this.createAndStoreKeyPairUnencrypted(credential, nostrProfileMetadata);
     } catch (error) {
       console.log('error', error);
       return undefined;
@@ -87,7 +99,7 @@ export class NostrKeyManager {
     return isWalletSetup;
   }
 
-  private static async createAndStoreKeyPairUnencrypted(credential?: Credential | null): Promise<{
+  private static async createAndStoreKeyPairUnencrypted(credential?: Credential | null, nostrProfileMetadata?: NDKUserProfile): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
@@ -96,17 +108,20 @@ export class NostrKeyManager {
     // const publicKey = getPublicKey(secretKey);
     const mnemonic = Bip39.generateMnemonic(128, undefined, Bip39.wordlists['english']);
 
-    await this.storeSecretKey(secretKey, publicKey, mnemonic, credential);
+    await this.storeSecretKey(secretKey, publicKey, mnemonic, credential, nostrProfileMetadata);
     localStorage.setItem(NostrKeyManager.STORAGE_KEY, publicKey);
 
     return { secretKey, publicKey, mnemonic };
   }
 
+  // Store the secret key in the local storage
+  // TODO: Passkey optionnal
   private static async storeSecretKey(
     secretKey: string,
     publicKey: string,
     mnemonic: string,
     credentialProps?: Credential | null,
+    nostrProfileMetadata?: NDKUserProfile,
   ): Promise<void> {
     const encoder = new TextEncoder();
     const credential =
@@ -169,6 +184,8 @@ export class NostrKeyManager {
         seed: encryptedSeed,
         salt: JSON.stringify(salt),
         rawId: JSON.stringify(rawId),
+        nostrProfile: nostrProfileMetadata,
+        ...nostrProfileMetadata,
       };
       localStorage.setItem(
         `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
@@ -183,6 +200,9 @@ export class NostrKeyManager {
         seed: encryptedSeed,
         salt: JSON.stringify(salt),
         rawId: JSON.stringify(rawId),
+        nostrProfile: nostrProfileMetadata,
+        ...nostrProfileMetadata,
+
       };
 
       localStorage.setItem(
