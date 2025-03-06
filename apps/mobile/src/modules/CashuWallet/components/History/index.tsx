@@ -1,7 +1,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import {MintQuoteState} from '@cashu/cashu-ts';
-import {ICashuInvoice} from 'afk_nostr_sdk';
+import {ICashuInvoice, useGetCashuTokenEvents} from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, {useEffect, useState} from 'react';
 import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
@@ -24,6 +24,8 @@ export const History = () => {
   const [selectedTx, setSelectedTx] = useState<string>('');
 
   const {value: transactions} = useTransactionsStorage();
+  // const tokenCashuEvents   = useGetCashuTokenEvents({})
+  // console.log('tokenCashuEvents', tokenCashuEvents?.data?.pages[0]);
 
   useEffect(() => {
     const handleGetInvoices = async () => {

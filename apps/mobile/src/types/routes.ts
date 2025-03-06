@@ -19,6 +19,7 @@ export type AuthStackParams = {
   SaveKeys: {
     privateKey: string;
     publicKey: string;
+    seed?:string;
   };
   ImportKeys: undefined;
   LoginNostr: undefined;
@@ -66,6 +67,7 @@ export type MainStackParams = {
   SaveKeys: {
     privateKey: string;
     publicKey: string;
+    seed?:string;
   };
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
@@ -117,6 +119,7 @@ export type HomeBottomStackParams = {
   SaveKeys: {
     privateKey: string;
     publicKey: string;
+    seed?:string;
   };
   ImportKeys: undefined;
   Auth: NavigatorScreenParams<AuthStackParams>;
@@ -473,6 +476,7 @@ export type DegensAppStackParams = {
   SaveKeys: {
     privateKey: string;
     publicKey: string;
+    seed?:string;
   };
 };
 
@@ -494,6 +498,7 @@ export type DegensBottomStackParams = {
   SaveKeys: {
     privateKey: string;
     publicKey: string;
+    seed?:string;
   };
   ImportKeys: undefined;
   Lightning: undefined;

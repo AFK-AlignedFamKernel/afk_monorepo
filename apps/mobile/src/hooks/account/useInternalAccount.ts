@@ -1,4 +1,4 @@
-import {NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {NDKPrivateKeySigner, NDKUserProfile} from '@nostr-dev-kit/ndk';
 import {useCashu, useCashuStore, useNostrContext} from 'afk_nostr_sdk';
 import {generateRandomKeypair} from 'afk_nostr_sdk';
 import {canUseBiometricAuthentication} from 'expo-secure-store';
@@ -9,15 +9,18 @@ import {DEFAULT_PASSKEY_VALUES} from '../../types/storage';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
+  storeCashuSeed,
   storePassword,
   storePrivateKey,
   storePublicKey,
 } from '../../utils/storage';
-import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+// import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+import {NostrKeyManager} from 'afk_nostr_sdk';
 import {PasskeyManager} from '../../utils/storage/passkey-manager';
 import {WalletManager} from '../../utils/storage/wallet-manager';
 import {useDialog, useToast} from '../modals';
 import {useCashuContext} from '../../providers/CashuProvider';
+import * as Bip39 from 'bip39';
 
 export const useInternalAccount = () => {
   const {meltTokens, wallet, generateNewMnemonic} = useCashuContext()!;
@@ -126,6 +129,8 @@ export const useInternalAccount = () => {
 
   const handleGenerateNostrWallet = async (
     passkey?: Credential | null,
+    isCreatedBlocked?: boolean,
+    nostrProfileMetadata?: NDKUserProfile,
   ): Promise<
     | {
         secretKey?: string;
@@ -144,6 +149,7 @@ export const useInternalAccount = () => {
 
       if (passkey && passkey != null) {
         console.log('passkey exist', passkey);
+        // const res = await NostrKeyManager.getOrCreateKeyPair(passkey);
         const res = await NostrKeyManager.getOrCreateKeyPair(passkey);
         console.log('res', res);
         if(!res) {
@@ -171,7 +177,7 @@ export const useInternalAccount = () => {
           // return router.push("/onboarding")
         } else {
           const credential = result;
-          const res = await NostrKeyManager.getOrCreateKeyPair(passkey ?? result);
+          const res = await NostrKeyManager.getOrCreateKeyPair(passkey ?? result, isCreatedBlocked, nostrProfileMetadata);
           console.log('res', res);
           const {secretKey, mnemonic, publicKey} = res;
           resultNostr.secretKey = secretKey;
@@ -198,67 +204,67 @@ export const useInternalAccount = () => {
     }
   };
 
-  const handleGenerateNostrWalletOld = async (
-    username: string,
-    password: string,
-    passkey?: Credential | null,
-  ) => {
-    try {
-      const {privateKey, publicKey} = generateRandomKeypair();
-      await storePassword(password);
-      await storePrivateKey(privateKey, password);
-      await storePublicKey(publicKey);
+  // const handleGenerateNostrWalletOld = async (
+  //   username: string,
+  //   password: string,
+  //   passkey?: Credential | null,
+  // ) => {
+  //   try {
+  //     const {privateKey, publicKey} = generateRandomKeypair();
+  //     await storePassword(password);
+  //     await storePrivateKey(privateKey, password);
+  //     await storePublicKey(publicKey);
 
-      try {
-        const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
+  //     try {
+  //       const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
-        if (!mnemonicSaved) {
-          const mnemonic = await generateNewMnemonic();
-          await storeCashuMnemonic(mnemonic, password);
-          setIsSeedCashuStorage(true);
-        }
-      } catch (e) {
-        console.log('error cashu wallet', e);
-      }
+  //       if (!mnemonicSaved) {
+  //         const mnemonic = await generateNewMnemonic();
+  //         await storeCashuMnemonic(mnemonic, password);
+  //         setIsSeedCashuStorage(true);
+  //       }
+  //     } catch (e) {
+  //       console.log('error cashu wallet', e);
+  //     }
 
-      try {
-        ndk.signer = new NDKPrivateKeySigner(privateKey);
-        const ndkUser = ndk.getUser({pubkey: publicKey});
-        ndkUser.profile = {nip05: username, displayName: username};
-        await ndkUser.publish();
-      } catch (e) {
-        console.log('error ndk user setup');
-      }
+  //     try {
+  //       ndk.signer = new NDKPrivateKeySigner(privateKey);
+  //       const ndkUser = ndk.getUser({pubkey: publicKey});
+  //       ndkUser.profile = {nip05: username, displayName: username};
+  //       await ndkUser.publish();
+  //     } catch (e) {
+  //       console.log('error ndk user setup');
+  //     }
 
-      const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
-      if (biometySupported) {
-        showDialog({
-          title: 'Easy login',
-          description: 'Would you like to use biometrics to login?',
-          buttons: [
-            {
-              type: 'primary',
-              label: 'Yes',
-              onPress: async () => {
-                await storePassword(password);
-                hideDialog();
-              },
-            },
-            {
-              type: 'default',
-              label: 'No',
-              onPress: hideDialog,
-            },
-          ],
-        });
-      }
+  //     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
+  //     if (biometySupported) {
+  //       showDialog({
+  //         title: 'Easy login',
+  //         description: 'Would you like to use biometrics to login?',
+  //         buttons: [
+  //           {
+  //             type: 'primary',
+  //             label: 'Yes',
+  //             onPress: async () => {
+  //               await storePassword(password);
+  //               hideDialog();
+  //             },
+  //           },
+  //           {
+  //             type: 'default',
+  //             label: 'No',
+  //             onPress: hideDialog,
+  //           },
+  //         ],
+  //       });
+  //     }
 
-      return {privateKey, publicKey};
-    } catch (error) {
-      console.log('handleGenerateNostrWalletOld error', error);
-      return {privateKey: undefined, publicKey: undefined};
-    }
-  };
+  //     return {privateKey, publicKey};
+  //   } catch (error) {
+  //     console.log('handleGenerateNostrWalletOld error', error);
+  //     return {privateKey: undefined, publicKey: undefined};
+  //   }
+  // };
 
   const handleSavedNostrWalletOld = async (
     username: string,
@@ -272,12 +278,22 @@ export const useInternalAccount = () => {
       await storePrivateKey(privateKey, password);
       await storePublicKey(publicKey);
 
+      let seed:string=""
+
+      let mnemonic:string=""
       try {
+
+        // const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
         const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
         if (!mnemonicSaved) {
-          const mnemonic = await generateNewMnemonic();
-          await storeCashuMnemonic(mnemonic, password);
+          const mnemonicGenerated = await generateNewMnemonic();
+          mnemonic = mnemonicGenerated;
+          await storeCashuMnemonic(mnemonicGenerated, password);
+          const seedBuffer = Bip39.mnemonicToSeedSync(mnemonicGenerated);
+          const seedHex = Buffer.from(seedBuffer).toString('hex');
+          seed = seedHex;
+          await storeCashuSeed(seedHex, password);
           setIsSeedCashuStorage(true);
         }
       } catch (e) {
@@ -316,10 +332,10 @@ export const useInternalAccount = () => {
         });
       }
 
-      return {privateKey, publicKey};
+      return {privateKey, publicKey, seed, mnemonic};
     } catch (error) {
       console.log('handleGenerateNostrWalletOld error', error);
-      return {privateKey: undefined, publicKey: undefined};
+      return {privateKey: undefined, publicKey: undefined, seed: undefined, mnemonic: undefined};
     }
   };
 
@@ -327,7 +343,7 @@ export const useInternalAccount = () => {
     handleGeneratePasskey,
     handleGenerateWallet,
     handleGenerateNostrWallet,
-    handleGenerateNostrWalletOld,
+    // handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   };
 };

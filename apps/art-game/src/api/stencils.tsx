@@ -91,14 +91,15 @@ export const getStencil = async (stencilId: string): Promise<any> => {
   }
 }
 
-export const addStencilData = async (worldId: number, width: number, height: number, image: string): Promise<any> => {
+export const addStencilData = async (worldId: number, width: number, height: number, image: string, ipfsHash?: string): Promise<any> => {
   try {
     const addStencilDataEndpoint = `${backendUrl}/add-stencil-data`;
     const result = await postJsonData(addStencilDataEndpoint, {
       worldId: worldId.toString(),
       width: width.toString(),
       height: height.toString(),
-      image
+      image,
+      ipfsHash
     });
     return result;
   } catch (error) {

@@ -30,4 +30,35 @@ export default ThemedStyleSheet((theme) => ({
     height: 40,
     marginRight: Spacing.xsmall,
   },
+  profileContainer:{
+
+  },
+  profileButton:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  avatar:{
+
+  },
+  avatarContainer:{
+    height: 30,
+    width: 30,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  rightContainer:{
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  listProfile:{
+    position: 'absolute',
+    top: 60,
+    right: 0,
+    backgroundColor: theme.colors.background,
+    borderRadius: 10,
+  }
 }));

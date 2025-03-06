@@ -1,8 +1,8 @@
-import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { useMutation } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
 
 /**
  * NIP-60: https://nips.nostr.com/60
@@ -20,8 +20,8 @@ interface CreateWalletEventParams {
 }
 
 export const useCreateWalletEvent = () => {
-  const {ndk} = useNostrContext();
-  const {publicKey, privateKey} = useAuth();
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
 
   return useMutation<NDKEvent, Error, CreateWalletEventParams>({
     mutationFn: async ({
@@ -42,12 +42,14 @@ export const useCreateWalletEvent = () => {
       unit?: string;
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({pubkey: publicKey});
+      const user = new NDKUser({ pubkey: publicKey });
       const content = await signer.nip44Encrypt(
         user,
         JSON.stringify([
           ['balance', balance || '0', unit],
           ['privkey', privkey || privateKey],
+          ...mints.map((mint) => ['mint', mint]),
+
         ]),
       );
 

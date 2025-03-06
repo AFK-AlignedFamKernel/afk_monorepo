@@ -1,8 +1,8 @@
-import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { useMutation } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
 
 /**
  * NIP-60: https://nips.nostr.com/60
@@ -18,17 +18,20 @@ interface CreateTokenEventParams {
     secret: string;
     C: string;
   }>;
+  event_id_del?: string;
+  event_id_dels?: string[];
 }
 
 export const useCreateTokenEvent = () => {
-  const {ndk} = useNostrContext();
-  const {publicKey, privateKey} = useAuth();
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
 
   return useMutation<NDKEvent, Error, CreateTokenEventParams>({
     mutationFn: async ({
       walletId,
       mint,
       proofs,
+      event_id_dels,
     }: {
       walletId: string;
       mint: string;
@@ -38,14 +41,16 @@ export const useCreateTokenEvent = () => {
         secret: string;
         C: string;
       }>;
+      event_id_dels?: string[];
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({pubkey: publicKey});
+      const user = new NDKUser({ pubkey: publicKey });
       const content = await signer.nip44Encrypt(
         user,
         JSON.stringify({
           mint,
           proofs,
+          "del": [event_id_dels?.map((id) => id)]
         }),
       );
 
@@ -53,7 +58,7 @@ export const useCreateTokenEvent = () => {
 
       event.kind = NDKKind.CashuToken;
       event.content = content;
-      event.tags = [['a', `37375:${publicKey}:${walletId}`]];
+      // event.tags = [['a', `37375:${publicKey}:${walletId}`]];
 
       await event.sign(signer);
 

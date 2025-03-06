@@ -33,6 +33,7 @@ export class MetadataLaunchService {
             // contract_address: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
             url: data.url,
             nostr_id: data.nostr_event_id,
+            nostr_event_id: data?.nostr_event_id,
           },
         });
 

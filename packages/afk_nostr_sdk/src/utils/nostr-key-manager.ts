@@ -1,30 +1,74 @@
 // Rod Cashu wallet example
 // File: /NostrKeyManager.ts
 
-// import {generateNewMnemonic} from '@cashu/cashu-ts';
-
-import { generateMnemonic } from 'bip39';
-import {generateRandomKeypair} from './keypair';
+import * as Bip39 from 'bip39';
+import { generateRandomKeypair } from './keypair';
+import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
 export class NostrKeyManager {
   private static STORAGE_KEY = 'nostr_pubkey';
   private static CRED_KEY_PREFIX = 'nostr_cred_';
   private static SALT_KEY_PREFIX = 'nostr_salt_';
+  private static SALT_KEY_UNENCRYPTED_PREFIX = 'nostr_salt_unencrypted_';
+  private static NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX = 'nostr_wallets_accounts_unencrypted_';
+  private static NOSTR_WALLETS_ACCOUNT_ENCRYPTED_PREFIX = 'nostr_wallets_accounts_encrypted_';
   private static PBKDF2_ITERATIONS = 100000; // Adjust based on your security needs and performance requirements
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
+  private static NOSTR_WALLETS: {
+    [key: string]: {
+      secretKey: string;
+      publicKey: string;
+      mnemonic: string;
+      seed: string;
+      salt?: string;
+      rawId?: string;
+      nostrProfile?: any;
+    };
+  } = {};
 
-  static async getOrCreateKeyPair(): Promise<{
+  private static NOSTR_WALLETS_ENCRYPTED: {
+    [key: string]: {
+      secretKey: string;
+      publicKey: string;
+      mnemonic: string;
+      seed: string;
+      salt?: string;
+      rawId?: string;
+      nostrProfile?: any;
+    };
+  } = {};
+
+
+  static getNostrAccountsFromStorage() {
+
+    if (!localStorage) return undefined;
+    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
+    if (!storedPubKey) return undefined;
+    return JSON.parse(storedPubKey);
+  }
+
+  static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean, nostrProfileMetadata?: NDKUserProfile): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
-  }> {
-    const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
+    credential?: Credential | null;
+  } | undefined> {
+    try {
+      const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
+      console.log('storedPubKey', storedPubKey);
 
-    if (storedPubKey) {
-      const {secretKey, mnemonic} = await this.retrieveSecretKey(storedPubKey);
-      return {secretKey, publicKey: storedPubKey, mnemonic};
+      if (storedPubKey && isCreatedBlocked) {
+        console.log('storedPubKey exist', storedPubKey);
+        const { secretKey, mnemonic } = await this.retrieveSecretKey(storedPubKey);
+        return { secretKey, publicKey: storedPubKey, mnemonic };
+      }
+      // return this.createAndStoreKeyPair(credential);
+      return this.createAndStoreKeyPairUnencrypted(credential, nostrProfileMetadata);
+    } catch (error) {
+      console.log('error', error);
+      return undefined;
     }
-    return this.createAndStoreKeyPair();
+
   }
 
   static getPublicKey() {
@@ -35,18 +79,19 @@ export class NostrKeyManager {
 
   static async getDecryptedPrivateKey(): Promise<
     | {
-        secretKey: string;
-        publicKey: string;
-        mnemonic: string;
-      }
+      secretKey: string;
+      publicKey: string;
+      mnemonic: string;
+    }
     | undefined
   > {
     const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
 
     if (storedPubKey) {
-      const {secretKey, mnemonic} = await this.sessionRetrieveEncryptedData(storedPubKey);
-      return {secretKey, publicKey: storedPubKey, mnemonic};
+      const { secretKey, mnemonic } = await this.sessionRetrieveEncryptedData(storedPubKey);
+      return { secretKey, publicKey: storedPubKey, mnemonic };
     }
+    return undefined;
   }
 
   static getIsWalletSetup() {
@@ -54,40 +99,45 @@ export class NostrKeyManager {
     return isWalletSetup;
   }
 
-  private static async createAndStoreKeyPair(): Promise<{
+  private static async createAndStoreKeyPairUnencrypted(credential?: Credential | null, nostrProfileMetadata?: NDKUserProfile): Promise<{
     secretKey: string;
     publicKey: string;
     mnemonic: string;
   }> {
-    const {publicKey, privateKey: secretKey} = generateRandomKeypair();
+    const { publicKey, privateKey: secretKey } = generateRandomKeypair();
     // const publicKey = getPublicKey(secretKey);
-    // const mnemonic = generateNewMnemonic();
+    const mnemonic = Bip39.generateMnemonic(128, undefined, Bip39.wordlists['english']);
 
-    const mnemonic = generateMnemonic(128);
-    await this.storeSecretKey(secretKey, publicKey, mnemonic);
+    await this.storeSecretKey(secretKey, publicKey, mnemonic, credential, nostrProfileMetadata);
     localStorage.setItem(NostrKeyManager.STORAGE_KEY, publicKey);
 
-    return {secretKey, publicKey, mnemonic};
+    return { secretKey, publicKey, mnemonic };
   }
 
+  // Store the secret key in the local storage
+  // TODO: Passkey optionnal
   private static async storeSecretKey(
     secretKey: string,
     publicKey: string,
     mnemonic: string,
+    credentialProps?: Credential | null,
+    nostrProfileMetadata?: NDKUserProfile,
   ): Promise<void> {
     const encoder = new TextEncoder();
-    const credential = await navigator.credentials.create({
-      publicKey: {
-        challenge: encoder.encode('nostr-key-challenge'),
-        rp: {name: 'Nostr Connect App'},
-        user: {
-          id: encoder.encode(publicKey),
-          name: 'Nostr User',
-          displayName: 'Nostr User',
+    const credential =
+      credentialProps ??
+      (await navigator.credentials.create({
+        publicKey: {
+          challenge: encoder.encode('nostr-key-challenge'),
+          rp: { name: 'Nostr Connect App' },
+          user: {
+            id: encoder.encode(publicKey),
+            name: 'Nostr User',
+            displayName: 'Nostr User',
+          },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
         },
-        pubKeyCredParams: [{type: 'public-key', alg: -7}],
-      },
-    });
+      }));
 
     if (credential && credential.type === 'public-key') {
       const pkCred = credential as PublicKeyCredential;
@@ -96,6 +146,11 @@ export class NostrKeyManager {
       // Generate a random salt
       const salt = crypto.getRandomValues(new Uint8Array(16));
 
+      localStorage.setItem(
+        `${NostrKeyManager.SALT_KEY_PREFIX}${publicKey}`,
+        JSON.stringify(Array.from(salt)),
+      );
+
       // Encrypt the secret key
       const encryptedKey = await this.encryptSecretKey(secretKey, rawId, salt);
       console.log('encryptedkey', encryptedKey);
@@ -103,14 +158,59 @@ export class NostrKeyManager {
       const encryptedMnemonic = await this.encryptSecretKey(mnemonic, rawId, salt);
       console.log('encryptedMnemonic', encryptedMnemonic);
 
+      const seedHex = Bip39.mnemonicToSeedSync(mnemonic).toString('hex');
+
+      const encryptedSeed = await this.encryptSecretKey(seedHex, rawId, salt);
+      console.log('encryptedSeed', encryptedSeed);
       localStorage.setItem(
         `${NostrKeyManager.CRED_KEY_PREFIX}${publicKey}`,
-        JSON.stringify({rawId, encryptedKey, mnemonic: encryptedMnemonic}),
+        JSON.stringify({ rawId, encryptedKey, mnemonic: encryptedMnemonic }),
       );
       localStorage.setItem(
         `${NostrKeyManager.SALT_KEY_PREFIX}${publicKey}`,
         JSON.stringify(Array.from(salt)),
       );
+
+      localStorage.setItem(
+        `${NostrKeyManager.CRED_KEY_PREFIX}${publicKey}`,
+        JSON.stringify({ rawId, encryptedKey, mnemonic: encryptedMnemonic }),
+      );
+
+      // Add multi account
+      NostrKeyManager.NOSTR_WALLETS[publicKey] = {
+        secretKey,
+        publicKey,
+        mnemonic,
+        seed: encryptedSeed,
+        salt: JSON.stringify(salt),
+        rawId: JSON.stringify(rawId),
+        nostrProfile: nostrProfileMetadata,
+        ...nostrProfileMetadata,
+      };
+      localStorage.setItem(
+        `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
+        JSON.stringify(NostrKeyManager.NOSTR_WALLETS),
+      );
+
+      // Multi account encrypted
+      NostrKeyManager.NOSTR_WALLETS_ENCRYPTED[publicKey] = {
+        secretKey: encryptedKey,
+        publicKey,
+        mnemonic: encryptedMnemonic,
+        seed: encryptedSeed,
+        salt: JSON.stringify(salt),
+        rawId: JSON.stringify(rawId),
+        nostrProfile: nostrProfileMetadata,
+        ...nostrProfileMetadata,
+
+      };
+
+      localStorage.setItem(
+        `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_ENCRYPTED_PREFIX}`,
+        JSON.stringify(NostrKeyManager.NOSTR_WALLETS_ENCRYPTED),
+      );
+
+
       localStorage.setItem(`${NostrKeyManager.IS_CASHU_WALLET_SETUP}`, 'true');
     } else {
       throw new Error('Failed to create credential');
@@ -125,7 +225,7 @@ export class NostrKeyManager {
     const storedSalt = localStorage.getItem(`${NostrKeyManager.SALT_KEY_PREFIX}${publicKey}`);
     if (!storedCred || !storedSalt) throw new Error('No stored credential or salt found');
 
-    const {rawId, encryptedKey, mnemonic} = JSON.parse(storedCred);
+    const { rawId, encryptedKey, mnemonic } = JSON.parse(storedCred);
     const encoder = new TextEncoder();
     const salt = new Uint8Array(JSON.parse(storedSalt));
 
@@ -145,7 +245,7 @@ export class NostrKeyManager {
       const decryptedPrivateKey = await this.decryptSecretKey(encryptedKey, rawId, salt);
       const decryptedMnemonic = await this.decryptSecretKey(mnemonic, rawId, salt);
 
-      return {secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic};
+      return { secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic };
     }
     throw new Error('Failed to retrieve credential');
   }
@@ -171,12 +271,12 @@ export class NostrKeyManager {
         hash: 'SHA-256',
       },
       baseKey,
-      {name: 'AES-GCM', length: 256},
+      { name: 'AES-GCM', length: 256 },
       false,
       ['encrypt'],
     );
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedData = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, data);
+    const encryptedData = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
 
     const encryptedArray = new Uint8Array(encryptedData);
     const resultArray = new Uint8Array(iv.length + encryptedArray.length);
@@ -209,12 +309,12 @@ export class NostrKeyManager {
         hash: 'SHA-256',
       },
       baseKey,
-      {name: 'AES-GCM', length: 256},
+      { name: 'AES-GCM', length: 256 },
       false,
       ['decrypt'],
     );
 
-    const decryptedData = await crypto.subtle.decrypt({name: 'AES-GCM', iv}, key, data);
+    const decryptedData = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
 
     const decoder = new TextDecoder();
     const decryptedPrivateKey = decoder.decode(decryptedData);
@@ -229,13 +329,13 @@ export class NostrKeyManager {
     const storedSalt = localStorage.getItem(`${NostrKeyManager.SALT_KEY_PREFIX}${publicKey}`);
     if (!storedCred || !storedSalt) throw new Error('No stored credential or salt found');
 
-    const {rawId, encryptedKey, mnemonic} = JSON.parse(storedCred);
+    const { rawId, encryptedKey, mnemonic } = JSON.parse(storedCred);
     const encoder = new TextEncoder();
     const salt = new Uint8Array(JSON.parse(storedSalt));
 
     const decryptedPrivateKey = await this.decryptSecretKey(encryptedKey, rawId, salt);
     const decryptedMnemonic = await this.decryptSecretKey(mnemonic, rawId, salt);
 
-    return {secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic};
+    return { secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic };
   }
 }

@@ -2,6 +2,7 @@
 import { CashuMint, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
 import {
   EventMarker,
+  getProofs,
   ICashuInvoice,
   storeProofsSpent,
   useAuth,
@@ -19,7 +20,7 @@ import { useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './
 export const usePayment = () => {
   const { showToast } = useToast();
 
-  const { meltTokens, wallet, proofs, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
+  const { meltTokens, wallet, proofs:proofsStore, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
   const { publicKey, privateKey } = useAuth();
 
   const { value: proofsStorage, setValue: setProofsStorage } = useProofsStorage();
@@ -34,7 +35,7 @@ export const usePayment = () => {
 
   const { refetch: refetchTokens, events: filteredTokenEvents } = useGetTokensByProofs(proofsFilter);
 
-  const handlePayInvoice = async (pInvoice: string) => {
+  const handlePayInvoice = async (pInvoice: string, amount?: number) => {
     if (!wallet) {
       console.log('no wallet');
 
@@ -46,6 +47,21 @@ export const usePayment = () => {
       };
     }
 
+    const proofsStr = await getProofs()
+
+    console.log('proofs', proofsStore);
+
+    if (!proofsStr) {
+      showToast({
+        title: 'No proofs found',
+        type: 'error',
+      });
+      return {
+        meltResponse: undefined,
+        invoice: undefined,
+      }
+    };
+    const proofs = JSON.parse(proofsStr)
     if (proofs && proofs.length > 0) {
 
       try {
@@ -55,10 +71,34 @@ export const usePayment = () => {
         // const amount = Number(1);
         // console.log('amount regex', amount);
 
-        // const res = await wallet.selectProofsToSend(proofs, amount)
+        let proofsToSend = proofs;
+
+        // if (amount) {
+
+        //   const res = await wallet.selectProofsToSend(proofs, amount)
+        //   const checkProofsStates = await wallet.checkProofsStates(proofs)
+        //   console.log('res selectProofsToSend', res);
+        //   console.log('res checkProofsStates', checkProofsStates);
+
+        //   proofsToSend=res?.send;
+
+        // }
         // console.log("res", res) 
-        const response = await meltTokens(pInvoice, proofs);
+        console.log('proofsToSend', proofsToSend);
+
+        const response = await meltTokens(pInvoice, proofsToSend);
         console.log('response', response);
+
+        if(!response){
+          showToast({
+            title: 'Not enough proofs or amount',
+            type: 'error',
+          });
+          return {
+            meltResponse: undefined,
+            invoice: undefined,
+          }
+        }
         // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
 
         // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(response?.meltQuote.amount, res?.send);
@@ -132,11 +172,27 @@ export const usePayment = () => {
       if (!wallet) {
         return undefined;
       }
+      const proofsStr = await getProofs()
+
+      console.log('proofs', proofsStore);
+  
+      if (!proofsStr) {
+        showToast({
+          title: 'No proofs found',
+          type: 'error',
+        });
+        return {
+          meltResponse: undefined,
+          invoice: undefined,
+        }
+      };
+      const proofs = JSON.parse(proofsStr)
 
       if (proofs) {
-        const proofsCopy = Array.from(proofs);
+        // const proofsCopy = Array.from(proofs);
+        const proofsCopy = proofs;
 
-        const availableAmount = proofsCopy.reduce((s, t) => (s += t.amount), 0);
+        const availableAmount = proofsCopy.reduce((s: number, t: Proof) => (s += t.amount), 0);
 
         if (availableAmount < amount) {
           return undefined;
@@ -254,7 +310,7 @@ export const usePayment = () => {
         }
 
         showToast({ title: 'Ecash received.', type: 'success' });
-        setProofs([...proofs, ...receiveEcashProofs]);
+        setProofs([...proofsStorage, ...receiveEcashProofs]);
         setProofsStorage([...proofsStorage, ...receiveEcashProofs]);
 
         const newTx: ICashuInvoice = {

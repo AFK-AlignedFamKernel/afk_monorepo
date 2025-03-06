@@ -1,7 +1,7 @@
 import '../../../applyGlobalPolyfills';
 
 import { MintQuoteResponse } from '@cashu/cashu-ts';
-import { useCashu, useCashuStore } from 'afk_nostr_sdk';
+import { useCashu, useCashuStore, useGetCashuTokenEvents } from 'afk_nostr_sdk';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import React, { SetStateAction, useEffect, useRef, useState } from 'react';
 import {
@@ -73,6 +73,11 @@ export const CashuView = () => {
   const [isZapModalVisible, setIsZapModalVisible] = useState(false);
   // const [hasSeedCashu, setHasSeedCashu] = useState(false);
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
+
+  const tokenCashuEvents   = useGetCashuTokenEvents()
+
+  console.log("cashuView")
+  console.log('tokenCashuEvents', tokenCashuEvents);
 
   const [isLoading, setIsLoading] = useState(false);
   const [zapAmount, setZapAmount] = useState('');
