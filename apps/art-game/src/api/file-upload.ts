@@ -19,7 +19,7 @@ export const ApiInstance = axios.create({
 // });
 
 
-function createAxiosInstanceWithInterceptor(baseURL: string): AxiosInstance {
+export function createAxiosInstanceWithInterceptor(baseURL: string): AxiosInstance {
   const instance = axios.create({
     baseURL,
     timeout: 10_000,
