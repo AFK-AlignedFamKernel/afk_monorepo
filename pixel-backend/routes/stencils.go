@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/zde37/pinata-go-sdk/pinata"
+
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
 )
@@ -27,6 +29,7 @@ func InitStencilsRoutes() {
 	http.HandleFunc("/get-top-stencils", getTopStencils)
 	http.HandleFunc("/get-hot-stencils", getHotStencils)
 	http.HandleFunc("/add-stencil-img", addStencilImg)
+	http.HandleFunc("/get-stencil-img", getStencilImg)
 	http.HandleFunc("/add-stencil-data", addStencilData)
 	http.HandleFunc("/get-stencil-pixel-data", getStencilPixelData)
 	if !core.AFKBackend.BackendConfig.Production {
@@ -592,7 +595,44 @@ func addStencilImg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auth := pinata.NewAuthWithJWT("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJjNjNmMGJlYy02ODU4LTRlYTUtYjE5ZC02NjJjMjQ3YTA3ZWUiLCJlbWFpbCI6InRoZWhtYW5zaHVzaW5naEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOTE3NjU5ZmVkOWU3NTVjOTczZjAiLCJzY29wZWRLZXlTZWNyZXQiOiIwODU0MmU3NzFiMDljNGIyZjJlMWE2MzNhMGU1Yzc0OWI1MTE2ZmI3NWExNjcyNDFiODQ1Nzg2MjIwOTEzY2MyIiwiZXhwIjoxNzcyNzg4OTAzfQ.NUlp6ILhnaSSwqzDfRM2crcm9Zfq4OrSJ8PEwX-fA7I")
+	client := pinata.New(auth)
+
+	response, err := client.PinFile(filename, nil)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to upload image to IPFS")
+		return
+	}
+	fmt.Printf("File pinned successfully. IPFS hash: %s\n", response.IpfsHash)
+
+	query := `
+        INSERT INTO stencil_images (hash, ipfs_hash)
+        VALUES ($1, $2)
+    `
+	_, err = core.PostgresQueryJson[StencilData](query, hash, response.IpfsHash)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to store hash and IPFS hash in the database")
+		return
+	}
+
 	routeutils.WriteResultJson(w, hash)
+}
+
+func getStencilImg(w http.ResponseWriter, r *http.Request) {
+
+	hash := r.URL.Query().Get("hash")
+	if hash == "" {
+		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Hash parameter is required")
+		return
+	}
+	
+	ipfsHash, err := core.PostgresQuery[string]("SELECT ipfs_hash FROM stencil_images WHERE hash = $1", hash)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get ipfs hash for th given hash")
+		return
+	}
+
+	routeutils.WriteResultJson(w, ipfsHash[0])
 }
 
 func addStencilData(w http.ResponseWriter, r *http.Request) {
@@ -704,7 +744,7 @@ func addStencilData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	routeutils.WriteResultJson(w, hash)
+	routeutils.WriteDataJson(w, hash)
 }
 
 func addStencilDevnet(w http.ResponseWriter, r *http.Request) {
