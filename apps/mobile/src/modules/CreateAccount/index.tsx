@@ -37,7 +37,7 @@ export const CreateAccountModule: React.FC<ISignup> = ({
     handleGeneratePasskey,
     handleGenerateWallet,
     handleGenerateNostrWallet,
-    handleGenerateNostrWalletOld,
+    // handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   } = useInternalAccount();
   const {getPublicKey} = useNip07Extension();

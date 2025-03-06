@@ -10,7 +10,14 @@ export class NostrKeyManager {
   private static SALT_KEY_PREFIX = 'nostr_salt_';
   private static PBKDF2_ITERATIONS = 100000; // Adjust based on your security needs and performance requirements
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
-
+  private static NOSTR_WALLETS: {
+    [key: string]: {
+      secretKey: string;
+      publicKey: string;
+      mnemonic: string;
+      seed: string;
+    };
+  } = {};
   static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean): Promise<{
     secretKey: string;
     publicKey: string;

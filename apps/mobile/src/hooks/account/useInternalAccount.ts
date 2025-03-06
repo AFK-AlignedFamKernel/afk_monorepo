@@ -14,7 +14,8 @@ import {
   storePrivateKey,
   storePublicKey,
 } from '../../utils/storage';
-import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+// import {NostrKeyManager} from '../../utils/storage/nostr-key-manager';
+import {NostrKeyManager} from 'afk_nostr_sdk';
 import {PasskeyManager} from '../../utils/storage/passkey-manager';
 import {WalletManager} from '../../utils/storage/wallet-manager';
 import {useDialog, useToast} from '../modals';
@@ -146,6 +147,7 @@ export const useInternalAccount = () => {
 
       if (passkey && passkey != null) {
         console.log('passkey exist', passkey);
+        // const res = await NostrKeyManager.getOrCreateKeyPair(passkey);
         const res = await NostrKeyManager.getOrCreateKeyPair(passkey);
         console.log('res', res);
         if(!res) {
@@ -200,67 +202,67 @@ export const useInternalAccount = () => {
     }
   };
 
-  const handleGenerateNostrWalletOld = async (
-    username: string,
-    password: string,
-    passkey?: Credential | null,
-  ) => {
-    try {
-      const {privateKey, publicKey} = generateRandomKeypair();
-      await storePassword(password);
-      await storePrivateKey(privateKey, password);
-      await storePublicKey(publicKey);
+  // const handleGenerateNostrWalletOld = async (
+  //   username: string,
+  //   password: string,
+  //   passkey?: Credential | null,
+  // ) => {
+  //   try {
+  //     const {privateKey, publicKey} = generateRandomKeypair();
+  //     await storePassword(password);
+  //     await storePrivateKey(privateKey, password);
+  //     await storePublicKey(publicKey);
 
-      try {
-        const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
+  //     try {
+  //       const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
 
-        if (!mnemonicSaved) {
-          const mnemonic = await generateNewMnemonic();
-          await storeCashuMnemonic(mnemonic, password);
-          setIsSeedCashuStorage(true);
-        }
-      } catch (e) {
-        console.log('error cashu wallet', e);
-      }
+  //       if (!mnemonicSaved) {
+  //         const mnemonic = await generateNewMnemonic();
+  //         await storeCashuMnemonic(mnemonic, password);
+  //         setIsSeedCashuStorage(true);
+  //       }
+  //     } catch (e) {
+  //       console.log('error cashu wallet', e);
+  //     }
 
-      try {
-        ndk.signer = new NDKPrivateKeySigner(privateKey);
-        const ndkUser = ndk.getUser({pubkey: publicKey});
-        ndkUser.profile = {nip05: username, displayName: username};
-        await ndkUser.publish();
-      } catch (e) {
-        console.log('error ndk user setup');
-      }
+  //     try {
+  //       ndk.signer = new NDKPrivateKeySigner(privateKey);
+  //       const ndkUser = ndk.getUser({pubkey: publicKey});
+  //       ndkUser.profile = {nip05: username, displayName: username};
+  //       await ndkUser.publish();
+  //     } catch (e) {
+  //       console.log('error ndk user setup');
+  //     }
 
-      const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
-      if (biometySupported) {
-        showDialog({
-          title: 'Easy login',
-          description: 'Would you like to use biometrics to login?',
-          buttons: [
-            {
-              type: 'primary',
-              label: 'Yes',
-              onPress: async () => {
-                await storePassword(password);
-                hideDialog();
-              },
-            },
-            {
-              type: 'default',
-              label: 'No',
-              onPress: hideDialog,
-            },
-          ],
-        });
-      }
+  //     const biometySupported = Platform.OS !== 'web' && canUseBiometricAuthentication();
+  //     if (biometySupported) {
+  //       showDialog({
+  //         title: 'Easy login',
+  //         description: 'Would you like to use biometrics to login?',
+  //         buttons: [
+  //           {
+  //             type: 'primary',
+  //             label: 'Yes',
+  //             onPress: async () => {
+  //               await storePassword(password);
+  //               hideDialog();
+  //             },
+  //           },
+  //           {
+  //             type: 'default',
+  //             label: 'No',
+  //             onPress: hideDialog,
+  //           },
+  //         ],
+  //       });
+  //     }
 
-      return {privateKey, publicKey};
-    } catch (error) {
-      console.log('handleGenerateNostrWalletOld error', error);
-      return {privateKey: undefined, publicKey: undefined};
-    }
-  };
+  //     return {privateKey, publicKey};
+  //   } catch (error) {
+  //     console.log('handleGenerateNostrWalletOld error', error);
+  //     return {privateKey: undefined, publicKey: undefined};
+  //   }
+  // };
 
   const handleSavedNostrWalletOld = async (
     username: string,
@@ -339,7 +341,7 @@ export const useInternalAccount = () => {
     handleGeneratePasskey,
     handleGenerateWallet,
     handleGenerateNostrWallet,
-    handleGenerateNostrWalletOld,
+    // handleGenerateNostrWalletOld,
     handleSavedNostrWalletOld,
   };
 };
