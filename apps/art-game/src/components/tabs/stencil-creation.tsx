@@ -38,6 +38,10 @@ export const StencilCreationTab = (props: any) => {
     //   }
     // }
 
+    if (!image) {
+      urlImage = props.stencilImage.image;
+      urlHash = props.stencilImage.hash;
+    }
     if (!account) return;
     try {
       // await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
