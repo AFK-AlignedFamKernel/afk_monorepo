@@ -188,7 +188,20 @@ pub struct EkuboLP {
     pub bounds: Bounds,
 }
 
-#[derive(Drop, Copy, starknet::Store, Serde)]
+// #[derive(Drop, Copy, starknet::Store, Serde)]
+// pub struct EkuboPoolParameters {
+//     pub fee: u128,
+//     pub tick_spacing: u128,
+//     // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true)
+//     // otherwise
+//     pub starting_price: i129,
+//     // The LP providing bound, upper/lower determined by the address of the LPed tokens
+//     pub bound: u128,
+//     pub bound_spacing: u128,
+//     pub bounds: Bounds,
+// }
+
+#[derive(Drop, Copy, Serde)]
 pub struct EkuboPoolParameters {
     pub fee: u128,
     pub tick_spacing: u128,
@@ -197,7 +210,10 @@ pub struct EkuboPoolParameters {
     pub starting_price: i129,
     // The LP providing bound, upper/lower determined by the address of the LPed tokens
     pub bound: u128,
+    pub bound_spacing: u128,
+    pub bounds: Bounds,
 }
+
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub enum LiquidityType {
@@ -206,10 +222,27 @@ pub enum LiquidityType {
     EkuboNFT: u64
 }
 
-#[derive(Copy, Drop, starknet::Store, Serde)]
+#[derive(Copy, Drop, Serde, starknet::Store)]
+pub struct EkuboLiquidityParametersStore {
+    pub ekubo_pool_parameters: EkuboPoolParametersStore,
+    pub quote_address: ContractAddress,
+}
+
 pub struct EkuboLiquidityParameters {
     pub ekubo_pool_parameters: EkuboPoolParameters,
     pub quote_address: ContractAddress,
+}
+
+#[derive(Drop, Copy, starknet::Store, Serde)]
+pub struct EkuboPoolParametersStore {
+    pub fee: u128,
+    pub tick_spacing: u128,
+    // the sign of the starting tick is positive (false) if quote/token < 1 and negative (true)
+    // otherwise
+    pub starting_price: i129,
+    // The LP providing bound, upper/lower determined by the address of the LPed tokens
+    pub bound: u128,
+    pub bound_spacing: u128,
 }
 
 
@@ -221,7 +254,7 @@ pub struct EkuboLiquidityParameters {
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub enum LiquidityParameters {
-    Ekubo: EkuboLiquidityParameters,
+    Ekubo: EkuboLiquidityParametersStore,
     // pub Jediswap: (JediswapLiquidityParameters, ContractAddress),
 // StarkDeFi: (StarkDeFiLiquidityParameters, ContractAddress),
 }
