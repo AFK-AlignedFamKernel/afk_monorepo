@@ -9,6 +9,8 @@ import { playSoftClick2 } from '../utils/sounds';
 import { favoriteStencilCall, unfavoriteStencilCall } from '../../contract/calls';
 import { getStencilImage } from '@/api/stencils';
 
+const IPFS_URL = process.env.PINATA_IPFS_URL;
+
 /* TODO
  <button className="Button__circle h-[3rem] w-[3rem] m-2" onClick={() => {
    playSoftClick2();
@@ -68,7 +70,7 @@ export const StencilItem = (props: any) => {
     >
       <Image
         loader={() => props.image}
-        src={`https://moccasin-impossible-reptile-513.mypinata.cloud/ipfs/${ipfsHash}`}
+        src={`${IPFS_URL}/${ipfsHash}`}
         alt={`stencil-image-${props.stencil.stencilId}`}
         width={props.stencil.width}
         height={props.stencil.height}
