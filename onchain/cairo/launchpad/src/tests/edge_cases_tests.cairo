@@ -585,8 +585,8 @@ mod edge_cases_tests {
 
         let total_supply = memecoin.total_supply();
         // Undo this
-        // let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
-        let is_token1_quote = true;
+        let is_token1_quote = quote_token.contract_address.clone() == token1.clone();
+        // let is_token1_quote = true;
 
         let launch = launchpad.get_coin_launch(token_address);
 

@@ -1611,8 +1611,8 @@ pub mod LaunchpadMarketplace {
             // coin_address);
 
             // TODO uncomment this and comment others part of test scaling
-            // let is_token1_quote = launch.token_quote.token_address == token1;
-            let is_token1_quote = true;
+            let is_token1_quote = launch.token_quote.token_address == token1;
+            // let is_token1_quote = true;
 
             println!("is_token1_quote {}", is_token1_quote.clone());
             // Audit
@@ -1651,6 +1651,7 @@ pub mod LaunchpadMarketplace {
             let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
+            // bound spacing calculation
             let bound_spacing: u128 = calculate_bound_mag(
                 fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), starting_price
             );
@@ -1687,7 +1688,8 @@ pub mod LaunchpadMarketplace {
             let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
                 * tick_spacing.try_into().unwrap();
 
-            // Full range bounds
+            // Full range bounds for liquidity providing
+            // TODO verify the aligned bound and max used is correct
             let mut full_range_bounds = Bounds {
                 lower: i129 { mag: aligned_bound_spacing, sign: true },
                 upper: i129 { mag: aligned_bound_spacing, sign: false }
@@ -1753,7 +1755,8 @@ pub mod LaunchpadMarketplace {
                 // starting_price: starting_price,
                 bound: bound_spacing,
                 bounds: full_range_bounds,
-                bound_spacing: bound_spacing
+                // bounds: full_range_bounds_initial,
+                bound_spacing: bound_spacing,
             };
 
             // Calculate liquidity amounts

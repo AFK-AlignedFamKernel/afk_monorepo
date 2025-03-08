@@ -569,9 +569,8 @@ pub mod UnrugLiquidity {
                     };
 
                     // TODO uncomment this and comment others part of test scaling
-                    // let is_token1_quote = launch_params.quote_address == token1;
-
-                    let is_token1_quote = true;
+                    let is_token1_quote = launch_params.quote_address == token1;
+                    // let is_token1_quote = true;
                     println!("is_token1_quote {:?}", is_token1_quote);
 
                     // TODO
@@ -619,22 +618,15 @@ pub mod UnrugLiquidity {
                     //     );
 
                     // Get initial tick and full range bounds_initial
-                    let (initial_tick_check, full_range_bounds_initial) =
-                        get_initial_tick_from_starting_price(
-                        starting_price,
-                        // launch_params.pool_params.bound,
-                        aligned_bound_spacing.clone(), // aligned_max_tick,
-                        is_token1_quote
-                    );
-
-                    let initial_tick = launch_params.pool_params.starting_price;
-
-                    // let (initial_tick, full_range_bounds_initial) =
+                    // let (initial_tick_check, full_range_bounds_initial) =
                     //     get_initial_tick_from_starting_price(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.bound,
+                    //     starting_price,
+                    //     // launch_params.pool_params.bound,
+                    //     aligned_bound_spacing.clone(), // aligned_max_tick,
                     //     is_token1_quote
                     // );
+
+                    let initial_tick = launch_params.pool_params.starting_price;
 
                     // Get full range bounds
 
@@ -644,13 +636,20 @@ pub mod UnrugLiquidity {
                     //     upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
                     // };
 
+                    // let (initial_tick, full_range_bounds_initial) =
+                    //     get_initial_tick_from_starting_price(
+                    //     launch_params.pool_params.starting_price,
+                    //     launch_params.pool_params.bound,
+                    //     is_token1_quote
+                    // );
+
                     // WORKING
                     // Align tick with max ticks
                     // Verify the bounds is as expected
-                    let mut full_range_bounds = Bounds {
-                        lower: i129 { mag: aligned_bound_spacing, sign: true },
-                        upper: i129 { mag: aligned_bound_spacing, sign: false }
-                    };
+                    // let mut full_range_bounds = Bounds {
+                    //     lower: i129 { mag: aligned_bound_spacing, sign: true },
+                    //     upper: i129 { mag: aligned_bound_spacing, sign: false }
+                    // };
 
                     let memecoin_balance = IERC20Dispatcher {
                         contract_address: launch_params.token_address
