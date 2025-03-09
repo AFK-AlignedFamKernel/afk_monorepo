@@ -1,8 +1,8 @@
 module github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend
 
-go 1.22.0
+go 1.22.2
 
-toolchain go1.22.2
+toolchain go1.22.5
 
 require (
 	github.com/NethermindEth/juno v0.11.5
@@ -26,6 +26,7 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	github.com/zde37/pinata-go-sdk v1.0.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect

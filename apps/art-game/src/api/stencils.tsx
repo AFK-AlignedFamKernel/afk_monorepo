@@ -118,3 +118,14 @@ export const getStencilPixelData = async (hash: string, worldId: number): Promis
     return null;
   }
 }
+
+export const getStencilImage = async (hash: string): Promise<any> => {
+  try {
+    const getStencilImageEndpoint = `${backendUrl}/get-stencil-img?hash=${hash}`;
+    const imageData = await fetchJsonData(getStencilImageEndpoint);
+    return imageData;
+  } catch (error) {
+    console.error('Error getting stencil image', error);
+    return null;
+  }
+};
