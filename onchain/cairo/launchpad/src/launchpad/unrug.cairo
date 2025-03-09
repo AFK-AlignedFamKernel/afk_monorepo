@@ -568,9 +568,10 @@ pub mod UnrugLiquidity {
                         extension: 0.try_into().unwrap(),
                     };
 
+                    // TODO uncomment this and comment others part of test scaling
                     let is_token1_quote = launch_params.quote_address == token1;
                     // let is_token1_quote = true;
-                    // println!("is_token1_quote {:?}", is_token1_quote);
+                    println!("is_token1_quote {:?}", is_token1_quote);
 
                     // TODO
                     // Check align ticks based on tick spacing and fee
@@ -617,20 +618,15 @@ pub mod UnrugLiquidity {
                     //     );
 
                     // Get initial tick and full range bounds_initial
-                    let (initial_tick, full_range_bounds_initial) =
-                        get_initial_tick_from_starting_price(
-                        starting_price,
-                        // launch_params.pool_params.bound,
-                        aligned_bound_spacing.clone(), // aligned_max_tick,
-                        is_token1_quote
-                    );
-
-                    // let (initial_tick, full_range_bounds_initial) =
+                    // let (initial_tick_check, full_range_bounds_initial) =
                     //     get_initial_tick_from_starting_price(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.bound,
+                    //     starting_price,
+                    //     // launch_params.pool_params.bound,
+                    //     aligned_bound_spacing.clone(), // aligned_max_tick,
                     //     is_token1_quote
                     // );
+
+                    let initial_tick = launch_params.pool_params.starting_price;
 
                     // Get full range bounds
 
@@ -640,64 +636,19 @@ pub mod UnrugLiquidity {
                     //     upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
                     // };
 
+                    // let (initial_tick, full_range_bounds_initial) =
+                    //     get_initial_tick_from_starting_price(
+                    //     launch_params.pool_params.starting_price,
+                    //     launch_params.pool_params.bound,
+                    //     is_token1_quote
+                    // );
+
                     // WORKING
                     // Align tick with max ticks
                     // Verify the bounds is as expected
-                    let mut full_range_bounds = Bounds {
-                        lower: i129 { mag: aligned_bound_spacing, sign: true },
-                        upper: i129 { mag: aligned_bound_spacing, sign: false }
-                    };
-
-                    // TODO check full range bounds to used
-                    // Create bounds ensuring they're multiples of tick spacing
-                    // full_range_bounds = if is_token1_quote {
-                    //     Bounds {
-                    //         lower: i129 {
-                    //             mag: aligned_bound_spacing,
-                    //             sign: true
-                    //         },
-                    //         upper: i129 {
-                    //             mag: aligned_bound_spacing,
-                    //             sign: false
-                    //         }
-                    //     }
-                    //     //     Bounds {
-                    //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-                    //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
-                    //     //         false }
-                    //     //     }
-
-                    // } else {
-                    //     Bounds {
-                    //         lower: i129 {
-                    //             mag: aligned_bound_spacing,
-                    //             sign: true
-                    //         },
-                    //         upper: i129 {
-                    //             mag: aligned_bound_spacing,
-                    //             sign: false
-                    //         }
-                    //     }
-                    //     // TODO align tick
-                    //     //     Bounds {
-                    //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-                    //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign:
-                    //     //         false }
-                    //     //     }
-
-                    //     // TODO 
-                    //     // Check not working with reverse bounds like UNRUG
-                    //     // Reverse the bounds for token0 as quote
-                    //     // Bounds {
-                    //     //     lower: i129 {
-                    //     //         mag: aligned_bound_spacing,
-                    //     //         sign: false
-                    //     //     },
-                    //     //     upper: i129 {
-                    //     //         mag: aligned_bound_spacing,
-                    //     //         sign: true
-                    //     //     }
-                    //     // }
+                    // let mut full_range_bounds = Bounds {
+                    //     lower: i129 { mag: aligned_bound_spacing, sign: true },
+                    //     upper: i129 { mag: aligned_bound_spacing, sign: false }
                     // };
 
                     let memecoin_balance = IERC20Dispatcher {
@@ -708,23 +659,7 @@ pub mod UnrugLiquidity {
                     // TODO check the initial_tick with the good sign used
                     core.maybe_initialize_pool(:pool_key, :initial_tick);
                     // core.maybe_initialize_pool(:pool_key, initial_tick:starting_price);
-
-                    // TODO check errors possible
-                    // BOUNDS_TICK_SPACING
-                    // TODO used it or full_bounds
-                    // Verify bound to use based on user params
-                    // Full range bounds or concentrated bounds
-                    // Add single tick bound
-                    // let single_tick_bound = get_next_tick_bounds(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.tick_spacing,
-                    //     is_token1_quote
-                    // );
-
-                    // TODO
-                    // Unruggable init of bounds
-                    // let bound_to_use = full_range_bounds_initial;
-                    let bound_to_use = full_range_bounds;
+                    let bound_to_use = launch_params.pool_params.bounds;
 
                     // Verify tick spacing, fee, bounding_space,
                     // initial_tick and and bounds calculated

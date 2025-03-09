@@ -5,7 +5,13 @@ mod unrug_tests {
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
-    use afk_launchpad::launchpad::utils::{calculate_aligned_bound_mag, sort_tokens};
+    use afk_launchpad::launchpad::utils::{
+        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
+        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_TICK_U128, MIN_TICK_U128,
+        MAX_SQRT_RATIO, MIN_SQRT_RATIO, align_tick_with_max_tick_and_min_tick, calculate_bound_mag,
+        calculate_sqrt_ratio
+    };
+
     use afk_launchpad::math::PercentageMath;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher,
@@ -36,6 +42,7 @@ mod unrug_tests {
     use ekubo::interfaces::token_registry::{ // ITokenRegistryDispatcher,
     // ITokenRegistryDispatcherTrait,
     };
+    use ekubo::types::bounds::{Bounds};
     use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
@@ -48,9 +55,12 @@ mod unrug_tests {
         DeclareResultTrait,
         // EventSpyAssertionsTrait
     };
+    use starknet::syscalls::{library_call_syscall, deploy_syscall};
     // use starknet::syscalls::call_contract_syscall;
 
     use starknet::{ContractAddress, ClassHash};
+
+    use starknet::{SyscallResultTrait};
 
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
@@ -378,6 +388,49 @@ mod unrug_tests {
         let tick_spacing = 5982;
         let bound = 5982;
         let quote_address = erc20.contract_address.clone();
+
+        let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
+        let is_token1_quote = token1 == erc20.contract_address;
+        let sqrt_ratio = calculate_sqrt_ratio(lp_quote_supply, lp_meme_supply, is_token1_quote);
+
+        // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
+        // Define the minimum and maximum sqrt ratios
+        // Convert to a tick value
+        let mut call_data: Array<felt252> = array![];
+        Serde::serialize(@sqrt_ratio, ref call_data);
+
+        // let class_hash:ClassHash =
+        // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+        let class_hash: ClassHash =
+            0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+            .try_into()
+            .unwrap();
+
+        let mut res = library_call_syscall(
+            class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
+        )
+            .unwrap_syscall();
+
+        let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
+        let bound_spacing: u128 = calculate_bound_mag(
+            fee.clone(), tick_spacing.clone().try_into().unwrap(), starting_price
+        );
+        // Align the min and max ticks with the spacing
+        let min_tick = MIN_TICK_U128.try_into().unwrap();
+        let max_tick = MAX_TICK_U128.try_into().unwrap();
+
+        let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
+        let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
+
+        let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
+            * tick_spacing.try_into().unwrap();
+
+        // Full range bounds
+        let mut full_range_bounds = Bounds {
+            lower: i129 { mag: aligned_bound_spacing, sign: true },
+            upper: i129 { mag: aligned_bound_spacing, sign: false }
+        };
+
         let params: EkuboUnrugLaunchParameters = EkuboUnrugLaunchParameters {
             // owner: unrug_liq.contract_address,
             owner: OWNER(),
@@ -391,6 +444,8 @@ mod unrug_tests {
                 tick_spacing: tick_spacing.clone(),
                 starting_price,
                 bound: bound.clone(),
+                bounds: full_range_bounds,
+                bound_spacing: bound_spacing
             }
         };
         println!("add liquidity ekubo");
