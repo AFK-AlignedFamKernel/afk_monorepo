@@ -1,12 +1,15 @@
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { CSSTransition } from "react-transition-group";
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { CSSTransition } from 'react-transition-group';
 import { useAccount } from '@starknet-react/core';
-import FavoriteIcon from "../../../public/icons/Favorite.png";
-import FavoritedIcon from "../../../public/icons/Favorited.png";
+import FavoriteIcon from '../../../public/icons/Favorite.png';
+import FavoritedIcon from '../../../public/icons/Favorited.png';
 //import Info from "../../../public/icons/Info.png";
-import { playSoftClick2 } from "../utils/sounds";
-import { favoriteStencilCall, unfavoriteStencilCall } from "../../contract/calls";
+import { playSoftClick2 } from '../utils/sounds';
+import { favoriteStencilCall, unfavoriteStencilCall } from '../../contract/calls';
+import { getStencilImage } from '@/api/stencils';
+
+const IPFS_URL = process.env.PINATA_IPFS_URL;
 
 /* TODO
  <button className="Button__circle h-[3rem] w-[3rem] m-2" onClick={() => {
@@ -25,15 +28,26 @@ import { favoriteStencilCall, unfavoriteStencilCall } from "../../contract/calls
 export const StencilItem = (props: any) => {
   const { account, address } = useAccount();
 
-  const [creatorText, setCreatorText] = useState("");
+  const [creatorText, setCreatorText] = useState('');
+  const [ipfsHash, setIpfshash] = useState('');
+
+  useEffect(() => {
+    const fetchStencilImage = async () => {
+      if (props.stencil.hash) {
+        const result = await getStencilImage(props.stencil.hash);
+        setIpfshash(result);
+      }
+    };
+    fetchStencilImage();
+  }, [props.stencil.hash]);
 
   const selectStencil = (e: any) => {
     e.preventDefault();
     // Ignore clicks on the favorite button
-    if (e.target.classList.contains("FavoriteButton")) return;
+    if (e.target.classList.contains('FavoriteButton')) return;
     playSoftClick2();
     props.setOpenedStencil(props.stencil);
-  }
+  };
 
   const handleFavoritePress = async () => {
     playSoftClick2();
@@ -44,7 +58,7 @@ export const StencilItem = (props: any) => {
       await favoriteStencilCall(account, props.activeWorld.worldId, props.stencil.stencilId);
       props.setStencilFavorited(props.stencil.stencilId, true);
     }
-  }
+  };
 
   const [showInfo, setShowInfo] = useState(false);
 
@@ -58,7 +72,7 @@ export const StencilItem = (props: any) => {
     >
       <Image
         loader={() => props.image}
-        src={props.image}
+        src={`${IPFS_URL}/${ipfsHash}`}
         alt={`stencil-image-${props.stencil.stencilId}`}
         width={props.stencil.width}
         height={props.stencil.height}
@@ -67,7 +81,7 @@ export const StencilItem = (props: any) => {
       />
       <div className="FavoriteButton absolute bottom-0 right-0 w-full flex flex-row justify-end items-center pointer-events-none">
         <button
-          className={`${address ? "" : "Button--disabled"} Button__primary h-[3rem]`}
+          className={`${address ? '' : 'Button--disabled'} Button__primary h-[3rem]`}
           onClick={handleFavoritePress}
         >
           <Image

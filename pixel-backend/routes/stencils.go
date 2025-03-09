@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/zde37/pinata-go-sdk/pinata"
+
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
 )
@@ -27,6 +29,7 @@ func InitStencilsRoutes() {
 	http.HandleFunc("/get-top-stencils", getTopStencils)
 	http.HandleFunc("/get-hot-stencils", getHotStencils)
 	http.HandleFunc("/add-stencil-img", addStencilImg)
+	http.HandleFunc("/get-stencil-img", getStencilImg)
 	http.HandleFunc("/add-stencil-data", addStencilData)
 	http.HandleFunc("/get-stencil-pixel-data", getStencilPixelData)
 	if !core.AFKBackend.BackendConfig.Production {
@@ -592,7 +595,46 @@ func addStencilImg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pinata_jwt:=os.Getenv("PINATA_JWT")
+	
+	auth := pinata.NewAuthWithJWT(pinata_jwt)
+	client := pinata.New(auth)
+
+	response, err := client.PinFile(filename, nil)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to upload image to IPFS")
+		return
+	}
+	fmt.Printf("File pinned successfully. IPFS hash: %s\n", response.IpfsHash)
+
+	query := `
+        INSERT INTO stencil_images (hash, ipfs_hash)
+        VALUES ($1, $2)
+    `
+	_, err = core.PostgresQueryJson[StencilData](query, hash, response.IpfsHash)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to store hash and IPFS hash in the database")
+		return
+	}
+
 	routeutils.WriteResultJson(w, hash)
+}
+
+func getStencilImg(w http.ResponseWriter, r *http.Request) {
+
+	hash := r.URL.Query().Get("hash")
+	if hash == "" {
+		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Hash parameter is required")
+		return
+	}
+	
+	ipfsHash, err := core.PostgresQuery[string]("SELECT ipfs_hash FROM stencil_images WHERE hash = $1", hash)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get ipfs hash for th given hash")
+		return
+	}
+
+	routeutils.WriteResultJson(w, ipfsHash[0])
 }
 
 func addStencilData(w http.ResponseWriter, r *http.Request) {
@@ -704,7 +746,7 @@ func addStencilData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	routeutils.WriteResultJson(w, hash)
+	routeutils.WriteDataJson(w, hash)
 }
 
 func addStencilDevnet(w http.ResponseWriter, r *http.Request) {
