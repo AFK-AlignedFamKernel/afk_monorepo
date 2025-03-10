@@ -4,7 +4,7 @@ import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 import { FeedComponent } from '../../modules/Feed';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Button } from '../../components';
+import { Button, Icon } from '../../components';
 import { useState } from 'react';
 import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 import ShortVideosModule from '../../modules/ShortVideos';
@@ -54,16 +54,19 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         <Button style={[styles.toggleButton, viewFeed === 'NOTES' && styles.activeToggle]} onPress={() => {
           setViewFeed('NOTES')
           logClickedEvent('Feed', "user_action", "feed_toggle")
-        }}>Feed</Button>
+        }}
+        ><Icon name="FeedIcon" size={15} style={{ marginRight: 5 }}></Icon>Feed</Button>
         <Button style={[styles.toggleButton, viewFeed === 'SHORTS' && styles.activeToggle]} onPress={() => {
           setViewFeed('SHORTS')
           logClickedEvent('Shorts', "user_action", "feed_toggle")
-        }}>Shorts</Button>
+        }}>
+          <Icon name="VideoIcon" size={15} style={{ marginRight: 5 }}></Icon>Shorts</Button>
         <Button style={[styles.toggleButton, viewFeed === 'STREAM' && styles.activeToggle]} onPress={() => {
           setViewFeed('STREAM')
           logClickedEvent('Stream', "user_action", "feed_toggle")
 
-        }}>Stream</Button>
+        }}>
+          <Icon name="StreamIcon" size={15} style={{ marginRight: 5 }}></Icon>Stream</Button>
         {/* <Button onPress={() => setViewFeed('TOKENS')}>Tokens</Button> */}
         {/* <Button style={[styles.toggleButton, viewFeed === 'VIDEOS' && styles.activeToggle]} onPress={() => setViewFeed('VIDEOS')}>Videos</Button> */}
 

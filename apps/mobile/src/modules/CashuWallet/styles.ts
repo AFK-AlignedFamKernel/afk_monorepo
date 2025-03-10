@@ -30,7 +30,7 @@ export default ThemedStyleSheet((theme) => ({
   scrollView: {
     flex: 1,
     height: '95%',
-    overflow: 'scroll',
+    overflow: 'hidden',
     backgroundColor: 'transparent',
   },
   actionsContainer: {

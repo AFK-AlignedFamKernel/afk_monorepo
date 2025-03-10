@@ -8,6 +8,7 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     // backgroundColor: theme.colors.background,
     color: theme.colors.text,
+    overflow:'hidden'
   },
   // const styles = StyleSheet.create({
   header: {
@@ -20,6 +21,7 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     borderBottomWidth: 1,
     flex: 1,
+    overflow:"hidden"
 
     // borderBottomColor: '#ddd',
   },
@@ -100,7 +102,7 @@ export default ThemedStyleSheet((theme) => ({
     // borderBottomLeftRadius: 20,
     // borderBottomRightRadius: 20,
     maxHeight: '100%',
-    overflow: 'scroll',
+    overflow: 'hidden',
     // paddingBottom: 20,
     // position: 'relative',
     height: '100%',
