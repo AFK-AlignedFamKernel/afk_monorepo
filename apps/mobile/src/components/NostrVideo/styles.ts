@@ -19,8 +19,8 @@ export default ThemedStyleSheet(() => ({
   },
   actionsContainer: {
     position: 'relative',
-    right: Dimensions.get('window').width * 0.1,
-    bottom: Dimensions.get('window').height * 0.15,
+    // right: Dimensions.get('window').width * 0.1,
+    bottom: Dimensions.get('window').height * 0.3,
     // right: Dimensions.get('window').width * 0.2,
     // bottom: Dimensions.get('window').height * 0.2,
     display: 'flex',

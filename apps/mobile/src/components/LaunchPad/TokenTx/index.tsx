@@ -27,7 +27,7 @@ export const TokenTx: React.FC<TokenTxProps> = ({tx, loading}) => {
         <View style={styles.container}>
           <View style={styles.txRow}>
             <View style={styles.rowItem}>
-              <Text style={styles.label}>Memecoin</Text>
+              <Text style={styles.label}>Coin</Text>
               <View style={styles.addressContainer}>
                 <AddressComponent address={item?.memecoin_address} />
               </View>
