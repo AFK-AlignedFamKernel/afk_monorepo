@@ -230,7 +230,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         </View> */}
 
 
-        {token?.url && (
+        {token?.url && token?.url?.length > 0 && (
           <View
             style={{ width: "100%", height: 150, maxHeight: 200 }}
 

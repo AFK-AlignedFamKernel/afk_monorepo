@@ -12,6 +12,7 @@ export default (theme: any) =>
       marginBottom: 20,
       width: '100%',
       height: '100%',
+      justifyContent: 'space-evenly',
     },
     containerDesktop: {
       marginRight: 20,

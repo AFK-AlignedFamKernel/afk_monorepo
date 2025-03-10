@@ -278,7 +278,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                   setLaunches(sorted);
                 }}
               >
-                <Text style={styles.filterOptionText}>Most Recent</Text>
+                <Text style={[styles.filterOptionText, sortBy === 'recent' && styles.activeFilterText]}>Most Recent</Text>
               </TouchableOpacity>
 
 
@@ -297,7 +297,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                       setSortedLaunches(sorted);
                     }}
                   >
-                    <Text style={styles.filterOptionText}>Liquidity</Text>
+                    <Text style={[styles.filterOptionText, sortBy === 'liquidity' && styles.activeFilterText]}>Liquidity</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -314,7 +314,7 @@ export const LaunchpadComponent: React.FC<AllKeysComponentInterface> = ({
                   setLaunches(sorted);
                 }}
               >
-                <Text style={styles.filterOptionText}>Oldest First</Text>
+                <Text style={[styles.filterOptionText, sortBy === 'oldest' && styles.activeFilterText]}>Oldest First</Text>
               </TouchableOpacity>
 
             </View>

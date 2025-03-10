@@ -153,7 +153,16 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
   },
   activeFilter: {
-    backgroundColor: theme.colors.primary,
+    // backgroundColor: theme.colors.primary,
+    // color: theme.colors.primary,
+    // // borderColor: theme.colors.primary,
+    // textColor: theme.colors.primary,
+  },
+  activeFilterText: {
+    // backgroundColor: theme.colors.primary,
+    color: theme.colors.primary,
+    borderColor: theme.colors.primary,
+    textColor: theme.colors.primary,
   },
   filterOptionText: {
     fontSize: 12,
