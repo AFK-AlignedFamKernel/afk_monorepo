@@ -148,7 +148,7 @@ export const TokenCard: React.FC<LaunchCoinProps> = ({
         }
 
         {token?.block_timestamp && (
-          <Text>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
+          <Text style={{ fontSize: 10 }}>Created {getElapsedTimeStringFull(new Date(token?.block_timestamp).getTime())}</Text>
         )}
 
 

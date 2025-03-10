@@ -72,7 +72,7 @@ const ShortVideosModule = () => {
           style={styles.list}
           data={videosEventsState}
           renderItem={({ item, index }) => (
-            <View style={[styles.videoContainer, { height: WINDOW_HEIGHT, width: WINDOW_WIDTH }]}>
+            <View style={[styles.videoContainer, { height: WINDOW_HEIGHT - 60, width: WINDOW_WIDTH }]}>
               <NostrVideo item={item}
                 shouldPlay={index === currentViewableItemIndex}
               // shouldPlay={true}

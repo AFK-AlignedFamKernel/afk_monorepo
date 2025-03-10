@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useStyles, useTheme } from '../../hooks';
 import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
@@ -11,6 +11,7 @@ import ShortVideosModule from '../../modules/ShortVideos';
 import { StudioModuleView } from '../../modules/Studio';
 import { StudioModule } from '../../modules/Studio/StudioModule';
 import { logClickedEvent } from 'src/utils/analytics';
+import { AddPostIcon } from 'src/assets/icons';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -80,6 +81,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       {viewFeed === 'STREAM' && <StudioModule></StudioModule>}
 
+      <Pressable
+        style={styles.createPostButton}
+        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+      >
+        <AddPostIcon width={72} height={72} color={theme.colors.primary} />
+      </Pressable>
     </View>
   );
 };

@@ -27,8 +27,8 @@ export default ThemedStyleSheet((theme) => ({
     gap: Spacing.xsmall,
     // marginBottom: Spacing.small,
     height: '100%',
-    maxHeight: 130,
-    minHeight: 75,
+    maxHeight: 50,
+    minHeight: 35,
     marginLeft: 20
   },
   activeToggle: {
@@ -41,7 +41,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.background,
     padding: 2,
     borderRadius: 0,
-    height: 'auto',
+    maxHeight: 45,
   },
   toggleButtonText: {
     color: theme.colors.textPrimary,
@@ -85,9 +85,23 @@ export default ThemedStyleSheet((theme) => ({
   buttonIndicator: {
     marginRight: Spacing.xsmall,
   },
-
   filterContainer: {
-    // flexDirection: 'row',
+    flexDirection: 'row',
+    display: "flex",
+    flex: 1,
+    padding: 10,
+    margin: 10,
+    gap: 10,
+    height: "100%",
+    maxHeight: 55,
+    alignItems: 'flex-start',
+    overflowX: "scroll",
+    overflowY: "hidden",
+    overflow: "hidden",
+    scrollbarWidth: "none",
+    scrollbarHeight: "none",
+    // justifyContent:"space-between",
+    // alignItems:"center",
     // gap: Spacing.small,
     // alignItems: 'center',
   },
@@ -96,6 +110,8 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 8,
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
+    // margin: 10,
+    gap: 10
   },
   filterButtonText: {
     fontSize: 12,
@@ -111,13 +127,13 @@ export default ThemedStyleSheet((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 5,
-    marginBottom: 20,
+    marginBottom: 5,
     justifyItems: 'center',
 
   },
 
   desktopFilterContent: {
-    padding: 5,
+    padding: 10,
   },
   mobileFilterContent: {
     padding: 4
@@ -143,5 +159,13 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 12,
     fontWeight: 'bold',
     color: theme.colors.text,
+  },
+
+  createPostButton: {
+    position: 'absolute',
+    bottom: Spacing.large,
+    right: Spacing.pagePadding,
+    // backgroundColor:theme.colors.primary,
+    color: theme.colors.primary,
   },
 }));

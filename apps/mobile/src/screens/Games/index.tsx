@@ -78,14 +78,15 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
               <View style={{
                 flexDirection: "row",
                 display: "flex",
-                alignItems: "center", gap: 10,
+                alignItems: "center",
+                gap: 10,
                 // flex: 1 
               }}>
                 {option.icon && <Icon name={option.icon as IconNames} size={20} />}
-                <Text style={[styles.title, { fontSize: isDesktop ? 20 : 18 }]}>{option.title}</Text>
+                <Text style={[styles.title, { fontSize: isDesktop ? 16 : 14 }]}>{option.title}</Text>
 
               </View>
-              <Text style={[styles.description, { fontSize: isDesktop ? 20 : 12 }]}>
+              <Text style={[styles.description, { fontSize: isDesktop ? 14 : 12 }]}>
                 {option.description}
               </Text>
             </Pressable>
