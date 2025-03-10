@@ -24,6 +24,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useCashuContext } from '../../providers/CashuProvider';
 import { LoginNostrModuleComponent } from './LoginComponent';
 import { logClickedEvent } from 'src/utils/analytics';
+import { NostrProfile } from 'src/components/NostrProfile';
 
 interface ILoginNostr {
   isNavigationAfterLogin?: boolean;
@@ -261,6 +262,11 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             />
             <Text>Nostr Extension</Text>
           </View>
+{/* 
+          <View>
+
+            <NostrProfile></NostrProfile>
+          </View> */}
         </Button>
     
       </View>

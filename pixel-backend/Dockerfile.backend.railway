@@ -25,6 +25,9 @@ ARG BACKEND_HOST
 ARG CONSUMER_PORT
 ARG PRODUCTION
 
+ARG PINATA_JWT
+
+
 
 # Create .env file with environment variables
 RUN echo "REDIS_HOST=${REDIS_HOST}" >> .env && \
@@ -38,7 +41,8 @@ RUN echo "REDIS_HOST=${REDIS_HOST}" >> .env && \
     echo "BACKEND_PORT=${BACKEND_PORT}" >> .env && \
     echo "BACKEND_HOST=${BACKEND_HOST}" >> .env && \
     echo "CONSUMER_PORT=${CONSUMER_PORT}" >> .env && \
-    echo "PRODUCTION=${PRODUCTION}" >> .env
+    echo "PRODUCTION=${PRODUCTION}" >> .env && \
+    echo "PINATA_JWT=${PINATA_JWT}" >> .env
     
 RUN go build -o main ./cmd/backend/backend.go
 

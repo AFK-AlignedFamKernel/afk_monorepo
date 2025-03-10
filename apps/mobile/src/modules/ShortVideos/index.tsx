@@ -20,7 +20,7 @@ const ShortVideosModule = () => {
     minimumViewTime: 300,
   };
 
-  const videos = useGetVideos({limit: 10});
+  const videos = useGetVideos({ limit: 10 });
   const [videosEventsState, setVideosEvents] = useState<NostrEvent[]>(
     videos?.data?.pages?.flat() as NostrEvent[],
   );
@@ -62,9 +62,12 @@ const ShortVideosModule = () => {
   return (
     <View style={[styles.container, { height: WINDOW_HEIGHT }]}>
 
-      {videos?.isFetching && <ActivityIndicator />}
-
-      {videosEventsState.length > 0 ? (
+      {videos?.isFetching && !videos.isLoading && <ActivityIndicator />}
+      {/* <View style={styles.noDataContainer}>
+          <InfoIcon width={30} height={30} color={theme.colors.primary} />
+          <Text style={styles.noDataText}>No videos uploaded yet.</Text>
+        </View> */}
+      {videosEventsState.length > 0 && (
         <FlatList
           style={styles.list}
           data={videosEventsState}
@@ -72,7 +75,7 @@ const ShortVideosModule = () => {
             <View style={[styles.videoContainer, { height: WINDOW_HEIGHT, width: WINDOW_WIDTH }]}>
               <NostrVideo item={item}
                 shouldPlay={index === currentViewableItemIndex}
-                // shouldPlay={true}
+              // shouldPlay={true}
 
               // onPlay={() => {
               //   console.log("play")
@@ -100,11 +103,6 @@ const ShortVideosModule = () => {
             <RefreshControl refreshing={videos?.isFetching} onRefresh={() => videos?.refetch()} />
           }
         />
-      ) : (
-        <View style={styles.noDataContainer}>
-          <InfoIcon width={30} height={30} color={theme.colors.primary} />
-          <Text style={styles.noDataText}>No videos uploaded yet.</Text>
-        </View>
       )}
     </View>
   );
