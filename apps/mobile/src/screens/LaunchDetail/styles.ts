@@ -41,6 +41,7 @@ export default ThemedStyleSheet((theme: Theme) => ({
     gap: 10,
     paddingTop: 10,
     marginBottom: 10,
+    padding:10,
   },
   mobileContent: {
     flex: 1,

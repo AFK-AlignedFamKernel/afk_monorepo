@@ -345,6 +345,15 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             refetchCoinBalance={() => refetchShare()}
             coinBalanceLoading={sharesLoading || sharesPending}
           />
+
+          <View style={styles.mobileTabBar}>
+            <TabSelector
+              activeTab={selectedTab}
+              handleActiveTab={handleTabSelected}
+              buttons={TABS_LAUNCH}
+              addScreenNavigation={false}
+            />
+          </View>
           <ScrollView style={styles.tabContent}>
             {selectedTab == SelectedTab.LAUNCH_OVERVIEW && launch && (
               <TokenLaunchDetail
@@ -356,14 +365,18 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             )}
 
             {selectedTab == SelectedTab.LAUNCH_HOLDERS && (
-              <>
+              <View style={{
+                padding: 10,
+              }}>
                 <View style={styles.holdersTotal}>
                   <Text weight="medium" fontSize={14}>
                     Total Owner Address: {holdings?.length}
                   </Text>
+
                 </View>
                 <TokenHolderDetail holders={{ data: holdings }} loading={holdingsLoading} />
-              </>
+
+              </View>
             )}
 
             {selectedTab == SelectedTab.LAUNCH_TX && transactions && (
@@ -375,8 +388,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             )} */}
 
             {selectedTab == SelectedTab.USER_SHARE &&
-            launch?.memecoin_address &&
-            account?.address ? (
+              launch?.memecoin_address &&
+              account?.address ? (
               <UserShare
                 loading={sharesLoading}
                 shares={shares}
@@ -387,7 +400,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               !account?.address &&
               selectedTab == SelectedTab.USER_SHARE &&
               launch?.memecoin_address && (
-                <View>
+                <View
+                style={{
+                  padding: 10,
+                }}
+                >
                   <Text>Please connect</Text>
                   <Button onPress={handleConnect}>Connect</Button>
                 </View>
@@ -395,7 +412,11 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
             )}
 
             {selectedTab == SelectedTab.LAUNCH_GRAPH && (
-              <View>
+              <View
+              style={{
+                padding: 10,
+              }}
+              >
                 <IntervalSelector />
                 {graphLoading ? (
                   <Text>Loading chart data...</Text>
@@ -405,14 +426,6 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               </View>
             )}
           </ScrollView>
-          <View style={styles.mobileTabBar}>
-            <TabSelector
-              activeTab={selectedTab}
-              handleActiveTab={handleTabSelected}
-              buttons={TABS_LAUNCH}
-              addScreenNavigation={false}
-            />
-          </View>
         </ScrollView>
       ) : (
         // Web Layout (keep existing layout)
@@ -471,8 +484,8 @@ export const LaunchDetail: React.FC<LaunchDetailScreenProps> = ({ navigation, ro
               )} */}
 
               {selectedTab == SelectedTab.USER_SHARE &&
-              launch?.memecoin_address &&
-              account?.address ? (
+                launch?.memecoin_address &&
+                account?.address ? (
                 <UserShare
                   loading={sharesLoading}
                   shares={shares}
