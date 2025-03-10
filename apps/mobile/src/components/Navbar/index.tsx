@@ -7,7 +7,7 @@ import stylesheet from './styles';
 import CustomProfileMenu from '../Starknet/CustomProfile';
 import { Avatar } from '../Avatar';
 import { NostrKeyManager } from 'afk_nostr_sdk';
-import { NostrProfile } from '../NostrProfile';
+import { ProfileManagement } from '../ProfileManagement';
 interface CustomHeaderInterface {
   title?: string;
   navigation?: any;
@@ -48,7 +48,7 @@ export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) =
       <View style={styles.rightContainer}>
         {/* todo finish nostr with menu/accordion and login multi account
         add starknet wallet */}
-        <NostrProfile isModalMode={true}></NostrProfile>
+        <ProfileManagement isModalMode={true}></ProfileManagement>
         {/* <NostrProfile></NostrProfile> */}
 
 

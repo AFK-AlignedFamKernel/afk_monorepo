@@ -11,6 +11,10 @@ import { useCallback, useMemo } from 'react';
 import { Modalize } from '../Modalize';
 import { TipSuccessModalProps } from 'src/modules/TipSuccessModal';
 import { Menu } from '../Menu';
+import { Button } from '../Button';
+import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
+import { useWalletModal } from 'src/hooks/modals';
+import { WalletStarknet } from 'src/modules/WalletModal/WalletStarknet';
 interface CustomHeaderInterface {
   title?: string;
   navigation?: any;
@@ -20,7 +24,7 @@ interface CustomHeaderInterface {
 export type NostrProfileModal = Modalize;
 
 
-export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: CustomHeaderInterface) => {
+export const ProfileManagement = ({ title, navigation, showLogo, isModalMode }: CustomHeaderInterface) => {
   const styles = useStyles(stylesheet);
   const dimensions = useWindowDimensions();
   const isDesktop = React.useMemo(() => {
@@ -32,6 +36,7 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
   const nostrAccounts = NostrKeyManager.getNostrAccountsFromStorage();
   console.log('nostrAccounts', nostrAccounts);
   console.log('isOpenProfile', isOpenProfile);
+  const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(false);
 
   const handleIsOpenProfile = () => {
     if (isOpenProfile) {
@@ -42,7 +47,11 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
     setIsOpenProfile(!isOpenProfile)
 
   }
+  const walletModal = useWalletModal();
 
+  const account = useAccount()
+  const disconnect = useDisconnect()
+  const connect = useConnect()
   const [user, setUser] = React.useState(null);
   const [successModal, setSuccessModal] = React.useState<TipSuccessModalProps | null>(null);
 
@@ -67,6 +76,7 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
     return users;
   }, [nostrAccounts])
   console.log('nostrProfiles', nostrProfiles);
+
 
   const toggleAccordion = () => {
     setExpanded(!expanded);
@@ -182,8 +192,8 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
             <Text style={styles.text}>{isOpenProfile ? 'Close' : 'Open'}</Text>
           </TouchableOpacity>
           <View style={{ ...styles.modalContent, height: '50%', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <Text style={styles.text}>Accounts</Text>
-            <Animated.View style={[styles.content, { height: heightInterpolation }]}>
+            <Text style={[styles.text, { fontSize: 20, fontWeight: 'bold' }]}>Nostr Accounts</Text>
+            {/* <Animated.View style={[styles.content, { height: heightInterpolation }]}>
               {nostrProfiles && nostrProfiles?.length > 0 && nostrProfiles?.map((item: any, index) => (
                 <View key={index} style={styles.item}>
                   <Text style={styles.text}>{item?.publicKey}</Text>
@@ -191,7 +201,7 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
                   <Text style={styles.text}>{item?.username}</Text>
                 </View>
               ))}
-            </Animated.View>
+            </Animated.View> */}
             <FlatList
               style={styles.listProfile}
               data={nostrProfiles}
@@ -209,6 +219,33 @@ export const NostrProfile = ({ title, navigation, showLogo, isModalMode }: Custo
               }}
             >
             </FlatList>
+            <Text style={[styles.text, { fontSize: 20, fontWeight: 'bold' }]}>Wallets</Text>
+            <View>
+              <Button onPress={() => {
+                setIsWalletSelectOpen(!isWalletSelectOpen)
+
+                if (account?.address) {
+                  disconnect?.disconnect()
+                  // setIsWalletSelectOpen(false)
+
+                } else {
+                  // walletModal.show();
+                  // setIsWalletSelectOpen(true)
+                  // connect?.connect()
+                }
+                // connectWallet()
+              }}>
+                <Text>{account?.address ? "Disconnect" : "Connect"}</Text>
+              </Button>
+
+              {isWalletSelectOpen &&
+                <WalletStarknet></WalletStarknet>
+              }
+              {account?.address &&
+                <View>
+                  <Text>{account?.address}</Text>
+                </View>}
+            </View>
           </View>
         </View>
       </Modal>
