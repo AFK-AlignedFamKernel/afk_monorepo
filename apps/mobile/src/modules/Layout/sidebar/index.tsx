@@ -6,6 +6,7 @@ import { Image, Platform, Pressable, ScrollView, Text, View } from 'react-native
 import { Icon } from '../../../components/Icon';
 import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
 import stylesheet from './styles';
+import { ProfileManagement } from 'src/components/ProfileManagement';
 
 interface SidebarInterface {
   // navigation:MainStackNavigationProps | DrawerNavigationHelpers
@@ -275,6 +276,7 @@ const Sidebar = ({ navigation }: SidebarInterface) => {
             <Text style={[isDesktop ? styles.textItemDesktop : styles.textItemMobile]}>Login</Text>
           </Pressable>
         )}
+        <ProfileManagement isModalMode={true}></ProfileManagement>
       </View>
     </ScrollView>
   );

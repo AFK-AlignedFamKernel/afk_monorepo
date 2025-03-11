@@ -4,6 +4,8 @@ export default ThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    scrollbarWidth: 'none',
+    scrollbarHeight: 'none',
   },
   videoContainer: {
     flex: 1,
@@ -220,4 +222,8 @@ export default ThemedStyleSheet((theme) => ({
     borderRadius: 30,
     padding: 10,
   },
+  list: {
+    // scrollbarWidth: 'none',
+    // scrollbarHeight: 'none',
+  }
 }));

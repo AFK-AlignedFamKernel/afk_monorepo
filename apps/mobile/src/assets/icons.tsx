@@ -1032,3 +1032,30 @@ export const ChevronDown: React.FC<SvgProps> = (props) => (
     />
   </Svg>
 );
+
+export const FeedIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M21 4H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H3V6h18v12z"
+      fill="currentColor"
+    />
+    <Path
+      d="M6 10h12v2H6zm0-3h12v2H6zm0 6h8v2H6z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+
+export const StreamIcon: React.FC<SvgProps> = (props) => (
+  <Svg viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M21 6h-7.59l3.29-3.29L16 2l-4 4-4-4-.71.71L10.59 6H3c-1.1 0-2 .89-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.11-.9-2-2-2zm0 14H3V8h18v12z"
+      fill="currentColor"
+    />
+    <Path
+      d="M9 10v8l7-4z"
+      fill="currentColor"
+    />
+  </Svg>
+);
+

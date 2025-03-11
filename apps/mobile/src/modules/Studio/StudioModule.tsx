@@ -135,7 +135,7 @@ export const StudioModule: React.FC = () => {
             </SafeAreaView>
           </View>
         }
-        {data?.pages?.flat().length === 0 &&
+        {/* {data?.pages?.flat().length === 0 &&
           <View style={styles.container}>
             <SafeAreaView style={styles.scrollContent}>
               <RenderEmptyState
@@ -145,7 +145,7 @@ export const StudioModule: React.FC = () => {
               />
             </SafeAreaView>
           </View>
-        }
+        } */}
 
         {/* <Modal
           animationType="fade"
@@ -155,8 +155,9 @@ export const StudioModule: React.FC = () => {
         >
           <CreateEventModal handleModal={() => handleModalOpen()} />
         </Modal> */}
-        <Text style={styles.headerText}>Stream Studio Events</Text>
+        {/* <Text style={styles.headerText}>Stream Studio Events</Text> */}
         <FlatList
+          style={styles.list}
           data={data?.pages.flat()}
           renderItem={({ item }) => (
             <RenderEventCard

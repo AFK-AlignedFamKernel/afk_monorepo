@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import { Spacing, ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   connectors: {
@@ -238,7 +238,11 @@ export default ThemedStyleSheet((theme) => ({
     gap: 16,
     width: '100%',
     maxWidth: 556,
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    display:"flex",
+    flex:1,
+    justifyContent:"center",
+    alignItems:"center"
   },
   loginMethodsContainerDesktop: {
     flexWrap: 'nowrap',
@@ -316,7 +320,8 @@ export default ThemedStyleSheet((theme) => ({
     width: '100%',
   },
   importAccountBtn: {
-    width: 215,
+    // width: 215,
+    width: '100%',
     padding: 0,
     fontWeight: 500,
     fontSize: 12,
@@ -338,11 +343,12 @@ export default ThemedStyleSheet((theme) => ({
     marginBottom: 10,
   },
   noAccountBtnContainer: {
-    maxWidth: 556,
+    maxWidth: 456,
     width: '100%',
+    paddingHorizontal: 10,
   },
   noAccountBtn: {
-    width: 215,
+    width: "100%",
     padding: 0,
     fontWeight: 500,
     fontSize: 12,
@@ -350,6 +356,19 @@ export default ThemedStyleSheet((theme) => ({
     marginRight: 'auto',
     marginVertical: 16,
     textAlign: 'left',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    maxWidth: "30%",
+  },
+  // login
+  importOrCreateContainer: {
+    height: '100%',
+    maxHeight: 150,
+    flexDirection: 'row',
+    gap: 16,
+    width: '100%',
+    maxWidth: 556,
+    flexWrap: 'wrap',
+    flex:1,
+    display:"flex"
   },
 }));

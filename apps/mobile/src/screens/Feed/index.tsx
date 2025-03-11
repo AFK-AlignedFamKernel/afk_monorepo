@@ -1,16 +1,17 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useStyles, useTheme } from '../../hooks';
 import { FeedScreenProps } from '../../types';
 import stylesheet from './styles';
 import { FeedComponent } from '../../modules/Feed';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Button } from '../../components';
+import { Button, Icon } from '../../components';
 import { useState } from 'react';
 import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 import ShortVideosModule from '../../modules/ShortVideos';
 import { StudioModuleView } from '../../modules/Studio';
 import { StudioModule } from '../../modules/Studio/StudioModule';
 import { logClickedEvent } from 'src/utils/analytics';
+import { AddPostIcon } from 'src/assets/icons';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -54,16 +55,19 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
         <Button style={[styles.toggleButton, viewFeed === 'NOTES' && styles.activeToggle]} onPress={() => {
           setViewFeed('NOTES')
           logClickedEvent('Feed', "user_action", "feed_toggle")
-        }}>Feed</Button>
+        }}
+        ><Icon name="FeedIcon" size={15} style={{ marginRight: 5 }}></Icon>Feed</Button>
         <Button style={[styles.toggleButton, viewFeed === 'SHORTS' && styles.activeToggle]} onPress={() => {
           setViewFeed('SHORTS')
           logClickedEvent('Shorts', "user_action", "feed_toggle")
-        }}>Shorts</Button>
+        }}>
+          <Icon name="VideoIcon" size={15} style={{ marginRight: 5 }}></Icon>Shorts</Button>
         <Button style={[styles.toggleButton, viewFeed === 'STREAM' && styles.activeToggle]} onPress={() => {
           setViewFeed('STREAM')
           logClickedEvent('Stream', "user_action", "feed_toggle")
 
-        }}>Stream</Button>
+        }}>
+          <Icon name="StreamIcon" size={15} style={{ marginRight: 5 }}></Icon>Stream</Button>
         {/* <Button onPress={() => setViewFeed('TOKENS')}>Tokens</Button> */}
         {/* <Button style={[styles.toggleButton, viewFeed === 'VIDEOS' && styles.activeToggle]} onPress={() => setViewFeed('VIDEOS')}>Videos</Button> */}
 
@@ -77,6 +81,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       {viewFeed === 'STREAM' && <StudioModule></StudioModule>}
 
+      {/* <Pressable
+        style={styles.createPostButton}
+        onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
+      >
+        <AddPostIcon width={72} height={72} color={theme.colors.primary} />
+      </Pressable> */}
     </View>
   );
 };

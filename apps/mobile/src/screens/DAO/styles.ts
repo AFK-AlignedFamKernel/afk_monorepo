@@ -89,4 +89,7 @@ export default ThemedStyleSheet((theme) => ({
     paddingVertical: Spacing.large,
     gap: Spacing.medium,
   },
+  modal:{
+    zIndex:100
+  }
 }));
