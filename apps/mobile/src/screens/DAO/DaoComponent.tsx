@@ -34,6 +34,7 @@ export const DAOComponent: React.FC = () => {
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
+        style={styles.modal}
         onRequestClose={() => setModalVisible(false)}
       >
         <CreateDaoModal closeModal={() => setModalVisible(false)} />
