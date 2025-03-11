@@ -157,6 +157,7 @@ export const StudioModule: React.FC = () => {
         </Modal> */}
         {/* <Text style={styles.headerText}>Stream Studio Events</Text> */}
         <FlatList
+          style={styles.list}
           data={data?.pages.flat()}
           renderItem={({ item }) => (
             <RenderEventCard
