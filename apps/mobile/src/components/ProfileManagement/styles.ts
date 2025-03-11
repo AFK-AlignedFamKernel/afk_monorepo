@@ -2,7 +2,7 @@ import { Spacing, ThemedStyleSheet } from '../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {
-    width: '100%',
+    // width: '100%',
     padding: Spacing.medium,
     borderRadius: 10,
     flex: 1,
@@ -89,6 +89,9 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     height: '100%',
     width: '80%',
+    justifyContent: 'center',
+    justifySelf:"center",
+    alignSelf:"center"
     // padding: 10,
     // marginLeft: 'auto',
     // marginRight: 'auto',
@@ -103,9 +106,11 @@ export default ThemedStyleSheet((theme) => ({
     // borderBottomRightRadius: 20,
     maxHeight: '100%',
     overflow: 'hidden',
+    padding: 10,
     // paddingBottom: 20,
     // position: 'relative',
     height: '100%',
+    // maxWidth: '70%',
   },
   text: {
     color: theme.colors.text,
@@ -119,5 +124,12 @@ export default ThemedStyleSheet((theme) => ({
     justifyContent: 'space-between',
     width: '100%',
     padding: 10,
+  },
+  closeContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
   }
 }));

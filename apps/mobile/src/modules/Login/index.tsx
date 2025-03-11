@@ -1,7 +1,7 @@
 import { useAuth, useCashuStore, useNip07Extension } from 'afk_nostr_sdk';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, TextInput, View, Image, Text } from 'react-native';
+import { Platform, TextInput, View, Image, Text, Pressable } from 'react-native';
 
 import { Button, Icon } from '../../components';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
@@ -262,13 +262,29 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
             />
             <Text>Nostr Extension</Text>
           </View>
-{/* 
+
+          {/* 
           <View>
 
             <NostrProfile></NostrProfile>
           </View> */}
         </Button>
-    
+        {/* <View style={styles.importAccountBtnContainer}> */}
+        <Button
+          onPress={handleImportAccount}
+          style={[styles.loginMethodBtn, isDesktop && styles.loginMethodBtnDesktop, {
+            maxWidth: "40%"
+          }]}
+          textStyle={styles.loginMethodBtnText}
+        >
+          <TouchableOpacity onPress={handleImportAccount} style={styles.importAccountBtn}>
+            Forgot Password? Import Account
+          </TouchableOpacity>
+        </Button>
+
+        {/* </View> */}
+
+
       </View>
       <Text style={styles.passwordLabel}>Password</Text>
       <View style={styles.passwordInputContainer}>
@@ -284,11 +300,52 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       <Text style={styles.passwordInstruction}>
         It must be a combination of minimum 8 letters, numbers, and symbols.
       </Text>
-      <View style={styles.importAccountBtnContainer}>
-        <TouchableOpacity onPress={handleImportAccount} style={styles.importAccountBtn}>
-          Forgot Password? Import Account
-        </TouchableOpacity>
+
+      <View style={styles.importOrCreateContainer}>
+        {/* <View style={styles.importAccountBtnContainer}>
+          <TouchableOpacity onPress={handleImportAccount} style={styles.importAccountBtn}>
+            Forgot Password? Import Account
+          </TouchableOpacity>
+
+        </View> */}
+
+        <View style={styles.importAccountBtnContainer}>
+          <TouchableOpacity onPress={handleCreateAccount} style={styles.importAccountBtn}>
+            No account yet? Sign Up
+          </TouchableOpacity>
+        </View>
       </View>
+
+
+      {/* <View style={[
+        {
+          // flex: 1,
+          // // display: "flex",
+          // flexDirection: "row",
+          // justifyContent: "space-between",
+          // gap: 10,
+          // width: "100%",
+          // // paddingHorizontal: 10,
+          // alignItems: "flex-start",
+        },
+        styles.importOrCreateContainer,
+
+      ]}
+
+      >
+
+        <TouchableOpacity
+
+          onPress={handleCreateAccount} style={styles.noAccountBtn}>
+          No account yet? Sign Up
+        </TouchableOpacity>
+        <Pressable onPress={handleImportAccount} style={styles.importAccountBtn}>
+          Import Account
+        </Pressable>
+      </View> */}
+      {/* <View style={styles.importOrCreateContainer}> */}
+
+      {isDesktop ? <hr style={styles.divider} /> : null}
 
       <Button
         block
@@ -302,13 +359,18 @@ export const LoginNostrModule: React.FC<ILoginNostr> = ({
       >
         Log In
       </Button>
-      {isDesktop ? <hr style={styles.divider} /> : null}
 
       <View style={styles.noAccountBtnContainer}>
-        <TouchableOpacity onPress={handleCreateAccount} style={styles.noAccountBtn}>
-          No account yet? Sign Up
+        <TouchableOpacity onPress={handleImportAccount} style={styles.noAccountBtn}>
+          Import Account
         </TouchableOpacity>
+        {/* <TouchableOpacity onPress={handleImportAccount} style={styles.noAccountBtn}>
+          Forgot Password? Import Account
+        </TouchableOpacity> */}
+
       </View>
+
+
     </Auth>
   );
 };

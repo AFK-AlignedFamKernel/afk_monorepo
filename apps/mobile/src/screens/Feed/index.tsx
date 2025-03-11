@@ -81,12 +81,12 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
       {viewFeed === 'STREAM' && <StudioModule></StudioModule>}
 
-      <Pressable
+      {/* <Pressable
         style={styles.createPostButton}
         onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
       >
         <AddPostIcon width={72} height={72} color={theme.colors.primary} />
-      </Pressable>
+      </Pressable> */}
     </View>
   );
 };

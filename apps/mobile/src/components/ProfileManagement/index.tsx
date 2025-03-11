@@ -179,18 +179,23 @@ export const ProfileManagement = ({ title, navigation, showLogo, isModalMode }: 
           handleIsOpenProfile()
         }}
         style={styles.modal}
+        transparent={true}
       >
         <View
           style={styles.modalContent}
         >
 
 
-          <TouchableOpacity onPress={() => {
-            handleIsOpenProfile()
-            toggleAccordion()
-          }}>
-            <Text style={styles.text}>{isOpenProfile ? 'Close' : 'Open'}</Text>
-          </TouchableOpacity>
+
+          <View style={styles.closeContainer}>
+            <TouchableOpacity onPress={() => {
+              handleIsOpenProfile()
+              toggleAccordion()
+            }}>
+              <Icon name="CloseIcon"></Icon>  <Text style={styles.text}>{isOpenProfile ? 'Close' : 'Open'}</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={{ ...styles.modalContent, height: '50%', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Text style={[styles.text, { fontSize: 20, fontWeight: 'bold' }]}>Nostr Accounts</Text>
             {/* <Animated.View style={[styles.content, { height: heightInterpolation }]}>
