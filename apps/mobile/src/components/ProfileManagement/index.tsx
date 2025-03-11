@@ -271,7 +271,7 @@ export const ProfileManagement = ({ title, navigation, showLogo, isModalMode }: 
             <Icon name="ChevronDown" size={16} />
 
             {publicKey && (
-              <Text style={styles.text}>{publicKey?.slice(0, 8)}...{publicKey?.slice(-8)}</Text>
+              <Text style={styles.text}>{publicKey?.slice(0, 3)}...{publicKey?.slice(-5)}</Text>
             )}
           </TouchableOpacity>
 
