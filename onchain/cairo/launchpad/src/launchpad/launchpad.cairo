@@ -1698,16 +1698,16 @@ pub mod LaunchpadMarketplace {
 
             let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
             let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
-
-            let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
-                * tick_spacing.try_into().unwrap();
-
             // Full range bounds for liquidity providing
             // TODO verify the aligned bound and max used is correct
             let mut full_range_bounds = Bounds {
-                lower: i129 { mag: aligned_bound_spacing, sign: true },
-                upper: i129 { mag: aligned_bound_spacing, sign: false }
+                lower: i129 { mag: aligned_min_tick, sign: true },
+                upper: i129 { mag: aligned_max_tick, sign: false }
             };
+            // let mut full_range_bounds = Bounds {
+            //     lower: i129 { mag: aligned_bound_spacing, sign: true },
+            //     upper: i129 { mag: aligned_bound_spacing, sign: false }
+            // };
 
             // TODO check full range bounds to used
             // Create bounds ensuring they're multiples of tick spacing
