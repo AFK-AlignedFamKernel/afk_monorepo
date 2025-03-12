@@ -543,9 +543,9 @@ pub mod UnrugLiquidity {
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
-            let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let positions_address = self.positions.read();
+            // let ekubo_core_address = self.core.read();
+            // let ekubo_exchange_address = self.ekubo_exchange_address.read();
+            // let positions_address = self.positions.read();
 
             match consume_callback_data::<UnrugCallbackData>(core, data) {
                 UnrugCallbackData::UnrugLaunchCallback(params) => {
@@ -808,9 +808,9 @@ pub mod UnrugLiquidity {
 
             let ekubo_core_address = self.core.read();
             let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            let memecoin = EKIERC20Dispatcher {
-                contract_address: unrug_params.token_address.clone()
-            };
+            // let memecoin = EKIERC20Dispatcher {
+            //     contract_address: unrug_params.token_address.clone()
+            // };
 
             // let positions_ekubo = self.positions.read();
 

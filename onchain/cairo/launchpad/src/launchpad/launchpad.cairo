@@ -1349,6 +1349,14 @@ pub mod LaunchpadMarketplace {
 
             // println!("caller: {:?}", caller);
 
+            // Check supply of coin and threshold
+            // Need to be *10 the current threshold
+            let threshold_liquidity = self.threshold_liquidity.read();
+            assert(
+                initial_supply >= (threshold_liquidity * 10_u256),
+                errors::SUPPLY_COIN_BELOW_THRESHOLD
+            );
+
             // TODO finish this
             // ADD TEST CASE for Paid create token
             let is_paid_create_token_enable = self.is_paid_create_token_enable.read();
@@ -1438,6 +1446,19 @@ pub mod LaunchpadMarketplace {
             let is_coin_launched = self.is_coin_launched.read(coin_address);
             assert(!is_coin_launched, errors::POOL_COIN_ALREADY_LAUNCHED);
 
+            // Assert supply of coin compared to threshold
+            // Need to be *10 the current threshold
+            let threshold_liquidity = self.threshold_liquidity.read();
+            // Get token parameters
+            let token_to_use = self.default_token.read();
+
+            let quote_token_address = token_to_use.token_address.clone();
+            let memecoin = IERC20Dispatcher { contract_address: coin_address };
+            let total_supply = memecoin.total_supply();
+            assert(
+                total_supply >= (threshold_liquidity * 10_u256), errors::SUPPLY_COIN_BELOW_THRESHOLD
+            );
+
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
             // Price of the token and the address is set by the admin
@@ -1472,13 +1493,6 @@ pub mod LaunchpadMarketplace {
                 Option::Some(curve_type) => curve_type,
                 Option::None => BondingType::Exponential
             };
-
-            // Get token parameters
-            let token_to_use = self.default_token.read();
-
-            let quote_token_address = token_to_use.token_address.clone();
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            let total_supply = memecoin.total_supply();
 
             // Calculate supply distribution
             // AUDIT: check rounding and approximation issue

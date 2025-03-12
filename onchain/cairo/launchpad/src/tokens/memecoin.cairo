@@ -1,8 +1,7 @@
 // use afk_launchpad::tokens::erc20::{IERC20};
 // use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-use afk_launchpad::types::launchpad_types::{
-    LiquidityType, LiquidityParameters, SupportedExchanges, JediswapLiquidityParameters,
-    EkuboLiquidityParameters, EkuboPoolParameters
+use afk_launchpad::types::launchpad_types::{LiquidityType, LiquidityParameters,// SupportedExchanges, JediswapLiquidityParameters,
+// EkuboLiquidityParameters, EkuboPoolParameters
 };
 use starknet::ContractAddress;
 
@@ -126,7 +125,7 @@ pub mod Memecoin {
         LiquidityType, LiquidityParameters, // SupportedExchanges, JediswapLiquidityParameters,
         // EkuboLiquidityParameters, EkuboPoolParameters
     };
-    use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+    // use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
