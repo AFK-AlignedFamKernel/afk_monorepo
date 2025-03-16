@@ -1,98 +1,75 @@
-import { useEffect, useState } from 'react';
-
-import { LaunchDataMerged } from '../types/keys';
-import { useGetDeployToken } from './api/indexer/useDeployToken';
-import { useGetTokenLaunch } from './api/indexer/useLaunchTokens';
-import { StarknetInitializer, StarknetInitializerType, StarknetSigner, StarknetTokens, } from '@atomiqlabs/chain-starknet';
-
+import {
+    StarknetChainType,
+    StarknetInitializer,
+    StarknetInitializerType,
+    StarknetSigner,
+    StarknetTokens
+} from "@atomiqlabs/chain-starknet";
 // import { SolanaInitializer, SolanaInitializerType } from '@atomiqlabs/chain-solana';
-import { BitcoinNetwork, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, ToBTCLNSwap, } from '@atomiqlabs/sdk';
-import { Provider, RpcProvider, WalletAccount } from 'starknet';
+import { BitcoinNetwork, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, SwapperWithSigner, ToBTCLNSwap } from '@atomiqlabs/sdk';
 import { useAccount, useConnect, useProvider } from '@starknet-react/core';
+import { useEffect, useState } from 'react';
+import { Provider, RpcProvider, WalletAccount } from 'starknet';
 import { connect } from "starknetkit"
+
+const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
+const Tokens = Factory.Tokens; //Get the supported tokens for all the specified chains.
+const starknetRpc = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
+const rpcProvider = new RpcProvider({
+    nodeUrl: starknetRpc
+});
 
 export const useAtomiqLab = () => {
 
     const [walletAtomiq, setWalletAtomiq] = useState<StarknetSigner | null>(null);
     const { connect: connectStarknet } = useConnect();
     const { account } = useAccount()
-    const [starknetSwapper, setStarknetSwapper] = useState<any>();
     const [lastSwap, setLastSwap] = useState<ISwap | null | ToBTCLNSwap<never>>(null);
-    // const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
-    const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
-    // const Factory = new SwapperFactory<[SolanaInitializerType, StarknetInitializerType]>([SolanaInitializer, StarknetInitializer] as const);
-    const Tokens = Factory.Tokens as any; //Get the supported tokens for all the specified chains.
-    const solanaRpc = "https://api.mainnet-beta.solana.com";
-    const starknetRpc = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
-    const swapper = Factory.newSwapper({
-        chains: {
-            // SOLANA: {
-            //     rpcUrl: solanaRpc //You can also pass Connection object here
-            // },
-            STARKNET: {
-                // rpcUrl: provider //You can also pass Provider object here
-                rpcUrl: starknetRpc //You can also pass Provider object here
-            }
-        },
-        intermediaryUrl: "https://node3.gethopa.com:14003",
-        bitcoinNetwork: BitcoinNetwork.MAINNET //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
-    });
+
+    const [starknetSwapper, setStarknetSwapper] = useState<SwapperWithSigner<{ STARKNET: StarknetChainType }, "STARKNET">>();
 
     const handleConnect = async () => {
         //Browser, using get-starknet
         const swo = await connect({
+            modalMode: "alwaysAsk"
         });
         let wallet: StarknetSigner | null = null;
 
-        if (swo) {
-
-            const rpcProvider = new RpcProvider({
-                nodeUrl: starknetRpc
-            });
-            // wallet = new StarknetSigner(new WalletAccount(provider, swo as any));
-            wallet = new StarknetSigner(swo as any);
+        if (swo && swo?.wallet) {
+            wallet = new StarknetSigner(new WalletAccount(rpcProvider, swo.wallet));
             setWalletAtomiq(wallet);
             // setWalletAtomiq(swo);
-        }
-        // const provider = account
-        if (account) {
-
+        } else {
+            throw new Error("Tried to init swapper, but wallet is null");
         }
 
-        console.log("try init")
+        console.log("create new scraper");
         const swapper = Factory.newSwapper({
             chains: {
-                // SOLANA: {
-                //     rpcUrl: solanaRpc //You can also pass Connection object here
-                // },
                 STARKNET: {
-                    // rpcUrl: provider //You can also pass Provider object here
-                    rpcUrl: starknetRpc //You can also pass Provider object here
+                    rpcUrl: rpcProvider //You can also pass Provider object here
                 }
             },
-            bitcoinNetwork: BitcoinNetwork.MAINNET //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
+            bitcoinNetwork: BitcoinNetwork.MAINNET, //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
+            // intermediaryUrl: "https://node3.gethopa.com:14003"
+            // intermediaryUrl: "https://84-32-32-132.sslip.io:4000"
+            // intermediaryUrl: "https://161-97-73-23.sslip.io:4000"
         });
-        let initSwapper: undefined | any = undefined
 
         try {
-            console.log("try starknet swapper init")
-            const starknetSwapper = swapper.withChain<"STARKNET">("STARKNET" as never).withSigner(wallet! as never);
-            initSwapper = starknetSwapper
-            setStarknetSwapper(starknetSwapper);
-        } catch (error) {
-
-            console.log("error set starknet swapper", error)
-        }
-        try {
-            await swapper.init();
-            // await starknetSwapper?.init();
             console.log("try chain init")
+
+            await swapper.init();
+
         } catch (error) {
             console.log("error init swapper", error)
         }
 
+        const starknetSwapper = swapper.withChain<"STARKNET">("STARKNET").withSigner(wallet!);
+        setStarknetSwapper(starknetSwapper);
+
         return {
-            wallet, initSwapper, swapper
+            wallet, starknetSwapper
         };
     }
 
@@ -104,13 +81,12 @@ export const useAtomiqLab = () => {
 
         let strkSwapper = starknetSwapper;
         if (!strkSwapper) {
-
-            const { initSwapper, swapper } = await handleConnect()
-            strkSwapper = initSwapper
+            const { starknetSwapper } = await handleConnect()
+            strkSwapper = starknetSwapper
         }
+
+        // console.log("init scraper")
         const swap = await strkSwapper?.create(
-            // walletAtomiq?.account.address || account as never,
-            // StarknetTokens.ERC20_STRK?.toString() as never,
             Tokens.STARKNET.STRK,
             Tokens.BITCOIN.BTCLN,
             null as any,
@@ -118,13 +94,13 @@ export const useAtomiqLab = () => {
             _lightningInvoice
         );
         //Initiate and pay for the swap
-        await swap.commit(account as never);
+        await swap.commit();
 
         //Wait for the swap to conclude
         const result: boolean = await swap.waitForPayment();
         if (!result) {
             //Swap failed, money can be refunded
-            await swap.refund(account as never);
+            await swap.refund();
         } else {
             //Swap successful, we can get the lightning payment secret pre-image, which acts as a proof of payment
             const lightningSecret = swap.getSecret();
@@ -132,41 +108,26 @@ export const useAtomiqLab = () => {
 
     }
 
-    const handlePayLnurl = async (lnurlOrIdentifier: string, amountBn: bigint) => {
+    const handlePayLnurl = async (lnurlOrIdentifier: string, amount:number) => {
 
         console.log("starknetSwapper", starknetSwapper)
-        let strkSwapper = starknetSwapper
+        let strkSwapper:SwapperWithSigner<{STARKNET: StarknetChainType}, "STARKNET"> | undefined = starknetSwapper
         if (!strkSwapper) {
-            const { initSwapper } = await handleConnect()
-            strkSwapper = initSwapper
+            const { starknetSwapper } = await handleConnect()
+            strkSwapper = starknetSwapper
         }
         console.log("strkSwapper", strkSwapper)
-        // const swapper = Factory.newSwapper({
-        //     chains: {
-        //         // SOLANA: {
-        //         //     rpcUrl: solanaRpc //You can also pass Connection object here
-        //         // },
-        //         STARKNET: {
-        //             // rpcUrl: provider //You can also pass Provider object here
-        //             rpcUrl: starknetRpc //You can also pass Provider object here
-        //         }
-        //     },
-        //     bitcoinNetwork: BitcoinNetwork.MAINNET //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
-        // });
 
-        // await swapper.init();
-        const swap = await swapper?.create(
-            walletAtomiq as never,
-            // StarknetTokens.ERC20_STRK?.toString() as never,
+        const swap = await strkSwapper?.create(
             Tokens.STARKNET.STRK,
             Tokens.BITCOIN.BTCLN,
-            amountBn,
+            BigInt(amount),
             false,
             lnurlOrIdentifier
         );
 
         //Initiate and pay for the swap
-        const commit = await swap.commit(account as never);
+        const commit = await swap.commit();
         console.log("commit", commit)
         //Wait for the swap to conclude
 
@@ -174,7 +135,7 @@ export const useAtomiqLab = () => {
         const result: boolean = await swap.waitForPayment();
         if (!result) {
             //Swap failed, money can be refunded
-            await swap.refund(account as never);
+            await swap.refund();
         } else {
             //Swap successful, we can get the lightning payment secret pre-image, which acts as a proof of payment
             const lightningSecret = swap.getSecret();
@@ -191,11 +152,11 @@ export const useAtomiqLab = () => {
     }
 
     const helperLnurl = async (input: string) => {
-        const isLNInvoice: boolean = swapper.isValidLightningInvoice(input); //Checks if the input is lightning network invoice
-        const isLNURL: boolean = swapper.isValidLNURL(input); //Checks if the input is LNURL or lightning identifier
+        const isLNInvoice: boolean = starknetSwapper.isValidLightningInvoice(input); //Checks if the input is lightning network invoice
+        const isLNURL: boolean = starknetSwapper.isValidLNURL(input); //Checks if the input is LNURL or lightning identifier
         if (isLNURL) {
             //Get the type of the LNURL
-            const result: (LNURLPay | LNURLWithdraw | null) = await swapper.getLNURLTypeAndData(input);
+            const result: (LNURLPay | LNURLWithdraw | null) = await starknetSwapper.getLNURLTypeAndData(input);
             if (result?.type === "pay") {
                 const lnurlPayData: LNURLPay = result;
                 const minPayable: bigint = lnurlPayData.min; //Minimum payment amount in satoshis
@@ -220,13 +181,12 @@ export const useAtomiqLab = () => {
         const _amount = BigInt(amount); //Amount in BTC base units - sats
 
         //Create the swap: swapping _amount of satoshis from Bitcoin lightning network to SOL
-        const swap = await swapper.create(
-            walletAtomiq!.account.address as never,
-            StarknetTokens.ERC20_STRK?.toString() as never,
+        const swap = await starknetSwapper.create(
             Tokens.BITCOIN.BTCLN,
+            Tokens.STARKNET.STRK,
             _amount,
             _exactIn
-        ) as any;
+        );
 
         //Get the bitcoin lightning network invoice (the invoice contains pre-entered amount)
         const receivingLightningInvoice: string = swap?.getLightningInvoice();
@@ -260,4 +220,4 @@ export const useAtomiqLab = () => {
         handlePayLnurl,
         starknetSwapper
     };
-};
+}

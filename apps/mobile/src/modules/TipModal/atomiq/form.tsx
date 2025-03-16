@@ -79,13 +79,12 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
     }
 
     console.log("invoice", invoice)
-    const _lightningInvoice = "lnbc10u1pj2q0g9pp5ejs6m677m39cznpzum7muruvh50ys93ln82p4j9ks2luqm56xxlshp52r2anlhddfa9ex9vpw9gstxujff8a0p8s3pzvua930js0kwfea6scqzzsxqyz5vqsp5073zskc5qfgp7lre0t6s8uexxxey80ax564hsjklfwfjq2ew0ewq9qyyssqvzmgs6f8mvuwgfa9uqxhtza07qem4yfhn9wwlpskccmuwplsqmh8pdy6c42kqdu8p73kky9lsnl40qha5396d8lpgn90y27ltfc5rfqqq59cya";
-
-    if (!starknetSwapper) {
-      await handleConnect();
-    }
+    // if (!starknetSwapper) {
+    //   await handleConnect();
+    // }
+    // await handleConnect();
     // await handlePayInvoice(invoice?.paymentRequest)
-    await handlePayLnurl(profile?.lud16, BigInt(amount))
+    await handlePayLnurl(profile?.lud16, Number(amount))
   };
 
   return (
