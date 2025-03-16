@@ -51,6 +51,7 @@ export const useAtomiqLab = () => {
                 }
             },
             bitcoinNetwork: BitcoinNetwork.MAINNET, //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
+            // bitcoinNetwork: BitcoinNetwork.TESTNET, //or BitcoinNetwork.MAINNET - this also sets the network to use for Solana (solana devnet for bitcoin testnet) & Starknet (sepolia for bitcoin testnet)
             // intermediaryUrl: "https://node3.gethopa.com:14003"
             // intermediaryUrl: "https://84-32-32-132.sslip.io:4000"
             // intermediaryUrl: "https://161-97-73-23.sslip.io:4000"

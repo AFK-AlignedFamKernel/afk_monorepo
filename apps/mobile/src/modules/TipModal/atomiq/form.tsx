@@ -59,15 +59,21 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   const isActive = !!amount && !!token;
 
   const onTipPress = async () => {
-    if (!account.address) {
-      walletModal.show();
+    // if (!account.address) {
+    //   walletModal.show();
 
-      const result = await waitConnection();
-      if (!result) return;
-    }
+    //   const result = await waitConnection();
+    //   if (!result) return;
+    // }
 
     if (!profile?.lud16) {
       showToast({ title: "No LUD16 found", type: 'error' });
+      return;
+    }
+
+
+    if(!amount) {
+      showToast({ title: "No amount found", type: 'error' });
       return;
     }
 
