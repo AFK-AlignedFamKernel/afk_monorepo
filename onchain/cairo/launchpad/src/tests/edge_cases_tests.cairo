@@ -471,13 +471,13 @@ mod edge_cases_tests {
 
         let router_node =  RouteNode{
             pool_key: pool_key,
-            sqrt_ratio_limit: MAX_SQRT_RATIO,
+            sqrt_ratio_limit: MIN_SQRT_RATIO, // We can ignore slippage in testing, as our router is just a mock
             skip_ahead: 0,
         };
         let amount_u128 : u128 = amount_quote.try_into().unwrap();
         let token_amount = TokenAmount {
             token: erc20.contract_address, // I understand we want to sell ERC20 tok
-            amount: i129 {mag: amount_u128, sign: false}, 
+            amount: i129 {mag: amount_u128, sign: false}, // sign false as we are supplying this token
         };
 
         start_cheat_caller_address(erc20.contract_address, sender_address);
@@ -489,7 +489,7 @@ mod edge_cases_tests {
         println!("delta.amount0.mag {}", delta.amount0.mag);
         println!("delta.amount0.sign {}", delta.amount0.sign);
         println!("delta.amount1.mag {}", delta.amount1.mag);
-        println!("delta.amount1.sign {}", delta.amount1.sign);
+        println!("delta.amount1.sign {}", delta.amount1.sign); 
         
 
     }
