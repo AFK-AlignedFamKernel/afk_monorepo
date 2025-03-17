@@ -200,7 +200,8 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
 
           {amount.length > 0 && token.length > 0 ? (
             <Text color="primary" fontSize={16} weight="bold">
-              {amount} {token}
+              {amount} SATs
+              {/* {token} */}
             </Text>
           ) : (
             <Text color="primary" fontSize={16} weight="bold">
