@@ -15,6 +15,7 @@ export class NostrKeyManager {
   private static PBKDF2_ITERATIONS = 100000; // Adjust based on your security needs and performance requirements
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
   private static NOSTR_WALLET_CONNECTED = 'nostr_wallet_connected';
+  private static WALLET_CONNECTED = 'wallet_connected';
   private static NOSTR_WALLETS: {
     [key: string]: {
       secretKey: string;
@@ -57,6 +58,16 @@ export class NostrKeyManager {
 
   static setNostrWalletConnected(publicKey: string) {
     localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, publicKey);
+  }
+
+
+  static getAccountConnected() {
+    const storedPubKey = localStorage.getItem(NostrKeyManager.WALLET_CONNECTED);
+    return storedPubKey;
+  }
+
+  static setAccountConnected(account: any) {
+    localStorage.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
   }
 
   static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean, nostrProfileMetadata?: NDKUserProfile): Promise<{

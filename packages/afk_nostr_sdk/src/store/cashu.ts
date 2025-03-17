@@ -23,6 +23,7 @@ interface State {
   contacts: Contact[];
   activeBalance: number;
   hasSeedCashu: boolean;
+  seedString?: string;
 }
 
 interface Action {
@@ -44,6 +45,7 @@ interface Action {
   setMintUrl: (mintUrl: string) => void;
   setActiveBalance: (balance: number) => void;
   setHasSeedCashu: (hasSeedCashu: boolean) => void;
+  setSeedString: (seedString: string) => void;
 }
 
 export const cashuStore = createStore<State & Action>((set) => ({
@@ -60,8 +62,8 @@ export const cashuStore = createStore<State & Action>((set) => ({
   contacts: [] as Contact[],
   mintUrl: 'https://mint.minibits.cash/Bitcoin' as unknown as string,
   activeBalance: 0 as unknown as number,
-  hasSeedCashu: false as unknown as boolean,
-
+  hasSeedCashu: false as unknown as boolean,  
+  seedString: undefined as unknown as string,
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
   },
@@ -107,6 +109,9 @@ export const cashuStore = createStore<State & Action>((set) => ({
   setHasSeedCashu: (hasSeedCashu) => {
     set({hasSeedCashu});
   },  
+  setSeedString: (seedString) => {
+    set({seedString});
+  },
 }));
 
 export const useCashuStore = createBoundedUseStore(cashuStore);
