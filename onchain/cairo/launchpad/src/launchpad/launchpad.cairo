@@ -749,7 +749,7 @@ pub mod LaunchpadMarketplace {
         // Handles fees, updates pool state and user shares
         fn buy_coin_by_quote_amount(
             ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
-        ) {
+        )  -> u64 {
             // Input validation
             assert(quote_amount > 0, errors::AMOUNT_ZERO);
             let caller = get_caller_address();
@@ -889,6 +889,7 @@ pub mod LaunchpadMarketplace {
             // High security risk
             // Launch to ekubo if the liquidity raised = threshold liquidity
             // This threshold liquidity have a slippage tolrance of 2% and less protocl fees
+            let mut id = 0_u64;
             if pool.liquidity_raised >= threshold {
                 self
                     .emit(
@@ -900,7 +901,7 @@ pub mod LaunchpadMarketplace {
                     );
 
                 // Add liquidity to DEX Ekubo
-                self._add_liquidity_ekubo(coin_address);
+                let (id, _) = self._add_liquidity_ekubo(coin_address);
 
                 // TODO V2
                 // Send the creator fee amount received to the creator DAO address
@@ -925,6 +926,7 @@ pub mod LaunchpadMarketplace {
                         quote_amount: remain_quote_to_liquidity
                     }
                 );
+            id
         }
 
         // params @coin_address @coin_amount
@@ -1662,18 +1664,18 @@ pub mod LaunchpadMarketplace {
             )
                 .unwrap_syscall();
 
-            let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
+            let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
             // bound spacing calculation
             let bound_spacing: u128 = calculate_bound_mag(
-                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), starting_price
+                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick.clone()
             );
-            let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
-                starting_price, // launch_params.pool_params.bound,
-                bound_spacing.clone(), // aligned_max_tick,
-                is_token1_quote
-            );
+            // let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
+            //     starting_price, // launch_params.pool_params.bound,
+            //     bound_spacing.clone(), // aligned_max_tick,
+            //     is_token1_quote
+            // );
 
             // println!("initial_tick {}", initial_tick.mag.clone());
             // TODO

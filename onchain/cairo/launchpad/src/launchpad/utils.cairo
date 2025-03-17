@@ -293,66 +293,66 @@ pub fn calculate_aligned_bound_mag(
         aligned_bound
     }
 }
-// pub fn calculate_aligned_bound_mag(
-//     starting_price: i129, multiplier: u128, tick_spacing: u128
-// ) -> u128 {
-//     assert!(starting_price.sign, "Starting price negative");
 
-//     // Calculate initial bound_mag proportional to starting_price
-//     let mut init_bound = starting_price.mag * multiplier;
+// Function to calculate SQRT_RATIO for arbitrary price ratios
+const POW_128: u256 = 340282366920938463463374607431768211455;
+const SCALE_FACTOR: u256 = 1_000_000_000_000_000_000_000_000_000_000_u256;
+const SCALE_ROOT_FACTOR: u256 = 1_000_000_000_000_000_u256;
+const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
+/// Computes sqrt(n) in Fixed128 format (scaled by 2^128) while staying within u256 limits.
+fn sqrt_fixed128(n: u256) -> u256 {
+    let factor = POW_128;
+    let n_scaled = n * factor; // Scale input to Fixed128
 
-//     // Adjust bound_mag to align with tick_spacing
-//     let rem = init_bound % tick_spacing;
-//     if rem == 0 {
-//         init_bound
-//     } else {
-//         init_bound + (tick_spacing - rem)
-//     }
-// }
+    if n == 0 {
+        return 0; // Edge case: return 0 if input is 0
+    }
 
-// Calculate sqrt ratio with decimals precision fixed number pow(2,96)
-// calcul y / x: if token1 is quote scaled and unscaled
-// Bounding space
-// Aligned tick spacing
-// Decimals precision
-// Return sqrt_ratio
+    // Initial guess: Use n_scaled / 2 + 1
+    let mut x = n_scaled / 2 + 1;
+    
+    loop {
+        let x_new = (x + n_scaled / x) / 2; // (x + n_scaled / x) / 2
+        if x_new == x {
+            break;
+        }
+        x = x_new;
+    };
+    return x;
+}
+
+// Function to calculate the price ratio from two supplies
+fn calculate_price_ratio(supply_a: u256, supply_b: u256) -> u256 {
+    // Price ratio = (supply_a / supply_b)
+    // Since both tokens have 18 decimals, no adjustment is needed
+    return supply_a / supply_b;
+}
+
+
 pub fn calculate_sqrt_ratio(
     liquidity_raised: u256, initial_pool_supply: u256, is_token1_quote: bool
 ) -> u256 {
     let scale_factor = pow_256(10, 18);
     let decimals_precision = pow_256(2, 96);
 
-    println!("liquidity_raised {}", liquidity_raised.clone());
-    println!("initial_pool_supply {}", initial_pool_supply.clone());
-    println!("is_token1_quote {}", is_token1_quote.clone());
-    let y_x_scaled = (liquidity_raised * scale_factor) / initial_pool_supply;
-    let mut x_y = if is_token1_quote {
-        // Step 1: Scale x_y by 10^18 before taking the square root.
+    // println!("liquidity_raised {}", liquidity_raised.clone());
+    // println!("initial_pool_supply {}", initial_pool_supply.clone());
+    // println!("is_token1_quote {}", is_token1_quote.clone());
+    // let y_x_scaled = (liquidity_raised * scale_factor) / initial_pool_supply; // @audit-issue unused code
+    // let mut x_y = if is_token1_quote {
+    //     // Step 1: Scale x_y by 10^18 before taking the square root.
 
-        // (launch.liquidity_raised ) / launch.initial_pool_supply
+    //     // (launch.liquidity_raised ) / launch.initial_pool_supply
 
-        // (liquidity_raised * scale_factor) / initial_pool_supply
-        (liquidity_raised * decimals_precision) / initial_pool_supply
-        // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
-    // scale_factor)
-    } else {
-        (initial_pool_supply) / liquidity_raised
-    };
-
-    // let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
-    let mut sqrt_ratio = sqrt(x_y) * pow_256(2, 96);
-    let mut sqrt_ratio_without_decimals = sqrt(x_y);
-    let mut sqrt_ratio_without_decimals_scaled = sqrt(x_y);
-
-    println!("sqrt_ratio decimals{}", sqrt_ratio.clone());
-    println!("sqrt_ratio_without_decimals {}", sqrt_ratio_without_decimals.clone());
-    if is_token1_quote == true {
-        sqrt_ratio = sqrt_ratio_without_decimals / sqrt(scale_factor);
-        sqrt_ratio_without_decimals = sqrt_ratio_without_decimals / sqrt(scale_factor);
-        println!("sqrt_ratio after scaling {}", sqrt_ratio.clone());
-    }
-    sqrt_ratio = sqrt_ratio_without_decimals * pow_256(2, 96);
-    println!("sqrt_ratio after scaling decimals precisions {}", sqrt_ratio.clone());
+    //     // (liquidity_raised * scale_factor) / initial_pool_supply
+    //     (liquidity_raised * decimals_precision) / initial_pool_supply
+    //     // (launch.liquidity_raised * scale_factor) / (launch.initial_pool_supply *
+    // // scale_factor)
+    // } else {
+    //     initial_pool_supply * pow_256(2, 128) / liquidity_raised 
+    // };
+    let price_ratio = calculate_price_ratio(initial_pool_supply, liquidity_raised);
+    let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * pow_256(2, 64);    // println!("x_y: {}", x_y.clone());
     // if is_token1_quote == true {
     //     sqrt_ratio = sqrt(x_y * pow_256(2, 96)) * pow_256(2, 48);
     //     // Apply fixed-point scaling before sqrt

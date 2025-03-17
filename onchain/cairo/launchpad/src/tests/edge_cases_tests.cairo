@@ -12,10 +12,11 @@ mod edge_cases_tests {
     };
     // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
+    use afk_launchpad::mocks::router_lite::{IRouterLiteDispatcher, IRouterLiteDispatcherTrait, RouteNode , TokenAmount};
     use afk_launchpad::launchpad::math::{PercentageMath};
     use afk_launchpad::launchpad::utils::{
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO,
+        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_SQRT_RATIO, MIN_SQRT_RATIO, MAX_TICK_U128, MIN_TICK_U128,
         align_tick_with_max_tick_and_min_tick, calculate_bound_mag, calculate_sqrt_ratio
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
@@ -34,13 +35,15 @@ mod edge_cases_tests {
     use core::starknet::SyscallResultTrait;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
-    use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
+    use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait, GetTokenInfoResult};
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
 
     use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
+    use ekubo::types::bounds::{Bounds};
+    use ekubo::types::delta::{Delta};
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, start_cheat_caller_address,
@@ -229,20 +232,22 @@ mod edge_cases_tests {
 
     // Declare and create all contracts
     // Return sender_address, Erc20 quote and Launchpad contract
-    fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+    fn request_fixture() -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IRouterLiteDispatcher) {
         let erc20_class = declare_erc20();
         let meme_class = declare_memecoin();
         let unrug_class = declare_unrug_liquidity();
         let launch_class = declare_launchpad();
-        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class, *unrug_class)
+        let router_class = declare_router();
+        request_fixture_custom_classes(*erc20_class, *meme_class, *launch_class, *unrug_class, *router_class)
     }
 
     fn request_fixture_custom_classes(
         erc20_class: ContractClass,
         meme_class: ContractClass,
         launch_class: ContractClass,
-        unrug_class: ContractClass
-    ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
+        unrug_class: ContractClass,
+        router_class: ContractClass,
+    ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IRouterLiteDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(
             erc20_class,
@@ -280,9 +285,12 @@ mod edge_cases_tests {
             THRESHOLD_MARKET_CAP,
             unrug_liquidity.contract_address,
         );
+        let router = deploy_router(router_class, EKUBO_CORE());
         start_cheat_caller_address(launchpad.contract_address, OWNER());
-        (sender_address, erc20, launchpad)
+        (sender_address, erc20, launchpad, router)
     }
+
+   
 
     fn deploy_unrug_liquidity(
         class: ContractClass,
@@ -372,6 +380,17 @@ mod edge_cases_tests {
         declare("Memecoin").unwrap().contract_class()
     }
 
+    fn declare_router() -> @ContractClass {
+        declare("RouterLite").unwrap().contract_class()
+    }
+
+    fn deploy_router(class: ContractClass, ekubo_core: ContractAddress) -> IRouterLiteDispatcher{
+        let mut calldata = array![];
+        Serde::serialize(@ekubo_core, ref calldata);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        IRouterLiteDispatcher { contract_address }
+    }
+
     fn deploy_erc20(
         class: ContractClass,
         name: felt252,
@@ -431,6 +450,49 @@ mod edge_cases_tests {
         launchpad.sell_coin(token_address, amount_quote);
     }
 
+    fn perform_swap(router: IRouterLiteDispatcher,
+        erc20: IERC20Dispatcher,
+        memecoin: IERC20Dispatcher,
+        amount_quote: u256,
+        sender_address: ContractAddress){
+
+        let fee_percent = 0xc49ba5e353f7d00000000000000000;
+        let tick_spacing = 60_u128;
+        
+        let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address); 
+
+        let pool_key = PoolKey {
+            token0: token0,
+            token1: token1,
+            tick_spacing: tick_spacing,
+            fee: fee_percent,
+            extension: 0.try_into().unwrap(),   
+        };
+
+        let router_node =  RouteNode{
+            pool_key: pool_key,
+            sqrt_ratio_limit: MAX_SQRT_RATIO,
+            skip_ahead: 0,
+        };
+        let amount_u128 : u128 = amount_quote.try_into().unwrap();
+        let token_amount = TokenAmount {
+            token: erc20.contract_address, // I understand we want to sell ERC20 tok
+            amount: i129 {mag: amount_u128, sign: false}, 
+        };
+
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        erc20.transfer(router.contract_address, amount_quote);
+        stop_cheat_caller_address(erc20.contract_address);
+
+        // Tokens will remain in router but it is enough for this test
+        let delta: Delta = router.swap(router_node, token_amount);
+        println!("delta.amount0.mag {}", delta.amount0.mag);
+        println!("delta.amount0.sign {}", delta.amount0.sign);
+        println!("delta.amount1.mag {}", delta.amount1.mag);
+        println!("delta.amount1.sign {}", delta.amount1.sign);
+        
+
+    }
     // TODO
     // TEST WITH SEVERAL USER
     // #[test]
@@ -530,6 +592,7 @@ mod edge_cases_tests {
     //         quote'
     //     );
     // }
+
 
     // Verify all supply edge cases possible for total supply of a token
     // Can variate with the threshold liquidity selected
@@ -699,14 +762,143 @@ mod edge_cases_tests {
     //     'reserve too low quote'
     // );
     // assert(pool_price.liquidity == launch.liquidity_raised, 'wrong liquidity');
+    
+        let min_tick: u128 = MIN_TICK_U128;
+        let max_tick: u128 = MAX_TICK_U128;
+
+        let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
+        let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
+        let mut full_range_bounds = Bounds {
+            lower: i129 { mag: aligned_min_tick, sign: true },
+            upper: i129 { mag: aligned_max_tick, sign: false }
+        };
+        let initial_position :  GetTokenInfoResult = position_dispatcher.get_token_info(697963, pool_key, full_range_bounds);
+        println!("Amount0 {:?}", initial_position.amount0);
+        println!("Amount1 {:?}", initial_position.amount1);
+        let position_price = initial_position.pool_price;
+        assert(position_price.sqrt_ratio == pool_price.sqrt_ratio, 'wrong sqrt ratio');
+        assert(position_price.tick.mag == pool_price.tick.mag, 'wrong tick');
+        assert(position_price.tick.sign == pool_price.tick.sign, 'wrong sign');
+        assert(initial_position.liquidity == liquidity, 'wrong liquidity');
     }
 
+    #[test]
+    #[fork("Mainnet")]
+    fn test_one_position_with_swap() {
+        println!("test_buy_coin_with_different_supply_linear");
+        let (sender, erc20, launchpad, router) = request_fixture();
+        let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
+
+        let mut token_addresses: Array<ContractAddress> = array![];
+        println!("get supplies to test");
+        let init_supplies = test_get_init_supplies();
+
+        let mut i = 0;
+
+        start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+        while i < 1 {
+            println!(
+                "linear init_supply in loop test_buy_coin_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
+            // println!("i {:?}", i.clone());
+
+            // let total_supply:u256 = *init_supplies.at(i);
+            let token_address = launchpad
+                .create_and_launch_token(
+                    symbol: SYMBOL(),
+                    name: NAME(),
+                    initial_supply: *init_supplies.at(i),
+                    // contract_address_salt: SALT(),
+                    contract_address_salt: i
+                        .try_into()
+                        .unwrap(), // find way to predine below quote token
+                    // contract_address_salt: (i.try_into().unwrap() / pow_256(10,
+                    // 18)).try_into().unwrap(),
+                    is_unruggable: false,
+                    bonding_type: BondingType::Linear,
+                    creator_fee_percent: MID_FEE_CREATOR,
+                    creator_fee_destination: RECEIVER_ADDRESS()
+                );
+
+            token_addresses.append(token_address.clone());
+
+            let memecoin = IERC20Dispatcher { contract_address: token_address };
+
+            // println!("buy threshold liquidity");
+            // println!("buy threshold liquidity {:?}", THRESHOLD_LIQUIDITY/2_u256);
+            run_buy_by_amount(
+                launchpad,
+                quote_token,
+                memecoin,
+                THRESHOLD_LIQUIDITY / 2_u256,
+                token_address,
+                OWNER(),
+            );
+            // let balance_quote_launch = quote_token.balance_of(launchpad.contract_address);
+
+            // // Sell
+            let share_user = launchpad
+                .get_share_of_user_by_contract(sender.clone(), token_address.clone());
+
+            let amount_owned = share_user.amount_owned.try_into().unwrap();
+            // let amount_owned = share_user.amount_owned;
+            println!("amount_owned {:?}", amount_owned.clone());
+
+            start_cheat_caller_address(launchpad.contract_address, sender.clone());
+            run_sell_by_amount(
+                launchpad, quote_token, memecoin, amount_owned, token_address, sender.clone(),
+            );
+
+            // println!("balance quote in loop {:?}", balance_quote_launch);
+
+            // Last buy before launch
+
+            let mut liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
+            println!("liquidity_raised before last {:?}", liquidity_raised);
+
+            let remain_liquidity = THRESHOLD_LIQUIDITY - liquidity_raised;
+
+            println!("remain_liquidity {:?}", remain_liquidity);
+
+            println!("BUY last remain_liquidity {:?}", remain_liquidity);
+
+            run_buy_by_amount(
+                launchpad, quote_token, memecoin, remain_liquidity, token_address, OWNER(),
+            );
+            println!(
+                "linear check LP init_supply in loop test_buy_coin_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
+
+            liquidity_raised = launchpad.get_coin_launch(token_address).liquidity_raised;
+            println!("liquidity_raised {:?}", liquidity_raised);
+
+            println!("test_ekubo_lp");
+
+            // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
+            test_ekubo_lp(token_address, erc20.contract_address, launchpad, *init_supplies.at(i));
+
+            println!("test_ekubo_lp_end");
+
+            println!(
+                "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
+                init_supplies.at(i).clone()
+            );
+            i += 1;
+            
+            perform_swap(router, erc20, memecoin, 10_u256 * pow_256(10, 18), OWNER());
+        };
+        // start_cheat_caller_address(launchpad.contract_address, OWNER());
+
+    }
 
     #[test]
     #[fork("Mainnet")]
     fn test_end_linear_with_different_supply() {
         println!("test_buy_coin_with_different_supply_linear");
-        let (sender, erc20, launchpad) = request_fixture();
+        let (sender, erc20, launchpad, router) = request_fixture();
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
         let mut token_addresses: Array<ContractAddress> = array![];
@@ -807,6 +999,7 @@ mod edge_cases_tests {
                 init_supplies.at(i).clone()
             );
             i += 1;
+
         };
         // start_cheat_caller_address(launchpad.contract_address, OWNER());
 
@@ -816,7 +1009,7 @@ mod edge_cases_tests {
     #[fork("Mainnet")]
     fn test_end_exp_with_different_supply() {
         println!("test_buy_coin_with_different_supply_exp");
-        let (sender, erc20, launchpad) = request_fixture();
+        let (sender, erc20, launchpad, router) = request_fixture();
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
         let mut token_addresses: Array<ContractAddress> = array![];
         let init_supplies = test_get_init_supplies();
