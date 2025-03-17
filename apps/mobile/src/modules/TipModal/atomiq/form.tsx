@@ -2,7 +2,7 @@ import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { useAccount } from '@starknet-react/core';
 import { useLN, useProfile } from 'afk_nostr_sdk';
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { CallData, uint256 } from 'starknet';
 
 import { Avatar, Button, Input, Modalize, Picker, Text } from '../../../components';
@@ -59,53 +59,69 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
 
   const { handlePayInvoice, handleConnect, handlePayLnurl, starknetSwapper } = useAtomiqLab();
   const { showDialog, hideDialog } = useDialog();
+  const [isLoading, setIsLoading] = useState(false);
 
   const isActive = !!amount && !!token;
 
   const onTipPress = async () => {
-    // if (!account.address) {
-    //   walletModal.show();
+    try {
+      // if (!account.address) {
+      //   walletModal.show();
 
-    //   const result = await waitConnection();
-    //   if (!result) return;
-    // }
+      //   const result = await waitConnection();
+      //   if (!result) return;
+      // }
 
-    if (!profile?.lud16) {
-      showToast({ title: "No LUD16 found", type: 'error' });
-      return;
-    }
+      if (!profile?.lud16) {
+        showToast({ title: "No LUD16 found", type: 'error' });
+        return;
+      }
 
 
-    if (!amount) {
-      showToast({ title: "No amount found", type: 'error' });
-      return;
-    }
+      if (!amount) {
+        showToast({ title: "No amount found", type: 'error' });
+        return;
+      }
+      setIsLoading(true)
 
-    const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
 
-    if (!invoice?.paymentRequest) {
-      showToast({ title: "Invoice not found", type: 'error' });
-      return;
-    }
+      const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
 
-    console.log("invoice", invoice)
-    // if (!starknetSwapper) {
-    //   await handleConnect();
-    // }
-    // await handleConnect();
-    // await handlePayInvoice(invoice?.paymentRequest)
-    const res = await handlePayLnurl(profile?.lud16, Number(amount))
+      if (!invoice?.paymentRequest) {
+        showToast({ title: "Invoice not found", type: 'error' });
+        return;
+      }
 
-    console.log("res", res)
-    if (res.success && res?.lightningSecret) {
-      setPreimage(res.lightningSecret)
-      setSuccessAction(res.successAction)
-      setSuccessUrl(res.successUrl)
+      console.log("invoice", invoice)
+      // if (!starknetSwapper) {
+      //   await handleConnect();
+      // }
+      // await handleConnect();
+      // await handlePayInvoice(invoice?.paymentRequest)
+      showToast({ title: "Paying invoice in process", type: 'info' });
+      const res = await handlePayLnurl(profile?.lud16, Number(amount))
 
+      console.log("res", res)
+      if (res.success && res?.lightningSecret) {
+        setPreimage(res.lightningSecret)
+        setSuccessAction(res.successAction)
+        setSuccessUrl(res.successUrl)
+
+        showToast({
+          title: "Tip sent",
+          type: "success"
+        })
+      }
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
       showToast({
-        title: "Tip sent",
-        type: "success"
+        title: "Error",
+        type: "error"
       })
+    }
+    finally {
+      setIsLoading(false)
     }
   };
 
@@ -207,8 +223,8 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
       </View>
 
       <View style={styles.submitButton}>
-        <Button variant="secondary" disabled={!isActive} onPress={onTipPress}>
-          Tip
+        <Button variant="secondary" disabled={!isActive || isLoading} onPress={onTipPress}>
+          {isLoading ? <ActivityIndicator /> : "Tip"}
         </Button>
       </View>
 
