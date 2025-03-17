@@ -6,3 +6,4 @@ export {useTheme} from './useTheme';
 export {useTips} from './useTips';
 export {useWaitConnection} from './useWaitConnection';
 export {useWindowDimensions} from './useWindowDimensions';
+export {useAtomiqLab} from './atomiqlab';

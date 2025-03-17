@@ -1,13 +1,10 @@
 import {Platform} from 'react-native';
 
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '../../../styles';
 
 export default ThemedStyleSheet((theme) => ({
   modal: {
     paddingBottom: Spacing.xxlarge,
-    scrollbarWidth: 'none',
-    scrollbarHeight: 'none',
-    // width:Dimensions.get("window").width >= 1024 ? 300 : "100%",
   },
 
   header: {
@@ -110,36 +107,5 @@ export default ThemedStyleSheet((theme) => ({
 
   submitButton: {
     paddingTop: Spacing.xlarge,
-  },
-
-  option: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: theme.colors.primary,
-    borderRadius: 20,
-    color: theme.colors.textLight,
-  },
-
-  optionsContentContainer: {
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    flexDirection: 'row',
-    rowGap: 3,
-    gap: 3,
-    columnGap: 15,
-  },
-  optionsContainer: {
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-    flexDirection: 'row',
-    rowGap: 3,
-    gap: 3,
-    columnGap: 3,
-  },
-  selected: {
-    backgroundColor: theme.colors.primary,
-    color: theme.colors.text,
   },
 }));

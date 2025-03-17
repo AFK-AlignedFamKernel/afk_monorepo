@@ -20,7 +20,6 @@
     "@apibara/starknet": "2.1.0-beta.6",
     "apibara": "2.1.0-beta.6",
     "drizzle-orm": "^0.37.0",
-    "indexer-v2": "link:",
     "indexer-v2-db": "workspace:*",
     "starknet": "^6.11.0",
     "viem": "^2.22.9",
